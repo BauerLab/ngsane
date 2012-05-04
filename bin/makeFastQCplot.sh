@@ -11,7 +11,7 @@ number=`ls -a $SOURCE/*read1*/Images/per_base_quality.png | wc -l`
 let size=$number*2
 
 echo """\documentclass{article}
-\usepackage[margin=0.3in, paperwidth=5.5in, paperheight=$size in]{geometry}
+\usepackage[margin=0.3in, paperwidth=8.5in, paperheight=$size in]{geometry}
 \usepackage{graphicx}
 
 
@@ -51,7 +51,7 @@ echo "\end{document}" >>$LATEX
 
 
 cd $OUTDIR
-pdflatex ${OUTFILE/pdf/tex}
+/old_tools/new_apps/texlive/2012/bin/x86_64-linux/pdflatex ${OUTFILE/pdf/tex}
 rm ${OUTFILE/pdf/aux}
 rm ${OUTFILE/pdf/log}
 #rm ${OUTFILE/pdf/tex}

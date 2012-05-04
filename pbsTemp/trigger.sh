@@ -86,9 +86,10 @@ if [ -n "$fastQC" ]
 then
 
     echo "********* $TASKFASTQC"
-    MAX=24
+    MAX=16
     
     if [ ! -d $QOUT/$TASKFASTQC ]; then mkdir $QOUT/$TASKFASTQC; fi
+    if [ ! -d $OUT/runStats ]; then mkdir $OUT/runStats; fi
     if [ -d $OUT/runStats/$TASKFASTQC ]; then 
 	rm -r $OUT/runStats/$TASKFASTQC/
     fi
@@ -96,18 +97,18 @@ then
     
     NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
     for d in ${DIR[@]}; do
-	FILES=$FILES" "$( ls fastq/$d/*$FASTQ )
+	FILES=$FILES" "$( ls $OUT/fastq/$d/*$FASTQ )
     done
 
-echo $FILES
+    echo $FILES
 
     CPUS=`echo $FILES | wc -w`
     if [ "$CPUS" -gt "$MAX" ]; then echo "reduce to $MAX CPUs"; CPUS=$MAX; fi
      
     # run fastQC
     if [ -n "$ARMED" ]; then
-	qsub $PRIORITY -j y -o $QOUT/$TASKFASTQC/$NAME.out -cwd -b y -N $TASKFASTQC"_"$NAME -pe mpich $CPUS -l vf=500K \
-	    $FASTQC --nogroup -t $CPUS --outdir $OUT/runStats/$TASKFASTQC `echo $FILES`
+	$BINQSUB -j oe -o $QOUT/$TASKFASTQC/$NAME.out -w $(pwd) -N $TASKFASTQC"_"$NAME -l nodes=1:ppn=1 -l vmem=10G -l walltime=2:00:00 \
+	    -command "$FASTQC --nogroup -t $CPUS --outdir $OUT/runStats/$TASKFASTQC `echo $FILES`"
     fi
 
 fi
@@ -239,7 +240,7 @@ if [ -n "$RUNMAPPINGBWA" ]
 then
 
     echo "********* $TASKBWA"
-    CPUS=32
+    CPUS=16
 
     if [ ! -d $QOUT/$TASKBWA ]; then mkdir $QOUT/$TASKBWA; fi
 
@@ -261,10 +262,10 @@ then
 	#Sumit (ca. 30 min on AV 1297205 reads) note ${dir/_seqs/} is just a prefix for the
 	# readgroup name -l h_rt=03:00:00  -pe mpich 10
 	if [ -n "$ARMED" ]; then
-	   qsub $PRIORITY -j y -o $QOUT/$TASKBWA/$dir'_'$name'.out' -cwd -b y -pe mpich $CPUS \
-		-l h_vmem=12G -N $TASKBWA'_'$dir'_'$name -l vf=500K \
-		$HISEQINF/pbsTemp/bwa.sh $BWAADDPARM -k $HISEQINF -t $CPUS -f $f -r $FASTA -o $OUT/$dir/$TASKBWA \
-		--rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi $dir --fastqName $FASTQ -R $SEQREG
+	   $BINQSUB -j oe -o $QOUT/$TASKBWA/$dir'_'$name'.out' -w $(pwd) -l nodes=1:ppn=16 \
+		-l vmem=7G -N $TASKBWA'_'$dir'_'$name -l walltime=3:00:00 \
+		-command "$HISEQINF/pbsTemp/bwa.sh $BWAADDPARM -k $HISEQINF -t $CPUS -f $f -r $FASTA -o $OUT/$dir/$TASKBWA \
+		--rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi $dir --fastqName $FASTQ -R $SEQREG"
 
 	fi
 

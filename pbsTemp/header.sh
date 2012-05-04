@@ -1,16 +1,18 @@
 
 
 
+BINQSUB=/data/noflush/bau04c/SeqAna/apps/prod/seqaninf/bin/myqsub
 BWA=/data/noflush/bau04c/SeqAna/apps/prod/bwa_git/bwa
-SAMTOOLS=/data/noflush/bau04c/SeqAna/apps/prod/samtools_svn/
+SAMTOOLS=/data/noflush/bau04c/SeqAna/apps/prod/samtools_svn/samtools
 IGVTOOLS=/data/noflush/bau04c/SeqAna/apps/prod/IGVTools/igvtools.jar
-PICARD=/data/noflush/bau04c/SeqAna/apps/prod/Picard_svn/
+PICARD=/data/noflush/bau04c/SeqAna/apps/prod/Picard_svn/dist/
+SAMSTAT=/data/noflush/bau04c/SeqAna/apps/dev/samstat/src/samstat
 GATKHOME=/data/noflush/bau04c/SeqAna/apps/prod/gatk_git
 GATKJAR=$GATKHOME/dist/
 RSCRIPT=/apps/R/2.14.1/bin/Rscript # module load R
 FASTQC=/data/noflush/bau04c/SeqAna/apps/prod/FastQC/fastqc
 FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
-TMP="/clusterdata/hiseq_apps/tmp/"
+TMP=$TMPDIR
 VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
 BEDTOOLS="/clusterdata/hiseq_apps/bin/freeze001/BEDTools-Version-2.11.2/bin/"

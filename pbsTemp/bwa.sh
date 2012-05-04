@@ -51,6 +51,8 @@ exit
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
+export PATH=$PATH:$SAMTOOLS
+
 #DEFAULTS
 THREADS=1
 EXPID="exp"           # read group identifier RD ID
@@ -103,6 +105,8 @@ done
 #PROGRAMS
 . $HISEQINF/pbsTemp/header.sh
 if [ -n "$FASTQNAME" ]; then FASTQ=$FASTQNAME ; fi
+
+module load R
 
 n=`basename $f`
 
@@ -265,6 +269,9 @@ GENOME=$(echo $FASTA| sed 's/.fasta/.genome/' | sed 's/.fa/.genome/' )
 java -Xmx1g -jar $IGVTOOLS count $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam.cov.tdf} $GENOME
 
+
+echo "********* samstat"
+$SAMSTAT $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
 
 echo ">>>>> readmapping with BWA - FINISHED"
 echo ">>>>> enddate "`date`

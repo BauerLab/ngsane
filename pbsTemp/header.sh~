@@ -1,21 +1,21 @@
 
 
 
+BINQSUB=/data/noflush/bau04c/SeqAna/apps/prod/seqaninf/bin/myqsub
 BWA=/data/noflush/bau04c/SeqAna/apps/prod/bwa_git/bwa
-SAMTOOLS=/data/noflush/bau04c/SeqAna/apps/prod/samtools_svn/
+SAMTOOLS=/data/noflush/bau04c/SeqAna/apps/prod/samtools_svn/samtools
 IGVTOOLS=/data/noflush/bau04c/SeqAna/apps/prod/IGVTools/igvtools.jar
 PICARD=/data/noflush/bau04c/SeqAna/apps/prod/Picard_svn/
 GATKHOME=/data/noflush/bau04c/SeqAna/apps/prod/gatk_git
 GATKJAR=$GATKHOME/dist/
-RSCRIPT="/clusterdata/hiseq_apps/bin/freeze001/R-2.13.1/bin/Rscript"
-FASTQC="/clusterdata/hiseq_apps/bin/devel/FastQC/fastqc"
+RSCRIPT=/apps/R/2.14.1/bin/Rscript # module load R
+FASTQC=/data/noflush/bau04c/SeqAna/apps/prod/FastQC/fastqc
 FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
-TMP="/clusterdata/hiseq_apps/tmp/"
-DINDELHOME="/clusterdata/hiseq_apps/bin/freeze001/dindel"
+TMP=$TMPDIR
 VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
 BEDTOOLS="/clusterdata/hiseq_apps/bin/freeze001/BEDTools-Version-2.11.2/bin/"
-IMGMAGCONVERT="/usr/bin/convert" # imageMagick
+IMGMAGCONVERT=/usr/bin/convert # imageMagick
 ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
 
 TOPHAT="/clusterdata/hiseq_apps/bin/freeze001/tophat-1.3.2.Linux_x86_64/tophat"
