@@ -18,7 +18,7 @@ echo "Last modified "`date` >$SUMMARYTMP
 
 if [ -n "$fastQC" ]; then
     echo "<h2>Read biases (FASTQC)</h2>">>$SUMMARYTMP
-    $HISEQINF/bin/makeFastQCplot.sh $(pwd)/runStats/fastQC/ $(pwd)/runStats/ fastQCSummary.pdf > /dev/null #2>&1
+    $HISEQINF/bin/makeFastQCplot.sh $(pwd)/runStats/fastQC/ $(pwd)/runStats/ fastQCSummary.pdf $CONFIG > /dev/null #2>&1
     echo "<table><tr><td valign=top>" >>$SUMMARYTMP
     for f in $( ls runStats/fastQC/*.zip ); do
 	n=`basename $f`

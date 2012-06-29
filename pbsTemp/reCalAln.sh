@@ -41,6 +41,9 @@ if [ ! $# -gt 4 ]; then usage ; fi
 
 #DEFAULTS
 THREADS=1
+#JAVAPARAMS="-Xmx"$MEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
+module load R
+module load jdk/1.7.0_03
 
 #INPUTS
 while [ "$1" != "" ]; do
@@ -61,6 +64,8 @@ done
 
 #PROGRAMS
 . $HISEQINF/pbsTemp/header.sh
+export PATH=$PATH:$RSCRIPT
+
 
 n=`basename $f`
 
@@ -103,23 +108,23 @@ f2=${f/$TASKBWA/$TASKRCA}
 
 echo "********* realignment"
 echo "********* find intervals to improve"
-java -Xmx4g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
+java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
     -T RealignerTargetCreator \
     -I $f \
     -R $FASTA \
     -o $f2.intervals \
-    -B:dbsnp,vcf $DBROD 
-#    -nt $THREADS
+    -known $DBROD \
+    -nt $THREADS
 
 echo "********* realine them"
-java -Xmx12g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
+java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
     -T IndelRealigner \
     -I $f \
     -R $FASTA \
     -targetIntervals $f2.intervals \
     --out ${f2/bam/real.bam} \
-    -B:dbsnp,vcf $DBROD \
-    -compress 0
+    -known $DBROD \
+    -compress 0 
 #    -nt $THREADS
 
 # /reCalAln/name.asd.bam /reCalAln/name.asd.real.bam
@@ -137,22 +142,22 @@ $SAMTOOLS index $f3
 
 echo "********* recalibrating"
 echo "********* counting covariantes" 
-java -Xmx4g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
+java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
     -T CountCovariates \
     -R $FASTA \
-    -B:dbsnp,vcf $DBROD \
+    -knownSites $DBROD \
     -I $f3 \
     -dcov 1000 \
     -cov ReadGroupCovariate \
     -cov QualityScoreCovariate \
     -cov CycleCovariate \
     -cov DinucCovariate \
-    -recalFile ${f3/.bam/.covar.csv} 
-#    -nt $THREADS
+    -recalFile ${f3/.bam/.covar.csv} \
+    -nt $THREADS
 
 
 echo "********* change score"
-java -Xmx4g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
+java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
     -T TableRecalibration \
     -R $FASTA \
     -I $f3 \
@@ -170,30 +175,30 @@ echo "********* counting covariantes after recalibration"
 java -Xmx16g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
     -T CountCovariates \
     -R $FASTA \
-    -B:dbsnp,vcf $DBROD \
+    -knownSites $DBROD \
     -I ${f3/.bam/.recal.bam} \
     -dcov 1000 \
     -cov ReadGroupCovariate \
     -cov QualityScoreCovariate \
     -cov CycleCovariate \
     -cov DinucCovariate \
-    -recalFile ${f3/.bam/.recal.covar.csv} 
-#    -nt $THREADS
+    -recalFile ${f3/.bam/.recal.covar.csv} \
+    -nt $THREADS
 #    --default_platform illumina
 
 echo "********* plotting both"
 java -Xmx4g -jar $GATKJAR/AnalyzeCovariates.jar \
     -recalFile ${f3/.bam/.covar.csv} \
     -outputDir $OUT/GATKorig/$n \
-    -Rscript $RSCRIPT \
-    -resources $GATKHOME/R/ \
     -ignoreQ 5
+
+#    -Rscript $RSCRIPT \
+#    -resources $GATKHOME/R/ \
+
 
 java -Xmx4g -jar $GATKJAR/AnalyzeCovariates.jar \
     -recalFile ${f3/.bam/.recal.covar.csv} \
     -outputDir $OUT/GATKrcal/$n  \
-    -Rscript $RSCRIPT \
-    -resources $GATKHOME/R/ \
     -ignoreQ 5
 
 

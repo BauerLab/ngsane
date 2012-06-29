@@ -31,6 +31,7 @@ required:
 
 options:
   -t | --threads <nr>       number of CPUs to use (default: 1)
+  -m | --memory <nr>        memory available (default: 2)
   -i | --rgid <name>        read group identifier RD ID (default: exp)
   -l | --rglb <name>        read group library RD LB (default: qbi)
   -p | --rgpl <name>        read group platform RD PL (default: illumna)
@@ -55,6 +56,7 @@ export PATH=$PATH:$SAMTOOLS
 
 #DEFAULTS
 THREADS=1
+MEMORY=2
 EXPID="exp"           # read group identifier RD ID
 LIBRARY="qbi"         # read group library RD LB
 PLATFORM="illumina"   # read group platform RD PL
@@ -65,11 +67,13 @@ NOMAPPING=0
 FASTQNAME=""
 QUAL="" # standard Sanger
 
+
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; HISEQINF=$1 ;; # location of the HiSeqInf repository
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
+	-m | --memory )         shift; MEMORY=$1 ;; # memory used
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
         -o | --outdir )         shift; OUT=$1 ;; # output dir
@@ -85,11 +89,12 @@ while [ "$1" != "" ]; do
 	--noMapping )           NOMAPPING=1;;
 	--oldIllumina )         QUAL="-S";;   # old illumina encoding 1.3+
         -h | --help )           usage ;;
-        * )                     usage
+        * )                     echo "don't understand "$1
     esac
     shift
 done
 
+JAVAPARAMS="-Xmx"$MEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
 
 #HISEQINF=$1   # location of the HiSeqInf repository
 #THREADS=$2    # number of CPUs to use
@@ -107,11 +112,12 @@ done
 if [ -n "$FASTQNAME" ]; then FASTQ=$FASTQNAME ; fi
 
 module load R
+module load jdk/1.7.0_03
 
 n=`basename $f`
 
 # delete old bam file
-if [ -e $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi
+#if [ -e $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi
 if [ -e $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats; fi
 if [ -e $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl; fi
 
@@ -141,20 +147,10 @@ then
     echo "********* PAIRED READS"
     $BWA aln $QUAL -t $THREADS $FASTA $f > $OUT/${n/$FASTQ/sai}
     $BWA aln $QUAL -t $THREADS $FASTA ${f/$READONE/$READTWO} > $OUT/${n/$READONE.$FASTQ/$READTWO.sai}
-
-    #TODO INCLUDE
-    #-r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY\tPU:$UNIT" \
     $BWA sampe $FASTA $OUT/${n/$FASTQ/sai} $OUT/${n/$READONE.$FASTQ/$READTWO.sai} \
 	-r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
 	$f ${f/$READONE/$READTWO} >$OUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
 
-#   $BWA sampe $FASTA $OUT/${n/$FASTQ/sai} $OUT/${n/$READONE.$FASTQ/$READTWO.sai} \
-#	-i $EXPID \
-#	-m $FULLSAMPLEID \
-#	-p $PLATFORM \
-#	-l $LIBRARY \
-#	$f ${f/$READONE/$READTWO} >$OUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
-    
     rm $OUT/${n/$FASTQ/sai}
     rm $OUT/${n/$READONE.$FASTQ/$READTWO.sai}
     fi
@@ -197,11 +193,9 @@ if [ "$DOBAM" = 0 ]; then
     fi
 fi
 
-
 # continue for normal bam file conversion
 echo "********* sorting and bam-conversion"
 $SAMTOOLS view -bt $FASTA.fai $OUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | $SAMTOOLS sort - $OUT/${n/'_'$READONE.$FASTQ/.ash}
-
 
 #TODO look at samtools for rmdup
 #val string had to be set to LENIENT to avoid crash due to a definition dis-
@@ -210,8 +204,9 @@ $SAMTOOLS view -bt $FASTA.fai $OUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | $SAMTOOLS
 echo "********* mark duplicates"
 if [ ! -e $OUT/metrices ]; then mkdir $OUT/metrices ; fi
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
+echo $THISTMP
 mkdir $THISTMP
-java -Xmx4g -jar $PICARD/MarkDuplicates.jar \
+java $JAVAPARAMS -jar $PICARD/MarkDuplicates.jar \
     INPUT=$OUT/${n/'_'$READONE.$FASTQ/.ash.bam} \
     OUTPUT=$OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     METRICS_FILE=$OUT/metrices/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
@@ -237,7 +232,7 @@ echo "********* calculate inner distance"
 export PATH=$PATH:/usr/bin/
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
 mkdir $THISTMP
-java -Xmx4g -jar $PICARD/CollectMultipleMetrics.jar \
+java $JAVAPARAMS -jar $PICARD/CollectMultipleMetrics.jar \
     INPUT=$OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     REFERENCE_SEQUENCE=$FASTA \
     OUTPUT=$OUT/metrices/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
@@ -266,7 +261,7 @@ fi
 
 echo "********* coverage track"
 GENOME=$(echo $FASTA| sed 's/.fasta/.genome/' | sed 's/.fa/.genome/' )
-java -Xmx1g -jar $IGVTOOLS count $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
+java $JAVAPARAMS -jar $IGVTOOLS count $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam.cov.tdf} $GENOME
 
 

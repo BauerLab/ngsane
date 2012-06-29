@@ -96,19 +96,20 @@ then
     mkdir $OUT/runStats/$TASKFASTQC
     
     NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
-    for d in ${DIR[@]}; do
-	FILES=$FILES" "$( ls $OUT/fastq/$d/*$FASTQ )
-    done
+#    for d in ${DIR[@]}; do
+#	FILES=$FILES" "$( ls $OUT/fastq/$d/*$FASTQ )
+#    done
 
-    echo $FILES
+#    echo $FILES
 
-    CPUS=`echo $FILES | wc -w`
-    if [ "$CPUS" -gt "$MAX" ]; then echo "reduce to $MAX CPUs"; CPUS=$MAX; fi
+#    CPUS=`echo $FILES | wc -w`
+#    if [ "$CPUS" -gt "$MAX" ]; then echo "reduce to $MAX CPUs"; CPUS=$MAX; fi
      
     # run fastQC
     if [ -n "$ARMED" ]; then
-	$BINQSUB -j oe -o $QOUT/$TASKFASTQC/$NAME.out -w $(pwd) -N $TASKFASTQC"_"$NAME -l nodes=1:ppn=1 -l vmem=10G -l walltime=2:00:00 \
-	    -command "$FASTQC --nogroup -t $CPUS --outdir $OUT/runStats/$TASKFASTQC `echo $FILES`"
+	qsub -o $QOUT/$TASKFASTQC/$NAME.out -N $TASKFASTQC"_"$NAME -v CONFIG=$CONFIG  $HISEQINF/pbsTemp/fastQC.sh
+#	$BINQSUB -j oe -o $QOUT/$TASKFASTQC/$NAME.out -w $(pwd) -N $TASKFASTQC"_"$NAME -l nodes=2:ppn=8 -l vmem=20G -l walltime=2:00:00 \
+#	    -command "$FASTQC --nogroup -t $CPUS --outdir $OUT/runStats/$TASKFASTQC `echo $FILES`"
     fi
 
 fi
@@ -240,7 +241,7 @@ if [ -n "$RUNMAPPINGBWA" ]
 then
 
     echo "********* $TASKBWA"
-    CPUS=16
+    CPUS=$CPUBWA
 
     if [ ! -d $QOUT/$TASKBWA ]; then mkdir $QOUT/$TASKBWA; fi
 
@@ -250,8 +251,8 @@ then
       #ensure dirs are there...
       if [ ! -d $OUT/$dir/$TASKBWA ]; then mkdir $OUT/$dir/$TASKBWA; fi
 
-      for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
-	do
+      for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ); do
+      #for f in $(ls $SOURCE/fastq/$dir/*_reptile_fa_$READONE.$FASTQ ); do
 	n=`basename $f`
 	name=${n/'_'$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n
@@ -262,17 +263,52 @@ then
 	#Sumit (ca. 30 min on AV 1297205 reads) note ${dir/_seqs/} is just a prefix for the
 	# readgroup name -l h_rt=03:00:00  -pe mpich 10
 	if [ -n "$ARMED" ]; then
-	   $BINQSUB -j oe -o $QOUT/$TASKBWA/$dir'_'$name'.out' -w $(pwd) -l nodes=1:ppn=16 \
-		-l vmem=7G -N $TASKBWA'_'$dir'_'$name -l walltime=3:00:00 \
-		-command "$HISEQINF/pbsTemp/bwa.sh $BWAADDPARM -k $HISEQINF -t $CPUS -f $f -r $FASTA -o $OUT/$dir/$TASKBWA \
-		--rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi $dir --fastqName $FASTQ -R $SEQREG"
+	   $BINQSUB -j oe -o $QOUT/$TASKBWA/$dir'_'$name'.out' -w $(pwd) -l $NODESBWA \
+		-l vmem=$MEMORY"G" -N $TASKBWA'_'$dir'_'$name -l walltime=$WALLTIME \
+		-command "$HISEQINF/pbsTemp/bwa.sh $BWAADDPARM -k $HISEQINF -t $CPUS -m $(expr $MEMORY - 1 ) -f $f -r $FASTA \
+                -o $OUT/$dir/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi $dir \
+                --fastqName $FASTQ -R $SEQREG"
 
 	fi
-
       done
     done
 
 fi
+
+############################################
+#   Mapping using BOWTIE
+############################################
+
+if [ -n "$RUNMAPPINGBOWTIE" ]
+then
+    echo "********* $TASKBOWTIE"
+    CPUS=$CPUBWA
+
+    if [ ! -d $QOUT/$TASKBOWTIE ]; then mkdir $QOUT/$TASKBOWTIE; fi
+
+    for dir in ${DIR[@]}; do
+
+      if [ ! -d $OUT/$dir/$TASKBOWTIE ]; then mkdir $OUT/$dir/$TASKBOWTIE; fi
+
+      for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ); do
+        n=`basename $f`
+        name=${n/'_'$READONE.$FASTQ/}
+        echo ">>>>>"$dir$n
+        # remove old pbs output
+	if [ -e $QOUT/$TASKBOWTIE/$dir'_'$name.out ]; then rm $QOUT/$TASKBOWTIE/$dir'_'$name.*; fi
+        if [ -n "$ARMED" ]; then
+           $BINQSUB -j oe -o $QOUT/$TASKBOWTIE/$dir'_'$name'.out' -w $(pwd) -l $NODESBWA \
+                -l vmem=$MEMORY"G" -N $TASKBOWTIE'_'$dir'_'$name -l walltime=$WALLTIME \
+                -command "$HISEQINF/pbsTemp/bowtie2.sh $BWAADDPARM -k $HISEQINF -t $CPUS -m $(expr $MEMORY - 1 ) -f $f -r $FASTA \
+                -o $OUT/$dir/$TASKBOWTIE --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi $dir \
+                --fastqName $FASTQ"
+        fi
+      done
+    done
+
+fi
+
+
 
 ############################################
 # combine flowcell lenes files for recalibration
@@ -396,7 +432,7 @@ fi
 if [ -n "$RUNREALRECAL" ]; then
 
     echo "********* $TASKRCA"
-    CPU=24
+    CPU=16
 
     # generates the .dict file
     #java -Xmx4g -jar /home/Software/picard-tools-1.22/CreateSequenceDictionary.jar R= $FASTA O= ${$FASTA/.fasta/.dict}
@@ -425,10 +461,10 @@ if [ -n "$RUNREALRECAL" ]; then
 			
 	#Sumit (ca. 80 min on AV 1297205 reads) -l h_rt=20:00:00
 	if [ -n "$ARMED" ]; then
-	    qsub $PRIORITY -j y -o $QOUT/$TASKRCA/$dir'_'$name'.out' -cwd -b y -l vf=20G \
-		-l mem_free=20G -l h_vmem=20G -N $TASKRCA'_'$dir'_'$name $HOLD\
-		$HISEQINF/pbsTemp/reCalAln.sh $VARADDRECAL -k $HISEQINF -f $OUT/$dir/$TASKBWA/$n2 -r $FASTA -d $DBROD \
-		-o $OUT/$dir/$TASKRCA -t $CPU
+	    $BINQSUB -j oe -o $QOUT/$TASKRCA/$dir'_'$name'.out' -w $(pwd) -l nodes=2:ppn=8 \
+		-l vmem=40G -N $TASKRCA'_'$dir'_'$name -l walltime=$WALLTIMERCA \
+		-command "$HISEQINF/pbsTemp/reCalAln.sh $VARADDRECAL -k $HISEQINF -f $OUT/$dir/$TASKBWA/$n2 -r $FASTA -d $DBROD \
+		-o $OUT/$dir/$TASKRCA -t $CPU"
 	fi
 	
       done

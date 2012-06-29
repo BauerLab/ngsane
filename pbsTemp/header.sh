@@ -12,7 +12,8 @@ GATKJAR=$GATKHOME/dist/
 RSCRIPT=/apps/R/2.14.1/bin/Rscript # module load R
 FASTQC=/data/noflush/bau04c/SeqAna/apps/prod/FastQC/fastqc
 FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
-TMP=$TMPDIR
+#TMP=$TMPDIR
+TMP=/home/cmis/bau04c/TMP
 VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
 BEDTOOLS="/clusterdata/hiseq_apps/bin/freeze001/BEDTools-Version-2.11.2/bin/"
@@ -27,7 +28,8 @@ RRBSMAP="/clusterdata/hiseq_apps/bin/devel/rrbsmap-1.5/rrbsmap"
 MACS="/clusterdata/hiseq_apps/bin/devel/MACS_git"
 PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
 
-BOWTIE="/clusterdata/hiseq_apps/bin/devel/bowtie-0.12.7/bowtie"
+#BOWTIE="/clusterdata/hiseq_apps/bin/devel/bowtie-0.12.7/bowtie"
+BOWTIETWO="/data/noflush/bau04c/SeqAna/apps/prod/bowtie2-2.0.0-beta6/"
 CUTADAPT="/clusterdata/hiseq_apps/bin/devel/cutadapt/cutadapt-0.9/cutadapt"
 VIENNA="/clusterdata/hiseq_apps/bin/devel/ViennaRNA/bin/"
 UNAFOLD="/clusterdata/hiseq_apps/bin/devel/unafold/bin/"
@@ -35,6 +37,7 @@ UNAFOLD="/clusterdata/hiseq_apps/bin/devel/unafold/bin/"
 # Task names
 TASKFASTQC="fastQC"
 TASKBWA="bwa"
+TASKBOWTIE="bowtie"
 TASKRCA="reCalAln"
 TASKMERGE="merged"
 TASKVAR="variant"

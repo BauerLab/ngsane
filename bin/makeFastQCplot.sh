@@ -1,13 +1,16 @@
 # summarize all read quality plots on one page
 
-SOURCE=$1
+FQSOURCE=$1
 OUTFILE=$3
 OUTDIR=$2
+CONFIG=$4
+
+. $CONFIG
+
 
 LATEX=$OUTDIR/${OUTFILE/.pdf/.tex}
-echo $LATEX
 
-number=`ls -a $SOURCE/*read1*/Images/per_base_quality.png | wc -l`
+number=$(ls -a $FQSOURCE/*$READONE*/Images/per_base_quality.png | wc -l)
 let size=$number*2
 
 echo """\documentclass{article}
@@ -25,15 +28,15 @@ echo """\begin{figure}[!ht]
            \hline""" >>$LATEX
 
 
-for i in $( ls -a $SOURCE/*read1*/Images/per_base_quality.png); do
-    name=${i/$SOURCE\//}
+for i in $( ls -a $FQSOURCE/*$READONE*/Images/per_base_quality.png); do
+    name=${i/$FQSOURCE\//}
     name=${name/_fastqc\/Images\/per_base_quality.png/}
     name=${name//_/"\_"}
-    if [ -e ${i/read1/read2} ]; then
+    if [ -e ${i/$READONE/$READTWO} ]; then
 	echo $i
-	echo $name" & "${name/read1/read2}"\\\\">>$LATEX
+	echo $name" & "${name/$READONE/$READTWO}"\\\\">>$LATEX
 	echo "\includegraphics[height=1.7in,width=2.3in,type=png,ext=.png,read=.png]{"${i/.png/}"}&" >>$LATEX
-	i2=${i/read1/read2}
+	i2=${i/$READONE/$READTWO}
 	echo "\includegraphics[height=1.7in,width=2.3in,type=png,ext=.png,read=.png]{"${i2/.png/}"}\\\\" >>$LATEX
     else
 	echo $name "& \\\\" >>$LATEX
