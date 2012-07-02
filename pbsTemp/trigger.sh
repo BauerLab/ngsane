@@ -252,7 +252,7 @@ then
       if [ ! -d $OUT/$dir/$TASKBWA ]; then mkdir $OUT/$dir/$TASKBWA; fi
 
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ); do
-      #for f in $(ls $SOURCE/fastq/$dir/*_reptile_fa_$READONE.$FASTQ ); do
+      #for f in $(ls $SOURCE/fastq/$dir/*_fa*$READONE.$FASTQ ); do
 	n=`basename $f`
 	name=${n/'_'$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n
@@ -265,7 +265,7 @@ then
 	if [ -n "$ARMED" ]; then
 	   $BINQSUB -j oe -o $QOUT/$TASKBWA/$dir'_'$name'.out' -w $(pwd) -l $NODESBWA \
 		-l vmem=$MEMORY"G" -N $TASKBWA'_'$dir'_'$name -l walltime=$WALLTIME \
-		-command "$HISEQINF/pbsTemp/bwa.sh $BWAADDPARM -k $HISEQINF -t $CPUS -m $(expr $MEMORY - 1 ) -f $f -r $FASTA \
+		-command "$HISEQINF/pbsTemp/bwa.sh $BWAADDPARM -k $CONFIG -t $CPUS -m $(expr $MEMORY - 1 ) -f $f -r $FASTA \
                 -o $OUT/$dir/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi $dir \
                 --fastqName $FASTQ -R $SEQREG"
 
@@ -335,7 +335,7 @@ if [ -n "$RUNTOPHATCUFF" ]; then
     
     echo "********* $TASKTOPHAT"
     
-    CPUS=24
+    #CPUS_TOPHAT=24
  
     # ensure directory is there
     if [ ! -d $QOUT/$TASKTOPHAT ]; then mkdir $QOUT/$TASKTOPHAT; fi
@@ -356,10 +356,12 @@ if [ -n "$RUNTOPHATCUFF" ]; then
             #cleanup old qouts
 	    if [ -e $QOUT/$TASKTOPHAT/$dir'_'$name.out ]; then rm $QOUT/$TASKTOPHAT/$dir'_'$name.out; fi
 
-	    qsub $PRIORITY -b y -cwd -j y -o $QOUT/$TASKTOPHAT/$dir'_'$name.out \
-		-N $TASKTOPHAT"_"$dir"_"$name -pe mpich $CPUS -l vf=500K \
-		$HISEQINF/pbsTemp/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -r $FASTA -f $f \
-		-t $CPUS -o $OUT/$dir/$TASKTOPHAT/$name/ -a $REFSEQGTF #$TOPHATINSERTS
+	    #$BINQSUB -j oe -o $QOUT/$TASKTOPHAT/$dir'_'$name.out -w $(pwd) -l walltime $WALLTIME_TOPHAT \
+	#	-N $TASKTOPHAT"_"$dir"_"$name -l $NODES_TOPHAT -l vmem $MEMORY_TOPHAT \
+	#	-command "
+$HISEQINF/pbsTemp/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -r $FASTA -f $f \
+		-t $CPUS_TOPHAT -o $OUT/$dir/$TASKTOPHAT/$name/ -a $REFSEQGTF #$TOPHATINSERTS
+exit
 	fi
       done
 

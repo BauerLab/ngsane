@@ -20,7 +20,7 @@ BEDTOOLS="/clusterdata/hiseq_apps/bin/freeze001/BEDTools-Version-2.11.2/bin/"
 IMGMAGCONVERT=/usr/bin/convert # imageMagick
 ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
 
-TOPHAT="/clusterdata/hiseq_apps/bin/freeze001/tophat-1.3.2.Linux_x86_64/tophat"
+TOPHAT=/data/noflush/bau04c/SeqAna/apps/prod/tophat-2.0.4.Linux_x86_64/tophat2
 CUFFLINKSHOME="/clusterdata/hiseq_apps/bin/freeze001/cufflinks-1.1.0.Linux_x86_64"
 
 

@@ -59,6 +59,7 @@ PLATFORM="illumina"   # read group platform RD PL
 DOBAM=1               # do the bam file
 FORCESINGLE=0
 INSERT=200
+MEMORY=2G
 
 #INPUTS
 while [ "$1" != "" ]; do
@@ -91,15 +92,15 @@ done
 . $HISEQINF/pbsTemp/header.sh
 . $CONFIG
 
-BOWTIEDIR=`echo $BOWTIE | sed 's/\(.*\)bowtie/\1/'`
+$BOWTIEDIR=`echo $BOWTIE | sed 's/\(.*\)bowtie/\1/'`
 
 #export bowtie directory
 SAMDIR=`dirname $SAMTOOLS`
-export PATH=$BOWTIEDIR:$SAMDIR:/usr/bin/:/opt/rocks/lib/python2.4/:$PATH
-export PYTHONPATH=/opt/rocks/lib/python2.4/
+export PATH=$PATH:$BOWTIETWO:$SAMDIR
+module load python
+module load jdk/1.7.0_03
+JAVAPARAMS="-Xmx"$MEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
 
-echo "path "$PATH
-echo "python path "$PYTHONPATH
 
 n=`basename $f`
 
@@ -139,12 +140,16 @@ if [[ $f = *.fastq.gz ]]; then
     n=${n/fastq.gz/fastq}
 fi
 
+# generating the index files
+if [ ! -e ${FASTA/.fasta/}.1.bt2 ]; then echo ">>>>> make .bt2"; $BOWTIETWO/bowtie2-build $FASTA ${FASTA/.fasta/}; fi
+if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; $SAMTOOLS faidx $FASTA; fi
+
 #run tophat command -- takes only unzipped fastqs
 echo "********* tophat"
 $TOPHAT -r $INSERT -p $THREADS -o $OUTDIR ${FASTA/.fasta/} $f $f2
 
 BAMFILE=$OUTDIR/../${n/_read1.fastq/.tph.bam}
-mv $OUTDIR/accepted_hits.bam $BAMFILE
+ln $OUTDIR/accepted_hits.bam $BAMFILE
 
 ##mv $BAMFILE $OUTDIR/../${n/_read1.fastq/.tph.bam}.tmp
 ##$SAMTOOLS sort $OUTDIR/../${n/_read1.fastq/.tph.bam}.tmp ${BAMFILE/.bam/}
