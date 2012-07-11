@@ -81,7 +81,7 @@ while [ "$1" != "" ]; do
 	
 	--forceSingle )         FORCESINGLE=1;;
         -h | --help )           usage ;;
-        * )                     usage
+        * )                     echo "dont understand $1"
     esac
     shift
 done
@@ -92,7 +92,7 @@ done
 . $HISEQINF/pbsTemp/header.sh
 . $CONFIG
 
-$BOWTIEDIR=`echo $BOWTIE | sed 's/\(.*\)bowtie/\1/'`
+#$BOWTIEDIR=`echo $BOWTIE | sed 's/\(.*\)bowtie/\1/'`
 
 #export bowtie directory
 SAMDIR=`dirname $SAMTOOLS`
@@ -101,6 +101,7 @@ module load python
 module load jdk/1.7.0_03
 JAVAPARAMS="-Xmx"$MEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
 
+echo $PATH
 
 n=`basename $f`
 
@@ -119,9 +120,9 @@ if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
 if [ -d $CUFOUT ]; then rm -r $CUFOUT; fi
 
 #is paired ?
-if [ -e ${f/read1/read2} ] && [ "$FORCESINGLE" = 0 ]; then
+if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     echo "********* PAIRED READS"
-    f2=${f/read1/read2}
+    f2=${f/$READONE/$READTWO}
 else
     echo "********* SINGLE READS"
 fi
@@ -130,29 +131,29 @@ fi
 ZCAT="cat" # always cat
 if [[ $f = *.fastq.gz ]]; then
     ZCAT="cat";
-    echo "unzip first"
-    f=${f/fastq.gz/fastq}
-    if [ ! -e $f ]; then gunzip -c $f.gz >$f; fi
-    if [ -n "$f2" ]; then
-	f2=${f2/fastq.gz/fastq}
-	if [ ! -e $f2 ]; then gunzip -c $f2.gz >$f2; fi
-    fi
-    n=${n/fastq.gz/fastq}
+#    echo "unzip first"
+#    f=${f/fastq.gz/fastq}
+#    if [ ! -e $f ]; then gunzip -c $f.gz >$f; fi
+#    if [ -n "$f2" ]; then
+#	f2=${f2/fastq.gz/fastq}
+#	if [ ! -e $f2 ]; then gunzip -c $f2.gz >$f2; fi
+#    fi
+#    n=${n/fastq.gz/fastq}
 fi
 
 # generating the index files
-if [ ! -e ${FASTA/.fasta/}.1.bt2 ]; then echo ">>>>> make .bt2"; $BOWTIETWO/bowtie2-build $FASTA ${FASTA/.fasta/}; fi
-if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; $SAMTOOLS faidx $FASTA; fi
+#if [ ! -e ${FASTA/.fasta/}.1.bt2 ]; then echo ">>>>> make .bt2"; $BOWTIETWO/bowtie2-build $FASTA ${FASTA/.fasta/}; fi
+#if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; $SAMTOOLS faidx $FASTA; fi
 
 #run tophat command -- takes only unzipped fastqs
 echo "********* tophat"
-$TOPHAT -r $INSERT -p $THREADS -o $OUTDIR ${FASTA/.fasta/} $f $f2
+$TOPHAT -p $THREADS -o $OUTDIR ${FASTA/.fasta/} $f $f2
 
-BAMFILE=$OUTDIR/../${n/_read1.fastq/.tph.bam}
+BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.tph.bam}
 ln $OUTDIR/accepted_hits.bam $BAMFILE
 
-##mv $BAMFILE $OUTDIR/../${n/_read1.fastq/.tph.bam}.tmp
-##$SAMTOOLS sort $OUTDIR/../${n/_read1.fastq/.tph.bam}.tmp ${BAMFILE/.bam/}
+##mv $BAMFILE $OUTDIR/../${n/_$READONE.fastq/.tph.bam}.tmp
+##$SAMTOOLS sort $OUTDIR/../${n/_$READONE.fastq/.tph.bam}.tmp ${BAMFILE/.bam/}
 
 
 ##statistics

@@ -241,7 +241,6 @@ if [ -n "$RUNMAPPINGBWA" ]
 then
 
     echo "********* $TASKBWA"
-    CPUS=$CPUBWA
 
     if [ ! -d $QOUT/$TASKBWA ]; then mkdir $QOUT/$TASKBWA; fi
 
@@ -252,23 +251,24 @@ then
       if [ ! -d $OUT/$dir/$TASKBWA ]; then mkdir $OUT/$dir/$TASKBWA; fi
 
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ); do
-      #for f in $(ls $SOURCE/fastq/$dir/*_fa*$READONE.$FASTQ ); do
+      #for f in $(ls $SOURCE/fastq/$dir/ERA000206_hg_$READONE.$FASTQ ); do
 	n=`basename $f`
 	name=${n/'_'$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n
 		
-	# remove old pbs output
-	if [ -e $QOUT/$TASKBWA/$dir'_'$name.out ]; then rm $QOUT/$TASKBWA/$dir'_'$name.*; fi
-
 	#Sumit (ca. 30 min on AV 1297205 reads) note ${dir/_seqs/} is just a prefix for the
 	# readgroup name -l h_rt=03:00:00  -pe mpich 10
 	if [ -n "$ARMED" ]; then
-	   $BINQSUB -j oe -o $QOUT/$TASKBWA/$dir'_'$name'.out' -w $(pwd) -l $NODESBWA \
-		-l vmem=$MEMORY"G" -N $TASKBWA'_'$dir'_'$name -l walltime=$WALLTIME \
-		-command "$HISEQINF/pbsTemp/bwa.sh $BWAADDPARM -k $CONFIG -t $CPUS -m $(expr $MEMORY - 1 ) -f $f -r $FASTA \
+
+            # remove old pbs output
+            if [ -e $QOUT/$TASKBWA/$dir'_'$name.out ]; then rm $QOUT/$TASKBWA/$dir'_'$name.*; fi
+
+	    $BINQSUB -j oe -o $QOUT/$TASKBWA/$dir'_'$name'.out' -w $(pwd) -l $NODES_BWA \
+		-l vmem=$MEMORY_BWA"G" -N $TASKBWA'_'$dir'_'$name -l walltime=$WALLTIME_BWA \
+		-command "$HISEQINF/pbsTemp/bwa.sh $BWAADDPARM -k $CONFIG -t $CPU_BWA -m $(expr $MEMORY_BWA - 1 ) -f $f -r $FASTA \
                 -o $OUT/$dir/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi $dir \
                 --fastqName $FASTQ -R $SEQREG"
-
+	   exit
 	fi
       done
     done
@@ -282,7 +282,7 @@ fi
 if [ -n "$RUNMAPPINGBOWTIE" ]
 then
     echo "********* $TASKBOWTIE"
-    CPUS=$CPUBWA
+    CPUS=$CPU_BOWTIE
 
     if [ ! -d $QOUT/$TASKBOWTIE ]; then mkdir $QOUT/$TASKBOWTIE; fi
 
@@ -297,11 +297,12 @@ then
         # remove old pbs output
 	if [ -e $QOUT/$TASKBOWTIE/$dir'_'$name.out ]; then rm $QOUT/$TASKBOWTIE/$dir'_'$name.*; fi
         if [ -n "$ARMED" ]; then
-           $BINQSUB -j oe -o $QOUT/$TASKBOWTIE/$dir'_'$name'.out' -w $(pwd) -l $NODESBWA \
-                -l vmem=$MEMORY"G" -N $TASKBOWTIE'_'$dir'_'$name -l walltime=$WALLTIME \
-                -command "$HISEQINF/pbsTemp/bowtie2.sh $BWAADDPARM -k $HISEQINF -t $CPUS -m $(expr $MEMORY - 1 ) -f $f -r $FASTA \
+           $BINQSUB -j oe -o $QOUT/$TASKBOWTIE/$dir'_'$name'.out' -w $(pwd) -l $NODES_BOWTIE \
+                -l vmem=$MEMORY_BOWTIE"G" -N $TASKBOWTIE'_'$dir'_'$name -l walltime=$WALLTIME_BOWTIE \
+                -command "$HISEQINF/pbsTemp/bowtie2.sh $BWAADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f $f -r $FASTA \
                 -o $OUT/$dir/$TASKBOWTIE --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi $dir \
                 --fastqName $FASTQ"
+	   exit
         fi
       done
     done
@@ -356,11 +357,10 @@ if [ -n "$RUNTOPHATCUFF" ]; then
             #cleanup old qouts
 	    if [ -e $QOUT/$TASKTOPHAT/$dir'_'$name.out ]; then rm $QOUT/$TASKTOPHAT/$dir'_'$name.out; fi
 
-	    #$BINQSUB -j oe -o $QOUT/$TASKTOPHAT/$dir'_'$name.out -w $(pwd) -l walltime $WALLTIME_TOPHAT \
-	#	-N $TASKTOPHAT"_"$dir"_"$name -l $NODES_TOPHAT -l vmem $MEMORY_TOPHAT \
-	#	-command "
-$HISEQINF/pbsTemp/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -r $FASTA -f $f \
-		-t $CPUS_TOPHAT -o $OUT/$dir/$TASKTOPHAT/$name/ -a $REFSEQGTF #$TOPHATINSERTS
+	    $BINQSUB -j oe -o $QOUT/$TASKTOPHAT/$dir'_'$name.out -w $(pwd) -l walltime=$WALLTIME_TOPHAT \
+		-N $TASKTOPHAT"_"$dir"_"$name -l $NODES_TOPHAT -l vmem=$MEMORY_TOPHAT"G" \
+		-command "$HISEQINF/pbsTemp/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -r $FASTA -f $f \
+		-t $CPU_TOPHAT -o $OUT/$dir/$TASKTOPHAT/$name/ -a $REFSEQGTF"
 exit
 	fi
       done

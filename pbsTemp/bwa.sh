@@ -111,6 +111,7 @@ JAVAPARAMS="-Xmx"$MYMEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:Max
 . $CONFIG
 . $HISEQINF/pbsTemp/header.sh
 . $CONFIG
+
 #if [ -n "$FASTQNAME" ]; then FASTQ=$FASTQNAME ; fi
 
 module load R

@@ -29,7 +29,7 @@ echo ">>>>> job_id "$JOB_ID
 echo ">>>>> bowtie.sh $*"
 
 name=`basename $SHORTREAD`
-name=${name/.fastq/}".mm"
+name=${name/.$FASTQ/} #".mm"
 
 #remove old files
 if [ -e $OUT/$name.bam ]; then rm -r $OUT/$name.bam; fi

@@ -16,12 +16,12 @@ FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
 TMP=/home/cmis/bau04c/TMP
 VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
-BEDTOOLS="/clusterdata/hiseq_apps/bin/freeze001/BEDTools-Version-2.11.2/bin/"
+BEDTOOLS=/data/noflush/bau04c/SeqAna/apps/prod/bedtools/bin/
 IMGMAGCONVERT=/usr/bin/convert # imageMagick
 ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
 
 TOPHAT=/data/noflush/bau04c/SeqAna/apps/prod/tophat-2.0.4.Linux_x86_64/tophat2
-CUFFLINKSHOME="/clusterdata/hiseq_apps/bin/freeze001/cufflinks-1.1.0.Linux_x86_64"
+CUFFLINKSHOME=/data/noflush/bau04c/SeqAna/apps/prod/cufflinks-2.0.2.Linux_x86_64
 
 
 RRBSMAP="/clusterdata/hiseq_apps/bin/devel/rrbsmap-1.5/rrbsmap"
