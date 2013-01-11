@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "run"
+
 HISEQINF=$1   # location of the HiSeqInf repository
 CONFIG=$2
 
@@ -17,8 +19,11 @@ echo "Last modified "`date` >$SUMMARYTMP
 
 
 if [ -n "$fastQC" ]; then
+    echo "fastqc"
     echo "<h2>Read biases (FASTQC)</h2>">>$SUMMARYTMP
+    echo $HISEQINF/bin/makeFastQCplot.sh
     $HISEQINF/bin/makeFastQCplot.sh $(pwd)/runStats/fastQC/ $(pwd)/runStats/ fastQCSummary.pdf $CONFIG > /dev/null #2>&1
+    echo "done"
     echo "<table><tr><td valign=top>" >>$SUMMARYTMP
     for f in $( ls runStats/fastQC/*.zip ); do
 	n=`basename $f`
@@ -39,7 +44,8 @@ fi
 
 
 
-if [ -n "$RUNMAPPINGBWA" ]; then
+if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
+    echo "bwa"
     LINKS=$LINKS" mapping"
     echo "<a name=\"mapping\"><h2>BWA Mapping</h2>">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
@@ -50,11 +56,16 @@ if [ -n "$RUNMAPPINGBWA" ]; then
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     python $HISEQINF/bin/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
+
+    if [ -n "$(ls $OUT/${DIR[0]}/$TASKBWA/*.anno.stats)" ] ; then
+	echo "</pre><h3>Anno</h3><pre>">>$SUMMARYTMP
+	python $HISEQINF/bin/Summary.py "$vali" anno.stats annostats >>$SUMMARYTMP
+    fi
 fi
 
 
 
-if [ -n "$RUNREALRECAL" ]; then 
+if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" ]]; then 
     LINKS=$LINKS" recal"
     echo "<a name=\"recal\"><h2>RECAL Mapping</h2>">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
@@ -69,7 +80,22 @@ if [ -n "$RUNREALRECAL" ]; then
 fi
 
 
-if [ -n "$RUNTOPHATCUFF" ]; then
+if [[ -n "$RUNMAPPINGBOWTIE" || -n "$RUNMAPPINGBOWTIE2" ]]; then
+    LINKS=$LINKS" mapping"
+    echo "<a name=\"mapping\"><h2>BOWTIE Mapping</h2>">>$SUMMARYTMP
+    echo "<pre>" >>$SUMMARYTMP
+    $HISEQINF/pbsTemp/QC.sh $HISEQINF/pbsTemp/bowtie2.sh $QOUT/$TASKBOWTIE >>$SUMMARYTMP
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/$dir/$TASKBOWTIE"
+    done
+    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
+    python $HISEQINF/bin/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
+
+
+if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
     vali=""
     LINKS=$LINKS" tophat"
     echo "<a name=\"tophat\"><h2>tophat Mapping</h2><br>Note, the duplication rate is not calculated by tophat and hence zero.">>$SUMMARYTMP
@@ -86,7 +112,7 @@ fi
 
 
 
-if [ -n "$DEPTHOFCOVERAGE" ]; then
+if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
     LINKS=$LINKS" coverage"
     echo "<a name=\"coverage\"><h2>Coverage</h2>">>$SUMMARYTMP
     vali=""

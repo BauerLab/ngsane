@@ -9,7 +9,7 @@
 
 
 # messages to look out for -- relevant for the QC.sh script:
-# QCVARIABLES,
+# QCVARIABLES,truncated file
 
 
 echo ">>>>> readmapping with Tophat "
@@ -99,9 +99,23 @@ SAMDIR=`dirname $SAMTOOLS`
 export PATH=$PATH:$BOWTIETWO:$SAMDIR
 module load python
 module load jdk/1.7.0_03
+module load boost
+
+#module load tophat/2.0.4b
+module load $TOPHAT
+module load $CUFFLINKS
+#module load $BOWTIETWO
+#module load samtools
+
+echo $(module list)
+echo $(which bowtie2)
+
 JAVAPARAMS="-Xmx"$MEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
 
 echo $PATH
+#module load samtools
+#module load tophat
+
 
 n=`basename $f`
 
@@ -123,14 +137,17 @@ if [ -d $CUFOUT ]; then rm -r $CUFOUT; fi
 if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     echo "********* PAIRED READS"
     f2=${f/$READONE/$READTWO}
+    dmget -a $f
+    dmget -a $f2
 else
     echo "********* SINGLE READS"
+    dmget -a $f
 fi
 
 #is ziped ?
 ZCAT="cat" # always cat
-if [[ $f = *.fastq.gz ]]; then
-    ZCAT="cat";
+if [[ $f = *.gz ]]; then
+    ZCAT="zcat";
 #    echo "unzip first"
 #    f=${f/fastq.gz/fastq}
 #    if [ ! -e $f ]; then gunzip -c $f.gz >$f; fi
@@ -145,12 +162,15 @@ fi
 #if [ ! -e ${FASTA/.fasta/}.1.bt2 ]; then echo ">>>>> make .bt2"; $BOWTIETWO/bowtie2-build $FASTA ${FASTA/.fasta/}; fi
 #if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; $SAMTOOLS faidx $FASTA; fi
 
-#run tophat command -- takes only unzipped fastqs
 echo "********* tophat"
-$TOPHAT -p $THREADS -o $OUTDIR ${FASTA/.fasta/} $f $f2
+tophat -p $THREADS -o $OUTDIR ${FASTA/.fasta/} $f $f2
 
+echo "********* merge mapped and unmapped"
 BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.tph.bam}
-ln $OUTDIR/accepted_hits.bam $BAMFILE
+#ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
+$SAMTOOLS merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
+$SAMTOOLS sort $BAMFILE.tmp.bam ${BAMFILE/.bam/}
+rm $BAMFILE.tmp.bam
 
 ##mv $BAMFILE $OUTDIR/../${n/_$READONE.fastq/.tph.bam}.tmp
 ##$SAMTOOLS sort $OUTDIR/../${n/_$READONE.fastq/.tph.bam}.tmp ${BAMFILE/.bam/}
@@ -194,12 +214,11 @@ echo "********* coverage track"
 java -Xmx1g -jar $IGVTOOLS count $BAMFILE \
     $BAMFILE.cov.tdf ${FASTA/.fasta/}.genome
 
-
 #run cufflinks
 echo "********* cufflinks"
 echo ">>>>> from $BAMFILE to $CUFOUT"
 echo "$CUFFLINKSHOME/cufflinks --quiet -r $FASTA -p $THREADS -o $CUFOUT $BAMFILE"
-$CUFFLINKSHOME/cufflinks --quiet --GTF-guide $REFSEQGTF -p $THREADS -o $CUFOUT \
+cufflinks --quiet --GTF-guide $REFSEQGTF -p $THREADS -o $CUFOUT \
     $BAMFILE 
 
 

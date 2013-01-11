@@ -5,7 +5,10 @@
 # date: Nov.2010
 
 # messages to look out for -- relevant for the QC.sh script:
-# QCVARIABLES,We are loosing reads,for unmapped read,no such file,file not found,bwa.sh: line
+# QCVARIABLES,We are loosing reads,MAPQ should be 0 for unmapped read,no such file,file not found,bwa.sh: line,Resource temporarily unavailable
+
+#module load bwa
+#BWA=bwa
 
 echo ">>>>> readmapping with BWA "
 echo ">>>>> startdate "`date`
@@ -52,7 +55,7 @@ exit
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
-export PATH=$PATH:$SAMTOOLS
+
 
 #DEFAULTS
 MYTHREADS=1
@@ -94,7 +97,7 @@ while [ "$1" != "" ]; do
     shift
 done
 
-JAVAPARAMS="-Xmx"$MYMEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
+JAVAPARAMS="-Xmx"$MYMEMORY"g" # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
 
 #HISEQINF=$1   # location of the HiSeqInf repository
 #MYTHREADS=$2    # number of CPUs to use
@@ -111,11 +114,12 @@ JAVAPARAMS="-Xmx"$MYMEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:Max
 . $CONFIG
 . $HISEQINF/pbsTemp/header.sh
 . $CONFIG
+export PATH=$PATH:$(basename $SAMTOOLS)
 
 #if [ -n "$FASTQNAME" ]; then FASTQ=$FASTQNAME ; fi
 
 module load R
-module load jdk/1.7.0_03
+module load jdk
 
 n=`basename $f`
 
@@ -124,11 +128,20 @@ if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/'_'$READO
 if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats; fi
 if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl; fi
 
+dmget -a $(dirname $FASTA)/*
+dmget -a $(dirname $SAMTOOLS)/*
+dmget -a $(dirname $BWA)/*
+dmget -a $PICARD/*
+
+
 #is paired ?
 if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
+    dmget -a $f
+    dmget -a ${f/$READONE/$READTWO}
 else
     PAIRED="0"
+    dmget -a $f
 fi
 
 #is ziped ?
