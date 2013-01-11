@@ -1,0 +1,72 @@
+#!/bin/csh
+# AUTHOR: Timothy L. Bailey
+# CREATE DATE: June 1, 2006
+
+set pgm = $0; set pgm = $pgm:t
+#set args = ($*)
+if ($#argv < 0) then
+  usage:
+  more << USAGE
+  USAGE:
+	$pgm [qsub_arguments] -command "<command>" 
+
+	Allows a command with arguments (rather than a script) to be
+	given to qsub.
+
+	The command and its arguments should be enclosed in quotes.
+
+	The standard output and standard error are written to:
+		tmp/job.$pgm.\$\$.out
+		tmp/job.$pgm.\$\$.err
+
+	Reads from standard input.
+	Writes to standard output.
+
+USAGE
+  exit 1
+endif
+
+unlimit cputime
+onintr cleanup
+
+set out = tmp/$pgm.$$.out
+set err = tmp/$pgm.$$.err
+set qsub_args = "-e $err -o $out"
+
+# get input arguments
+while ("$1" != "")
+  switch ("$1")
+  case -command:
+    shift; set command = "$1"
+    breaksw
+  case -h:
+    goto usage
+  default:
+    set qsub_args = ($qsub_args $1)
+  endsw
+  shift
+end
+
+if (! $?command) then 
+  goto usage
+endif
+
+if (! (-d tmp)) mkdir tmp
+
+set wrapper = tmp/$pgm.$$.wrapper.tmp
+
+set wd = `pwd`
+
+cat <<END > $wrapper
+#!$SHELL
+
+#qsub $qsub_args $wrapper
+
+cd $wd
+$command
+rm -f $wrapper
+
+END
+
+echo qsub $qsub_args $wrapper
+qsub $qsub_args $wrapper

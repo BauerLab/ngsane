@@ -7,6 +7,7 @@ CONFIG=$4
 
 . $CONFIG
 
+echo "run"
 
 LATEX=$OUTDIR/${OUTFILE/.pdf/.tex}
 
@@ -54,7 +55,9 @@ echo "\end{document}" >>$LATEX
 
 
 cd $OUTDIR
-/old_tools/new_apps/texlive/2012/bin/x86_64-linux/pdflatex ${OUTFILE/pdf/tex}
+echo "compile"
+/data/flush/apps/texlive/2012/bin/x86_64-linux/pdflatex ${OUTFILE/pdf/tex}
+#/old_tools/new_apps/texlive/2012/bin/x86_64-linux/pdflatex ${OUTFILE/pdf/tex}
 rm ${OUTFILE/pdf/aux}
 rm ${OUTFILE/pdf/log}
 #rm ${OUTFILE/pdf/tex}

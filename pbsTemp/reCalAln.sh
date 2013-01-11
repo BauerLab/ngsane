@@ -31,7 +31,7 @@ required:
 
 options:
   -t | --threads <nr>       number of CPUs to use (default: 1)
-  -R | --region <ps>        region of specific interest, e.g. targeted reseq
+  -L | --region <ps>        region of specific interest, e.g. targeted reseq
                              format chr:pos-pos
 "
 exit
@@ -43,18 +43,18 @@ if [ ! $# -gt 4 ]; then usage ; fi
 THREADS=1
 #JAVAPARAMS="-Xmx"$MEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
 module load R
-module load jdk/1.7.0_03
+module load jdk #/1.7.0_03
 
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; HISEQINF=$1 ;; # location of the HiSeqInf repository
-        -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
+        -t | --threads )        shift; MYTHREADS=$1 ;; # number of CPUs to use
         -f | --fastq )          shift; f=$1 ;; # bam file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
 	-d | --snpdb )          shift; DBROD=$1 ;; # snpdb
-        -o | --outdir )         shift; OUT=$1 ;; # output dir
-	-R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
+        -o | --outdir )         shift; MYOUT=$1 ;; # output dir
+	-L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -63,13 +63,17 @@ done
 
 
 #PROGRAMS
+. $CONFIG
 . $HISEQINF/pbsTemp/header.sh
+. $CONFIG
 export PATH=$PATH:$RSCRIPT
 
 
 n=`basename $f`
 
 BAMREADS=`head -n1 $f.stats | cut -d " " -f 1`
+
+if [ -n "$SEQREG" ]; then REGION="-L $SEQREG"; fi
 
 #is paired ?
 p=`grep "paired in " $f.stats | cut -d " " -f 1`
@@ -82,20 +86,20 @@ else
 fi
 
 # delete old output files
-if [ -e $OUT/${n/asd/asdrr} ]; then rm $OUT/${n/asd/asdrr}; fi
-if [ -e $OUT/${n/asd/asdrr}.stats ]; then rm $OUT/${n/asd/asdrr}.stats; fi
+if [ -e $MYOUT/${n/asd/asdrr} ]; then rm $MYOUT/${n/asd/asdrr}; fi
+if [ -e $MYOUT/${n/asd/asdrr}.stats ]; then rm $MYOUT/${n/asd/asdrr}.stats; fi
 
-if [ ! -d $OUT/GATKorig ]; then
-    mkdir $OUT/GATKorig	
-    mkdir $OUT/GATKrcal
+if [ ! -d $MYOUT/GATKorig ]; then
+    mkdir $MYOUT/GATKorig	
+    mkdir $MYOUT/GATKrcal
 fi
 
-if [ ! -d $OUT/GATKorig/$n ]; then
-    mkdir $OUT/GATKorig/$n
-    mkdir $OUT/GATKrcal/$n
+if [ ! -d $MYOUT/GATKorig/$n ]; then
+    mkdir $MYOUT/GATKorig/$n
+    mkdir $MYOUT/GATKrcal/$n
 else 
-    rm -r $OUT/GATKorig/$n
-    rm -r $OUT/GATKrcal/$n
+    rm -r $MYOUT/GATKorig/$n
+    rm -r $MYOUT/GATKrcal/$n
 fi
 
 
@@ -114,7 +118,8 @@ java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
     -R $FASTA \
     -o $f2.intervals \
     -known $DBROD \
-    -nt $THREADS
+    $REGION \
+    -nt $MYTHREADS
 
 echo "********* realine them"
 java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
@@ -125,14 +130,14 @@ java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
     --out ${f2/bam/real.bam} \
     -known $DBROD \
     -compress 0 
-#    -nt $THREADS
+#    -nt $MYTHREADS
 
 # /reCalAln/name.asd.bam /reCalAln/name.asd.real.bam
 f3=${f2/bam/real.bam}
 
 
 echo "********* index"
-#$SAMTOOLS sort ${f2/bam/real.fix.bam} $OUT/${n/asd.bam/asdrr}
+#$SAMTOOLS sort ${f2/bam/real.fix.bam} $MYOUT/${n/asd.bam/asdrr}
 $SAMTOOLS index $f3
 
 
@@ -153,7 +158,7 @@ java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
     -cov CycleCovariate \
     -cov DinucCovariate \
     -recalFile ${f3/.bam/.covar.csv} \
-    -nt $THREADS
+    -nt $MYTHREADS
 
 
 echo "********* change score"
@@ -163,7 +168,7 @@ java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
     -I $f3 \
     --out ${f3/.bam/.recal.bam} \
     -recalFile ${f3/.bam/.covar.csv} 
-#    -nt $THREADS
+#    -nt $MYTHREADS
 
 
 
@@ -172,7 +177,7 @@ echo "********* index"
 $SAMTOOLS index ${f3/.bam/.recal.bam}
 
 echo "********* counting covariantes after recalibration"
-java -Xmx16g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
+java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
     -T CountCovariates \
     -R $FASTA \
     -knownSites $DBROD \
@@ -183,13 +188,13 @@ java -Xmx16g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
     -cov CycleCovariate \
     -cov DinucCovariate \
     -recalFile ${f3/.bam/.recal.covar.csv} \
-    -nt $THREADS
+    -nt $MYTHREADS
 #    --default_platform illumina
 
 echo "********* plotting both"
 java -Xmx4g -jar $GATKJAR/AnalyzeCovariates.jar \
     -recalFile ${f3/.bam/.covar.csv} \
-    -outputDir $OUT/GATKorig/$n \
+    -outputDir $MYOUT/GATKorig/$n \
     -ignoreQ 5
 
 #    -Rscript $RSCRIPT \
@@ -198,28 +203,28 @@ java -Xmx4g -jar $GATKJAR/AnalyzeCovariates.jar \
 
 java -Xmx4g -jar $GATKJAR/AnalyzeCovariates.jar \
     -recalFile ${f3/.bam/.recal.covar.csv} \
-    -outputDir $OUT/GATKrcal/$n  \
+    -outputDir $MYOUT/GATKrcal/$n  \
     -ignoreQ 5
 
 
 
 echo "********* sort/index"
-$SAMTOOLS sort ${f3/bam/recal.bam} $OUT/${n/$ASD.bam/$ASR}
-$SAMTOOLS index $OUT/${n/$ASD/$ASR}
+$SAMTOOLS sort ${f3/bam/recal.bam} $MYOUT/${n/$ASD.bam/$ASR}
+$SAMTOOLS index $MYOUT/${n/$ASD/$ASR}
 
 # statistics
 echo "********* statistics"
-$SAMTOOLS flagstat $OUT/${n/$ASD/$ASR} >> $OUT/${n/$ASD/$ASR}.stats
+$SAMTOOLS flagstat $MYOUT/${n/$ASD/$ASR} >> $MYOUT/${n/$ASD/$ASR}.stats
 if [ -n $SEQREG ]; then
-    echo "#custom region " >> $OUT/${n/$ASD/$ASR}.stats
-    echo `$SAMTOOLS view $OUT/${n/$ASD/$ASR} $SEQREG | wc -l`" total reads in region " >> $OUT/${n/$ASD/$ASR}.stats
-    echo `$SAMTOOLS view -f 2 $OUT/${n/$ASD/$ASR} $SEQREG | wc -l`" properly paired reads in region " >> $OUT/${n/$ASD/$ASR}.stats
+    echo "#custom region " >> $MYOUT/${n/$ASD/$ASR}.stats
+    echo `$SAMTOOLS view $MYOUT/${n/$ASD/$ASR} $SEQREG | wc -l`" total reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
+    echo `$SAMTOOLS view -f 2 $MYOUT/${n/$ASD/$ASR} $SEQREG | wc -l`" properly paired reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
 fi
 
 #f2=/reCalAln/name.asd.bam
 #f3=/reCalAln/name.asd.real.bam
 
-BAMREADSRERE=`head -n1 $OUT/${n/$ASD/$ASR}.stats | cut -d " " -f 1`
+BAMREADSRERE=`head -n1 $MYOUT/${n/$ASD/$ASR}.stats | cut -d " " -f 1`
 if [ "$BAMREADSRERE" = "" ]; then let BAMREADSRERE="0"; fi	
 if [ $BAMREADS -eq $BAMREADSRERE ]; then
     echo "-----------------> PASS check recalibration and realignment: $BAMREADS == $BAMREADSRERE"
@@ -239,8 +244,8 @@ fi
 
 # get the coverage track
 echo "********* coverage track"
-java -Xmx1g -jar $IGVTOOLS count $OUT/${n/$ASD/$ASR} \
-    $OUT/${n/$ASD/$ASR}.cov.tdf ${FASTA/fasta/genome}
+java -Xmx1g -jar $IGVTOOLS count $MYOUT/${n/$ASD/$ASR} \
+    $MYOUT/${n/$ASD/$ASR}.cov.tdf ${FASTA/fasta/genome}
 
 echo ">>>>> recalibration and realignment using GATK - FINISHED"
 echo ">>>>> enddate "`date`

@@ -59,7 +59,16 @@ if [ -n "$ADDITIONALTASK" ]; then
 	exit
     elif [ "$ADDITIONALTASK" = "armed" ]; then
 	echo ">>>>>>>>>> $ADDITIONALTASK"
-	ARMED="1"
+	ARMED="--armed"
+    elif [ "$ADDITIONALTASK" = "keep" ]; then
+        echo ">>>>>>>>>> $ADDITIONALTASK"
+        ARMED="--keep"
+    elif [ "$ADDITIONALTASK" = "direct" ]; then
+        echo ">>>>>>>>>> $ADDITIONALTASK"
+        ARMED="--direct"
+    elif [ "$ADDITIONALTASK" = "first" ]; then
+        echo ">>>>>>>>>> $ADDITIONALTASK"
+        ARMED="--first --armed"
     else
 	echo -e "don't understand "$ADDITIONALTASK" \nI understand only \"verify\" and \"clean\""
 	exit -1
@@ -268,12 +277,19 @@ then
 		-command "$HISEQINF/pbsTemp/bwa.sh $BWAADDPARM -k $CONFIG -t $CPU_BWA -m $(expr $MEMORY_BWA - 1 ) -f $f -r $FASTA \
                 -o $OUT/$dir/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi $dir \
                 --fastqName $FASTQ -R $SEQREG"
-	   exit
 	fi
       done
     done
 
 fi
+
+if [ -n "$RUNMAPPINGBWA2" ]; then
+    $HISEQINF/pbsTemp/pbsTemp.sh $ARMED -k $CONFIG -t $TASKBWA -o fastq -e "_"$READONE.$FASTQ -n $NODES_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA \
+        --command "$HISEQINF/pbsTemp/bwa.sh $BWAADDPARM -k $CONFIG -t $CPU_BWA -m $(expr $MEMORY_BWA - 1 ) -f <FILE> -r $FASTA \
+                -o $OUT/<DIR>/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> \
+                --fastqName $FASTQ -R $SEQREG"
+fi
+
 
 ############################################
 #   Mapping using BOWTIE
@@ -302,13 +318,19 @@ then
                 -command "$HISEQINF/pbsTemp/bowtie2.sh $BWAADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f $f -r $FASTA \
                 -o $OUT/$dir/$TASKBOWTIE --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi $dir \
                 --fastqName $FASTQ"
-	   exit
         fi
       done
     done
 
 fi
 
+
+
+if [ -n "$RUNMAPPINGBOWTIE2" ]; then
+    $HISEQINF/pbsTemp/pbsTemp.sh $ARMED -k $CONFIG -t $TASKBOWTIE -o fastq -e "_"$READONE.$FASTQ -n $NODES_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
+	--command "$HISEQINF/pbsTemp/bowtie2.sh $BOWTIEADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE \
+        --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
+fi
 
 
 ############################################
@@ -349,6 +371,7 @@ if [ -n "$RUNTOPHATCUFF" ]; then
 	do
 	n=`basename $f`
 	name=${n/'_'$READONE.$FASTQ/}
+	echo $name
 	echo ">>>>>"$dir"/"$TASKTOPHAT"/"$n" ("$TASKCUFF")"
 	
         #submit
@@ -361,12 +384,20 @@ if [ -n "$RUNTOPHATCUFF" ]; then
 		-N $TASKTOPHAT"_"$dir"_"$name -l $NODES_TOPHAT -l vmem=$MEMORY_TOPHAT"G" \
 		-command "$HISEQINF/pbsTemp/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -r $FASTA -f $f \
 		-t $CPU_TOPHAT -o $OUT/$dir/$TASKTOPHAT/$name/ -a $REFSEQGTF"
-exit
+	    #exit
 	fi
       done
 
 
     done
+fi
+
+
+if [ -n "$RUNTOPHATCUFF2" ]; then
+    $HISEQINF/pbsTemp/pbsTemp.sh $ARMED -k $CONFIG -t $TASKTOPHAT -o fastq -e "_"$READONE.$FASTQ -n $NODES_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
+        --command "$HISEQINF/pbsTemp/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -f <FILE> \
+         -t $CPU_TOPHAT -o $OUT/<DIR>/$TASKTOPHAT/<NAME> "
+
 fi
 
 
@@ -435,6 +466,7 @@ if [ -n "$RUNREALRECAL" ]; then
 
     echo "********* $TASKRCA"
     CPU=16
+    exit
 
     # generates the .dict file
     #java -Xmx4g -jar /home/Software/picard-tools-1.22/CreateSequenceDictionary.jar R= $FASTA O= ${$FASTA/.fasta/.dict}
@@ -463,16 +495,28 @@ if [ -n "$RUNREALRECAL" ]; then
 			
 	#Sumit (ca. 80 min on AV 1297205 reads) -l h_rt=20:00:00
 	if [ -n "$ARMED" ]; then
-	    $BINQSUB -j oe -o $QOUT/$TASKRCA/$dir'_'$name'.out' -w $(pwd) -l nodes=2:ppn=8 \
-		-l vmem=40G -N $TASKRCA'_'$dir'_'$name -l walltime=$WALLTIMERCA \
-		-command "$HISEQINF/pbsTemp/reCalAln.sh $VARADDRECAL -k $HISEQINF -f $OUT/$dir/$TASKBWA/$n2 -r $FASTA -d $DBROD \
-		-o $OUT/$dir/$TASKRCA -t $CPU"
+	    $BINQSUB -j oe -o $QOUT/$TASKRCA/$dir'_'$name'.out' -w $(pwd) -l $NODES_RECAL \
+		-l vmem=$MEMORY_RECAL'G' -N $TASKRCA'_'$dir'_'$name -l walltime=$WALLTIME_RECAL \
+		-command "$HISEQINF/pbsTemp/reCalAln.sh -k $HISEQINF -f $OUT/$dir/$TASKBWA/$n2 -r $FASTA -d $DBROD \
+		-o $OUT/$dir/$TASKRCA -t $CPU_RECAL $RECALADDPARAM"
 	fi
 	
       done
     done
 
 fi
+
+
+if [ -n "$RUNREALRECAL2" ]; then
+
+    $HISEQINF/pbsTemp/pbsTemp.sh $ARMED -r -k $CONFIG -t $TASKRCA -o $TASKBWA/ -e .$ASD.bam \
+        -n $NODES_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
+        --command "$HISEQINF/pbsTemp/reCalAln.sh $RECALADDPARAM -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA -t $CPU_RECAL"
+
+
+fi
+
+
 
 
 ############################################
@@ -536,6 +580,15 @@ then
     done
 
 fi
+
+if [ -n "$DEPTHOFCOVERAGE2" ]; then
+
+    $HISEQINF/pbsTemp/pbsTemp.sh $ARMED -r -k $CONFIG -t $TASKDOC -o $TASKRCA/ -e .$ASR.bam \
+	-n $NODES_GATKDOC -m $MEMORY_GATKDOC"G" -w $WALLTIME_GATKDOC \
+	--command "$HISEQINF/pbsTemp/gatkDOC.sh $DOCADDPARAM -k $HISEQINF -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKDOC -t $CPU_GATKDOC"
+
+fi
+
 
 
 ############################################
@@ -848,10 +901,10 @@ then
 
         #Submit #-pe mpich $CPUS 
 	if [ -n "$ARMED" ]; then
-	    qsub -j y -o $QOUT/$TASKVAR/$NAME.out -cwd -b y \
-		-l mem_free=20G -l h_vmem=20G -N $TASKVAR"_"$NAME $HOLD\
-	        $HISEQINF/pbsTemp/gatkSNPs.sh -k $HISEQINF -i $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp" -t $CPUS \
-		-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME -H $HAPMAPVCF -K $ONEKGVCF $VARADDPARAM
+	    $BINQSUB -j oe -o $QOUT/$TASKVAR/$NAME.out -w $(pwd) -l $NODES_VAR $HOLD \
+		-l vmem=$MEMORY_VAR"G" -N $TASKVAR'_'$NAME -l walltime=$WALLTIME_VAR \
+		-command "$HISEQINF/pbsTemp/gatkSNPs.sh -k $CONFIG -i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
+		-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME -H $HAPMAPVCF -K $ONEKGVCF $VARADDPARAM"
 	fi
     done
 
@@ -946,7 +999,7 @@ then
 	if [ -n "$ARMED" ]; then
 	    qsub $PRIORITY -j y -o $QOUT/$TASKSNP/$dir'_'$name'.out' -cwd -b y \
 		-l h_vmem=12G -N $TASKSNP'_'$dir'_'$name $HOLD\
-		$HISEQINF/pbsTemp/gatkSNPs.sh $HISEQINF $OUT/$dir/$TASKRCA/$n2 $FASTA $DBVCF \
+		$HISEQINF/pbsTemp/gatkSNPs.sh $CONFIG $OUT/$dir/$TASKRCA/$n2 $FASTA $DBVCF \
 		$REFSEQROD $OUT/$dir/$TASKSNP $OUT/$dir/$TASKIND | cut -d "" -f 2 >>$QOUT/$TASKSNP/ids.txt
 	fi
 

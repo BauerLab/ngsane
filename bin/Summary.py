@@ -66,7 +66,7 @@ def per(max,arr):
     sum=0
     for a in range(0,len(arr)):
         if (float(arr[a])!=0.0):
-            sum+=float(arr[a])/float(max[a])
+            sum+=float(arr[a])/float(max[a])*100
     if (sum==0.0):
         return 0
     sum/=len(arr)
@@ -74,7 +74,7 @@ def per(max,arr):
 
 
 def printStats(arrV, arrN, arrS):
-    out=[[],[],[],[],[]]
+    out=[[],[],[],[],[],[]]
     string="    "
     for c in range(0,len(arrV)):
         string+="%17s " % arrN[c]
@@ -88,6 +88,7 @@ def printStats(arrV, arrN, arrS):
         out[3].append(formatString % (ste(arrV[c])))
         if (percent):
             out[4].append(formatString % (per(arrV[0],arrV[c])))
+        out[5].append(formatString % (sum(arrV[c])))
     if(printing and arrS!=0 ):
         print string
         for l in arrS:
@@ -103,6 +104,7 @@ def printStats(arrV, arrN, arrS):
             print "-----------------------------"
     if(arrS==0 or len(arrS)>1):
         print string
+        print "sum "+" ".join(out[5])
         print "min "+" ".join(out[0])
         print "max "+" ".join(out[1])
         print " av "+" ".join(out[2])
@@ -120,18 +122,18 @@ def samstats_old(statsfile):
     values.append(int(st[0])) # total
     values.append(int(st[3])) # QCfail
     values.append(int(st[6])) # dupl
-    values.append(float(st[6])/float(st[0])) # dupl%
+    values.append(float(st[6])/float(st[0])*100) # dupl%
     values.append(int(st[8])) # mapped
-    values.append(float(values[-1])/values[0]) # mapped %
+    values.append(float(values[-1])/values[0]*100) # mapped %
     values.append(int(st[19])) # paired
-    values.append(float(values[-1])/values[0]) # paired %
+    values.append(float(values[-1])/values[0]*100) # paired %
     values.append(int(st[29]))
     values.append(int(st[40]))
     if (len(st)>50):
         values.append(int(st[51])) # regmapped
-        values.append(float(values[-1])/values[0]) 
+        values.append(float(values[-1])/values[0]*100) 
         values.append(int(st[56]))
-        values.append(float(values[-1])/values[0])
+        values.append(float(values[-1])/values[0]*100)
     #if(printing):
     #    string="    "
     #    for v in values:
@@ -149,17 +151,17 @@ def samstats(statsfile):
     values.append(int(st[0])) # total
     values.append(int(st[2])) # QCfail
     values.append(int(st[10])) # dupl
-    values.append(float(values[-1])/float(values[0])) # dupl%
+    values.append(float(values[-1])/float(values[0])*100) # dupl%
     values.append(int(st[14])) # mapped
-    values.append(float(values[-1])/float(values[0])) # mapped %
+    values.append(float(values[-1])/float(values[0])*100) # mapped %
     values.append(int(st[33])) # paired
-    values.append(float(values[-1])/float(values[0])) # paired %
+    values.append(float(values[-1])/float(values[0])*100) # paired %
     values.append(int(st[47]))
     if (len(st)>75):
         values.append(int(st[75])) # regmapped
-        values.append(float(values[-1])/values[0]) 
+        values.append(float(values[-1])/values[0]*100) 
         values.append(int(st[80]))
-        values.append(float(values[-1])/values[0])
+        values.append(float(values[-1])/values[0]*100)
     return names,values
 
 
@@ -175,11 +177,11 @@ def tophat(statsfile):
     values.append(int(st[0])) # acepted
     values.append(int(st[2])) # QCfail
     values.append(int(st[10])) # dupl
-    values.append(float(values[-1])/float(values[0])) # dupl%
+    values.append(float(values[-1])/float(values[0])*100) # dupl%
     values.append(int(st[14])) # mapped
-    values.append(float(values[-1])/float(values[0])) # mapped %
+    values.append(float(values[-1])/float(values[0])*100) # mapped %
     values.append(int(st[33])) # paired
-    values.append(float(values[-1])/float(values[0])) # paired %
+    values.append(float(values[-1])/float(values[0])*100) # paired %
     values.append(int(st[47]))
     if (len(st)>76):
         names.append("junction")
@@ -188,9 +190,9 @@ def tophat(statsfile):
         names.append("jnct over ncbi %")
         values.append(int(st[76])) # junction reads
         #values.append(float(values[-1])/float(values[5])) # junction %
-        values.append(float(values[-1])/float(values[0])) # junction %
+        values.append(float(values[-1])/float(values[0])*100) # junction %
         values.append(int(st[79])) # junction reads in ncbi genes
-        values.append(float(values[-1])/float(values[10])) # junction reads in ncbi genes %
+        values.append(float(values[-1])/float(values[10])*100) # junction reads in ncbi genes %
         
     return names,values
 
@@ -205,31 +207,63 @@ def onTarget(statsfile):
 #    print st[205]
     values.append(int(st[75])) # total
     values.append(int(st[85])) # paired total
-    values.append(float(values[-1])/float(values[0])) # paired total %
+    values.append(float(values[-1])/float(values[0])*100) # paired total %
     values.append(int(st[0])) # on target
-    values.append(float(values[-1])/float(values[0])) # on taget %
+    values.append(float(values[-1])/float(values[0])*100) # on taget %
     values.append(int(st[33])) # paired
-    values.append(float(values[-1])/float(values[0])) # paired %
+    values.append(float(values[-1])/float(values[0])*100) # paired %
     if (f.find("# on target 0")>-1):
         names.append("pairedd oT 200")
         names.append("(%)")
         names.append("paired oT 0")
         names.append("(%)")
         values.append(int(st[205])) # on target 200
-        values.append(float(values[-1])/float(values[0])) # on taget 200 %
+        values.append(float(values[-1])/float(values[0])*100) # on taget 200 %
         values.append(int(st[128])) # on target 0
-        values.append(float(values[-1])/float(values[0])) # on taget 0 %
+        values.append(float(values[-1])/float(values[0])*100) # on taget 0 %
         
     return names,values
 
 
+# picard RNAseq annotation
+def annoStatsPicard(statsfile):
+    names=["total bases", "aligned bases","(%)", "ribosomal bases", "(%)" ,"coding","(%)", "UTR","(%)","intronic","(%)", "intergenic", "(%)", "MEDIAN_CV_COVERAGE","MEDIAN_5PRIME_BIAS","MEDIAN_3PRIME_BIAS"]
+    values=[]
+    f=open(statsfile).read().split("\n")[7]
+#    print f
+    st=re.split("[ \t]+",f)
+    for i in range(0,7):
+        values.append(int(st[i]))
+        if(i>0):
+            values.append(float(values[-1]/float(values[0])*100))
+    values.append(float(st[19]))
+    values.append(float(st[20]))
+    values.append(float(st[21]))
+    return names,values
+
+def annoStats(statsfile):
+    names=["aligned reads", "unresolved", "(%)", "rRNA", "(%)", "tRNA", "(%)", "lincRNA", "(%)", "sno/miRNA", "(%)", "srpRNA", "(%)", "Refseq", "(%)", "segdups", "(%)", "rest", "(%)"]
+    values=[]
+    f=open(statsfile).read().split("\n")[1]
+    st=re.split("[ \t]+",f)
+    values.append(float(st[0]))
+    for i in range(1,10):
+        values.append(float(st[i]))
+        values.append(float(values[-1]/values[0]*100))
+    return names,values
+
+def parsetime(string):
+    arr=string.split(":")
+    return (int(arr[0])*3600+int(arr[1])*60+int(arr[2]))/3600.0
 
 def time(file):
-    st=open(file).read()
-    start=datetime.datetime.strptime(st.split(">>>>> startdate ")[1].split("\n")[0], "%a %b %d  %H:%M:%S EST %Y")
-    end=datetime.datetime.strptime(st.split(">>>>> enddate ")[1].split("\n")[0], "%a %b %d  %H:%M:%S EST %Y")
-    delta=end-start
-    return ["seconds", "hours"],[delta.total_seconds(),delta.total_seconds()/(60*60)]
+    st=re.split("[ =,k\n]",open(file).read().split("cput")[1])
+    real=parsetime(st[1]) #datetime.datetime.strptime(st[1], "%I:%M:%S")
+    computer=parsetime(st[9])
+    memory=int(st[6])*9.5367e-7
+#    end=datetime.datetime.strptime(st.split(">>>>> enddate ")[1].split("\n")[0], "%a %b %d  %H:%M:%S EST %Y")
+#    delta=end-start
+    return ["cpu(h)", "real", "memory(GB)"],[real,computer,memory]
 
 
 # sam statistics for recalibrated scores and realigned bams
@@ -501,6 +535,8 @@ for d in dir:
                     names,values=onTarget(d+"/"+f)
                 if (type=="intersection"):
                     names,values=intersection(d+"/"+f)     
+                if (type=="annostats"):
+                    names,values=annoStats(d+"/"+f)
                 result=addValues(result,values)
                 filename=f
                 if (link):

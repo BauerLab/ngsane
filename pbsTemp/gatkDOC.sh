@@ -50,9 +50,6 @@ while [ "$1" != "" ]; do
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
         -o | --outdir )         shift; OUT=$1 ;; # output dir
-
-	-d | --snpdb )          shift; DBROD=$1 ;; # snpdb
-        -o | --outdir )         shift; OUT=$1 ;; # output dir
 	-G | --gene )           shift; GENE=$1 ;; # gene list
 	-L | --list )           shift; LIST=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         -h | --help )           usage ;;
@@ -74,18 +71,28 @@ if [ -n "$LIST" ]; then TASK="-L $LIST"; fi
 if [ -n "$GENE" ]; then TASK="-geneList $GENE"; fi
 
 
-
 #PROGRAMS
 . $HISEQINF/pbsTemp/header.sh
+
+
+module load jdk
+export PATH=$PATH:$(basename $SAMTOOLS)
+#JAVAPARAMS="-Xmx"$MYMEMORY"g" # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
 
 n=`basename $f`
 
 
 if [ -e $QOUT/$n.doc ]; then rm $QOUT/$n.doc* ]; fi
 
+
+#java -jar /datastore/cmis/bau04c/SeqAna/apps/prod/Picard_svn/dist/CreateSequenceDictionary.jar R=/datastore/cmis/bau04c//SeqAna/reference/prod/GRCm38/GRCm38_chr.fasta O=/datastore/cmis/bau04c//SeqAna/reference/prod/GRCm38/GRCm38_chr.dict
+# BEDtools has it's own genome index file
+
+
 #calculate depthOfCoverage
 echo "********* depthOfCoverage"
-java -Xmx10g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
+
+java $JAVAPARAMS -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar \
     -T DepthOfCoverage \
     --minMappingQuality 10 \
     --minBaseQuality 10 \
