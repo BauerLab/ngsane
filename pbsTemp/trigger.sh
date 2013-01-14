@@ -1099,3 +1099,11 @@ then
     done
 
 fi
+
+
+if [ -n "$RUNANNOTATINGBWA" ]; then
+    $HISEQINF/pbsTemp/pbsTemp.sh $ARMED -k $CONFIG -t $TASKBWAANN -o fastq -e "_"$READONE.$FASTQ -n $NODES_BWAANN -m $MEMORY_BWAANN"G" -w $WALLTIME_BWAANN \
+        --command "$HISEQINF/pbsTemp/bwa.sh $BWAADDPARM -k $CONFIG -t $CPU_BWA -m $(expr $MEMORY_BWA - 1 ) -f <FILE> -r $FASTA \
+                -o $OUT/<DIR>/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> \
+                --fastqName $FASTQ -R $SEQREG"
+fi
