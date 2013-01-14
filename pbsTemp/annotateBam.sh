@@ -92,7 +92,12 @@ Other=$DATASTORE/SeqAna/reference/prod/b37/gencode.v14.annotation.b37.gtf
 #$SAMTOOLS view -f 0x400 -b $o > ${o/bam/dups.bam}
 
 for o in $f; do
+
+    dmget -a $PGENES $RRNA $TRNA $LINCRNA $MIRNA $SNORNA $SNRNA $TEC $MISCRNA $POLYA $OTHER
+    dmget -a $o
+
     echo $o
+    exit
 
     $BEDTOOLS/bedtools bamtobed -i $o > $o.bed
     $BEDTOOLS/bedtools merge -i $o.bed -n > $o.merg.bed
