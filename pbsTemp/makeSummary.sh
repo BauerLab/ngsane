@@ -61,9 +61,16 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     python $HISEQINF/bin/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
-    echo "anno"
-    echo "</pre><h3>Anno</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" merg.anno.stats annostats >>$SUMMARYTMP
+    if [ -n "$RUNANNOTATINGBAM" ]; then
+	echo "anno"
+	echo "</pre><h3>Anno</h3><pre>">>$SUMMARYTMP
+	python $HISEQINF/bin/Summary.py "$vali" merg.anno.stats annostats >>$SUMMARYTMP
+	echo "</pre>" >>$SUMMARYTMP
+	ROUTH=runStats/$(echo ${DIR[@]}|sed 's/ /_/g')
+	if [ ! -e $ROUTH ]; then mkdir $ROUTH; fi
+	module load R
+	python $HISEQINF/bin/bin/makeBamHistogram.py "$vali" $ROUTH $(basename $(pwd)) >>$SUMMARYTMP
+    fi
 fi
 
 
