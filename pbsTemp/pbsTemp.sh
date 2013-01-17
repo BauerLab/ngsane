@@ -15,6 +15,7 @@ while [ "$1" != "" ]; do
 	-w | --walltime )       shift; WALLTIME=$1;;
 	-c | --command )        shift; COMMAND=$1;;
 	-r | --reverse )        REV="1";;
+	-d | --nodir )          NODIR="1";;
 	-a | --armed )          ARMED="armed";;
 	--keep )                KEEP="keep";;
 	--direct )              DIRECT="direct";;
@@ -39,7 +40,9 @@ if [ ! -e $QOUT/$TASK/runnow.tmp ]; then
     for dir in ${DIR[@]}; do
       
       #ensure dirs are there...
-      if [ ! -d $OUT/$dir/$TASK ]; then mkdir $OUT/$dir/$TASK; fi
+      if [ ! -n "$NODIR" ]; then
+	  if [ ! -d $OUT/$dir/$TASK ]; then mkdir $OUT/$dir/$TASK; fi
+      fi
       # print out 
       if [ -n "$REV" ]; then
 	  for f in $( ls $SOURCE/$dir/$ORIGIN/*$ENDING); do

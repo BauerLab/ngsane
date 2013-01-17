@@ -73,14 +73,18 @@ n=`basename $f`
 PGENES=$DATASTORE/SeqAna/reference/prod/b37/annotation/gencode.v14.protein_coding.b37.gtf
 RRNA=$DATASTORE/SeqAna/reference/prod/b37/annotation/gencode.v14.rRNA.b37.gtf
 TRNA=$DATASTORE/SeqAna/reference/prod/b37/annotation/gencode.v14.Mt_tRNA.b37.gtf
-LINCRNA=$DATASTORE/SeqAna/reference/prod/b37/annotation/gencode.v14.long_noncoding_RNAs_b37.gtf
+LINCRNA=$DATASTORE/SeqAna/reference/prod/b37/annotation/gencode.v14.long_noncoding_RNAs.b37.gtf
 MIRNA=$DATASTORE/SeqAna/reference/prod/b37/annotation/gencode.v14.miRNA.b37.gtf
 SNORNA=$DATASTORE/SeqAna/reference/prod/b37/annotation/gencode.v14.snoRNA.b37.gtf
 SNRNA=$DATASTORE/SeqAna/reference/prod/b37/annotation/gencode.v14.snRNA.b37.gtf
-TEC=$DATASTORE/SeqAna/reference/prod/b37/annotation/gencode.v14.TEC.b37.gtf
+#TEC=$DATASTORE/SeqAna/reference/prod/b37/annotation/gencode.v14.TEC.b37.gtf
 MISCRNA=$DATASTORE/SeqAna/reference/prod/b37/annotation/gencode.v14.misc_RNA.b37.gtf
-POLYA=$DATASTORE/SeqAna/reference/prod/b37/gencode.v14.polyAs_b37.gtf
-Other=$DATASTORE/SeqAna/reference/prod/b37/gencode.v14.annotation.b37.gtf
+POLYA=$DATASTORE/SeqAna/reference/prod/b37/annotation/gencode.v14.polyAs.b37.gtf
+OTHER=$DATASTORE/SeqAna/reference/prod/b37/annotation/gencode.v14.annotation.b37.gtf
+UCSCRRNA=$DATASTORE/SeqAna/reference/prod/b37/annotation/UCSC.37.rRNA.b37.gtf
+HISEQ=$DATASTORE/SeqAna/reference/prod/b37/annotation/hiSeqDepthTop10Pct.b37.bed
+DUPS=$DATASTORE/SeqAna/reference/prod/b37/annotation/UCSC.37.genomicSuperDups.37.gtf
+
 
 #o=$(head -n ${PBS_ARRAYID} tasks.txt | tail -1)
 #echo $o
@@ -93,20 +97,23 @@ Other=$DATASTORE/SeqAna/reference/prod/b37/gencode.v14.annotation.b37.gtf
 
 for o in $f; do
 
-    dmget -a $PGENES $RRNA $TRNA $LINCRNA $MIRNA $SNORNA $SNRNA $TEC $MISCRNA $POLYA $OTHER
-    dmget -a $o
+    for i in $o $PGENES $RRNA $TRNA $LINCRNA $MIRNA $SNORNA $SNRNA $MISCRNA $POLYA $OTHER $UCSCRRNA $HISEQ $DUPS; do
+	dmget -a $i
+    done
 
     echo $o
-    exit
 
     $BEDTOOLS/bedtools bamtobed -i $o > $o.bed
     $BEDTOOLS/bedtools merge -i $o.bed -n > $o.merg.bed
     rm $o.bed
-    $BEDTOOLS/bedtools annotate -counts -i $o.merg.bed -files $PGENES $RRNA $TRNA $LINCRNA $MIRNA $SNORNA $SNRNA $TEC $MISCRNA $POLYA $OTHER -names genes rRNA tRNA lincRNA miRNA snoRNA snrna TEC miscRNA polyA other >$o.merg.anno.bed
+    # strandedness does not work for RRNA
+    $BEDTOOLS/bedtools annotate -counts -i $o.merg.bed -files $PGENES $RRNA $TRNA $LINCRNA $MIRNA $SNORNA $SNRNA $MISCRNA $POLYA $OTHER $HISEQ $UCSCRRNA $DUPS -names genes rRNA tRNA lincRNA miRNA snoRNA snrna miscRNA polyA other HiSeq uscs_rRNA SegDups >$o.merg.anno.bed
     rm $o.merg.bed
     
-    echo "total Pgenes rRNA tRNA lincRNA miRNA snoRNA snRNA TEC miscRNA PolyA other rest" >$o.merg.anno.stats
-    gawk 'BEGIN{a=0; b=0; c=0; d=0; e=0; f=0; g=0; h=0; i=0; j=0; k=0}{
+    ALLREADS=$(head -n 1 $f.stats | cut -d" " -f1)
+    echo "******** sort"
+    echo "total Pgenes rRNA tRNA lincRNA miRNA snoRNA snRNA miscRNA PolyA other HiSeq uscs_rRNA segDups unannotated unmapped" >$o.merg.anno.stats
+    gawk -v all=$ALLREADS 'BEGIN{a=0; b=0; c=0; d=0; e=0; f=0; g=0; h=0; i=0; j=0; k=0; l=0; m=0; n=0; o=0; x=0}{
          a=a+$4; 
          if( $5 !=0){b=b+$4; next}; 
          if( $6 !=0){c=c+$4; next};
@@ -118,8 +125,11 @@ for o in $f; do
          if( $12!=0){i=i+$4; next};
          if( $13!=0){j=j+$4; next};
          if( $14!=0){k=k+$4; next};
-         if( $5+$6+$7+$8+$9+$10+$11+$12+$13+$14==0){x=x+$4}}
-         END{print a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "x}' $o.merg.anno.bed >> $o.merg.anno.stats
+         if( $15!=0){l=l+$4; next};
+         if( $16!=0){m=m+$4; next};
+         if( $17!=0){n=n+$4; next};
+         if( $5+$6+$7+$8+$9+$10+$11+$12+$13+$14+$15+$16+$17==0){x=x+$4}}
+         END{print all" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "x" "all-a}' $o.merg.anno.bed >> $o.merg.anno.stats
 
     #echo "total GLxx rRNA tRNA lincRNA sno_miRNA srpRNA REFSEQ segdups rest" >$o.merg.anno.stats
     #gawk 'BEGIN{r=0; t=0; l=0; m=0; s=0; g=0; a=0; u=0; d=0; x=0}{a=a+$4; 

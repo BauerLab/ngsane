@@ -1102,7 +1102,7 @@ fi
 
 
 if [ -n "$RUNANNOTATINGBAM" ]; then
-    echo "$HISEQINF/pbsTemp/pbsTemp.sh $ARMED -k $CONFIG -t $TASKBAMANN -o $TASKBWA -e bam -n $NODES_BAMANN \
+    $HISEQINF/pbsTemp/pbsTemp.sh -d -r $ARMED -k $CONFIG -t $TASKBAMANN -o $TASKBWA -e .bam -n $NODES_BAMANN \
 	-m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN \
-        --command \"$HISEQINF/pbsTemp/annotateBam.sh -k $CONFIG -f <FILE>\""
+        --command "$HISEQINF/pbsTemp/annotateBam.sh -k $CONFIG -f <FILE>"
 fi

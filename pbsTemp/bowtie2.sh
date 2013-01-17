@@ -102,7 +102,7 @@ fi
 
 #readgroup
 FULLSAMPLEID=$SAMPLEID"${n/'_'$READONE.$FASTQ/}"
-RG= "-sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
+RG='--sam-rg "ID:$EXPID" --sam-rg "SM:$FULLSAMPLEID" --sam-rg "LB:$LIBRARY" --sam-rg "PL:$PLATFORM"'
 
 $BOWTIETWO/bowtie2 $RG -t -x ${FASTA/.fasta/} -p $THREADS $READS -S $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} --un $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}
 #$BOWTIETWO/bowtie2 -t -x ~/Documents/datahome/ErrorCorrection/ExCap/bowtie_index_konsta/human_g1k_v37 -p $THREADS $READS -S $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} --un $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}

@@ -5,6 +5,7 @@ SCRIPT=$1
 QOUT=$2
 
 
+dmget $QOUT/*.out
 
 echo ""
 echo "###################################################"
@@ -51,3 +52,5 @@ do
     echo "QC_PASS .. $var have $i/$files"
   fi
 done
+
+#dmput $QOUT/*.out
