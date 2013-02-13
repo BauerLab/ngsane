@@ -248,8 +248,8 @@ if [ -n "$VARIANTRECAL" ]; then
 	    -resource:omni,known=false,training=true,truth=false,prior=12.0 $ONEKGVCF \
 	    -resource:dbsnp,known=true,training=false,truth=false,prior=8.0 $DBSNPVCF \
 	    -an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an FS -an MQ \
-	    --mode BOTH \
-	    --recalFile $MYOUT/$NAME.raw.recal \
+	    -mode BOTH \
+	    -recalFile $MYOUT/$NAME.raw.recal \
 	    -tranchesFile $MYOUT/$NAME.raw.tranches \
 	    $ADDRECAL \
 	    -rscriptFile $MYOUT/R/output.plots.R \
@@ -260,12 +260,12 @@ if [ -n "$VARIANTRECAL" ]; then
 	echo "********* variant cut"
 	java -Xmx10g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
 	    -T ApplyRecalibration \
-	    --mode Both \
+	    -mode Both \
 	    -R $FASTA \
-	    --input $MYOUT/$NAME.raw.vcf \
+	    -input $MYOUT/$NAME.raw.vcf \
 	    --ts_filter_level 99.0 \
-	    --tranchesFile $MYOUT/$NAME.raw.tranches \
-	    --recalFile $MYOUT/$NAME.raw.recal \
+	    -tranchesFile $MYOUT/$NAME.raw.tranches \
+	    -recalFile $MYOUT/$NAME.raw.recal \
 	    -o $MYOUT/$NAME.recalfilt.vcf
 
 

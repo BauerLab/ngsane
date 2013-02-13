@@ -2,13 +2,16 @@
 
 
 BINQSUB=$DATASTORE/SeqAna/apps/prod/seqaninf/bin/myqsub
+#this gzip waits for the file to migrate completly before unzipping it
+GZIP=$DATASTORE/SeqAna/apps/prod/mygzip/
 BWA=$DATASTORE/SeqAna/apps/prod/bwa_git/bwa
 SAMTOOLS=$DATASTORE/SeqAna/apps/prod/samtools_svn/samtools
 IGVTOOLS=$DATASTORE/SeqAna/apps/prod/IGVTools/igvtools.jar
 PICARD=$DATASTORE/SeqAna/apps/prod/Picard_svn/dist/
 SAMSTAT=$DATASTORE/SeqAna/apps/dev/samstat/src/samstat
-GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
+#GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
 GATKJAR=$GATKHOME/dist/
+GATKJAR=$DATASTORE/SeqAna/apps/dev/GenomeAnalysisTK-2.1-9-gb90951c/
 RSCRIPT=/apps/R/2.14.1/bin/Rscript # module load R
 FASTQC=$DATASTORE/SeqAna/apps/prod/FastQC/fastqc
 FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
@@ -30,10 +33,16 @@ RRBSMAP="/clusterdata/hiseq_apps/bin/devel/rrbsmap-1.5/rrbsmap"
 MACS="/clusterdata/hiseq_apps/bin/devel/MACS_git"
 PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
 
+
+#
+# Need to use 2.0.0b6 or higher because of --sam-RG
+# only cherax has this install so far
 #BOWTIETWO="$DATASTORE/SeqAna/apps/prod/bowtie2-2.0.0-beta6/" <- buggy
-BOWTIETWO="/apps/bowtie/2.0.0b6/"
+#BOWTIETWO="/apps/bowtie/2.0.0b6/"
 #BOWTIETWO="/datastore/cmis/bau04c/SeqAna/apps/prod/bowtie2-2.0.0-beta7-source"
 #BOWTIETWO=bowtie/2.0.0b5
+BOWTIETWO=bowtie/2.0.5
+
 
 CUTADAPT="/clusterdata/hiseq_apps/bin/devel/cutadapt/cutadapt-0.9/cutadapt"
 VIENNA="/clusterdata/hiseq_apps/bin/devel/ViennaRNA/bin/"
@@ -61,6 +70,7 @@ TASKRRBS="rrbs"
 TASKMACS="macs"
 TASKANNOVAR="annovar"
 TASKBAMANN="bamann"
+TASKSAMVAR="samvar"
 
 #Fileabb
 READONE="read1"
@@ -98,7 +108,17 @@ MEMORY_GATKDOC=50
 CPU_GATKDOC=1
 NODES_GATKDOC="nodes=1:ppn=1"
 #ANNOTATING BAM
-WALLTIME_BAMANN=05:00:00
-MEMORY_BAMANN=8
+WALLTIME_BAMANN=5:00:00
+MEMORY_BAMANN=16
 CPU_BAMANN=1
 NODES_BAMANN="nodes=1:ppn=1"
+#GATK VARCALL
+WALLTIME_VAR=100:00:00
+MEMORY_VAR=20
+CPU_VAR=1
+NODES_VAR="nodes=1:ppn=1"
+#SAMTOOLS VARCALL
+WALLTIME_SAMVAR=40:00:00
+MEMORY_SAMVAR=16
+CPU_SAMVAR=1
+NODES_SAMVAR="nodes=1:ppn=1"

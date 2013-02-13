@@ -14,12 +14,14 @@ while [ "$1" != "" ]; do
 	-m | --memory )         shift; MEMORY=$1;;
 	-w | --walltime )       shift; WALLTIME=$1;;
 	-c | --command )        shift; COMMAND=$1;;
+	--postcommand )         shift; POSTCOMMAND=$1;;
 	-r | --reverse )        REV="1";;
-	-d | --nodir )          NODIR="1";;
+	-d | --nodir )          NODIR="nodir";;
 	-a | --armed )          ARMED="armed";;
 	--keep )                KEEP="keep";;
 	--direct )              DIRECT="direct";;
 	--first )               FIRST="first";;
+	--postonly )            POSTONLY="postonly" ;;
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -31,7 +33,9 @@ done
 . $HISEQINF/pbsTemp/header.sh
 . $CONFIG
 
-echo "********* $TASK"
+echo "********* $TASK $NODIR"
+
+echo $COMMAND
 
 if [ ! -d $QOUT/$TASK ]; then mkdir $QOUT/$TASK; fi
 
@@ -56,7 +60,9 @@ if [ ! -e $QOUT/$TASK/runnow.tmp ]; then
   done
 fi
 
-
+MYPBSIDS="" # collect job IDs for postcommand
+DIR=""
+FILES=""
 for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
     n=$(basename $i) 
@@ -67,11 +73,15 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     echo ">>>>>"$dir"/"$name
                 
 
-    COMMAND2=${COMMAND//<FILE>/$i}
-    COMMAND2=${COMMAND2//<DIR>/$dir}
-    COMMAND2=${COMMAND2//<NAME>/$name}
+    COMMAND2=${COMMAND//<FILE>/$i} # insert files for which parallele jobs are submitted
+    COMMAND2=${COMMAND2//<DIR>/$dir} # insert output dir
+    COMMAND2=${COMMAND2//<NAME>/$name} # insert ??
+
+    DIR=$DIR" $dir"
+    FILES=$FILES" $i"
 
     echo $COMMAND2
+#    if [ -n "$ECHO" ]; then continue; fi
 
 
     if [ -n "$DIRECT" ]; then eval $COMMAND2; fi
@@ -81,13 +91,40 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         # remove old pbs output
 	if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.*; fi
 
-        $BINQSUB $QSUBEXTRA -j oe -o $QOUT/$TASK/$dir'_'$name'.out' -w $(pwd) -l $NODES \
+	# submit and collect pbs scheduler return
+        RECIPT=$($BINQSUB $QSUBEXTRA -j oe -o $QOUT/$TASK/$dir'_'$name'.out' -w $(pwd) -l $NODES \
             -l vmem=$MEMORY -N $TASK'_'$dir'_'$name -l walltime=$WALLTIME \
-            -command "$COMMAND2"
+            -command "$COMMAND2")
+	echo -e "$RECIPT"
+	MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
+
 
 	if [ -n "$FIRST" ]; then exit; fi
 
     fi
 done
+
+
+if [ -n "$POSTCOMMAND" ]; then
+   # process for postcommand
+    DIR=$(echo -e ${DIR// /\\n} | sort -u | gawk 'BEGIN{x=""};{x=x"_"$0}END{print x}' | sed 's/__//')
+    FILES=$(echo -e $FILES | sed 's/ /,/g')
+    POSTCOMMAND2=${POSTCOMMAND//<FILE>/$FILES}
+    POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$DIR}
+    MYPBSIDS=$(echo -e $MYPBSIDS | sed 's/://')
+
+    echo ">>>>>"$DIR" wait for "$MYPBSIDS
+    echo $POSTCOMMAND2
+
+    if [[ -n "$DIRECT" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; fi
+    if [[ -n "$ARMED" || -n "$POSTONLY" ]]; then
+
+	RECIPT=$($BINQSUB $QSUBEXTRA -W after:$MYPBSIDS -j oe -o $QOUT/$TASK/$DIR'_postcommand.out' -w $(pwd) -l $NODES \
+            -l vmem=$MEMORY -N $TASK'_'$DIR'_postcommand' -l walltime=$WALLTIME \
+            -command "$POSTCOMMAND2")
+	echo -e "$RECIPT"
+    fi
+fi
+
 
 if [ ! -n "$KEEP" ]; then  rm $QOUT/$TASK/runnow.tmp ; fi

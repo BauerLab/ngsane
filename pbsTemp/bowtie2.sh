@@ -58,8 +58,17 @@ done
 
 module load R
 module load jdk #/1.7.0_03
-#module load $BOWTIETWO
-JAVAPARAMS="-Xmx"$MEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
+module load $BOWTIETWO
+export PATH=$GZIP:$PATH
+
+echo $(which gzip)
+
+#export PATH=$PATH:$BOWTIETWO
+#echo $PATH
+echo $(which bowtie2)
+
+JAVAPARAMS="-Xmx"$MEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=10G"
+echo $JAVAPARAMS
 
 n=`basename $f`
 
@@ -80,21 +89,25 @@ ZCAT="zcat"
 if [[ $f != *.fastq.gz ]]; then ZCAT="cat"; fi
 
 # generating the index files                                                                                      
-if [ ! -e ${FASTA/.fasta/}.1.bt2 ]; then echo ">>>>> make .bt2"; $BOWTIETWO/bowtie2-build $FASTA ${FASTA/.fasta/}; fi
+if [ ! -e ${FASTA/.fasta/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.fasta/}; fi
 if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; $SAMTOOLS faidx $FASTA; fi
 
 dmget -a $(dirname $FASTA)/*
+dmls -l $FASTA*
 
 #run bowtie command -v $MISMATCH -m 1
 echo "********* bowtie" 
 if [ $PAIRED == "0" ]; then 
     READS="-U $f"
     dmget -a $f
+    dmls -l $f
     let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
 else 
     READS="-1 $f -2 ${f/$READONE/$READTWO}"
     dmget -a $f
+    dmls -l $f
     dmget -a ${f/$READONE/$READTWO}
+    dmls -l ${f/$READONE/$READTWO}
     READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
     READ2=`$ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}' `
     let FASTQREADS=$READ1+$READ2
@@ -102,9 +115,11 @@ fi
 
 #readgroup
 FULLSAMPLEID=$SAMPLEID"${n/'_'$READONE.$FASTQ/}"
-RG='--sam-rg "ID:$EXPID" --sam-rg "SM:$FULLSAMPLEID" --sam-rg "LB:$LIBRARY" --sam-rg "PL:$PLATFORM"'
+#RG="--sam-rg ID:$EXPID --sam-rg SM:$FULLSAMPLEID --sam-rg LB:$LIBRARY --sam-rg PL:$PLATFORM"
+RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
 
-$BOWTIETWO/bowtie2 $RG -t -x ${FASTA/.fasta/} -p $THREADS $READS -S $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} --un $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}
+#BOWTIETWO/bowtie2
+bowtie2 $RG -t -x ${FASTA/.fasta/} -p $THREADS $READS -S $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} --un $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}
 #$BOWTIETWO/bowtie2 -t -x ~/Documents/datahome/ErrorCorrection/ExCap/bowtie_index_konsta/human_g1k_v37 -p $THREADS $READS -S $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} --un $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}
 
 

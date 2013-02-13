@@ -26,3 +26,9 @@ if [ "$CPUS" -gt "$MAX" ]; then echo "reduce to $MAX CPUs"; CPUS=$MAX; fi
 
 
 $FASTQC --nogroup -t $CPUS --outdir $OUT/runStats/$TASKFASTQC `echo $FILES`
+
+chmod a+rx $OUT/runStats/fastQC/*fastqc/Images
+chmod a+rx $OUT/runStats/fastQC/*fastqc/Icons
+chmod a+rx $OUT/runStats/fastQC/*fastqc
+chmod a+r $OUT/runStats/fastQC/*fastqc/*
+chmod a+r $OUT/runStats/fastQC/*fastqc/*/*

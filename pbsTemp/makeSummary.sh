@@ -69,7 +69,7 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
 	ROUTH=runStats/$(echo ${DIR[@]}|sed 's/ /_/g')
 	if [ ! -e $ROUTH ]; then mkdir $ROUTH; fi
 	module load R
-	python $HISEQINF/bin/bin/makeBamHistogram.py "$vali" $ROUTH $(basename $(pwd)) >>$SUMMARYTMP
+	python $HISEQINF/bin/makeBamHistogram.py "$vali" $ROUTH $(basename $(pwd)) >>$SUMMARYTMP
     fi
 fi
 
@@ -184,7 +184,7 @@ if [ -n "$RUNANNOTATION" ]; then
 
 fi
 
-if [ -n "$RUNANNOTATINGBAM" ]; then
+if [ -n "$RUNANNOTATINGBAM3" ]; then
     echo "ANNOTATION"
 
     module load R

@@ -49,7 +49,7 @@ while [ "$1" != "" ]; do
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
-        -o | --outdir )         shift; OUT=$1 ;; # output dir
+        -o | --outdir )         shift; OUT=$1 ;; # output dir  +++ THIS DOES NOT USE CONFIG OVERWRITE !! +++
 	-G | --gene )           shift; GENE=$1 ;; # gene list
 	-L | --list )           shift; LIST=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         -h | --help )           usage ;;

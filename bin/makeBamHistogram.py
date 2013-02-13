@@ -1,62 +1,84 @@
-import sys, os
+import sys, os, re, subprocess, commands
 #
 # Create the R plots for the categories 
 #
 
-dir=re.split("[ \n]",sys.argv[1])
+dirname=re.split("[ \n]",sys.argv[1])
 out=sys.argv[2]
-ext="merg.anno.stats"
 
-set=[["genes"],["lincRNA"],["miRNA","snoRNA","snRNA", "miscRNA"], ["rRNA"], ["UCSC_rRNA"], ["tRNA"], ["PolyA"], ["other"], ["HiSeq"], ["SegDups"], ["unannotated"], ["unmapped"]]
+setname=[["Pgenes"],["lincRNA"],["miRNA","snoRNA","snRNA", "miscRNA"], ["rRNA"], ["ucsc_rRNA"], ["PolyA"], ["tRNA","other"], ["HiSeq", "segDups"], ["unannotated"], ["unmapped"]]
 printable=[]
 nr=[]
 
-command="for i in $(ls "+"/*.merg.anno.stats".join(dir)+"; do echo $i $(head -n 2 $i ) ; done "
-content=os.popen3(command)[3].read()
+content=[]
+for d in dirname:
+    if d=="":
+        continue
+    content+=commands.getoutput("head -n 2 "+d+"/*.merg.anno.stats").split("==>")
 
 # locate value of annotation
-for s in set:
+annotations=0
+for s in setname:
     pos=[]
     for e in s:
         counter=0
-        for i in re.split(" +",content[0]); do
+        annotations+=1
+        for i in re.split("[ \n]+",content[1]):
             if i==e:
-                pos+=counter
+                pos.append(counter)
                 break
             counter+=1
     nr.append(pos)
 
-Rdata=open(out+"/distribution.ggplot",w)
+#print setname
+#print nr
+
+descript=""
+printable=[0]*len(setname)
+Rdata=open(out+"/distribution.ggplot","w")
 Rdata.write("sample type feature number\n")
-for i in content:
-    if i=="" or i[0]=="#":
+for line in content:
+    arr=re.split("[ \n]", line)
+    if line=="" or line[0]=="#":
         continue
-    arr=re.split(" +",i)
-    name=re.split("/.",arr[0])
-    for i in range(0,len(set):
+    name=[re.split("/",arr[1])[-3],re.split("/",arr[1])[-1].split(".")[0]]
+    descript=re.split("/",arr[1])[-4]
+#    name=re.split("[/.]",a[0])
+    for i in range(0,len(setname)):
         value=0
-        for j in range(0,len(set[i])):
-            value+=content[nr[i][j]]
-        Rdata.write("%s %s %s %i\n" % (name[2],name[0], "_".join(set[i]), value))
-        printable+="_".join(set[i])
+        for j in range(0,len(setname[i])):
+#            print nr[i][j]
+#            print arr[nr[i][j]+1+annotations]
+#            print arr
+            try:
+                value+=int(arr[nr[i][j]+1+annotations])
+            except:
+                value+=0
+#        print name
+        Rdata.write("%s %s %s %i\n" % (name[1],name[0], "_".join(setname[i]), value))
+        printable[i]="_".join(setname[i])
+
 Rdata.close()
 
-Rscript=open(out+"/distribution.ggplot.R",w)
+
+
+Rscript=open(out+"/distribution.ggplot.R","w")
 Rimage=out+"/distribution.pdf"
-Rscript.write("""library("ggplot2")\n
-	library("reshape")\n""")
-Rscript.write('pdf(file = "'+Rimage+'\n')
-Rscript.write('distribution <- read.table("'+out+'/distribution.ggplot", header=T, quote="\""\n)'
-Rscript.write('distribution$feature <- factor(distribution$feature, levels = c("'+'","'.join(printable)'")\n')
-Rscript.write('ggplot(distribution, aes(x = sample, y=number)) + geom_bar(aes(fill = feature), position = "fill") + scale_y_continuous("fraction") + opts(axis.text.x=theme_text(angle=-90, hjust=0),title = expression("'+descript+'"))\n')
-Rscript.write('ggplot(distribution, aes(x = sample, y=number)) + geom_bar(aes(fill = feature)) + opts(axis.text.x=theme_text(angle=-90, hjust=0),title = expression("'+descript+'")) + ylim(0,9e+07)\n')
+Rscript.write('library("ggplot2")\nlibrary("reshape")\n')
+Rscript.write('pdf(file = "'+Rimage+'",width=10,height=7)\n')
+Rscript.write('distribution <- read.table("'+out+'/distribution.ggplot", header=T, quote="\\"")\n')
+#Rscript.write('head(distribution)\n')
+Rscript.write('distribution$feature <- factor(distribution$feature, levels = c("'+'","'.join(printable)+'"))\n')
+Rscript.write('ggplot(distribution, aes(x = sample, y=number)) + geom_bar(stat="identity", aes(fill = feature), position = "fill") + scale_y_continuous("fraction") + opts(axis.text.x=theme_text(angle=-90, hjust=0), title="'+descript+'")\n')
+Rscript.write('ggplot(distribution, aes(x = sample, y=number)) + geom_bar(stat="identity", aes(fill = feature)) + opts(axis.text.x=theme_text(angle=-90, hjust=0), title="'+descript+'")\n')
+#+ ylim(0,17e+07)\n')
 Rscript.write("dev.off()\n")
 Rscript.close()
 
 
-os.system("Rscript --vanilla "+Rscript)
-os.system("convert "+Rimage+" "+Rimage.repace("pdf","jpg")
+x=os.system("Rscript --vanilla "+out+"/distribution.ggplot.R")
+x=os.system("convert "+Rimage+" "+Rimage.replace("pdf","jpg"))
 
-print '</pre><h3>Annotation of mapped reads</h3><pre>'
-print '<table><tr><td><a href="'+Rimage+'"><img src="'Rimage.strip(".pdf")'-0.jpg"></a></td>'
-print '<td><a href="'+Rimage+'"><img src="'Rimage.strip(".pdf")'-1.jpg"></a></td></tr></table>'
+print "</pre><h3>Annotation of mapped reads</h3><pre>"
+print '<table><tr><td><a href="'+Rimage+'"><img src="'+Rimage.strip(".pdf")+'-0.jpg"></a></td>'
+print '<td><a href="'+Rimage+'"><img src="'+Rimage.strip(".pdf")+'-1.jpg"></a></td></tr></table>'

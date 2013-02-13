@@ -242,12 +242,12 @@ def annoStatsPicard(statsfile):
     return names,values
 
 def annoStats(statsfile):
-    names=["aligned reads", "unresolved", "(%)", "rRNA", "(%)", "tRNA", "(%)", "lincRNA", "(%)", "sno/miRNA", "(%)", "srpRNA", "(%)", "Refseq", "(%)", "segdups", "(%)", "rest", "(%)"]
+    names=["total", "genes", "(%)", "rRNA", "(%)", "tRNA", "(%)", "lincRNA", "(%)", "miRNA", "(%)", "snoRNA", "(%)", "snrna", "(%)", "miscRNA", "(%)", "polyA", "(%)", "other", "(%)", "HiSeq", "(%)", "ucsc_rRNA", "(%)", "SegDups", "(%)"]
     values=[]
     f=open(statsfile).read().split("\n")[1]
     st=re.split("[ \t]+",f)
     values.append(float(st[0]))
-    for i in range(1,10):
+    for i in range(1,14):
         values.append(float(st[i]))
         values.append(float(values[-1]/values[0]*100))
     return names,values

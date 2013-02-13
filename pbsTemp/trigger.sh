@@ -69,6 +69,9 @@ if [ -n "$ADDITIONALTASK" ]; then
     elif [ "$ADDITIONALTASK" = "first" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--first --armed"
+    elif [ "$ADDITIONALTASK" = "postonly" ]; then
+        echo ">>>>>>>>>> $ADDITIONALTASK"
+        ARMED="--postonly"
     else
 	echo -e "don't understand "$ADDITIONALTASK" \nI understand only \"verify\" and \"clean\""
 	exit -1
@@ -1100,9 +1103,25 @@ then
 
 fi
 
-
+############################################ 
+# IN */bwa/*.bam
+# OUT */bwa/*.ann
+############################################ 
 if [ -n "$RUNANNOTATINGBAM" ]; then
-    $HISEQINF/pbsTemp/pbsTemp.sh -d -r $ARMED -k $CONFIG -t $TASKBAMANN -o $TASKBWA -e .bam -n $NODES_BAMANN \
+    $HISEQINF/pbsTemp/pbsTemp.sh -nodir -r $ARMED -k $CONFIG -t $TASKBAMANN -origin $TASKBWA -e .bam -n $NODES_BAMANN \
 	-m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN \
         --command "$HISEQINF/pbsTemp/annotateBam.sh -k $CONFIG -f <FILE>"
+fi
+
+
+############################################
+# IN: */bwa/*.bam
+# OUT: */bwa_var/*.clean.vcf
+############################################
+
+if [ -n "$RUNSAMVAR" ]; then
+   $HISEQINF/pbsTemp/pbsTemp.sh -r $ARMED -k $CONFIG -t $TASKBWA-$TASKSAMVAR --origin $TASKBWA -e .$ASD.bam -n $NODES_SAMVAR \
+        -m $MEMORY_SAMVAR'G' -w $WALLTIME_SAMVAR \
+        --command "$HISEQINF/pbsTemp/samSNPs.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBWA-$TASKSAMVAR" \
+	--postcommand "$HISEQINF/pbsTemp/samSNPscollect.sh -k $CONFIG -f <FILE> -o $OUT/variant/$TASKBWA-$TASKSAMVAR-<DIR>"
 fi
