@@ -39,7 +39,7 @@ if [ ! $# -gt 3 ]; then usage ; fi
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
-        -f           )          shift; FILES=${1/,/ } ;; # bam files
+        -f           )          shift; FILES=${1//,/ } ;; # bam files
 	-o           )          shift; MYOUT=$1 ;; # outputdir
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -69,8 +69,8 @@ if [ ! -d $MYOUT ]; then mkdir -p $MYOUT; fi
 VARIANTS=""
 NAMES=""
 for f in $FILES; do
-    i=${f/$TASKBWA/$TASKBWA"_"$TASKSAMVAR} #point to var folder
-    i=${i/$ASR/"clean.vcf"} # correct ending
+    i=${f/$TASKBWA/$TASKBWA"-"$TASKSAMVAR} #point to var folder
+    i=${i/bam/"clean.vcf"} # correct ending
     b=$(basename $i)
     arrIN=(${b//./ })
     name=${arrIN[0]}

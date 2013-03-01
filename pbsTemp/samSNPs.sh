@@ -62,17 +62,17 @@ module load samtools
 #if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats; fi
 #if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl; fi
 
-echo "********* rm duplicate reads"
+echo "********* rm duplicate reads $(date)"
 samtools rmdup $f $MYOUT/${n/bam/drm.bam}
 samtools index $MYOUT/${n/bam/drm.bam}
 
-echo "********* call variants"
+echo "********* call variants $(date)"
 samtools mpileup -uf $FASTA -q1 -D $MYOUT/${n/bam/drm.bam} |  bcftools view -vcg - >$MYOUT/${n/bam/vcf}
 
-echo "********* convert bcf->vcf; index"
+echo "********* convert bcf->vcf; index $(date)"
 vcfutils.pl varFilter -D1000 -w0 -e0 $MYOUT/${n/bam/vcf}  >$MYOUT/${n/bam/clean.vcf}
 
-echo "********* index vcf file for viewing in IGV"
+echo "********* index vcf file for viewing in IGV $(date)"
 java -Xmx2g -jar $IGVTOOLS index $MYOUT/${n/bam/clean.vcf}
 
 

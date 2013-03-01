@@ -10,8 +10,9 @@ IGVTOOLS=$DATASTORE/SeqAna/apps/prod/IGVTools/igvtools.jar
 PICARD=$DATASTORE/SeqAna/apps/prod/Picard_svn/dist/
 SAMSTAT=$DATASTORE/SeqAna/apps/dev/samstat/src/samstat
 #GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
+#GATKJAR=$GATKHOME/dist/
+GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
 GATKJAR=$GATKHOME/dist/
-GATKJAR=$DATASTORE/SeqAna/apps/dev/GenomeAnalysisTK-2.1-9-gb90951c/
 RSCRIPT=/apps/R/2.14.1/bin/Rscript # module load R
 FASTQC=$DATASTORE/SeqAna/apps/prod/FastQC/fastqc
 FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
@@ -109,7 +110,7 @@ CPU_GATKDOC=1
 NODES_GATKDOC="nodes=1:ppn=1"
 #ANNOTATING BAM
 WALLTIME_BAMANN=5:00:00
-MEMORY_BAMANN=16
+MEMORY_BAMANN=32
 CPU_BAMANN=1
 NODES_BAMANN="nodes=1:ppn=1"
 #GATK VARCALL
@@ -119,6 +120,6 @@ CPU_VAR=1
 NODES_VAR="nodes=1:ppn=1"
 #SAMTOOLS VARCALL
 WALLTIME_SAMVAR=40:00:00
-MEMORY_SAMVAR=16
+MEMORY_SAMVAR=40
 CPU_SAMVAR=1
 NODES_SAMVAR="nodes=1:ppn=1"
