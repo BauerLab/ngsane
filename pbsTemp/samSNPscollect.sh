@@ -80,6 +80,10 @@ done
 
 echo $VARIANTS
 
+REGION=""
+if [ -n "$REF" ]; then echo $REF; REGION="-L $REF"; fi
+
+
 echo "********** join with GATK"
 java -Xmx2g -jar $GATKJAR/GenomeAnalysisTK.jar \
    -R $FASTA \
@@ -87,6 +91,7 @@ java -Xmx2g -jar $GATKJAR/GenomeAnalysisTK.jar \
    $VARIANTS \
    -o $MYOUT/joined.vcf \
    -genotypeMergeOptions PRIORITIZE \
+   $REGION \
    -priority $NAMES
 
 echo ">>>>> Join variant after calling with sam"

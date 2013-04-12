@@ -9,15 +9,15 @@ SAMTOOLS=$DATASTORE/SeqAna/apps/prod/samtools_svn/samtools
 IGVTOOLS=$DATASTORE/SeqAna/apps/prod/IGVTools/igvtools.jar
 PICARD=$DATASTORE/SeqAna/apps/prod/Picard_svn/dist/
 SAMSTAT=$DATASTORE/SeqAna/apps/dev/samstat/src/samstat
-#GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
-#GATKJAR=$GATKHOME/dist/
-GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
+GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
+#GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
 GATKJAR=$GATKHOME/dist/
 RSCRIPT=/apps/R/2.14.1/bin/Rscript # module load R
 FASTQC=$DATASTORE/SeqAna/apps/prod/FastQC/fastqc
 FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
 #TMP=$TMPDIR
-TMP=$DATASTORE/TMP
+TMP=/data/flush/bau04c/TMP
+#TMP=$DATASTORE/TMP
 VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
 BEDTOOLS=$DATASTORE/SeqAna/apps/prod/bedtools/bin/
@@ -33,7 +33,7 @@ CUFFLINKSHOME=$DATASTORE/SeqAna/apps/prod/cufflinks-2.0.2.Linux_x86_64
 RRBSMAP="/clusterdata/hiseq_apps/bin/devel/rrbsmap-1.5/rrbsmap"
 MACS="/clusterdata/hiseq_apps/bin/devel/MACS_git"
 PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
-
+CUTADAPT="/home/cmis/bau04c/SeqAna/apps/prod/cutadapt-1.2.1/bin/cutadapt"
 
 #
 # Need to use 2.0.0b6 or higher because of --sam-RG
@@ -45,7 +45,6 @@ PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
 BOWTIETWO=bowtie/2.0.5
 
 
-CUTADAPT="/clusterdata/hiseq_apps/bin/devel/cutadapt/cutadapt-0.9/cutadapt"
 VIENNA="/clusterdata/hiseq_apps/bin/devel/ViennaRNA/bin/"
 UNAFOLD="/clusterdata/hiseq_apps/bin/devel/unafold/bin/"
 

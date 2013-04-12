@@ -96,7 +96,7 @@ done
 
 #export bowtie directory
 SAMDIR=`dirname $SAMTOOLS`
-export PATH=$PATH:$BOWTIETWO:$SAMDIR
+export PATH=$PATH:$SAMDIR
 module load python
 module load jdk/1.7.0_03
 module load boost
@@ -104,8 +104,9 @@ module load boost
 #module load tophat/2.0.4b
 module load $TOPHAT
 module load $CUFFLINKS
-#module load $BOWTIETWO
+module load $BOWTIETWO
 #module load samtools
+#export PATH=$PATH:$BOWTIETWO
 
 echo $(module list)
 echo $(which bowtie2)
@@ -113,8 +114,6 @@ echo $(which bowtie2)
 JAVAPARAMS="-Xmx"$MEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
 
 echo $PATH
-#module load samtools
-#module load tophat
 
 
 n=`basename $f`

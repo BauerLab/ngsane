@@ -69,7 +69,7 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
 	ROUTH=runStats/$(echo ${DIR[@]}|sed 's/ /_/g')
 	if [ ! -e $ROUTH ]; then mkdir $ROUTH; fi
 	module load R
-	python $HISEQINF/bin/makeBamHistogram.py "$vali" $ROUTH $(basename $(pwd)) >>$SUMMARYTMP
+	python $HISEQINF/bin/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
     fi
 fi
 
@@ -184,6 +184,9 @@ if [ -n "$RUNANNOTATION" ]; then
 
 fi
 
+#
+# Old code ...
+#
 if [ -n "$RUNANNOTATINGBAM3" ]; then
     echo "ANNOTATION"
 
@@ -206,8 +209,8 @@ if [ -n "$RUNANNOTATINGBAM3" ]; then
 	echo 'pdf(file = "'$IMAGE'")' >> $RSCRIPT
 	echo 'distribution <- read.table("'$DIR'/distribution'$typ'.ggplot", header=T, quote="\"")' >> $RSCRIPT
 	echo 'distribution$feature <- factor(distribution$feature, levels = c("genes","lincRNA" ,"miRNA","snoRNA","snRNA", "miscRNA", "rRNA", "UCSC_rRNA", "tRNA", "PolyA", "other", "HiSeq", "SegDups", "unannotated", "unmapped"))' >> $RSCRIPT
-	echo 'ggplot(distribution, aes(x = sample, y=number)) + geom_bar(aes(fill = feature), position = "fill") + scale_y_continuous("fraction") + opts(axis.text.x=theme_text(angle=-90, hjust=0),title = expression("'$DESCRIPT'"))' >> $RSCRIPT
-	echo 'ggplot(distribution, aes(x = sample, y=number)) + geom_bar(aes(fill = feature)) + opts(axis.text.x=theme_text(angle=-90, hjust=0),title = expression("'$DESCRIPT'")) + ylim(0,9e+07)' >> $RSCRIPT
+	echo 'ggplot(distribution, aes(x = sample, y=number)) + geom_bar(aes(fill = feature), position = "fill") + scale_y_continuous("fraction") + opts(axis.text.x=theme_text(angle=-90, hjust=0),title = expression("'$DESCRIPT'")) + facet_grid(. ~ type , space = "free", scales = "free_x") ' >> $RSCRIPT
+	echo 'ggplot(distribution, aes(x = sample, y=number)) + geom_bar(aes(fill = feature)) + opts(axis.text.x=theme_text(angle=-90, hjust=0),title = expression("'$DESCRIPT'")) + ylim(0,9e+07) +facet_grid(. ~ type , space = "free", scales = "free_x")' >> $RSCRIPT
 	echo "dev.off()"  >> $RSCRIPT
 
 	Rscript --vanilla $RSCRIPT

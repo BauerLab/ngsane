@@ -32,6 +32,7 @@ for s in setname:
 
 #print setname
 #print nr
+#print content
 
 descript=""
 printable=[0]*len(setname)
@@ -69,8 +70,8 @@ Rscript.write('pdf(file = "'+Rimage+'",width=10,height=7)\n')
 Rscript.write('distribution <- read.table("'+out+'/distribution.ggplot", header=T, quote="\\"")\n')
 #Rscript.write('head(distribution)\n')
 Rscript.write('distribution$feature <- factor(distribution$feature, levels = c("'+'","'.join(printable)+'"))\n')
-Rscript.write('ggplot(distribution, aes(x = sample, y=number)) + geom_bar(stat="identity", aes(fill = feature), position = "fill") + scale_y_continuous("fraction") + opts(axis.text.x=theme_text(angle=-90, hjust=0), title="'+descript+'")\n')
-Rscript.write('ggplot(distribution, aes(x = sample, y=number)) + geom_bar(stat="identity", aes(fill = feature)) + opts(axis.text.x=theme_text(angle=-90, hjust=0), title="'+descript+'")\n')
+Rscript.write('ggplot(distribution, aes(x = sample, y=number)) + geom_bar(stat="identity", aes(fill = feature), position = "fill") + scale_y_continuous("fraction") + opts(axis.text.x=theme_text(angle=-90, hjust=0), title="'+descript+'") + facet_grid(. ~ type , space = "free", scales = "free_x")\n')
+Rscript.write('ggplot(distribution, aes(x = sample, y=number)) + geom_bar(stat="identity", aes(fill = feature)) + opts(axis.text.x=theme_text(angle=-90, hjust=0), title="'+descript+'") + facet_grid(. ~ type , space = "free", scales = "free_x")\n')
 #+ ylim(0,17e+07)\n')
 Rscript.write("dev.off()\n")
 Rscript.close()

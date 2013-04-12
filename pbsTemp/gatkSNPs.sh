@@ -76,6 +76,7 @@ module load R
 #module load jdk/1.7.0_03
 module load jdk
 export PATH=$PATH:$RSCRIPT
+echo "GATK version: "$GATKJAR
 
 if [ -n "$CALLSNPS" ]; then
 
