@@ -94,20 +94,20 @@ if [ ! -d $QOUT ]; then mkdir $QOUT; fi
 # OUT: $OUT/$dir/bwa/*.$ASD.bam
 ############################################
 
-if [ -n "$fastQC" ]
+if [ -n "$fastQC_old" ]
 then
 
     echo "********* $TASKFASTQC"
     MAX=16
     
-    if [ ! -d $QOUT/$TASKFASTQC ]; then mkdir $QOUT/$TASKFASTQC; fi
-    if [ ! -d $OUT/runStats ]; then mkdir $OUT/runStats; fi
-    if [ -d $OUT/runStats/$TASKFASTQC ]; then 
-	rm -r $OUT/runStats/$TASKFASTQC/
-    fi
-    mkdir $OUT/runStats/$TASKFASTQC
+    #if [ ! -d $QOUT/$TASKFASTQC ]; then mkdir $QOUT/$TASKFASTQC; fi
+#    if [ ! -d $OUT/runStats ]; then mkdir $OUT/runStats; fi
+#    if [ -d $OUT/runStats/$TASKFASTQC ]; then 
+#	rm -r $OUT/runStats/$TASKFASTQC/
+#    fi
+#    mkdir $OUT/runStats/$TASKFASTQC
     
-    NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
+#    NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
 #    for d in ${DIR[@]}; do
 #	FILES=$FILES" "$( ls $OUT/fastq/$d/*$FASTQ )
 #    done
@@ -118,13 +118,23 @@ then
 #    if [ "$CPUS" -gt "$MAX" ]; then echo "reduce to $MAX CPUs"; CPUS=$MAX; fi
      
     # run fastQC
-    if [ -n "$ARMED" ]; then
-	qsub -o $QOUT/$TASKFASTQC/$NAME.out -N $TASKFASTQC"_"$NAME -v CONFIG=$CONFIG  $HISEQINF/pbsTemp/fastQC.sh
+#    if [ -n "$ARMED" ]; then
+    
+#	qsub -o $QOUT/$TASKFASTQC/$NAME.out -N $TASKFASTQC"_"$NAME -v CONFIG=$CONFIG  $HISEQINF/pbsTemp/fastQC.sh
 #	$BINQSUB -j oe -o $QOUT/$TASKFASTQC/$NAME.out -w $(pwd) -N $TASKFASTQC"_"$NAME -l nodes=2:ppn=8 -l vmem=20G -l walltime=2:00:00 \
 #	    -command "$FASTQC --nogroup -t $CPUS --outdir $OUT/runStats/$TASKFASTQC `echo $FILES`"
     fi
 
 fi
+
+
+if [ -n "$RUNFASTQC" ]; then
+    $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -o fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
+        --command "$HISEQINF/pbsTemp/fastQC.sh"
+fi
+
+
+
 
 ############################################
 #   FASTXTOOLKIT based trimming to a certain length

@@ -1,6 +1,7 @@
 
 
 
+QSUB=HISEQINF/pbsTemp/pbsTemp.sh
 BINQSUB=$DATASTORE/SeqAna/apps/prod/seqaninf/bin/myqsub
 #this gzip waits for the file to migrate completly before unzipping it
 GZIP=$DATASTORE/SeqAna/apps/prod/mygzip/
@@ -13,7 +14,8 @@ GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
 #GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
 GATKJAR=$GATKHOME/dist/
 RSCRIPT=/apps/R/2.14.1/bin/Rscript # module load R
-FASTQC=$DATASTORE/SeqAna/apps/prod/FastQC/fastqc
+MODULE_FASTQC="jdk fastqc/0.10.1"
+PATH_FASTQC=$DATASTORE/SeqAna/apps/prod/FastQC/
 FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
 #TMP=$TMPDIR
 TMP=/data/flush/bau04c/TMP
@@ -82,6 +84,11 @@ ASR="asdrr" # aligned sorted duplicate-removed raligned reacalibrated
 
 #############
 # On Cherax
+#FASTQC
+WALLTIME_FASTQC=10:00:00
+MEMORY_FASTQC=20
+CPU_FASTQC=16
+NODES_FASTQC="nodes=2:ppn=8"
 #BWA
 WALLTIME_BWA=50:00:00
 MEMORY_BWA=50
