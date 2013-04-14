@@ -22,22 +22,22 @@ echo "Last modified "`date` >$SUMMARYTMP
     echo "fastqc"
     echo "<h2>Read biases (FASTQC)</h2>">>$SUMMARYTMP
     echo $HISEQINF/bin/makeFastQCplot.sh
-    if [ -n "$fastQC" ]; then
-	$HISEQINF/bin/makeFastQCplot.sh $(pwd)/runStats/fastQC/ $(pwd)/runStats/ fastQCSummary.pdf $CONFIG > /dev/null #2>&1
+    if [ -n "$RUNFASTQC" ]; then
+	$HISEQINF/bin/makeFastQCplot.sh $(pwd)/runStats/$TASKFASTQC/ $(pwd)/runStats/ fastQCSummary.pdf $CONFIG > /dev/null #2>&1
     fi
     echo "done"
     echo "<table><tr><td valign=top>" >>$SUMMARYTMP
-    for f in $( ls runStats/fastQC/*.zip ); do
+    for f in $( ls runStats/$TASKFASTQC/*.zip ); do
 	n=`basename $f`
 	n=${n/"_fastqc.zip"/}
-	ICO="<img height=15px src=\"runStats/fastQC/"$n"_fastqc/Icons/"
-        P=$(grep "PASS" -c runStats/fastQC/$n"_fastqc/summary.txt")
-	W=$(grep "WARN" -c runStats/fastQC/$n"_fastqc/summary.txt")
-	F=$(grep "FAIL" -c runStats/fastQC/$n"_fastqc/summary.txt")
+	ICO="<img height=15px src=\"runStats/$TASKFASTQC/"$n"_fastqc/Icons/"
+        P=$(grep "PASS" -c runStats/$TASKFASTQC/$n"_fastqc/summary.txt")
+	W=$(grep "WARN" -c runStats/$TASKFASTQC/$n"_fastqc/summary.txt")
+	F=$(grep "FAIL" -c runStats/$TASKFASTQC/$n"_fastqc/summary.txt")
 	CHART=$ICO"tick.png\" title=\"$P\"\>"
 	if [ "$W" -ne "0" ]; then CHART=$CHART""$ICO"warning.png\"\>"$W; fi
 	if [ "$F" -ne "0" ]; then CHART=$CHART""$ICO"error.png\"\>"$F; fi
-	echo "<a href=\"runStats/fastQC/"$n"_fastqc/fastqc_report.html\">$n.fastq</a>$CHART<br>" >>$SUMMARYTMP
+	echo "<a href=\"runStats/$TASKFASTQC/"$n"_fastqc/fastqc_report.html\">$n.fastq</a>$CHART<br>" >>$SUMMARYTMP
     done
     echo "</td><td>">>$SUMMARYTMP
     echo "<img src=\"runStats/fastQCSummary.jpg\" alt=\"Quality scores for all reads\"/>" >>$SUMMARYTMP
