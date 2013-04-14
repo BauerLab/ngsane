@@ -1,21 +1,33 @@
+##############################################################
+# System info
+##############################################################
+SUBMISSIONSYSTEM="PBS"
+DMGET="YES"
 
-
-
+##############################################################
+# PROGRAM PATHS
+##############################################################
 QSUB=$DATASTORE/SeqAna/apps/prod/seqaninf/pbsTemp/pbsTemp.sh
 BINQSUB=$DATASTORE/SeqAna/apps/prod/seqaninf/pbsTemp/jobsubmission.sh
+MODULE_FASTQC="jdk fastqc/0.10.1"
+PATH_FASTQC=$DATASTORE/SeqAna/apps/prod/FastQC/
+MODULE_BWA="jdk bwa/0.6.1 R/2.15.1 samtools/0.1.18"
+PATH_SAMTOOLS=$DATASTORE/SeqAna/apps/prod/samtools_svn
+PATH_IGVTOOLS=$DATASTORE/SeqAna/apps/prod/IGVTools/
+#PATH_PICARD=$DATASTORE/SeqAna/apps/prod/Picard_svn/dist/
+PATH_PICARD=$DATASTORE/SeqAna/apps/prod/picard-tools-1.89/
+PATH_SAMSTAT=$DATASTORE/SeqAna/apps/dev/samstat/src/
+#PATH_BWA=$DATASTORE/SeqAna/apps/prod/bwa_git
+PATH_BWA=$DATASTORE/SeqAna/apps/prod/bwa_git:$PATH_SAMTOOLS:$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+
+
 #this gzip waits for the file to migrate completly before unzipping it
 GZIP=$DATASTORE/SeqAna/apps/prod/mygzip/
-BWA=$DATASTORE/SeqAna/apps/prod/bwa_git/bwa
 SAMTOOLS=$DATASTORE/SeqAna/apps/prod/samtools_svn/samtools
-IGVTOOLS=$DATASTORE/SeqAna/apps/prod/IGVTools/igvtools.jar
-PICARD=$DATASTORE/SeqAna/apps/prod/Picard_svn/dist/
-SAMSTAT=$DATASTORE/SeqAna/apps/dev/samstat/src/samstat
 GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
 #GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
 GATKJAR=$GATKHOME/dist/
 RSCRIPT=/apps/R/2.14.1/bin/Rscript # module load R
-MODULE_FASTQC="jdk fastqc/0.10.1"
-PATH_FASTQC=$DATASTORE/SeqAna/apps/prod/FastQC/
 FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
 #TMP=$TMPDIR
 TMP=/data/flush/bau04c/TMP

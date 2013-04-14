@@ -27,7 +27,7 @@ done
 . $HISEQINF/pbsTemp/header.sh
 . $CONFIG
 
-echo "********** write TMP file"
+#echo "********** write TMP file"
 if [ ! -n "$STMPDIR" ]; then STMPDIR="tmp"; fi
 if [ ! -e $STMPDIR ]; then mkdir $STMPDIR; fi
 TMPFILE=$STMPDIR/$(cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 9)".tmp"
@@ -35,11 +35,11 @@ echo "cd $(pwd)" > $TMPFILE
 echo $SCOMMAND >> $TMPFILE
 echo "rm $TMPFILE" >>$TMPFILE
 
-if [ "$SUBMISSIONSYSTEM"="PBS" ]; then
+if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 #	echo "********** submit with PBS submission system"
 	qsub -W after:$JOBIDS -j oe -o $SOUTPUT -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
 		-N $SNAME -l walltime=$SWALLTIME $QSUBEXTRA $TMPFILE
-elif [ "$SUBMISSIONSYSTEM"="SGE" ]; then
+elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
 #	echo "********** submit with SGE submission system"
 	qsub -hold_jid $JOBIDS -v -S /bin/bash -j y -o $SOUTPUT -cwd -pe smp $SCPU -l h_vmem=$SMEMORY \
 		-N $SNAME -l h_rt=$SWALLTIME $QSUBEXTRA $TMPFILE
