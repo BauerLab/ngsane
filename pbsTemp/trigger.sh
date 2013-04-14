@@ -123,14 +123,14 @@ then
 #	qsub -o $QOUT/$TASKFASTQC/$NAME.out -N $TASKFASTQC"_"$NAME -v CONFIG=$CONFIG  $HISEQINF/pbsTemp/fastQC.sh
 #	$BINQSUB -j oe -o $QOUT/$TASKFASTQC/$NAME.out -w $(pwd) -N $TASKFASTQC"_"$NAME -l nodes=2:ppn=8 -l vmem=20G -l walltime=2:00:00 \
 #	    -command "$FASTQC --nogroup -t $CPUS --outdir $OUT/runStats/$TASKFASTQC `echo $FILES`"
-    fi
+#    fi
 
 fi
 
 
 if [ -n "$RUNFASTQC" ]; then
-    $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -o fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
-        --command "$HISEQINF/pbsTemp/fastQC.sh"
+$QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -o fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
+	--command "$HISEQINF/pbsTemp/fastQC.sh -k $CONFIG"
 fi
 
 
