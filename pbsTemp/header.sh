@@ -17,7 +17,6 @@ PATH_IGVTOOLS=$DATASTORE/SeqAna/apps/prod/IGVTools/
 #PATH_PICARD=$DATASTORE/SeqAna/apps/prod/Picard_svn/dist/
 PATH_PICARD=$DATASTORE/SeqAna/apps/prod/picard-tools-1.89/
 PATH_SAMSTAT=$DATASTORE/SeqAna/apps/dev/samstat/src/
-#PATH_BWA=$DATASTORE/SeqAna/apps/prod/bwa_git
 PATH_BWA=$DATASTORE/SeqAna/apps/prod/bwa_git:$PATH_SAMTOOLS:$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 

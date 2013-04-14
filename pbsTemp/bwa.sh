@@ -117,7 +117,7 @@ JAVAPARAMS="-Xmx"$MYMEMORY"g" # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:
 
 echo "********** programs"
 module load $MODULE_BWA; 
-export PATH=$BWA_PATH:$PATH
+export PATH=$PATH_BWA:$PATH
 module list
 echo $PATH
 java -Xmx200M -version
