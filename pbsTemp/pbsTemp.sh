@@ -14,7 +14,7 @@ while [ "$1" != "" ]; do
 	-c | --cpu    )         shift; CPU=$1 ;; # CPU used
 	-m | --memory )         shift; MEMORY=$1;;
 	-w | --walltime )       shift; WALLTIME=$1;;
-	-p | --program )        shift; COMMAND=$1;;
+	-p | --command )        shift; COMMAND=$1;;
 	--postcommand )         shift; POSTCOMMAND=$1;;
 	-r | --reverse )        REV="1";;
 	-d | --nodir )          NODIR="nodir";;
@@ -36,7 +36,7 @@ done
 
 echo "********* $TASK $NODIR"
 
-echo $COMMAND
+#echo $COMMAND
 
 if [ ! -d $QOUT/$TASK ]; then mkdir $QOUT/$TASK; fi
 
@@ -96,7 +96,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 		#RECIPT=$($BINQSUB -j oe -o $QOUT/$TASK/$dir'_'$name'.out' -w $(pwd) -l $NODES \
 	    #    -l vmem=$MEMORY -N $TASK'_'$dir'_'$name -l walltime=$WALLTIME $QSUBEXTRA \
 	    #    -command "$COMMAND2")
-	    RECIPT=$($BINQSUB -a $QSUBEXTRA -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+	    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
 	    	-j $TASK'_'$dir'_'$name -o $QOUT/$TASK/$dir'_'$name'.out' \
 	        	--command "$COMMAND2")
 			echo -e "$RECIPT"
@@ -127,7 +127,7 @@ if [ -n "$POSTCOMMAND" ]; then
 	#RECIPT=$($BINQSUB $QSUBEXTRA -W after:$MYPBSIDS -j oe -o $QOUT/$TASK/$DIR'_postcommand.out' -w $(pwd) -l $NODES \
     #        -l vmem=$MEMORY -N $TASK'_'$DIR'_postcommand' -l walltime=$WALLTIME \
     #        -command "$POSTCOMMAND2")
-    RECIPT=$($BINQSUB -a $QSUBEXTRA -W $MYPBSIDS -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W $MYPBSIDS -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
 	    	-j $TASK'_'$DIR'_postcommand' -o $QOUT/$TASK/$DIR'_postcommand.out' \
 	        	--command "$POSTCOMMAND2")
 

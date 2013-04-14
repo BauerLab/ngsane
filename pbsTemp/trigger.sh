@@ -94,7 +94,8 @@ if [ ! -d $QOUT ]; then mkdir $QOUT; fi
 ############################################
 
 if [ -n "$RUNFASTQC" ]; then
-$QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -i fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQC -c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
+    $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -i fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQC \
+	-c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
 	--command "$HISEQINF/pbsTemp/fastQC.sh -k $CONFIG"
 fi
 
