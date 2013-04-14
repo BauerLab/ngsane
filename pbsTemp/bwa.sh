@@ -120,12 +120,16 @@ module load $MODULE_BWA;
 export PATH=$PATH_BWA:$PATH
 module list
 echo $PATH
+#this is to get the full path (modules should work but for path we need the full path and this is the\
+# best common denominator)
+PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
+PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 java -Xmx200M -version
 bwa 2>&1 | head -n 3 | tail -n-2
 samtools 2>&1 | head -n 3 | tail -n-2
 R --version | head -n 3
-java -jar -Xmx200M igvtools.jar version
-java -jar -Xmx200M MarkDuplicates.jar --version
+java -jar -Xmx200M $PATH_IGVTOOLS/igvtools.jar version
+java -jar -Xmx200M $PATH_PICARD/MarkDuplicates.jar --version
 samstat | head -n 2 | tail -n1
 
 
@@ -143,13 +147,13 @@ else
     PAIRED="0"
 fi
 
-# reacall files from tape
-if [ -n $DMGET ]; then:
+echo "********** reacall files from tape"
+if [ -n "$DMGET" ]; then
 	dmget -a $(dirname $FASTA)/*
-	dmget -a $(dirname $(which $SAMTOOLS))/*
-	dmget -a $(dirname $(which $BWA))/*
-	dmget -a $PICARD/*
-	dmget -a ${f/$READONE/"*"/}
+	dmget -a $(dirname $(which samtools))/*
+	dmget -a $(dirname $(which bwa))/*
+	dmget -a $PATH_PICARD/*
+	dmget -a ${f/$READONE/"*"}
 fi
 
 #is ziped ?
@@ -230,7 +234,7 @@ if [ ! -e $MYOUT/metrices ]; then mkdir $MYOUT/metrices ; fi
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
 echo $THISTMP
 mkdir $THISTMP
-java $JAVAPARAMS -jar MarkDuplicates.jar \
+java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
     INPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} \
     OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     METRICS_FILE=$MYOUT/metrices/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
@@ -256,7 +260,7 @@ echo "********* calculate inner distance"
 export PATH=$PATH:/usr/bin/
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
 mkdir $THISTMP
-java $JAVAPARAMS -jar CollectMultipleMetrics.jar \
+java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     INPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     REFERENCE_SEQUENCE=$FASTA \
     OUTPUT=$MYOUT/metrices/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
@@ -285,7 +289,7 @@ fi
 
 echo "********* coverage track"
 GENOME=$(echo $FASTA| sed 's/.fasta/.genome/' | sed 's/.fa/.genome/' )
-java $JAVAPARAMS -jar igvtools.jar count $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
+java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam.cov.tdf} $GENOME
 
 
