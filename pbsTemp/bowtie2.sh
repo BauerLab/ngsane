@@ -54,20 +54,25 @@ done
 . $CONFIG
 . $HISEQINF/pbsTemp/header.sh
 . $CONFIG
-#if [ -n "$FASTQNAME" ]; then FASTQ=$FASTQNAME ; fi
 
-module load R
-module load jdk #/1.7.0_03
-module load $BOWTIETWO
-export PATH=$GZIP:$PATH
+echo "********** programs"
+module load $MODULE_BOWTIETWO; 
+export PATH=$PATH_BOWTIETWO:$PATH
+module list
+echo $PATH
+#this is to get the full path (modules should work but for path we need the full path and this is the\
+# best common denominator)
+PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
+PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
+java -Xmx200M -version
+bowtie2 --version
+samtools 2>&1 | head -n 3 | tail -n-2
+R --version | head -n 3
+java -jar -Xmx200M $PATH_IGVTOOLS/igvtools.jar version
+java -jar -Xmx200M $PATH_PICARD/MarkDuplicates.jar --version
+samstat | head -n 2 | tail -n1
 
-echo $(which gzip)
-
-#export PATH=$PATH:$BOWTIETWO
-#echo $PATH
-echo $(which bowtie2)
-
-JAVAPARAMS="-Xmx"$MEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=10G"
+JAVAPARAMS="-Xmx"$MEMORY"G" #-XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=10G"
 echo $JAVAPARAMS
 
 n=`basename $f`
@@ -90,24 +95,22 @@ if [[ $f != *.fastq.gz ]]; then ZCAT="cat"; fi
 
 # generating the index files                                                                                      
 if [ ! -e ${FASTA/.fasta/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.fasta/}; fi
-if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; $SAMTOOLS faidx $FASTA; fi
+if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
-dmget -a $(dirname $FASTA)/*
-dmls -l $FASTA*
+if [ -n "$DMGET" ]; then
+	echo "********** reacall files from tape"
+	dmget -a $(dirname $FASTA)/*
+	dmls -l $FASTA*
+	dmget -a ${f/$READONE/"*"}
+	dmls -l ${f/$READONE/"*"}
 
 #run bowtie command -v $MISMATCH -m 1
 echo "********* bowtie" 
 if [ $PAIRED == "0" ]; then 
     READS="-U $f"
-    dmget -a $f
-    dmls -l $f
     let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
 else 
     READS="-1 $f -2 ${f/$READONE/$READTWO}"
-    dmget -a $f
-    dmls -l $f
-    dmget -a ${f/$READONE/$READTWO}
-    dmls -l ${f/$READONE/$READTWO}
     READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
     READ2=`$ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}' `
     let FASTQREADS=$READ1+$READ2
@@ -125,36 +128,36 @@ bowtie2 $RG -t -x ${FASTA/.fasta/} -p $THREADS $READS -S $MYOUT/${n/'_'$READONE.
 
 # continue for normal bam file conversion                                                                         
 echo "********* sorting and bam-conversion"
-$SAMTOOLS view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | $SAMTOOLS sort - $MYOUT/${n/'_'$READONE.$FASTQ/.map}
-$SAMTOOLS view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam} | $SAMTOOLS sort - $MYOUT/${n/'_'$READONE.$FASTQ/.unm}
+samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.map}
+samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam} | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.unm}
 # merge mappend and unmapped
-$SAMTOOLS merge -f $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.map}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.unm}.bam 
+samtools merge -f $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.map}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.unm}.bam 
 
 
 echo "********* mark duplicates"
 if [ ! -e $MYOUT/metrices ]; then mkdir $MYOUT/metrices ; fi
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files                                        
 mkdir $THISTMP
-java $JAVAPARAMS -jar $PICARD/MarkDuplicates.jar \
+java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
     INPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} \
     OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     METRICS_FILE=$MYOUT/metrices/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
     VALIDATION_STRINGENCY=LENIENT \
     TMP_DIR=$THISTMP
 rm -r $THISTMP
-$SAMTOOLS index $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
+samtools index $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
 
 
 
 # statistics                                                                                                      
 echo "********* statistics"
 STATSOUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats
-$SAMTOOLS flagstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} > $STATSOUT
+samtools flagstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} > $STATSOUT
 if [ -n $SEQREG ]; then
     echo "#custom region" >> $STATSOUT
-    echo `$SAMTOOLS view $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" total reads in region " >> $STAT\
+    echo `samtools view $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" total reads in region " >> $STAT\
 SOUT
-    echo `$SAMTOOLS view -f 2 $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" properly paired reads in re\
+    echo `samtools view -f 2 $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" properly paired reads in re\
 gion " >> $STATSOUT
 fi
 
@@ -177,12 +180,12 @@ fi
 
 echo "********* coverage track"
 GENOME=$(echo $FASTA| sed 's/.fasta/.genome/' | sed 's/.fa/.genome/' )
-java $JAVAPARAMS -jar $IGVTOOLS count $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
+java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam.cov.tdf} $GENOME
 
 
 echo "********* samstat"
-$SAMSTAT $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
+samstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
 
 echo ">>>>> readmapping with BWA - FINISHED"
 echo ">>>>> enddate "`date`

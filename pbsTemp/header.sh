@@ -9,22 +9,30 @@ DMGET="YES"
 ##############################################################
 QSUB=$DATASTORE/SeqAna/apps/prod/seqaninf/pbsTemp/pbsTemp.sh
 BINQSUB=$DATASTORE/SeqAna/apps/prod/seqaninf/pbsTemp/jobsubmission.sh
-MODULE_LATEX=""
-PATH_LATEX="/data/flush/apps/texlive/2012/bin/x86_64-linux/"
-MODULE_FASTQC="jdk fastqc/0.10.1"
-PATH_FASTQC=$DATASTORE/SeqAna/apps/prod/FastQC/
-MODULE_BWA="jdk bwa/0.6.1 R/2.15.1 samtools/0.1.18"
+
+#Additional programs not available as module
 PATH_SAMTOOLS=$DATASTORE/SeqAna/apps/prod/samtools_svn
 PATH_IGVTOOLS=$DATASTORE/SeqAna/apps/prod/IGVTools/
 #PATH_PICARD=$DATASTORE/SeqAna/apps/prod/Picard_svn/dist/
 PATH_PICARD=$DATASTORE/SeqAna/apps/prod/picard-tools-1.89/
 PATH_SAMSTAT=$DATASTORE/SeqAna/apps/dev/samstat/src/
-PATH_BWA=$DATASTORE/SeqAna/apps/prod/bwa_git:$PATH_SAMTOOLS:$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+
+MODULE_FASTQC="jdk fastqc/0.10.1"
+PATH_FASTQC=$DATASTORE/SeqAna/apps/prod/FastQC/
+MODULE_LATEX="imagemagick/6.7.5"
+PATH_LATEX="/data/flush/apps/texlive/2012/bin/x86_64-linux/"
+
+MODULE_BWA="jdk bwa/0.6.1 R/2.15.1 samtools/0.1.18"
+#PATH_BWA=$DATASTORE/SeqAna/apps/prod/bwa_git:$PATH_SAMTOOLS:$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+
+
+MODULE_BOWTIETWO="jdk R/2.15.1 bowtie/2.0.5 samtools/0.1.18"
+PATH_BOWTIETWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 
 #this gzip waits for the file to migrate completly before unzipping it
-GZIP=$DATASTORE/SeqAna/apps/prod/mygzip/
-SAMTOOLS=$DATASTORE/SeqAna/apps/prod/samtools_svn/samtools
+#GZIP=$DATASTORE/SeqAna/apps/prod/mygzip/
 GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
 #GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
 GATKJAR=$GATKHOME/dist/
@@ -57,7 +65,6 @@ CUTADAPT="/home/cmis/bau04c/SeqAna/apps/prod/cutadapt-1.2.1/bin/cutadapt"
 #BOWTIETWO="/apps/bowtie/2.0.0b6/"
 #BOWTIETWO="/datastore/cmis/bau04c/SeqAna/apps/prod/bowtie2-2.0.0-beta7-source"
 #BOWTIETWO=bowtie/2.0.0b5
-BOWTIETWO=bowtie/2.0.5
 
 
 VIENNA="/clusterdata/hiseq_apps/bin/devel/ViennaRNA/bin/"

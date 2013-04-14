@@ -147,8 +147,8 @@ else
     PAIRED="0"
 fi
 
-echo "********** reacall files from tape"
 if [ -n "$DMGET" ]; then
+	echo "********** reacall files from tape"
 	dmget -a $(dirname $FASTA)/*
 	dmget -a $(dirname $(which samtools))/*
 	dmget -a $(dirname $(which bwa))/*
