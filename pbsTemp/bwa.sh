@@ -119,6 +119,7 @@ echo "********** programs"
 module load $MODULE_BWA; 
 export PATH=$BWA_PATH:$PATH
 module list
+echo $PATH
 java -Xmx200M -version
 bwa 2>&1 | head -n 3 | tail -n-2
 samtools 2>&1 | head -n 3 | tail -n-2
