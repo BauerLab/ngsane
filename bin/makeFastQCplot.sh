@@ -6,6 +6,11 @@ OUTDIR=$2
 CONFIG=$4
 
 . $CONFIG
+. $HISEQINF/pbsTemp/header.sh
+. $CONFIG
+
+module load $MODULE_LATEX
+export PATH=$PATH_LATEX:$PATH
 
 echo "run"
 
@@ -56,7 +61,8 @@ echo "\end{document}" >>$LATEX
 
 cd $OUTDIR
 echo "compile"
-/data/flush/apps/texlive/2012/bin/x86_64-linux/pdflatex ${OUTFILE/pdf/tex}
+
+pdflatex ${OUTFILE/pdf/tex}
 #/old_tools/new_apps/texlive/2012/bin/x86_64-linux/pdflatex ${OUTFILE/pdf/tex}
 rm ${OUTFILE/pdf/aux}
 rm ${OUTFILE/pdf/log}

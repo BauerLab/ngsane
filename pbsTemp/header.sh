@@ -9,6 +9,8 @@ DMGET="YES"
 ##############################################################
 QSUB=$DATASTORE/SeqAna/apps/prod/seqaninf/pbsTemp/pbsTemp.sh
 BINQSUB=$DATASTORE/SeqAna/apps/prod/seqaninf/pbsTemp/jobsubmission.sh
+MODULE_LATEX=""
+PATH_LATEX="/data/flush/apps/texlive/2012/bin/x86_64-linux/"
 MODULE_FASTQC="jdk fastqc/0.10.1"
 PATH_FASTQC=$DATASTORE/SeqAna/apps/prod/FastQC/
 MODULE_BWA="jdk bwa/0.6.1 R/2.15.1 samtools/0.1.18"
