@@ -98,17 +98,7 @@ while [ "$1" != "" ]; do
 done
 
 JAVAPARAMS="-Xmx"$MYMEMORY"g" # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
-
-#HISEQINF=$1   # location of the HiSeqInf repository
-#MYTHREADS=$2    # number of CPUs to use
-#f=$3          # fastq file
-#FASTA=$4      # reference genome
-#MYOUT=$5        # output dir
-#EXPID=$6      # read group identifier RD ID
-#LIBRARY=$7    # read group library RD LB
-#PLATFORM=$8   # read group platform RD PL
-#SAMPLEID=$9   # read group sample RG SM (pre)
-#SEQREG=$10    # (optional) region of specific interest, e.g. targeted reseq
+echo "JAVAPARAMS "$JAVAPARAMS
 
 #PROGRAMS
 . $CONFIG
@@ -124,13 +114,13 @@ echo $PATH
 # best common denominator)
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
-echo "--JAVA    --\n" $(java -Xmx200M -version)
-echo "--bwa     --\n "$(bwa 2>&1 | head -n 3 | tail -n-2)
-echo "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
-echo "--R       --\n "$(R --version | head -n 3)
-echo "--igvtools--\n "$(java -jar -Xmx200M $PATH_IGVTOOLS/igvtools.jar version)
-echo "--PICARD  --\n "$(java -jar -Xmx200M $PATH_PICARD/MarkDuplicates.jar --version)
-echo "--samstat --\n "$(jsamstat | head -n 2 | tail -n1)
+echo -e "--JAVA    --\n" $(java -Xmx200M -version)
+echo -e "--bwa     --\n "$(bwa 2>&1 | head -n 3 | tail -n-2)
+echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+echo -e "--R       --\n "$(R --version | head -n 3)
+echo -e "--igvtools--\n "$(java -jar -Xmx200M $PATH_IGVTOOLS/igvtools.jar version)
+echo -e "--PICARD  --\n "$(java -jar -Xmx200M $PATH_PICARD/MarkDuplicates.jar --version)
+echo -e "--samstat --\n "$(samstat | head -n 2 | tail -n1)
 
 n=`basename $f`
 

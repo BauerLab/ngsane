@@ -55,6 +55,9 @@ done
 . $HISEQINF/pbsTemp/header.sh
 . $CONFIG
 
+JAVAPARAMS="-Xmx"$MEMORY"G" #-XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=10G"
+echo "JAVAPARAMS "$JAVAPARAMS
+
 echo "********** programs"
 module load $MODULE_BOWTIETWO; 
 export PATH=$PATH_BOWTIETWO:$PATH
@@ -64,16 +67,14 @@ echo $PATH
 # best common denominator)
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
-echo "--JAVA    --\n" $(java -Xmx200M -version)
-echo "--bowtie2 --\n "$(bowtie2 --version)
-echo "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
-echo "--R       --\n "$(R --version | head -n 3)
-echo "--igvtools--\n "$(java -jar -Xmx200M $PATH_IGVTOOLS/igvtools.jar version)
-echo "--PICARD  --\n "$(java -jar -Xmx200M $PATH_PICARD/MarkDuplicates.jar --version)
-echo "--samstat --\n "$(jsamstat | head -n 2 | tail -n1)
+echo -e "--JAVA    --\n" $(java -Xmx200M -version)
+echo -e "--bowtie2 --\n "$(bowtie2 --version)
+echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+echo -e "--R       --\n "$(R --version | head -n 3)
+echo -e "--igvtools--\n "$(java -jar -Xmx200M $PATH_IGVTOOLS/igvtools.jar version)
+echo -e "--PICARD  --\n "$(java -jar -Xmx200M $PATH_PICARD/MarkDuplicates.jar --version)
+echo -e "--samstat --\n "$(samstat | head -n 2 | tail -n1)
 
-JAVAPARAMS="-Xmx"$MEMORY"G" #-XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=10G"
-echo $JAVAPARAMS
 
 n=`basename $f`
 
