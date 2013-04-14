@@ -2,7 +2,7 @@
 
 
 QSUB=$DATASTORE/SeqAna/apps/prod/seqaninf/pbsTemp/pbsTemp.sh
-BINQSUB=$DATASTORE/SeqAna/apps/prod/seqaninf/bin/myqsub
+BINQSUB=$DATASTORE/SeqAna/apps/prod/seqaninf/pbsTemp/jobsubmission.sh
 #this gzip waits for the file to migrate completly before unzipping it
 GZIP=$DATASTORE/SeqAna/apps/prod/mygzip/
 BWA=$DATASTORE/SeqAna/apps/prod/bwa_git/bwa

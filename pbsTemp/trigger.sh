@@ -88,48 +88,13 @@ if [ ! -d $QOUT ]; then mkdir $QOUT; fi
 
 ############################################
 #   FastQC summary of fastq files
-#   QC:~/hiSeqInf/pbsTemp/bwaQC.sh qout/bwa/
 #
 # IN:$SOURCE/$dir/fastq/*read1.fastq
 # OUT: $OUT/$dir/bwa/*.$ASD.bam
 ############################################
 
-if [ -n "$fastQC_old" ]
-then
-
-    echo "********* $TASKFASTQC"
-    MAX=16
-    
-    #if [ ! -d $QOUT/$TASKFASTQC ]; then mkdir $QOUT/$TASKFASTQC; fi
-#    if [ ! -d $OUT/runStats ]; then mkdir $OUT/runStats; fi
-#    if [ -d $OUT/runStats/$TASKFASTQC ]; then 
-#	rm -r $OUT/runStats/$TASKFASTQC/
-#    fi
-#    mkdir $OUT/runStats/$TASKFASTQC
-    
-#    NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
-#    for d in ${DIR[@]}; do
-#	FILES=$FILES" "$( ls $OUT/fastq/$d/*$FASTQ )
-#    done
-
-#    echo $FILES
-
-#    CPUS=`echo $FILES | wc -w`
-#    if [ "$CPUS" -gt "$MAX" ]; then echo "reduce to $MAX CPUs"; CPUS=$MAX; fi
-     
-    # run fastQC
-#    if [ -n "$ARMED" ]; then
-    
-#	qsub -o $QOUT/$TASKFASTQC/$NAME.out -N $TASKFASTQC"_"$NAME -v CONFIG=$CONFIG  $HISEQINF/pbsTemp/fastQC.sh
-#	$BINQSUB -j oe -o $QOUT/$TASKFASTQC/$NAME.out -w $(pwd) -N $TASKFASTQC"_"$NAME -l nodes=2:ppn=8 -l vmem=20G -l walltime=2:00:00 \
-#	    -command "$FASTQC --nogroup -t $CPUS --outdir $OUT/runStats/$TASKFASTQC `echo $FILES`"
-#    fi
-
-fi
-
-
 if [ -n "$RUNFASTQC" ]; then
-$QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -o fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
+$QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -i fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQC -c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
 	--command "$HISEQINF/pbsTemp/fastQC.sh -k $CONFIG"
 fi
 
@@ -253,51 +218,13 @@ fi
 
 ############################################
 #   Mapping using BWA
-#   QC:~/hiSeqInf/pbsTemp/bwaQC.sh qout/bwa/
 #
 # IN:$SOURCE/$dir/fastq/*read1.fastq
 # OUT: $OUT/$dir/bwa/*.$ASD.bam
 ############################################
 
-if [ -n "$RUNMAPPINGBWA" ]
-then
-
-    echo "********* $TASKBWA"
-
-    if [ ! -d $QOUT/$TASKBWA ]; then mkdir $QOUT/$TASKBWA; fi
-
-    for dir in ${DIR[@]}
-      do
-      
-      #ensure dirs are there...
-      if [ ! -d $OUT/$dir/$TASKBWA ]; then mkdir $OUT/$dir/$TASKBWA; fi
-
-      for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ); do
-      #for f in $(ls $SOURCE/fastq/$dir/ERA000206_hg_$READONE.$FASTQ ); do
-	n=`basename $f`
-	name=${n/'_'$READONE.$FASTQ/}
-	echo ">>>>>"$dir$n
-		
-	#Sumit (ca. 30 min on AV 1297205 reads) note ${dir/_seqs/} is just a prefix for the
-	# readgroup name -l h_rt=03:00:00  -pe mpich 10
-	if [ -n "$ARMED" ]; then
-
-            # remove old pbs output
-            if [ -e $QOUT/$TASKBWA/$dir'_'$name.out ]; then rm $QOUT/$TASKBWA/$dir'_'$name.*; fi
-
-	    $BINQSUB -j oe -o $QOUT/$TASKBWA/$dir'_'$name'.out' -w $(pwd) -l $NODES_BWA \
-		-l vmem=$MEMORY_BWA"G" -N $TASKBWA'_'$dir'_'$name -l walltime=$WALLTIME_BWA \
-		-command "$HISEQINF/pbsTemp/bwa.sh $BWAADDPARM -k $CONFIG -t $CPU_BWA -m $(expr $MEMORY_BWA - 1 ) -f $f -r $FASTA \
-                -o $OUT/$dir/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi $dir \
-                --fastqName $FASTQ -R $SEQREG"
-	fi
-      done
-    done
-
-fi
-
 if [ -n "$RUNMAPPINGBWA2" ]; then
-    $HISEQINF/pbsTemp/pbsTemp.sh $ARMED -k $CONFIG -t $TASKBWA -o fastq -e "_"$READONE.$FASTQ -n $NODES_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA \
+    $QSUB $ARMED -k $CONFIG -t $TASKBWA -i fastq -e "_"$READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA \
         --command "$HISEQINF/pbsTemp/bwa.sh $BWAADDPARM -k $CONFIG -t $CPU_BWA -m $(expr $MEMORY_BWA - 1 ) -f <FILE> -r $FASTA \
                 -o $OUT/<DIR>/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> \
                 --fastqName $FASTQ -R $SEQREG"
@@ -340,7 +267,7 @@ fi
 
 
 if [ -n "$RUNMAPPINGBOWTIE2" ]; then
-    $HISEQINF/pbsTemp/pbsTemp.sh $ARMED -k $CONFIG -t $TASKBOWTIE -o fastq -e "_"$READONE.$FASTQ -n $NODES_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
+    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e "_"$READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
 	--command "$HISEQINF/pbsTemp/bowtie2.sh $BOWTIEADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE \
         --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
 fi
@@ -407,7 +334,7 @@ fi
 
 
 if [ -n "$RUNTOPHATCUFF2" ]; then
-    $HISEQINF/pbsTemp/pbsTemp.sh $ARMED -k $CONFIG -t $TASKTOPHAT -o fastq -e "_"$READONE.$FASTQ -n $NODES_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
+    $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e "_"$READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
         --command "$HISEQINF/pbsTemp/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -f <FILE> \
          -t $CPU_TOPHAT -o $OUT/<DIR>/$TASKTOPHAT/<NAME> "
 
@@ -522,8 +449,8 @@ fi
 
 if [ -n "$RUNREALRECAL2" ]; then
 
-    $HISEQINF/pbsTemp/pbsTemp.sh $ARMED -r -k $CONFIG -t $TASKRCA -o $TASKBWA/ -e .$ASD.bam \
-        -n $NODES_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
+    $QSUB $ARMED -r -k $CONFIG -t $TASKRCA -i $TASKBWA/ -e .$ASD.bam \
+        -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
         --command "$HISEQINF/pbsTemp/reCalAln.sh $RECALADDPARAM -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA -t $CPU_RECAL"
 
 
@@ -596,8 +523,8 @@ fi
 
 if [ -n "$DEPTHOFCOVERAGE2" ]; then
 
-    $HISEQINF/pbsTemp/pbsTemp.sh $ARMED -r -k $CONFIG -t $TASKDOC -o $TASKRCA/ -e .$ASR.bam \
-	-n $NODES_GATKDOC -m $MEMORY_GATKDOC"G" -w $WALLTIME_GATKDOC \
+    $QSUB $ARMED -r -k $CONFIG -t $TASKDOC -i $TASKRCA/ -e .$ASR.bam \
+	-n $NODES_GATKDOC -c $CPU_GATKDOC -m $MEMORY_GATKDOC"G" -w $WALLTIME_GATKDOC \
 	--command "$HISEQINF/pbsTemp/gatkDOC.sh $DOCADDPARAM -k $HISEQINF -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKDOC -t $CPU_GATKDOC"
 
 fi
@@ -1118,8 +1045,8 @@ fi
 # OUT */bwa/*.ann
 ############################################ 
 if [ -n "$RUNANNOTATINGBAM" ]; then
-    $HISEQINF/pbsTemp/pbsTemp.sh --nodir -r $ARMED -k $CONFIG -t $TASKBAMANN --origin $TASKBWA -e .bam -n $NODES_BAMANN \
-	-m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN \
+    $QSUB --nodir -r $ARMED -k $CONFIG -t $TASKBAMANN -i $TASKBWA -e .bam \
+    -n $NODES_BAMANN -c $CPU_BAMANN -m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN \
         --command "$HISEQINF/pbsTemp/annotateBam.sh -k $CONFIG -f <FILE>"
 fi
 
@@ -1130,8 +1057,8 @@ fi
 ############################################
 
 if [ -n "$RUNSAMVAR" ]; then
-   $HISEQINF/pbsTemp/pbsTemp.sh -r $ARMED -k $CONFIG -t $TASKBWA-$TASKSAMVAR --origin $TASKBWA -e .$ASD.bam -n $NODES_SAMVAR \
-        -m $MEMORY_SAMVAR'G' -w $WALLTIME_SAMVAR \
+   $HISEQINF/pbsTemp/pbsTemp.sh -r $ARMED -k $CONFIG -t $TASKBWA-$TASKSAMVAR -i $TASKBWA -e .$ASD.bam \
+   -n $NODES_SAMVAR -c $CPU_SAMVAR -m $MEMORY_SAMVAR'G' -w $WALLTIME_SAMVAR \
         --command "$HISEQINF/pbsTemp/samSNPs.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBWA-$TASKSAMVAR" \
 	--postcommand "$HISEQINF/pbsTemp/samSNPscollect.sh -k $CONFIG -f <FILE> -o $OUT/variant/$TASKBWA-$TASKSAMVAR-<DIR>"
 fi

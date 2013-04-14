@@ -6,14 +6,15 @@
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
-	-o | --origin )         shift; ORIGIN=$1 ;; # subfile in $SOURCE
+    -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
+	-i | --input )         shift; ORIGIN=$1 ;; # subfile in $SOURCE
 	-e | --fileending )     shift; ENDING=$1 ;; # select source files of a specific ending
 	-t | --task )           shift; TASK=$1 ;; # what to do
 	-n | --nodes )          shift; NODES=$1;;
+	-c | --cpu    )         shift; CPU=$1 ;; # CPU used
 	-m | --memory )         shift; MEMORY=$1;;
 	-w | --walltime )       shift; WALLTIME=$1;;
-	-c | --command )        shift; COMMAND=$1;;
+	-p | --program )        shift; COMMAND=$1;;
 	--postcommand )         shift; POSTCOMMAND=$1;;
 	-r | --reverse )        REV="1";;
 	-d | --nodir )          NODIR="nodir";;
@@ -88,18 +89,22 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
     if [ -n "$ARMED" ]; then
 
-        # remove old pbs output
-	if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.*; fi
-
-	# submit and collect pbs scheduler return
-        RECIPT=$($BINQSUB $QSUBEXTRA -j oe -o $QOUT/$TASK/$dir'_'$name'.out' -w $(pwd) -l $NODES \
-            -l vmem=$MEMORY -N $TASK'_'$dir'_'$name -l walltime=$WALLTIME \
-            -command "$COMMAND2")
-	echo -e "$RECIPT"
-	MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
-
-
-	if [ -n "$FIRST" ]; then exit; fi
+	    # remove old submission output logs
+		if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.*; fi
+	
+		# submit and collect pbs scheduler return
+		#RECIPT=$($BINQSUB -j oe -o $QOUT/$TASK/$dir'_'$name'.out' -w $(pwd) -l $NODES \
+	    #    -l vmem=$MEMORY -N $TASK'_'$dir'_'$name -l walltime=$WALLTIME $QSUBEXTRA \
+	    #    -command "$COMMAND2")
+	    RECIPT=$($BINQSUB -a $QSUBEXTRA -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+	    	-j $TASK'_'$dir'_'$name -o $QOUT/$TASK/$dir'_'$name'.out' \
+	        	--command "$COMMAND2")
+			echo -e "$RECIPT"
+			MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
+	
+	
+		# if only the first task should be submitted as test
+		if [ -n "$FIRST" ]; then exit; fi
 
     fi
 done
@@ -119,9 +124,13 @@ if [ -n "$POSTCOMMAND" ]; then
     if [[ -n "$DIRECT" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; fi
     if [[ -n "$ARMED" || -n "$POSTONLY" ]]; then
 
-	RECIPT=$($BINQSUB $QSUBEXTRA -W after:$MYPBSIDS -j oe -o $QOUT/$TASK/$DIR'_postcommand.out' -w $(pwd) -l $NODES \
-            -l vmem=$MEMORY -N $TASK'_'$DIR'_postcommand' -l walltime=$WALLTIME \
-            -command "$POSTCOMMAND2")
+	#RECIPT=$($BINQSUB $QSUBEXTRA -W after:$MYPBSIDS -j oe -o $QOUT/$TASK/$DIR'_postcommand.out' -w $(pwd) -l $NODES \
+    #        -l vmem=$MEMORY -N $TASK'_'$DIR'_postcommand' -l walltime=$WALLTIME \
+    #        -command "$POSTCOMMAND2")
+    RECIPT=$($BINQSUB -a $QSUBEXTRA -W $MYPBSIDS -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+	    	-j $TASK'_'$DIR'_postcommand' -o $QOUT/$TASK/$DIR'_postcommand.out' \
+	        	--command "$POSTCOMMAND2")
+
 	echo -e "$RECIPT"
     fi
 fi
