@@ -30,7 +30,7 @@ done
 #echo "********** write TMP file"
 if [ ! -n "$STMPDIR" ]; then STMPDIR="tmp"; fi
 if [ ! -e $STMPDIR ]; then mkdir $STMPDIR; fi
-TMPFILE=$STMPDIR/$(cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 9)".tmp"
+TMPFILE=$STMPDIR/"qsub_"$(date '+%y%m%d')"_"$(cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 9)".tmp"
 echo "cd $(pwd)" > $TMPFILE
 echo $SCOMMAND >> $TMPFILE
 echo "rm $TMPFILE" >>$TMPFILE
