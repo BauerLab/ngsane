@@ -1,8 +1,6 @@
 #!/bin/bash -e
 
 # Submission script for PBS and SGE
-
-
 while [ "$1" != "" ]; do
     case $1 in
     -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
@@ -27,7 +25,7 @@ done
 . $HISEQINF/pbsTemp/header.sh
 . $CONFIG
 
-#echo "********** write TMP file"
+echo "********** write TMP file"
 if [ ! -n "$STMPDIR" ]; then STMPDIR="tmp"; fi
 if [ ! -e $STMPDIR ]; then mkdir $STMPDIR; fi
 TMPFILE=$STMPDIR/"qsub_"$(date '+%y%m%d%H%m')"_"$(cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 9)".tmp"
