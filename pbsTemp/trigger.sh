@@ -847,7 +847,7 @@ then
 		#-command "$HISEQINF/pbsTemp/gatkSNPs.sh -k $CONFIG -i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
 		#-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME -H $HAPMAPVCF -K $ONEKGVCF $VARADDPARAM"
     	    
-	    $BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY_VAR -n $NODES_VAR -w $WALLTIME_VAR \
+	    $BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY_VAR"G" -n $NODES_VAR -w $WALLTIME_VAR \
 	    	-j $TASKVAR'_'$NAME -o $QOUT/$TASKVAR/$NAME.out \
 			--command "$HISEQINF/pbsTemp/gatkSNPs.sh -k $CONFIG \
 			-i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
