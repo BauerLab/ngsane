@@ -1,8 +1,9 @@
 ##############################################################
 # System info
 ##############################################################
-SUBMISSIONSYSTEM="PBS"
-DMGET="YES"
+SUBMISSIONSYSTEM="PBS"                                  #or SGE
+DMGET="YES"                                #empty string for No
+TMP=/data/flush/bau04c/TMP
 
 ##############################################################
 # PROGRAM PATHS
@@ -17,30 +18,33 @@ PATH_IGVTOOLS=$DATASTORE/SeqAna/apps/prod/IGVTools/
 PATH_PICARD=$DATASTORE/SeqAna/apps/prod/picard-tools-1.89/
 PATH_SAMSTAT=$DATASTORE/SeqAna/apps/dev/samstat/src/
 
+#Fastqc
 MODULE_FASTQC="jdk fastqc/0.10.1"
 PATH_FASTQC=$DATASTORE/SeqAna/apps/prod/FastQC/
 MODULE_LATEX="imagemagick/6.7.5"
 PATH_LATEX="/data/flush/apps/texlive/2012/bin/x86_64-linux/"
 
+#BWA
 MODULE_BWA="jdk bwa/0.6.1 R/2.15.1 samtools/0.1.18"
 #PATH_BWA=$DATASTORE/SeqAna/apps/prod/bwa_git:$PATH_SAMTOOLS:$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
-
+#Bowtie2
 MODULE_BOWTIETWO="jdk R/2.15.1 bowtie/2.0.5 samtools/0.1.18"
 PATH_BOWTIETWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+
+#Snp calling with GATK
+PATH_GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
+#GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
+PATH_GATKJAR=$GATKHOME/dist/
+MODULE_GATKSNP="jdk R/2.15.1 samtools/0.1.18"
+PATH_GATKSNP=$PATH_GATKHOME:$PATH_GATKJAR:$PATH_PICARD
 
 
 #this gzip waits for the file to migrate completly before unzipping it
 #GZIP=$DATASTORE/SeqAna/apps/prod/mygzip/
-GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
-#GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
-GATKJAR=$GATKHOME/dist/
 RSCRIPT=/apps/R/2.14.1/bin/Rscript # module load R
 FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
-#TMP=$TMPDIR
-TMP=/data/flush/bau04c/TMP
-#TMP=$DATASTORE/TMP
 VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
 BEDTOOLS=$DATASTORE/SeqAna/apps/prod/bedtools/bin/
@@ -70,7 +74,9 @@ CUTADAPT="/home/cmis/bau04c/SeqAna/apps/prod/cutadapt-1.2.1/bin/cutadapt"
 VIENNA="/clusterdata/hiseq_apps/bin/devel/ViennaRNA/bin/"
 UNAFOLD="/clusterdata/hiseq_apps/bin/devel/unafold/bin/"
 
-# Task names
+##############################################################
+# Task Names
+##############################################################
 TASKFASTQC="fastQC"
 TASKBWA="bwa"
 TASKBOWTIE="bowtie"
@@ -102,7 +108,10 @@ ALN="aln" # aligned
 ASD="asd" # aligned sorted duplicate-removed
 ASR="asdrr" # aligned sorted duplicate-removed raligned reacalibrated
 
-#############
+
+##############################################################
+# Resources
+##############################################################
 # On Cherax
 #FASTQC
 WALLTIME_FASTQC=10:00:00

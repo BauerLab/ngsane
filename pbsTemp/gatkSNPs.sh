@@ -72,11 +72,17 @@ done
 . $CONFIG
 
 
-module load R
-#module load jdk/1.7.0_03
-module load jdk
-export PATH=$PATH:$RSCRIPT
-echo "GATK version: "$GATKJAR
+echo "********** programs"
+module load $MODULE_GATKSNP; 
+export PATH=$PATH_GATKSNP:$PATH
+module list
+echo $PATH
+#this is to get the full path (modules should work but for path we need the full path and this is the\
+# best common denominator)
+PATH_GATKJAR=$(dirname $(which GenomeAnalysisTK.jar))
+echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
+echo -e "--GATK     --\n "$PATH_GATKJAR" "$(java $JAVAPARAMS $PATH_GATKJAR/GenomeAnalysisTK.jar --help | head -n 2 | tail -n 1)
+echo -e "--R       --\n "$(R --version | head -n 3)
 
 if [ -n "$CALLSNPS" ]; then
 
@@ -94,7 +100,7 @@ if [ -n "$CALLSNPS" ]; then
     # from new versions add --computeSLOD
     # http://seqanswers.com/forums/showthread.php?t=14836
     echo "********* call SNPs and VariantAnnotation"
-    echo "java -Xmx10g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l INFO \
+    echo "java -Xmx10g -Djava.io.tmpdir=$TMP -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l INFO \
          -T UnifiedGenotyper \
          -glm BOTH \
          -R $FASTA \
@@ -123,7 +129,7 @@ if [ -n "$CALLSNPS" ]; then
 
 
     echo "********* get snps only"
-    java -Xmx10g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
+    java -Xmx10g -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
 	-T SelectVariants \
 	-R $FASTA \
 	--variant  $MYOUT/$NAME.raw.vcf \
@@ -131,7 +137,7 @@ if [ -n "$CALLSNPS" ]; then
 	-o $MYOUT/$NAME.raw.snps.vcf
 
     echo "********* get indels only"
-    java -Xmx10g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
+    java -Xmx10g -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
 	-T SelectVariants \
 	-R $FASTA \
 	--variant  $MYOUT/$NAME.raw.vcf \
@@ -154,7 +160,7 @@ if [ -n "$HARDFILTER" ]; then
 
 
     echo "********* hard filter SNPs"
-    java -Xmx10g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
+    java -Xmx10g -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
 	-T VariantFiltration \
 	-R $FASTA \
 	-o $MYOUT/$NAME.filter.snps.vcf \
@@ -180,7 +186,7 @@ if [ -n "$HARDFILTER" ]; then
 
 
     echo "********* hard filter INDELs"
-    java -Xmx10g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
+    java -Xmx10g -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
 	-T VariantFiltration \
 	-R $FASTA \
 	-o $MYOUT/$NAME.filter.indel.vcf \
@@ -196,7 +202,7 @@ if [ -n "$HARDFILTER" ]; then
 
 
     echo "********* Hard filter eval SNPs"
-    java -Xmx10g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
+    java -Xmx10g -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
             -T VariantEval \
             -R $FASTA \
             --dbsnp $DBSNPVCF \
@@ -206,7 +212,7 @@ if [ -n "$HARDFILTER" ]; then
             -o $MYOUT/$NAME.filter.snps.eval.txt
 
     echo "********* Hard filter eval INDELs"
-    java -Xmx10g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
+    java -Xmx10g -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
             -T VariantEval \
             -R $FASTA \
             --dbsnp $DBSNPVCF \
@@ -241,7 +247,7 @@ if [ -n "$VARIANTRECAL" ]; then
 	# maxGaussians 6
 	# no percent bad
 	#-an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an HRun -an InbreedingCoeff\
-	java -Xmx10g -jar $GATKJAR/GenomeAnalysisTK.jar -l INFO \
+	java -Xmx10g -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l INFO \
 	    -T VariantRecalibrator \
 	    -R $FASTA \
 	    --input $MYOUT/$NAME.raw.vcf \
@@ -259,7 +265,7 @@ if [ -n "$VARIANTRECAL" ]; then
 
 
 	echo "********* variant cut"
-	java -Xmx10g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
+	java -Xmx10g -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
 	    -T ApplyRecalibration \
 	    -mode Both \
 	    -R $FASTA \
@@ -271,7 +277,7 @@ if [ -n "$VARIANTRECAL" ]; then
 
 
 	echo "********* Recal eval Variants"
-	java -Xmx10g -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
+	java -Xmx10g -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
             -T VariantEval \
             -R $FASTA \
             --dbsnp $DBSNPVCF \

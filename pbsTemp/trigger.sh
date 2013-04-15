@@ -842,10 +842,19 @@ then
 
         #Submit #-pe mpich $CPUS 
 	if [ -n "$ARMED" ]; then
-	    $BINQSUB -j oe -o $QOUT/$TASKVAR/$NAME.out -w $(pwd) -l $NODES_VAR $HOLD \
-		-l vmem=$MEMORY_VAR"G" -N $TASKVAR'_'$NAME -l walltime=$WALLTIME_VAR \
-		-command "$HISEQINF/pbsTemp/gatkSNPs.sh -k $CONFIG -i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
-		-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME -H $HAPMAPVCF -K $ONEKGVCF $VARADDPARAM"
+	    #$BINQSUB -j oe -o $QOUT/$TASKVAR/$NAME.out -w $(pwd) -l $NODES_VAR $HOLD \
+		#-l vmem=$MEMORY_VAR"G" -N $TASKVAR'_'$NAME -l walltime=$WALLTIME_VAR \
+		#-command "$HISEQINF/pbsTemp/gatkSNPs.sh -k $CONFIG -i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
+		#-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME -H $HAPMAPVCF -K $ONEKGVCF $VARADDPARAM"
+    	    
+	    $BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY_VAR -n $NODES_VAR -w $WALLTIME_VAR \
+	    	-j $TASKVAR'_'$NAME -o $QOUT/$TASKVAR/$NAME.out \
+			-command "$HISEQINF/pbsTemp/gatkSNPs.sh -k $CONFIG \
+			-i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
+			-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME \
+			-H $HAPMAPVCF -K $ONEKGVCF $VARADDPARAM"
+
+
 	fi
     done
 
