@@ -30,18 +30,20 @@ done
 #echo "********** write TMP file"
 if [ ! -n "$STMPDIR" ]; then STMPDIR="tmp"; fi
 if [ ! -e $STMPDIR ]; then mkdir $STMPDIR; fi
-TMPFILE=$STMPDIR/"qsub_"$(date '+%y%m%d')"_"$(cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 9)".tmp"
+TMPFILE=$STMPDIR/"qsub_"$(date '+%y%m%d%H%m')"_"$(cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 9)".tmp"
 echo "cd $(pwd)" > $TMPFILE
 echo $SCOMMAND >> $TMPFILE
 echo "rm $TMPFILE" >>$TMPFILE
 
 if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 #	echo "********** submit with PBS submission system"
-	qsub -W after:$JOBIDS -j oe -o $SOUTPUT -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
-		-N $SNAME -l walltime=$SWALLTIME $QSUBEXTRA $TMPFILE
+	command="qsub -W after:$JOBIDS -j oe -o $SOUTPUT -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
+		-N $SNAME -l walltime=$SWALLTIME $QSUBEXTRA $TMPFILE"
+	echo "# $command" >>$TMPFILE
+	eval $command
 elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
 #	echo "********** submit with SGE submission system"
-	qsub -hold_jid $JOBIDS -v -S /bin/bash -j y -o $SOUTPUT -cwd -pe smp $SCPU -l h_vmem=$SMEMORY \
+	qsub -hold_jid $JOBIDS -V -S /bin/bash -j y -o $SOUTPUT -cwd -pe smp $SCPU -l h_vmem=$SMEMORY \
 		-N $SNAME -l h_rt=$SWALLTIME $QSUBEXTRA $TMPFILE
 else
 	echo "Submission system, $SUBMISSIONSYSTEM, not implemented; only SGE or PBS work"
