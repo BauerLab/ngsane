@@ -3,7 +3,8 @@
 ##############################################################
 SUBMISSIONSYSTEM="PBS"                                  #or SGE
 DMGET="YES"                                #empty string for No
-TMP=/data/flush/bau04c/TMP
+TMP=/data/flush/bau04c/TMP                             #TMP dir
+. /etc/profile.d/modules.sh   #soucre the module on child nodes
 
 ##############################################################
 # PROGRAM PATHS
@@ -41,6 +42,8 @@ MODULE_GATKSNP="jdk R/2.15.1"
 PATH_GATKSNP=$PATH_GATKHOME:$PATH_GATKJAR:$PATH_IGVTOOLS
 
 
+
+
 #this gzip waits for the file to migrate completly before unzipping it
 #GZIP=$DATASTORE/SeqAna/apps/prod/mygzip/
 RSCRIPT=/apps/R/2.14.1/bin/Rscript # module load R
@@ -48,7 +51,6 @@ FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
 VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
 BEDTOOLS=$DATASTORE/SeqAna/apps/prod/bedtools/bin/
-IMGMAGCONVERT=/usr/bin/convert # imageMagick
 ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
 
 #TOPHAT=$DATASTORE/SeqAna/apps/prod/tophat-2.0.4.Linux_x86_64/tophat2 

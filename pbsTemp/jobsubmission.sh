@@ -42,8 +42,10 @@ if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
 #	echo "********** submit with SGE submission system"
 	if [ -n "$JOBIDS" ];then HOLD_JID="-hold_jid $JOBIDS"; fi
-	qsub $HOLD_JID -V -S /bin/bash -j y -o $SOUTPUT -cwd -pe smp $SCPU -l h_vmem=$SMEMORY \
-	    -N $SNAME -l h_rt=$SWALLTIME $QSUBEXTRA $TMPFILE
+	command="qsub $HOLD_JID -V -S /bin/bash -j y -o $SOUTPUT -cwd -pe smp $SCPU -l h_vmem=$SMEMORY \
+	    -N $SNAME -l h_rt=$SWALLTIME $QSUBEXTRA $TMPFILE"
+	echo "# $command" >>$TMPFILE
+	eval $command
 else
 	echo "Submission system, $SUBMISSIONSYSTEM, not implemented; only SGE or PBS work"
 	exit
