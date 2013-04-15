@@ -94,8 +94,9 @@ fi
 ZCAT="zcat"
 if [[ $f != *.fastq.gz ]]; then ZCAT="cat"; fi
 
-# generating the index files                                                                                      
-if [ ! -e ${FASTA/.fasta/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.fasta/}; fi
+# generating the index files
+FASTASUFFIX=${FASTA##*.}
+if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi                                                                                      
 if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
 if [ -n "$DMGET" ]; then
