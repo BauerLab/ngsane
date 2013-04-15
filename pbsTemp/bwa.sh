@@ -114,12 +114,12 @@ echo $PATH
 # best common denominator)
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
-echo -e "--JAVA    --\n" $(java -Xmx200M -version)
+echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
 echo -e "--bwa     --\n "$(bwa 2>&1 | head -n 3 | tail -n-2)
 echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 echo -e "--R       --\n "$(R --version | head -n 3)
-echo -e "--igvtools--\n "$(java -jar -Xmx200M $PATH_IGVTOOLS/igvtools.jar version)
-echo -e "--PICARD  --\n "$(java -jar -Xmx200M $PATH_PICARD/MarkDuplicates.jar --version)
+echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
+echo -e "--PICARD  --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
 echo -e "--samstat --\n "$(samstat | head -n 2 | tail -n1)
 
 n=`basename $f`
