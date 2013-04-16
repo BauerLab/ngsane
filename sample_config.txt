@@ -3,7 +3,7 @@
 # date: July 2012
 
 ######################################
-# Resources
+# Resources overwrite
 #####################################
 
 WALLTIME_BWA=5:00:00
@@ -16,29 +16,8 @@ MEMORY_BOWTIE=60
 CPU_BOWTIE=1
 NODES_BOWTIE="nodes=1:ppn=1"
 
-WALLTIME_TOPHAT=05:00:00
-MEMORY_TOPHAT=50
-CPU_TOPHAT=16
-NODES_TOPHAT="nodes=2:ppn=8"
 
-WALLTIME_VAR=2:00:00
-MEMORY_VAR=20
-CPU_VAR=1
-NODES_VAR="nodes=1:ppn=1"
-
-WALLTIME_RECAL=00:20:00
-MEMORY_RECAL=5
-CPU_RECAL=16
-NODES_RECAL="nodes=2:ppn=8"
-
-
-WALLTIME_SAMVAR=00:20:00
-MEMORY_SAMVAR=5
-CPU_SAMVAR=1
-NODES_SAMVAR="nodes=1:ppn=1"
-
-
-# submitting to burnet
+# Qsub additional parameters
 # QSUBADDPARAM="-q normal@burnet-srv.hpsc.csiro.au"
 
 
@@ -46,7 +25,8 @@ NODES_SAMVAR="nodes=1:ppn=1"
 #********************
 # Tasks
 #********************
-fastQC=""
+RUNFASTQC=""
+RUNCUTADAPT=""
 RUNMAPPINGBOWTIE2=""  # mapping with bowtie
 RUNTOPHATCUFF2="1"    # mapping with tophat (RNAseq)
 RUNMAPPINGBWA2=""     # mapping with bwa
@@ -91,6 +71,7 @@ DBROD=/data/noflush/bau04c/SeqAna/reference/prod/gatk_resources_1.5/dbsnp_135.b3
 HAPMAPVCF=/data/noflush/bau04c/SeqAna/reference/prod/gatk_resources_1.5/hapmap_3.3.b37.vcf
 ONEKGVCF=/data/noflush/bau04c/SeqAna/reference/prod/gatk_resources_1.5/1000G_omni2.5.b37.vcf
 REFSEQGTF=/data/noflush/bau04c/SeqAna/reference/prod/b37/UCSC_GencodeV12.gtf
+CONTAMINANTS=adapters.txt
 
 #REF="/clusterdata/hiseq_apps/resources/freeze001/b37/SureSelect_All_Exon_50mb_with_annotation_b37_NoRandNoUn_tab.bed"
 

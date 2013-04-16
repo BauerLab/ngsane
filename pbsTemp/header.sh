@@ -27,7 +27,7 @@ PATH_LATEX="/data/flush/apps/texlive/2012/bin/x86_64-linux/"
 
 #Trim adapter with CUTADAPT
 MODULE_CUTADAPT=""
-PATH_CUTADAPT=""
+PATH_CUTADAPT="$DATASTORE/SeqAna/apps/prod/cutadapt-1.2.1/bin/"
 
 #BWA
 MODULE_BWA="jdk bwa/0.6.1 R/2.15.1 samtools/0.1.18 imagemagick/6.7.5"
@@ -62,7 +62,6 @@ ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
 RRBSMAP="/clusterdata/hiseq_apps/bin/devel/rrbsmap-1.5/rrbsmap"
 MACS="/clusterdata/hiseq_apps/bin/devel/MACS_git"
 PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
-CUTADAPT="/home/cmis/bau04c/SeqAna/apps/prod/cutadapt-1.2.1/bin/cutadapt"
 
 #
 # Need to use 2.0.0b6 or higher because of --sam-RG
@@ -101,6 +100,7 @@ TASKMACS="macs"
 TASKANNOVAR="annovar"
 TASKBAMANN="bamann"
 TASKSAMVAR="samvar"
+TASKCUTADAPT="cutadapt"
 
 #Fileabb
 READONE="read1"
@@ -160,3 +160,8 @@ WALLTIME_SAMVAR=40:00:00
 MEMORY_SAMVAR=40
 CPU_SAMVAR=1
 NODES_SAMVAR="nodes=1:ppn=1"
+#CUTADAPT
+WALLTIME_CUTADAPT=4:00:00
+MEMORY_CUTADAPT=40
+CPU_CUTADAPT=1
+NODES_CUTADAPT="nodes=1:ppn=1"
