@@ -259,7 +259,7 @@ java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     PROGRAM=QualityScoreDistribution \
     TMP_DIR=$THISTMP
 for im in $( ls $MYOUT/metrices/*.pdf ); do
-    $IMGMAGCONVERT $im ${im/pdf/jpg}
+    convert $im ${im/pdf/jpg}
 done
 rm -r $THISTMP
 

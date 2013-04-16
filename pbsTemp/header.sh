@@ -26,12 +26,12 @@ MODULE_LATEX="imagemagick/6.7.5"
 PATH_LATEX="/data/flush/apps/texlive/2012/bin/x86_64-linux/"
 
 #BWA
-MODULE_BWA="jdk bwa/0.6.1 R/2.15.1 samtools/0.1.18"
+MODULE_BWA="jdk bwa/0.6.1 R/2.15.1 samtools/0.1.18 imagemagick/6.7.5"
 #PATH_BWA=$DATASTORE/SeqAna/apps/prod/bwa_git:$PATH_SAMTOOLS:$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 #Bowtie2
-MODULE_BOWTIETWO="jdk R/2.15.1 bowtie/2.0.5 samtools/0.1.18"
+MODULE_BOWTIETWO="jdk R/2.15.1 bowtie/2.0.5 samtools/0.1.18 imagemagick/6.7.5"
 PATH_BOWTIETWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 #Snp calling with GATK
@@ -41,8 +41,9 @@ PATH_GATKJAR=$PATH_GATKHOME/dist/
 MODULE_GATKSNP="jdk R/2.15.1"
 PATH_GATKSNP=$PATH_GATKHOME:$PATH_GATKJAR:$PATH_IGVTOOLS
 
-
-
+# Tophat and cufflinks
+MODULE_TOPHATCUFF="boost jdk python bowtie/2.0.5 tophat/2.0.4b cufflinks/2.0.2 samtools/0.1.18 imagemagick/6.7.5"
+PATH_TOPHATCUFF=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 #this gzip waits for the file to migrate completly before unzipping it
 #GZIP=$DATASTORE/SeqAna/apps/prod/mygzip/
@@ -52,11 +53,6 @@ VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
 BEDTOOLS=$DATASTORE/SeqAna/apps/prod/bedtools/bin/
 ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
-
-#TOPHAT=$DATASTORE/SeqAna/apps/prod/tophat-2.0.4.Linux_x86_64/tophat2 
-TOPHAT=tophat/2.0.4b
-CUFFLINKS=cufflinks/2.0.2
-CUFFLINKSHOME=$DATASTORE/SeqAna/apps/prod/cufflinks-2.0.2.Linux_x86_64
 
 
 RRBSMAP="/clusterdata/hiseq_apps/bin/devel/rrbsmap-1.5/rrbsmap"
