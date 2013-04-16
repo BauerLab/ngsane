@@ -3,12 +3,16 @@
 # Script to trim adapters using CUTADAPT
 # It takes a <Run>/*.$FASTQ[.gz] file and gets the file containing the contaminats
 # via config and writes out <Run>_trim/*.$FASTQ[.gz]
+# contaminants need to be specified with -a, -b or -g followd by the sequence
+# -a AAGGAEE
 # author: Denis Bauer
 # date: April. 2013
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
 
+# TODO: for paired end reads the pairs need to be cleaned up (removed)
+# with PICARD...
 
 echo ">>>>> readtrimming with CUTADAPT "
 echo ">>>>> startdate "`date`
@@ -42,9 +46,9 @@ cutadapt --version
 
 FASTQDIR=$(basename $(dirname $f))
 o=${f/$FASTQDIR/$FASTQDIR"_trim"}
-FASTQDIRTRIM=$(basename $o)
+FASTQDIRTRIM=$(dirname $o)
 
-
+echo $FASTQDIRTRIM
 if [ ! -d $FASTQDIRTRIM ]; then mkdir $FASTQDIRTRIM; fi
 echo $f "->" $o
 echo "contaminants: "$CONTAMINANTS
@@ -52,18 +56,18 @@ if [ ! -n "$CONTAMINANTS" ];then echo "need variable CONTAMINANTS defined in $CO
 
 
 echo "********** get contaminators"
-CONTAM=""
-for i in $(cat $CONTAMINANTS ); do
-	CONTAM=$CONTAM+"-a $i "
-done
-
+CONTAM=$(cat adapters.txt | tr '\n' ' ')
+#CONTAM=""
+#for i in $(cat $CONTAMINANTS ); do
+#	CONTAM=$CONTAM"-a $i "
+#done
 echo $CONTAM
 
 echo "********** trim"
-$CUTADAPT $CONTAM $f -o $o > $o.stats
+cutadapt $CONTAM $f -o $o > $o.stats
 
 echo "********** zip"
-gzip ${o}
+gzip -f ${o}
 
 echo ">>>>> readtrimming with CUTADAPT - FINISHED"
 echo ">>>>> enddate "`date`
