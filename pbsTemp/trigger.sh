@@ -95,8 +95,21 @@ if [ ! -d $QOUT ]; then mkdir -p $QOUT; fi
 
 if [ -n "$RUNFASTQC" ]; then
     $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -i fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQC \
-	-c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
-	--command "$HISEQINF/pbsTemp/fastQC.sh -k $CONFIG"
+	-c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC --postonly \
+	--postcommand "$HISEQINF/pbsTemp/fastQC.sh -k $CONFIG" 
+fi
+
+############################################
+#   CUTADAPT remove contaminants
+#
+# IN:$SOURCE/$dir/fastq/*read1.fastq
+# OUT:$SOURCE/$dir/fastq_trim/*read1.fastq
+############################################
+
+if [ -n "$RUNCUTADAPT" ]; then
+    $QSUB $ARMED -d -k $CONFIG -t $TASKCUTADAPT -i fastq -e "_"$READONE.$FASTQ -n $NODES_CUTADAPT \
+	-c $CPU_CUTADAPT -m $MEMORY_CUTADAPT"G" -w $WALLTIME_CUTADAPT \
+	--command "$HISEQINF/pbsTemp/cutadapt.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKCUTADAPT" 
 fi
 
 

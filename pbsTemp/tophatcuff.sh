@@ -92,39 +92,30 @@ done
 . $HISEQINF/pbsTemp/header.sh
 . $CONFIG
 
-#$BOWTIEDIR=`echo $BOWTIE | sed 's/\(.*\)bowtie/\1/'`
+JAVAPARAMS="-Xmx"$(expr $MEMORY_TOPHAT - 1 )"G"
+echo "JAVAPARAMS "$JAVAPARAMS
 
-#export bowtie directory
-SAMDIR=`dirname $SAMTOOLS`
-export PATH=$PATH:$SAMDIR
-module load python
-module load jdk/1.7.0_03
-module load boost
-
-#module load tophat/2.0.4b
-module load $TOPHAT
-module load $CUFFLINKS
-module load $BOWTIETWO
-#module load samtools
-#export PATH=$PATH:$BOWTIETWO
-
-echo $(module list)
-echo $(which bowtie2)
-
-JAVAPARAMS="-Xmx"$MEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
-
+echo "********** programs"
+module load $MODULE_TOPHATCUFF; 
+export PATH=$PATH_TOPHATCUFF:$PATH
+module list
 echo $PATH
+#this is to get the full path (modules should work but for path we need the full path and this is the\
+# best common denominator)
+PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
+PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
+echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
+echo -e "--bwa     --\n "$(bwa 2>&1 | head -n 3 | tail -n-2)
+echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+echo -e "--R       --\n "$(R --version | head -n 3)
+echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
+echo -e "--PICARD  --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+echo -e "--samstat --\n "$(samstat | head -n 2 | tail -n1)
 
-
+# get info about input file
 n=`basename $f`
-
-#INPUTS
-#HISEQINF=$1    # location of the HighSeqInf reposository
-#BOWTIEINDEX=$2   # bowtie index files
-#SHORTREAD=$3     # a seq read file in fasta or fastq format
-#THREADS=$4       # number of CPUs to use
-#INNERDIS=$5      # mean inner distance between mate pairs
-#OUTDIR=$6           # output dir
+FASTASUFFIX=${FASTA##*.}
+BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.tph.bam}
 
 CUFOUT=${OUTDIR/$TASKTOPHAT/$TASKCUFF}
 
@@ -132,15 +123,18 @@ CUFOUT=${OUTDIR/$TASKTOPHAT/$TASKCUFF}
 if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
 if [ -d $CUFOUT ]; then rm -r $CUFOUT; fi
 
-#is paired ?
+if [ -n "$DMGET" ]; then
+	echo "********** reacall files from tape"
+	dmget -a $(dirname $FASTA)/*
+	dmget -a ${f/$READONE/"*"}
+fi
+
+#is paired ?                                                                                                      
 if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
-    echo "********* PAIRED READS"
+    PAIRED="1"
     f2=${f/$READONE/$READTWO}
-    dmget -a $f
-    dmget -a $f2
 else
-    echo "********* SINGLE READS"
-    dmget -a $f
+    PAIRED="0"
 fi
 
 #is ziped ?
@@ -158,29 +152,43 @@ if [[ $f = *.gz ]]; then
 fi
 
 # generating the index files
-#if [ ! -e ${FASTA/.fasta/}.1.bt2 ]; then echo ">>>>> make .bt2"; $BOWTIETWO/bowtie2-build $FASTA ${FASTA/.fasta/}; fi
-#if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; $SAMTOOLS faidx $FASTA; fi
+if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi                                                                                      
+if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
+mkdir $OUTDIR
 echo "********* tophat"
 tophat -p $THREADS -o $OUTDIR ${FASTA/.fasta/} $f $f2
 
 echo "********* merge mapped and unmapped"
-BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.tph.bam}
 #ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
-$SAMTOOLS merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
-$SAMTOOLS sort $BAMFILE.tmp.bam ${BAMFILE/.bam/}
-rm $BAMFILE.tmp.bam
+samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
+samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
 
-##mv $BAMFILE $OUTDIR/../${n/_$READONE.fastq/.tph.bam}.tmp
-##$SAMTOOLS sort $OUTDIR/../${n/_$READONE.fastq/.tph.bam}.tmp ${BAMFILE/.bam/}
+echo "********* reorder tophat output to match reference"
+if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
+	java $JAVAPARAMS -jar $PATH_PICARD/CreateSequenceDictionary.jar \
+		REFERENCE=$FASTA \
+		OUTPUT=${FASTA/.$FASTASUFFIX/}.dict
+fi
+java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
+     INPUT=${BAMFILE/.bam/.samtools}.bam \
+     OUTPUT=$BAMFILE \
+     REFERENCE=$FASTA \
+     ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
+     ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
+     VALIDATION_STRINGENCY=LENIENT
 
+rm $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}.bam
 
 ##statistics
 echo "********* flagstat"
-$SAMTOOLS flagstat $BAMFILE >$BAMFILE.stats
+samtools flagstat $BAMFILE >$BAMFILE.stats
 READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-if [ -n "$f2" ]; then READ2=`$ZCAT $f2 | wc -l | gawk '{print int($1/4)}' `; fi
-let FASTQREADS=$READ1+$READ2
+FASTQREADS=$READ1
+if [ -n "$f2" ]; then 
+	READ2=`$ZCAT $f2 | wc -l | gawk '{print int($1/4)}' `;
+	let FASTQREADS=$READ1+$READ2
+fi
 echo $FASTQREADS" fastq reads" >>$BAMFILE.stats
 JUNCTION=`wc -l $OUTDIR/junctions.bed | cut -d' ' -f 1 `
 echo $JUNCTION" junction reads" >> $BAMFILE.stats
@@ -190,37 +198,42 @@ echo $JUNCTGENE" junction reads NCBIM37" >> $BAMFILE.stats
 
 ##index
 echo "********* index"
-$SAMTOOLS index $BAMFILE
+samtools index $BAMFILE
 
-#TODO: the UCSC FASTA is not compattible with the bowtie index
-# http://seqanswers.com/forums/showthread.php?t=6478
-#echo "********* calculate inner distance"
-#if [ ! -e $OUTDIR/metrices ]; then mkdir $OUTDIR/metrices ; fi
-#java -Xmx4g -jar $PICARD/CollectMultipleMetrics.jar \
-#    INPUT=$BAMFILE \
-#    OUTPUT=$OUTDIR/metrices/met \
-#    VALIDATION_STRINGENCY=LENIENT \
-#    PROGRAM=CollectAlignmentSummaryMetrics \
-#    PROGRAM=CollectInsertSizeMetrics \
-#    PROGRAM=QualityScoreDistribution \
-#    TMP_DIR=$TMP 
-#for f in $( ls $OUTDIR/metrices/*.pdf ); do
-#    $IMGMAGCONVERT $f ${f/pdf/jpg}
-#done
+echo "********* calculate inner distance"
+if [ ! -e $OUTDIR/../metrices ]; then mkdir $OUTDIR/../metrices ; fi
+THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
+mkdir $THISTMP
+java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
+    INPUT=$BAMFILE \
+    REFERENCE_SEQUENCE=$FASTA \
+    OUTPUT=$OUTDIR/../metrices/$(basename $BAMFILE) \
+    VALIDATION_STRINGENCY=LENIENT \
+    PROGRAM=CollectAlignmentSummaryMetrics \
+    PROGRAM=CollectInsertSizeMetrics \
+    PROGRAM=QualityScoreDistribution \
+    TMP_DIR=$THISTMP
+for im in $( ls $OUTDIR/../metrices/$(basename $BAMFILE)*.pdf ); do
+    convert $im ${im/pdf/jpg}
+done
+rm -r $THISTMP
 
 #coverage for IGV
 echo "********* coverage track"
-java -Xmx1g -jar $IGVTOOLS count $BAMFILE \
-    $BAMFILE.cov.tdf ${FASTA/.fasta/}.genome
+java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $BAMFILE \
+    $BAMFILE.cov.tdf ${FASTA/$FASTASUFFIX/}genome
+
+echo "********* samstat"
+samstat $BAMFILE
+
 
 #run cufflinks
 echo "********* cufflinks"
 echo ">>>>> from $BAMFILE to $CUFOUT"
-echo "$CUFFLINKSHOME/cufflinks --quiet -r $FASTA -p $THREADS -o $CUFOUT $BAMFILE"
+#non reference guided
+#cufflinks --quiet -r $FASTA -p $THREADS -o $CUFOUT $BAMFILE"
 cufflinks --quiet --GTF-guide $REFSEQGTF -p $THREADS -o $CUFOUT \
     $BAMFILE 
-
-
 
 
 echo ">>>>> allignment with TopHat - FINISHED"

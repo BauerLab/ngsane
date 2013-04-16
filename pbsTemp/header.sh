@@ -29,6 +29,21 @@ PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 MODULE_BOWTIETWO="fabbus/R/2.15.3 fabbus/bowtie2/2.1.0 fabbus/samtools/0.1.19"
 PATH_BOWTIETWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
+#Trim adapter with CUTADAPT
+MODULE_CUTADAPT=""
+PATH_CUTADAPT="$DATASTORE/SeqAna/apps/prod/cutadapt-1.2.1/bin/"
+
+#Snp calling with GATK
+PATH_GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
+#GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
+PATH_GATKJAR=$PATH_GATKHOME/dist/
+MODULE_GATKSNP="jdk R/2.15.1"
+PATH_GATKSNP=$PATH_GATKHOME:$PATH_GATKJAR:$PATH_IGVTOOLS
+
+# Tophat and cufflinks
+MODULE_TOPHATCUFF="boost jdk python R/2.15.1 bowtie/2.0.5 tophat/2.0.4b cufflinks/2.0.2 samtools/0.1.18 imagemagick/6.7.5"
+PATH_TOPHATCUFF=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+
 #this gzip waits for the file to migrate completly before unzipping it
 #GZIP=$DATASTORE/SeqAna/apps/prod/mygzip/
 GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
@@ -45,16 +60,10 @@ BEDTOOLS=$DATASTORE/SeqAna/apps/prod/bedtools/bin/
 IMGMAGCONVERT=/usr/bin/convert # imageMagick
 ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
 
-#TOPHAT=$DATASTORE/SeqAna/apps/prod/tophat-2.0.4.Linux_x86_64/tophat2 
-TOPHAT=tophat/2.0.4b
-CUFFLINKS=cufflinks/2.0.2
-CUFFLINKSHOME=$DATASTORE/SeqAna/apps/prod/cufflinks-2.0.2.Linux_x86_64
-
 
 RRBSMAP="/clusterdata/hiseq_apps/bin/devel/rrbsmap-1.5/rrbsmap"
 MACS="/clusterdata/hiseq_apps/bin/devel/MACS_git"
 PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
-CUTADAPT="/home/cmis/bau04c/SeqAna/apps/prod/cutadapt-1.2.1/bin/cutadapt"
 
 #
 # Need to use 2.0.0b6 or higher because of --sam-RG
@@ -91,6 +100,7 @@ TASKMACS="macs"
 TASKANNOVAR="annovar"
 TASKBAMANN="bamann"
 TASKSAMVAR="samvar"
+TASKCUTADAPT="cutadapt"
 
 #Fileabb
 READONE="read1"
@@ -147,3 +157,9 @@ WALLTIME_SAMVAR=40:00:00
 MEMORY_SAMVAR=40
 CPU_SAMVAR=1
 NODES_SAMVAR="nodes=1:ppn=1"
+#CUTADAPT
+WALLTIME_CUTADAPT=4:00:00
+MEMORY_CUTADAPT=40
+CPU_CUTADAPT=1
+NODES_CUTADAPT="nodes=1:ppn=1"
+
