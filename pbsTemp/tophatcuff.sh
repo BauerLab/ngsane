@@ -155,6 +155,7 @@ fi
 if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi                                                                                      
 if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
+<<EOF
 echo "********* tophat"
 tophat -p $THREADS -o $OUTDIR ${FASTA/.fasta/} $f $f2
 
@@ -162,23 +163,23 @@ echo "********* merge mapped and unmapped"
 #ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
 samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
 samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
+EOF
 
-#echo "********* resort for PICARD to run on it"
 echo "********* reorder tophat output to match reference"
-if [ -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
+if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
 	java $JAVAPARAMS -jar $PATH_PICARD/CreateSequenceDictionary.jar \
-		REFERENCE=$FASTA 
-		OUTPUT=${FASTA/$FASTASUFFIX/}dict
+		REFERENCE=$FASTA \
+		OUTPUT=${FASTA/.$FASTASUFFIX/}.dict
 fi
 java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
-     INPUT=${BAMFILE/.bam/.samtools} \
+     INPUT=${BAMFILE/.bam/.samtools}.bam \
      OUTPUT=$BAMFILE \
      REFERENCE=$FASTA \
      ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
      ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
      VALIDATION_STRINGENCY=LENIENT
 
-rm $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
+#rm $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}.bam
 
 ##statistics
 echo "********* flagstat"
