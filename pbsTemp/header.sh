@@ -25,6 +25,10 @@ PATH_FASTQC=$DATASTORE/SeqAna/apps/prod/FastQC/
 MODULE_LATEX="imagemagick/6.7.5"
 PATH_LATEX="/data/flush/apps/texlive/2012/bin/x86_64-linux/"
 
+#Trim adapter with CUTADAPT
+MODULE_CUTADAPT=""
+PATH_CUTADAPT=""
+
 #BWA
 MODULE_BWA="jdk bwa/0.6.1 R/2.15.1 samtools/0.1.18 imagemagick/6.7.5"
 #PATH_BWA=$DATASTORE/SeqAna/apps/prod/bwa_git:$PATH_SAMTOOLS:$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
