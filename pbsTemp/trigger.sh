@@ -80,10 +80,10 @@ fi
 
 # ensure out directory is there 
 for dir in ${DIR[@]}; do
-  if [ ! -d $OUT/$dir ]; then mkdir $OUT/$dir; fi
+  if [ ! -d $OUT/$dir ]; then mkdir -p $OUT/$dir; fi
 done
 
-if [ ! -d $QOUT ]; then mkdir $QOUT; fi
+if [ ! -d $QOUT ]; then mkdir -p $QOUT; fi
 
 
 ############################################
@@ -114,8 +114,8 @@ then
 
     for dir in ${DIR[@]}; do
 
-      if [ ! -d $QOUT/$TASKTRIMMING ]; then mkdir $QOUT/$TASKTRIMMING; fi
-      if [ ! -d $OUT/fastq/$dir$TRIMLENGTH ]; then mkdir $OUT/fastq/$dir$TRIMLENGTH; fi
+      if [ ! -d $QOUT/$TASKTRIMMING ]; then mkdir -p $QOUT/$TASKTRIMMING; fi
+      if [ ! -d $OUT/fastq/$dir$TRIMLENGTH ]; then mkdir -p $OUT/fastq/$dir$TRIMLENGTH; fi
 
       for f in $( ls $SOURCE/fastq/$dir/*$FASTQ ); do
 	  n=`basename $f`
@@ -160,8 +160,8 @@ then
     echo "********* $TASKCUSTOMPLEX"
     for dir in ${DIR[@]}; do
 
-      if [ ! -d $QOUT/$TASKCUSTOMPLEX ]; then mkdir $QOUT/$TASKCUSTOMPLEX; fi
-      if [ ! -d $OUT/fastq/$dir$TASKCUSTOMPLEX ]; then mkdir $OUT/fastq/$dir$TASKCUSTOMPLEX; fi
+      if [ ! -d $QOUT/$TASKCUSTOMPLEX ]; then mkdir -p $QOUT/$TASKCUSTOMPLEX; fi
+      if [ ! -d $OUT/fastq/$dir$TASKCUSTOMPLEX ]; then mkdir -p $OUT/fastq/$dir$TASKCUSTOMPLEX; fi
 
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ ); do
 	  n=`basename $f`
@@ -193,8 +193,8 @@ if [ -n "$RUNDOWNSAMPLING" ]; then
     TASKDOWNSAMPLE="sample"$ABB"K"
     for dir in ${DIR[@]}; do
 
-      if [ ! -d $QOUT/$TASKDOWNSAMPLE ]; then mkdir $QOUT/$TASKDOWNSAMPLE; fi
-      if [ ! -d $OUT/$dir/$TASKDOWNSAMPLE ]; then mkdir $OUT/$dir/$TASKDOWNSAMPLE; fi
+      if [ ! -d $QOUT/$TASKDOWNSAMPLE ]; then mkdir -p $QOUT/$TASKDOWNSAMPLE; fi
+      if [ ! -d $OUT/$dir/$TASKDOWNSAMPLE ]; then mkdir -p $OUT/$dir/$TASKDOWNSAMPLE; fi
 
 
       for f in $( ls $OUT/$dir/$TASKRCA/*$ASR.bam ); do
@@ -241,11 +241,11 @@ then
     echo "********* $TASKBOWTIE"
     CPUS=$CPU_BOWTIE
 
-    if [ ! -d $QOUT/$TASKBOWTIE ]; then mkdir $QOUT/$TASKBOWTIE; fi
+    if [ ! -d $QOUT/$TASKBOWTIE ]; then mkdir -p $QOUT/$TASKBOWTIE; fi
 
     for dir in ${DIR[@]}; do
 
-      if [ ! -d $OUT/$dir/$TASKBOWTIE ]; then mkdir $OUT/$dir/$TASKBOWTIE; fi
+      if [ ! -d $OUT/$dir/$TASKBOWTIE ]; then mkdir -p $OUT/$dir/$TASKBOWTIE; fi
 
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ); do
         n=`basename $f`
@@ -302,11 +302,11 @@ if [ -n "$RUNTOPHATCUFF" ]; then
     #CPUS_TOPHAT=24
  
     # ensure directory is there
-    if [ ! -d $QOUT/$TASKTOPHAT ]; then mkdir $QOUT/$TASKTOPHAT; fi
+    if [ ! -d $QOUT/$TASKTOPHAT ]; then mkdir -p $QOUT/$TASKTOPHAT; fi
     for dir in ${DIR[@]}
       do
        
-      if [ ! -d $OUT/$dir/$TASKTOPHAT ]; then mkdir $OUT/$dir/$TASKTOPHAT; fi
+      if [ ! -d $OUT/$dir/$TASKTOPHAT ]; then mkdir -p $OUT/$dir/$TASKTOPHAT; fi
 
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
 	do
@@ -362,9 +362,9 @@ if [ -n "$recalibrateQualScore" ]; then
     #sort dbSNP rod file according to fasta
     #/home/Software/Sting/perl/sortByRef.pl --k 2 $GATKSUP/tmp.dbsnp.txt $FASTA.fai > $DBROD
 
-    if [ ! -d $QOUT/$TASKRCA ]; then mkdir $QOUT/$TASKRCA; fi
+    if [ ! -d $QOUT/$TASKRCA ]; then mkdir -p $QOUT/$TASKRCA; fi
     #ensure dirs are there...
-    if [ ! -d $OUT/combined/$TASKRCA ]; then mkdir $OUT/combined/$TASKRCA; fi
+    if [ ! -d $OUT/combined/$TASKRCA ]; then mkdir -p $OUT/combined/$TASKRCA; fi
 
     for f in $( ls $OUT/combined/bwa/*$ASD.bam )
 #    for f in $( ls combined/bwa/Nina_FC3056JAAXX_l6.$ASD.bam )
@@ -414,13 +414,13 @@ if [ -n "$RUNREALRECAL" ]; then
     #sort dbSNP rod file according to fasta
     #/home/Software/Sting/perl/sortByRef.pl --k 2 $GATKSUP/tmp.dbsnp.txt $FASTA.fai > $DBROD
 
-    if [ ! -d $QOUT/$TASKRCA ]; then mkdir $QOUT/$TASKRCA; fi
+    if [ ! -d $QOUT/$TASKRCA ]; then mkdir -p $QOUT/$TASKRCA; fi
 
     for dir in ${DIR[@]}
       do
 
      #ensure dirs are there...
-      if [ ! -d $OUT/$dir/$TASKRCA ]; then mkdir $OUT/$dir/$TASKRCA; fi
+      if [ ! -d $OUT/$dir/$TASKRCA ]; then mkdir -p $OUT/$dir/$TASKRCA; fi
 
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
 	do
@@ -488,7 +488,7 @@ then
 
     echo "********* $TASKDOC"
 
-    if [ ! -d $QOUT/$TASKDOC ]; then mkdir $QOUT/$TASKDOC; fi
+    if [ ! -d $QOUT/$TASKDOC ]; then mkdir -p $QOUT/$TASKDOC; fi
 
     for dir in ${DIR[@]}
       do
@@ -501,7 +501,7 @@ then
 	name=${n/'_'$READONE.$FASTQ/}
 	echo ">>>>>"$dir/$TASKRCA/$n2
 
-	if [ ! -d $OUT/$dir/$TASKDOC ]; then mkdir $OUT/$dir/$TASKDOC; fi
+	if [ ! -d $OUT/$dir/$TASKDOC ]; then mkdir -p $OUT/$dir/$TASKDOC; fi
 
 	# remove old pbs output
 	if [ -e $QOUT/$TASKDOC/$dir'_'$name'.out' ]; then rm $QOUT/$TASKDOC/$dir'_'$name'.out'; fi
@@ -541,7 +541,7 @@ then
 
     echo "********* $TASKDOWN"
 
-    if [ ! -d $QOUT/$TASKDOWN ]; then mkdir $QOUT/$TASKDOWN; fi
+    if [ ! -d $QOUT/$TASKDOWN ]; then mkdir -p $QOUT/$TASKDOWN; fi
 
     for dir in ${DIR[@]}
       do
@@ -554,7 +554,7 @@ then
 	name=${n/'_'$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n2
 
-	if [ ! -d $OUT/$dir/$TASKDOWN ]; then mkdir $OUT/$dir/$TASKDOWN; fi
+	if [ ! -d $OUT/$dir/$TASKDOWN ]; then mkdir -p $OUT/$dir/$TASKDOWN; fi
 
 	# remove old pbs output
 	if [ -e $QOUT/$TASKDOWN/$dir"_"$n2"0.out" ]; then rm $QOUT/$TASKDOWN/$dir"_"$n2.*; fi
@@ -587,7 +587,7 @@ then
 
     echo "********* $TASKDINS combine"
 
-    if [ ! -d $QOUT/$TASKDINS ]; then mkdir $QOUT/$TASKDINS; fi
+    if [ ! -d $QOUT/$TASKDINS ]; then mkdir -p $QOUT/$TASKDINS; fi
     if [ -e $OUT/dindelVCFmerge.tmp ]; then rm $OUT/dindelVCFmerge.tmp; fi
 
     for dir in ${DIR[@]}; do
@@ -620,7 +620,7 @@ then
 
     echo "********* $TASKDINS combine"
 
-    if [ ! -d $QOUT/$TASKDINS ]; then mkdir $QOUT/$TASKDINS; fi
+    if [ ! -d $QOUT/$TASKDINS ]; then mkdir -p $QOUT/$TASKDINS; fi
     if [ -e $OUT/dindelVCFmerge.tmp ]; then rm $OUT/dindelVCFmerge.tmp; fi
 
     for dir in ${DIR[@]}; do
@@ -660,8 +660,8 @@ then
 
     echo "********* $TASKDINC"
 
-    if [ ! -d $QOUT/$TASKDINC ]; then mkdir $QOUT/$TASKDINC; fi
-    if [ ! -d $COMBDIR/$TASKDINC ]; then mkdir $COMBDIR/$TASKDINC; fi
+    if [ ! -d $QOUT/$TASKDINC ]; then mkdir -p $QOUT/$TASKDINC; fi
+    if [ ! -d $COMBDIR/$TASKDINC ]; then mkdir -p $COMBDIR/$TASKDINC; fi
  
     for dir in ${DIR[@]}; do
 	CANDIDATES=$CANDIDATES" "`echo $(ls $dir/dindel/*dindel.VCF)`
@@ -687,7 +687,7 @@ if [ -n "$GATKcallIndelsSeperate" ]
 then
 
     echo "********* $TASKIND"
-    if [ ! -d $QOUT/$TASKIND ]; then mkdir $QOUT/$TASKIND; fi
+    if [ ! -d $QOUT/$TASKIND ]; then mkdir -p $QOUT/$TASKIND; fi
     if [ -e $QOUT/$TASKIND/ids.txt ]; then rm $QOUT/$TASKIND/ids.txt; fi
     if [ -e $QOUT/$TASKIND/sum.out ]; then rm $QOUT/$TASKIND/sum.out; fi
 
@@ -696,7 +696,7 @@ then
       do
 
       #ensure dirs are there...
-      if [ ! -d $OUT/$dir/$TASKIND ]; then mkdir $OUT/$dir/$TASKIND; fi
+      if [ ! -d $OUT/$dir/$TASKIND ]; then mkdir -p $OUT/$dir/$TASKIND; fi
 
       
 
@@ -748,9 +748,9 @@ then
 
     echo "********* $TASKIND"
 
-    if [ ! -d $QOUT/$TASKIND ]; then mkdir $QOUT/$TASKIND; fi
+    if [ ! -d $QOUT/$TASKIND ]; then mkdir -p $QOUT/$TASKIND; fi
     if [ -e $QOUT/$TASKIND/ids.txt ]; then rm $QOUT/$TASKIND/ids.txt; fi
-    if [ ! -d $OUT/genotype ]; then mkdir $OUT/genotype; fi
+    if [ ! -d $OUT/genotype ]; then mkdir -p $OUT/genotype; fi
 
     NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
 
@@ -795,8 +795,8 @@ then
     echo "********* $TASKVAR"
     CPUS=24
 
-    if [ ! -d $QOUT/$TASKVAR ]; then mkdir $QOUT/$TASKVAR; fi
-    if [ ! -d $OUT/$TASKVAR ]; then mkdir $OUT/$TASKVAR; fi
+    if [ ! -d $QOUT/$TASKVAR ]; then mkdir -p $QOUT/$TASKVAR; fi
+    if [ ! -d $OUT/$TASKVAR ]; then mkdir -p $OUT/$TASKVAR; fi
 
     RUNVARS=""
 
@@ -804,7 +804,7 @@ then
     if [ -n "$VARPERFOLDER" ]; then
 	for dir in ${DIR[@]};do
 	    RUNVARS=$RUNVARS" "$dir
-	    if [ ! -d $OUT/$TASKVAR/$dir ]; then mkdir $OUT/$TASKVAR/$dir; fi
+	    if [ ! -d $OUT/$TASKVAR/$dir ]; then mkdir -p $OUT/$TASKVAR/$dir; fi
             if [ -e  $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp" ]; then rm  $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp"; fi
 	    for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );do
 		n=`basename $f`
@@ -815,7 +815,7 @@ then
     else
 	NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
 	RUNVARS=$NAME
-	if [ ! -d $OUT/$TASKVAR/$NAME ]; then mkdir $OUT/$TASKVAR/$NAME; fi
+	if [ ! -d $OUT/$TASKVAR/$NAME ]; then mkdir -p $OUT/$TASKVAR/$NAME; fi
         if [ -e  $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp" ]; then rm  $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp"; fi
 	for dir in ${DIR[@]};do
 	    for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );do
@@ -868,8 +868,8 @@ fi
 if [ -n "$RUNANNOTATION" ]; then
 
     # ensure directory is there
-    if [ ! -d $QOUT/$TASKANNOVAR ]; then mkdir $QOUT/$TASKANNOVAR; fi
-    if [ ! -d $OUT/$TASKANNOVAR ]; then mkdir $OUT/$TASKANNOVAR; fi
+    if [ ! -d $QOUT/$TASKANNOVAR ]; then mkdir -p $QOUT/$TASKANNOVAR; fi
+    if [ ! -d $OUT/$TASKANNOVAR ]; then mkdir -p $OUT/$TASKANNOVAR; fi
 
     
 #    for dir in $( ls -d $TASKVAR/* ); do
@@ -887,7 +887,7 @@ if [ -n "$RUNANNOTATION" ]; then
         #cleanup old qouts
         if [ -e $QOUT/$TASKANNOVAR/$n.out ]; then rm $QOUT/$TASKANNOVAR/$n.out; fi
 	#ensure subfolder is there
-	if [ ! -d $OUT/$TASKANNOVAR/$n ]; then mkdir $OUT/$TASKANNOVAR/$n; fi
+	if [ ! -d $OUT/$TASKANNOVAR/$n ]; then mkdir -p $OUT/$TASKANNOVAR/$n; fi
 
 
         #check if this is part of the pipe and jobsubmission needs to wait
@@ -917,7 +917,7 @@ then
 
     echo "********* $TASKSNP"
 
-    if [ ! -d $QOUT/$TASKSNP ]; then mkdir $QOUT/$TASKSNP; fi
+    if [ ! -d $QOUT/$TASKSNP ]; then mkdir -p $QOUT/$TASKSNP; fi
     if [ -e $QOUT/$TASKSNP/ids.txt ]; then rm $QOUT/$TASKSNP/ids.txt; fi
     if [ -e $QOUT/$TASKSNP/sum.out ]; then rm $QOUT/$TASKSNP/sum.out; fi
 
@@ -926,7 +926,7 @@ then
       do
 
       #ensure dirs are there...
-      if [ ! -d $OUT/$dir/$TASKSNP ]; then mkdir $OUT/$dir/$TASKSNP; fi
+      if [ ! -d $OUT/$dir/$TASKSNP ]; then mkdir -p $OUT/$dir/$TASKSNP; fi
 
       
 
@@ -977,8 +977,8 @@ if [ -n "$RUNCUFFDIFF" ]; then
     CPUS=24
 
     # ensure directory is there
-    if [ ! -d $QOUT/$TASKCUFFDIFF ]; then mkdir $QOUT/$TASKCUFFDIFF; fi
-    if [ ! -d $OUT/$TASKCUFFDIFF ]; then mkdir $OUT/$TASKCUFFDIFF; fi
+    if [ ! -d $QOUT/$TASKCUFFDIFF ]; then mkdir -p $QOUT/$TASKCUFFDIFF; fi
+    if [ ! -d $OUT/$TASKCUFFDIFF ]; then mkdir -p $OUT/$TASKCUFFDIFF; fi
 
     for dir in ${DIR[@]}; do
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );	do
@@ -1020,13 +1020,13 @@ then
     echo "********* $TASKRRBS"
     CPUS=32
 
-    if [ ! -d $QOUT/$TASKRRBS ]; then mkdir $QOUT/$TASKRRBS; fi
+    if [ ! -d $QOUT/$TASKRRBS ]; then mkdir -p $QOUT/$TASKRRBS; fi
 
     for dir in ${DIR[@]}
       do
       
       #ensure dirs are there...
-      if [ ! -d $OUT/$dir/$TASKRRBS ]; then mkdir $OUT/$dir/$TASKRRBS; fi
+      if [ ! -d $OUT/$dir/$TASKRRBS ]; then mkdir -p $OUT/$dir/$TASKRRBS; fi
 
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
 	do

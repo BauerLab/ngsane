@@ -1,56 +1,48 @@
 ##############################################################
 # System info
 ##############################################################
-SUBMISSIONSYSTEM="PBS"                                  #or SGE
-DMGET="YES"                                #empty string for No
-TMP=/data/flush/bau04c/TMP                             #TMP dir
-. /etc/profile.d/modules.sh   #soucre the module on child nodes
+SUBMISSIONSYSTEM="SGE"
+DMGET=""
+. /etc/profile.d/modules.sh
 
 ##############################################################
 # PROGRAM PATHS
 ##############################################################
-QSUB=$DATASTORE/SeqAna/apps/prod/seqaninf/pbsTemp/pbsTemp.sh
-BINQSUB=$DATASTORE/SeqAna/apps/prod/seqaninf/pbsTemp/jobsubmission.sh
+QSUB=pbsTemp.sh
+BINQSUB=jobsubmission.sh
 
 #Additional programs not available as module
-PATH_SAMTOOLS=$DATASTORE/SeqAna/apps/prod/samtools_svn
-PATH_IGVTOOLS=$DATASTORE/SeqAna/apps/prod/IGVTools/
-#PATH_PICARD=$DATASTORE/SeqAna/apps/prod/Picard_svn/dist/
-PATH_PICARD=$DATASTORE/SeqAna/apps/prod/picard-tools-1.89/
-PATH_SAMSTAT=$DATASTORE/SeqAna/apps/dev/samstat/src/
+PATH_SAMTOOLS=
+PATH_IGVTOOLS=/share/ClusterShare/software/contrib/fabbus/igvtools/2.2.2/
+PATH_PICARD=/share/ClusterShare/software/contrib/fabbus/picard/1.89/
+PATH_SAMSTAT=/share/ClusterShare/software/contrib/fabbus/samstat/1.08/
 
-#Fastqc
-MODULE_FASTQC="jdk fastqc/0.10.1"
-PATH_FASTQC=$DATASTORE/SeqAna/apps/prod/FastQC/
-MODULE_LATEX="imagemagick/6.7.5"
-PATH_LATEX="/data/flush/apps/texlive/2012/bin/x86_64-linux/"
+MODULE_FASTQC="marcow/fastqc/prebuilt/0.10.1"
+PATH_FASTQC=
+MODULE_LATEX=
+#PATH_LATEX="/data/flush/apps/texlive/2012/bin/x86_64-linux/"
+PATH_LATEX=
 
-#BWA
-MODULE_BWA="jdk bwa/0.6.1 R/2.15.1 samtools/0.1.18"
-#PATH_BWA=$DATASTORE/SeqAna/apps/prod/bwa_git:$PATH_SAMTOOLS:$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+MODULE_BWA="fabbus/bwa/0.7.3 fabbus/R/2.15.3 fabbus/samtools/0.1.19 fabbus/picard/1.89 fabbus/samstat/1.08 fabbus/igvtools/2.2.2"
 PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
-#Bowtie2
-MODULE_BOWTIETWO="jdk R/2.15.1 bowtie/2.0.5 samtools/0.1.18"
+MODULE_BOWTIETWO="fabbus/R/2.15.3 kevyin/tuxedo/bowtie2-2.0.5.Linux_x86_64 fabbus/samtools/0.1.19"
 PATH_BOWTIETWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
-
-#Snp calling with GATK
-PATH_GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
-#GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
-PATH_GATKJAR=$PATH_GATKHOME/dist/
-MODULE_GATKSNP="jdk R/2.15.1"
-PATH_GATKSNP=$PATH_GATKHOME:$PATH_GATKJAR:$PATH_IGVTOOLS
-
-
-
 
 #this gzip waits for the file to migrate completly before unzipping it
 #GZIP=$DATASTORE/SeqAna/apps/prod/mygzip/
+GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
+#GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
+GATKJAR=$GATKHOME/dist/
 RSCRIPT=/apps/R/2.14.1/bin/Rscript # module load R
 FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
+#TMP=$TMPDIR
+TMP=$(pwd)/tmp
+#TMP=$DATASTORE/TMP
 VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
 BEDTOOLS=$DATASTORE/SeqAna/apps/prod/bedtools/bin/
+IMGMAGCONVERT=/usr/bin/convert # imageMagick
 ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
 
 #TOPHAT=$DATASTORE/SeqAna/apps/prod/tophat-2.0.4.Linux_x86_64/tophat2 
@@ -76,9 +68,7 @@ CUTADAPT="/home/cmis/bau04c/SeqAna/apps/prod/cutadapt-1.2.1/bin/cutadapt"
 VIENNA="/clusterdata/hiseq_apps/bin/devel/ViennaRNA/bin/"
 UNAFOLD="/clusterdata/hiseq_apps/bin/devel/unafold/bin/"
 
-##############################################################
-# Task Names
-##############################################################
+# Task names
 TASKFASTQC="fastQC"
 TASKBWA="bwa"
 TASKBOWTIE="bowtie"
@@ -110,10 +100,7 @@ ALN="aln" # aligned
 ASD="asd" # aligned sorted duplicate-removed
 ASR="asdrr" # aligned sorted duplicate-removed raligned reacalibrated
 
-
-##############################################################
-# Resources
-##############################################################
+#############
 # On Cherax
 #FASTQC
 WALLTIME_FASTQC=10:00:00
