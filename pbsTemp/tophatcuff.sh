@@ -155,7 +155,7 @@ fi
 if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi                                                                                      
 if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
-<<EOF
+mkdir $OUTDIR
 echo "********* tophat"
 tophat -p $THREADS -o $OUTDIR ${FASTA/.fasta/} $f $f2
 
@@ -163,7 +163,6 @@ echo "********* merge mapped and unmapped"
 #ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
 samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
 samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
-EOF
 
 echo "********* reorder tophat output to match reference"
 if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
@@ -179,7 +178,7 @@ java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
      ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
      VALIDATION_STRINGENCY=LENIENT
 
-#rm $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}.bam
+rm $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}.bam
 
 ##statistics
 echo "********* flagstat"
@@ -202,19 +201,19 @@ echo "********* index"
 samtools index $BAMFILE
 
 echo "********* calculate inner distance"
-export PATH=$PATH:/usr/bin/
+if [ ! -e $OUTDIR/../metrices ]; then mkdir $OUTDIR/../metrices ; fi
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
 mkdir $THISTMP
 java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     INPUT=$BAMFILE \
     REFERENCE_SEQUENCE=$FASTA \
-    OUTPUT=$OUTDIR/metrices/$(basename $BAMFILE) \
+    OUTPUT=$OUTDIR/../metrices/$(basename $BAMFILE) \
     VALIDATION_STRINGENCY=LENIENT \
     PROGRAM=CollectAlignmentSummaryMetrics \
     PROGRAM=CollectInsertSizeMetrics \
     PROGRAM=QualityScoreDistribution \
     TMP_DIR=$THISTMP
-for im in $( ls $OUTDIR/metrices/*.pdf ); do
+for im in $( ls $OUTDIR/../metrices/$(basename $BAMFILE)*.pdf ); do
     convert $im ${im/pdf/jpg}
 done
 rm -r $THISTMP
