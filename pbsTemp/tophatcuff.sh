@@ -115,6 +115,7 @@ echo -e "--samstat --\n "$(samstat | head -n 2 | tail -n1)
 # get info about input file
 n=`basename $f`
 FASTASUFFIX=${FASTA##*.}
+BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.tph.bam}
 
 CUFOUT=${OUTDIR/$TASKTOPHAT/$TASKCUFF}
 
@@ -158,15 +159,26 @@ echo "********* tophat"
 tophat -p $THREADS -o $OUTDIR ${FASTA/.fasta/} $f $f2
 
 echo "********* merge mapped and unmapped"
-BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.tph.bam}
 #ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
 samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
-samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/}
-rm $BAMFILE.tmp.bam
+samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
 
-##mv $BAMFILE $OUTDIR/../${n/_$READONE.fastq/.tph.bam}.tmp
-##samtools sort $OUTDIR/../${n/_$READONE.fastq/.tph.bam}.tmp ${BAMFILE/.bam/}
+#echo "********* resort for PICARD to run on it"
+echo "********* reorder tophat output to match reference"
+if [ -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
+	java $JAVAPARAMS -jar $PATH_PICARD/CreateSequenceDictionary.jar \
+		REFERENCE=$FASTA 
+		OUTPUT=${FASTA/$FASTASUFFIX/}dict
+fi
+java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
+     INPUT=${BAMFILE/.bam/.samtools} \
+     OUTPUT=$BAMFILE \
+     REFERENCE=$FASTA \
+     ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
+     ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
+     VALIDATION_STRINGENCY=LENIENT
 
+rm $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
 
 ##statistics
 echo "********* flagstat"
@@ -195,13 +207,13 @@ mkdir $THISTMP
 java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     INPUT=$BAMFILE \
     REFERENCE_SEQUENCE=$FASTA \
-    OUTPUT=$MYOUT/metrices/$(basename $BAMFILE) \
+    OUTPUT=$OUTDIR/metrices/$(basename $BAMFILE) \
     VALIDATION_STRINGENCY=LENIENT \
     PROGRAM=CollectAlignmentSummaryMetrics \
     PROGRAM=CollectInsertSizeMetrics \
     PROGRAM=QualityScoreDistribution \
     TMP_DIR=$THISTMP
-for im in $( ls $MYOUT/metrices/*.pdf ); do
+for im in $( ls $OUTDIR/metrices/*.pdf ); do
     convert $im ${im/pdf/jpg}
 done
 rm -r $THISTMP
