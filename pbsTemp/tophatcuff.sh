@@ -128,6 +128,13 @@ if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 fi
 
+#is paired ?                                                                                                      
+if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+    PAIRED="1"
+    f2=${f/$READONE/$READTWO}
+else
+    PAIRED="0"
+fi
 
 #is ziped ?
 ZCAT="cat" # always cat
@@ -165,8 +172,11 @@ rm $BAMFILE.tmp.bam
 echo "********* flagstat"
 samtools flagstat $BAMFILE >$BAMFILE.stats
 READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-if [ -n "$f2" ]; then READ2=`$ZCAT $f2 | wc -l | gawk '{print int($1/4)}' `; fi
-let FASTQREADS=$READ1+$READ2
+FASTQREADS=$READ1
+if [ -n "$f2" ]; then 
+	READ2=`$ZCAT $f2 | wc -l | gawk '{print int($1/4)}' `;
+	let FASTQREADS=$READ1+$READ2
+fi
 echo $FASTQREADS" fastq reads" >>$BAMFILE.stats
 JUNCTION=`wc -l $OUTDIR/junctions.bed | cut -d' ' -f 1 `
 echo $JUNCTION" junction reads" >> $BAMFILE.stats
@@ -183,7 +193,7 @@ export PATH=$PATH:/usr/bin/
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
 mkdir $THISTMP
 java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
-    INPUT=$BAMFILE
+    INPUT=$BAMFILE \
     REFERENCE_SEQUENCE=$FASTA \
     OUTPUT=$MYOUT/metrices/$(basename $BAMFILE) \
     VALIDATION_STRINGENCY=LENIENT \
@@ -199,7 +209,7 @@ rm -r $THISTMP
 #coverage for IGV
 echo "********* coverage track"
 java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $BAMFILE \
-    $BAMFILE.cov.tdf ${FASTA/$FASTASUFFIX/}.genome
+    $BAMFILE.cov.tdf ${FASTA/$FASTASUFFIX/}genome
 
 echo "********* samstat"
 samstat $BAMFILE
