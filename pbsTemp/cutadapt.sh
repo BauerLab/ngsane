@@ -47,11 +47,13 @@ FASTQDIRTRIM=$(basename $o)
 
 if [ ! -d $FASTQDIRTRIM ]; then mkdir $FASTQDIRTRIM; fi
 echo $f "->" $o
+echo "contaminants: "$CONTAMINANTS
+if [ ! -n "$CONTAMINANTS" ];then echo "need variable CONTAMINANTS defined in $CONFIG"; fi
 
 
 echo "********** get contaminators"
 CONTAM=""
-for i in $(cat $CONTAMINATORS ); do
+for i in $(cat $CONTAMINANTS ); do
 	CONTAM=$CONTAM+"-a $i "
 done
 
