@@ -26,7 +26,7 @@ PATH_LATEX=
 MODULE_BWA="fabbus/bwa/0.7.3 fabbus/R/2.15.3 fabbus/samtools/0.1.19 fabbus/picard/1.89 fabbus/samstat/1.08 fabbus/igvtools/2.2.2"
 PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
-MODULE_BOWTIETWO="fabbus/R/2.15.3 kevyin/tuxedo/bowtie2-2.0.5.Linux_x86_64 fabbus/samtools/0.1.19"
+MODULE_BOWTIETWO="fabbus/R/2.15.3 fabbus/bowtie2/2.1.0 fabbus/samtools/0.1.19"
 PATH_BOWTIETWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 #this gzip waits for the file to migrate completly before unzipping it
