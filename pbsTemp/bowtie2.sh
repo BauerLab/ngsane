@@ -138,16 +138,16 @@ samtools merge -f $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam $MYOUT/${n/'_'$READONE
 
 
 echo "********* mark duplicates"
-if [ ! -e $MYOUT/metrices ]; then mkdir $MYOUT/metrices ; fi
+if [ ! -e $MYOUT/metrices ]; then mkdir -p $MYOUT/metrices ; fi
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files                                        
-mkdir $THISTMP
+mkdir -p $THISTMP
 java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
     INPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} \
     OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     METRICS_FILE=$MYOUT/metrices/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
     VALIDATION_STRINGENCY=LENIENT \
     TMP_DIR=$THISTMP
-rm -r $THISTMP
+rm -rf $THISTMP
 samtools index $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
 
 
@@ -178,14 +178,12 @@ else
     echo -e "***ERROR**** We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREA\
 DS"
     exit 1
-
 fi
 
 echo "********* coverage track"
 GENOME=$(echo $FASTA| sed 's/.fasta/.genome/' | sed 's/.fa/.genome/' )
 java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam.cov.tdf} $GENOME
-
 
 echo "********* samstat"
 samstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}

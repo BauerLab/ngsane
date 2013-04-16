@@ -27,11 +27,9 @@ for d in ${DIR[@]}; do
 done
 
 echo $FILES
-if [ ! -d $OUT/runStats ]; then mkdir $OUT/runStats; fi
-if [ -d $OUT/runStats/$TASKFASTQC ]; then rm -r $OUT/runStats/$TASKFASTQC/; fi
-mkdir $OUT/runStats/$TASKFASTQC
-
-
+if [ ! -d $OUT/runStats ]; then mkdir -p $OUT/runStats; fi
+if [ -d $OUT/runStats/$TASKFASTQC ]; then rm -rf $OUT/runStats/$TASKFASTQC/; fi
+mkdir -p $OUT/runStats/$TASKFASTQC
 
 CPUS=`echo $FILES | wc -w`
 if [ "$CPUS" -gt "$CPU_FASTQC" ]; then echo "reduce to $CPU_FASTQC CPUs"; CPUS=$CPU_FASTQC; fi

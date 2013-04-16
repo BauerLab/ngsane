@@ -1,7 +1,8 @@
+#!/bin/sh
+
 #
 # General template for submitting a job 
 #
-
 
 #INPUTS
 while [ "$1" != "" ]; do
@@ -38,7 +39,7 @@ echo "********* $TASK $NODIR"
 
 #echo $COMMAND
 
-if [ ! -d $QOUT/$TASK ]; then mkdir $QOUT/$TASK; fi
+if [ ! -d $QOUT/$TASK ]; then mkdir -p $QOUT/$TASK; fi
 
 ## Select files in dir to run
 if [ ! -e $QOUT/$TASK/runnow.tmp ]; then
@@ -46,7 +47,7 @@ if [ ! -e $QOUT/$TASK/runnow.tmp ]; then
       
       #ensure dirs are there...
       if [ ! -n "$NODIR" ]; then
-	  if [ ! -d $OUT/$dir/$TASK ]; then mkdir $OUT/$dir/$TASK; fi
+	  if [ ! -d $OUT/$dir/$TASK ]; then mkdir -p $OUT/$dir/$TASK; fi
       fi
       # print out 
       if [ -n "$REV" ]; then

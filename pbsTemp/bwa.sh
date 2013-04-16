@@ -219,17 +219,17 @@ samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | samtools
 #agreement between bwa and picard
 #http://seqanswers.com/forums/showthread.php?t=4246
 echo "********* mark duplicates"
-if [ ! -e $MYOUT/metrices ]; then mkdir $MYOUT/metrices ; fi
+if [ ! -e $MYOUT/metrices ]; then mkdir -p $MYOUT/metrices ; fi
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
 echo $THISTMP
-mkdir $THISTMP
+mkdir -p $THISTMP
 java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
     INPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} \
     OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     METRICS_FILE=$MYOUT/metrices/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
     VALIDATION_STRINGENCY=LENIENT \
     TMP_DIR=$THISTMP
-rm -r $THISTMP
+rm -rf $THISTMP
 samtools index $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
 
 
@@ -248,7 +248,7 @@ fi
 echo "********* calculate inner distance"
 export PATH=$PATH:/usr/bin/
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
-mkdir $THISTMP
+mkdir -p $THISTMP
 java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     INPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     REFERENCE_SEQUENCE=$FASTA \
@@ -261,7 +261,7 @@ java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
 for im in $( ls $MYOUT/metrices/*.pdf ); do
     $IMGMAGCONVERT $im ${im/pdf/jpg}
 done
-rm -r $THISTMP
+rm -rf $THISTMP
 
 echo "********* verify"
 BAMREADS=`head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1`
@@ -272,8 +272,7 @@ if [ $BAMREADS -eq $FASTQREADS ]; then
     rm $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam}
 else
     echo -e "***ERROR**** We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
-    exit 1
-      
+    exit 1 
 fi
 
 echo "********* coverage track"
