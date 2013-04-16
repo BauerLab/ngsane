@@ -42,7 +42,7 @@ MODULE_GATKSNP="jdk R/2.15.1"
 PATH_GATKSNP=$PATH_GATKHOME:$PATH_GATKJAR:$PATH_IGVTOOLS
 
 # Tophat and cufflinks
-MODULE_TOPHATCUFF="boost jdk python bowtie/2.0.5 tophat/2.0.4b cufflinks/2.0.2 samtools/0.1.18 imagemagick/6.7.5"
+MODULE_TOPHATCUFF="boost jdk python R/2.15.1 bowtie/2.0.5 tophat/2.0.4b cufflinks/2.0.2 samtools/0.1.18 imagemagick/6.7.5"
 PATH_TOPHATCUFF=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 #this gzip waits for the file to migrate completly before unzipping it

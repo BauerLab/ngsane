@@ -185,7 +185,7 @@ mkdir $THISTMP
 java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     INPUT=$BAMFILE
     REFERENCE_SEQUENCE=$FASTA \
-    OUTPUT=$MYOUT/metrices/$(basename BAMFILE) \
+    OUTPUT=$MYOUT/metrices/$(basename $BAMFILE) \
     VALIDATION_STRINGENCY=LENIENT \
     PROGRAM=CollectAlignmentSummaryMetrics \
     PROGRAM=CollectInsertSizeMetrics \
