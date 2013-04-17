@@ -55,7 +55,7 @@ done
 . $HISEQINF/pbsTemp/header.sh
 . $CONFIG
 
-JAVAPARAMS="-Xmx"$MEMORY"G" #-XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=10G"
+JAVAPARAMS="-Xmx"$MEMORY"G -Djava.io.tmpdir="$TMP #-XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=10G"
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"

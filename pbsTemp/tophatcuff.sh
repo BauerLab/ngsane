@@ -92,7 +92,7 @@ done
 . $HISEQINF/pbsTemp/header.sh
 . $CONFIG
 
-JAVAPARAMS="-Xmx"$(expr $MEMORY_TOPHAT - 1 )"G"
+JAVAPARAMS="-Xmx"$(expr $MEMORY_TOPHAT - 1 )"G -Djava.io.tmpdir="$TMP
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"

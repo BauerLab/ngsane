@@ -97,13 +97,13 @@ while [ "$1" != "" ]; do
     shift
 done
 
-JAVAPARAMS="-Xmx"$MYMEMORY"g -Djava.io.tmpdir="$TMP # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
-echo "JAVAPARAMS "$JAVAPARAMS
-
 #PROGRAMS
 . $CONFIG
 . $HISEQINF/pbsTemp/header.sh
 . $CONFIG
+
+JAVAPARAMS="-Xmx"$MYMEMORY"g -Djava.io.tmpdir="$TMP # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
+echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"
 module load $MODULE_BWA; 
