@@ -82,13 +82,15 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     DIR=$DIR" $dir"
     FILES=$FILES" $i"
 
-    echo $COMMAND2
-#    if [ -n "$ECHO" ]; then continue; fi
+    if [ -n "$POSTONLY" ]; then continue; fi
 
+    echo $COMMAND2
 
     if [ -n "$DIRECT" ]; then eval $COMMAND2; fi
 
     if [ -n "$ARMED" ]; then
+
+	echo $ARMED
 
 	    # remove old submission output logs
 		if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.*; fi
@@ -122,13 +124,13 @@ if [ -n "$POSTCOMMAND" ]; then
     echo ">>>>>"$DIR" wait for "$MYPBSIDS
     echo $POSTCOMMAND2
 
-    if [[ -n "$DIRECT" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; fi
+    if [[ -n "$DIRECT" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi
     if [[ -n "$ARMED" || -n "$POSTONLY" ]]; then
 
 	#RECIPT=$($BINQSUB $QSUBEXTRA -W after:$MYPBSIDS -j oe -o $QOUT/$TASK/$DIR'_postcommand.out' -w $(pwd) -l $NODES \
     #        -l vmem=$MEMORY -N $TASK'_'$DIR'_postcommand' -l walltime=$WALLTIME \
     #        -command "$POSTCOMMAND2")
-    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W $MYPBSIDS -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
 	    	-j $TASK'_'$DIR'_postcommand' -o $QOUT/$TASK/$DIR'_postcommand.out' \
 	        	--command "$POSTCOMMAND2")
 
