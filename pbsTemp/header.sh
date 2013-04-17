@@ -3,6 +3,10 @@
 ##############################################################
 SUBMISSIONSYSTEM="SGE"
 DMGET=""
+
+##############################################################
+# SUN GRID ENGINE specific workaround for BUG (SGE 6.2u5)
+##############################################################
 . /etc/profile.d/modules.sh
 
 ##############################################################
@@ -17,31 +21,34 @@ PATH_IGVTOOLS=/share/ClusterShare/software/contrib/fabbus/igvtools/2.2.2/
 PATH_PICARD=/share/ClusterShare/software/contrib/fabbus/picard/1.89/
 PATH_SAMSTAT=/share/ClusterShare/software/contrib/fabbus/samstat/1.08/
 
-MODULE_FASTQC="marcow/fastqc/prebuilt/0.10.1"
+# fastQC
+MODULE_FASTQC="fabbus/fastqc/0.10.1"
 PATH_FASTQC=
 MODULE_LATEX=
 #PATH_LATEX="/data/flush/apps/texlive/2012/bin/x86_64-linux/"
 PATH_LATEX=
 
+# BWA
 MODULE_BWA="fabbus/bwa/0.7.3 fabbus/R/2.15.3 fabbus/samtools/0.1.19 fabbus/picard/1.89 fabbus/samstat/1.08 fabbus/igvtools/2.2.2"
 PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
+#Bowtie2
 MODULE_BOWTIETWO="fabbus/R/2.15.3 fabbus/bowtie2/2.1.0 fabbus/samtools/0.1.19"
 PATH_BOWTIETWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 #Trim adapter with CUTADAPT
-MODULE_CUTADAPT=""
-PATH_CUTADAPT="$DATASTORE/SeqAna/apps/prod/cutadapt-1.2.1/bin/"
+MODULE_CUTADAPT="fabbus/cutadapt/1.2.1"
+PATH_CUTADAPT=""
 
 #Snp calling with GATK
 PATH_GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
 #GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
 PATH_GATKJAR=$PATH_GATKHOME/dist/
-MODULE_GATKSNP="jdk R/2.15.1"
+MODULE_GATKSNP="fabbus/R/2.15.3"
 PATH_GATKSNP=$PATH_GATKHOME:$PATH_GATKJAR:$PATH_IGVTOOLS
 
 # Tophat and cufflinks
-MODULE_TOPHATCUFF="boost jdk python R/2.15.1 bowtie/2.0.5 tophat/2.0.4b cufflinks/2.0.2 samtools/0.1.18 imagemagick/6.7.5"
+MODULE_TOPHATCUFF="fabbus/python/2.7.3 fabbus/R/2.15.3 fabbus/bowtie2/2.1.0 fabbus/tophat/2.0.8b fabbus/cufflinks/2.1.1 fabbis/samtools/0.1.19"
 PATH_TOPHATCUFF=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 #this gzip waits for the file to migrate completly before unzipping it
@@ -60,19 +67,9 @@ BEDTOOLS=$DATASTORE/SeqAna/apps/prod/bedtools/bin/
 IMGMAGCONVERT=/usr/bin/convert # imageMagick
 ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
 
-
 RRBSMAP="/clusterdata/hiseq_apps/bin/devel/rrbsmap-1.5/rrbsmap"
 MACS="/clusterdata/hiseq_apps/bin/devel/MACS_git"
 PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
-
-#
-# Need to use 2.0.0b6 or higher because of --sam-RG
-# only cherax has this install so far
-#BOWTIETWO="$DATASTORE/SeqAna/apps/prod/bowtie2-2.0.0-beta6/" <- buggy
-#BOWTIETWO="/apps/bowtie/2.0.0b6/"
-#BOWTIETWO="/datastore/cmis/bau04c/SeqAna/apps/prod/bowtie2-2.0.0-beta7-source"
-#BOWTIETWO=bowtie/2.0.0b5
-
 
 VIENNA="/clusterdata/hiseq_apps/bin/devel/ViennaRNA/bin/"
 UNAFOLD="/clusterdata/hiseq_apps/bin/devel/unafold/bin/"
@@ -111,7 +108,7 @@ ASD="asd" # aligned sorted duplicate-removed
 ASR="asdrr" # aligned sorted duplicate-removed raligned reacalibrated
 
 #############
-# On Cherax
+# On Wolfpack
 #FASTQC
 WALLTIME_FASTQC=10:00:00
 MEMORY_FASTQC=20
