@@ -3,8 +3,7 @@
 # Script to trim adapters using TRIMGALORE (tapping into CUTADAPT)
 # It takes a <Run>/*.$FASTQ[.gz] file and gets the file containing the contaminats
 # via config and writes out <Run>_trim/*.$FASTQ[.gz]
-# contaminants need to be specified with -a, -a2 followd by the sequence
-# -a AAGGAEE
+#
 # author: Fabian Buske
 # date: April. 2013
 
@@ -73,9 +72,9 @@ echo "********** trim"
 # Paired read
 if [ "$PAIRED" = 1 ]
 then
-	trim_galore $CONTAM  --paired --output_dir $FASTQDIRTRIM $f ${f/$READONE/$READTWO}
+	trim_galore $CONTAM --paired --output_dir $FASTQDIRTRIM $f ${f/$READONE/$READTWO}
 else
-	trim_galore $CONTAM  --output_dir $FASTQDIRTRIM $f
+	trim_galore $CONTAM --output_dir $FASTQDIRTRIM $f
 fi
 
 echo ">>>>> readtrimming with TRIMGALORE - FINISHED"
