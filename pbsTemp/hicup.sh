@@ -199,7 +199,10 @@ echo "#FASTQ files to be analysed, separating file pairs using the pipe '|' char
 echo "$f | ${f/$READONE/$READTWO} " >> $HICUP_CONF
 
 echo "********* execute hicup"
+CURDIR=$(pwd)
+cd $MYOUT
 hicup -c $HICUP_CONF
+cd $CURDIR
 
 exit 1
 

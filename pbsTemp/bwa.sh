@@ -147,7 +147,7 @@ fi
 
 #is ziped ?
 ZCAT="zcat"
-if [[ $f != *.fastq.gz ]]; then ZCAT="cat"; fi
+if [[ $f != *.gz ]]; then ZCAT="cat"; fi
 
 FULLSAMPLEID=$SAMPLEID"${n/'_'$READONE.$FASTQ/}"
 echo ">>>>> full sample ID "$FULLSAMPLEID

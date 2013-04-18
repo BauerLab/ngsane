@@ -77,6 +77,18 @@ else
 	trim_galore $CONTAM --output_dir $FASTQDIRTRIM $f
 fi
 
+echo "********** zip"
+for TRIMMED in $(ls $$FASTQDIRTRIM/*_trimmed.*); do
+    if [[ $f != *.gz ]]; then
+        gzip -9 $TRIMMED
+    fi
+done
+
+echo "********** rename files"
+for TRIMMED in $(ls $$FASTQDIRTRIM/*_trimmed.gz); do
+	mv $TRIMMED ${TRIMMED/_trimmed.gz/.gz}
+done
+
 echo ">>>>> readtrimming with TRIMGALORE - FINISHED"
 echo ">>>>> enddate "`date`
 
