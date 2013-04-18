@@ -112,7 +112,18 @@ if [ -n "$RUNCUTADAPT" ]; then
 	--command "$HISEQINF/pbsTemp/cutadapt.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKCUTADAPT" 
 fi
 
+############################################
+#   TRIMGALORE remove contaminants
+#
+# IN:$SOURCE/$dir/fastq/*read1.fastq
+# OUT:$SOURCE/$dir/fastq_trim/*read1.fastq
+############################################
 
+if [ -n "$RUNTRIMGALORE" ]; then
+    $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMGALORE -i fastq -e "_"$READONE.$FASTQ -n $NODES_CUTADAPT \
+        -c $CPU_TRIMGALORE -m $MEMORY_TRIMGALORE"G" -w $WALLTIME_TRIMGALORE \
+        --command "$HISEQINF/pbsTemp/trimgalore.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKTRIMGALORE"
+fi
 
 
 ############################################

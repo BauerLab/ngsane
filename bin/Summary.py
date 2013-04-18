@@ -115,7 +115,7 @@ def printStats(arrV, arrN, arrS):
 
 # sam statiscis for initial aligment
 def samstats_old(statsfile):
-    names=["total","QCfail","dupl","dupl%","mapped","maped%","paired", "paired%", "singletons", "transv", "regmapped", "regmapped%", "regpaired", "regpaired%"]
+    names=["total","QCfail","dupl","dupl%","mapped","mapped%","paired", "paired%", "singletons", "transv", "regmapped", "regmapped%", "regpaired", "regpaired%"]
     values=[]
     st=re.split("[ \n]+",open(statsfile).read())
     #print st

@@ -151,6 +151,7 @@ if [[ $f != *.fastq.gz ]]; then ZCAT="cat"; fi
 
 FULLSAMPLEID=$SAMPLEID"${n/'_'$READONE.$FASTQ/}"
 echo ">>>>> full sample ID "$FULLSAMPLEID
+FASTASUFFIX=${FASTA##*.}
 
 # generating the index files
 if [ ! -e $FASTA.bwt ]; then echo ">>>>> make .bwt"; bwa index -a bwtsw $FASTA; fi
@@ -276,7 +277,7 @@ else
 fi
 
 echo "********* coverage track"
-GENOME=$(echo $FASTA| sed 's/.fasta/.genome/' | sed 's/.fa/.genome/' )
+GENOME=$(echo $FASTA | sed 's/.${FASTASUFFIX}/.genome/' )
 java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam.cov.tdf} $GENOME
 
