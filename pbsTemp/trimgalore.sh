@@ -80,7 +80,12 @@ fi
 echo "********** zip"
 for TRIMMED in $(ls $$FASTQDIRTRIM/*_trimmed.*); do
     if [[ $f != *.gz ]]; then
-        gzip -9 $TRIMMED
+        # use parallel zipping program gzip if available
+        if hash pigz 2>/dev/null; then
+            pigz -9 $TRIMMED
+        else
+            gzip -9 $TRIMMED
+        fi
     fi
 done
 
