@@ -4,8 +4,9 @@
 SCRIPT=$1
 QOUT=$2
 
-
-dmget $QOUT/*.out
+if [ -n "$DMGET" ]; then
+	dmget $QOUT/*.out
+fi
 
 echo ""
 echo "###################################################"
