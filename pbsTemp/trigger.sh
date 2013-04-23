@@ -1117,10 +1117,8 @@ fi
 ############################################
 
 if [ -n "$RUNHICLIB" ]; then
-    echo "$QSUB $ARMED -k $CONFIG -t $TASKHICLIB -i fastq -e '_'$READONE.$FASTQ -n $NODES_HICLIB -c $CPU_HICLIB \
+    $QSUB $ARMED -k $CONFIG -t $TASKHICLIB -i fastq -e '_'$READONE.$FASTQ -n $NODES_HICLIB -c $CPU_HICLIB \
     	-m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
-        --command '$HISEQINF/pbsTemp/hiclib.sh $HICLIBADDPARM -k $CONFIG -t $CPU_HICLIB -m $(expr $MEMORY_HICLIB - 1 ) \
-		-f <FILE> -r $FASTA --enzmyes '$HICLIB_RENZYMES' -o $OUT/<DIR>/$TASKHICLIB \
-	        <DIR> --fastqName <NAME>'
-"
+        --command '$HISEQINF/pbsTemp/hiclib.sh $HICLIBADDPARM -k $CONFIG --threads $CPU_HICLIB --memory $(expr $MEMORY_HICLIB - 1 ) --fastq <FILE> --enzymes "$HICLIB_RENZYMES" --outdir $OUT/<DIR>/$TASKHICLIB --fastqName <NAME>'
+
 fi

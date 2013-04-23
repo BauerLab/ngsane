@@ -89,6 +89,7 @@ NODES_BOWTIE="nodes=1:ppn=8"
 
 MODULE_BOWTIETWO="fabbus/R/2.15.3 fabbus/bowtie2/2.1.0 fabbus/samtools/0.1.19"
 PATH_BOWTIETWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+BOWTIE2_INDEX=
 
 ##############################################################
 # Trim adapter with CUTADAPT
@@ -138,7 +139,7 @@ MEMORY_TOPHAT=50
 CPU_TOPHAT=8
 NODES_TOPHAT="nodes=1:ppn=8"
 
-MODULE_TOPHATCUFF="fabbus/python/2.7.3 fabbus/R/2.15.3 fabbus/bowtie2/2.1.0 fabbus/tophat/2.0.8b fabbus/cufflinks/2.1.1 fabbis/samtools/0.1.19"
+MODULE_TOPHATCUFF="fabbus/python/2.7.3 fabbus/R/2.15.3 fabbus/bowtie2/2.1.0 fabbus/tophat/2.0.8b fabbus/cufflinks/2.1.1 fabbus/samtools/0.1.19"
 PATH_TOPHATCUFF=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
@@ -148,10 +149,9 @@ MEMORY_HICLIB=60
 CPU_HICLIB=8
 NODES_HICLIB="nodes=1:ppn=8"
 
-MODULE_HICLIB="fabbus/python/2.7.3 fabbus/bowtie2/2.1.0 fabbis/samtools/0.1.19 fabbis/hiclib/19_04_13"
+MODULE_HICLIB="fabbus/python/2.7.3 fabbus/bowtie2/2.1.0 fabbus/samtools/0.1.19 fabbus/hiclib/19_04_13"
 PATH_HICLIB=
 HICLIB_GAPFILE= #/share/ClusterShare/software/contrib/fabbus/hiclib/19_04_13/hiclib/gap.txt
-BOWTIE_INDEXDIR= #/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/
 HICLIB_RENZYMES=
 HICLIB_READLENGTH=
 
@@ -183,6 +183,8 @@ UNAFOLD="/clusterdata/hiseq_apps/bin/devel/unafold/bin/"
 READONE="read1"
 READTWO="read2"
 FASTQ="fastq.gz"
+FASTA=            # fasta file usually from the reference genome
+FASTA_CHROMDIR=   # folder containing individual fasta files for each chromosome of the reference genome 
 ALN="aln" # aligned 
 ASD="asd" # aligned sorted duplicate-removed
 ASR="asdrr" # aligned sorted duplicate-removed raligned reacalibrated

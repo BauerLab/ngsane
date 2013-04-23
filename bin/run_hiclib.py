@@ -216,8 +216,7 @@ def filterFragments(genome_db):
 	# Load the parsed reads into the HiCdataset. The dangling-end filter is applied
 	# at this stage, with maximumMoleculeLength specified at the initiation of the 
 	# object.
-	fragments.parseInputData(
-	    dictLike=options.outputDir+'mapped_reads.hdf5')
+	fragments.parseInputData(dictLike=options.outputDir+'mapped_reads.hdf5')
 	
 	fragments.filterRsiteStart(offset=5)
 	fragments.filterDuplicates()
@@ -286,18 +285,18 @@ def process():
 		print >> sys.stdout, "**  Create data objects"
 
 	mapped_reads = h5dict.h5dict(options.outputDir+'mapped_reads.hdf5')
-	genome_db    = genome.Genome(options.genome, gapFile=options.gapFile, chrmFileTemplate='%s.fa',)
+	genome_db    = genome.Genome(options.genome, gapFile=options.gapFile, readChrms=['#', 'X', 'Y'])
 
-#	bams = []
-#	if (options.inputFormat != 'bam'):
-#		bams = mapFiles()
-#	else:
-#		bams = args[0:]
+	bams = []
+	if (options.inputFormat != 'bam'):
+		bams = mapFiles()
+	else:
+		bams = args[0:]
 
 	if (options.verbose):
 		print >> sys.stdout, "**  Collect mapped reads"
 		
-#	collectMappedReads(bams[0], bams[1], mapped_reads, genome_db)
+	collectMappedReads(bams[0], bams[1], mapped_reads, genome_db)
 	
 	if (options.verbose):
 		print >> sys.stdout, "**  Filter fragments"

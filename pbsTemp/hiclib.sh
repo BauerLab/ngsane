@@ -6,7 +6,7 @@ echo ">>>>> hostname "`hostname`
 echo ">>>>> hiclib.sh $*"
 
 function usage {
-echo -e "usage: $(basename $0) -k HISEQINF -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]
+echo -e "usage: $(basename $0) -k HISEQINF -f FASTQ -r REFERENCE -e ENZYMES -o OUTDIR [OPTIONS]
 
 Script running hiclib pipeline tapping into bowtie2
 It expects a fastq file, paired end, reference genome and digest pattern  as input.
@@ -14,8 +14,7 @@ It expects a fastq file, paired end, reference genome and digest pattern  as inp
 required:
   -k | --toolkit <path>     location of the HiSeqInf repository 
   -f | --fastq <file>       fastq file
-  -r | --reference <file>   reference genome
-  -d | --digest <enzyme>    restriction enzyme (one per library) seperated by comma
+  -e | --enzymes <name>     restriction enzyme (one per library) seperated by comma
   -o | --outdir <path>      output dir
 
 options:
@@ -62,15 +61,9 @@ while [ "$1" != "" ]; do
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use                                      
         -m | --memory )         shift; MEMORY=$1 ;; # memory used 
         -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
-        -r | --reference )      shift; FASTA=$1 ;; # reference genome                                             
-		-e | --enzyme )         shift; ENZYME=$1 ;; # digestion patterns
+	-e | --enzymes )        shift; ENZYME=$1 ;; # digestion patterns
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
-        -i | --rgid )           shift; EXPID=$1 ;; # read group identifier RD ID                                  
-        -l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB                                   
-        -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL                                 
-        -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)                             
-        -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU
-		--fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
+	--fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -79,6 +72,11 @@ done
 
 if [ -z "$ENZYME" ]; then
 	echo "[ERROR] restriction enzyme not specified"
+	exit 1
+fi
+
+if [ -z "BOWTIE2INDEX" ]; then
+	echo "[ERROR] no bowtie index found"
 	exit 1
 fi
 
@@ -91,7 +89,8 @@ fi
 #echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"
-module load $MODULE_HICLIB; 
+for MODULE in $MODULE_HICLIB; do module load $MODULE; done
+
 export PATH=$PATH_HICLIB:$PATH
 module list
 echo $PATH
@@ -100,7 +99,7 @@ echo -e "--Python libs --\n "$(yolk -l)
 
 n=`basename $f`
 
-# delete old bam file                                                                                             
+# delete old bam file                                                                       
 #if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi
 
 #is paired ?                                                                                                      
@@ -124,28 +123,24 @@ fi
 ZCAT="zcat"
 if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
 
-echo "********* generating the index files"
-FASTASUFFIX=${FASTA##*.}
-if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
-if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
-
 echo "********* reads" 
 FASTQNAME=${f##*/}
 READS="$f ${f/$READONE/$READTWO}"
-READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-READ2=`$ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}' `
-let FASTQREADS=$READ1+$READ2
+#READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
+#READ2=`$ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}' `
+#let FASTQREADS=$READ1+$READ2
 
+echo "********** hiclib call"
 # run hiclib.py
 PARAMS="--restrictionEnzyme $ENZYME \
-   --experimentName ${ENZYME}_${FASTQNAME/$READONE$FASTASUFFIX/} \
+   --experimentName $(echo ${ENZYME}_${FASTQNAME/$READONE.$FASTQ/} | sed 's/_*$//g') \
    --gapFile $HICLIB_GAPFILE \
    --referenceGenome $FASTA \
-   --index ${FASTA/.${FASTASUFFIX}/} "
-   
-if [ $FASTQSUFFIX = "sra" ]; then
+   --index $BOWTIE2_INDEX"
+
+if [ "$FASTQSUFFIX" = "sra" ]; then
 	PARAMS="$PARAMS --inputFormat sra --sra-reader $(which fastq-dump)"
-elif [ $FASTQSUFFIX = "bam" ]; then
+elif [ "$FASTQSUFFIX" = "bam" ]; then
 	PARAMS="$PARAMS --inputFormat bam"
 else
 	PARAMS="$PARAMS --inputFormat fastq"
@@ -155,15 +150,8 @@ if [ -n "$HICLIB_READLENGTH" ]; then
 	PARAMS="$PARAMS --readLength $HICLIB_READLENGTH"
 fi
 
-echo "python $HISEQINF/bin/run_hiclib.py \
-   ${PARAMS} \
-   --bowtie $(which bowtie2)
-   --cpus $THREADS \
-   --outputDir $MYOUT \
-   --tmpDir $TMP \
-   --verbose \
-   $READS
-"
+python $HISEQINF/bin/run_hiclib.py ${PARAMS} --bowtie $(which bowtie2) --cpus $THREADS --outputDir $MYOUT --tmpDir $TMP --verbose $READS
+
 exit 1
 #
 ## statistics                                                                                                      
