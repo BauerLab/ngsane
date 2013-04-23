@@ -20,9 +20,7 @@ required:
 options:
   -t | --threads <nr>       number of CPUs to use (default: 1)
   -m | --memory <nr>        memory available (default: 2)
-  -S | --sam                do not convert to bam file (default confert); not the
-                             resulting sam file is not duplicate removed
-  --noMapping
+
   --fastqName               name of fastq file ending (fastq.gz)
   --oldIllumina
 "
@@ -61,9 +59,9 @@ while [ "$1" != "" ]; do
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use                                      
         -m | --memory )         shift; MEMORY=$1 ;; # memory used 
         -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
-	-e | --enzymes )        shift; ENZYME=$1 ;; # digestion patterns
+        -e | --enzymes )        shift; ENZYME=$1 ;; # digestion patterns
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
-	--fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
+        --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -76,7 +74,7 @@ if [ -z "$ENZYME" ]; then
 fi
 
 if [ -z "BOWTIE2INDEX" ]; then
-	echo "[ERROR] no bowtie index found"
+	echo "[ERROR] bowtie index not specified"
 	exit 1
 fi
 
@@ -109,7 +107,6 @@ else
 	echo "[ERROR] hiclib requires paired-end fastq files"
 	exit 1
 fi
-
 
 if [ -n "$DMGET" ]; then
 	echo "********** reacall files from tape"
