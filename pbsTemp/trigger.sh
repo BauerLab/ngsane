@@ -348,7 +348,7 @@ fi
 
 
 if [ -n "$RUNTOPHATCUFF2" ]; then
-    $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e "_"$READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
+  $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e "_"$READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
         --command "$HISEQINF/pbsTemp/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -f <FILE> \
          -t $CPU_TOPHAT -o $OUT/<DIR>/$TASKTOPHAT/<NAME> "
 
