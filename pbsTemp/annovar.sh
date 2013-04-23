@@ -40,19 +40,19 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; HISEQINF=$1 ;; # location of the HiSeqInf repository
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -i1 | --input1 )        shift; snps=$1 ;; # SNP file
-	-i2 | --input2 )        shift; snps2=$1 ;; # SNP file
-	-i3 | --input3 )        shift; indel=$1 ;; # INDEL file
+        -i2 | --input2 )        shift; snps2=$1 ;; # SNP file
+        -i3 | --input3 )        shift; indel=$1 ;; # INDEL file
         -o | --outdir )         shift; OUT=$1 ;; # output dir
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
 
-	-n | --name )           shift; NAME=$1 ;; # name
-	-g | --refseq )         shift; REFSEQROD=$1 ;; # refseq genome
-	-H | --hapmap )         shift; HAPMAPVCF=$1 ;; # hapmap
-	-d | --dbsnp )          shift; DBSNPVCF=$1 ;; # dbsnp
-	-K | --1kg )            shift; ONEKGVCF=$1 ;; # 1000genomes data
-	-L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
-	--maxGaussians )        shift; ADDRECAL=$ADDRECAL" --maxGaussians "$1 ;; #(additional params for recal)
-	--percentBadVariants )  shift; ADDRECAL=$ADDRECAL" --percentBadVariants "$1 ;; #(additional params for recal)
+        -n | --name )           shift; NAME=$1 ;; # name
+        -g | --refseq )         shift; REFSEQROD=$1 ;; # refseq genome
+        -H | --hapmap )         shift; HAPMAPVCF=$1 ;; # hapmap
+        -d | --dbsnp )          shift; DBSNPVCF=$1 ;; # dbsnp
+        -K | --1kg )            shift; ONEKGVCF=$1 ;; # 1000genomes data
+        -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
+        --maxGaussians )        shift; ADDRECAL=$ADDRECAL" --maxGaussians "$1 ;; #(additional params for recal)
+        --percentBadVariants )  shift; ADDRECAL=$ADDRECAL" --percentBadVariants "$1 ;; #(additional params for recal)
         -h | --help )           usage ;;
         * )                     usage
     esac

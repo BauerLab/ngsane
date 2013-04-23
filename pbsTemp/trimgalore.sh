@@ -36,7 +36,8 @@ done
 #echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"
-module load $MODULE_TRIMGALORE; export PATH=$PATH_TRIMGALORE:$PATH;
+for MODULE in $MODULE_TRIMGALORE; do module load $MODULE; done  # save way to load modules that itself load other modules
+export PATH=$PATH_TRIMGALORE:$PATH;
 module list
 trim_galore --version  | grep version  | tr -d ' '
 

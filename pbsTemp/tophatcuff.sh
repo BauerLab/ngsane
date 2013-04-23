@@ -96,7 +96,7 @@ JAVAPARAMS="-Xmx"$(expr $MEMORY_TOPHAT - 1 )"G -Djava.io.tmpdir="$TMP
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"
-module load $MODULE_TOPHATCUFF
+for MODULE in $MODULE_TOPHATCUFF; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_TOPHATCUFF:$PATH
 module list
 echo $PATH
