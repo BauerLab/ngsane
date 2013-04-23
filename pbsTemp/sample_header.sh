@@ -11,6 +11,35 @@ TMP=$(pwd)/tmp                                       # TMP dir
 . /etc/profile.d/modules.sh
 
 ##############################################################
+# Task Names
+##############################################################
+TASKFASTQC="fastQC"
+TASKBWA="bwa"
+TASKBOWTIE="bowtie"
+TASKRCA="reCalAln"
+TASKMERGE="merged"
+TASKVAR="variant"
+TASKDINC="dindelC"
+TASKDINS="dindelS"
+TASKDIN="dindel"
+TASKSNP="snp"
+TASKIND="indel"
+TASKDOWN="downsample"
+TASKDOC="coverage"
+TASKDIFFEXP="diffexp"
+TASKTOPHAT="tophat"
+TASKCUFF="cufflinks"
+TASKCUFFDIFF="cuffdiff"
+TASKRRBS="rrbs"
+TASKMACS="macs"
+TASKANNOVAR="annovar"
+TASKBAMANN="bamann"
+TASKSAMVAR="samvar"
+TASKCUTADAPT="cutadapt"
+TASKHICUP="hicup"
+TASKHICLIB="hiclib"
+
+##############################################################
 # PROGRAM PATHS
 ##############################################################
 QSUB=pbsTemp.sh
