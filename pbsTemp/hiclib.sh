@@ -6,7 +6,27 @@ echo ">>>>> hostname "`hostname`
 echo ">>>>> hiclib.sh $*"
 
 function usage {
-echo -e "usage: $(basename $0) -k HISEQINF -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
+echo -e "usage: $(basename $0) -k HISEQINF -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]
+
+Script running hiclib pipeline tapping into bowtie2
+It expects a fastq file, paired end, reference genome and digest pattern  as input.
+
+required:
+  -k | --toolkit <path>     location of the HiSeqInf repository 
+  -f | --fastq <file>       fastq file
+  -r | --reference <file>   reference genome
+  -d | --digest <enzyme>    restriction enzyme (one per library) seperated by comma
+  -o | --outdir <path>      output dir
+
+options:
+  -t | --threads <nr>       number of CPUs to use (default: 1)
+  -m | --memory <nr>        memory available (default: 2)
+  -S | --sam                do not convert to bam file (default confert); not the
+                             resulting sam file is not duplicate removed
+  --noMapping
+  --fastqName               name of fastq file ending (fastq.gz)
+  --oldIllumina
+"
 exit
 }
 
@@ -20,14 +40,20 @@ exit
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
-THREADS=1
-MEMORY=2
-EXPID="exp"           # read group identifier RD ID                                                               
-LIBRARY="tkcc"        # read group library RD LB                                                                  
-PLATFORM="illumina"   # read group platform RD PL                                                                 
-UNIT="flowcell"       # read group platform unit RG PU                                                            
-FASTQNAME=""
+
+#DEFAULTS
+MYTHREADS=8
+MYMEMORY=16
+EXPID="exp"           # read group identifier RD ID
+LIBRARY="tkcc"        # read group library RD LB
+PLATFORM="illumina"   # read group platform RD PL
+UNIT="flowcell"       # read group platform unit RG PU
+DOBAM=1               # do the bam file
 FORCESINGLE=0
+NOMAPPING=0
+FASTQNAME=""
+ENZYME=""
+QUAL="" # standard Sanger
 
 #INPUTS                                                                                                           
 while [ "$1" != "" ]; do
@@ -37,23 +63,32 @@ while [ "$1" != "" ]; do
         -m | --memory )         shift; MEMORY=$1 ;; # memory used 
         -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
         -r | --reference )      shift; FASTA=$1 ;; # reference genome                                             
+		-e | --enzyme )         shift; ENZYME=$1 ;; # digestion patterns
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
         -i | --rgid )           shift; EXPID=$1 ;; # read group identifier RD ID                                  
         -l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB                                   
         -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL                                 
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)                             
         -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU
-	--fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
+		--fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
     shift
 done
 
+if [ -z "$ENZYME" ]; then
+	echo "[ERROR] restriction enzyme not specified"
+	exit 1
+fi
+
 #PROGRAMS
 . $CONFIG
 . $HISEQINF/pbsTemp/header.sh
 . $CONFIG
+
+#JAVAPARAMS="-Xmx"$MYMEMORY"g -Djava.io.tmpdir="$TMP # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
+#echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"
 module load $MODULE_HICLIB; 
@@ -72,8 +107,17 @@ n=`basename $f`
 if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
 else
-	echo "[ERROR] library needs to be paired"
+	echo "[ERROR] hiclib requires paired-end fastq files"
 	exit 1
+fi
+
+
+if [ -n "$DMGET" ]; then
+	echo "********** reacall files from tape"
+	dmget -a $(dirname $FASTA)/*
+	dmls -l $FASTA*
+	dmget -a ${f/$READONE/"*"}
+	dmls -l ${f/$READONE/"*"}
 fi
 
 #is ziped ?                                                                                                       
@@ -85,24 +129,16 @@ FASTASUFFIX=${FASTA##*.}
 if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
 if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
-if [ -n "$DMGET" ]; then
-	echo "********** reacall files from tape"
-	dmget -a $(dirname $FASTA)/*
-	dmls -l $FASTA*
-	dmget -a ${f/$READONE/"*"}
-	dmls -l ${f/$READONE/"*"}
-fi
-
-#run bowtie command -v $MISMATCH -m 1
-echo "********* bowtie" 
+echo "********* reads" 
+FASTQNAME=${f##*/}
 READS="$f ${f/$READONE/$READTWO}"
 READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
 READ2=`$ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}' `
 let FASTQREADS=$READ1+$READ2
 
 # run hiclib.py
-PARAMS="--restrictionEnzyme $HICLIB_ENZYME \
-   --experimentName $HICLIB_EXPERIMENT \
+PARAMS="--restrictionEnzyme $ENZYME \
+   --experimentName ${ENZYME}_${FASTQNAME/$READONE$FASTASUFFIX/} \
    --gapFile $HICLIB_GAPFILE \
    --referenceGenome $FASTA \
    --index ${FASTA/.${FASTASUFFIX}/} "
@@ -119,7 +155,7 @@ if [ -n "$HICLIB_READLENGTH" ]; then
 	PARAMS="$PARAMS --readLength $HICLIB_READLENGTH"
 fi
 
-python run_hiclib.py \
+echo "python $HISEQINF/bin/run_hiclib.py \
    ${PARAMS} \
    --bowtie $(which bowtie2)
    --cpus $THREADS \
@@ -127,7 +163,8 @@ python run_hiclib.py \
    --tmpDir $TMP \
    --verbose \
    $READS
-
+"
+exit 1
 #
 ## statistics                                                                                                      
 #echo "********* statistics"

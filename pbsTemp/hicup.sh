@@ -70,20 +70,20 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
         -t | --threads )        shift; MYTHREADS=$1 ;; # number of CPUs to use
-	-m | --memory )         shift; MYMEMORY=$1 ;; # memory used
+		-m | --memory )         shift; MYMEMORY=$1 ;; # memory used
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
-	-d | --digest )         shift; DIGEST=$1 ;; # digestion patterns
+		-d | --digest )         shift; DIGEST=$1 ;; # digestion patterns
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir
-	-i | --rgid )           shift; EXPID=$1 ;; # read group identifier RD ID
-	-l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB
-	-p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
-	-s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
-	-u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU 
+		-i | --rgid )           shift; EXPID=$1 ;; # read group identifier RD ID
+		-l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB
+		-p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
+		-s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
+		-u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU 
         -S | --sam )            DOBAM=0 ;;
-	--fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
-	--noMapping )           NOMAPPING=1;;
-	--oldIllumina )         QUAL="-S";;   # old illumina encoding 1.3+
+		--fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
+		--noMapping )           NOMAPPING=1;;
+		--oldIllumina )         QUAL="-S";;   # old illumina encoding 1.3+
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
