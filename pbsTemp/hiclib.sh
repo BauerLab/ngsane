@@ -147,7 +147,7 @@ if [ -n "$HICLIB_READLENGTH" ]; then
 	PARAMS="$PARAMS --readLength $HICLIB_READLENGTH"
 fi
 
-echo "python $HISEQINF/bin/run_hiclib.py ${PARAMS} --bowtie $(which bowtie2) --cpus $THREADS --outputDir $MYOUT --tmpDir $TMP --verbose $READS"
+python $HISEQINF/bin/run_hiclib.py ${PARAMS} --bowtie $(which bowtie2) --cpus $THREADS --outputDir $MYOUT --tmpDir $TMP --verbose $READS
 
 exit 1
 #
