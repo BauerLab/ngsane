@@ -1,8 +1,9 @@
 ##############################################################
 # System info
 ##############################################################
-SUBMISSIONSYSTEM="SGE"
-DMGET=""
+SUBMISSIONSYSTEM="SGE"                                # or PBS
+DMGET=""                    # or Yes when storing data on tape
+TMP=$(pwd)/tmp                                       # TMP dir
 
 ##############################################################
 # SUN GRID ENGINE specific workaround for BUG (SGE 6.2u5)
