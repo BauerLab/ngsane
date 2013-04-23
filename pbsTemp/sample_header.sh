@@ -123,8 +123,7 @@ MODULE_HICLIB="fabbus/python/2.7.3 fabbus/bowtie2/2.1.0 fabbis/samtools/0.1.19 f
 PATH_HICLIB=
 HICLIB_GAPFILE= #/share/ClusterShare/software/contrib/fabbus/hiclib/19_04_13/hiclib/gap.txt
 BOWTIE_INDEXDIR= #/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/
-HICLIB_ENZYME=
-HICLIB_EXPERIMENT=
+HICLIB_RENZYMES=
 HICLIB_READLENGTH=
 
 #this gzip waits for the file to migrate completly before unzipping it

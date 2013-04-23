@@ -125,16 +125,18 @@ if [ -n "$POSTCOMMAND" ]; then
     echo $POSTCOMMAND2
 
     if [[ -n "$DIRECT" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi
-    if [[ -n "$ARMED" || -n "$POSTONLY" ]]; then
+    if [[ -n "$ARMED" ||  -n "$POSTONLY" ]]; then
 
+        echo "$ARMED $POSTONLY"
 	#RECIPT=$($BINQSUB $QSUBEXTRA -W after:$MYPBSIDS -j oe -o $QOUT/$TASK/$DIR'_postcommand.out' -w $(pwd) -l $NODES \
     #        -l vmem=$MEMORY -N $TASK'_'$DIR'_postcommand' -l walltime=$WALLTIME \
     #        -command "$POSTCOMMAND2")
-    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+        RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
 	    	-j $TASK'_'$DIR'_postcommand' -o $QOUT/$TASK/$DIR'_postcommand.out' \
 	        	--command "$POSTCOMMAND2")
 
 	echo -e "$RECIPT"
+
     fi
 fi
 
