@@ -90,8 +90,11 @@ for TRIMMED in $(ls $$FASTQDIRTRIM/*_trimmed.*); do
 done
 
 echo "********** rename files"
-for TRIMMED in $(ls $$FASTQDIRTRIM/*_trimmed.gz); do
-	mv $TRIMMED ${TRIMMED/_trimmed.gz/.gz}
+for TRIMMED in $(ls $$FASTQDIRTRIM/*$READONE_trimmed.gz); do
+	mv $TRIMMED ${TRIMMED/$READONE_trimmed.gz/trim_$READONE.gz}
+	if [ "$PAIRED" = 1 ]; 
+		mv $TRIMMED ${TRIMMED/$READTWO_trimmed.gz/trim_$READTWO.gz}
+	fi
 done
 
 echo ">>>>> readtrimming with TRIMGALORE - FINISHED"
