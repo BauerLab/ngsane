@@ -25,7 +25,7 @@ while [ "$1" != "" ]; do
 	--first )               FIRST="first";;
 	--postonly )            POSTONLY="postonly" ;;
         -h | --help )           usage ;;
-        * )                     echo "don't understand "$1
+        * )                     echo "pbsTemp: don't understand "$1
     esac
     shift
 done
@@ -99,6 +99,10 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 		#RECIPT=$($BINQSUB -j oe -o $QOUT/$TASK/$dir'_'$name'.out' -w $(pwd) -l $NODES \
 	    #    -l vmem=$MEMORY -N $TASK'_'$dir'_'$name -l walltime=$WALLTIME $QSUBEXTRA \
 	    #    -command "$COMMAND2")
+	    
+	    # record task in log file
+	    cat $CONFIG $HISEQINF/pbsTemp/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
+
 	    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
 	    	-j $TASK'_'$dir'_'$name -o $QOUT/$TASK/$dir'_'$name'.out' \
 	        	--command "$COMMAND2")
@@ -127,7 +131,10 @@ if [ -n "$POSTCOMMAND" ]; then
     if [[ -n "$DIRECT" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi
     if [[ -n "$ARMED" ||  -n "$POSTONLY" ]]; then
 
-        echo "$ARMED $POSTONLY"
+	# record task in log file
+	cat $CONFIG $HISEQINF/pbsTemp/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
+
+
 	#RECIPT=$($BINQSUB $QSUBEXTRA -W after:$MYPBSIDS -j oe -o $QOUT/$TASK/$DIR'_postcommand.out' -w $(pwd) -l $NODES \
     #        -l vmem=$MEMORY -N $TASK'_'$DIR'_postcommand' -l walltime=$WALLTIME \
     #        -command "$POSTCOMMAND2")

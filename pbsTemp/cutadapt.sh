@@ -56,7 +56,7 @@ if [ ! -n "$CONTAMINANTS" ];then echo "need variable CONTAMINANTS defined in $CO
 
 
 echo "********** get contaminators"
-CONTAM=$(cat adapters.txt | tr '\n' ' ')
+CONTAM=$(cat $CONTAMINANTS | tr '\n' ' ')
 #CONTAM=""
 #for i in $(cat $CONTAMINANTS ); do
 #	CONTAM=$CONTAM"-a $i "
