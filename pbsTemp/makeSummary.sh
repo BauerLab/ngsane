@@ -68,7 +68,7 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
 	echo "</pre>" >>$SUMMARYTMP
 	ROUTH=runStats/$(echo ${DIR[@]}|sed 's/ /_/g')
 	if [ ! -e $ROUTH ]; then mkdir $ROUTH; fi
-	module load R
+	for MODULE in $MODULE_R; do module load $MODULE; done  # save way to load modules that itself load other modules
 	python $HISEQINF/bin/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
     fi
 fi
@@ -190,7 +190,7 @@ fi
 if [ -n "$RUNANNOTATINGBAM3" ]; then
     echo "ANNOTATION"
 
-    module load R
+	for MODULE in $MODULE_R; do module load $MODULE; done  # save way to load modules that itself load other modules
 
     for typ in bam; do # dups.bam
 	echo $typ

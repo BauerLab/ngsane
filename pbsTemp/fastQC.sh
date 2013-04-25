@@ -16,7 +16,8 @@ done
 . $CONFIG
 
 echo "********** programs"
-module load $MODULE_FASTQC; export PATH=$PATH_FASTQC:$PATH;
+for MODULE in $MODULE_FASTQC; do module load $MODULE; done  # save way to load modules that itself load other modules
+export PATH=$PATH_FASTQC:$PATH;
 module list
 java -Xmx200M -version
 fastqc -version

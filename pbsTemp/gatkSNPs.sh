@@ -73,7 +73,7 @@ JAVAPARAMS="-Xmx"$(expr $MEMORY_VAR - 1 )"G" # -XX:ConcGCThreads=1 -XX:ParallelG
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"
-module load $MODULE_GATKSNP; 
+for MODULE in $MODULE_GATKSNP; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_GATKSNP:$PATH
 module list
 echo $PATH

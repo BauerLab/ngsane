@@ -87,7 +87,7 @@ fi
 #echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"
-for MODULE in $MODULE_HICLIB; do module load $MODULE; done
+for MODULE in $MODULE_HICLIB; do module load $MODULE; done  # save way to load modules that itself load other modules
 
 export PATH=$PATH_HICLIB:$PATH
 module list

@@ -99,7 +99,7 @@ JAVAPARAMS="-Xmx"$MYMEMORY"g -Djava.io.tmpdir="$TMP # -XX:ConcGCThreads=1 -XX:Pa
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"
-module load $MODULE_HICUP; 
+for MODULE in $MODULE_HICUP; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_HICUP:$PATH
 module list
 echo $PATH

@@ -43,7 +43,7 @@ while [ "$1" != "" ]; do
         -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL                                 
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)                             
         -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU
-	--fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
+        --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -59,7 +59,7 @@ JAVAPARAMS="-Xmx"$MEMORY"G -Djava.io.tmpdir="$TMP #-XX:ConcGCThreads=1 -XX:Paral
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"
-module load $MODULE_BOWTIETWO; 
+for MODULE in $MODULE_BOWTIETWO; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_BOWTIETWO:$PATH
 module list
 echo $PATH

@@ -40,7 +40,8 @@ done
 #echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"
-module load $MODULE_CUTADAPT; export PATH=$PATH_CUTADAPT:$PATH;
+for MODULE in $MODULE_CUTADAPT; do module load $MODULE; done  # save way to load modules that itself load other modules
+export PATH=$PATH_CUTADAPT:$PATH;
 module list
 cutadapt --version
 

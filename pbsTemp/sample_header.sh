@@ -155,6 +155,18 @@ HICLIB_GAPFILE= #/share/ClusterShare/software/contrib/fabbus/hiclib/19_04_13/hic
 HICLIB_RENZYMES=
 HICLIB_READLENGTH=
 
+
+##############################################################
+# R
+WALLTIME_R=1:00:00
+MEMORY_R=10
+CPU_R=1
+NODES_R="nodes=1:ppn=1"
+
+MODULE_R=
+PATH_R=
+
+##############################################################
 #this gzip waits for the file to migrate completly before unzipping it
 #GZIP=$DATASTORE/SeqAna/apps/prod/mygzip/
 GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
