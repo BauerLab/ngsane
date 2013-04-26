@@ -364,6 +364,48 @@ def variant(variantFile):
     return names,values
 
 
+def hiclibStats(variantFile):
+    names=["Original reads", "Unmapped", "Unmapped %", "Semi-dangling", "Semi-dangling %", "Duplicates", "Duplicates %", "Sm/Lg Fragments","Sm/Lg Fragments %", "Ext Fragments","Ext Fragments %", "# Reads (final)", "Read (final) %", "# Fragments (final)"]
+    values=[]
+    file=open(variantFile).read()
+    # populate
+    tmp=file.split("Original reads:")[1].split("Number of reads changed")[1].split("Fragments number changed")[0].split("--->")
+    OR=float(tmp[0].strip())
+    values.append(OR)
+    UM=OR-float(tmp[1].strip())
+    values.append(UM)
+    values.append(100*UM/OR)
+
+    tmp=file.split("Semi-dangling end filter")[1].split("Number of reads changed")[1].split("Fragments number changed")[0].split("--->")
+    SD=float(tmp[0].strip())-float(tmp[1].strip())
+    values.append(SD)
+    values.append(100*SD/OR)
+
+    tmp=file.split("Filtering duplicates in DS reads")[1].split("Number of reads changed")[1].split("Fragments number changed")[0].split("--->")
+    DR=float(tmp[0].strip())-float(tmp[1].strip())
+    values.append(DR)
+    values.append(100*DR/OR)
+
+    tmp=file.split("Small/large fragments filter")[1].split("Number of reads changed")[1].split("Fragments number changed")[0].split("--->")
+    SLF=float(tmp[0].strip())-float(tmp[1].strip())
+    values.append(SLF)
+    values.append(100*SLF/OR)
+
+    tmp=file.split("Extreme fragments filter")[1].split("Number of reads changed")[1].split("Fragments number changed")[0].split("--->")
+    EF=float(tmp[0].strip())-float(tmp[1].strip())
+    values.append(EF)
+    values.append(100*EF/OR)
+
+    RF=float(tmp[1].strip())
+    values.append(RF)
+    values.append(100*RF/OR)
+
+    tmp=file.split("Extreme fragments filter")[1].split("Fragments number changed")[1].split("--->")[1].split()
+    FF=float(tmp[0].strip())
+    values.append(FF)
+
+    return names,values
+
 #################33
 # TEMP
 
@@ -537,6 +579,8 @@ for d in dir:
                     names,values=intersection(d+"/"+f)     
                 if (type=="annostats"):
                     names,values=annoStats(d+"/"+f)
+		if (type=="hiclib"):
+		    names,values=hiclibStats(d+"/"+f)
                 result=addValues(result,values)
                 filename=f
                 if (link):

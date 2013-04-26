@@ -68,7 +68,7 @@ echo "********** trim"
 cutadapt $CONTAM $f -o $o > $o.stats
 
 echo "********** zip"
-gzip -f ${o}
+$GZIP -f ${o}
 
 echo ">>>>> readtrimming with CUTADAPT - FINISHED"
 echo ">>>>> enddate "`date`

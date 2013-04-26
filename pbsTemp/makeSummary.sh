@@ -184,6 +184,16 @@ if [ -n "$RUNANNOTATION" ]; then
 
 fi
 
+if [ -n "RUNHICLIB" ];then
+    LINKS=$LINKS" hic"
+    echo "<a name=\"hic\"><h2>HiC results</h2></a><pre>">>$SUMMARYTMP
+    $HISEQINF/pbsTemp/QC.sh $HISEQINF/pbsTemp/hiclib.sh $QOUT/$TASKHICLIB >> $SUMMARYTMP
+
+    echo "</pre><h3>hiclib</h3><pre>">>$SUMMARYTMP
+    python $HISEQINF/bin/Summary.py $QOUT/$TASKHICLIB ".out" hiclib >> $SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
+
 #
 # Old code ...
 #

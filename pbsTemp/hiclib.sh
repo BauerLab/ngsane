@@ -149,20 +149,8 @@ fi
 
 python $HISEQINF/bin/run_hiclib.py ${PARAMS} --bowtie $(which bowtie2) --cpus $THREADS --outputDir $MYOUT --tmpDir $TMP --verbose $READS
 
-exit 1
-#
-## statistics                                                                                                      
-#echo "********* statistics"
-#STATSOUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats
-#samtools flagstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} > $STATSOUT
-#if [ -n $SEQREG ]; then
-#    echo "#custom region" >> $STATSOUT
-#    echo `samtools view $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" total reads in region " >> $STAT\
-#SOUT
-#    echo `samtools view -f 2 $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" properly paired reads in re\
-#gion " >> $STATSOUT
-#fi
-#
+# merge bam files
+
 #echo "********* calculate inner distance"
 #export PATH=$PATH:/usr/bin/
 #THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files

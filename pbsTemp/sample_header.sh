@@ -1,14 +1,15 @@
 ##############################################################
 # System info
 ##############################################################
-SUBMISSIONSYSTEM="SGE"                                # or PBS
+SUBMISSIONSYSTEM=""                               # SGE or PBS
 DMGET=""                    # or Yes when storing data on tape
 TMP=$(pwd)/tmp                                       # TMP dir
 
 ##############################################################
 # SUN GRID ENGINE specific workaround for BUG (SGE 6.2u5)
 ##############################################################
-. /etc/profile.d/modules.sh
+## uncomment if running on SGE
+#. /etc/profile.d/modules.sh
 
 ##############################################################
 # Task Names
@@ -47,9 +48,14 @@ BINQSUB=jobsubmission.sh
 
 #Additional programs not available as module
 PATH_SAMTOOLS=
-PATH_IGVTOOLS=/share/ClusterShare/software/contrib/fabbus/igvtools/2.2.2/
-PATH_PICARD=/share/ClusterShare/software/contrib/fabbus/picard/1.89/
-PATH_SAMSTAT=/share/ClusterShare/software/contrib/fabbus/samstat/1.08/
+PATH_IGVTOOLS=
+PATH_PICARD=
+PATH_SAMSTAT=
+
+##############################################################
+# gzip alternatives, e.g. pigz
+MODULE_GZIP=
+GZIP=gzip			# command, e.g. gzip or pigz
 
 ##############################################################
 # FASTQC
@@ -58,7 +64,7 @@ MEMORY_FASTQC=20
 CPU_FASTQC=16
 NODES_FASTQC="nodes=2:ppn=8"
 
-MODULE_FASTQC="fabbus/fastqc/0.10.1"
+MODULE_FASTQC=
 PATH_FASTQC=
 MODULE_LATEX=
 PATH_LATEX=
@@ -77,7 +83,7 @@ MEMORY_BWA=50
 CPU_BWA=32
 NODES_BWA="nodes=4:ppn=8"
 
-MODULE_BWA="fabbus/bwa/0.7.3 fabbus/R/2.15.3 fabbus/samtools/0.1.19 fabbus/picard/1.89 fabbus/samstat/1.08 fabbus/igvtools/2.2.2"
+MODULE_BWA=
 PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
@@ -87,7 +93,7 @@ MEMORY_BOWTIE=60
 CPU_BOWTIE=8
 NODES_BOWTIE="nodes=1:ppn=8"
 
-MODULE_BOWTIETWO="fabbus/R/2.15.3 fabbus/bowtie2/2.1.0 fabbus/samtools/0.1.19"
+MODULE_BOWTIETWO=
 PATH_BOWTIETWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 BOWTIE2_INDEX=
 
@@ -98,8 +104,8 @@ MEMORY_CUTADAPT=40
 CPU_CUTADAPT=1
 NODES_CUTADAPT="nodes=1:ppn=1"
 
-MODULE_CUTADAPT="fabbus/cutadapt/1.2.1"
-PATH_CUTADAPT=""
+MODULE_CUTADAPT=
+PATH_CUTADAPT=
 
 ##############################################################
 # Trim adapter with TRIMGALORE
@@ -108,10 +114,10 @@ MEMORY_TRIMGALORE=40
 CPU_TRIMGALORE=1
 NODES_TRIMGALORE="nodes=1:ppn=1"
 
-MODULE_TRIMGALORE="fabbus/cutadapt/1.2.1 fabbus/trimgalore/0.2.8"
-PATH_TRIMGALORE=""
-TRIMGALORE_ADAPTER1=""
-TRIMGALORE_ADAPTER2=""
+MODULE_TRIMGALORE=
+PATH_TRIMGALORE=
+TRIMGALORE_ADAPTER1=
+TRIMGALORE_ADAPTER2=
 
 ##############################################################
 # Snp calling with GATK
@@ -126,10 +132,9 @@ MEMORY_VAR=20
 CPU_VAR=1
 NODES_VAR="nodes=1:ppn=1"
 
-PATH_GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
-#GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
-PATH_GATKJAR=$PATH_GATKHOME/dist/
-MODULE_GATKSNP="fabbus/R/2.15.3"
+PATH_GATKHOME=
+PATH_GATKJAR=
+MODULE_GATKSNP=
 PATH_GATKSNP=$PATH_GATKHOME:$PATH_GATKJAR:$PATH_IGVTOOLS
 
 ##############################################################
@@ -139,7 +144,7 @@ MEMORY_TOPHAT=50
 CPU_TOPHAT=8
 NODES_TOPHAT="nodes=1:ppn=8"
 
-MODULE_TOPHATCUFF="fabbus/python/2.7.3 fabbus/R/2.15.3 fabbus/bowtie2/2.1.0 fabbus/tophat/2.0.8b fabbus/cufflinks/2.1.1 fabbus/samtools/0.1.19"
+MODULE_TOPHATCUFF=
 PATH_TOPHATCUFF=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
@@ -149,9 +154,9 @@ MEMORY_HICLIB=60
 CPU_HICLIB=8
 NODES_HICLIB="nodes=1:ppn=8"
 
-MODULE_HICLIB="fabbus/python/2.7.3 fabbus/bowtie2/2.1.0 fabbus/samtools/0.1.19 fabbus/hiclib/19_04_13"
+MODULE_HICLIB=
 PATH_HICLIB=
-HICLIB_GAPFILE= #/share/ClusterShare/software/contrib/fabbus/hiclib/19_04_13/hiclib/gap.txt
+HICLIB_GAPFILE=
 HICLIB_RENZYMES=
 HICLIB_READLENGTH=
 
@@ -165,18 +170,17 @@ NODES_R="nodes=1:ppn=1"
 
 MODULE_R=
 PATH_R=
+RSCRIPT=Rscript
 
 ##############################################################
 #this gzip waits for the file to migrate completly before unzipping it
 #GZIP=$DATASTORE/SeqAna/apps/prod/mygzip/
-GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
+#GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
 #GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
-GATKJAR=$GATKHOME/dist/
-RSCRIPT=/apps/R/2.14.1/bin/Rscript # module load R
+#GATKJAR=$GATKHOME/dist/
+
 FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
-#TMP=$TMPDIR
-TMP=$(pwd)/tmp
-#TMP=$DATASTORE/TMP
+
 VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
 BEDTOOLS=$DATASTORE/SeqAna/apps/prod/bedtools/bin/
@@ -187,8 +191,8 @@ RRBSMAP="/clusterdata/hiseq_apps/bin/devel/rrbsmap-1.5/rrbsmap"
 MACS="/clusterdata/hiseq_apps/bin/devel/MACS_git"
 PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
 
-VIENNA="/clusterdata/hiseq_apps/bin/devel/ViennaRNA/bin/"
-UNAFOLD="/clusterdata/hiseq_apps/bin/devel/unafold/bin/"
+VIENNA=
+UNAFOLD=
 
 
 #Fileabb
