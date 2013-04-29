@@ -22,7 +22,6 @@ import cPickle
 from mirnylib.plotting import mat_img, removeAxes, removeBorder, niceShow
 
 import matplotlib.pyplot as plt
-import matplotlib
 
 # manage option and arguments processing
 def main():
