@@ -208,7 +208,7 @@ def filterFragments(genome_db):
 	'''
 	
 	fragments = fragmentHiC.HiCdataset(
-	    filename=options.outputDir+'fragment_dataset.hdf5',
+	    filename=options.outputDir+options.experiment+'-fragment_dataset.hdf5',
 	    genome=genome_db,
 	    maximumMoleculeLength=500,
 	    mode='w')
@@ -216,7 +216,7 @@ def filterFragments(genome_db):
 	# Load the parsed reads into the HiCdataset. The dangling-end filter is applied
 	# at this stage, with maximumMoleculeLength specified at the initiation of the 
 	# object.
-	fragments.parseInputData(dictLike=options.outputDir+'mapped_reads.hdf5')
+	fragments.parseInputData(dictLike=options.outputDir+options.experiment+'-mapped_reads.hdf5')
 	
 	fragments.filterRsiteStart(offset=5)
 	fragments.filterDuplicates()
@@ -224,22 +224,24 @@ def filterFragments(genome_db):
 	fragments.filterLarge()
 	fragments.filterExtreme(cutH=0.005, cutL=0)
 	
-	fragments.saveHeatmap(options.outputDir+'heatmap-res-1M.hdf5', resolution=1000000)
+	fragments.saveHeatmap(options.outputDir+options.experiment+'-1M.hdf5', resolution=1000000)
+
+	fragments.saveHeatmap(options.outputDir+options.experiment+'-200k.hdf5', resolution=200000)
 	
 	return fragments
 
-def iterativeFiltering(genome_db, fragments):
+def iterativeFiltering(genome_db, fragments, filesuffix):
 	'''
 	Filter the data at the binned level and perform the iterative correction.
 	'''
 	
 	# Read resolution from the dataset.
-	raw_heatmap = h5dict.h5dict(options.outputDir+'heatmap-res-1M.hdf5', mode='r') 
+	raw_heatmap = h5dict.h5dict(options.outputDir+options.experiment+filesuffix, mode='r') 
 	resolution = int(raw_heatmap['resolution'])
 	
 	# Create a binnedData object, load the data.
 	BD = binnedData.binnedData(resolution, genome_db)
-	BD.simpleLoad(options.outputDir+'heatmap-res-1M.hdf5', options.experiment)
+	BD.simpleLoad(options.outputDir+options.experiment+filesuffix, options.experiment)
 
 	# Remove the contacts between loci located within the same bin.
 	BD.removeDiagonal()
@@ -257,7 +259,7 @@ def iterativeFiltering(genome_db, fragments):
 	BD.iterativeCorrectWithoutSS()
 
 	# Save the iteratively corrected heatmap.
-	BD.export(options.experiment, options.outputDir+'IC-heatmap-res-1M.hdf5')
+	BD.export(options.experiment, options.outputDir+options.experiment+'-IC'+filesuffix)
 
 	plotting.plot_matrix(np.log(BD.dataDict[options.experiment]))
 
@@ -284,19 +286,19 @@ def process():
 	if (options.verbose):
 		print >> sys.stdout, "**  Create data objects"
 
-	mapped_reads = h5dict.h5dict(options.outputDir+'mapped_reads.hdf5')
+	mapped_reads = h5dict.h5dict(options.outputDir+options.experiment+'-mapped_reads.hdf5')
 	genome_db    = genome.Genome(options.genome, gapFile=options.gapFile, readChrms=['#', 'X', 'Y'])
 
 	bams = []
-	if (options.inputFormat != 'bam'):
-		bams = mapFiles()
-	else:
-		bams = args[0:]
-
+#	if (options.inputFormat != 'bam'):
+#		bams = mapFiles()
+#	else:
+#		bams = args[0:]
+#
 	if (options.verbose):
 		print >> sys.stdout, "**  Collect mapped reads"
 		
-	collectMappedReads(bams[0], bams[1], mapped_reads, genome_db)
+#	collectMappedReads(bams[0], bams[1], mapped_reads, genome_db)
 	
 	if (options.verbose):
 		print >> sys.stdout, "**  Filter fragments"
@@ -306,8 +308,10 @@ def process():
 	if (options.verbose):
 		print >> sys.stdout, "**  Iterative filtering of fragments"
 
-	iterativeFiltering(genome_db, fragments)
+	iterativeFiltering(genome_db, fragments, '-1M.hdf5')
 	
+	iterativeFiltering(genome_db, fragments, '-200k.hdf5')
+
 	if (options.verbose):
 		print >> sys.stdout, "*** FINISHED processing"
 	
