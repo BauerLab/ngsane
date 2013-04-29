@@ -24,8 +24,8 @@ while [ "$1" != "" ]; do
 	--direct )              DIRECT="direct";;
 	--first )               FIRST="first";;
 	--postonly )            POSTONLY="postonly" ;;
-        -h | --help )           usage ;;
-        * )                     echo "pbsTemp: don't understand "$1
+	-h | --help )           usage ;;
+	* )                     echo "pbsTemp: don't understand "$1
     esac
     shift
 done
@@ -44,20 +44,19 @@ if [ ! -d $QOUT/$TASK ]; then mkdir -p $QOUT/$TASK; fi
 ## Select files in dir to run
 if [ ! -e $QOUT/$TASK/runnow.tmp ]; then
     for dir in ${DIR[@]}; do
-      
       #ensure dirs are there...
       if [ ! -n "$NODIR" ]; then
-	  if [ ! -d $OUT/$dir/$TASK ]; then mkdir -p $OUT/$dir/$TASK; fi
+	 	 if [ ! -d $OUT/$dir/$TASK ]; then mkdir -p $OUT/$dir/$TASK; fi
       fi
       # print out 
       if [ -n "$REV" ]; then
-	  for f in $( ls $SOURCE/$dir/$ORIGIN/*$ENDING); do
-              echo $f >> $QOUT/$TASK/runnow.tmp
-          done
-      else
-	  for f in $( ls $SOURCE/$ORIGIN/$dir/*$ENDING); do
-	      echo $f >> $QOUT/$TASK/runnow.tmp
-	  done
+		  for f in $( ls $SOURCE/$dir/$ORIGIN/*$ENDING); do
+	              echo $f >> $QOUT/$TASK/runnow.tmp
+	          done
+	      else
+		  for f in $( ls $SOURCE/$ORIGIN/$dir/*$ENDING); do
+		      echo $f >> $QOUT/$TASK/runnow.tmp
+		  done
       fi
   done
 fi
@@ -92,26 +91,26 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
 	echo $ARMED
 
-	    # remove old submission output logs
-		if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.*; fi
-	
-		# submit and collect pbs scheduler return
-		#RECIPT=$($BINQSUB -j oe -o $QOUT/$TASK/$dir'_'$name'.out' -w $(pwd) -l $NODES \
-	    #    -l vmem=$MEMORY -N $TASK'_'$dir'_'$name -l walltime=$WALLTIME $QSUBEXTRA \
-	    #    -command "$COMMAND2")
-	    
-	    # record task in log file
-	    cat $CONFIG $HISEQINF/pbsTemp/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
+    # remove old submission output logs
+	if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.*; fi
 
-	    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
-	    	-j $TASK'_'$dir'_'$name -o $QOUT/$TASK/$dir'_'$name'.out' \
-	        	--command "$COMMAND2")
-			echo -e "$RECIPT"
-			MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
-	
-	
-		# if only the first task should be submitted as test
-		if [ -n "$FIRST" ]; then exit; fi
+	# submit and collect pbs scheduler return
+	#RECIPT=$($BINQSUB -j oe -o $QOUT/$TASK/$dir'_'$name'.out' -w $(pwd) -l $NODES \
+    #    -l vmem=$MEMORY -N $TASK'_'$dir'_'$name -l walltime=$WALLTIME $QSUBEXTRA \
+    #    -command "$COMMAND2")
+    
+    # record task in log file
+    cat $CONFIG $HISEQINF/pbsTemp/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
+
+	RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+		-j $TASK'_'$dir'_'$name -o $QOUT/$TASK/$dir'_'$name'.out' \
+		--command "$COMMAND2")
+	echo -e "$RECIPT"
+	MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
+
+
+	# if only the first task should be submitted as test
+	if [ -n "$FIRST" ]; then exit; fi
 
     fi
 done
@@ -138,9 +137,9 @@ if [ -n "$POSTCOMMAND" ]; then
 	#RECIPT=$($BINQSUB $QSUBEXTRA -W after:$MYPBSIDS -j oe -o $QOUT/$TASK/$DIR'_postcommand.out' -w $(pwd) -l $NODES \
     #        -l vmem=$MEMORY -N $TASK'_'$DIR'_postcommand' -l walltime=$WALLTIME \
     #        -command "$POSTCOMMAND2")
-        RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
-	    	-j $TASK'_'$DIR'_postcommand' -o $QOUT/$TASK/$DIR'_postcommand.out' \
-	        	--command "$POSTCOMMAND2")
+	RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+		-j $TASK'_'$DIR'_postcommand' -o $QOUT/$TASK/$DIR'_postcommand.out' \
+		--command "$POSTCOMMAND2")
 
 	echo -e "$RECIPT"
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo ">>>>> HiC analysis with hiclib "
+echo ">>>>> HiC correlation analysis with hiclib "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> hiclib.sh $*"
@@ -13,7 +13,6 @@ It expects a fastq file, paired end, reference genome and digest pattern  as inp
 
 required:
   -k | --toolkit <path>     location of the HiSeqInf repository 
-  -f | --fastq <file>       fastq file
   -e | --enzymes <name>     restriction enzyme (one per library) seperated by comma
   -o | --outdir <path>      output dir
 
@@ -58,7 +57,6 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository                       
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use                                      
         -m | --memory )         shift; MEMORY=$1 ;; # memory used 
-        -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
         -e | --enzymes )        shift; ENZYME=$1 ;; # digestion patterns
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
         --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
@@ -70,11 +68,6 @@ done
 
 if [ -z "$ENZYME" ]; then
 	echo "[ERROR] restriction enzyme not specified"
-	exit 1
-fi
-
-if [ -z "BOWTIE2INDEX" ]; then
-	echo "[ERROR] bowtie index not specified"
 	exit 1
 fi
 
@@ -97,9 +90,6 @@ echo -e "--Python libs --\n "$(yolk -l)
 
 n=`basename $f`
 
-# delete old bam file                                                                       
-#if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi
-
 #is paired ?                                                                                                      
 if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
@@ -110,10 +100,7 @@ fi
 
 if [ -n "$DMGET" ]; then
 	echo "********** reacall files from tape"
-	dmget -a $(dirname $FASTA)/*
-	dmls -l $FASTA*
-	dmget -a ${f/$READONE/"*"}
-	dmls -l ${f/$READONE/"*"}
+	dmget -a $MYOUT/*
 fi
 
 #is ziped ?                                                                                                       
@@ -123,46 +110,15 @@ if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
 echo "********* reads" 
 FASTQNAME=${f##*/}
 READS="$f ${f/$READONE/$READTWO}"
-#READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-#READ2=`$ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}' `
-#let FASTQREADS=$READ1+$READ2
 
 echo "********** hiclib call"
 # run hiclib.py
 PARAMS="--restrictionEnzyme $ENZYME \
    --experimentName $(echo ${ENZYME}_${FASTQNAME/$READONE.$FASTQ/} | sed 's/_*$//g') \
-   --gapFile $HICLIB_GAPFILE \
    --referenceGenome $FASTA \
-   --index $BOWTIE2_INDEX"
 
-if [ "$FASTQSUFFIX" = "sra" ]; then
-	PARAMS="$PARAMS --inputFormat sra --sra-reader $(which fastq-dump)"
-elif [ "$FASTQSUFFIX" = "bam" ]; then
-	PARAMS="$PARAMS --inputFormat bam"
-else
-	PARAMS="$PARAMS --inputFormat fastq"
-fi
+python $HISEQINF/bin/hiclibCorrelate ${PARAMS} --cpus $THREADS --outputDir $MYOUT --tmpDir $TMP --verbose $READS
 
-if [ -n "$HICLIB_READLENGTH" ]; then
-	PARAMS="$PARAMS --readLength $HICLIB_READLENGTH"
-fi
-
-python $HISEQINF/bin/hiclib.py ${PARAMS} --bowtie $(which bowtie2) --cpus $THREADS --outputDir $MYOUT --tmpDir $TMP --verbose $READS
-
-echo "********* merge bam files"
-
-for R in $READS; do
-	READNAME=${R##*/}
-	ALIGNMENTS=""
-	for i in $(ls $MYOUT/${READQNAME/$FASTQ/}*.bam.*); do
-		ALIGNMENTS=$ALIGNMENTS" INPUT=$i"
-	done
-
-	java $JAVAPARAMS -jar $PATH_PICARD/MergeSamFiles \
-	    $ALIGNMENTS \
-    	    OUTPUT=$MYOUT/${READNAME}.bam \ 
-	    USE_THREADING=true
-done
 
 # copy heatmap
 RUNSTATS=$OUT/runStats/hiclib
