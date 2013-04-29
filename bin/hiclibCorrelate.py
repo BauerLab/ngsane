@@ -379,11 +379,11 @@ def process():
 			sys.exit(1)
 	
 	for i in xrange(len(args)):
-		doArmPlot(args[i] + os.sep + experiments[i], experiments[i])
-	
-	for i in xrange(len(args)):
-	
+		echo "Process file i:"+	args[i] + os.sep + experiments[i]
+		
 		correctedScalingPlot(200000, args[i] + os.sep + experiments[i] + '-200k.hdf5', experiments[i], options.genome)
+
+		doArmPlot(100000, args[i] + os.sep + experiments[i], experiments[i], options.genome)
 
 		for j in xrange(i+1, len(args)):
 			
