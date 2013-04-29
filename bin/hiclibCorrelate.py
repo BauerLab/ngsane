@@ -81,7 +81,7 @@ takes multiple hiclib output folder and compares the experiments in a pairwise m
 	process()
 
 
-def doArmPlot(resolution, filename, experiment=myExperiment, genome=myGenome, mouse=False, **kwargs):
+def doArmPlot(resolution, filename, experiment, genome, mouse=False, **kwargs):
     "Plot an single interarm map - paper figure"
     Tanay = binnedDataAnalysis(resolution, genome)
     Tanay.simpleLoad(filename, experiment)
@@ -108,7 +108,7 @@ def doArmPlot(resolution, filename, experiment=myExperiment, genome=myGenome, mo
 
 #doArmPlot()
 
-def calculateTanayCorrelation(resolution, filename1, filename2, experiment1=myExperiment1, experiment2=myExperiment2, genome=myGenome, mouse=False, **kwargs):
+def calculateTanayCorrelation(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
 
     "Calculates correlation between datasets, smoothed in a Tanay way"
     BD = binnedData(resolution, genome)
@@ -158,10 +158,10 @@ def calculateTanayCorrelation(resolution, filename1, filename2, experiment1=myEx
     d2 = propagateSmooth(data2)
     print scipy.stats.spearmanr(d1[cormask], d2[cormask])
 
-def correctedScalingPlot(resolution, filename1, experiment1=experiment1, genome=myGenome, mouse=False, **kwargs):
+def correctedScalingPlot(resolution, filename1, experiment1, genome, mouse=False, **kwargs):
     "Paper figure to compare scaling before/after correction"
     plt.figure(figsize=(4, 4))
-    Tanay = binnedDataAnalysis(resolution, genome=myGenome)
+    Tanay = binnedDataAnalysis(resolution, genome)
     Tanay.simpleLoad(filename1, experiment1)
     Tanay.removePoorRegions()
     Tanay.removeDiagonal()
@@ -183,7 +183,7 @@ def correctedScalingPlot(resolution, filename1, experiment1=experiment1, genome=
     plt.yscale("log")
     plt.show()
     
-def compareInterarmMaps(resolution, filename1, filename2, experiment1=myExperiment1, experiment2=myExperiment2, genome=myGenome, mouse=False, **kwargs):
+def compareInterarmMaps(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
     "plots witn 8 inetrarm maps - paper supplement figure"
     Tanay = binnedDataAnalysis(resolution, genome)
 
@@ -249,7 +249,7 @@ def compareInterarmMaps(resolution, filename1, filename2, experiment1=myExperime
 
     plt.show()
     
-def compareCorrelationOfEigenvectors(resolution, filename1, filename2, experiment1=myExperiment1, experiment2=myExperiment2, genome=myGenome, mouse=False, **kwargs):
+def compareCorrelationOfEigenvectors(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
 	"""Plot correlation figure with eigenvector correlation between datasets
 	paper figure """
 	Tanay = binnedDataAnalysis(resolution, genome)
@@ -285,18 +285,18 @@ def compareCorrelationOfEigenvectors(resolution, filename1, filename2, experimen
 	plt.show()
 	raise
     
-def plotDiagonalCorrelation(resolution, filename1, filename2, experiment1=myExperiment1, experiment2=myExperiment2, genome=myGenome, mouse=False, **kwargs):
+def plotDiagonalCorrelation(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
     "Correlation of diagonal bins - paper figure"
     S = 50
     x = numpy.arange(2, S)
     Tanay = binnedData(resolution, genome)
-    Tanay.simpleLoad(filename1, myExperiment1)
-    Tanay.simpleLoad(filename2, myExperiment2)
+    Tanay.simpleLoad(filename1, experiment1)
+    Tanay.simpleLoad(filename2, experiment2)
     Tanay.removeDiagonal(1)
     Tanay.removePoorRegions()
     Tanay.removeZeros()
 
-    pairs = [(myExperiment1, myExperiment2)]
+    pairs = [(experiment1, experiment2)]
     
     cors = [[] for _ in pairs]
     for i in x:
