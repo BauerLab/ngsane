@@ -1,5 +1,7 @@
 import os
 import sys
+from optparse import OptionParser
+
 import matplotlib
 matplotlib.use('PDF')
 
