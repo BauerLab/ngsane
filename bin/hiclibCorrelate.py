@@ -394,7 +394,7 @@ def process():
 						
 			compareInterarmMaps(1000000, args[i] + os.sep + experiments[i] + '-1M.hdf5', args[j] + os.sep + experiments[j] + '-1M.hdf5', options.genome, experiments[i], experiments[j])
 			
-	fig.savefig(options.outputDir+options.experiment+'-correlate.pdf')
+	fig.savefig(options.outputDir+'HiC-correlate.pdf')
 	
 ######################################
 # main
