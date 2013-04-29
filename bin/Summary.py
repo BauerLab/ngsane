@@ -365,7 +365,7 @@ def variant(variantFile):
 
 
 def hiclibStats(variantFile):
-    names=["Original reads", "Unmapped", "Unmapped %", "Semi-dangling", "Semi-dangling %", "Duplicates", "Duplicates %", "Sm/Lg Fragments","Sm/Lg Fragments %", "Ext Fragments","Ext Fragments %", "# Reads (final)", "Read (final) %", "# Fragments (final)"]
+    names=["Original reads", "Unmapped", "(%)", "Semi-dangling", "(%)", "Duplicates", "(%)", "Sm/Lg Fragments","(%)", "Extreme Fragments","(%)", "# Reads (final)", "(%)", "# Fragments (final)"]
     values=[]
     file=open(variantFile).read()
     # populate

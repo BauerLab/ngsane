@@ -45,6 +45,7 @@ TASKHICLIB="hiclib"
 ##############################################################
 QSUB=pbsTemp.sh
 BINQSUB=jobsubmission.sh
+QSUBEXTRA=""            # any extra such as email notification
 
 #Additional programs not available as module
 PATH_SAMTOOLS=
@@ -159,6 +160,17 @@ PATH_HICLIB=
 HICLIB_GAPFILE=
 HICLIB_RENZYMES=
 HICLIB_READLENGTH=
+
+##############################################################
+# HICUP
+WALLTIME_HICUP=10:00:00
+MEMORY_HICUP=60
+CPU_HICUP=8
+NODES_HICUP="nodes=1:ppn=8"
+
+MODULE_HICUP=
+PATH_HICUP=
+HICUP_RENZYMES=
 
 
 ##############################################################

@@ -149,7 +149,25 @@ fi
 
 python $HISEQINF/bin/run_hiclib.py ${PARAMS} --bowtie $(which bowtie2) --cpus $THREADS --outputDir $MYOUT --tmpDir $TMP --verbose $READS
 
-# merge bam files
+echo "********* merge bam files"
+
+for R in $READS; do
+	READNAME=${R##*/}
+	ALIGNMENTS=""
+	for i in $(ls $MYOUT/${READQNAME/$FASTQ/}*.bam.*); do
+		ALIGNMENTS=$ALIGNMENTS" INPUT=$i"
+	done
+
+	java $JAVAPARAMS -jar $PATH_PICARD/MergeSamFiles \
+	    $ALIGNMENTS \
+    	    OUTPUT=$MYOUT/${READNAME}.bam \ 
+	    USE_THREADING=true
+done
+
+# copy heatmap
+RUNSTATS=$OUT/runStats/hiclib
+mkdir -p $RUNSTATS
+mv $MYOUT/*.pdf $RUNSTATS
 
 #echo "********* calculate inner distance"
 #export PATH=$PATH:/usr/bin/

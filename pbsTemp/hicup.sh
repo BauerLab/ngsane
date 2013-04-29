@@ -148,24 +148,24 @@ ENZYME2=(${ENZYMES[1]//,/ })
 
 DIGESTGENOME=""
 
+cd $MYOUT
 if [ ${#ENZYMES[@]} = 1 ]; then
    echo "Restriction Enzyme 1: ${ENZYME1[1]}:${ENZYME1[0]} "
    DIGESTGENOME=$MYOUT/${FASTABASE/.$FASTASUFFIX/}_${ENZYME1[1]}_None.txt
    hicup_digester -g "${FASTABASE%.*}" -1 ${ENZYME1[0]} $FASTA
-   mv Digest_${FASTABASE%.*}_* ${DIGESTGENOME}
+   mv Digest_* ${DIGESTGENOME}
 
 elif [ ${#ENZYMES[@]} = 2 ] && [ ! -e $MYOUT/${FASTABASE/.$FASTASUFFIX/}_${ENZYME1[1]}_${ENZYME2[2]}.txt ]; then
    echo "Restriction Enzyme 1: ${ENZYME1[1]}:${ENZYME1[0]} "
    echo "Restriction Enzyme 2: ${ENZYME2[1]}:${ENZYME2[0]} "
    DIGESTGENOME=$MYOUT/${FASTABASE/.$FASTASUFFIX/}_${ENZYME1[1]}_${ENZYME2[2]}.txt
    hicup_digester -g "${FASTABASE%.*}" -1 ${ENZYME1[0]} -2 ${ENZYME2[0]} $FASTA
-   mv Digest_${FASTABASE%.*}_* ${DIGESTGENOME}
-  
+   mv Digest_* ${DIGESTGENOME}
 else
    echo "[ERROR] Invalid number or pattern of enzyme digest patterns."
    exit 1
 fi
-
+cd $SOURCE
 
 FULLSAMPLEID=$SAMPLEID"${n/'_'$READONE.$FASTQ/}"
 echo ">>>>> full sample ID "$FULLSAMPLEID
