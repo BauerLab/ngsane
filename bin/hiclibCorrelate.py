@@ -4,11 +4,13 @@ from optparse import OptionParser
 
 import matplotlib
 matplotlib.use('PDF')
+from matplotlib.backends.backend_pdf import PdfPages
 
 from mirnylib.systemutils import setExceptionHook
 sys.path.append(os.path.split(os.getcwd())[0])
 from hiclib.binnedData import binnedData, binnedDataAnalysis,\
     experimentalBinnedData
+from mirnylib import h5dict, genome
 
 import mirnylib.systemutils
 mirnylib.systemutils
@@ -44,6 +46,8 @@ takes multiple hiclib output folder and compares the experiments in a pairwise m
 					help="Comma separated list of the experiment names")
 	parser.add_option("-r", "--referenceGenome", type="string", dest="genome", default="", 
 					help="genome in fasta format [default: %default]")
+	parser.add_option("-g", "--gapFile", type="string", dest="gapFile", default="gap.txt",
+					help="location of the gapfile [default: %default]")
 	parser.add_option("-o", "--outputDir", type="string", dest="outputDir", default="", 
 					help="output directory [default: %default]")
 	parser.add_option("-t", "--tmpDir", type="string", dest="tmpDir", default="/tmp", 
@@ -85,6 +89,10 @@ takes multiple hiclib output folder and compares the experiments in a pairwise m
 
 def doArmPlot(resolution, filename, experiment, genome, mouse=False, **kwargs):
     "Plot an single interarm map - paper figure"
+    
+    if (options.verbose):
+        print >> sys.stdout, "doArmPlot: res: %d file: %s exp:%s gen:%s" % (resolution, filename, experiment, genome)
+
     Tanay = binnedDataAnalysis(resolution, genome)
     Tanay.simpleLoad(filename, experiment)
     if mouse == True:
@@ -108,11 +116,12 @@ def doArmPlot(resolution, filename, experiment, genome, mouse=False, **kwargs):
     for xlabel_i in cb.ax.get_xticklabels():
         xlabel_i.set_fontsize(6)
 
-#doArmPlot()
-
 def calculateTanayCorrelation(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
-
     "Calculates correlation between datasets, smoothed in a Tanay way"
+
+    if (options.verbose):
+        print >> sys.stdout, "calculateTanayCorrelation: res: %d file1: %s file2: %s exp1:%s exp2:%s gen:%s" % (resolution, filename1, filename2, experiment1, experiment2, genome)
+
     BD = binnedData(resolution, genome)
     BD.simpleLoad(filename1, experiment1)
     BD.simpleLoad(filename2, experiment2)
@@ -162,7 +171,10 @@ def calculateTanayCorrelation(resolution, filename1, filename2, experiment1, exp
 
 def correctedScalingPlot(resolution, filename1, experiment1, genome, mouse=False, **kwargs):
     "Paper figure to compare scaling before/after correction"
-    plt.figure(figsize=(4, 4))
+    if (options.verbose):
+        print >> sys.stdout, "correctedScalingPlot: res: %d file1: %s exp1:%s gen:%s" % (resolution, filename1, experiment1, genome)
+
+    #plt.figure(figsize=(4, 4))
     Tanay = binnedDataAnalysis(resolution, genome)
     Tanay.simpleLoad(filename1, experiment1)
     Tanay.removePoorRegions()
@@ -183,10 +195,14 @@ def correctedScalingPlot(resolution, filename1, experiment1, genome, mouse=False
     legend.draw_frame(False)
     plt.xscale("log")
     plt.yscale("log")
-    plt.show()
+#    plt.show()
     
 def compareInterarmMaps(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
     "plots witn 8 inetrarm maps - paper supplement figure"
+
+    if (options.verbose):
+        print >> sys.stdout, "compareInterarmMaps: res: %d file1: %s file2: %s exp1:%s exp2:%s gen:%s" % (resolution, filename1, filename2, experiment1, experiment2, genome)
+
     Tanay = binnedDataAnalysis(resolution, genome)
 
     Tanay.simpleLoad(filename1, experiment1)
@@ -254,6 +270,9 @@ def compareInterarmMaps(resolution, filename1, filename2, experiment1, experimen
 def compareCorrelationOfEigenvectors(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
 	"""Plot correlation figure with eigenvector correlation between datasets
 	paper figure """
+	if (options.verbose):
+		print >> sys.stdout, "compareCorrelationOfEigenvectors: res: %d file1: %s file2: %s exp1:%s exp2:%s gen:%s" % (resolution, filename1, filename2, experiment1, experiment2, genome)
+
 	Tanay = binnedDataAnalysis(resolution, genome)
 	Tanay.simpleLoad(filename1, experiment1)
 	Tanay.simpleLoad(filename2, experiment2)
@@ -289,6 +308,10 @@ def compareCorrelationOfEigenvectors(resolution, filename1, filename2, experimen
     
 def plotDiagonalCorrelation(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
     "Correlation of diagonal bins - paper figure"
+
+    if (options.verbose):
+        print >> sys.stdout, "plotDiagonalCorrelation: res: %d file1: %s file2: %s exp1:%s exp2:%s gen:%s" % (resolution, filename1, filename2, experiment1, experiment2, genome)
+
     S = 50
     x = numpy.arange(2, S)
     Tanay = binnedData(resolution, genome)
@@ -363,38 +386,44 @@ def process():
 	
 	experiments = options.experiment.split(',')
 	enzymes = options.enzyme.split(',')
-	
+	if (len(enzymes) == 1):
+		enzymes = enzymes * len(args) 
+
 	# check dataset exist
 	for i in xrange(len(args)):
-		if (not os.path.isfile(args[i] + os.sep + experiments[i] + '-1M.hdf5')):
-			print '[ERROR] Could not find: '+args[i] + os.sep + experiments[i] + '-1M.hdf5'
+		if (not os.path.isfile(args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-1M.hdf5')):
+			print '[ERROR] Could not find: '+ args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-1M.hdf5'
 			sys.exit(1)
 			
-		if (not os.path.isfile(args[i] + os.sep + experiments[i] + '-200k.hdf5')):
-			print '[ERROR] Could not find: '+args[i] + os.sep + experiments[i] + '-1M.hdf5'
+		if (not os.path.isfile(args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-200k.hdf5')):
+			print '[ERROR] Could not find: '+ args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-1M.hdf5'
 			sys.exit(1)
 			
-		if (not os.path.isfile(args[i] + os.sep + experiments[i] + '-IC-1M.hdf5')):
-			print '[ERROR] Could not find: '+args[i] + os.sep + experiments[i] + '-IC-1M.hdf5'
+		if (not os.path.isfile(args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-IC-1M.hdf5')):
+			print '[ERROR] Could not find: '+ args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-IC-1M.hdf5'
 			sys.exit(1)
+
+	genome_db    = genome.Genome(options.genome, gapFile=options.gapFile, readChrms=['#', 'X', 'Y'])
 	
 	for i in xrange(len(args)):
-		echo "Process file i:"+	args[i] + os.sep + experiments[i]
+		print "Process file i:"+	args[i] + os.sep + enzymes[i] +'_' + experiments[i]
 		
-		correctedScalingPlot(200000, args[i] + os.sep + experiments[i] + '-200k.hdf5', experiments[i], options.genome)
+		correctedScalingPlot(200000, args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-200k.hdf5', experiments[i], genome_db)
 
-		doArmPlot(100000, args[i] + os.sep + experiments[i], experiments[i], options.genome)
+		doArmPlot(1000000, args[i] + os.sep + enzymes[i] +'_' + experiments[i]+ '-1M.hdf5', experiments[i], genome_db)
 
 		for j in xrange(i+1, len(args)):
-			
-			compareCorrelationOfEigenvectors(1000000, args[i] + os.sep + experiments[i] + '-1M.hdf5', args[j] + os.sep + experiments[j] + '-1M.hdf5', options.genome, experiments[i], experiments[j])
+		
+			compareCorrelationOfEigenvectors(1000000, args[i] + os.sep + enzymes[i] +'_' +experiments[i] + '-1M.hdf5', args[j] + os.sep + enzymes[i] +'_' +experiments[j] + '-1M.hdf5', experiments[i], experiments[j], genome_db)
 
-			calculateTanayCorrelation(1000000, args[i] + os.sep + experiments[i] + '-1M.hdf5', args[j] + os.sep + experiments[j] + '-1M.hdf5', options.genome, experiments[i], experiments[j])
+			calculateTanayCorrelation(1000000, args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-1M.hdf5', args[j] + os.sep + enzymes[i] +'_' +experiments[j] + '-1M.hdf5', experiments[i], experiments[j], genome_db)
 
-			plotDiagonalCorrelation(200000, args[i] + os.sep + experiments[i] + '-200k.hdf5', args[j] + os.sep + experiments[j] + '-200k.hdf5', options.genome, experiments[i], experiments[j])
+			plotDiagonalCorrelation(200000, args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-200k.hdf5', args[j] + os.sep + enzymes[i] +'_' +experiments[j] + '-200k.hdf5', experiments[i], experiments[j], genome_db)
 						
-			compareInterarmMaps(1000000, args[i] + os.sep + experiments[i] + '-1M.hdf5', args[j] + os.sep + experiments[j] + '-1M.hdf5', options.genome, experiments[i], experiments[j])
+			compareInterarmMaps(1000000, args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-1M.hdf5', args[j] + os.sep + enzymes[i] +'_' +experiments[j] + '-1M.hdf5', experiments[i], experiments[j], genome_db)
 			
+	if (options.verbose):
+		print >> sys.stdout, "print plots into pdf:%s" % (options.outputDir+'HiC-correlate.pdf')
 	fig.savefig(options.outputDir+'HiC-correlate.pdf')
 	
 ######################################
