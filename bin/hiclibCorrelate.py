@@ -358,6 +358,7 @@ def process():
 	global options
 	global args
 	
+	fig = plt.gcf()
 	
 	experiments = options.experiment.split(',')
 	enzymes = options.enzyme.split(',')
@@ -392,6 +393,8 @@ def process():
 			plotDiagonalCorrelation(200000, args[i] + os.sep + experiments[i] + '-200k.hdf5', args[j] + os.sep + experiments[j] + '-200k.hdf5', options.genome, experiments[i], experiments[j])
 						
 			compareInterarmMaps(1000000, args[i] + os.sep + experiments[i] + '-1M.hdf5', args[j] + os.sep + experiments[j] + '-1M.hdf5', options.genome, experiments[i], experiments[j])
+			
+	fig.savefig(options.outputDir+options.experiment+'-correlate.pdf')
 	
 ######################################
 # main
