@@ -1,12 +1,12 @@
 import os, sys
 import logging
+from optparse import OptionParser
 import matplotlib
 matplotlib.use('PDF')
 
 from hiclib import mapping
 from mirnylib import h5dict, genome
 from hiclib import fragmentHiC
-from optparse import OptionParser
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
