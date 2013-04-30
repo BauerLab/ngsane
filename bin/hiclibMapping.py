@@ -290,15 +290,15 @@ def process():
 	genome_db    = genome.Genome(options.genome, gapFile=options.gapFile, readChrms=['#', 'X', 'Y'])
 
 	bams = []
-#	if (options.inputFormat != 'bam'):
-#		bams = mapFiles()
-#	else:
-#		bams = args[0:]
-#
+	if (options.inputFormat != 'bam'):
+		bams = mapFiles()
+	else:
+		bams = args[0:]
+
 	if (options.verbose):
 		print >> sys.stdout, "**  Collect mapped reads"
 		
-#	collectMappedReads(bams[0], bams[1], mapped_reads, genome_db)
+	collectMappedReads(bams[0], bams[1], mapped_reads, genome_db)
 	
 	if (options.verbose):
 		print >> sys.stdout, "**  Filter fragments"
