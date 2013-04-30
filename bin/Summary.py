@@ -579,7 +579,7 @@ for d in dir:
                     names,values=intersection(d+"/"+f)     
                 if (type=="annostats"):
                     names,values=annoStats(d+"/"+f)
-		if (type=="hiclib"):
+		if (type=="hiclibMapping"):
 		    names,values=hiclibStats(d+"/"+f)
                 result=addValues(result,values)
                 filename=f

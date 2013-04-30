@@ -3,7 +3,7 @@
 echo ">>>>> HiC analysis with hiclib "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> hiclib.sh $*"
+echo ">>>>> hiclibMapping.sh $*"
 
 function usage {
 echo -e "usage: $(basename $0) -k HISEQINF -f FASTQ -r REFERENCE -e ENZYMES -o OUTDIR [OPTIONS]
