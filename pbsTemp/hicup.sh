@@ -180,13 +180,13 @@ echo "Threads: $MYTHREADS" >> $HICUP_CONF
 echo "#Suppress progress updates | 0: off, 1: on" >> $HICUP_CONF
 echo "Quiet:0" >> $HICUP_CONF
 echo "#Retain all intermediate pipeline files | 0: off, 1: on" >> $HICUP_CONF
-echo "Keep:0" >> $HICUP_CONF
+echo "Keep:1" >> $HICUP_CONF
 echo "#Compress outputfiles | 0: off, 1: on" >> $HICUP_CONF
 echo "Zip:1" >> $HICUP_CONF
 echo "#Path to the alignment program Bowtie | include the executable Bowtie filename" >> $HICUP_CONF
-echo "Bowtie:$(which bowtie2)" >> $HICUP_CONF
+echo "Bowtie:$(which bowtie)" >> $HICUP_CONF
 echo "#Path to the reference genome indices" >> $HICUP_CONF
-echo "Index:${FASTA%.*}"  >> $HICUP_CONF
+echo "Index:${BOWTIE_INDEX}"  >> $HICUP_CONF
 echo "#Path to the genome digest file" >> $HICUP_CONF
 echo "DIGEST:$DIGESTGENOME" >> $HICUP_CONF
 echo "#FASTQ file format | phred33-quals, phred64-quals, solexa-quals or solexa1.3-quals" >> $HICUP_CONF
@@ -203,8 +203,6 @@ CURDIR=$(pwd)
 cd $MYOUT
 hicup -c $HICUP_CONF
 cd $CURDIR
-
-exit 1
 
 echo "********* sorting and bam-conversion"
 samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
