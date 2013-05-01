@@ -201,7 +201,7 @@ echo "$f | ${f/$READONE/$READTWO} " >> $HICUP_CONF
 echo "********* execute hicup"
 CURDIR=$(pwd)
 cd $MYOUT
-# hicup -c $HICUP_CONF
+hicup -c $HICUP_CONF
 mv hicup_deduplicater_summary_results_*.txt hicup_deduplicater_summary_results.txt
 mv hicup_filter_summary_results_*.txt hicup_filter_summary_results.txt
 mv hicup_mapper_summary_*.txt hicup_mapper_summary.txt
