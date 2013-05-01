@@ -201,14 +201,14 @@ if [ -n "RUNHICUP" ];then
 
     vali=""
     for dir in ${DIR[@]}; do
-	vali=$vali" $OUT/$TASKVAR/$dir"
+	vali=$vali" $OUT/$dir/$TASKHICUP"
     done
     
     echo "</pre><h3>hicup</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" "hicup_deduplicater_summary_results_*.txt" hicup >> $SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" "hicup_filter_summary_*.txt" hicup >> $SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" "hicup_mapper_summary_*.txt" hicup >> $SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" "hicup_truncater_summary_results*.txt" hicup >> $SUMMARYTMP
+    python $HISEQINF/bin/Summary.py "$vali" hicup_truncater_summary.txt hicup >> $SUMMARYTMP
+    python $HISEQINF/bin/Summary.py "$vali" hicup_mapper_summary.txt hicup >> $SUMMARYTMP
+    python $HISEQINF/bin/Summary.py "$vali" hicup_deduplicater_summary_results.txt hicup >> $SUMMARYTMP
+    python $HISEQINF/bin/Summary.py "$vali" hicup_filter_summary_results.txt hicup >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
