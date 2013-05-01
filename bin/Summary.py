@@ -406,6 +406,41 @@ def hiclibStats(variantFile):
 
     return names,values
 
+def hicupStats(variantFile):
+    names=[]
+    values=[]
+    file=open(variantFile).read()
+    
+    if (file.find("Average_length_truncated_sequence")>-1):
+    	lines = file.split("\n")
+    	p1 = lines[1].split("\t")
+    	p2 = lines[2].split("\t")    	
+    	names += ["P1 trunc reads", "%", "P2 trunc reads", "%"]
+    	values += [float(p1[1]), float(p1[2]), float(p2[1]), float(p2[2])]
+  
+  	if (file.find("Total_reads_processed")>-1):
+    	lines = file.split("\n")
+    	names += ["P1 reads", "P2 reads", "Unique Align P1", "%", "Unique Align P2", "%", "Multi mapper P1", "%", "Multi mapper P2", "%", "Nonaligned P1", "%", "Nonaligned P2", "%", "Paired P1", "%", "Paired P2", "%" ]
+    	p1 = lines[1].split("\t")
+    	p2 = lines[2].split("\t")
+    	values += [float(p1[1]), float(p2[1]), float(p1[2]), float(p1[3]), float(p2[2]), float(p2[3]), float(p1[4]), float(p1[5]), float(p2[4]), float(p2[5]), float(p1[6]), float(p1[7]), float(p2[6]), float(p2[7]), float(p1[8]), float(p1[9]), float(p2[8]), float(p2[9])] 	
+  	if (file.find("Total_reads_processed")>-1):
+  		lines = file.split("\n")
+    	sig = lines[0].split("\t")[1:]
+    	val = lines[1].split("\t")[1:]
+    	names += sig
+    	values += [float(i) for i in val]
+
+  	if (file.find("Read_pairs_processed")>-1):
+  		lines = file.split("\n")
+    	sig = lines[0].split("\t")[1:]
+    	val = lines[1].split("\t")[1:]
+    	names += sig
+    	values += [float(i) for i in val]
+  		
+  		
+    return names,values
+    
 #################33
 # TEMP
 
@@ -579,8 +614,10 @@ for d in dir:
                     names,values=intersection(d+"/"+f)     
                 if (type=="annostats"):
                     names,values=annoStats(d+"/"+f)
-		if (type=="hiclibMapping"):
-		    names,values=hiclibStats(d+"/"+f)
+                if (type=="hiclibMapping"):
+                    names,values=hiclibStats(d+"/"+f)
+                if (type=="hicup"):
+                    names,values=hicupStats(d+"/"+f)
                 result=addValues(result,values)
                 filename=f
                 if (link):

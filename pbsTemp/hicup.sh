@@ -201,11 +201,11 @@ echo "$f | ${f/$READONE/$READTWO} " >> $HICUP_CONF
 echo "********* execute hicup"
 CURDIR=$(pwd)
 cd $MYOUT
-hicup -c $HICUP_CONF
+# hicup -c $HICUP_CONF
 cd $CURDIR
 
-echo "********* sorting and bam-conversion"
-samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
+echo "********* sorting and indexing"
+cat $MYOUT/uniques_${n/.$FASTQ/}*${n/'_'$READONE.$FASTQ/'_'$READTWO}*.bam | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam}
 
 #TODO look at samtools for rmdup
 #val string had to be set to LENIENT to avoid crash due to a definition dis-
@@ -224,8 +224,6 @@ java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
     TMP_DIR=$THISTMP
 rm -rf $THISTMP
 samtools index $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
-
-
 
 # statistics
 echo "********* statistics"
@@ -277,6 +275,6 @@ java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/'_'$READONE.$
 echo "********* samstat"
 samstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
 
-echo ">>>>> readmapping with BWA - FINISHED"
+echo ">>>>> readmapping with hicup (bowtie) - FINISHED"
 echo ">>>>> enddate "`date`
 

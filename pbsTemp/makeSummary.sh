@@ -185,12 +185,30 @@ if [ -n "$RUNANNOTATION" ]; then
 fi
 
 if [ -n "RUNHICLIB" ];then
-    LINKS=$LINKS" hic"
-    echo "<a name=\"hic\"><h2>HiC results</h2></a><pre>">>$SUMMARYTMP
+    LINKS=$LINKS" hiclib"
+    echo "<a name=\"hiclib\"><h2>HiC results</h2></a><pre>">>$SUMMARYTMP
     $HISEQINF/pbsTemp/QC.sh $HISEQINF/pbsTemp/hiclibMapping.sh $QOUT/$TASKHICLIB >> $SUMMARYTMP
 
     echo "</pre><h3>hiclib</h3><pre>">>$SUMMARYTMP
     python $HISEQINF/bin/Summary.py $QOUT/$TASKHICLIB ".out" hiclibMapping >> $SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
+
+if [ -n "RUNHICUP" ];then
+    LINKS=$LINKS" hicup"
+    echo "<a name=\"hicup\"><h2>HiC results</h2></a><pre>">>$SUMMARYTMP
+    $HISEQINF/pbsTemp/QC.sh $HISEQINF/pbsTemp/hicup.sh $QOUT/$TASKHICUP >> $SUMMARYTMP
+
+    vali=""
+    for dir in ${DIR[@]}; do
+	vali=$vali" $OUT/$TASKVAR/$dir"
+    done
+    
+    echo "</pre><h3>hicup</h3><pre>">>$SUMMARYTMP
+    python $HISEQINF/bin/Summary.py "$vali" "hicup_deduplicater_summary_results_*.txt" hicup >> $SUMMARYTMP
+    python $HISEQINF/bin/Summary.py "$vali" "hicup_filter_summary_*.txt" hicup >> $SUMMARYTMP
+    python $HISEQINF/bin/Summary.py "$vali" "hicup_mapper_summary_*.txt" hicup >> $SUMMARYTMP
+    python $HISEQINF/bin/Summary.py "$vali" "hicup_truncater_summary_results*.txt" hicup >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
