@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # HiCUP calling script
 # author: Fabian Buske
@@ -201,7 +201,9 @@ echo "$f | ${f/$READONE/$READTWO} " >> $HICUP_CONF
 echo "********* execute hicup"
 CURDIR=$(pwd)
 cd $MYOUT
-hicup -c $HICUP_CONF
+HICUP_CALL="$(which perl) $(which hicup) -c $HICUP_CONF"
+echo $HICUP_CALL
+$($HICUP_CALL)
 mv hicup_deduplicater_summary_results_*.txt hicup_deduplicater_summary_results.txt
 mv hicup_filter_summary_results_*.txt hicup_filter_summary_results.txt
 mv hicup_mapper_summary_*.txt hicup_mapper_summary.txt

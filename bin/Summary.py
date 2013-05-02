@@ -410,7 +410,7 @@ def hicupStats(statsFile):
     names=[]
     values=[]
     file=open(statsFile).read()
-    
+ 
     if (file.find("Average_length_truncated_sequence")>-1):
     	lines = file.split("\n")
     	p1 = lines[1].split("\t")
@@ -591,6 +591,7 @@ for d in dir:
     psresult=[]
     name=os.listdir(d)
     name.sort()
+    print "name %s dir %s" % (name, dir)
     for f in name:
         if (re.compile(ext).search(f)):
 #        if(f[-len(ext)::]==ext):
