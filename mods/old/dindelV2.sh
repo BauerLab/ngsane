@@ -68,7 +68,7 @@ for c in $CANDIDATES; do
     name=`basename $c`
     qsub $PRIORITY -j y -o $QOUT/$TASKDINC/$name.out -cwd -b y -l h_vmem=12G \
     	-N $TASKDINC"_"$name $HOLD\
-    	$HISEQINF/pbsTemp/dindelV2p2.sh $HISEQINF $c $FASTA $OUT
+    	$HISEQINF/mods/dindelV2p2.sh $HISEQINF $c $FASTA $OUT
 
     gawk -v OFS='\t' '{$5=toupper($5);$4=toupper($4); print $_}' ${c/"dindel.VCF"/"dindelP2.VCF"} >${c/"dindel.VCF"/"dindelP3.VCF"}
 
@@ -77,7 +77,7 @@ for c in $CANDIDATES; do
 done
 
 
-$HISEQINF/pbsTemp/merge.sh $HISEQINF merge.tmp $OUT dindelMerge.vcf vcf $QOUT/$TASKDINC $TASKDINC"*"
+$HISEQINF/mods/merge.sh $HISEQINF merge.tmp $OUT dindelMerge.vcf vcf $QOUT/$TASKDINC $TASKDINC"*"
 
 echo ">>>>> indel calling with DINDEL - FINISHED"
 echo ">>>>> enddate "`date`

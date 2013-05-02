@@ -25,7 +25,7 @@ while [ "$1" != "" ]; do
 	--first )               FIRST="first";;
 	--postonly )            POSTONLY="postonly" ;;
 	-h | --help )           usage ;;
-	* )                     echo "pbsTemp: don't understand "$1
+	* )                     echo "prepareJobSubmission.sh: don't understand "$1
     esac
     shift
 done

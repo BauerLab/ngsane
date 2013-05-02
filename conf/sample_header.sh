@@ -43,7 +43,7 @@ TASKHICLIB="hiclib"
 ##############################################################
 # PROGRAM PATHS
 ##############################################################
-QSUB=pbsTemp.sh
+QSUB=prepareJobSubmission.sh
 BINQSUB=jobsubmission.sh
 QSUBEXTRA=""            # any extra such as email notification
 

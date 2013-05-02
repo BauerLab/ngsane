@@ -85,7 +85,7 @@ echo "$ID runs MakeFastQ in $WD check:$check fastq:$fastq align:$align bclConv:$
 #   check all files are there
 ############################################
 if [ "$check" -eq "1" ]; then
-    $SCRIPTS/pbsTemp/checkAllHiseqFiles.sh $WD > $WD/$LOG/fileCheck.out
+    $SCRIPTS/mods/checkAllHiseqFiles.sh $WD > $WD/$LOG/fileCheck.out
 
     ERROR=`grep -c "Error:" $WD/$LOG/fileCheck.out`
     if [ ! $ERROR -eq "0" ]; then

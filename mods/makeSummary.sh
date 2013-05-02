@@ -52,7 +52,7 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     echo "<a name=\"mapping\"><h2>BWA Mapping</h2>">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
     echo "QC"
-    $HISEQINF/pbsTemp/QC.sh $HISEQINF/pbsTemp/bwa.sh $QOUT/$TASKBWA >>$SUMMARYTMP
+    $HISEQINF/mods/QC.sh $HISEQINF/mods/bwa.sh $QOUT/$TASKBWA >>$SUMMARYTMP
     echo "gather dirs"
     for dir in ${DIR[@]}; do
 	vali=$vali" $OUT/$dir/$TASKBWA"
@@ -79,7 +79,7 @@ if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" ]]; then
     LINKS=$LINKS" recal"
     echo "<a name=\"recal\"><h2>RECAL Mapping</h2>">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
-    $HISEQINF/pbsTemp/QC.sh $HISEQINF/pbsTemp/reCalAln.sh $QOUT/$TASKRCA >>$SUMMARYTMP
+    $HISEQINF/mods/QC.sh $HISEQINF/mods/reCalAln.sh $QOUT/$TASKRCA >>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
 	vali=$vali" $OUT/$dir/$TASKRCA"
@@ -94,7 +94,7 @@ if [[ -n "$RUNMAPPINGBOWTIE" || -n "$RUNMAPPINGBOWTIE2" ]]; then
     LINKS=$LINKS" mapping"
     echo "<a name=\"mapping\"><h2>BOWTIE Mapping</h2>">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
-    $HISEQINF/pbsTemp/QC.sh $HISEQINF/pbsTemp/bowtie2.sh $QOUT/$TASKBOWTIE >>$SUMMARYTMP
+    $HISEQINF/mods/QC.sh $HISEQINF/mods/bowtie2.sh $QOUT/$TASKBOWTIE >>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKBOWTIE"
@@ -110,7 +110,7 @@ if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
     LINKS=$LINKS" tophat"
     echo "<a name=\"tophat\"><h2>tophat Mapping</h2><br>Note, the duplication rate is not calculated by tophat and hence zero.">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
-    $HISEQINF/pbsTemp/QC.sh $HISEQINF/pbsTemp/tophatcuff.sh $QOUT/$TASKTOPHAT >>$SUMMARYTMP
+    $HISEQINF/mods/QC.sh $HISEQINF/mods/tophatcuff.sh $QOUT/$TASKTOPHAT >>$SUMMARYTMP
     for dir in ${DIR[@]}; do
 	vali=$vali" $OUT/$dir/$TASKTOPHAT"
 #	vali=$vali" "$(ls -d $OUT/$dir/$TASKTOPHAT/*/)
@@ -144,7 +144,7 @@ fi
 if [ -n "$RUNVARCALLS" ]; then 
     LINKS=$LINKS" varcalls"
     echo "<a name=\"varcalls\"><h2>Variant calling</h2><pre>">>$SUMMARYTMP
-    $HISEQINF/pbsTemp/QC.sh $HISEQINF/pbsTemp/gatkSNPs.sh $QOUT/$TASKVAR >> $SUMMARYTMP
+    $HISEQINF/mods/QC.sh $HISEQINF/mods/gatkSNPs.sh $QOUT/$TASKVAR >> $SUMMARYTMP
 
     vali=""
     for dir in ${DIR[@]}; do
@@ -163,7 +163,7 @@ fi
 if [ -n "$RUNANNOTATION" ]; then
     LINKS=$LINKS" annotation"
     echo "<a name=\"annotation\"><h2>Variant annotation</h2></a><pre>">>$SUMMARYTMP
-    $HISEQINF/pbsTemp/QC.sh $HISEQINF/pbsTemp/annovar.sh $QOUT/$TASKANNOVAR >> $SUMMARYTMP
+    $HISEQINF/mods/QC.sh $HISEQINF/mods/annovar.sh $QOUT/$TASKANNOVAR >> $SUMMARYTMP
 
     vali=""
     for dir in ${DIR[@]}; do
@@ -187,7 +187,7 @@ fi
 if [ -n "RUNHICLIB" ];then
     LINKS=$LINKS" hiclib"
     echo "<a name=\"hiclib\"><h2>HiC results</h2></a><pre>">>$SUMMARYTMP
-    $HISEQINF/pbsTemp/QC.sh $HISEQINF/pbsTemp/hiclibMapping.sh $QOUT/$TASKHICLIB >> $SUMMARYTMP
+    $HISEQINF/mods/QC.sh $HISEQINF/mods/hiclibMapping.sh $QOUT/$TASKHICLIB >> $SUMMARYTMP
 
     echo "</pre><h3>hiclib</h3><pre>">>$SUMMARYTMP
     python $HISEQINF/bin/Summary.py $QOUT/$TASKHICLIB ".out" hiclibMapping >> $SUMMARYTMP
@@ -197,7 +197,7 @@ fi
 if [ -n "RUNHICUP" ];then
     LINKS=$LINKS" hicup"
     echo "<a name=\"hicup\"><h2>HiC results</h2></a><pre>">>$SUMMARYTMP
-    $HISEQINF/pbsTemp/QC.sh $HISEQINF/pbsTemp/hicup.sh $QOUT/$TASKHICUP >> $SUMMARYTMP
+    $HISEQINF/mods/QC.sh $HISEQINF/mods/hicup.sh $QOUT/$TASKHICUP >> $SUMMARYTMP
 
     vali=""
     for dir in ${DIR[@]}; do

@@ -1,12 +1,16 @@
 
 . /etc/profile.d/sge-binaries.sh
 
+#PROGRAMS
+. $HISEQINF/conf/header.sh
+. $CONFIG
+
 FORCE=$1
 
 RUNS="/illumina/Runs/"
 EMAIL="z.zhang5@uq.edu.au"
 LOG="MyLogs"
-SCRIPTS="/clusterdata/hiseq_apps/hiSeqInf/pbsTemp"
+SCRIPTS=$HISEQINF/mods
 
 for r in $( ls $RUNS )
 do
