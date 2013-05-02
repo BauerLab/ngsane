@@ -21,9 +21,9 @@ echo "Last modified "`date` >$SUMMARYTMP
 #if [ -n "$fastQC" ]; then
     echo "fastqc"
     echo "<h2>Read biases (FASTQC)</h2>">>$SUMMARYTMP
-    echo $HISEQINF/bin/makeFastQCplot.sh
+    echo $HISEQINF/tools/makeFastQCplot.sh
     if [ -n "$RUNFASTQC" ]; then
-	$HISEQINF/bin/makeFastQCplot.sh $(pwd)/runStats/$TASKFASTQC/ $(pwd)/runStats/ fastQCSummary.pdf $CONFIG > /dev/null #2>&1
+	$HISEQINF/tools/makeFastQCplot.sh $(pwd)/runStats/$TASKFASTQC/ $(pwd)/runStats/ fastQCSummary.pdf $CONFIG > /dev/null #2>&1
     fi
     echo "done"
     echo "<table><tr><td valign=top>" >>$SUMMARYTMP
@@ -60,17 +60,17 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     done
     echo "python summary"
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
     if [ -n "$RUNANNOTATINGBAM" ]; then
 	echo "anno"
 	echo "</pre><h3>Anno</h3><pre>">>$SUMMARYTMP
-	python $HISEQINF/bin/Summary.py "$vali" merg.anno.stats annostats >>$SUMMARYTMP
+	python $HISEQINF/tools/Summary.py "$vali" merg.anno.stats annostats >>$SUMMARYTMP
 	echo "</pre>" >>$SUMMARYTMP
 	ROUTH=runStats/$(echo ${DIR[@]}|sed 's/ /_/g')
 	if [ ! -e $ROUTH ]; then mkdir $ROUTH; fi
 	for MODULE in $MODULE_R; do module load $MODULE; done  # save way to load modules that itself load other modules
-	python $HISEQINF/bin/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
+	python $HISEQINF/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
     fi
 fi
 
@@ -86,7 +86,7 @@ if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" ]]; then
 	vali=$vali" $OUT/$dir/$TASKRCA"
     done
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" $ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" $ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
@@ -101,7 +101,7 @@ if [[ -n "$RUNMAPPINGBOWTIE" || -n "$RUNMAPPINGBOWTIE2" ]]; then
         vali=$vali" $OUT/$dir/$TASKBOWTIE"
     done
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
@@ -117,7 +117,7 @@ if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
 #	vali=$vali" "$(ls -d $OUT/$dir/$TASKTOPHAT/*/)
     done
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" bam.stats tophat >>$SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" bam.stats tophat >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
@@ -131,13 +131,13 @@ if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
 	vali=$vali" $OUT/$dir/$TASKDOC"
     done
     echo "<h3>Average coverage</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" $ASR".bam.doc.sample_summary" coverage >>$SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" $ASR".bam.doc.sample_summary" coverage >>$SUMMARYTMP
     echo "</pre><h3>Base pair coverage over all intervals</h3><pre>" >>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" $ASR".bam.doc.sample_cumulative_coverage_counts" coverage --p >>$SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" $ASR".bam.doc.sample_cumulative_coverage_counts" coverage --p >>$SUMMARYTMP
     echo "</pre><h3>Intervals covered</h3><pre>" >>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" $ASR".bam.doc.sample_interval_statistics" coverage --p >>$SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" $ASR".bam.doc.sample_interval_statistics" coverage --p >>$SUMMARYTMP
     echo "</pre><h3>On Target</h3><pre>" >>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" $ASR".bam.stats" target >>$SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" $ASR".bam.stats" target >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
     
 fi
@@ -153,10 +153,10 @@ if [ -n "$RUNVARCALLS" ]; then
     done
 
     echo "</pre><h3>SNPs</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" "filter.snps.eval.txt" variant --n --l>>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" "recalfilt.snps.eval.txt" variant --n --l>>$SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" "filter.snps.eval.txt" variant --n --l>>$SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" "recalfilt.snps.eval.txt" variant --n --l>>$SUMMARYTMP
     echo "</pre><h3>INDELs</h3><pre>" >>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l>>$SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l>>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
@@ -191,7 +191,7 @@ if [ -n "RUNHICLIB" ];then
     $HISEQINF/mods/QC.sh $HISEQINF/mods/hiclibMapping.sh $QOUT/$TASKHICLIB >> $SUMMARYTMP
 
     echo "</pre><h3>hiclib</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py $QOUT/$TASKHICLIB ".out" hiclibMapping >> $SUMMARYTMP
+    python $HISEQINF/tools/Summary.py $QOUT/$TASKHICLIB ".out" hiclibMapping >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
@@ -206,10 +206,10 @@ if [ -n "RUNHICUP" ];then
     done
     
     echo "</pre><h3>hicup</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" "hicup_truncater_summary.txt" hicup >> $SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" "hicup_mapper_summary.txt" hicup >> $SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" "hicup_filter_summary_results.txt" hicup >> $SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" "hicup_deduplicater_summary_results.txt" hicup >> $SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" "hicup_truncater_summary.txt" hicup >> $SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" "hicup_mapper_summary.txt" hicup >> $SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" "hicup_filter_summary_results.txt" hicup >> $SUMMARYTMP
+    python $HISEQINF/tools/Summary.py "$vali" "hicup_deduplicater_summary_results.txt" hicup >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 

@@ -1,0 +1,41 @@
+# author: Fabian Buske
+# date: May 2013
+
+######################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNHICUP="1"        # map HiC data with hicup
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which files to run on (replace samples with folders within fastq firectory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+OUT=$SOURCE
+QOUT=$OUT/qout
+
+HISEQINF=/share/ClusterShare/software/contrib/fabbus/ngsane/0.0.1
+
+READONE="R1"
+READTWO="R2"
+FASTQ="fq.gz"
+
+FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+BOWTIE_INDEX=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome
+
+#********************
+# PARAMETER
+#********************
+EXPID="LnCap"
+LIBRARY="HiC"
+PLATFORM="Illumina"
+
+HICLIB_RENZYMES="BglII"
+HICUP_RENZYMES=A^GATCT,BglII

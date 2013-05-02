@@ -1,0 +1,34 @@
+# author: Fabian Buske
+# date: Mai 2013
+
+######################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNFASTQC="1"
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq firectory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+OUT=$SOURCE
+QOUT=$OUT/qout
+
+HISEQINF=/share/ClusterShare/software/contrib/fabbus/ngsane/0.0.1
+
+READONE="P1"
+READTWO="P2"
+FASTQ="fq.gz"
+
+#********************
+# PARAMETER
+#********************
+# change output folder name
+#TASKFASTQC=fastQC_trim
