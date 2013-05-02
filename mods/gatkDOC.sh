@@ -79,7 +79,9 @@ module load jdk
 export PATH=$PATH:$(basename $SAMTOOLS)
 #JAVAPARAMS="-Xmx"$MYMEMORY"g" # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
 
-n=`basename $f`
+# get basename of f
+n=${f##*/}
+
 
 
 if [ -e $QOUT/$n.doc ]; then rm $QOUT/$n.doc* ]; fi

@@ -28,7 +28,8 @@ echo "Last modified "`date` >$SUMMARYTMP
     echo "done"
     echo "<table><tr><td valign=top>" >>$SUMMARYTMP
     for f in $( ls runStats/$TASKFASTQC/*.zip ); do
-	n=`basename $f`
+	# get basename of f
+	n=${f##*/}
 	n=${n/"_fastqc.zip"/}
 	ICO="<img height=15px src=\"runStats/$TASKFASTQC/"$n"_fastqc/Icons/"
         P=$(grep "PASS" -c runStats/$TASKFASTQC/$n"_fastqc/summary.txt")

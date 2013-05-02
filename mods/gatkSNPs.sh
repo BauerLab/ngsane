@@ -49,15 +49,15 @@ while [ "$1" != "" ]; do
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -i | --input )          shift; FILES=$1 ;; # temp files with paths to bam file
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir
-	-n | --name )           shift; NAME=$1 ;; # name
+        -n | --name )           shift; NAME=$1 ;; # name
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
-	-g | --refseq )         shift; REFSEQROD=$1 ;; # refseq genome
-	-H | --hapmap )         shift; HAPMAPVCF=$1 ;; # hapmap
-	-d | --dbsnp )          shift; DBSNPVCF=$1 ;; # dbsnp
-	-K | --1kg )            shift; ONEKGVCF=$1 ;; # 1000genomes data
-	-L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
-	--maxGaussians )        shift; ADDRECAL=$ADDRECAL" --maxGaussians "$1 ;; #(additional params for recal)
-	--percentBadVariants )  shift; ADDRECAL=$ADDRECAL" --percentBadVariants "$1 ;; #(additional params for recal)
+        -g | --refseq )         shift; REFSEQROD=$1 ;; # refseq genome
+        -H | --hapmap )         shift; HAPMAPVCF=$1 ;; # hapmap
+        -d | --dbsnp )          shift; DBSNPVCF=$1 ;; # dbsnp
+        -K | --1kg )            shift; ONEKGVCF=$1 ;; # 1000genomes data
+        -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
+        --maxGaussians )        shift; ADDRECAL=$ADDRECAL" --maxGaussians "$1 ;; #(additional params for recal)
+        --percentBadVariants )  shift; ADDRECAL=$ADDRECAL" --percentBadVariants "$1 ;; #(additional params for recal)
         -h | --help )           usage ;;
         * )                     usage
     esac

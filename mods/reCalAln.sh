@@ -52,9 +52,9 @@ while [ "$1" != "" ]; do
         -t | --threads )        shift; MYTHREADS=$1 ;; # number of CPUs to use
         -f | --fastq )          shift; f=$1 ;; # bam file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
-	-d | --snpdb )          shift; DBROD=$1 ;; # snpdb
+        -d | --snpdb )          shift; DBROD=$1 ;; # snpdb
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir
-	-L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
+        -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -69,7 +69,8 @@ done
 export PATH=$PATH:$RSCRIPT
 
 
-n=`basename $f`
+# get basename of f
+n=${f##*/}
 
 BAMREADS=`head -n1 $f.stats | cut -d " " -f 1`
 

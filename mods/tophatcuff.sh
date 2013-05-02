@@ -112,8 +112,10 @@ echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar ver
 echo -e "--PICARD  --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
 echo -e "--samstat --\n "$(samstat | head -n 2 | tail -n1)
 
+# get basename of f
+n=${f##*/}
+
 # get info about input file
-n=`basename $f`
 FASTASUFFIX=${FASTA##*.}
 BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.tph.bam}
 

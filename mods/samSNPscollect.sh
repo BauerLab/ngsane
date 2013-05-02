@@ -40,7 +40,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
         -f           )          shift; FILES=${1//,/ } ;; # bam files
-	-o           )          shift; MYOUT=$1 ;; # outputdir
+	    -o           )          shift; MYOUT=$1 ;; # outputdir
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac

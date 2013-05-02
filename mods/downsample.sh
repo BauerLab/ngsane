@@ -48,7 +48,8 @@ done
 #PROGRAMS
 . $HISEQINF/conf/header.sh
 
-n=`basename $f`
+# get basename of f
+n=${f##*/}
 
 #-F 0x0400
 echo "********* extract properly paired none duplicate"

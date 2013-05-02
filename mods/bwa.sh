@@ -76,21 +76,21 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
         -t | --threads )        shift; MYTHREADS=$1 ;; # number of CPUs to use
-	-m | --memory )         shift; MYMEMORY=$1 ;; # memory used
+        -m | --memory )         shift; MYMEMORY=$1 ;; # memory used
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir
-	-i | --rgid )           shift; EXPID=$1 ;; # read group identifier RD ID
-	-l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB
-	-p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
-	-s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
-	-u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU 
-	-R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
+        -i | --rgid )           shift; EXPID=$1 ;; # read group identifier RD ID
+        -l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB
+        -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
+        -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
+        -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU 
+        -R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         -S | --sam )            DOBAM=0 ;;
-	--fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
-	--forceSingle )         FORCESINGLE=1;;
-	--noMapping )           NOMAPPING=1;;
-	--oldIllumina )         QUAL="-S";;   # old illumina encoding 1.3+
+        --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
+        --forceSingle )         FORCESINGLE=1;;
+        --noMapping )           NOMAPPING=1;;
+        --oldIllumina )         QUAL="-S";;   # old illumina encoding 1.3+
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -122,7 +122,8 @@ echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar ver
 echo -e "--PICARD  --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
 echo -e "--samstat --\n "$(samstat | head -n 2 | tail -n1)
 
-n=`basename $f`
+# get basename of f
+n=${f##*/}
 
 # delete old bam file
 if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi

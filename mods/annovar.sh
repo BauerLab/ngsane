@@ -69,7 +69,8 @@ export PATH=$ANNOVAR:$PATH
 
 for f in $snps $snps2 $indel; do
 
-    n=`basename $f`
+    # get basename of f
+	n=${f##*/}
 
     echo "********* convert to annovar format"
     $ANNOVAR/convert2annovar.pl $f -format vcf4 -filter PASS -includeinfo >$OUT/${n/vcf/txt}

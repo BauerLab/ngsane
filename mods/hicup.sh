@@ -214,8 +214,6 @@ ln -s $OUTDIR/uniques_${n/.$FASTQ/}*${n/'_'$READONE.$FASTQ/'_'$READTWO}*.bam $MY
 
 cd $CURDIR
 
-exit 1
-
 echo "********* sorting and indexing"
 cat $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.ash.bam
 

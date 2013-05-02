@@ -41,12 +41,12 @@ THREADS=1
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-	-k | toolkit )          shift; CONFIG=$1 ;; # ENSURE NO VARIABLE NAMES FROM CONFIG
+        -k | toolkit )          shift; CONFIG=$1 ;; # ENSURE NO VARIABLE NAMES FROM CONFIG
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -b | --barcode )        shift; BARCODR=$1 ;; # reference genome
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
-	-p | --prefix )         shift; PREFIX=$1 ;; # prefix for the line
+        -p | --prefix )         shift; PREFIX=$1 ;; # prefix for the line
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -60,7 +60,8 @@ done
 . $CONFIG
 
 echo $OUTDIR
-n=`basename $f`
+# get basename of f
+n=${f##*/}
 
 if [[ $f = *.fastq.gz ]]; then
     echo "unzip first"

@@ -88,7 +88,8 @@ echo $PATH
 echo -e "--Python      --\n" $(python --version)
 echo -e "--Python libs --\n "$(yolk -l)
 
-n=`basename $f`
+# get basename of f
+n=${f##*/}
 
 #is paired ?                                                                                                      
 if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then

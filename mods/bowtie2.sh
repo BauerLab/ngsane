@@ -76,7 +76,9 @@ echo -e "--PICARD  --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar
 echo -e "--samstat --\n "$(samstat | head -n 2 | tail -n1)
 
 
-n=`basename $f`
+# get basename of f
+n=${f##*/}
+
 
 # delete old bam file                                                                                             
 if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi

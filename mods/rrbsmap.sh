@@ -62,14 +62,14 @@ while [ "$1" != "" ]; do
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
         -o | --outdir )         shift; OUT=$1 ;; # output dir
-	-i | --rgid )           shift; EXPID=$1 ;; # read group identifier RD ID
-	-l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB
-	-p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
-	-s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
-	-u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU 
-	-A | --adapter )        shift; ADAPTER="-A "$1 ;; # adapter
-	-R | --restriction )    shift; RSITE=$1 ;;
-	--fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
+        -i | --rgid )           shift; EXPID=$1 ;; # read group identifier RD ID
+        -l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB
+        -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
+        -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
+        -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU 
+        -A | --adapter )        shift; ADAPTER="-A "$1 ;; # adapter
+        -R | --restriction )    shift; RSITE=$1 ;;
+        --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -81,7 +81,8 @@ done
 . $HISEQINF/conf/header.sh
 if [ -n "$FASTQNAME" ]; then FASTQ=$FASTQNAME ; fi
 
-n=`basename $f`
+# get basename of f
+n=${f##*/}
 
 
 # delete old bam file

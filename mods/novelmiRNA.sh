@@ -19,7 +19,9 @@ OUT=$7        # output dir
 . $HISEQINF/conf/header.sh
 
 
-n=`basename $f`
+# get basename of f
+n=${f##*/}
+
 name=${n/.bam/}
 GENOME=$(echo $FASTA| sed 's/.fasta/.BEDgenome/' | sed 's/.fa/.BEDgenome/' )
 echo ">>>>> identify novel RNAs "
