@@ -206,10 +206,10 @@ if [ -n "RUNHICUP" ];then
     done
     
     echo "</pre><h3>hicup</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" hicup_truncater_summary.txt hicup >> $SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" hicup_mapper_summary.txt hicup >> $SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" hicup_filter_summary_results.txt hicup >> $SUMMARYTMP
-    python $HISEQINF/bin/Summary.py "$vali" hicup_deduplicater_summary_results.txt hicup >> $SUMMARYTMP
+    python $HISEQINF/bin/Summary.py "$vali" "hicup_truncater_summary.txt" hicup >> $SUMMARYTMP
+    python $HISEQINF/bin/Summary.py "$vali" "hicup_mapper_summary.txt" hicup >> $SUMMARYTMP
+    python $HISEQINF/bin/Summary.py "$vali" "hicup_filter_summary_results.txt" hicup >> $SUMMARYTMP
+    python $HISEQINF/bin/Summary.py "$vali" "hicup_deduplicater_summary_results.txt" hicup >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
