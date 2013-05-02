@@ -110,7 +110,8 @@ echo -e "--bowtie  --\n "$(bowtie --version | head -n 1 )
 echo -e "--perl    --\n "$(perl -v | grep "version" )
 echo -e "--HiCUP   --\n "$(hicup --version )
 
-n=`basename $f`
+# get basename of f
+n=${f##*/}
 
 #is paired ?
 if [ -e ${f/$READONE/$READTWO} ]; then
@@ -191,27 +192,32 @@ echo "#Path to the genome digest file" >> $HICUP_CONF
 echo "DIGEST:$DIGESTGENOME" >> $HICUP_CONF
 echo "#FASTQ file format | phred33-quals, phred64-quals, solexa-quals or solexa1.3-quals" >> $HICUP_CONF
 echo "Format:phred33-quals" >> $HICUP_CONF
-#echo "#Maximum di-tag length | optional parameter" >> $HICUP_CONF
-#echo "Longest:" >> $HICUP_CONF
-#echo "#Minimum di-tag length | optional parameter" >> $HICUP_CONF
-#echo "Shortest:" >> $HICUP_CONF
+echo "#Maximum di-tag length | optional parameter" >> $HICUP_CONF
+echo "#Longest:" >> $HICUP_CONF
+echo "#Minimum di-tag length | optional parameter" >> $HICUP_CONF
+echo "#Shortest:" >> $HICUP_CONF
 echo "#FASTQ files to be analysed, separating file pairs using the pipe '|' character" >> $HICUP_CONF
 echo "$f | ${f/$READONE/$READTWO} " >> $HICUP_CONF
 
 echo "********* execute hicup"
 CURDIR=$(pwd)
-cd $MYOUT
+OUTDIR=$MYOUT/${n/'_'$READONE.$FASTQ/}
+cd $OUTDIR
 HICUP_CALL="$(which perl) $(which hicup) -c $HICUP_CONF"
 echo $HICUP_CALL
 $($HICUP_CALL)
-mv hicup_deduplicater_summary_results_*.txt hicup_deduplicater_summary_results.txt
-mv hicup_filter_summary_results_*.txt hicup_filter_summary_results.txt
-mv hicup_mapper_summary_*.txt hicup_mapper_summary.txt
-mv hicup_truncater_summary_*.txt hicup_truncater_summary.txt
+cp hicup_deduplicater_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_deduplicater_summary_results.txt
+cp hicup_filter_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_filter_summary_results.txt
+cp hicup_mapper_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_mapper_summary.txt
+cp hicup_truncater_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_truncater_summary.txt
+ln -s $OUTDIR/uniques_${n/.$FASTQ/}*${n/'_'$READONE.$FASTQ/'_'$READTWO}*.bam $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam
+
 cd $CURDIR
 
+exit 1
+
 echo "********* sorting and indexing"
-cat $MYOUT/uniques_${n/.$FASTQ/}*${n/'_'$READONE.$FASTQ/'_'$READTWO}*.bam | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam}
+cat $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.ash.bam
 
 #TODO look at samtools for rmdup
 #val string had to be set to LENIENT to avoid crash due to a definition dis-
@@ -223,24 +229,23 @@ THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
 echo $THISTMP
 mkdir -p $THISTMP
 java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
-    INPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} \
-    OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
-    METRICS_FILE=$MYOUT/metrices/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
+    INPUT=$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.ash.bam \
+    OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.$ASD.bam \
+    METRICS_FILE=$MYOUT/metrices/$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.$ASD.bam.dupl AS=true \
     VALIDATION_STRINGENCY=LENIENT \
     TMP_DIR=$THISTMP
 rm -rf $THISTMP
-samtools index $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
+samtools index $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.$ASD.bam
 
 # statistics
 echo "********* statistics"
-STATSMYOUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats
-samtools flagstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} > $STATSMYOUT
+STATSMYOUT=$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.$ASD.bam.stats
+samtools flagstat $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.$ASD.bam > $STATSMYOUT
 if [ -n $SEQREG ]; then
     echo "#custom region" >> $STATSMYOUT
-    echo `samtools view $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" total reads in region " >> $STATSMYOUT
-    echo `samtools view -f 2 $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" properly paired reads in region " >> $STATSMYOUT
+    echo `samtools view $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.ash.bam $SEQREG | wc -l`" total reads in region " >> $STATSMYOUT
+    echo `samtools view -f 2 $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.ash.bam $SEQREG | wc -l`" properly paired reads in region " >> $STATSMYOUT
 fi
-
 
 echo "********* calculate inner distance"
 export PATH=$PATH:/usr/bin/
@@ -249,7 +254,7 @@ mkdir -p $THISTMP
 java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     INPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     REFERENCE_SEQUENCE=$FASTA \
-    OUTPUT=$MYOUT/metrices/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
+    OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.$ASD.bam \
     VALIDATION_STRINGENCY=LENIENT \
     PROGRAM=CollectAlignmentSummaryMetrics \
     PROGRAM=CollectInsertSizeMetrics \
@@ -261,12 +266,12 @@ done
 rm -rf $THISTMP
 
 echo "********* verify"
-BAMREADS=`head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1`
+BAMREADS=`head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.$ASD.bam.stats | cut -d " " -f 1`
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi			
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam}
+    rm $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.$ALN.bam
+    rm $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.ash.bam
 else
     echo -e "***ERROR**** We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
     exit 1 
@@ -274,12 +279,12 @@ fi
 
 echo "********* coverage track"
 GENOME=$(echo $FASTA | sed 's/.${FASTASUFFIX}/.genome/' )
-java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
-    $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam.cov.tdf} $GENOME
+java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.$ASD.bam \
+    $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.$ASD.bam.cov.tdf $GENOME
 
 
 echo "********* samstat"
-samstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
+samstat $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.$ASD.bam
 
 echo ">>>>> readmapping with hicup (bowtie) - FINISHED"
 echo ">>>>> enddate "`date`
