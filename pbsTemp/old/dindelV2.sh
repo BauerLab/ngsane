@@ -20,7 +20,7 @@ QOUT=qout/
 PRIORITY="-l hp=TRUE"
 
 #PROGRAMS
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 
 #PARAMETERS
 WINDOWS=100

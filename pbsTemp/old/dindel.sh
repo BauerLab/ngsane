@@ -17,7 +17,7 @@ OUT=$3        #output dir
 CANDIDATES=$4
 
 #PROGRAMS
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 
 #PARAMETERS
 WINDOWS=1000

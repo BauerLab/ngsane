@@ -16,7 +16,7 @@ CONS=$6
 OUT=$7        # output dir
 
 #PROGRAMS
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 
 
 n=`basename $f`

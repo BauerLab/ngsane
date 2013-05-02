@@ -18,7 +18,7 @@ OUT=$4        #output dir
 
 
 #PROGRAMS
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 
 #PARAMETERS
 WINDOWS=100

@@ -72,7 +72,7 @@ if [ -n "$GENE" ]; then TASK="-geneList $GENE"; fi
 
 
 #PROGRAMS
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 
 
 module load jdk

@@ -66,7 +66,7 @@ done
 
 #PROGRAMS
 . $CONFIG
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 . $CONFIG
 
 JAVAPARAMS="-Xmx"$(expr $MEMORY_VAR - 1 )"G" # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"

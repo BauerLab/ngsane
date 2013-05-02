@@ -78,7 +78,7 @@ done
 
 
 #PROGRAMS
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 if [ -n "$FASTQNAME" ]; then FASTQ=$FASTQNAME ; fi
 
 n=`basename $f`

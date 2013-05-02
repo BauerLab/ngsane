@@ -22,7 +22,7 @@ done
 
 #PROGRAMS
 . $CONFIG
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 . $CONFIG
 
 #echo "********** write TMP file"

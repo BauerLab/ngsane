@@ -89,7 +89,7 @@ done
 
 #PROGRAMS (note, both configs are necessary to overwrite the default, here:e.g.  TASKTOPHAT)
 . $CONFIG
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 . $CONFIG
 
 JAVAPARAMS="-Xmx"$(expr $MEMORY_TOPHAT - 1 )"G -Djava.io.tmpdir="$TMP

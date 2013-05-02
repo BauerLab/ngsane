@@ -15,7 +15,7 @@ OUT=$6        # output dir
 SEQREG=$7     # (optional) region of specific interest, e.g. targeted reseq
 
 #PROGRAMS
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 
 #PARAMETERS
 

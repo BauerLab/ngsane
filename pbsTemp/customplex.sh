@@ -56,7 +56,7 @@ done
 
 #PROGRAMS (note, both configs are necessary to overwrite the default, here:e.g.  TASKTOPHAT)
 . $CONFIG
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 . $CONFIG
 
 echo $OUTDIR

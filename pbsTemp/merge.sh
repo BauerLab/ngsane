@@ -24,7 +24,7 @@ WAIT=$7       # wait
 PRIORITY="-l hp=TRUE"
 
 #PROGRAMS
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 
 VCFTOOLS=/clusterdata/hiseq_apps/bin/devel/vcftools_0.1.5/bin
 

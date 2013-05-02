@@ -3,9 +3,9 @@ import sys, os, getopt
 
 bundle=50
 
-random="/clusterdata/hiseq_apps/hiSeqInf/bin/shufSTDIN.py"
+random="/clusterdata/hiseq_apps/hiSeqInf/tools/shufSTDIN.py"
 picard="/clusterdata/apps/picard-tools-1.31/"
-samtools="/clusterdata/hiseq_apps/bin/freeze001/samtools"
+samtools="/clusterdata/hiseq_apps/tools/freeze001/samtools"
 TMP="/clusterdata/denis/tmp/"
 
 #qout="qout/downsample/"

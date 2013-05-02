@@ -65,7 +65,7 @@ while [ "$1" != "" ]; do
 done
 
 #PROGRAMS
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 
 
 if [ -d $OUT ]; then rm -r $OUT; fi

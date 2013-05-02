@@ -1,6 +1,6 @@
 
 
-file="/clusterdata/hiseq_apps/bin/freeze001/annovar/humandb/hg19_gc5Base.txt"
+file="/clusterdata/hiseq_apps/tools/freeze001/annovar/humandb/hg19_gc5Base.txt"
 
 merge=5
 

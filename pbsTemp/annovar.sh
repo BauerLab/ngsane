@@ -62,7 +62,7 @@ done
 
 
 #PROGRAMS
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 
 export PATH=$ANNOVAR:$PATH
 

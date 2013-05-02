@@ -31,7 +31,7 @@ ADDITIONALTASK=$2
 
 # get all the specs defined in the config  (note both configs are necessary)
 . $CONFIG
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 . $CONFIG
 
 #PRIORITY="-l hp=TRUE"
@@ -589,7 +589,7 @@ then
 	#Submit
 	if [ -n "$ARMED" ]; then
 	    #downsample
-	    python $HISEQINF/bin/downsample.py -i $OUT/$dir/bwa/$n2 -o $OUT/$dir/$TASKDOWN/ -t downsample/$dir --region $SEQREG -w 500 -s 500 -q $QOUT/$TASKDOWN/$dir
+	    python $HISEQINF/tools/downsample.py -i $OUT/$dir/bwa/$n2 -o $OUT/$dir/$TASKDOWN/ -t downsample/$dir --region $SEQREG -w 500 -s 500 -q $QOUT/$TASKDOWN/$dir
 
 	fi
 

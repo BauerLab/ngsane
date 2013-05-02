@@ -7,7 +7,7 @@ CONFIG=$2
 
 
 #PROGRAMS
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 . $CONFIG
 
 

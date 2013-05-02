@@ -16,7 +16,7 @@ FASTA=$4      # reference genome
 OUT=$5        # output dir
 
 #PROGRAMS
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 
 #PARAMETERS
 WINDOWS=1000

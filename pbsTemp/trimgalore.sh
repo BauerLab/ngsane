@@ -29,7 +29,7 @@ while [ "$1" != "" ]; do
 done
 
 . $CONFIG
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 . $CONFIG
 
 #JAVAPARAMS="-Xmx"$(expr $MEMORY_CUTADAPT - 1 )"G"

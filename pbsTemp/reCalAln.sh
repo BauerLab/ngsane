@@ -64,7 +64,7 @@ done
 
 #PROGRAMS
 . $CONFIG
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 . $CONFIG
 export PATH=$PATH:$RSCRIPT
 

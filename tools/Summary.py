@@ -295,7 +295,7 @@ def bamDist(bamfile, col):
     elif(col==5):
         pre="pqal20"
 
-    st=os.popen3("python ../bin/bamchromdist.py "+bamfile)[1].read().split("\n")
+    st=os.popen3("python ../tools/bamchromdist.py "+bamfile)[1].read().split("\n")
     
     for s in st[2:-3]:
         arr=re.split("[ \t]+",s)
@@ -641,5 +641,5 @@ if (overAll):
     printStats(oaresult,names,0)
 
 
-#python /clusterdata/hiseq_apps/hiSeqInf/bin/Summary.py Ks50/tophat tph.bam.stats tophat
-#python2 /clusterdata/hiseq_apps/hiSeqInf/bin/Summary.py qout/bwa/ .out times
+#python /clusterdata/hiseq_apps/hiSeqInf/tools/Summary.py Ks50/tophat tph.bam.stats tophat
+#python2 /clusterdata/hiseq_apps/hiSeqInf/tools/Summary.py qout/bwa/ .out times

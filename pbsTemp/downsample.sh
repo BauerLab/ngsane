@@ -46,7 +46,7 @@ done
 
 
 #PROGRAMS
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 
 n=`basename $f`
 

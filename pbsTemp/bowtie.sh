@@ -18,7 +18,7 @@ OUT=$6           # output dir
 THREADS=$7
 
 #PROGRAMS
-. $HISEQINF/pbsTemp/header.sh
+. $HISEQINF/conf/header.sh
 
 
 echo ">>>>> alignment with with bowtie "
