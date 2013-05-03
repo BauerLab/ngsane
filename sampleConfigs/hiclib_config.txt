@@ -8,7 +8,7 @@
 #********************
 # Tasks
 #********************
-RUNHICUP="1"        # map HiC data with hicup
+RUNHICLIB="1"        # map HiC data with hiclib
 
 #********************
 # Paths
@@ -36,10 +36,10 @@ FASTQ="fq.gz"
 # which files to run on (replace samples with folders within fastq firectory)
 
 # reference genome
-FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
 
-# bowtie v1.0 index including basename
-BOWTIE_INDEX=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome
+# bowtie v2.0 index including basename
+BOWTIE2_INDEX=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome
 
 #********************
 # PARAMETER (mandatory)
@@ -48,16 +48,20 @@ EXPID="LnCap"
 LIBRARY="HiC"
 PLATFORM="Illumina"
 
-HICLIB_RENZYMES="BglII"
-HICUP_RENZYMES=A^GATCT,BglII
+HICLIB_GAPFILE= #/share/ClusterShare/software/contrib/fabbus/hiclib/19_04_13/hiclib/gap.txt
+HICLIB_RENZYMES="HindIII"
+HICLIB_READLENGTH=
 
 #********************
 # PARAMETER (optinal overwriting defaults)
 #********************
-#WALLTIME_HICUP=10:00:00
-#MEMORY_HICUP=60
-#CPU_HICUP=32
-#NODES_HICUP="nodes=1:ppn=8"
-#MODULE_HICUP="fabbus/hicup/0.3.0"
-#PATH_HICUP=
+#WALLTIME_HICLIB=60:00:00
+#MEMORY_HICLIB=60
+#CPU_HICLIB=32
+#NODES_HICLIB="nodes=1:ppn=8"
+#MODULE_HICLIB="fabbus/python/2.7.3 gi/bowtie/2.1.0 gi/samtools/0.1.19 fabbus/hiclib/30_04_13 fabbus/picard/1.89"
+#PATH_HICLIB="$PATH_PICARD"
+
+
+
 

@@ -591,7 +591,6 @@ for d in dir:
     psresult=[]
     name=os.listdir(d)
     name.sort()
-    print "name %s dir %s" % (name, dir)
     for f in name:
         if (re.compile(ext).search(f)):
 #        if(f[-len(ext)::]==ext):

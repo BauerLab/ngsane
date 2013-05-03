@@ -18,17 +18,34 @@ SOURCE=$(pwd)
 # which files to run on (replace sample with folders within fastq firectory)
 declare -a DIR; DIR=( sample1 sample2 )
 
+# where to write the output
 OUT=$SOURCE
+
+# where to write the log files
 QOUT=$OUT/qout
 
-HISEQINF=/share/ClusterShare/software/contrib/fabbus/ngsane/0.0.1
+# location of ngsane
+HISEQINF=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
 
-READONE="P1"
-READTWO="P2"
+# read indicator
+READONE="R1"
+READTWO="R2"
+
+# fastq file suffix
 FASTQ="fq.gz"
 
 #********************
-# PARAMETER
+# PARAMETER (optional)
 #********************
 # change output folder name
 #TASKFASTQC=fastQC_trim
+#
+#WALLTIME_FASTQC=10:00:00
+#MEMORY_FASTQC=20
+#CPU_FASTQC=16
+#NODES_FASTQC="nodes=2:ppn=8"
+#
+#MODULE_FASTQC="gi/fastqc/0.10.1"
+#PATH_FASTQC=
+#MODULE_LATEX=
+#PATH_LATEX=
