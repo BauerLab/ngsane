@@ -35,8 +35,8 @@ READTWO="R2"
 FASTQ="fq.gz"
 # which files to run on (replace samples with folders within fastq firectory)
 
-# reference genome
-FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
+# reference as single chromosomes
+FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Chromosomes/
 
 # bowtie v2.0 index including basename
 BOWTIE2_INDEX=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome
@@ -48,7 +48,7 @@ EXPID="LnCap"
 LIBRARY="HiC"
 PLATFORM="Illumina"
 
-HICLIB_GAPFILE= #/share/ClusterShare/software/contrib/fabbus/hiclib/19_04_13/hiclib/gap.txt
+HICLIB_GAPFILE= #/share/ClusterShare/software/contrib/fabbus/hiclib/30_04_13/hiclib/hg19.gap.txt
 HICLIB_RENZYMES="HindIII"
 HICLIB_READLENGTH=
 
