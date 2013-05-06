@@ -1,0 +1,69 @@
+# author: Fabian Buske
+# date: May 2013
+
+######################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNTOPHATCUFF2="1"    # mapping with tophat (RNAseq)
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq firectory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+# location of ngsane
+HISEQINF=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+
+# read indicator
+READONE="R1"
+READTWO="R2"
+
+# fastq file suffix
+FASTQ="fq.gz"
+# which files to run on (replace samples with folders within fastq firectory)
+
+# reference genome
+FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
+
+# bowtie v2.0 index including basename
+# BOWTIE2_INDEX=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome
+
+#********************
+# PARAMETER (mandatory)
+#********************
+EXPID="Celltype"
+LIBRARY="RNAseq"
+PLATFORM="Illumina"
+
+#********************
+# PARAMETER (optinal overwriting defaults)
+#********************
+#WALLTIME_TOPHAT=60:00:00
+#MEMORY_TOPHAT=50
+#CPU_TOPHAT=8
+#NODES_TOPHAT="nodes=1:ppn=8"
+#MODULE_TOPHATCUFF=
+#PATH_TOPHATCUFF=
+
+
+
+
+
+
+
+
+
+
