@@ -38,7 +38,7 @@ if [ ! $# -gt 3 ]; then usage ; fi
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --file    )        shift; f=$1 ;; # bam file
         -o | --output  )        shift; MYOUT=$1 ;; # output directory
         -h | --help    )        usage ;;
@@ -49,7 +49,7 @@ done
 
 #PROGRAMS
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 

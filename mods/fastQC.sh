@@ -2,7 +2,7 @@
 
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf 
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE 
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -12,7 +12,7 @@ done
 
 
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 echo "********** programs"

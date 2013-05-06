@@ -24,9 +24,6 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# location of ngsane
-HISEQINF=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
-
 # read indicator
 READONE="R1"
 READTWO="R2"
@@ -37,7 +34,7 @@ FASTQ="fq.gz"
 #********************
 # PARAMETER (optional)
 #********************
-# change output folder name
+## change output folder name
 #TASKFASTQC=fastQC_trim
 #
 #WALLTIME_FASTQC=10:00:00
@@ -49,3 +46,6 @@ FASTQ="fq.gz"
 #PATH_FASTQC=
 #MODULE_LATEX=
 #PATH_LATEX=
+
+## location of ngsane
+#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1

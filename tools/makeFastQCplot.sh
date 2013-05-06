@@ -6,7 +6,7 @@ OUTDIR=$2
 CONFIG=$4
 
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 module load $MODULE_LATEX

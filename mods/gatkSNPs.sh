@@ -17,7 +17,7 @@ function usage {
 echo -e "usage: $(basename $0)
 
 required:
-  -k | --toolkit <path>     location of the HiSeqInf repository 
+  -k | --toolkit <path>     location of the NGSANE repository 
   -i | --input <file>       temp files with all bam files for SNP calls
   -o | --outdir <path>      output dir
   -r | --reference <file>   reference genome
@@ -45,7 +45,7 @@ ADDRECAL="" # additional commands for variant recalibrator
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -i | --input )          shift; FILES=$1 ;; # temp files with paths to bam file
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir
@@ -66,7 +66,7 @@ done
 
 #PROGRAMS
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 JAVAPARAMS="-Xmx"$(expr $MEMORY_VAR - 1 )"G" # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"

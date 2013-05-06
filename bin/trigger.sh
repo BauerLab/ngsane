@@ -31,7 +31,7 @@ ADDITIONALTASK=$2
 
 # get all the specs defined in the config  (note both configs are necessary)
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 #PRIORITY="-l hp=TRUE"
@@ -43,16 +43,16 @@ ADDITIONALTASK=$2
 if [ -n "$ADDITIONALTASK" ]; then
     if [ "$ADDITIONALTASK" = "verify" ]; then
 	echo ">>>>>>>>>> $ADDITIONALTASK"
-	if [ -n "$RUNMAPPINGBWA" ]; then $HISEQINF/mods/QC.sh $HISEQINF/mods/bwa.sh $QOUT/$TASKBWA; fi
-	if [ -n "$recalibrateQualScore" ]; then $HISEQINF/mods/QC.sh $HISEQINF/mods/reCalAln.sh $QOUT/$TASKRCA; fi
-	if [ -n "$GATKcallIndels" ]; then $HISEQINF/mods/QC.sh $HISEQINF/mods/gatkIndel.sh $QOUT/$TASKIND; fi
-	if [ -n "$GATKcallSNPS" ]; then $HISEQINF/mods/QC.sh $HISEQINF/mods/gatkSNPs.sh $QOUT/$TASKSNP; fi
-	if [ -n "$RUNTOPHATCUFF" ]; then $HISEQINF/mods/QC.sh $HISEQINF/mods/tophatcuff.sh $QOUT/$TASKTOPHAT; fi
-	if [ -n "$RUNCUFFDIFF" ]; then $HISEQINF/mods/QC.sh $HISEQINF/mods/cuffdiff.sh $QOUT/$TASKCUFFDIFF; fi
+	if [ -n "$RUNMAPPINGBWA" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bwa.sh $QOUT/$TASKBWA; fi
+	if [ -n "$recalibrateQualScore" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA; fi
+	if [ -n "$GATKcallIndels" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkIndel.sh $QOUT/$TASKIND; fi
+	if [ -n "$GATKcallSNPS" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKSNP; fi
+	if [ -n "$RUNTOPHATCUFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT; fi
+	if [ -n "$RUNCUFFDIFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/cuffdiff.sh $QOUT/$TASKCUFFDIFF; fi
 	exit
     elif [ "$ADDITIONALTASK" = "html" ]; then
 	echo ">>>>>>>>>> $ADDITIONALTASK"
-	$HISEQINF/mods/makeSummary.sh $HISEQINF $CONFIG
+	${NGSANE_BASE}/mods/makeSummary.sh ${NGSANE_BASE} $CONFIG
 	exit
     elif [ "$ADDITIONALTASK" = "clean" ]; then
 	echo ">>>>>>>>>> $ADDITIONALTASK"
@@ -96,7 +96,7 @@ if [ ! -d $QOUT ]; then mkdir -p $QOUT; fi
 if [ -n "$RUNFASTQC" ]; then
     $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -i fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQC \
 	-c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC --postonly \
-	--postcommand "$HISEQINF/mods/fastQC.sh -k $CONFIG" 
+	--postcommand "${NGSANE_BASE}/mods/fastQC.sh -k $CONFIG" 
 fi
 
 ############################################
@@ -109,7 +109,7 @@ fi
 if [ -n "$RUNCUTADAPT" ]; then
     $QSUB $ARMED -d -k $CONFIG -t $TASKCUTADAPT -i fastq -e "_"$READONE.$FASTQ -n $NODES_CUTADAPT \
 	-c $CPU_CUTADAPT -m $MEMORY_CUTADAPT"G" -w $WALLTIME_CUTADAPT \
-	--command "$HISEQINF/mods/cutadapt.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKCUTADAPT" 
+	--command "${NGSANE_BASE}/mods/cutadapt.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKCUTADAPT" 
 fi
 
 ############################################
@@ -122,7 +122,7 @@ fi
 if [ -n "$RUNTRIMGALORE" ]; then
     $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMGALORE -i fastq -e "_"$READONE.$FASTQ -n $NODES_CUTADAPT \
         -c $CPU_TRIMGALORE -m $MEMORY_TRIMGALORE"G" -w $WALLTIME_TRIMGALORE \
-        --command "$HISEQINF/mods/trimgalore.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKTRIMGALORE"
+        --command "${NGSANE_BASE}/mods/trimgalore.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKTRIMGALORE"
 fi
 
 
@@ -199,7 +199,7 @@ then
 	      if [ -e $QOUT/$TASKCUSTOMPLEX/$NAME.out ]; then rm $QOUT/$TASKCUSTOMPLEX/$NAME.out; fi
 
 	      qsub $PRIORITY -j y -o $QOUT/$TASKCUSTOMPLEX/$NAME.out -cwd -b y -N $TASKCUSTOMPLEX"_"$NAME \
-		  $HISEQINF/mods/customplex.sh -k $CONFIG -f $f -b $CUSTOMBARCODE -p $p -o $OUT/fastq/$dir$TASKCUSTOMPLEX
+		  ${NGSANE_BASE}/mods/customplex.sh -k $CONFIG -f $f -b $CUSTOMBARCODE -p $p -o $OUT/fastq/$dir$TASKCUSTOMPLEX
 
 	  fi
       done
@@ -231,7 +231,7 @@ if [ -n "$RUNDOWNSAMPLING" ]; then
           if [ -n "$ARMED" ]; then
 	  		 qsub $PRIORITY -j y -o $QOUT/$TASKDOWNSAMPLE/$NAME.out -cwd -b y \
 	  		 -N $TASKDOWNSAMPLE"_"$NAME -l vf=4G \
-			$HISEQINF/mods/downsample.sh -k $HISEQINF -i $f -o $OUT/$dir/$TASKDOWNSAMPLE \
+			${NGSANE_BASE}/mods/downsample.sh -k ${NGSANE_BASE} -i $f -o $OUT/$dir/$TASKDOWNSAMPLE \
 			-s $READNUMBER -r $FASTA
 
 		  fi
@@ -250,7 +250,7 @@ fi
 
 if [ -n "$RUNMAPPINGBWA2" ]; then
     $QSUB $ARMED -k $CONFIG -t $TASKBWA -i fastq -e "_"$READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA \
-        --command "$HISEQINF/mods/bwa.sh $BWAADDPARM -k $CONFIG -t $CPU_BWA -m $(expr $MEMORY_BWA - 1 ) -f <FILE> -r $FASTA \
+        --command "${NGSANE_BASE}/mods/bwa.sh $BWAADDPARM -k $CONFIG -t $CPU_BWA -m $(expr $MEMORY_BWA - 1 ) -f <FILE> -r $FASTA \
                 -o $OUT/<DIR>/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> \
                 --fastqName $FASTQ -R $SEQREG"
 fi
@@ -280,7 +280,7 @@ then
         if [ -n "$ARMED" ]; then
            $BINQSUB -j oe -o $QOUT/$TASKBOWTIE/$dir'_'$name'.out' -w $(pwd) -l $NODES_BOWTIE \
                 -l vmem=$MEMORY_BOWTIE"G" -N $TASKBOWTIE'_'$dir'_'$name -l walltime=$WALLTIME_BOWTIE \
-                -command "$HISEQINF/mods/bowtie2.sh $BWAADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f $f -r $FASTA \
+                -command "${NGSANE_BASE}/mods/bowtie2.sh $BWAADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f $f -r $FASTA \
                 -o $OUT/$dir/$TASKBOWTIE --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi $dir \
                 --fastqName $FASTQ"
         fi
@@ -293,7 +293,7 @@ fi
 
 if [ -n "$RUNMAPPINGBOWTIE2" ]; then
     $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e "_"$READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
-	--command "$HISEQINF/mods/bowtie2.sh $BOWTIEADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE \
+	--command "${NGSANE_BASE}/mods/bowtie2.sh $BOWTIEADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE \
         --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
 fi
 
@@ -309,7 +309,7 @@ if [ -n "$mergeBWAbams" ]; then
     
     # combine them in lane bam files
     for e in $( ls $OUT/combined/mergeguide/lanes/ ); do
-	merge.sh $HISEQINF $OUT/combined/mergeguide/lanes/$e $OUT/combined/bwa/ ${e/tmp/$ASD.bam} bam qout/merged/
+	merge.sh ${NGSANE_BASE} $OUT/combined/mergeguide/lanes/$e $OUT/combined/bwa/ ${e/tmp/$ASD.bam} bam qout/merged/
     done
 fi
 
@@ -347,7 +347,7 @@ if [ -n "$RUNTOPHATCUFF" ]; then
 
 	    $BINQSUB -j oe -o $QOUT/$TASKTOPHAT/$dir'_'$name.out -w $(pwd) -l walltime=$WALLTIME_TOPHAT \
 		-N $TASKTOPHAT"_"$dir"_"$name -l $NODES_TOPHAT -l vmem=$MEMORY_TOPHAT"G" \
-		-command "$HISEQINF/mods/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -r $FASTA -f $f \
+		-command "${NGSANE_BASE}/mods/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -r $FASTA -f $f \
 		-t $CPU_TOPHAT -o $OUT/$dir/$TASKTOPHAT/$name/ -a $REFSEQGTF"
 	    #exit
 	fi
@@ -360,7 +360,7 @@ fi
 
 if [ -n "$RUNTOPHATCUFF2" ]; then
   $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e "_"$READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
-        --command "$HISEQINF/mods/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -f <FILE> \
+        --command "${NGSANE_BASE}/mods/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -f <FILE> \
          -t $CPU_TOPHAT -o $OUT/<DIR>/$TASKTOPHAT/<NAME> "
 
 fi
@@ -407,7 +407,7 @@ if [ -n "$recalibrateQualScore" ]; then
 	if [ -n "$ARMED" ]; then
 	    qsub $PRIORITY -j y -o $QOUT/$TASKRCA/$name'.out' -cwd -b y -l vf=20G \
 		-l mem_free=20G -l h_vmem=20G -N $TASKRCA'_'$name $HOLD\
-		$HISEQINF/mods/reCalAln.sh $HISEQINF $f $FASTA $DBROD \
+		${NGSANE_BASE}/mods/reCalAln.sh ${NGSANE_BASE} $f $FASTA $DBROD \
 		$OUT/combined/$TASKRCA $SEQREG
 	fi
 	
@@ -462,7 +462,7 @@ if [ -n "$RUNREALRECAL" ]; then
 	if [ -n "$ARMED" ]; then
 	    $BINQSUB -j oe -o $QOUT/$TASKRCA/$dir'_'$name'.out' -w $(pwd) -l $NODES_RECAL \
 		-l vmem=$MEMORY_RECAL'G' -N $TASKRCA'_'$dir'_'$name -l walltime=$WALLTIME_RECAL \
-		-command "$HISEQINF/mods/reCalAln.sh -k $HISEQINF -f $OUT/$dir/$TASKBWA/$n2 -r $FASTA -d $DBROD \
+		-command "${NGSANE_BASE}/mods/reCalAln.sh -k ${NGSANE_BASE} -f $OUT/$dir/$TASKBWA/$n2 -r $FASTA -d $DBROD \
 		-o $OUT/$dir/$TASKRCA -t $CPU_RECAL $RECALADDPARAM"
 	fi
 	
@@ -476,7 +476,7 @@ if [ -n "$RUNREALRECAL2" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKRCA -i $TASKBWA/ -e .$ASD.bam \
         -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
-        --command "$HISEQINF/mods/reCalAln.sh $RECALADDPARAM -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA -t $CPU_RECAL"
+        --command "${NGSANE_BASE}/mods/reCalAln.sh $RECALADDPARAM -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA -t $CPU_RECAL"
 
 
 fi
@@ -494,7 +494,7 @@ if [ -n "$mergeReCalbams" ]; then
     ls combined/reCalAln/*.bam >combined/mergeguide/combineAll.txt
     
     # combine them in lane bam files
-    $HISEQINF/mods/merge.sh $HISEQINF $OUT/combined/mergeguide/combineAll.txt $OUT/combined/ DISC1_all.bam bam qout/merged/
+    ${NGSANE_BASE}/mods/merge.sh ${NGSANE_BASE} $OUT/combined/mergeguide/combineAll.txt $OUT/combined/ DISC1_all.bam bam qout/merged/
 fi
 
 
@@ -537,7 +537,7 @@ then
 	if [ -n "$ARMED" ]; then
 	    qsub $PRIORITY -j y -o $QOUT/$TASKDOC/$dir'_'$name'.out' -cwd -b y -pe mpich $CPUS \
 		-l mem_free=11G -l h_vmem=11G -l vf=500K -N $TASKDOC'_'$dir'_'$name $HOLD\
-		$HISEQINF/mods/gatkDOC.sh -k $HISEQINF -f $OUT/$dir/$TASKRCA/$n2 -r $FASTA \
+		${NGSANE_BASE}/mods/gatkDOC.sh -k ${NGSANE_BASE} -f $OUT/$dir/$TASKRCA/$n2 -r $FASTA \
 		-o $OUT/$dir/$TASKDOC -t $CPUS $DOCADDPARAM
 	fi
 
@@ -550,7 +550,7 @@ if [ -n "$DEPTHOFCOVERAGE2" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKDOC -i $TASKRCA/ -e .$ASR.bam \
 	-n $NODES_GATKDOC -c $CPU_GATKDOC -m $MEMORY_GATKDOC"G" -w $WALLTIME_GATKDOC \
-	--command "$HISEQINF/mods/gatkDOC.sh $DOCADDPARAM -k $HISEQINF -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKDOC -t $CPU_GATKDOC"
+	--command "${NGSANE_BASE}/mods/gatkDOC.sh $DOCADDPARAM -k ${NGSANE_BASE} -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKDOC -t $CPU_GATKDOC"
 
 fi
 
@@ -589,7 +589,7 @@ then
 	#Submit
 	if [ -n "$ARMED" ]; then
 	    #downsample
-	    python $HISEQINF/tools/downsample.py -i $OUT/$dir/bwa/$n2 -o $OUT/$dir/$TASKDOWN/ -t downsample/$dir --region $SEQREG -w 500 -s 500 -q $QOUT/$TASKDOWN/$dir
+	    python ${NGSANE_BASE}/tools/downsample.py -i $OUT/$dir/bwa/$n2 -o $OUT/$dir/$TASKDOWN/ -t downsample/$dir --region $SEQREG -w 500 -s 500 -q $QOUT/$TASKDOWN/$dir
 
 	fi
 
@@ -597,7 +597,7 @@ then
     done
 
 # echo $( ls Hannibal_FC30MEJAAXX/downsample/*500d.bam ) > mergeBamfiles500d.tmp
-# qsub -b y -cwd -j y -o qout/$COMBDIR/merged.asd.500d -pe mpich 2 /clusterdata/hiseq_apps/hiSeqInf/mods/merge.sh $HISEQINF mergeBamfiles500d.tmp merged merged.$ASD.500d.bam bam
+# qsub -b y -cwd -j y -o qout/$COMBDIR/merged.asd.500d -pe mpich 2 /clusterdata/hiseq_apps/hiSeqInf/mods/merge.sh ${NGSANE_BASE} mergeBamfiles500d.tmp merged merged.$ASD.500d.bam bam
 
 fi
 
@@ -628,7 +628,7 @@ then
     #Submit
     if [ -n "$ARMED" ]; then
 	qsub $PRIORITY -j y -o $QOUT/$TASKDINS/dindelVCFmerge.out -cwd -b y -l h_vmem=12G -N dindelVCFmerge \
-	    $HISEQINF/mods/merge.sh $HISEQINF dindelVCFmerge.tmp $OUT/genotype dindelSeparate.vcf vcf
+	    ${NGSANE_BASE}/mods/merge.sh ${NGSANE_BASE} dindelVCFmerge.tmp $OUT/genotype dindelSeparate.vcf vcf
 	    
     fi
 
@@ -694,7 +694,7 @@ then
 
     #Submit
     if [ -n "$ARMED" ]; then
-	    $HISEQINF/mods/dindelV2.sh $HISEQINF $CANDIDATES $FASTA $COMBDIR/$TASKDINC/
+	    ${NGSANE_BASE}/mods/dindelV2.sh ${NGSANE_BASE} $CANDIDATES $FASTA $COMBDIR/$TASKDINC/
 
     fi
 fi
@@ -743,7 +743,7 @@ then
 	if [ -n "$ARMED" ]; then
 	    qsub $PRIORITY -j y -o $QOUT/$TASKIND/$dir'_'$name'.out' -cwd -b y \
 		-l h_vmem=12G -N $TASKIND'_'$dir'_'$name $HOLD\
-		$HISEQINF/mods/gatkIndel.sh $HISEQINF $OUT/$dir/$TASKRCA/$n2 $FASTA $DBROD \
+		${NGSANE_BASE}/mods/gatkIndel.sh ${NGSANE_BASE} $OUT/$dir/$TASKRCA/$n2 $FASTA $DBROD \
 		$REFSEQROD $OUT/$dir/$TASKIND
 	fi
 
@@ -801,7 +801,7 @@ then
     if [ -n "$ARMED" ]; then
 	qsub -j y -o $QOUT/$TASKIND/$NAME.out -cwd -b y \
 	    -l mem_free=20G -l h_vmem=20G -N $TASKIND"_"$NAME.out $HOLD\
-	    $HISEQINF/mods/gatkIndelV2.sh $HISEQINF $TASKIND"bamfiles.tmp" $FASTA $DBROD \
+	    ${NGSANE_BASE}/mods/gatkIndelV2.sh ${NGSANE_BASE} $TASKIND"bamfiles.tmp" $FASTA $DBROD \
 	    $REFSEQROD $OUT/genotype $SEQREG
     fi
 
@@ -868,12 +868,12 @@ then
 	if [ -n "$ARMED" ]; then
 	    #$BINQSUB -j oe -o $QOUT/$TASKVAR/$NAME.out -w $(pwd) -l $NODES_VAR $HOLD \
 		#-l vmem=$MEMORY_VAR"G" -N $TASKVAR'_'$NAME -l walltime=$WALLTIME_VAR \
-		#-command "$HISEQINF/mods/gatkSNPs.sh -k $CONFIG -i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
+		#-command "${NGSANE_BASE}/mods/gatkSNPs.sh -k $CONFIG -i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
 		#-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME -H $HAPMAPVCF -K $ONEKGVCF $VARADDPARAM"
     	    
 	    $BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY_VAR"G" -n $NODES_VAR -w $WALLTIME_VAR \
 	    	-j $TASKVAR'_'$NAME -o $QOUT/$TASKVAR/$NAME.out \
-			--command "$HISEQINF/mods/gatkSNPs.sh -k $CONFIG \
+			--command "${NGSANE_BASE}/mods/gatkSNPs.sh -k $CONFIG \
 			-i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
 			-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME \
 			-H $HAPMAPVCF -K $ONEKGVCF $VARADDPARAM"
@@ -923,7 +923,7 @@ if [ -n "$RUNANNOTATION" ]; then
 	if [ -n "$ARMED" ]; then
 	    qsub $PRIORITY -b y -cwd -j y -o $QOUT/$TASKANNOVAR/$n.out \
 		-N $TASKANNOVAR'_'$n $HOLD\
-		$HISEQINF/mods/annovar.sh -k $HISEQINF -i1 $namesnp -i2 $namesnp2 -i3 $nameindel -r $FASTA \
+		${NGSANE_BASE}/mods/annovar.sh -k ${NGSANE_BASE} -i1 $namesnp -i2 $namesnp2 -i3 $nameindel -r $FASTA \
 		-o $OUT/$TASKANNOVAR/$n 
 
 	fi
@@ -973,7 +973,7 @@ then
 	if [ -n "$ARMED" ]; then
 	    qsub $PRIORITY -j y -o $QOUT/$TASKSNP/$dir'_'$name'.out' -cwd -b y \
 		-l h_vmem=12G -N $TASKSNP'_'$dir'_'$name $HOLD\
-		$HISEQINF/mods/gatkSNPs.sh $CONFIG $OUT/$dir/$TASKRCA/$n2 $FASTA $DBVCF \
+		${NGSANE_BASE}/mods/gatkSNPs.sh $CONFIG $OUT/$dir/$TASKRCA/$n2 $FASTA $DBVCF \
 		$REFSEQROD $OUT/$dir/$TASKSNP $OUT/$dir/$TASKIND | cut -d "" -f 2 >>$QOUT/$TASKSNP/ids.txt
 	fi
 
@@ -1023,7 +1023,7 @@ if [ -n "$RUNCUFFDIFF" ]; then
     if [ -n "$ARMED" ]; then
       qsub $PRIORITY -b y -cwd -j y -o $QOUT/$TASKCUFFDIFF/$n.out \
      	    -N $TASKCUFFDIFF'_'$n -pe mpich $CPUS $HOLD\
-            $HISEQINF/mods/cuffdiff.sh -k $HISEQINF -b $name -r $FASTA \
+            ${NGSANE_BASE}/mods/cuffdiff.sh -k ${NGSANE_BASE} -b $name -r $FASTA \
 	    -t $CPUS -o $OUT/$TASKCUFFDIFF/$n -a $REFSEQGTF
 
 	fi
@@ -1064,7 +1064,7 @@ then
 	if [ -n "$ARMED" ]; then
 	   qsub $PRIORITY -j y -o $QOUT/$TASKRRBS/$dir'_'$name'.out' -cwd -b y -pe mpich $CPUS \
 		-l h_vmem=12G -N $TASKRRBS'_'$dir'_'$name \
-		$HISEQINF/mods/rrbsmap.sh $RRBSMAPADDPARM -k $HISEQINF -t $CPUS -f $f -r $FASTA -o $OUT/$dir/$TASKRRBS \
+		${NGSANE_BASE}/mods/rrbsmap.sh $RRBSMAPADDPARM -k ${NGSANE_BASE} -t $CPUS -f $f -r $FASTA -o $OUT/$dir/$TASKRRBS \
 		--rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi $dir --rgpu $FLOWCELL --fastqName $FASTQ 
 
 	fi
@@ -1081,7 +1081,7 @@ fi
 if [ -n "$RUNANNOTATINGBAM" ]; then
     $QSUB --nodir -r $ARMED -k $CONFIG -t $TASKBAMANN -i $TASKBWA -e .bam \
     -n $NODES_BAMANN -c $CPU_BAMANN -m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN \
-        --command "$HISEQINF/mods/annotateBam.sh -k $CONFIG -f <FILE>"
+        --command "${NGSANE_BASE}/mods/annotateBam.sh -k $CONFIG -f <FILE>"
 fi
 
 
@@ -1093,8 +1093,8 @@ fi
 if [ -n "$RUNSAMVAR" ]; then
    $QSUB -r $ARMED -k $CONFIG -t $TASKBWA-$TASKSAMVAR -i $TASKBWA -e .$ASD.bam \
    -n $NODES_SAMVAR -c $CPU_SAMVAR -m $MEMORY_SAMVAR'G' -w $WALLTIME_SAMVAR \
-        --command "$HISEQINF/mods/samSNPs.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBWA-$TASKSAMVAR" \
-	--postcommand "$HISEQINF/mods/samSNPscollect.sh -k $CONFIG -f <FILE> -o $OUT/variant/$TASKBWA-$TASKSAMVAR-<DIR>"
+        --command "${NGSANE_BASE}/mods/samSNPs.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBWA-$TASKSAMVAR" \
+	--postcommand "${NGSANE_BASE}/mods/samSNPscollect.sh -k $CONFIG -f <FILE> -o $OUT/variant/$TASKBWA-$TASKSAMVAR-<DIR>"
 fi
 
 ############################################
@@ -1104,7 +1104,7 @@ fi
 if [ -n "$RUNHICUP" ]; then
     $QSUB $ARMED -k $CONFIG -t $TASKHICUP -i fastq -e "_"$READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
     	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP \
-        --command "$HISEQINF/mods/hicup.sh $HICUPADDPARM -k $CONFIG -t $CPU_HICUP -m $(expr $MEMORY_HICUP - 1 ) -f <FILE> -r $FASTA --digest '$HICUP_RENZYMES' -o $OUT/<DIR>/$TASKHICUP --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
+        --command "${NGSANE_BASE}/mods/hicup.sh $HICUPADDPARM -k $CONFIG -t $CPU_HICUP -m $(expr $MEMORY_HICUP - 1 ) -f <FILE> -r $FASTA --digest '$HICUP_RENZYMES' -o $OUT/<DIR>/$TASKHICUP --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
 fi
 
 ############################################
@@ -1117,7 +1117,7 @@ fi
 if [ -n "$RUNHICLIB" ]; then
     $QSUB $ARMED -k $CONFIG -t $TASKHICLIB -i fastq -e "_"$READONE.$FASTQ -n $NODES_HICLIB -c $CPU_HICLIB \
     	-m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
-        --command "$HISEQINF/mods/hiclibMapping.sh $HICLIBADDPARM -k $CONFIG --threads $CPU_HICLIB --memory $(expr $MEMORY_HICLIB - 1 ) --fastq <FILE> --enzymes "$HICLIB_RENZYMES" --outdir $OUT/<DIR>/$TASKHICLIB --fastqName <NAME>"  #\
-        #--postcommand "$HISEQINF/mods/hiclibCorrelate.sh $HICLIBADDPARM -f <FILE> -k $CONFIG --threads $CPU_HICLIB --memory $(expr $MEMORY_HICLIB - 1 ) --enzymes "$HICLIB_RENZYMES" --outdir $OUT/hic/$TASKHICLIB-<DIR>
+        --command "${NGSANE_BASE}/mods/hiclibMapping.sh $HICLIBADDPARM -k $CONFIG --threads $CPU_HICLIB --memory $(expr $MEMORY_HICLIB - 1 ) --fastq <FILE> --enzymes "$HICLIB_RENZYMES" --outdir $OUT/<DIR>/$TASKHICLIB --fastqName <NAME>"  #\
+        #--postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh $HICLIBADDPARM -f <FILE> -k $CONFIG --threads $CPU_HICLIB --memory $(expr $MEMORY_HICLIB - 1 ) --enzymes "$HICLIB_RENZYMES" --outdir $OUT/hic/$TASKHICLIB-<DIR>
 
 fi

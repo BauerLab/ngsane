@@ -19,7 +19,7 @@ echo ">>>>> bwa.sh $*"
 
 
 function usage {
-echo -e "usage: $(basename $0) -k HISEQINF -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]
+echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]
 
 Script running read mapping for single and paired DNA reads from fastq files
 It expects a fastq file, pairdend, reference genome  as input and 
@@ -27,7 +27,7 @@ It runs BWA, converts the output to .bam files, adds header information and
 writes the coverage information for IGV.
 
 required:
-  -k | --toolkit <path>     location of the HiSeqInf repository 
+  -k | --toolkit <path>     location of the NGSANE repository 
   -f | --fastq <file>       fastq file
   -r | --reference <file>   reference genome
   -o | --outdir <path>      output dir
@@ -74,7 +74,7 @@ QUAL="" # standard Sanger
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -t | --threads )        shift; MYTHREADS=$1 ;; # number of CPUs to use
         -m | --memory )         shift; MYMEMORY=$1 ;; # memory used
         -f | --fastq )          shift; f=$1 ;; # fastq file
@@ -99,7 +99,7 @@ done
 
 #PROGRAMS
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 JAVAPARAMS="-Xmx"$MYMEMORY"g -Djava.io.tmpdir="$TMP # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"

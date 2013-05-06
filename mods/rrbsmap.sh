@@ -16,7 +16,7 @@ echo ">>>>> rrbsmap.sh $*"
 
 
 function usage {
-echo -e "usage: $(basename $0) -k HISEQINF -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]
+echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]
 
 Script running read mapping for single and paired DNA reads from fastq files
 It expects a fastq file, pairdend, reference genome  as input and 
@@ -24,7 +24,7 @@ It runs BWA, converts the output to .bam files, adds header information and
 writes the coverage information for IGV.
 
 required:
-  -k | --toolkit <path>     location of the HiSeqInf repository 
+  -k | --toolkit <path>     location of the NGSANE repository 
   -f | --fastq <file>       fastq file
   -r | --reference <file>   reference genome
   -o | --outdir <path>      output dir
@@ -57,7 +57,7 @@ RSITE="C-CGG"         # restriction enzyme cutting site
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; HISEQINF=$1 ;; # location of the HiSeqInf repository
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
@@ -78,7 +78,9 @@ done
 
 
 #PROGRAMS
-. $HISEQINF/conf/header.sh
+. $CONFIG
+. ${NGSANE_BASE}/conf/header.sh
+. $CONFIG
 if [ -n "$FASTQNAME" ]; then FASTQ=$FASTQNAME ; fi
 
 # get basename of f

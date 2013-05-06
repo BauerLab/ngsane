@@ -24,9 +24,6 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# location of ngsane
-HISEQINF=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
-
 # read indicator
 READONE="R1"
 READTWO="R2"
@@ -60,4 +57,7 @@ HICUP_RENZYMES=A^GATCT,BglII
 #NODES_HICUP="nodes=1:ppn=8"
 #MODULE_HICUP="fabbus/hicup/0.3.0"
 #PATH_HICUP=
+
+## location of ngsane
+#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
 

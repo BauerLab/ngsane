@@ -19,7 +19,7 @@ echo ">>>>> customplex.sh $*"
 
 
 function usage {
-echo -e "usage: $(basename $0) -k HISEQINF -f FASTA -r REFERENCE -o OUTDIR [OPTIONS]
+echo -e "usage: $(basename $0) -k NGSANE -f FASTA -r REFERENCE -o OUTDIR [OPTIONS]
 
 Script
 
@@ -56,7 +56,7 @@ done
 
 #PROGRAMS (note, both configs are necessary to overwrite the default, here:e.g.  TASKTOPHAT)
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 echo $OUTDIR
@@ -74,7 +74,7 @@ fi
 
 # put read1 and read2 side by side
 echo "********* read1-read2"
-perl $HISEQINF/bin/shuffleSequences_fastq_sidebyside.pl $f ${f/$READONE/$READTWO} \
+perl ${NGSANE_BASE}/bin/shuffleSequences_fastq_sidebyside.pl $f ${f/$READONE/$READTWO} \
     $OUTDIR/${n/$READONE/"sidebyside_R1"}
 
 # demultiplex them
@@ -85,11 +85,11 @@ cat $OUTDIR/${n/$READONE/"sidebyside_R1"} | $FASTXTK/fastx_barcode_splitter.pl  
 
 # find unmatched
 echo "********* read1-read2 unmatched"
-perl $HISEQINF/bin/splitintoforandrevreads.pl $OUTDIR/$PREFIX"_R1_unmatched"
+perl ${NGSANE_BASE}/bin/splitintoforandrevreads.pl $OUTDIR/$PREFIX"_R1_unmatched"
 
 # put for the unmached read one first
 echo "********* read2-read1"
-perl $HISEQINF/bin/shuffleSequences_fastq_sidebyside.pl \
+perl ${NGSANE_BASE}/bin/shuffleSequences_fastq_sidebyside.pl \
     $OUTDIR/$PREFIX"_R1_unmatched_2_seq.fastq" \
     $OUTDIR/$PREFIX"_R1_unmatched_1_seq.fastq" \
     $OUTDIR/${n/$READONE/"sidebyside_R2"}
@@ -113,8 +113,8 @@ for p in $( ls $OUTDIR/$PREFIX"_R1"*.fastq ); do
     echo $RTWO
 
     # unconcatinate again
-    perl $HISEQINF/bin/splitintoforandrevreads.pl $RONE
-    perl $HISEQINF/bin/splitintoforandrevreads_2readfirst.pl $RTWO
+    perl ${NGSANE_BASE}/bin/splitintoforandrevreads.pl $RONE
+    perl ${NGSANE_BASE}/bin/splitintoforandrevreads_2readfirst.pl $RTWO
 
     # get read1 and read2
     cat $RONE"_1_seq.fastq" $RTWO"_1_seq.fastq" > ${RONE/"_R1"/}"_read1untr_seq.fastq"

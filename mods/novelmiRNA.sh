@@ -7,7 +7,7 @@
 # date: Feb.2011
 
 #INPUTS
-HISEQINF=$1   # location of the HiSeqInf repository
+NGSANE=$1   # location of the NGSANE repository
 f=$2          # bam file
 FASTA=$3      # reference genome
 MIRNA=$4      # all annotated areas in the genome
@@ -16,7 +16,7 @@ CONS=$6
 OUT=$7        # output dir
 
 #PROGRAMS
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 
 
 # get basename of f
@@ -27,7 +27,7 @@ GENOME=$(echo $FASTA| sed 's/.fasta/.BEDgenome/' | sed 's/.fa/.BEDgenome/' )
 echo ">>>>> identify novel RNAs "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> novelmiRNA.sh $HISEQINF $f $FASTA $MIRNA $GENES $OUT"
+echo ">>>>> novelmiRNA.sh $NGSANE $f $FASTA $MIRNA $GENES $OUT"
 
 transcrFilter="1"
 consFilter="1"

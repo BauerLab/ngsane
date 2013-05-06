@@ -7,8 +7,8 @@
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-    -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
-	-i | --input )         shift; ORIGIN=$1 ;; # subfile in $SOURCE
+    -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
+	-i | --input )          shift; ORIGIN=$1 ;; # subfile in $SOURCE
 	-e | --fileending )     shift; ENDING=$1 ;; # select source files of a specific ending
 	-t | --task )           shift; TASK=$1 ;; # what to do
 	-n | --nodes )          shift; NODES=$1;;
@@ -32,7 +32,7 @@ done
 
 #PROGRAMS
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 echo "********* $TASK $NODIR"
@@ -100,7 +100,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     #    -command "$COMMAND2")
     
     # record task in log file
-    cat $CONFIG $HISEQINF/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
+    cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
 
 	RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
 		-j $TASK'_'$dir'_'$name -o $QOUT/$TASK/$dir'_'$name'.out' \
@@ -131,7 +131,7 @@ if [ -n "$POSTCOMMAND" ]; then
     if [[ -n "$ARMED" ||  -n "$POSTONLY" ]]; then
 
 	# record task in log file
-	cat $CONFIG $HISEQINF/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
+	cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
 
 
 	#RECIPT=$($BINQSUB $QSUBEXTRA -W after:$MYPBSIDS -j oe -o $QOUT/$TASK/$DIR'_postcommand.out' -w $(pwd) -l $NODES \

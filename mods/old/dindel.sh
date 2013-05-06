@@ -10,14 +10,14 @@
 
 
 #INPUTS
-HISEQINF=$1   # location of the HiSeqInf repository
+NGSANE_BASE=$1   # location of the NGSANE repository
 f=$1          #fastq file
 FASTA=$2      #reference genome
 OUT=$3        #output dir
 CANDIDATES=$4
 
 #PROGRAMS
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 
 #PARAMETERS
 WINDOWS=1000

@@ -13,7 +13,7 @@ export PERL5LIB=${PERL5LIB}:/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3
 export PATH=$PATH:/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3
 
 #INPUTS
-HISEQINF=$1   # location of the HiSeqInf repository
+NGSANE =$1   # location of the NGSANE repository
 FILES=$2      # file with paths to bamfiles
 OUT=$3        # output dir
 NAME=$4       # output name
@@ -24,7 +24,7 @@ WAIT=$7       # wait
 PRIORITY="-l hp=TRUE"
 
 #PROGRAMS
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 
 VCFTOOLS=/clusterdata/hiseq_apps/bin/devel/vcftools_0.1.5/bin
 
@@ -32,7 +32,7 @@ VCFTOOLS=/clusterdata/hiseq_apps/bin/devel/vcftools_0.1.5/bin
 echo ">>>>> call merge $TASK"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> merge.sh $HISEQINF $FILES $OUT $NAME $TASK $QOUT $WAIT $PRIORITY"
+echo ">>>>> merge.sh $NGSANE $FILES $OUT $NAME $TASK $QOUT $WAIT $PRIORITY"
 
 if [ $TASK = "bam" ]; then
     echo "merging bam "$( less $FILES )

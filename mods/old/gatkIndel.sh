@@ -6,7 +6,7 @@
 # date: Nov.2010
 
 #INPUTS
-HISEQINF=$1   # location of the HiSeqInf repository
+NGSANE_BASE=$1   # location of the NGSANE repository
 f=$2          # fastq file
 FASTA=$3      # reference genome
 DBROD=$4
@@ -15,7 +15,7 @@ OUT=$6        # output dir
 SEQREG=$7     # (optional) region of specific interest, e.g. targeted reseq
 
 #PROGRAMS
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 
 #PARAMETERS
 
@@ -24,7 +24,7 @@ n=`basename $f`
 echo ">>>>> call INDELSs using GATK"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> gatkIndel.sh $HISEQINF $f $FASTA $DBROD $REFSEQROD $OUT $SEQREG"
+echo ">>>>> gatkIndel.sh $NGSANE_BASE $f $FASTA $DBROD $REFSEQROD $OUT $SEQREG"
 
 # delete old indel files
 if [ -e $OUT/${n/bam/indel.vcf} ]; then

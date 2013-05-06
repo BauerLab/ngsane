@@ -2,12 +2,12 @@
 
 echo "run"
 
-HISEQINF=$1   # location of the HiSeqInf repository
+NGSANE_BASE=$1   # location of the NGSANE repository
 CONFIG=$2
 
 
 #PROGRAMS
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 
@@ -21,9 +21,9 @@ echo "Last modified "`date` >$SUMMARYTMP
 #if [ -n "$fastQC" ]; then
     echo "fastqc"
     echo "<h2>Read biases (FASTQC)</h2>">>$SUMMARYTMP
-    echo $HISEQINF/tools/makeFastQCplot.sh
+    echo ${NGSANE_BASE}/tools/makeFastQCplot.sh
     if [ -n "$RUNFASTQC" ]; then
-	$HISEQINF/tools/makeFastQCplot.sh $(pwd)/runStats/$TASKFASTQC/ $(pwd)/runStats/ fastQCSummary.pdf $CONFIG > /dev/null #2>&1
+	${NGSANE_BASE}/tools/makeFastQCplot.sh $(pwd)/runStats/$TASKFASTQC/ $(pwd)/runStats/ fastQCSummary.pdf $CONFIG > /dev/null #2>&1
     fi
     echo "done"
     echo "<table><tr><td valign=top>" >>$SUMMARYTMP
@@ -53,24 +53,24 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     echo "<a name=\"mapping\"><h2>BWA Mapping</h2>">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
     echo "QC"
-    $HISEQINF/mods/QC.sh $HISEQINF/mods/bwa.sh $QOUT/$TASKBWA >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bwa.sh $QOUT/$TASKBWA >>$SUMMARYTMP
     echo "gather dirs"
     for dir in ${DIR[@]}; do
 	vali=$vali" $OUT/$dir/$TASKBWA"
     done
     echo "python summary"
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
     if [ -n "$RUNANNOTATINGBAM" ]; then
 	echo "anno"
 	echo "</pre><h3>Anno</h3><pre>">>$SUMMARYTMP
-	python $HISEQINF/tools/Summary.py "$vali" merg.anno.stats annostats >>$SUMMARYTMP
+	python ${NGSANE_BASE}/tools/Summary.py "$vali" merg.anno.stats annostats >>$SUMMARYTMP
 	echo "</pre>" >>$SUMMARYTMP
 	ROUTH=runStats/$(echo ${DIR[@]}|sed 's/ /_/g')
 	if [ ! -e $ROUTH ]; then mkdir $ROUTH; fi
 	for MODULE in $MODULE_R; do module load $MODULE; done  # save way to load modules that itself load other modules
-	python $HISEQINF/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
+	python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
     fi
 fi
 
@@ -80,13 +80,13 @@ if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" ]]; then
     LINKS=$LINKS" recal"
     echo "<a name=\"recal\"><h2>RECAL Mapping</h2>">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
-    $HISEQINF/mods/QC.sh $HISEQINF/mods/reCalAln.sh $QOUT/$TASKRCA >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA >>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
 	vali=$vali" $OUT/$dir/$TASKRCA"
     done
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" $ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
@@ -95,13 +95,13 @@ if [[ -n "$RUNMAPPINGBOWTIE" || -n "$RUNMAPPINGBOWTIE2" ]]; then
     LINKS=$LINKS" mapping"
     echo "<a name=\"mapping\"><h2>BOWTIE Mapping</h2>">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
-    $HISEQINF/mods/QC.sh $HISEQINF/mods/bowtie2.sh $QOUT/$TASKBOWTIE >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie2.sh $QOUT/$TASKBOWTIE >>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKBOWTIE"
     done
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
@@ -111,13 +111,13 @@ if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
     LINKS=$LINKS" tophat"
     echo "<a name=\"tophat\"><h2>tophat Mapping</h2><br>Note, the duplication rate is not calculated by tophat and hence zero.">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
-    $HISEQINF/mods/QC.sh $HISEQINF/mods/tophatcuff.sh $QOUT/$TASKTOPHAT >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT >>$SUMMARYTMP
     for dir in ${DIR[@]}; do
 	vali=$vali" $OUT/$dir/$TASKTOPHAT"
 #	vali=$vali" "$(ls -d $OUT/$dir/$TASKTOPHAT/*/)
     done
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" bam.stats tophat >>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" bam.stats tophat >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
@@ -131,13 +131,13 @@ if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
 	vali=$vali" $OUT/$dir/$TASKDOC"
     done
     echo "<h3>Average coverage</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" $ASR".bam.doc.sample_summary" coverage >>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.doc.sample_summary" coverage >>$SUMMARYTMP
     echo "</pre><h3>Base pair coverage over all intervals</h3><pre>" >>$SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" $ASR".bam.doc.sample_cumulative_coverage_counts" coverage --p >>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.doc.sample_cumulative_coverage_counts" coverage --p >>$SUMMARYTMP
     echo "</pre><h3>Intervals covered</h3><pre>" >>$SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" $ASR".bam.doc.sample_interval_statistics" coverage --p >>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.doc.sample_interval_statistics" coverage --p >>$SUMMARYTMP
     echo "</pre><h3>On Target</h3><pre>" >>$SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" $ASR".bam.stats" target >>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.stats" target >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
     
 fi
@@ -145,7 +145,7 @@ fi
 if [ -n "$RUNVARCALLS" ]; then 
     LINKS=$LINKS" varcalls"
     echo "<a name=\"varcalls\"><h2>Variant calling</h2><pre>">>$SUMMARYTMP
-    $HISEQINF/mods/QC.sh $HISEQINF/mods/gatkSNPs.sh $QOUT/$TASKVAR >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKVAR >> $SUMMARYTMP
 
     vali=""
     for dir in ${DIR[@]}; do
@@ -153,10 +153,10 @@ if [ -n "$RUNVARCALLS" ]; then
     done
 
     echo "</pre><h3>SNPs</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" "filter.snps.eval.txt" variant --n --l>>$SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" "recalfilt.snps.eval.txt" variant --n --l>>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "filter.snps.eval.txt" variant --n --l>>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "recalfilt.snps.eval.txt" variant --n --l>>$SUMMARYTMP
     echo "</pre><h3>INDELs</h3><pre>" >>$SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l>>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l>>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
@@ -164,7 +164,7 @@ fi
 if [ -n "$RUNANNOTATION" ]; then
     LINKS=$LINKS" annotation"
     echo "<a name=\"annotation\"><h2>Variant annotation</h2></a><pre>">>$SUMMARYTMP
-    $HISEQINF/mods/QC.sh $HISEQINF/mods/annovar.sh $QOUT/$TASKANNOVAR >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/annovar.sh $QOUT/$TASKANNOVAR >> $SUMMARYTMP
 
     vali=""
     for dir in ${DIR[@]}; do
@@ -188,17 +188,17 @@ fi
 if [ -n "RUNHICLIB" ];then
     LINKS=$LINKS" hiclib"
     echo "<a name=\"hiclib\"><h2>HiC results</h2></a><pre>">>$SUMMARYTMP
-    $HISEQINF/mods/QC.sh $HISEQINF/mods/hiclibMapping.sh $QOUT/$TASKHICLIB >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/hiclibMapping.sh $QOUT/$TASKHICLIB >> $SUMMARYTMP
 
     echo "</pre><h3>hiclib</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/tools/Summary.py $QOUT/$TASKHICLIB ".out" hiclibMapping >> $SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py $QOUT/$TASKHICLIB ".out" hiclibMapping >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
 if [ -n "RUNHICUP" ];then
     LINKS=$LINKS" hicup"
     echo "<a name=\"hicup\"><h2>HiC results</h2></a><pre>">>$SUMMARYTMP
-    $HISEQINF/mods/QC.sh $HISEQINF/mods/hicup.sh $QOUT/$TASKHICUP >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/hicup.sh $QOUT/$TASKHICUP >> $SUMMARYTMP
 
     vali=""
     for dir in ${DIR[@]}; do
@@ -206,10 +206,10 @@ if [ -n "RUNHICUP" ];then
     done
     
     echo "</pre><h3>hicup</h3><pre>">>$SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" "hicup_truncater_summary.txt" hicup >> $SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" "hicup_mapper_summary.txt" hicup >> $SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" "hicup_filter_summary_results.txt" hicup >> $SUMMARYTMP
-    python $HISEQINF/tools/Summary.py "$vali" "hicup_deduplicater_summary_results.txt" hicup >> $SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_truncater_summary.txt" hicup >> $SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_mapper_summary.txt" hicup >> $SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_filter_summary_results.txt" hicup >> $SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_deduplicater_summary_results.txt" hicup >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 

@@ -16,14 +16,14 @@ echo ">>>>> hicup.sh $*"
 
 
 function usage {
-echo -e "usage: $(basename $0) -k HISEQINF -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]
+echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]
 
 Script running hicup including reference genome digestion, read mapping for single and 
 paired DNA reads with bowtie from fastq files
 It expects a fastq file, pairdend, reference genome and digest pattern  as input.
 
 required:
-  -k | --toolkit <path>     location of the HiSeqInf repository 
+  -k | --toolkit <path>     location of the NGSANE repository 
   -f | --fastq <file>       fastq file
   -r | --reference <file>   reference genome
   -d | --digest <cutsite>   enzyme cutsite pattern, e.g. A^AGCTT,HindIII seperate 2 patterns by ;
@@ -68,7 +68,7 @@ QUAL="" # standard Sanger
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -t | --threads )        shift; MYTHREADS=$1 ;; # number of CPUs to use
 		-m | --memory )         shift; MYMEMORY=$1 ;; # memory used
         -f | --fastq )          shift; f=$1 ;; # fastq file
@@ -92,7 +92,7 @@ done
 
 #PROGRAMS
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 JAVAPARAMS="-Xmx"$MYMEMORY"g -Djava.io.tmpdir="$TMP # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"

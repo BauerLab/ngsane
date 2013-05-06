@@ -10,7 +10,7 @@
 
 
 #INPUTS
-HISEQINF=$1   # location of the HiSeqInf repository
+NGSANE_BASE=$1   # location of the NGSANE repository
 CANDIDATES=$2
 FASTA=$3      #reference genome
 OUT=$4        #output dir
@@ -20,7 +20,7 @@ QOUT=qout/
 PRIORITY="-l hp=TRUE"
 
 #PROGRAMS
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 
 #PARAMETERS
 WINDOWS=100
@@ -28,7 +28,7 @@ WINDOWS=100
 
 echo ">>>>> indel calling with DINDEL"
 echo ">>>>> startdate "`date`
-echo ">>>>> dindel.sh $HISEQINF $CANDIDATES $FASTA $OUT"
+echo ">>>>> dindel.sh $NGSANE_BASE $CANDIDATES $FASTA $OUT"
 
 CANDIDATES=${CANDIDATES//,/ }
 
@@ -68,7 +68,7 @@ for c in $CANDIDATES; do
     name=`basename $c`
     qsub $PRIORITY -j y -o $QOUT/$TASKDINC/$name.out -cwd -b y -l h_vmem=12G \
     	-N $TASKDINC"_"$name $HOLD\
-    	$HISEQINF/mods/dindelV2p2.sh $HISEQINF $c $FASTA $OUT
+    	${NGSANE_BASE}/mods/dindelV2p2.sh $NGSANE_BASE $c $FASTA $OUT
 
     gawk -v OFS='\t' '{$5=toupper($5);$4=toupper($4); print $_}' ${c/"dindel.VCF"/"dindelP2.VCF"} >${c/"dindel.VCF"/"dindelP3.VCF"}
 
@@ -77,7 +77,7 @@ for c in $CANDIDATES; do
 done
 
 
-$HISEQINF/mods/merge.sh $HISEQINF merge.tmp $OUT dindelMerge.vcf vcf $QOUT/$TASKDINC $TASKDINC"*"
+${NGSANE_BASE}/mods/merge.sh $NGSANE_BASE merge.tmp $OUT dindelMerge.vcf vcf $QOUT/$TASKDINC $TASKDINC"*"
 
 echo ">>>>> indel calling with DINDEL - FINISHED"
 echo ">>>>> enddate "`date`

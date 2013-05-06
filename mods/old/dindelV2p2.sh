@@ -10,7 +10,7 @@
 
 
 #INPUTS
-HISEQINF=$1   # location of the HiSeqInf repository
+NGSANE_BASE=$1   # location of the NGSANE repository
 c=$2
 FASTA=$3      #reference genome
 OUT=$4        #output dir
@@ -18,7 +18,7 @@ OUT=$4        #output dir
 
 
 #PROGRAMS
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 
 #PARAMETERS
 WINDOWS=100
@@ -26,7 +26,7 @@ WINDOWS=100
 
 echo ">>>>> indel calling with DINDEL"
 echo ">>>>> startdate "`date`
-echo ">>>>> dindel.sh $HISEQINF $c $FASTA $OUT"
+echo ">>>>> dindel.sh $NGSANE_BASE $c $FASTA $OUT"
 
 n=`basename $c`
 d=`dirname $c`

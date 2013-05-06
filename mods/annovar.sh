@@ -16,7 +16,7 @@ function usage {
 echo -e "usage: $(basename $0)
 
 required:
-  -k | --toolkit <path>     location of the HiSeqInf repository 
+  -k | --toolkit <path>     location of the NGSANE repository 
   -i | --input <file>       vcf file
   -o | --outdir <path>      output dir
   -r | --reference <file>   reference genome
@@ -37,7 +37,7 @@ ADDRECAL="" # additional commands for variant recalibrator
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; HISEQINF=$1 ;; # location of the HiSeqInf repository
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -i1 | --input1 )        shift; snps=$1 ;; # SNP file
         -i2 | --input2 )        shift; snps2=$1 ;; # SNP file
@@ -62,7 +62,9 @@ done
 
 
 #PROGRAMS
-. $HISEQINF/conf/header.sh
+. $CONFIG
+. ${NGSANE_BASE}/conf/header.sh
+. $CONFIG
 
 export PATH=$ANNOVAR:$PATH
 
@@ -79,7 +81,7 @@ for f in $snps $snps2 $indel; do
     $ANNOVAR/summarize_annovar.pl --buildver hg19 $OUT/${n/vcf/txt} $ANNOVAR/humandb/ --remove -outfile $OUT/${n/vcf/sum}
 
     echo "********* summarize over all samples"
-    python $HISEQINF/bin/formatAnnovar.py $OUT/${n/vcf/sum}.genome_summary.csv $( grep "CHROM" $f ) > $OUT/${n/vcf/genome.summary.csv}
+    python ${NGSANE_BASE}/bin/formatAnnovar.py $OUT/${n/vcf/sum}.genome_summary.csv $( grep "CHROM" $f ) > $OUT/${n/vcf/genome.summary.csv}
 
 
     #clean
@@ -129,10 +131,10 @@ exit
 
     done
 
-    echo "python $HISEQINF/bin/joinAnnovar.py $RESULTS > $OUT/${n/vcf/genome.summary.csv}"
+    echo "python ${NGSANE_BASE}/bin/joinAnnovar.py $RESULTS > $OUT/${n/vcf/genome.summary.csv}"
 
     echo " summarize over all samples"
-    python $HISEQINF/bin/joinAnnovar.py $RESULTS > $OUT/${n/vcf/genome.summary.csv}
+    python ${NGSANE_BASE}/bin/joinAnnovar.py $RESULTS > $OUT/${n/vcf/genome.summary.csv}
 
 
 

@@ -3,7 +3,7 @@
 # Submission script for PBS and SGE
 while [ "$1" != "" ]; do
     case $1 in
-    -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
+    -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
     -m | --memory )         shift; SMEMORY=$1 ;; # memory used
     -n | --nodes )          shift; SNODES=$1 ;; # memory used
     -c | --cpu    )         shift; SCPU=$1 ;; # CPU used
@@ -22,7 +22,7 @@ done
 
 #PROGRAMS
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 #echo "********** write TMP file"

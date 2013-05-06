@@ -16,7 +16,7 @@ echo ">>>>> cuffdiff.sh $*"
 
 
 function usage {
-echo -e "usage: $(basename $0) -k HISEQINF -f  -r REFERENCE -o OUTDIR [OPTIONS]
+echo -e "usage: $(basename $0) -k NGSANE -f  -r REFERENCE -o OUTDIR [OPTIONS]
 
 Script running read mapping for single and paired DNA reads from fastq files
 It expects a fastq file, pairdend, reference genome  as input and 
@@ -24,7 +24,7 @@ It runs BWA, converts the output to .bam files, adds header information and
 writes the coverage information for IGV.
 
 required:
-  -k | --toolkit <path>     location of the HiSeqInf repository 
+  -k | --toolkit <path>     location of the NGSANE repository 
   -b | --basename <b1[,b2]> basename comma separated
   -r | --reference <file>   reference genome
   -o | --outdir <path>      output dir
@@ -52,12 +52,12 @@ THREADS=1
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; HISEQINF=$1 ;; # location of the HiSeqInf repository
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -b | --basename )       shift; fs=$1 ;; # basename
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
         -o | --outdir )         shift; OUT=$1 ;; # output dir
-	-a | --annot )          shift; REFSEQGTF=$1 ;; # refseq annotation
+        -a | --annot )          shift; REFSEQGTF=$1 ;; # refseq annotation
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -65,8 +65,9 @@ while [ "$1" != "" ]; do
 done
 
 #PROGRAMS
-. $HISEQINF/conf/header.sh
-
+. $CONFIG
+. ${NGSANE_BASE}/conf/header.sh
+. $CONFIG
 
 if [ -d $OUT ]; then rm -r $OUT; fi
 mkdir $OUT

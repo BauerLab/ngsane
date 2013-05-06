@@ -17,13 +17,13 @@ echo ">>>>> reCalAln.sh $*"
 
 
 function usage {
-echo -e "usage: $(basename $0) -k HISEQINF -f bam -r REFERENCE -o OUTDIR -d SNPDB [OPTIONS]
+echo -e "usage: $(basename $0) -k NGSANE -f bam -r REFERENCE -o OUTDIR -d SNPDB [OPTIONS]
 
 Script running the recalibration and realigment step (GATK)
 It expects a bam file (*.asd.bam)
 
 required:
-  -k | --toolkit <path>     location of the HiSeqInf repository 
+  -k | --toolkit <path>     location of the NGSANE repository 
   -f | --fastq <file>       bam file
   -r | --reference <file>   reference genome
   -o | --outdir <path>      output dir
@@ -48,7 +48,7 @@ module load jdk #/1.7.0_03
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -t | --threads )        shift; MYTHREADS=$1 ;; # number of CPUs to use
         -f | --fastq )          shift; f=$1 ;; # bam file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
@@ -64,7 +64,7 @@ done
 
 #PROGRAMS
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 export PATH=$PATH:$RSCRIPT
 

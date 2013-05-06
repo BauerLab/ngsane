@@ -21,7 +21,7 @@ echo ">>>>> tophatcuff.sh $*"
 
 
 function usage {
-echo -e "usage: $(basename $0) -k HISEQINF -f FASTA -r REFERENCE -o OUTDIR [OPTIONS]
+echo -e "usage: $(basename $0) -k NGSANE -f FASTA -r REFERENCE -o OUTDIR [OPTIONS]
 
 Script running read mapping for single and paired DNA reads from fastq files
 It expects a fastq file, pairdend, reference genome  as input and 
@@ -29,7 +29,7 @@ It runs BWA, converts the output to .bam files, adds header information and
 writes the coverage information for IGV.
 
 required:
-  -k | --toolkit <path>     location of the HiSeqInf repository 
+  -k | --toolkit <path>     location of the NGSANE repository 
   -f | --fastq <file>       fastq file
   -r | --reference <file>   reference genome
   -o | --outdir <path>      output dir
@@ -63,13 +63,12 @@ MEMORY=2G
 
 #INPUTS
 while [ "$1" != "" ]; do
-    case $1 in
-#        -k | --toolkit )        shift; HISEQINF=$1 ;; # location of the HiSeqInf repository
+	case $1 in
 	-k | toolkit )          shift; CONFIG=$1 ;; # ENSURE NO VARIABLE NAMES FROM CONFIG
-        -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
-        -f | --fastq )          shift; f=$1 ;; # fastq file
-        -r | --reference )      shift; FASTA=$1 ;; # reference genome
-        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
+	-t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
+	-f | --fastq )          shift; f=$1 ;; # fastq file
+	-r | --reference )      shift; FASTA=$1 ;; # reference genome
+	-o | --outdir )         shift; OUTDIR=$1 ;; # output dir
 	-a | --annot )          shift; REFSEQGTF=$1 ;; # refseq annotation
 	-i | --insert )         shift; INSERT=$1 ;; #mate insert size
 	
@@ -77,19 +76,19 @@ while [ "$1" != "" ]; do
 	-p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
 	-s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
 	-R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
-        -S | --sam )            DOBAM=0 ;;
+	-S | --sam )            DOBAM=0 ;;
 	
 	--forceSingle )         FORCESINGLE=1;;
-        -h | --help )           usage ;;
-        * )                     echo "dont understand $1"
-    esac
-    shift
+	-h | --help )           usage ;;
+	* )                     echo "dont understand $1"
+	esac
+	shift
 done
 
 
 #PROGRAMS (note, both configs are necessary to overwrite the default, here:e.g.  TASKTOPHAT)
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 JAVAPARAMS="-Xmx"$(expr $MEMORY_TOPHAT - 1 )"G -Djava.io.tmpdir="$TMP

@@ -6,13 +6,13 @@ echo ">>>>> hostname "`hostname`
 echo ">>>>> hiclibMapping.sh $*"
 
 function usage {
-echo -e "usage: $(basename $0) -k HISEQINF -f FASTQ -r REFERENCE -e ENZYMES -o OUTDIR [OPTIONS]
+echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -e ENZYMES -o OUTDIR [OPTIONS]
 
 Script running hiclib pipeline tapping into bowtie2
 It expects a fastq file, paired end, reference genome and digest pattern  as input.
 
 required:
-  -k | --toolkit <path>     location of the HiSeqInf repository 
+  -k | --toolkit <path>     location of the NGSANE repository 
   -f | --fastq <file>       fastq file
   -e | --enzymes <name>     restriction enzyme (one per library) seperated by comma 
                             see http://biopython.org/DIST/docs/api/Bio.Restriction-module.html
@@ -56,7 +56,7 @@ QUAL="" # standard Sanger
 #INPUTS                                                                                                           
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository                       
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use                                      
         -m | --memory )         shift; MEMORY=$1 ;; # memory used 
         -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
@@ -81,7 +81,7 @@ fi
 
 #PROGRAMS
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 #JAVAPARAMS="-Xmx"$MYMEMORY"g -Djava.io.tmpdir="$TMP # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
@@ -149,7 +149,7 @@ if [ -n "$HICLIB_READLENGTH" ]; then
 	PARAMS="$PARAMS --readLength $HICLIB_READLENGTH"
 fi
 
-python $HISEQINF/tools/hiclibMapping.py ${PARAMS} --bowtie $(which bowtie2) --cpus $THREADS --outputDir $MYOUT --tmpDir $TMP --verbose $READS
+python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie $(which bowtie2) --cpus $THREADS --outputDir $MYOUT --tmpDir $TMP --verbose $READS
 
 echo "********* merge bam files"
 

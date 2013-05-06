@@ -6,7 +6,7 @@ echo ">>>>> hostname "`hostname`
 echo ">>>>> bowtie.sh $*"
 
 function usage {
-echo -e "usage: $(basename $0) -k HISEQINF -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
+echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
 exit
 }
 
@@ -32,7 +32,7 @@ FORCESINGLE=0
 #INPUTS                                                                                                           
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository                       
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use                                      
         -m | --memory )         shift; MEMORY=$1 ;; # memory used 
         -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
@@ -52,7 +52,7 @@ done
 
 #PROGRAMS
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 JAVAPARAMS="-Xmx"$MEMORY"G -Djava.io.tmpdir="$TMP #-XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=10G"

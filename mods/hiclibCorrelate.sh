@@ -6,13 +6,13 @@ echo ">>>>> hostname "`hostname`
 echo ">>>>> hiclibCorrelate.sh $*"
 
 function usage {
-echo -e "usage: $(basename $0) -k HISEQINF -f FASTQ -r REFERENCE -e ENZYMES -o OUTDIR [OPTIONS]
+echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -e ENZYMES -o OUTDIR [OPTIONS]
 
 Script running hiclib pipeline tapping into bowtie2
 It expects a fastq file, paired end, reference genome and digest pattern  as input.
 
 required:
-  -k | --toolkit <path>     location of the HiSeqInf repository 
+  -k | --toolkit <path>     location of the NGSANE repository 
   -e | --enzymes <name>     restriction enzyme (one per library) seperated by comma
   -o | --outdir <path>      output dir
 
@@ -54,7 +54,7 @@ QUAL="" # standard Sanger
 #INPUTS                                                                                                           
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf repository                       
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use                                      
         -m | --memory )         shift; MEMORY=$1 ;; # memory used 
         -e | --enzymes )        shift; ENZYME=$1 ;; # digestion patterns
@@ -73,7 +73,7 @@ fi
 
 #PROGRAMS
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 #JAVAPARAMS="-Xmx"$MYMEMORY"g -Djava.io.tmpdir="$TMP # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
@@ -118,7 +118,7 @@ PARAMS="--restrictionEnzyme $ENZYME \
    --experimentName $(echo ${ENZYME}_${FASTQNAME/$READONE.$FASTQ/} | sed 's/_*$//g') \
    --referenceGenome $FASTA \
 
-python $HISEQINF/bin/hiclibCorrelate ${PARAMS} --cpus $THREADS --outputDir $MYOUT --tmpDir $TMP --verbose $READS
+python ${NGSANE_BASE}/bin/hiclibCorrelate ${PARAMS} --cpus $THREADS --outputDir $MYOUT --tmpDir $TMP --verbose $READS
 
 
 # copy heatmap

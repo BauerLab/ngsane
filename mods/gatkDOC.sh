@@ -16,13 +16,13 @@ echo ">>>>> gatkDOC.sh $*"
 
 
 function usage {
-echo -e "usage: $(basename $0) -k HISEQINF -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]
+echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]
 
 Script running the recalibration and realigment step (GATK)
 It expects a bam file (*.asd.bam)
 
 required:
-  -k | --toolkit <path>     location of the HiSeqInf repository 
+  -k | --toolkit <path>     location of the NGSANE repository 
   -f | --fastq <file>       fastq file
   -r | --reference <file>   reference genome
   -o | --outdir <path>      output dir
@@ -45,7 +45,7 @@ THREADS=1
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; HISEQINF=$1 ;; # location of the HiSeqInf repository
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
@@ -58,13 +58,6 @@ while [ "$1" != "" ]; do
     shift
 done
 
-#INPUTS
-#HISEQINF=$1   # location of the HiSeqInf repository
-#f=$2          # fastq file
-#FASTA=$3      # reference genome
-#LIST=$4       # list of locations in refseq format
-#OUT=$5        # output dir
-
 TASK=""
 
 if [ -n "$LIST" ]; then TASK="-L $LIST"; fi
@@ -72,8 +65,9 @@ if [ -n "$GENE" ]; then TASK="-geneList $GENE"; fi
 
 
 #PROGRAMS
-. $HISEQINF/conf/header.sh
-
+. $CONFIG
+. ${NGSANE_BASE}/conf/header.sh
+. $CONFIG
 
 module load jdk
 export PATH=$PATH:$(basename $SAMTOOLS)

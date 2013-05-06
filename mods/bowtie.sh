@@ -9,7 +9,7 @@
 # date: Jan. 2011
 
 #INPUTS
-HISEQINF=$1      # location of the HighSeqInf reposository
+CONFIG=$1      # location of the NGSANE reposository
 BOWTIEINDEX=$2   # bowtie index files
 SHORTREAD=$3     # location of read sequences
 MISMATCH=$4      # number of max mismatch allowed
@@ -18,8 +18,9 @@ OUT=$6           # output dir
 THREADS=$7
 
 #PROGRAMS
-. $HISEQINF/conf/header.sh
-
+. $CONFIG
+. ${NGSANE_BASE}/conf/header.sh
+. $CONFIG
 
 echo ">>>>> alignment with with bowtie "
 echo ">>>>> startdate "`date`

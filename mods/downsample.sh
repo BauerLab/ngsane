@@ -16,7 +16,7 @@ function usage {
 echo -e "usage: $(basename $0)
 
 required:
-  -k | --toolkit <path>     location of the HiSeqInf repository 
+  -k | --toolkit <path>     location of the NGSANE repository 
   -i | --input <file>       bam file
   -o | --outdir <path>      output dir
 
@@ -32,7 +32,7 @@ exit
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; HISEQINF=$1 ;; # location of the HiSeqInf repository
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -i | --input )          shift; f=$1 ;; # bam file
         -o | --outdir )         shift; OUT=$1 ;; # output dir
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
@@ -46,7 +46,9 @@ done
 
 
 #PROGRAMS
-. $HISEQINF/conf/header.sh
+. $CONFIG
+. ${NGSANE_BASE}/conf/header.sh
+. $CONFIG
 
 # get basename of f
 n=${f##*/}

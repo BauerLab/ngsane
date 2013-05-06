@@ -19,7 +19,7 @@ echo ">>>>> trimgalore.sh $*"
 
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the HiSeqInf
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of NGSANE
         -f | --file )           shift; f=$1 ;; # fastq file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
         -h | --help )           usage ;;
@@ -29,7 +29,7 @@ while [ "$1" != "" ]; do
 done
 
 . $CONFIG
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
 #JAVAPARAMS="-Xmx"$(expr $MEMORY_CUTADAPT - 1 )"G"

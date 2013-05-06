@@ -9,14 +9,14 @@
 
 
 #INPUTS
-HISEQINF=$1   # location of the HiSeqInf repository
+NGSANE_BASE=$1   # location of the NGSANE repository
 FILE=$2       # bam files
 CANDIDATES=$3 # candidate regions from the seperate run
 FASTA=$4      # reference genome
 OUT=$5        # output dir
 
 #PROGRAMS
-. $HISEQINF/conf/header.sh
+. ${NGSANE_BASE}/conf/header.sh
 
 #PARAMETERS
 WINDOWS=1000
@@ -24,7 +24,7 @@ WINDOWS=1000
 
 echo ">>>>> indel calling with DINDEL simultaneously"
 echo ">>>>> startdate "`date`
-echo ">>>>> dindelMerge.sh $HISEQINF $FILE $CANDIDATES $FASTA $OUT"
+echo ">>>>> dindelMerge.sh $NGSANE_BASE $FILE $CANDIDATES $FASTA $OUT"
 
 
 # delete privious output files

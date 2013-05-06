@@ -54,8 +54,6 @@ declare -a DIR; DIR=( NGSworkshop )
 OUT=$SOURCE
 QOUT=$OUT/qout
 
-HISEQINF=$DATASTORE/SeqAna/apps/prod/seqaninf/
-#HISEQINF=$(basename $(which trigger.sh))
 #READONE="R1"
 #READTWO="R2"
 READONE="read1"
@@ -89,4 +87,6 @@ LIBRARY="AGRF"
 PLATFORM="Illumina"
 
 
+## location of ngsane
+#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
 
