@@ -105,7 +105,7 @@ echo $PATH
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
-echo -e "--bwa     --\n "$(bwa 2>&1 | head -n 3 | tail -n-2)
+echo -e "--bowtie2 --\n "$(bowtie2 --version)
 echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 echo -e "--R       --\n "$(R --version | head -n 3)
 echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
@@ -159,7 +159,7 @@ if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
 mkdir $OUTDIR
 echo "********* tophat"
-tophat -p $THREADS -o $OUTDIR ${FASTA/.fasta/} $f $f2
+tophat -p $THREADS -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
 
 echo "********* merge mapped and unmapped"
 #ln -f  $OUTDIR/accepted_hits.bam $BAMFILE

@@ -14,7 +14,8 @@ It expects a fastq file, paired end, reference genome and digest pattern  as inp
 required:
   -k | --toolkit <path>     location of the HiSeqInf repository 
   -f | --fastq <file>       fastq file
-  -e | --enzymes <name>     restriction enzyme (one per library) seperated by comma
+  -e | --enzymes <name>     restriction enzyme (one per library) seperated by comma 
+                            see http://biopython.org/DIST/docs/api/Bio.Restriction-module.html
   -o | --outdir <path>      output dir
 
 options:
