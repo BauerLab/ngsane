@@ -2,6 +2,12 @@ NGSANE is a framework for advanced production informatics of Next Generation Seq
 
 Version: 0.0.1
 
+Setup:
+Define the environment variable NGSANE_BASE and point it to the directory that
+contains the NGSANE framework.
+You may want to set up $NGSANE_BASE in a cluster model or in your .bash_rc
+You can also specify it in the project-based config file.
+
 NGSANE is structured as follows:
 
 ngsane

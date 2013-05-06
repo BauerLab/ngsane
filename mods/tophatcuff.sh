@@ -234,7 +234,11 @@ echo "********* cufflinks"
 echo ">>>>> from $BAMFILE to $CUFOUT"
 #non reference guided
 #cufflinks --quiet -r $FASTA -p $THREADS -o $CUFOUT $BAMFILE"
-cufflinks --quiet --GTF-guide $REFSEQGTF -p $THREADS -o $CUFOUT \
+
+# add GTF file if present
+if [ -n "$REFSEQGTF" ]; then REFSEQGTF="--GTF-guide $REFSEQGTF"; fi
+
+cufflinks --quiet $REFSEQGTF -p $THREADS -o $CUFOUT \
     $BAMFILE 
 
 
