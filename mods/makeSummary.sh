@@ -211,6 +211,20 @@ if [ -n "RUNHICUP" ];then
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_filter_summary_results.txt" hicup >> $SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_deduplicater_summary_results.txt" hicup >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
+    
+    row0=""
+    row1=""
+    row2=""
+    for f in $(ls runStats/$TASKHICUP/*_ditag_classification.png); do
+    	n=${f##*/}
+	    n=${n/"_ditag_classification.png"/}
+	    
+	    row0+="<td>$n</td>"
+        row1+="<td><img href=\"runStats/$TASKHICUP/"$n"_ditag_classification.png\" width=\"100px\"/></td>"
+   	    row2+="<td><img href=\"runStats/$TASKHICUP/"$n"_uniques_cis-trans.png\" width=\"100px\"/></td>"
+
+    done
+    echo "<table><tr>"+row0+"</tr><tr>"+row1+"</tr><tr>"+row2+"</tr><\table>" >> $SUMMARYTMP
 fi
 
 #
