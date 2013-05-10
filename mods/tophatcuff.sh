@@ -158,7 +158,9 @@ if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
 mkdir $OUTDIR
 echo "********* tophat"
-tophat -p $THREADS -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
+echo $RNA_SEQ_LIBRARY_TYPE
+
+tophat -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
 
 echo "********* merge mapped and unmapped"
 #ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
@@ -237,7 +239,7 @@ echo ">>>>> from $BAMFILE to $CUFOUT"
 # add GTF file if present
 if [ -n "$REFSEQGTF" ]; then REFSEQGTF="--GTF-guide $REFSEQGTF"; fi
 
-cufflinks --quiet $REFSEQGTF -p $THREADS -o $CUFOUT \
+cufflinks --quiet $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
     $BAMFILE 
 
 
@@ -246,9 +248,27 @@ echo ">>>>> allignment with TopHat - FINISHED"
 # add Gencode GTF if present 
 if [ -n "$GENCODEGTF" ]; then 
 	GENCODEGTF="$GENCODEGTF"; 
-	# currently tophat is run only as stranded.
-	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="gene" --stranded='yes' - $GENCODEGTF > $OUTDIR/../gencode.counts
-fi
+		if [ $RNA_SEQ_LIBRARY_TYPE = fr-unstranded ]; then
+               echo "library is fr-unstranded run ht-seq-count stranded=no" 
+               HT_SEQ_OPTIONS="--stranded=no"
+        fi
+            
+ 		if [ $RNA_SEQ_LIBRARY_TYPE = fr-firststrand ]; then
+               echo "library is fr-firststrand run ht-seq-count stranded=yes"
+               HT_SEQ_OPTIONS="--stranded=yes"
+        fi
+##add secondstrand
+annoF=${GENCODEGTF##*/}
+echo annoF
+anno_version=${annoF%.*}
+
+	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $OUTDIR/../${anno_version}.gene
+	
+	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $OUTDIR/../${anno_version}.transcript
+	
+	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="exon" --idattr="exon_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $OUTDIR/../${anno_version}.exon
+
+	fi
 
 echo ">>>>> Read counting with htseq-count - FINISHED"
 

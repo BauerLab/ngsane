@@ -217,6 +217,12 @@ ln -s $OUTDIR/uniques_${n/.$FASTQ/}${n/'_'$READONE.$FASTQ/'_'$READTWO}*.bam $MYO
 
 cd $CURDIR
 
+# copy piecharts
+RUNSTATS=$OUT/runStats/hicup
+mkdir -p $RUNSTATS
+cp $OUTDIR/uniques_*._cis-trans.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_uniques_cis-trans.png
+cp $OUTDIR/*_ditag_classification.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_ditag_classification.png
+
 exit 1 
 
 echo "********* sorting and indexing"
