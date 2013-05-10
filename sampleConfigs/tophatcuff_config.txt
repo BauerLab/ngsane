@@ -35,6 +35,10 @@ FASTQ="fq.gz"
 # reference genome
 FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
 
+#specify library type for tophat.
+RNA_SEQ_LIBRARY_TYPE="fr-firststrand"
+#at the moment choose "fr-firststrand" "fr-unstranded"
+
 # bowtie v2.0 index including basename
 # BOWTIE2_INDEX=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome
 
@@ -50,7 +54,7 @@ PLATFORM="Illumina"
 #********************
 
 ## If next line is commented HT-Seq-count will not run.
-#GENCODEGTF=/share/ClusterShare/biodata/contrib/hugfre/gencode.v14.annotation.gtf
+#GENCODEGTF=/share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.gtf
 
 #WALLTIME_TOPHAT=60:00:00
 #MEMORY_TOPHAT=50
