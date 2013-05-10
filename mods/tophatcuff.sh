@@ -242,34 +242,38 @@ if [ -n "$REFSEQGTF" ]; then REFSEQGTF="--GTF-guide $REFSEQGTF"; fi
 cufflinks --quiet $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
     $BAMFILE 
 
-
-echo ">>>>> allignment with TopHat - FINISHED"
+echo ">>>>> alignment with TopHat - FINISHED"
 
 # add Gencode GTF if present 
 if [ -n "$GENCODEGTF" ]; then 
+	echo "********* htseq-count"
+	
 	GENCODEGTF="$GENCODEGTF"; 
-		if [ $RNA_SEQ_LIBRARY_TYPE = fr-unstranded ]; then
+		if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
                echo "library is fr-unstranded run ht-seq-count stranded=no" 
                HT_SEQ_OPTIONS="--stranded=no"
         fi
             
- 		if [ $RNA_SEQ_LIBRARY_TYPE = fr-firststrand ]; then
+ 		if [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
                echo "library is fr-firststrand run ht-seq-count stranded=yes"
                HT_SEQ_OPTIONS="--stranded=yes"
         fi
-##add secondstrand
-annoF=${GENCODEGTF##*/}
-echo annoF
-anno_version=${annoF%.*}
-
-	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $OUTDIR/../${anno_version}.gene
+        
+	##add secondstrand
+	annoF=${GENCODEGTF##*/}
+#	echo ${annoF}
+	anno_version=${annoF%.*}
 	
-	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $OUTDIR/../${anno_version}.transcript
+	HTOUTDIR=$OUTDIR/../htseq_count
+#	echo ${HTOUTDIR}
+	mkdir -p $HTOUTDIR
+
+	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.gene
 	
-	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="exon" --idattr="exon_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $OUTDIR/../${anno_version}.exon
+	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.transcript
 
-	fi
+	echo ">>>>> Read counting with htseq-count - FINISHED"
 
-echo ">>>>> Read counting with htseq-count - FINISHED"
+fi
 
 echo ">>>>> enddate "`date`
