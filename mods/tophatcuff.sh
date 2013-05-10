@@ -262,11 +262,11 @@ annoF=${GENCODEGTF##*/}
 echo annoF
 anno_version=${annoF%.*}
 
-	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $OUTDIR/../$anno_version.gene
+	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $OUTDIR/../${anno_version}.gene
 	
-	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $OUTDIR/../$anno_version.transcript
+	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $OUTDIR/../${anno_version}.transcript
 	
-	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="exon" --idattr="exon_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $OUTDIR/../$anno_version.exon
+	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="exon" --idattr="exon_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $OUTDIR/../${anno_version}.exon
 
 	fi
 
