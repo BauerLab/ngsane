@@ -135,8 +135,8 @@ ZCAT="zcat"
 if [[ $f != *.gz ]]; then ZCAT="cat"; fi
 
 #output for this library
-OUTDIR=$MYOUT/${n/'_'$READONE.$FASTQ/}
-mkdir -p $OUTDIR
+OUTDIR=${n/'_'$READONE.$FASTQ/}
+mkdir -p $MYOUT/$OUTDIR
 
 echo "********** digest reference"
 FASTASUFFIX=${FASTA##*.}
@@ -153,7 +153,7 @@ ENZYME2=(${ENZYMES[1]//,/ })
 
 DIGESTGENOME=""
 
-cd $OUTDIR
+cd $MYOUT/$OUTDIR
 if [ ${#ENZYMES[@]} = 1 ]; then
    echo "Restriction Enzyme 1: ${ENZYME1[1]}:${ENZYME1[0]} "
    DIGESTGENOME=$MYOUT/${FASTABASE/.$FASTASUFFIX/}_${ENZYME1[1]}_None.txt
@@ -207,13 +207,13 @@ echo "********* execute hicup"
 CURDIR=$(pwd)
 HICUP_CALL="$(which perl) $(which hicup) -c $HICUP_CONF"
 echo $HICUP_CALL
-cd $OUTDIR
+cd $MYOUT/$OUTDIR
 $($HICUP_CALL)
 cp hicup_deduplicater_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_deduplicater_summary_results.txt
 cp hicup_filter_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_filter_summary_results.txt
 cp hicup_mapper_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_mapper_summary.txt
 cp hicup_truncater_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_truncater_summary.txt
-ln -s $OUTDIR/uniques_${n/.$FASTQ/}*${n/'_'$READONE.$FASTQ/'_'$READTWO}*.bam $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam
+ln -s $OUTDIR/uniques_${n/.$FASTQ/}${n/'_'$READONE.$FASTQ/'_'$READTWO}*.bam $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam
 
 cd $CURDIR
 

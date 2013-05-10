@@ -151,46 +151,13 @@ fi
 
 python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie $(which bowtie2) --cpus $THREADS --outputDir $MYOUT --tmpDir $TMP --verbose $READS
 
-echo "********* merge bam files"
-
-for R in $READS; do
-	READNAME=${R##*/}
-	ALIGNMENTS=""
-	for i in $(ls $MYOUT/${READQNAME/$FASTQ/}*.bam.*); do
-		ALIGNMENTS=$ALIGNMENTS" INPUT=$i"
-	done
-
-	java $JAVAPARAMS -jar $PATH_PICARD/MergeSamFiles \
-	    $ALIGNMENTS \
-    	    OUTPUT=$MYOUT/${READNAME}.bam \ 
-	    USE_THREADING=true
-done
+rm -f $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
 
 # copy heatmap
 RUNSTATS=$OUT/runStats/hiclib
 mkdir -p $RUNSTATS
 mv $MYOUT/*.pdf $RUNSTATS
 
-#echo "********* calculate inner distance"
-#export PATH=$PATH:/usr/bin/
-#THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
-#mkdir $THISTMP
-#java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
-#    INPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
-#    REFERENCE_SEQUENCE=$FASTA \
-#    OUTPUT=$MYOUT/metrices/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
-#    VALIDATION_STRINGENCY=LENIENT \
-#    PROGRAM=CollectAlignmentSummaryMetrics \
-#    PROGRAM=CollectInsertSizeMetrics \
-#    PROGRAM=QualityScoreDistribution \
-#    TMP_DIR=$THISTMP
-#for im in $( ls $MYOUT/metrices/*.pdf ); do
-#    convert $im ${im/pdf/jpg}
-#done
-#rm -r $THISTMP
-#
-#
-#
 #echo "********* verify"
 #BAMREADS=`head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1`
 #if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
