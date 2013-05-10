@@ -242,6 +242,14 @@ cufflinks --quiet $REFSEQGTF -p $THREADS -o $CUFOUT \
 
 
 echo ">>>>> allignment with TopHat - FINISHED"
+
+# add Gencode GTF if present 
+if [ -n "$GENCODEGTF" ]; then 
+	GENCODEGTF="$GENCODEGTF"; 
+	# currently tophat is run only as stranded.
+	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="gene" --stranded='yes' - $GENCODEGTF > $OUTDIR/../gencode.counts
+fi
+
+echo ">>>>> Read counting with htseq-count - FINISHED"
+
 echo ">>>>> enddate "`date`
-
-

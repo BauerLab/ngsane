@@ -48,6 +48,10 @@ PLATFORM="Illumina"
 #********************
 # PARAMETER (optinal overwriting defaults)
 #********************
+
+## If next line is commented HT-Seq-count will not run.
+#GENCODEGTF=/share/ClusterShare/biodata/contrib/hugfre/gencode.v14.annotation.gtf
+
 #WALLTIME_TOPHAT=60:00:00
 #MEMORY_TOPHAT=50
 #CPU_TOPHAT=8
