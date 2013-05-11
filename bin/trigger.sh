@@ -73,9 +73,16 @@ if [ -n "$ADDITIONALTASK" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--postonly"
     else
-	echo -e "don't understand "$ADDITIONALTASK" \nI understand only \"verify\" and \"clean\""
+	echo -e "[ERROR] don't understand "$ADDITIONALTASK" \nI understand only \"verify\" and \"clean\""
 	exit -1
     fi
+fi
+
+# test if source data is defined
+echo "${DIR[@]}"
+if [ -z "${DIR[@]}" ]; then
+  echo "[ERROR] no input directories specified (DIR)."
+  exit 1
 fi
 
 # ensure out directory is there 
