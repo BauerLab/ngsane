@@ -16,8 +16,6 @@ class Read():
             self.seq=""
             self.qname="dummy"
             self.is_unmapped=True
-            self.X0=1
-            self.mapq=0
             self.tid=None
             self.is_read1=None
             self.is_reverse=None
@@ -29,15 +27,9 @@ class Read():
             self.is_read1=True
             if (read.is_read2):
                 self.is_read1=False
-            self.cigar=read.cigar
             self.is_reverse=read.is_reverse
-            self.seq=read.seq
             self.alen=read.alen
             self.pos=read.pos
-            self.mapq=read.mapq
-            self.tags=read.tags            
-            self.X0=max(1,self.getInfo("X0"))
-            self.MD=self.getInfo("MD")
 
     def check(self):
         if(self.is_reverse):
@@ -55,7 +47,7 @@ class Read():
         if(self.is_unmapped):
             return "%s read1 %s %s" % (self.qname,self.is_read1,self.seq)
         else:
-            return "%s read1 %s %s %s %s %s %i %i" % (self.qname,self.is_read1,self.cigar,self.seq,self.tags,self.tid,self.pos,self.alen)
+            return "%s read1 %s %s %i %i" % (self.qname,self.is_read1, self.tid,self.pos,self.alen)
 
     def revcomp(self):
         basecomplement = {'N':'N','A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
@@ -245,18 +237,23 @@ def find(interval, tree):
     return [ (x.start, x.end, x.linenum) for x in out ]
           
 
-def getFragment(read, fragmentList):
+def getFragment(samfile, read, intersect_tree, fragmentList):
 	fragmentID = -1
 	try:
 		# get fragments for both reads
-		interval = Interval(pysam.Samfile.getrname(read.tid), read.pos, read.aend)
-		
-		fragments = find(interval , intersect_tree)
-		if (len(fragments)> 1):
-			print >> sys.stderr, '[WARN] number of fragments > 1 : %s (skipping)' % (read)	
+		interval = Interval(samfile.getrname(read.tid), read.pos, read.pos+read.alen)
+
+		fragments = find(interval, intersect_tree)
+		if (len(fragments) == 0 ):
+			if (options.vverbose):
+				print >> sys.stderr, '[WARN] no overlap found : %s (skipping)' % (read)	
+			return
+		elif (len(fragments)> 1):
+			if (options.vverbose):
+				print >> sys.stderr, '[WARN] number of fragments > 1 : %s (skipping)' % (read)	
 		
 		#extract fragmentID
-		fragmentID = fragments[2] # corresponds to linenum
+		fragmentID = fragments[0][2] # corresponds to linenum
 		
 		if (not fragmentList.has_key(fragmentID)):
 			fragmentList[fragmentID] = 0
@@ -266,6 +263,8 @@ def getFragment(read, fragmentList):
 	except:
 		if (options.verbose):
 			print >> sys.stderr, '[WARN] problems with interval intersection: %s (skipping)' % (read)		
+			traceback.print_exc()
+			sys.exit(1)
 		if (options.vverbose):
 			traceback.print_exc()
 			
@@ -294,8 +293,14 @@ def countReadsPerFragment(intersect_tree):
 		if (readpair[0].qname=="dummy"):
 			break
 		
-		fragmentID1 = getFragment(readpair[0], fragmentList)
-		fragmentID2 = getFragment(readpair[1], fragmentList)
+		fragmentID1 = getFragment(samfile, readpair[0], intersect_tree, fragmentList)
+		fragmentID2 = getFragment(samfile, readpair[1], intersect_tree, fragmentList)
+		
+		if (fragmentID1 == None or fragmentID2 == None):
+			if (options.vverbose):
+				print >> sys.stdout, "-- one read does not co-occur with any fragment: %d %d" % (fragmentID1, fragmentID2)
+			continue
+		
 		f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
 		if (not fragmentPairs.has_key(f_tuple)):
 			fragmentPairs[f_tuple] = 0
@@ -337,11 +342,12 @@ def output(fragmentsMap , fragmentList, fragmentPairs):
 	
 	outfile2 = open(options.outputDir+os.path.basename(args[0])+".contactCounts","w")
 	for fragmentIds, contactCounts in fragmentPairs.iteritems():
-		chrom1 = fragmentsMap[fragmentId[0]][0]
-		midpoint1 =  fragmentsMap[fragmentId[0]][1]
+		print (fragmentIds[0] == None)
+		chrom1 = fragmentsMap[fragmentIds[0]][0]
+		midpoint1 =  fragmentsMap[fragmentIds[0]][1]
 	
-		chrom2 = fragmentsMap[fragmentId[1]][0]
-		midpoint2 =  fragmentsMap[fragmentId[1]][1]
+		chrom2 = fragmentsMap[fragmentIds[1]][0]
+		midpoint2 =  fragmentsMap[fragmentIds[1]][1]
 	
 		outfile2.write("%s\t%d\t%s\t%d\t%d\n" % (chrom1, midpoint1, chrom2, midpoint2, contactCounts))
 		
