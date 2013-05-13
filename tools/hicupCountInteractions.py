@@ -168,7 +168,7 @@ def createIntervalTrees():
 					intersect_tree.insert(interval, fragmentsCount)
 					fragmentsMap[fragmentsCount] = tuple([chrom, end-start])
 					if (options.vverbose):
-						print >> sys.stdout,  "intervaltree.add %s:%d-%d" % (chrom, start, end)
+						print >> sys.stdout,  "-- intervaltree.add %s:%d-%d" % (chrom, start, end)
 				chrom = cols[0]
 				start = int(cols[1])
 				end = int(cols[2])
@@ -177,8 +177,8 @@ def createIntervalTrees():
 			if (counter >= options.fragmentAggregation):
 				interval = Interval(chrom, start, end)
 				intersect_tree.insert(interval, fragmentsCount)
-				if (options.verbose):
-					print >> sys.stdout,  "intervaltree.add %s:%d-%d" % (chrom, start, end)
+				if (options.vverbose):
+					print >> sys.stdout,  "-- intervaltree.add %s:%d-%d" % (chrom, start, end)
 
 				fragmentsMap[fragmentsCount] = tuple([chrom, end-start])
 				start = int(cols[1])
@@ -191,9 +191,11 @@ def createIntervalTrees():
 			fragmentsCount += 1
 	
 		
-		except Exception, err:
-			if (options.vverbose):
+		except:
+			if (options.verbose):
 				print >> sys.stderr, 'skipping line in options.fragmentFile: %s' % (line)
+			if (options.vverbose):
+				traceback.print_exc()
 	
 	
 	# handle last fragment
@@ -217,7 +219,10 @@ def getNext(iterator):
 	try:
 		return Read(iterator.next())
 	except StopIteration:
+		if (options.vverbose):
+			traceback.print_exc()
 		return Read("")
+		
         
 def findNextReadPair(samiter):
 	''' 
@@ -261,7 +266,9 @@ def getFragment(read, fragmentList):
 	except:
 		if (options.verbose):
 			print >> sys.stderr, '[WARN] problems with interval intersection: %s (skipping)' % (read)		
-
+		if (options.vverbose):
+			traceback.print_exc()
+			
 	return fragmentID
 
 def countReadsPerFragment(intersect_tree):
