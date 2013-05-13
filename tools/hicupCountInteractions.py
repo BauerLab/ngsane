@@ -174,14 +174,16 @@ def createIntervalTrees():
 					interval = Interval(chrom, start, end)
 					intersect_tree.insert(interval, fragmentsCount)
 					fragmentsMap[fragmentsCount] = tuple([chrom, end-start])
+					fragmentsCount += 1
 					if (options.vverbose):
 						print >> sys.stdout,  "-- intervaltree.add %s:%d-%d" % (chrom, start, end)
 				chrom = cols[0]
 				start = int(cols[1])
 				end = int(cols[2])
 				counter = 0
+
 			# check if fragement aggregation is fulfilled
-			if (counter >= options.fragmentAggregation):
+			elif (counter >= options.fragmentAggregation):
 				interval = Interval(chrom, start, end)
 				intersect_tree.insert(interval, fragmentsCount)
 				if (options.vverbose):
@@ -191,12 +193,12 @@ def createIntervalTrees():
 				start = int(cols[1])
 				end = int(cols[2])
 				counter = 0
-	
-			end = int(cols[2])
+				fragmentsCount += 1				
+			else:
+				end = int(cols[2])
+				
 			# increment counter
 			counter += 1
-			fragmentsCount += 1
-	
 		
 		except:
 			if (options.verbose):
@@ -210,6 +212,7 @@ def createIntervalTrees():
 		interval = Interval(chrom, start, end)
 		intersect_tree.insert(interval, fragmentsCount)
 		fragmentsMap[fragmentsCount] = tuple([chrom, end-start])
+		fragmentsCount += 1
 		if (options.vverbose):
 			print >> sys.stdout, "-- intervaltree.add %s:%d-%d" % (chrom, start, end)
 	
@@ -345,10 +348,21 @@ def output(fragmentsMap , fragmentList, fragmentPairs):
 		print >> sys.stdout, "- %s START   : output data " % (timeStamp())
 
 	outfile1 = open(options.outputDir+os.path.basename(args[0])+".fragmentLists","w")
-	for fragmentId, contactCounts in fragmentList.iteritems():
+	
+	fragmentIds = fragmentsMap.keys()
+	fragmentIds.sort()
+	print fragmentIds
+	for fragmentId in fragmentIds:
+#	for fragmentId, contactCounts in fragmentList.iteritems():
 		mappable = 0
+		contactCounts = 0
+
+		if (fragmentList.has_key(fragmentId)):
+			contactCounts = fragmentList[fragmentId]
+			
 		if (contactCounts>0):
 			mappable = 1
+
 		chrom = fragmentsMap[fragmentId][0]
 		midpoint =  fragmentsMap[fragmentId][1]
 		outfile1.write("%s\t%d\t%d\t%d\t%d\n" % (chrom, 0, midpoint, contactCounts, mappable))
