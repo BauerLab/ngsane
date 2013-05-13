@@ -187,10 +187,8 @@ def createIntervalTrees():
 	
 		
 		except Exception, err:
-			traceback.print_exc()
 			if (options.verbose):
 				print >> sys.stderr, 'skipping line in options.fragmentFile: %s' % (line)
-				sys.exit(1)
 	
 	
 	# handle last fragment
@@ -199,7 +197,7 @@ def createIntervalTrees():
 		intersect_tree.insert(interval, fragmentsCount)
 		fragmentsMap[fragmentsCount] = tuple([chrom, end-start])
 		if (options.verbose):
-			print "intervaltree.add %s:%d-%d" % (chrom, start, end)
+			print "-- intervaltree.add %s:%d-%d" % (chrom, start, end)
 	
 	return [fragmentsMap, intersect_tree]
 
@@ -262,7 +260,7 @@ def countReadsPerFragment(intersect_tree):
 	'''
 		counts the reads per fragment and generates appropriate output files
 	'''
-	samfile = pysam.Samfile(args[1], "rb" )
+	samfile = pysam.Samfile(args[0], "rb" )
 
 	samiter = samfile.fetch(until_eof=True)
 	
@@ -295,7 +293,7 @@ def output(fragmentsMap , fragmentList, fragmentPairs):
 	"chr1   fragmentMid1    chr2    fragmentMid2    contactCount"
 	'''
 	
-	outfile1 = open(options.outputDir+os.basename(args[1])+".fragmentLists","w")
+	outfile1 = open(options.outputDir+os.basename(args[0])+".fragmentLists","w")
 	for fragmentId, contactCounts in fragmentList.iteritems():
 		mappable = 0
 		if (contactCounts>0):
@@ -306,7 +304,7 @@ def output(fragmentsMap , fragmentList, fragmentPairs):
 		
 	outfile1.close()
 	
-	outfile2 = open(options.outputDir+os.basename(args[1])+".contactCounts","w")
+	outfile2 = open(options.outputDir+os.basename(args[0])+".contactCounts","w")
 	for fragmentIds, contactCounts in fragmentPairs.iteritems():
 		chrom1 = fragmentsMap[fragmentId[0]][0]
 		midpoint1 =  fragmentsMap[fragmentId[0]][1]
