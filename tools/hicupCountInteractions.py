@@ -116,19 +116,17 @@ def createIntervalTrees():
 		intersect_tree = intersect_tree.insert(interval, fragmentsCount)
 		fragmentsMap[fragmentsCount] = tuple([chrom, end-start])
 
-	
-    return [fragmentsMap, intersect_tree]
-    
+	return [fragmentsMap, intersect_tree]
 
 def getNext(iterator):
 	''' 
 	get the next read and populate object
 	'''
 	
-    try:
-        return acRead(iterator.next())
-    except StopIteration:
-        return acRead("")
+	try:
+		return acRead(iterator.next())
+	except StopIteration:
+		return acRead("")
         
 def findNextReadPair(samiter):
 	''' 
@@ -189,9 +187,9 @@ def countReadsPerFragment(intersect_tree):
 	while(True):
 		readpair = findNextReadPair(samiter)
 		# if file contains any more reads, exit
-	       if (readpair[0].qname=="dummy"):
-	           break
-
+		if (readpair[0].qname=="dummy"):
+			break
+		
 		fragmentID1 = getFragment(readpair[0], fragmentList)
 		fragmentID2 = getFragment(readpair[1], fragmentList)
 		f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
@@ -199,8 +197,7 @@ def countReadsPerFragment(intersect_tree):
 			fragmentPairs[f_tuple] = 0
 		fragmentPairs[f_tuple] += 1
 		
-
-    samfile.close()
+	samfile.close()
 
 	return [ fragmentList, fragmentPairs ]	
 
@@ -228,11 +225,11 @@ def output(fragmentsMap , fragmentList, fragmentPairs):
 	for fragmentIds, contactCounts in fragmentPairs.iteritems():
 		chrom1 = fragmentsMap[fragmentId[0]][0]
 		midpoint1 =  fragmentsMap[fragmentId[0]][1]
-
+	
 		chrom2 = fragmentsMap[fragmentId[1]][0]
 		midpoint2 =  fragmentsMap[fragmentId[1]][1]
-
-		outfile2.write("%s\t%d\t%s\t%d\t%d\n" % (chrom1, midpoint1, chrom2, midpoint2, contactCounts)
+	
+		outfile2.write("%s\t%d\t%s\t%d\t%d\n" % (chrom1, midpoint1, chrom2, midpoint2, contactCounts))
 		
 	outfile2.close()
 
