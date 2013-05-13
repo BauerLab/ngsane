@@ -6,6 +6,80 @@ import pysam
 from quicksect import IntervalTree
 import fileinput
 
+######################################
+# Read
+######################################
+
+class Read():
+    def __init__(self, read):
+        if (read==""):
+            self.seq=""
+            self.qname="dummy"
+            self.is_unmapped=True
+            self.X0=1
+            self.mapq=0
+            self.tid=None
+            self.is_read1=None
+            self.is_reverse=None
+        else:
+            self.is_duplicate=read.is_duplicate
+            self.is_unmapped=read.is_unmapped
+            self.tid=read.tid
+            self.qname=read.qname
+            self.is_read1=True
+            if (read.is_read2):
+                self.is_read1=False
+            self.cigar=read.cigar
+            self.is_reverse=read.is_reverse
+            self.seq=read.seq
+            self.alen=read.alen
+            self.pos=read.pos
+            self.mapq=read.mapq
+            self.tags=read.tags            
+            self.X0=max(1,self.getInfo("X0"))
+            self.MD=self.getInfo("MD")
+
+    def check(self):
+        if(self.is_reverse):
+            self.revcomp()
+
+    def isPair(self,number):
+        if(self.is_read1 and number==0):
+            return True
+        if(not(self.is_read1) and number==1):
+            return True
+        print("Reads not paired up correctly: paired/single ended? not namesorted?")
+        print(str(self)+" "+str(number))
+
+    def __str__(self): 
+        if(self.is_unmapped):
+            return "%s read1 %s %s" % (self.qname,self.is_read1,self.seq)
+        else:
+            return "%s read1 %s %s %s %s %s %i %i" % (self.qname,self.is_read1,self.cigar,self.seq,self.tags,self.tid,self.pos,self.alen)
+
+    def revcomp(self):
+        basecomplement = {'N':'N','A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
+        rc=""
+        for i in reversed(self.seq):
+            rc+=basecomplement[i]
+        self.seq=rc
+
+
+    def getInfo(self, string):
+        for i in self.tags:
+            if( i[0]==string):
+                return i[1]
+
+######################################
+# Interval
+######################################
+class Interval():
+	def __init__(self, chrom, start, end):
+		self.chrom=chrom
+		self.start=start
+		self.end=end
+
+
 
 # manage option and arguments processing
 def main():
@@ -128,9 +202,9 @@ def getNext(iterator):
 	'''
 	
 	try:
-		return acRead(iterator.next())
+		return Read(iterator.next())
 	except StopIteration:
-		return acRead("")
+		return Read("")
         
 def findNextReadPair(samiter):
 	''' 
@@ -253,78 +327,4 @@ def process():
 ######################################
 if __name__ == "__main__":
 	main()
-
-
-######################################
-# acRead
-######################################
-
-class acRead():
-    def __init__(self, read):
-        if (read==""):
-            self.seq=""
-            self.qname="dummy"
-            self.is_unmapped=True
-            self.X0=1
-            self.mapq=0
-            self.tid=None
-            self.is_read1=None
-            self.is_reverse=None
-        else:
-            self.is_duplicate=read.is_duplicate
-            self.is_unmapped=read.is_unmapped
-            self.tid=read.tid
-            self.qname=read.qname
-            self.is_read1=True
-            if (read.is_read2):
-                self.is_read1=False
-            self.cigar=read.cigar
-            self.is_reverse=read.is_reverse
-            self.seq=read.seq
-            self.alen=read.alen
-            self.pos=read.pos
-            self.mapq=read.mapq
-            self.tags=read.tags            
-            self.X0=max(1,self.getInfo("X0"))
-            self.MD=self.getInfo("MD")
-
-    def check(self):
-        if(self.is_reverse):
-            self.revcomp()
-
-    def isPair(self,number):
-        if(self.is_read1 and number==0):
-            return True
-        if(not(self.is_read1) and number==1):
-            return True
-        print("Reads not paired up correctly: paired/single ended? not namesorted?")
-        print(str(self)+" "+str(number))
-
-    def __str__(self): 
-        if(self.is_unmapped):
-            return "%s read1 %s %s" % (self.qname,self.is_read1,self.seq)
-        else:
-            return "%s read1 %s %s %s %s %s %i %i" % (self.qname,self.is_read1,self.cigar,self.seq,self.tags,self.tid,self.pos,self.alen)
-
-    def revcomp(self):
-        basecomplement = {'N':'N','A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
-        rc=""
-        for i in reversed(self.seq):
-            rc+=basecomplement[i]
-        self.seq=rc
-
-
-    def getInfo(self, string):
-        for i in self.tags:
-            if( i[0]==string):
-                return i[1]
-
-######################################
-# Interval
-######################################
-class Interval():
-	def __init__(self, chrom, start, end):
-		self.chrom=chrom
-		self.start=start
-		self.end=end
 
