@@ -1,3 +1,12 @@
+#!/bin/python
+######################################
+# Generate contact maps from bam files 
+# and fragment lists
+#
+# Author: Fabian Buske (13/05/2013)
+######################################
+
+
 import os
 import sys
 import traceback
@@ -5,6 +14,7 @@ from optparse import OptionParser
 import pysam
 from quicksect import IntervalTree
 import fileinput
+import datetime
 
 ######################################
 # Read
@@ -71,6 +81,11 @@ class Interval():
 		self.start=start
 		self.end=end
 
+######################################
+# Timestamp
+######################################
+def timeStamp():
+    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S').format()
 
 
 # manage option and arguments processing
@@ -134,7 +149,7 @@ def createIntervalTrees():
 	'''
 	
 	if (options.verbose):
-		print >> sys.stdout, "- Start: intervaltree population"
+		print >> sys.stdout, "- %s START   : populate intervaltree from fragmented genome" % (timeStamp())
 
 	intersect_tree = IntervalTree()
 	fragmentsCount = 0
@@ -199,7 +214,7 @@ def createIntervalTrees():
 			print >> sys.stdout, "-- intervaltree.add %s:%d-%d" % (chrom, start, end)
 	
 	if (options.verbose):
-		print >> sys.stdout, "- FINISHED: intervaltree populated"
+		print >> sys.stdout, "- %s FINISHED: intervaltree populated" % (timeStamp())
 			
 	return [fragmentsMap, intersect_tree]
 
@@ -276,7 +291,7 @@ def countReadsPerFragment(intersect_tree):
 	'''
 	
 	if (options.verbose):
-		print >> sys.stdout, "- Start: getting reads from bam file"
+		print >> sys.stdout, "- %s START   : processing reads from bam file" % (timeStamp())
 
 	samfile = pysam.Samfile(args[0], "rb" )
 
@@ -307,12 +322,12 @@ def countReadsPerFragment(intersect_tree):
 		fragmentPairs[f_tuple] += 1
 		readcounter+=1
 		
-		if (options.vverbose and readcounter % 10000000 ):
+		if (options.verbose and readcounter % 10000000 ):
 			print >> sys.stdout, "- %d reads processed" % (readcounter)
 	samfile.close()
 
 	if (options.verbose):
-		print >> sys.stdout, "- FINISHED: getting reads from bam file"
+		print >> sys.stdout, "- %s FINISHED: getting reads from bam file " % (timeStamp())
 
 	return [ fragmentList, fragmentPairs ]	
 
@@ -327,7 +342,7 @@ def output(fragmentsMap , fragmentList, fragmentPairs):
 	'''
 	
 	if (options.verbose):
-		print >> sys.stdout, "- Start: output data"
+		print >> sys.stdout, "- %s START   : output data " % (timeStamp())
 
 	outfile1 = open(options.outputDir+os.path.basename(args[0])+".fragmentLists","w")
 	for fragmentId, contactCounts in fragmentList.iteritems():
@@ -342,7 +357,6 @@ def output(fragmentsMap , fragmentList, fragmentPairs):
 	
 	outfile2 = open(options.outputDir+os.path.basename(args[0])+".contactCounts","w")
 	for fragmentIds, contactCounts in fragmentPairs.iteritems():
-		print (fragmentIds[0] == None)
 		chrom1 = fragmentsMap[fragmentIds[0]][0]
 		midpoint1 =  fragmentsMap[fragmentIds[0]][1]
 	
@@ -354,7 +368,7 @@ def output(fragmentsMap , fragmentList, fragmentPairs):
 	outfile2.close()
 	
 	if (options.verbose):
-		print >> sys.stdout, "- FINISHED: output data"
+		print >> sys.stdout, "- %s FINISHED: output data" % (timeStamp())
 
 
 def process():
