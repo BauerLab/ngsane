@@ -322,7 +322,7 @@ def countReadsPerFragment(intersect_tree):
 		fragmentPairs[f_tuple] += 1
 		readcounter+=1
 		
-		if (options.verbose and readcounter % 10000000 ):
+		if (options.verbose and readcounter % 10000000 == 0 ):
 			print >> sys.stdout, "- %d reads processed" % (readcounter)
 	samfile.close()
 
