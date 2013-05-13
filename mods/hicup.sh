@@ -213,15 +213,15 @@ cp hicup_deduplicater_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicu
 cp hicup_filter_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_filter_summary_results.txt
 cp hicup_mapper_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_mapper_summary.txt
 cp hicup_truncater_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_truncater_summary.txt
-ln -s $OUTDIR/uniques_${n/.$FASTQ/}${n/'_'$READONE.$FASTQ/'_'$READTWO}*.bam $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam
+ln -f -s $OUTDIR/uniques_${n/.$FASTQ/}${n/'_'$READONE.$FASTQ/'_'$READTWO}*.bam $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam
 
 cd $CURDIR
 
 # copy piecharts
 RUNSTATS=$OUT/runStats/hicup
 mkdir -p $RUNSTATS
-cp $OUTDIR/uniques_*._cis-trans.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_uniques_cis-trans.png
-cp $OUTDIR/*_ditag_classification.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_ditag_classification.png
+cp $MYOUT/$OUTDIR/uniques_*_cis-trans.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_uniques_cis-trans.png
+cp $MYOUT/$OUTDIR/*_ditag_classification.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_ditag_classification.png
 
 exit 1 
 
