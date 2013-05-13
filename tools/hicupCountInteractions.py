@@ -211,7 +211,7 @@ def createIntervalTrees():
 	if (end > 0):
 		interval = Interval(chrom, start, end)
 		intersect_tree.insert(interval, fragmentsCount)
-		fragmentsMap[fragmentsCount] = tuple([chrom, end-start])
+		fragmentsMap[fragmentsCount] = tuple([chrom, int(0.5*(start+end))])
 		fragmentsCount += 1
 		if (options.vverbose):
 			print >> sys.stdout, "-- intervaltree.add %s:%d-%d" % (chrom, start, end)
@@ -351,9 +351,9 @@ def output(fragmentsMap , fragmentList, fragmentPairs):
 	
 	fragmentIds = fragmentsMap.keys()
 	fragmentIds.sort()
-	print fragmentIds
+
 	for fragmentId in fragmentIds:
-#	for fragmentId, contactCounts in fragmentList.iteritems():
+
 		mappable = 0
 		contactCounts = 0
 
