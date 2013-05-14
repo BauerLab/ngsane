@@ -238,15 +238,18 @@ echo ">>>>> from $BAMFILE to $CUFOUT"
 #cufflinks --quiet -r $FASTA -p $THREADS -o $CUFOUT $BAMFILE"
 
 # add GTF file if present
-#if [ -n "$REFSEQGTF" ]; then REFSEQGTF="--GTF-guide $REFSEQGTF"; fi
-#cufflinks --quiet $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
-#    $BAMFILE 
+if [ -n "$REFSEQGTF" ]; then REFSEQGTF="--GTF-guide $REFSEQGTF"; 
+cufflinks --quiet $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
+    $BAMFILE 
 
-if [ -n "$GENCODEGTF" ]; then REFSEQGTF="--GTF-guide $GENCODEGTF"; fi
+fi
+
+if [ -n "$GENCODEGTF" ]; then GENCODEGTF="--GTF-guide $GENCODEGTF"; 
 
 cufflinks --quiet $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
     $BAMFILE 
 
+fi
 
 echo ">>>>> alignment with TopHat - FINISHED"
 
