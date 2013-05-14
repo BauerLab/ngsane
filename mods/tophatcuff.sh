@@ -111,6 +111,7 @@ echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar ver
 echo -e "--PICARD  --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
 echo -e "--samstat --\n "$(samstat | head -n 2 | tail -n1)
 
+#SAMPLENAME
 # get basename of f
 n=${f##*/}
 
@@ -237,17 +238,24 @@ echo ">>>>> from $BAMFILE to $CUFOUT"
 #cufflinks --quiet -r $FASTA -p $THREADS -o $CUFOUT $BAMFILE"
 
 # add GTF file if present
-if [ -n "$REFSEQGTF" ]; then REFSEQGTF="--GTF-guide $REFSEQGTF"; fi
+#if [ -n "$REFSEQGTF" ]; then REFSEQGTF="--GTF-guide $REFSEQGTF"; fi
+#cufflinks --quiet $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
+#    $BAMFILE 
 
-cufflinks --quiet $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
+if [ -n "$GENCODEGTF" ]; then REFSEQGTF="--GTF-guide $GENCODEGTF"; fi
+
+cufflinks --quiet $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
     $BAMFILE 
+
 
 echo ">>>>> alignment with TopHat - FINISHED"
 
 # add Gencode GTF if present 
 if [ -n "$GENCODEGTF" ]; then 
 	echo "********* htseq-count"
-	
+
+
+
 	GENCODEGTF="$GENCODEGTF"; 
 		if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
                echo "library is fr-unstranded run ht-seq-count stranded=no" 
@@ -259,6 +267,22 @@ if [ -n "$GENCODEGTF" ]; then
                HT_SEQ_OPTIONS="--stranded=yes"
         fi
         
+        
+
+grep -P "gene_type \"rRNA\"" $GENCODEGTF > mask.gff
+grep -P "gene_type \"Mt_tRNA\"" $GENCODEGTF >> mask.gff
+grep -P "gene_type \"Mt_rRNA\"" $GENCODEGTF >> mask.gff
+grep -P "gene_type \"tRNA\"" $GENCODEGTF >> mask.gff
+
+grep -P "gene_type \"rRNA_pseudogene\"" $GENCODEGTF >> mask.gff
+grep -P "gene_type \"tRNA_pseudogene\"" $GENCODEGTF >> mask.gff
+grep -P "gene_type \"Mt_tRNA_pseudogene\"" $GENCODEGTF >> mask.gff
+grep -P "gene_type \"Mt_rRNA_pseudogene\"" $GENCODEGTF >> mask.gff
+
+        
+intersectBed -v -abam $OUTDIR/accepted_hits.bam -b mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
+        
+  
 	##add secondstrand
 	annoF=${GENCODEGTF##*/}
 #	echo ${annoF}
@@ -268,12 +292,48 @@ if [ -n "$GENCODEGTF" ]; then
 #	echo ${HTOUTDIR}
 	mkdir -p $HTOUTDIR
 
-	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.gene
+	samtools view $OUTDIR/tophat_aligned_reads_masked.bam  | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.gene
 	
-	samtools view $OUTDIR/accepted_hits.bam | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.transcript
+	samtools view $OUTDIR/tophat_aligned_reads_masked.bam  | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.transcript
 
 	echo ">>>>> Read counting with htseq-count - FINISHED"
 
+##make bigwigs for UCSC
+
+
+    if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
+    echo "********* make bigwigs library is fr-unstranded "
+    BAM2BW_OPTION_1="FALSE"
+    BAM2BW_OPTION_2="FALSE"
+    fi
+
+    if [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
+    echo "********* make bigwigs library is fr-firststrand "
+    BAM2BW_OPTION_1="TRUE"
+    BAM2BW_OPTION_2="TRUE"
+    fi
+
+BIGWIGSDIR=$OUTDIR/../bigwigs
+#	echo ${BIGWIGSDIR}
+mkdir -p $BIGWIGSDIR
+
+
+#file_arg sample_arg stranded_arg firststrand_arg paired_arg
+Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/tophat_aligned_reads_masked.bam ${n} $BAM2BW_OPTION_1 $BAM2BW_OPTION_2
+
+echo ">>>>> make bigwigs - FINISHED"
+
+
+echo "********* calculate RPKMs per Gencode Gene "
+
+#Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene ${n}gene anno_version
+
+echo "********* calculate RPKMs per Gencode Transcript "
+
+Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.transcript ${n}transcript anno_version
+
+echo ">>>>> Gencode RPKM calculation - FINISHED"
 fi
+
 
 echo ">>>>> enddate "`date`
