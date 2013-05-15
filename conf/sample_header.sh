@@ -54,12 +54,14 @@ PATH_PICARD=
 PATH_SAMSTAT=
 
 ##############################################################
-# gzip alternatives, e.g. pigz
+# gzip alternatives, e.g.
+# pigz (2.3) - http://zlib.net/pigz/
 MODULE_GZIP=
 GZIP=gzip			# command, e.g. gzip or pigz
 
 ##############################################################
-# FASTQC
+# FASTQC (0.10.1) 
+# http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
 WALLTIME_FASTQC=10:00:00
 MEMORY_FASTQC=20
 CPU_FASTQC=16
@@ -71,14 +73,16 @@ MODULE_LATEX=
 PATH_LATEX=
 
 ##############################################################
-# SAMTOOLS 
+# SAMTOOLS (0.1.19)
+# http://samtools.sourceforge.net/
 WALLTIME_SAMVAR=40:00:00
 MEMORY_SAMVAR=40
 CPU_SAMVAR=1
 NODES_SAMVAR="nodes=1:ppn=1"
 
 ##############################################################
-# BWA
+# BWA (0.7.4) 
+# http://bio-bwa.sourceforge.net/
 WALLTIME_BWA=50:00:00
 MEMORY_BWA=50
 CPU_BWA=32
@@ -88,7 +92,8 @@ MODULE_BWA=
 PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
-# Bowtie2
+# Bowtie2 (2.1.0)
+# http://bowtie-bio.sourceforge.net/index.shtml
 WALLTIME_BOWTIE=10:00:00
 MEMORY_BOWTIE=60
 CPU_BOWTIE=8
@@ -99,7 +104,8 @@ PATH_BOWTIETWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 BOWTIE2_INDEX=
 
 ##############################################################
-# Trim adapter with CUTADAPT
+# Trim adapter with CUTADAPT ()
+# https://code.google.com/p/cutadapt/
 WALLTIME_CUTADAPT=4:00:00
 MEMORY_CUTADAPT=40
 CPU_CUTADAPT=1
@@ -110,6 +116,7 @@ PATH_CUTADAPT=
 
 ##############################################################
 # Trim adapter with TRIMGALORE
+# http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
 WALLTIME_TRIMGALORE=4:00:00
 MEMORY_TRIMGALORE=40
 CPU_TRIMGALORE=1
@@ -122,6 +129,7 @@ TRIMGALORE_ADAPTER2=
 
 ##############################################################
 # Snp calling with GATK
+# http://www.broadinstitute.org/gatk/
 # COVERAGE
 WALLTIME_GATKDOC=50:00:00
 MEMORY_GATKDOC=50
@@ -139,7 +147,9 @@ MODULE_GATKSNP=
 PATH_GATKSNP=$PATH_GATKHOME:$PATH_GATKJAR:$PATH_IGVTOOLS
 
 ##############################################################
-# Tophat and cufflinks
+# Tophat (2.0.8b) and cufflinks (2.1.1)
+# http://tophat.cbcb.umd.edu/
+# http://cufflinks.cbcb.umd.edu/
 WALLTIME_TOPHAT=60:00:00
 MEMORY_TOPHAT=50
 CPU_TOPHAT=8
@@ -149,10 +159,11 @@ MODULE_TOPHATCUFF=
 PATH_TOPHATCUFF=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
-# HICLIB
-WALLTIME_HICLIB=10:00:00
+# HICLIB 
+# https://bitbucket.org/mirnylab/hiclib
+WALLTIME_HICLIB=50:00:00
 MEMORY_HICLIB=60
-CPU_HICLIB=8
+CPU_HICLIB=16
 NODES_HICLIB="nodes=1:ppn=8"
 
 MODULE_HICLIB=
@@ -163,6 +174,7 @@ HICLIB_READLENGTH=
 
 ##############################################################
 # HICUP
+# http://www.bioinformatics.babraham.ac.uk/projects/hicup/
 WALLTIME_HICUP=10:00:00
 MEMORY_HICUP=60
 CPU_HICUP=8
@@ -174,7 +186,8 @@ HICUP_RENZYMES=
 
 
 ##############################################################
-# R
+# R (3.0.0)
+# http://www.r-project.org/
 WALLTIME_R=1:00:00
 MEMORY_R=10
 CPU_R=1
