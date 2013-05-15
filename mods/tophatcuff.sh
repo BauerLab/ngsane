@@ -237,6 +237,8 @@ echo ">>>>> from $BAMFILE to $CUFOUT"
 #non reference guided
 #cufflinks --quiet -r $FASTA -p $THREADS -o $CUFOUT $BAMFILE"
 
+#specify REFSEQ or Gencode GTF depending on analysis desired.
+
 # add GTF file if present
 if [ -n "$REFSEQGTF" ]; then REFSEQGTF="--GTF-guide $REFSEQGTF"; 
 cufflinks --quiet $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
@@ -301,7 +303,7 @@ intersectBed -v -abam $OUTDIR/accepted_hits.bam -b mask.gff > $OUTDIR/tophat_ali
 
 	echo ">>>>> Read counting with htseq-count - FINISHED"
 
-##make bigwigs for UCSC
+##make bigwigs for UCSC using gencode masked reads
 
 
     if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
@@ -329,7 +331,7 @@ echo ">>>>> make bigwigs - FINISHED"
 
 echo "********* calculate RPKMs per Gencode Gene "
 
-#Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene ${n}gene anno_version
+Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene ${n}gene anno_version
 
 echo "********* calculate RPKMs per Gencode Transcript "
 
