@@ -72,7 +72,7 @@ fi
 
 echo ${#DIR[@]}
 # test if multiple source data is defined
-if [ "${#DIR[@]}" > 1 ]; then
+if [ "${#DIR[@]}" -eq "1" ]; then
   echo "[ERROR] multiple input directories specified (DIR)."
   exit 1
 fi
