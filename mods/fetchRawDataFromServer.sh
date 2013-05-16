@@ -8,8 +8,6 @@
 echo ">>>>> Transfer data to HPC cluster "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> job_name "$JOB_NAME
-echo ">>>>> job_id "$JOB_ID
 echo ">>>>> getRawDataFromServer.sh $*"
 
 
@@ -43,12 +41,12 @@ done
 . $CONFIG
 
 if ! hash smbclient; then
-	echo "[ERROR] Could not find smbclient"
-	exit 1
+  echo "[ERROR] Could not find smbclient"
+  exit 1
 fi
 
 if [ ! -f ~/.smbclient ]; then
-	echo "[WARN] ~/.smbclient not configured"
+  echo "[WARN] ~/.smbclient not configured"
 fi
 
 # test if source server is given
@@ -57,7 +55,6 @@ if [ -z "$SOURCE_SERVER" ]; then
 fi
 
 # test if source files are given
-echo "${SOURCE_FILES[@]}"
 if [ -z "${SOURCE_FILES[@]}" ]; then
   echo "[ERROR] no raw data  specified (SOURCE_FILES)."
   exit 1
@@ -70,29 +67,28 @@ if [ -z "${DIR[@]}" ]; then
   exit 1
 fi
 
-echo ${#DIR[@]}
 # test if multiple source data is defined
-if [ "${#DIR[@]}" -eq "1" ]; then
+if [ "${#DIR[@]}" -ne "1" ]; then
   echo "[ERROR] multiple input directories specified (DIR)."
   exit 1
 fi
 
 # ensure out directory is there 
 for dir in ${DIR[@]}; do
-  if [ ! -d $OUT/$dir ]; then mkdir -p $OUT/$dir; fi
+  if [ ! -d $SOURCE/fastq/$dir ]; then mkdir -p $SOURCE/fastq/$dir; fi
 done
 
 if [ ! -d $QOUT ]; then mkdir -p $QOUT; fi
 
 
 CURDIR=$(pwd)
-cd ${DIR[0]}
+cd $SOURCE/fastq/${DIR[0]}
 
-echo "********* get file from source folder"
+echo "********* get raw data from REMOTE server"
 for sourcefile in ${SOURCE_FILES[@]}; do
 	fn="${sourcefile##*/}" # filename
 	dn="${sourcefile%/*}"  # dirname
-	
+
 	if [ -f  ~/.smbclient ]; then
 	   smbclient ${SOURCE_SERVER} -A ~/.smbclient -c "cd ${dn}; get ${fn}"
 	else
