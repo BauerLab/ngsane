@@ -55,7 +55,7 @@ if [ -n "$ADDITIONALTASK" ]; then
 	exit
 	elif [ "$ADDITIONALTASK" = "fetchdata" ]; then
 	    echo ">>>>>>>>>> $ADDITIONALTASK"
-	    ${NGSANE_BASE}/mods/fetchRawDataFromServer.sh ${NGSANE_BASE} $CONFIG
+	    ${NGSANE_BASE}/mods/fetchRawDataFromServer.sh -k $CONFIG
 	    exit
 	elif [ "$ADDITIONALTASK" = "pushresult" ]; then
 	    echo ">>>>>>>>>> $ADDITIONALTASK"

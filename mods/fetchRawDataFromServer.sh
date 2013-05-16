@@ -14,20 +14,18 @@ echo ">>>>> getRawDataFromServer.sh $*"
 
 
 function usage {
-echo -e "usage: $(basename $0) -k NGSANE
+echo -e "usage: $(basename $0) -k CONFIG
 
-Script running hicup including reference genome digestion, read mapping for single and 
-paired DNA reads with bowtie from fastq files
-It expects a fastq file, pairdend, reference genome and digest pattern  as input.
+Script fetches data from a remote server via smbclient
+It expects a config file with SOURCE_SERVER SOURCE_FILES and DIR specified.
 
 required:
   -k | --toolkit <path>     location of the NGSANE repository 
-  -o | --outdir <path>      output dir
 "
 exit
 }
 
-if [ ! $# -gt 3 ]; then usage ; fi
+if [ ! $# -gt 1 ]; then usage ; fi
 
 #INPUTS
 while [ "$1" != "" ]; do
