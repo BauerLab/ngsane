@@ -57,7 +57,8 @@ PATH_SAMSTAT=
 # gzip alternatives, e.g.
 # pigz (2.3) - http://zlib.net/pigz/
 MODULE_GZIP=
-GZIP=gzip			# command, e.g. gzip or pigz
+GZIP="gzip -9"			# command, e.g. gzip or pigz
+[ -n "$MODULE_GZIP" ] && module load $MODULE_GZIP
 
 ##############################################################
 # FASTQC (0.10.1) 
@@ -173,7 +174,7 @@ HICLIB_RENZYMES=
 HICLIB_READLENGTH=
 
 ##############################################################
-# HICUP
+# HICUP + fit-hi-c
 # http://www.bioinformatics.babraham.ac.uk/projects/hicup/
 WALLTIME_HICUP=10:00:00
 MEMORY_HICUP=60
