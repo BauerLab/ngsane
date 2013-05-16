@@ -2,13 +2,16 @@ NGSANE is a framework for advanced production informatics of Next Generation Seq
 
 Version: 0.0.1
 
-Setup:
+#########################################################
+# Setup:
+
 Define the environment variable NGSANE_BASE and point it to the directory that
 contains the NGSANE framework.
 You may want to set up $NGSANE_BASE in a cluster model or in your .bash_rc
 You can also specify it in the project-based config file.
 
-NGSANE is structured as follows:
+#########################################################
+# Structure of NGSANE:
 
 ngsane
 - bin/ 
@@ -36,8 +39,29 @@ ngsane
 - tools/
 	contains various helper scripts used within the modules, 
 	mostly tapping into python and R
-	
-	
+
+#########################################################
+# How to run NGSANE:
+
+NGSANE requires a config file for each of your projects.
+Examples of config files for different pipelines are given in sampleConfigs/
+
+The main access point is trigger.sh which can be invoked to run in different
+modes
+>trigger.sh <CONFIG> <TASK>
+
+options for TASK:
+  "empty"    start dry-run: make dirs, delete old files, print what will be
+done
+  fetchdata  get data from remote server (via smbclient)
+  pushresult puts results to remote server (via smbclient)
+  armed      submit tasks to the queue
+  direct     run task directly (e.g. on node after qrsh)
+  verify     check the pbs logfiles for errors
+  html       check the pbs logfiles for errors and and make summary HTML page
+  clean      clean up
+
+#########################################################	
 Contact:
 	Denis.Bauer - at - csiro.au
 	f.buske - at - garvan.org.au
