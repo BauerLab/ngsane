@@ -257,7 +257,7 @@ if [ -z "$GENCODEGTF" ] && [ -z "$REFSEQGTF" ]; then
 
         echo "********* GENCODEGTF and or REFSEQGTF  not defined"
         cufflinks --quiet -r $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE \
-         -o $CUFOUT $BAMFILE"
+         -o $CUFOUT $BAMFILE
         
 fi
 
@@ -321,7 +321,7 @@ mkdir -p $BIGWIGSDIR
 
 
 #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/tophat_aligned_reads_masked.bam ${n} $BAM2BW_OPTION_1 $BAM2BW_OPTION_2
+Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${n} $BAM2BW_OPTION_1 $BAM2BW_OPTION_2
 
 echo ">>>>> make bigwigs - FINISHED"
 
@@ -340,18 +340,18 @@ fi
 if [ -n "$GENCODEGTF" ]; then 
 echo "********* Create filtered bamfile "      
 
-grep -P "gene_type \"rRNA\"" $GENCODEGTF > mask.gff
-grep -P "gene_type \"Mt_tRNA\"" $GENCODEGTF >> mask.gff
-grep -P "gene_type \"Mt_rRNA\"" $GENCODEGTF >> mask.gff
-grep -P "gene_type \"tRNA\"" $GENCODEGTF >> mask.gff
+grep -P "gene_type \"rRNA\"" $GENCODEGTF > $OUTDIR/mask.gff
+grep -P "gene_type \"Mt_tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
+grep -P "gene_type \"Mt_rRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
+grep -P "gene_type \"tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
 
-grep -P "gene_type \"rRNA_pseudogene\"" $GENCODEGTF >> mask.gff
-grep -P "gene_type \"tRNA_pseudogene\"" $GENCODEGTF >> mask.gff
-grep -P "gene_type \"Mt_tRNA_pseudogene\"" $GENCODEGTF >> mask.gff
-grep -P "gene_type \"Mt_rRNA_pseudogene\"" $GENCODEGTF >> mask.gff
+grep -P "gene_type \"rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
+grep -P "gene_type \"tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
+grep -P "gene_type \"Mt_tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
+grep -P "gene_type \"Mt_rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
 
         
-intersectBed -v -abam $OUTDIR/accepted_hits.bam -b mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
+intersectBed -v -abam $OUTDIR/accepted_hits.bam -b $OUTDIR/mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
         
 echo ">>>>> Create filtered bamfile - FINISHED"
 fi
