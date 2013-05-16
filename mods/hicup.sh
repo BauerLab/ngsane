@@ -209,20 +209,30 @@ HICUP_CALL="$(which perl) $(which hicup) -c $HICUP_CONF"
 echo $HICUP_CALL
 cd $MYOUT/$OUTDIR
 $($HICUP_CALL)
-cp hicup_deduplicater_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_deduplicater_summary_results.txt
-cp hicup_filter_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_filter_summary_results.txt
-cp hicup_mapper_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_mapper_summary.txt
-cp hicup_truncater_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_truncater_summary.txt
-ln -f -s $OUTDIR/uniques_${n/.$FASTQ/}${n/'_'$READONE.$FASTQ/'_'$READTWO}*.bam $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam
+cp hicup_deduplicater_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_deduplicater_summary_results.txt 2>/dev/null
+cp hicup_filter_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_filter_summary_results.txt 2>/dev/null
+cp hicup_mapper_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_mapper_summary.txt 2>/dev/null
+cp hicup_truncater_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_truncater_summary.txt 2>/dev/null
+ln -f -s $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/'_'$READONE.$FASTQ/'_'$READTWO}_trunc.bam $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam
 
 cd $CURDIR
 
 # copy piecharts
 RUNSTATS=$OUT/runStats/hicup
 mkdir -p $RUNSTATS
-cp $MYOUT/$OUTDIR/uniques_*_cis-trans.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_uniques_cis-trans.png
-cp $MYOUT/$OUTDIR/*_ditag_classification.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_ditag_classification.png
+cp $MYOUT/$OUTDIR/uniques_*_cis-trans.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_uniques_cis-trans.png 2>/dev/null
+cp $MYOUT/$OUTDIR/*_ditag_classification.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_ditag_classification.png 2>/dev/null
 
+echo "********* fit-hi-c"
+python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=${DIGESTGENOME} --outputDir=$MYOUT/  $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam
+cd $MYOUT
+python $(which fit-hi-c.py) --fragments=$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam.fragmentLists --interactions=$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam.contactCounts --lib=${n/'_'$READONE.$FASTQ/}
+cd $CURDIR
+
+awk 'float($7)<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.significances.txt | $GZIP > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.q05.txt
+awk 'float($7)<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.significances.txt | $GZIP > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.q05.txt
+
+$GZIP $MYOUT/${n/'_'$READONE.$FASTQ/}*.significances.txt
 exit 1 
 
 echo "********* sorting and indexing"

@@ -318,7 +318,12 @@ def countReadsPerFragment(intersect_tree):
 			if (options.vverbose):
 				print >> sys.stdout, "-- one read does not co-occur with any fragment: %d %d" % (fragmentID1, fragmentID2)
 			continue
-		
+		elif (fragmentID1 == fragmentID2):
+			if (options.vverbose):
+				print >> sys.stdout, "-- skip intra-fragment link: %d == %d" % (fragmentID1, fragmentID2)
+			continue
+
+	
 		f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
 		if (not fragmentPairs.has_key(f_tuple)):
 			fragmentPairs[f_tuple] = 0

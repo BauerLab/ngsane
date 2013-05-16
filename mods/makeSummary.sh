@@ -220,11 +220,11 @@ if [ -n "RUNHICUP" ];then
 	    n=${n/"_ditag_classification.png"/}
 	    
 	    row0+="<td>$n</td>"
-        row1+="<td><img href=\"runStats/$TASKHICUP/"$n"_ditag_classification.png\" width=\"100px\"/></td>"
-   	    row2+="<td><img href=\"runStats/$TASKHICUP/"$n"_uniques_cis-trans.png\" width=\"100px\"/></td>"
+	    row1+="<td><a href=\"runStats/$TASKHICUP/"$n"_ditag_classification.png\"><img src=\"runStats/$TASKHICUP/"$n"_ditag_classification.png\" width=\"200px\"/></a></td>"
+   	    row2+="<td><a href=\"runStats/$TASKHICUP/"$n"_uniques_cis-trans.png\"><img src=\"runStats/$TASKHICUP/"$n"_uniques_cis-trans.png\" width=\"200px\"/></a></td>"
 
     done
-    echo "<table><tr>"+row0+"</tr><tr>"+row1+"</tr><tr>"+row2+"</tr><\table>" >> $SUMMARYTMP
+    echo "<table><tr>$row0</tr><tr>$row1</tr><tr>$row2</tr></table>" >> $SUMMARYTMP
 fi
 
 #
