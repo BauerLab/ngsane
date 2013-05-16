@@ -4,7 +4,6 @@
 ######################################
 # Resources
 #####################################
-SOURCE_SERVER=\\\\gagri\\GRIW
 
 #********************
 # Tasks
@@ -17,6 +16,9 @@ SOURCE=$(pwd)
 
 # which folder to put the files in (only one permitted)
 declare -a DIR; DIR=( sample )
+
+# server hosting the raw data, e.g. '//gagri/GRIW'
+SOURCE_SERVER=
 
 # location of fastq files on SOURCE SERVER (full path to R1 library)
 # files will be put into the folder specified by DIR

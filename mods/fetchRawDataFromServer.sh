@@ -52,10 +52,12 @@ fi
 # test if source server is given
 if [ -z "$SOURCE_SERVER" ]; then
   echo "[ERROR] source server not specified (SOURCE_SERVER)."
+  exit 1
 fi
 
 # test if source files are given
-if [ -z "${SOURCE_FILES[@]}" ]; then
+echo "${#SOURCE_FILES[@]}"
+if [ "${#SOURCE_FILES[@]}" -eq "0" ]; then
   echo "[ERROR] no raw data  specified (SOURCE_FILES)."
   exit 1
 fi
@@ -89,18 +91,19 @@ for sourcefile in ${SOURCE_FILES[@]}; do
 	fn="${sourcefile##*/}" # filename
 	dn="${sourcefile%/*}"  # dirname
 
+#	echo "smbclient ${SOURCE_SERVER} -A ~/.smbclient -c \"prompt; cd ${dn}; get ${fn}\""
 	if [ -f  ~/.smbclient ]; then
-	   smbclient ${SOURCE_SERVER} -A ~/.smbclient -c "cd ${dn}; get ${fn}"
+	   smbclient ${SOURCE_SERVER} -A ~/.smbclient -c "prompt; cd ${dn}; get ${fn}"
 	else
-	   smbclient ${SOURCE_SERVER} -U `whoami` -c "cd ${dn}; get ${fn}"
+	   smbclient ${SOURCE_SERVER} -U `whoami` -c "prompt; cd ${dn}; get ${fn}"
 	fi
 	
 	# get second read
 	if [ -n "$READTWO" ]; then  
 		if [ -f  ~/.smbclient ]; then
-		   smbclient ${SOURCE_SERVER} -A ~/.smbclient -c "cd ${dn}; get ${fn/$READONE/$READTWO}"
+		   smbclient ${SOURCE_SERVER} -A ~/.smbclient -c "prompt; cd ${dn}; get ${fn/$READONE/$READTWO}"
 		else
-		   smbclient ${SOURCE_SERVER} -U `whoami` -c "cd ${dn}; get ${fn/$READONE/$READTWO}"
+		   smbclient ${SOURCE_SERVER} -U `whoami` -c "prompt; cd ${dn}; get ${fn/$READONE/$READTWO}"
 		fi
 	fi	
 done

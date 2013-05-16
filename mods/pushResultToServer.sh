@@ -10,7 +10,6 @@ echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> pushResultToServer.sh $*"
 
-
 function usage {
 echo -e "usage: $(basename $0) -k CONFIG
 
@@ -50,8 +49,9 @@ if [ ! -f ~/.smbclient ]; then
 fi
 
 # test if source server is given
-if [ -z "$SOURCE_SERVER" ]; then
+if [ -z "$TARGET_SERVER" ]; then
   echo "[ERROR] source server not specified (TARGET_SERVER)."
+  exit 1 
 fi
 
 # test if source files are given
@@ -83,12 +83,12 @@ for dir in ${DIR[@]}; do
    		fn="${f##*/}" # basename
    		# don't copy the raw files or the tmp folder
    		if [ "$fn" != "fastq" ] && [ "$fn" != "tmp" ]; then 
-   			echo "smbclient ${SOURCE_SERVER} -A ~/.smbclient -c \"prompt; recurse; cd ${dn}; mput ${dir}\""
-#	   		if [ -f  ~/.smbclient ]; then
-#			   smbclient ${SOURCE_SERVER} -A ~/.smbclient -c "prompt; recurse; cd ${dn}; mput ${dir}"
-#			else
-#			   smbclient ${SOURCE_SERVER} -U `whoami` -c "prompt; recurse; cd ${dn}; mput ${dir}"
-#			fi
+#   			echo "smbclient ${TARGET_SERVER} -A ~/.smbclient -c \"prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}\""
+	   		if [ -f  ~/.smbclient ]; then
+			   smbclient ${TARGET_SERVER} -A ~/.smbclient -c "prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}"
+			else
+			   smbclient ${TARGET_SERVER} -U `whoami` -c "prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}"
+			fi
 		fi
 	done
 done

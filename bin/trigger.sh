@@ -59,7 +59,7 @@ if [ -n "$ADDITIONALTASK" ]; then
 	    exit
 	elif [ "$ADDITIONALTASK" = "pushresult" ]; then
 	    echo ">>>>>>>>>> $ADDITIONALTASK"
-	    ${NGSANE_BASE}/mods/pushResultToServer.sh ${NGSANE_BASE} $CONFIG
+	    ${NGSANE_BASE}/mods/pushResultToServer.sh -k $CONFIG
 	    exit
     elif [ "$ADDITIONALTASK" = "html" ]; then
 	   echo ">>>>>>>>>> $ADDITIONALTASK"

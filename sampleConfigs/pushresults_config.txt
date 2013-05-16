@@ -4,7 +4,6 @@
 ######################################
 # Resources
 #####################################
-TARGET_SERVER=\\\\gagri\\GRIW
 
 #********************
 # Tasks
@@ -17,6 +16,9 @@ SOURCE=$(pwd)
 
 # which folder to put the files in (only one permitted)
 declare -a DIR; DIR=( sample )
+
+# server location e.g. '//gagri/GRIW'
+TARGET_SERVER=
 
 # location on the target server to put the result into (should already exist)
 TARGET_LOCATION=
