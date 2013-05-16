@@ -16,7 +16,10 @@ required:
 
 options for TASK:
   empty      start dry-run: make dirs, delete old files, print what will be done
+  fetchdata  get data from remote server (via smbclient)
+  pushresult puts results to remote server (via smbclient)
   armed      submit tasks to the queue
+  direct     run task directly (e.g. on node after qrsh)
   verify     check the pbs logfiles for errors 
   html       check the pbs logfiles for errors and and make summary HTML page
   clean      clean up
@@ -50,16 +53,24 @@ if [ -n "$ADDITIONALTASK" ]; then
 	if [ -n "$RUNTOPHATCUFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT; fi
 	if [ -n "$RUNCUFFDIFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/cuffdiff.sh $QOUT/$TASKCUFFDIFF; fi
 	exit
+	elif [ "$ADDITIONALTASK" = "fetchdata" ]; then
+	    echo ">>>>>>>>>> $ADDITIONALTASK"
+	    ${NGSANE_BASE}/mods/fetchRawDataFromServer.sh -k $CONFIG
+	    exit
+	elif [ "$ADDITIONALTASK" = "pushresult" ]; then
+	    echo ">>>>>>>>>> $ADDITIONALTASK"
+	    ${NGSANE_BASE}/mods/pushResultToServer.sh -k $CONFIG
+	    exit
     elif [ "$ADDITIONALTASK" = "html" ]; then
-	echo ">>>>>>>>>> $ADDITIONALTASK"
-	${NGSANE_BASE}/mods/makeSummary.sh ${NGSANE_BASE} $CONFIG
-	exit
+	   echo ">>>>>>>>>> $ADDITIONALTASK"
+	   ${NGSANE_BASE}/mods/makeSummary.sh ${NGSANE_BASE} $CONFIG
+	    exit
     elif [ "$ADDITIONALTASK" = "clean" ]; then
-	echo ">>>>>>>>>> $ADDITIONALTASK"
-	exit
+	    echo ">>>>>>>>>> $ADDITIONALTASK"
+	    exit
     elif [ "$ADDITIONALTASK" = "armed" ]; then
-	echo ">>>>>>>>>> $ADDITIONALTASK"
-	ARMED="--armed"
+	    echo ">>>>>>>>>> $ADDITIONALTASK"
+	    ARMED="--armed"
     elif [ "$ADDITIONALTASK" = "keep" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--keep"
