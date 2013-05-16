@@ -234,8 +234,6 @@ samstat $BAMFILE
 #run cufflinks
 echo "********* cufflinks"
 echo ">>>>> from $BAMFILE to $CUFOUT"
-#non reference guided
-#cufflinks --quiet -r $FASTA -p $THREADS -o $CUFOUT $BAMFILE"
 
 #specify REFSEQ or Gencode GTF depending on analysis desired.
 
@@ -252,6 +250,20 @@ cufflinks --quiet $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -
     $BAMFILE 
 
 fi
+
+#non reference guided
+
+if [ -z "$GENCODEGTF" ] && [ -z "$REFSEQGTF" ]; then
+
+        echo "********* GENCODEGTF and or REFSEQGTF  not defined"
+        cufflinks --quiet -r $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE \
+         -o $CUFOUT $BAMFILE"
+        
+fi
+
+
+
+
 
 echo ">>>>> alignment with TopHat - FINISHED"
 
@@ -272,22 +284,7 @@ if [ -n "$GENCODEGTF" ]; then
                HT_SEQ_OPTIONS="--stranded=yes"
         fi
         
-        
 
-grep -P "gene_type \"rRNA\"" $GENCODEGTF > mask.gff
-grep -P "gene_type \"Mt_tRNA\"" $GENCODEGTF >> mask.gff
-grep -P "gene_type \"Mt_rRNA\"" $GENCODEGTF >> mask.gff
-grep -P "gene_type \"tRNA\"" $GENCODEGTF >> mask.gff
-
-grep -P "gene_type \"rRNA_pseudogene\"" $GENCODEGTF >> mask.gff
-grep -P "gene_type \"tRNA_pseudogene\"" $GENCODEGTF >> mask.gff
-grep -P "gene_type \"Mt_tRNA_pseudogene\"" $GENCODEGTF >> mask.gff
-grep -P "gene_type \"Mt_rRNA_pseudogene\"" $GENCODEGTF >> mask.gff
-
-        
-intersectBed -v -abam $OUTDIR/accepted_hits.bam -b mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
-        
-  
 	##add secondstrand
 	annoF=${GENCODEGTF##*/}
 #	echo ${annoF}
@@ -297,9 +294,9 @@ intersectBed -v -abam $OUTDIR/accepted_hits.bam -b mask.gff > $OUTDIR/tophat_ali
 #	echo ${HTOUTDIR}
 	mkdir -p $HTOUTDIR
 
-	samtools view $OUTDIR/tophat_aligned_reads_masked.bam  | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.gene
+	samtools view $OUTDIR/accepted_hits.bam  | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.gene
 	
-	samtools view $OUTDIR/tophat_aligned_reads_masked.bam  | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.transcript
+	samtools view $OUTDIR/accepted_hits.bam  | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.transcript
 
 	echo ">>>>> Read counting with htseq-count - FINISHED"
 
@@ -338,6 +335,25 @@ echo "********* calculate RPKMs per Gencode Transcript "
 Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.transcript ${n}transcript anno_version
 
 echo ">>>>> Gencode RPKM calculation - FINISHED"
+fi
+
+if [ -n "$GENCODEGTF" ]; then 
+echo "********* Create filtered bamfile "      
+
+grep -P "gene_type \"rRNA\"" $GENCODEGTF > mask.gff
+grep -P "gene_type \"Mt_tRNA\"" $GENCODEGTF >> mask.gff
+grep -P "gene_type \"Mt_rRNA\"" $GENCODEGTF >> mask.gff
+grep -P "gene_type \"tRNA\"" $GENCODEGTF >> mask.gff
+
+grep -P "gene_type \"rRNA_pseudogene\"" $GENCODEGTF >> mask.gff
+grep -P "gene_type \"tRNA_pseudogene\"" $GENCODEGTF >> mask.gff
+grep -P "gene_type \"Mt_tRNA_pseudogene\"" $GENCODEGTF >> mask.gff
+grep -P "gene_type \"Mt_rRNA_pseudogene\"" $GENCODEGTF >> mask.gff
+
+        
+intersectBed -v -abam $OUTDIR/accepted_hits.bam -b mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
+        
+echo ">>>>> Create filtered bamfile - FINISHED"
 fi
 
 
