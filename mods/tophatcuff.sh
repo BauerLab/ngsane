@@ -294,9 +294,9 @@ if [ -n "$GENCODEGTF" ]; then
 #	echo ${HTOUTDIR}
 	mkdir -p $HTOUTDIR
 
-	samtools view $BAMFILE  | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.gene
+	samtools view $OUTDIR/accepted_hits.bam  | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.gene
 	
-	samtools view $BAMFILE  | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.transcript
+	samtools view $OUTDIR/accepted_hits.bam  | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.transcript
 
 	echo ">>>>> Read counting with htseq count - FINISHED"
 
@@ -321,7 +321,7 @@ mkdir -p $BIGWIGSDIR
 
 
 #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $BAMFILE ${n} $BAM2BW_OPTION_1 $BAM2BW_OPTION_2 $BIGWIGSDIR
+Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${n} $BAM2BW_OPTION_1 $BAM2BW_OPTION_2 $BIGWIGSDIR
 
 echo ">>>>> make bigwigs - FINISHED"
 
@@ -350,8 +350,10 @@ grep -P "gene_type \"Mt_tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
 grep -P "gene_type \"Mt_rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
 
         
-intersectBed -v -abam $BAMFILE -b $OUTDIR/mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
-        
+intersectBed -v -abam $OUTDIR/accepted_hits.bam -b $OUTDIR/mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
+    
+samtools index $OUTDIR/tophat_aligned_reads_masked.bam
+    
 echo ">>>>> Create filtered bamfile - FINISHED"
 fi
 
