@@ -238,15 +238,15 @@ echo ">>>>> from $BAMFILE to $CUFOUT"
 #specify REFSEQ or Gencode GTF depending on analysis desired.
 
 # add GTF file if present
-if [ -n "$REFSEQGTF" ]; then REFSEQGTF="--GTF-guide $REFSEQGTF"; 
-cufflinks --quiet $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
+if [ -n "$REFSEQGTF" ]; then REFSEQGTF="$REFSEQGTF"; 
+cufflinks --quiet --GTF-guide $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
     $BAMFILE 
 
 fi
 
-if [ -n "$GENCODEGTF" ]; then GENCODEGTF="--GTF-guide $GENCODEGTF"; 
+if [ -n "$GENCODEGTF" ]; then GENCODEGTF="$GENCODEGTF"; 
 
-cufflinks --quiet $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
+cufflinks --quiet --GTF-guide $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
     $BAMFILE 
 
 fi
@@ -275,12 +275,12 @@ if [ -n "$GENCODEGTF" ]; then
 
 	GENCODEGTF="$GENCODEGTF"; 
 		if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
-               echo "library is fr-unstranded run ht-seq-count stranded=no" 
+               echo "********* library is fr-unstranded run ht seq count stranded=no" 
                HT_SEQ_OPTIONS="--stranded=no"
         fi
             
  		if [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
-               echo "library is fr-firststrand run ht-seq-count stranded=yes"
+               echo "********* library is fr-firststrand run ht seq count stranded=yes"
                HT_SEQ_OPTIONS="--stranded=yes"
         fi
         
@@ -298,7 +298,7 @@ if [ -n "$GENCODEGTF" ]; then
 	
 	samtools view $OUTDIR/accepted_hits.bam  | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.transcript
 
-	echo ">>>>> Read counting with htseq-count - FINISHED"
+	echo ">>>>> Read counting with htseq count - FINISHED"
 
 ##make bigwigs for UCSC using gencode masked reads
 
@@ -321,7 +321,7 @@ mkdir -p $BIGWIGSDIR
 
 
 #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${n} $BAM2BW_OPTION_1 $BAM2BW_OPTION_2
+Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${n} $BAM2BW_OPTION_1 $BAM2BW_OPTION_2 $BIGWIGSDIR
 
 echo ">>>>> make bigwigs - FINISHED"
 
