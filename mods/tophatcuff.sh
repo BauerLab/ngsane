@@ -293,11 +293,15 @@ if [ -n "$GENCODEGTF" ]; then
 	HTOUTDIR=$OUTDIR/../htseq_count
 #	echo ${HTOUTDIR}
 	mkdir -p $HTOUTDIR
-
-	samtools view $OUTDIR/accepted_hits.bam  | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.gene
 	
-	samtools view $OUTDIR/accepted_hits.bam  | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.transcript
+	samtools sort -n $OUTDIR/accepted_hits.bam $OUTDIR/accepted_hits_sorted.bam
+	
+	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.gene
+	
+	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.transcript
 
+    rm $OUTDIR/accepted_hits_sorted.bam
+    
 	echo ">>>>> Read counting with htseq count - FINISHED"
 
 ##make bigwigs for UCSC using gencode masked reads
