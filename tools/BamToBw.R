@@ -22,11 +22,11 @@ RNAbamTobw <- function(file, name, stranded=TRUE, firstStrand=TRUE,path)
                 if (stranded) {
                                 rs.cov <- lapply(split(rs.cov, strand(rs.cov))[c("+", "-")], coverage)
                                 if (!firstStrand) names(rs.cov) <- rev(names(rs.cov))
-                                export(rs.cov[["+"]]/rs.count, BigWigFile(paste(path,name, "_+.bw", sep="")))
-                                export(rs.cov[["-"]]/rs.count, BigWigFile(paste(path,name, "_-.bw", sep="")))
-                                export(rs.cov[["-"]]/-rs.count, BigWigFile(paste(path,name, "_--.bw", sep="")))
+                                export(rs.cov[["+"]]/rs.count, BigWigFile(paste(path,"/",name, "_+.bw", sep="")))
+                                export(rs.cov[["-"]]/rs.count, BigWigFile(paste(path,"/",name, "_-.bw", sep="")))
+                                export(rs.cov[["-"]]/-rs.count, BigWigFile(paste(path,"/",name, "_--.bw", sep="")))
                               } 
-                                else export(coverage(rs.cov)/rs.count, BigWigFile(paste(path,name, ".bw", sep="")))
+                                else export(coverage(rs.cov)/rs.count, BigWigFile(paste(path,"/",name, ".bw", sep="")))
 
 
 }
