@@ -1,0 +1,87 @@
+# author: Fabian Buske
+# date: May 2013
+
+######################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNBWA2="1"        # map with BWA
+RUNREALRECAL3="1"  # recalibrate with GATK
+RUNVARCALLS3="1"    # variant calling with GATH
+
+## if running bowtie instead of bwa
+#RUNBOWTIE2="1"
+#TASKBWA=$TASKBOWTIE
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq firectory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+# read indicator
+READONE="R1"
+READTWO="R2"
+
+# fastq file suffix
+FASTQ="fq.gz"
+# which files to run on (replace samples with folders within fastq firectory)
+
+# reference genome
+FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+
+# dbsnp file (.vcf)
+DBROD=""
+
+#hapmap (.vcf)
+HAPMAPVCF=""
+
+# 1000 Genomes (.vcf)
+ONEKGVCF=""
+
+#********************
+# PARAMETER (mandatory)
+#********************
+EXPID="LnCap"
+LIBRARY="HiC"
+PLATFORM="Illumina"
+
+#********************
+# PARAMETER (optinal overwriting defaults)
+#********************
+## limit variant calling to to specific region
+#REF=chr:start-end
+#
+#Recal
+#WALLTIME_RECAL=60:00:00
+#MEMORY_RECAL=50
+#CPU_RECAL=8
+#NODES_RECAL="nodes=1:ppn=8"
+## COVERAGE
+#WALLTIME_GATKDOC=50:00:00
+#MEMORY_GATKDOC=50
+#CPU_GATKDOC=1
+#NODES_GATKDOC="nodes=1:ppn=1"
+## GATK VARCALL
+#WALLTIME_VAR=100:00:00
+#MEMORY_VAR=20
+#CPU_VAR=1
+#NODES_VAR="nodes=1:ppn=1"
+#
+#MODULE_GATK="gi/R/3.0.0 gi/gatk/2.5 gi/samtools/0.1.19 gi/igvtools/2.3.3"
+#MODULE_GATKSNP="gi/R/3.0.0 gi/gatk/2.5 gi/igvtools/2.3.3"
+
+## location of ngsane
+#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+
