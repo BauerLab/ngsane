@@ -18,9 +18,7 @@ NODES_BOWTIE="nodes=1:ppn=1"
 
 
 # Qsub additional parameters
-# QSUBADDPARAM="-q normal@burnet-srv.hpsc.csiro.au"
-
-
+# QSUBADDPARAM="-q normal@burnet-srv.hpsc.csiro.au -l hp=TRUE -p 0.9"
 
 #********************
 # Tasks

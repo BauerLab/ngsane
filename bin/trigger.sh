@@ -20,9 +20,7 @@ options for TASK:
   pushresult puts results to remote server (via smbclient)
   armed      submit tasks to the queue
   direct     run task directly (e.g. on node after qrsh)
-  verify     check the pbs logfiles for errors 
   html       check the pbs logfiles for errors and and make summary HTML page
-  clean      clean up
 "
 exit
 }
@@ -36,9 +34,6 @@ ADDITIONALTASK=$2
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
-
-#PRIORITY="-l hp=TRUE"
-#PRIORITY="-p 0.9"
 
 ############################################
 #   Verify
@@ -65,9 +60,6 @@ if [ -n "$ADDITIONALTASK" ]; then
 	   echo ">>>>>>>>>> $ADDITIONALTASK"
 	   ${NGSANE_BASE}/mods/makeSummary.sh ${NGSANE_BASE} $CONFIG
 	    exit
-    elif [ "$ADDITIONALTASK" = "clean" ]; then
-	    echo ">>>>>>>>>> $ADDITIONALTASK"
-	    exit
     elif [ "$ADDITIONALTASK" = "armed" ]; then
 	    echo ">>>>>>>>>> $ADDITIONALTASK"
 	    ARMED="--armed"
@@ -84,7 +76,7 @@ if [ -n "$ADDITIONALTASK" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--postonly"
     else
-	echo -e "[ERROR] don't understand "$ADDITIONALTASK" \nI understand only \"verify\" and \"clean\""
+	echo -e "[ERROR] don't understand $ADDITIONALTASK"
 	exit -1
     fi
 fi
