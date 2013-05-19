@@ -7,7 +7,7 @@
 function usage {
 echo -e "usage: $(basename $0) CONFIG [TASK]
 
-Script interpreting the config.txt file in the project directory and submitting
+Script interpreting the CONFIG file in the project directory and submitting
 tasks to the queue.
 
 required:
@@ -20,7 +20,7 @@ options for TASK:
   pushresult puts results to remote server (via smbclient)
   armed      submit tasks to the queue
   direct     run task directly (e.g. on node after qrsh)
-  html       check the pbs logfiles for errors and and make summary HTML page
+  html       check the cluster logfiles for errors and and make summary HTML page
 "
 exit
 }
