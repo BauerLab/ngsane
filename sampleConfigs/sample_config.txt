@@ -1,0 +1,90 @@
+
+# author: Denis C. Bauer
+# date: July 2012
+
+######################################
+# Resources overwrite
+#####################################
+
+WALLTIME_BWA=5:00:00
+MEMORY_BWA=50
+CPU_BWA=1
+NODES_BWA="nodes=1:ppn=1"
+
+WALLTIME_BOWTIE=20:00:00
+MEMORY_BOWTIE=60
+CPU_BOWTIE=1
+NODES_BOWTIE="nodes=1:ppn=1"
+
+
+# Qsub additional parameters
+# QSUBADDPARAM="-q normal@burnet-srv.hpsc.csiro.au -l hp=TRUE -p 0.9"
+
+#********************
+# Tasks
+#********************
+RUNFASTQC=""
+RUNCUTADAPT=""
+RUNMAPPINGBOWTIE2=""  # mapping with bowtie
+RUNTOPHATCUFF2="1"    # mapping with tophat (RNAseq)
+RUNMAPPINGBWA2=""     # mapping with bwa
+RUNREALRECAL=""       # recalibration/realigment
+DEPTHOFCOVERAGE=""    # determin mean coverage
+RUNVARCALLS=""        # SNP/Variant detection
+RUNANNOTATINGBAM=""  # anntate bam file with Gencode
+RUNSAMVAR=""         # run variant call 
+
+#ASR="asd" # change default because we are not running from refal but bwa
+#TASKRCA=$TASKBWA # change default because we are not running from refal but bwa
+
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which files to run on 
+# Region - ~4000 reads from 2 chromosomes
+# RunLarge - larger files (1/3 of a real file)
+# Single - read
+# NGSworkshop - region on a couple of 1000 basepairs
+declare -a DIR; DIR=( NGSworkshop ) 
+OUT=$SOURCE
+QOUT=$OUT/qout
+
+#READONE="R1"
+#READTWO="R2"
+READONE="read1"
+READTWO="read2"
+FASTQ=fastq
+#FASTQ=fastq.gz
+
+
+FASTA=$DATASTORE/SeqAna/reference/prod/b37/human_g1k_v37.fasta
+#FASTA=$DATASTORE/SeqAna/reference/prod/ecoli/NC_000913.2.fasta
+#FASTA=$DATASTORE/SeqAna/reference/prod/GRCm38/GRCm38_chr.fasta
+DBROD=/data/noflush/bau04c/SeqAna/reference/prod/gatk_resources_1.5/dbsnp_135.b37.vcf
+HAPMAPVCF=/data/noflush/bau04c/SeqAna/reference/prod/gatk_resources_1.5/hapmap_3.3.b37.vcf
+ONEKGVCF=/data/noflush/bau04c/SeqAna/reference/prod/gatk_resources_1.5/1000G_omni2.5.b37.vcf
+REFSEQGTF=/data/noflush/bau04c/SeqAna/reference/prod/b37/UCSC_GencodeV12.gtf
+CONTAMINANTS=adapters.txt
+
+#REF="/clusterdata/hiseq_apps/resources/freeze001/b37/SureSelect_All_Exon_50mb_with_annotation_b37_NoRandNoUn_tab.bed"
+
+REF=9:353059-379136
+RECALADDPARAM="-L $REF"
+#DOCADDPARAM="-L $REF"
+VARADDPARAM="-L $REF"
+# --maxGaussians 3 --percentBadVariants 0.05"
+
+#********************
+# PARAMETER
+#********************
+EXPID="OmicsRNA"
+LIBRARY="AGRF"
+PLATFORM="Illumina"
+
+
+## location of ngsane
+#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+

@@ -1,0 +1,63 @@
+# author: Fabian Buske
+# date: May 2013
+
+######################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNHICUP="1"        # map HiC data with hicup
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq firectory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+# read indicator
+READONE="R1"
+READTWO="R2"
+
+# fastq file suffix
+FASTQ="fq.gz"
+# which files to run on (replace samples with folders within fastq firectory)
+
+# reference genome
+FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+
+# bowtie v1.0 index including basename
+BOWTIE_INDEX=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome
+
+#********************
+# PARAMETER (mandatory)
+#********************
+EXPID="LnCap"
+LIBRARY="HiC"
+PLATFORM="Illumina"
+
+HICLIB_RENZYMES="BglII"
+HICUP_RENZYMES=A^GATCT,BglII
+
+#********************
+# PARAMETER (optinal overwriting defaults)
+#********************
+#WALLTIME_HICUP=10:00:00
+#MEMORY_HICUP=60
+#CPU_HICUP=32
+#NODES_HICUP="nodes=1:ppn=8"
+#MODULE_HICUP="fabbus/hicup/0.3.0"
+#PATH_HICUP=
+
+## location of ngsane
+#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+
