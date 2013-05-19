@@ -112,7 +112,18 @@ if [ -n "$RUNCUTADAPT" ]; then
 	--command "$HISEQINF/pbsTemp/cutadapt.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKCUTADAPT" 
 fi
 
+############################################
+#   TRIMMOMATIC remove contaminants
+#
+# IN:$SOURCE/$dir/fastq/*read1.fastq
+# OUT:$SOURCE/$dir/fastq_trim/*read1.fastq
+############################################
 
+if [ -n "$RUNTRIMAT" ]; then
+    $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMAT -i fastq -e "_"$READONE.$FASTQ -n $NODES_TRIMAT \
+        -c $CPU_TRIMAT -m $MEMORY_TRIMAT"G" -w $WALLTIME_TRIMAT \
+        --command "$HISEQINF/pbsTemp/trimmomatic.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKTRIMAT" 
+fi
 
 
 ############################################

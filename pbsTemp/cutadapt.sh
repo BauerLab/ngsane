@@ -48,26 +48,44 @@ FASTQDIR=$(basename $(dirname $f))
 o=${f/$FASTQDIR/$FASTQDIR"_trim"}
 FASTQDIRTRIM=$(dirname $o)
 
-echo $FASTQDIRTRIM
+
+if [ -e ${f/$READONE/$READTWO} ] ; then
+    echo "PAIRED"
+    PAIRED="1"
+    o2=${o/$READONE/$READTWO}
+else
+    echo "SINGLE"
+    PAIRED="0"
+fi
+
+if [ -n "$DMGET" ]; then
+    dmget -a ${f/$READONE/"*"}
+fi
+
+#echo $FASTQDIRTRIM
 if [ ! -d $FASTQDIRTRIM ]; then mkdir $FASTQDIRTRIM; fi
 echo $f "->" $o
+if [ "$PAIRED" = 1 ]; then echo ${f/$READONE/$READTWO} "->" $o2 ; fi
 echo "contaminants: "$CONTAMINANTS
 if [ ! -n "$CONTAMINANTS" ];then echo "need variable CONTAMINANTS defined in $CONFIG"; fi
 
-
 echo "********** get contaminators"
 CONTAM=$(cat $CONTAMINANTS | tr '\n' ' ')
-#CONTAM=""
-#for i in $(cat $CONTAMINANTS ); do
-#	CONTAM=$CONTAM"-a $i "
-#done
 echo $CONTAM
 
 echo "********** trim"
 cutadapt $CONTAM $f -o $o > $o.stats
 
+if [ "$PAIRED" = 1 ]; then
+    echo "********** paired end"
+    cutadapt $CONTAM ${f/$READONE/$READTWO} -o $o2 > $o2.stats
+    #TODO: clean up unmached pairs
+fi
+
 echo "********** zip"
-gzip -f ${o}
+for i in $o $o2 ; do
+    $GZIP -f $i
+done
 
 echo ">>>>> readtrimming with CUTADAPT - FINISHED"
 echo ">>>>> enddate "`date`
