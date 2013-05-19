@@ -153,15 +153,20 @@ if [[ $f = *.gz ]]; then
 #    n=${n/fastq.gz/fastq}
 fi
 
-# generating the index files
+## generating the index files
 if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi                                                                                      
 if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
 mkdir $OUTDIR
 echo "********* tophat"
-echo $RNA_SEQ_LIBRARY_TYPE
+if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then 
+	echo "[ERROR] RNAseq library type not set (RNA_SEQ_LIBRARY_TYPE): either fr-unstranded or fr-firststrand"
+	exit 1; 
+else
+	echo "RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
+fi
 
-tophat -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
+tophat -p $THREADS --library-type "$RNA_SEQ_LIBRARY_TYPE" -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
 
 echo "********* merge mapped and unmapped"
 #ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
@@ -174,6 +179,9 @@ if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then
 		REFERENCE=$FASTA \
 		OUTPUT=${FASTA/.$FASTASUFFIX/}.dict
 fi
+
+## sort bam header according to fasta (chromosome order) due to tophat's 
+## own ordering, which can pose problems for other programs 
 java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
      INPUT=${BAMFILE/.bam/.samtools}.bam \
      OUTPUT=$BAMFILE \
@@ -196,7 +204,7 @@ fi
 echo $FASTQREADS" fastq reads" >>$BAMFILE.stats
 JUNCTION=`wc -l $OUTDIR/junctions.bed | cut -d' ' -f 1 `
 echo $JUNCTION" junction reads" >> $BAMFILE.stats
-# get junction genes overlapping exons +-200bp
+## get junction genes overlapping exons +-200bp
 JUNCTGENE=`$BEDTOOLS/windowBed -a $OUTDIR/junctions.bed -b $REFSEQGTF -u -w 200 | wc -l | cut -d' ' -f 1 `
 echo $JUNCTGENE" junction reads NCBIM37" >> $BAMFILE.stats
 
@@ -222,7 +230,7 @@ for im in $( ls $OUTDIR/../metrices/$(basename $BAMFILE)*.pdf ); do
 done
 rm -r $THISTMP
 
-#coverage for IGV
+##coverage for IGV
 echo "********* coverage track"
 java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $BAMFILE \
     $BAMFILE.cov.tdf ${FASTA/$FASTASUFFIX/}genome
@@ -231,39 +239,27 @@ echo "********* samstat"
 samstat $BAMFILE
 
 
-#run cufflinks
+##run cufflinks
 echo "********* cufflinks"
 echo ">>>>> from $BAMFILE to $CUFOUT"
 
 #specify REFSEQ or Gencode GTF depending on analysis desired.
 
-# add GTF file if present
-if [ -n "$REFSEQGTF" ]; then REFSEQGTF="$REFSEQGTF"; 
-cufflinks --quiet --GTF-guide $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
-    $BAMFILE 
+## add GTF file if present
+if [ -n "$GENCODEGTF" ]; then 
+	GENCODEGTF="$GENCODEGTF"; 
+	cufflinks --quiet --GTF-guide $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE 
 
+elif [ -n "$REFSEQGTF" ]; then 
+	REFSEQGTF="$REFSEQGTF"; 
+	cufflinks --quiet --GTF-guide $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE 
+
+else
+	# non reference guided
+    echo "non reference guided run (neither GENCODEGTF nor REFSEQGTF defined)"
+    cufflinks --quiet -r $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE \
+         -o $CUFOUT $BAMFILE    
 fi
-
-if [ -n "$GENCODEGTF" ]; then GENCODEGTF="$GENCODEGTF"; 
-
-cufflinks --quiet --GTF-guide $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT \
-    $BAMFILE 
-
-fi
-
-#non reference guided
-
-if [ -z "$GENCODEGTF" ] && [ -z "$REFSEQGTF" ]; then
-
-        echo "********* GENCODEGTF and or REFSEQGTF  not defined"
-        cufflinks --quiet -r $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE \
-         -o $CUFOUT $BAMFILE
-        
-fi
-
-
-
-
 
 echo ">>>>> alignment with TopHat - FINISHED"
 
@@ -271,19 +267,15 @@ echo ">>>>> alignment with TopHat - FINISHED"
 if [ -n "$GENCODEGTF" ]; then 
 	echo "********* htseq-count"
 
-
-
 	GENCODEGTF="$GENCODEGTF"; 
-		if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
-               echo "********* library is fr-unstranded run ht seq count stranded=no" 
-               HT_SEQ_OPTIONS="--stranded=no"
-        fi
-            
- 		if [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
-               echo "********* library is fr-firststrand run ht seq count stranded=yes"
-               HT_SEQ_OPTIONS="--stranded=yes"
-        fi
-        
+	if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
+	       echo "********* library is fr-unstranded run ht seq count stranded=no" 
+	       HT_SEQ_OPTIONS="--stranded=no"
+	elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
+	       echo "********* library is fr-firststrand run ht seq count stranded=yes"
+	       HT_SEQ_OPTIONS="--stranded=yes"
+	fi
+	
 
 	##add secondstrand
 	annoF=${GENCODEGTF##*/}
@@ -306,59 +298,53 @@ if [ -n "$GENCODEGTF" ]; then
 
 ##make bigwigs for UCSC using gencode masked reads
 
-
     if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
-    echo "********* make bigwigs library is fr-unstranded "
-    BAM2BW_OPTION_1="FALSE"
-    BAM2BW_OPTION_2="FALSE"
+	    echo "********* make bigwigs library is fr-unstranded "
+	    BAM2BW_OPTION_1="FALSE"
+	    BAM2BW_OPTION_2="FALSE"
+    elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
+	    echo "********* make bigwigs library is fr-firststrand "
+	    BAM2BW_OPTION_1="TRUE"
+	    BAM2BW_OPTION_2="TRUE"
     fi
 
-    if [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
-    echo "********* make bigwigs library is fr-firststrand "
-    BAM2BW_OPTION_1="TRUE"
-    BAM2BW_OPTION_2="TRUE"
-    fi
+	BIGWIGSDIR=$OUTDIR/../bigwigs
+	#	echo ${BIGWIGSDIR}
+	mkdir -p $BIGWIGSDIR
+	
+	#file_arg sample_arg stranded_arg firststrand_arg paired_arg
+	Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${n} $BAM2BW_OPTION_1 $BAM2BW_OPTION_2 $BIGWIGSDIR
+	
+	echo ">>>>> make bigwigs - FINISHED"
+	
+	echo "********* calculate RPKMs per Gencode Gene "
+	
+	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene ${n}gene ${anno_version}
+	
+	echo "********* calculate RPKMs per Gencode Transcript "
+	
+	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.transcript ${n}transcript ${anno_version}
+	
+	echo ">>>>> Gencode RPKM calculation - FINISHED"
 
-BIGWIGSDIR=$OUTDIR/../bigwigs
-#	echo ${BIGWIGSDIR}
-mkdir -p $BIGWIGSDIR
-
-
-#file_arg sample_arg stranded_arg firststrand_arg paired_arg
-Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${n} $BAM2BW_OPTION_1 $BAM2BW_OPTION_2 $BIGWIGSDIR
-
-echo ">>>>> make bigwigs - FINISHED"
-
-echo "********* calculate RPKMs per Gencode Gene "
-
-Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene ${n}gene ${anno_version}
-
-echo "********* calculate RPKMs per Gencode Transcript "
-
-Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.transcript ${n}transcript ${anno_version}
-
-echo ">>>>> Gencode RPKM calculation - FINISHED"
-fi
-
-if [ -n "$GENCODEGTF" ]; then 
-echo "********* Create filtered bamfile "      
-
-grep -P "gene_type \"rRNA\"" $GENCODEGTF > $OUTDIR/mask.gff
-grep -P "gene_type \"Mt_tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
-grep -P "gene_type \"Mt_rRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
-grep -P "gene_type \"tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
-
-grep -P "gene_type \"rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-grep -P "gene_type \"tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-grep -P "gene_type \"Mt_tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-grep -P "gene_type \"Mt_rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-
-        
-intersectBed -v -abam $OUTDIR/accepted_hits.bam -b $OUTDIR/mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
-    
-samtools index $OUTDIR/tophat_aligned_reads_masked.bam
-    
-echo ">>>>> Create filtered bamfile - FINISHED"
+	echo "********* Create filtered bamfile "      
+	
+	grep -P "gene_type \"rRNA\"" $GENCODEGTF > $OUTDIR/mask.gff
+	grep -P "gene_type \"Mt_tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
+	grep -P "gene_type \"Mt_rRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
+	grep -P "gene_type \"tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
+	
+	grep -P "gene_type \"rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
+	grep -P "gene_type \"tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
+	grep -P "gene_type \"Mt_tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
+	grep -P "gene_type \"Mt_rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
+	
+	        
+	intersectBed -v -abam $OUTDIR/accepted_hits.bam -b $OUTDIR/mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
+	    
+	samtools index $OUTDIR/tophat_aligned_reads_masked.bam
+	    
+	echo ">>>>> Create filtered bamfile - FINISHED"
 fi
 
 
