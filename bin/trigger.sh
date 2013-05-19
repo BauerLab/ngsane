@@ -83,7 +83,7 @@ fi
 
 # test if source data is defined
 echo "${DIR[@]}"
-if [ -z "${DIR[@]}" ]; then
+if [[ -z "${DIR[@]}" ]]; then
   echo "[ERROR] no input directories specified (DIR)."
   exit 1
 fi
@@ -105,7 +105,7 @@ if [ ! -d $QOUT ]; then mkdir -p $QOUT; fi
 
 if [ -n "$RUNFASTQC" ]; then
     $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -i fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQC \
-	-c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC --postonly \
+	-c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
 	--postcommand "${NGSANE_BASE}/mods/fastQC.sh -k $CONFIG" 
 fi
 
@@ -499,10 +499,15 @@ if [ -n "$RUNREALRECAL2" ]; then
         -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
         --command "${NGSANE_BASE}/mods/reCalAln.sh $RECALADDPARAM -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA -t $CPU_RECAL"
 
-
 fi
 
+if [ -n "$RUNREALRECAL3" ]; then
 
+    $QSUB $ARMED -r -k $CONFIG -t $TASKRCA -i $TASKBWA/ -e .$ASD.bam \
+        -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
+        --command "${NGSANE_BASE}/mods/reCalAln2.sh $RECALADDPARAM -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA -t $CPU_RECAL"
+
+fi
 
 
 ############################################
@@ -905,6 +910,18 @@ then
 
     
 fi
+
+if [ -n "$RUNVARCALLS3" ]; then
+    NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
+    $QSUB $ARMED -d -r -k $CONFIG -t $TASKVAR -i $TASKRCA/  -e .$ASR.bam -n $NODES_VAR \
+        -c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
+        --postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
+                        -i <FILE> -t $CPU_VAR \
+                        -r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME \
+                        -H $HAPMAPVCF -K $ONEKGVCF $VARADDPARAM"
+fi
+
+
 
 
 ########

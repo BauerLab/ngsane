@@ -81,7 +81,8 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     DIR=$DIR" $dir"
     FILES=$FILES" $i"
 
-    if [ -n "$POSTONLY" ]; then continue; fi
+    # only postcommand 
+    if [[ -n "$POSTONLY" || -z "$COMMAND" ]]; then continue; fi
 
     echo $COMMAND2
 
@@ -111,7 +112,6 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
 	# if only the first task should be submitted as test
 	if [ -n "$FIRST" ]; then exit; fi
-
     fi
 done
 

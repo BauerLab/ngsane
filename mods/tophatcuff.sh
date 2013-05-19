@@ -103,13 +103,15 @@ echo $PATH
 # best common denominator)
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
-echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
-echo -e "--bowtie2 --\n "$(bowtie2 --version)
-echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
-echo -e "--R       --\n "$(R --version | head -n 3)
-echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
-echo -e "--PICARD  --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
-echo -e "--samstat --\n "$(samstat | head -n 2 | tail -n1)
+echo -e "--JAVA     --\n" $(java $JAVAPARAMS -version 2>&1)
+echo -e "--bowtie2  --\n "$(bowtie2 --version)
+echo -e "--samtools --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+echo -e "--R        --\n "$(R --version | head -n 3)
+echo -e "--igvtools --\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
+echo -e "--PICARD   --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+echo -e "--samstat  --\n "$(samstat | head -n 2 | tail -n1)
+echo -e "--bedtools --\n "$(bedtools --version)
+echo -e "--htSeq    --\n "$(htseq-count | tail -n 1)
 
 #SAMPLENAME
 # get basename of f

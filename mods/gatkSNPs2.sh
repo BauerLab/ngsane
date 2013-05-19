@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Script running snp calling with GATK
+# Script running snp calling with GATK version 2.5
 # QC:
 # author: Denis C. Bauer
-# date: Nov.2010
+# date: May.2013
 
 
 echo ">>>>> call SNPs using GATK"
@@ -79,12 +79,16 @@ module list
 echo $PATH
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-PATH_GATKJAR=$(dirname $(which GenomeAnalysisTK.jar))
+PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
 echo -e "--R       --\n "$(R --version | head -n 3)
 echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
 echo -e "--GATK  --\n "$(java -jar $JAVAPARAMS $PATH_GATK/GenomeAnalysisTK.jar --version 2>&1)
+
+if [ -n $DMGET ]; then dmget -a ${FILES//,/ }; fi
+
+if [ ! -d $MYOUT ]; then mkdir $MYOUT; fi
 
 if [ -n "$CALLSNPS" ]; then
 
@@ -97,19 +101,18 @@ if [ -n "$CALLSNPS" ]; then
     if [ -e $MYOUT/gatkSNPcall.tmp ]; then rm $MYOUT/gatkSNPcall.tmp; fi
     if [ -n "$SEQREG" ]; then REGION="-L $SEQREG"; fi
 
-
     # -nt $THREADS <- it is not parallele (2012)
     # from new versions add --computeSLOD
     # http://seqanswers.com/forums/showthread.php?t=14836
     echo "********* call SNPs and VariantAnnotation"
-    echo "java $JAVAPARAMS -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l INFO \
+    echo "java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l INFO \
          -T UnifiedGenotyper \
          -glm BOTH \
          -R $FASTA \
          --dbsnp $DBSNPVCF \
          -A HomopolymerRun \
          -A MappingQualityRankSumTest \
-         -A DepthOfCoverage \
+         -A Coverage \
          -A QualByDepth \
          -A RMSMappingQuality \
          -A SpanningDeletions \
@@ -121,7 +124,7 @@ if [ -n "$CALLSNPS" ]; then
          -stand_call_conf 30.0 \
          $REGION \
          -stand_emit_conf 10.0 \\" > $MYOUT/gatkVarcall.tmp
-    for f in $( less $FILES ); do echo "-I $f \\" >>$MYOUT/gatkVarcall.tmp ; done
+    for f in ${FILES//,/ }; do echo "-I $f \\" >>$MYOUT/gatkVarcall.tmp ; done
     echo " -dcov 1000 " >> $MYOUT/gatkVarcall.tmp
 
     # set up to execute
@@ -131,7 +134,7 @@ if [ -n "$CALLSNPS" ]; then
 
 
     echo "********* get snps only"
-    java $JAVAPARAMS -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
 	-T SelectVariants \
 	-R $FASTA \
 	--variant  $MYOUT/$NAME.raw.vcf \
@@ -139,7 +142,7 @@ if [ -n "$CALLSNPS" ]; then
 	-o $MYOUT/$NAME.raw.snps.vcf
 
     echo "********* get indels only"
-    java $JAVAPARAMS -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
 	-T SelectVariants \
 	-R $FASTA \
 	--variant  $MYOUT/$NAME.raw.vcf \
@@ -162,7 +165,7 @@ if [ -n "$HARDFILTER" ]; then
 
 
     echo "********* hard filter SNPs"
-    java $JAVAPARAMS -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
 	-T VariantFiltration \
 	-R $FASTA \
 	-o $MYOUT/$NAME.filter.snps.vcf \
@@ -188,7 +191,7 @@ if [ -n "$HARDFILTER" ]; then
 
 
     echo "********* hard filter INDELs"
-    java $JAVAPARAMS -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
 	-T VariantFiltration \
 	-R $FASTA \
 	-o $MYOUT/$NAME.filter.indel.vcf \
@@ -204,7 +207,7 @@ if [ -n "$HARDFILTER" ]; then
 
 
     echo "********* Hard filter eval SNPs"
-    java $JAVAPARAMS -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
             -T VariantEval \
             -R $FASTA \
             --dbsnp $DBSNPVCF \
@@ -214,7 +217,7 @@ if [ -n "$HARDFILTER" ]; then
             -o $MYOUT/$NAME.filter.snps.eval.txt
 
     echo "********* Hard filter eval INDELs"
-    java $JAVAPARAMS -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
             -T VariantEval \
             -R $FASTA \
             --dbsnp $DBSNPVCF \
@@ -249,7 +252,7 @@ if [ -n "$VARIANTRECAL" ]; then
 	# maxGaussians 6
 	# no percent bad
 	#-an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an HRun -an InbreedingCoeff\
-	java $JAVAPARAMS -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l INFO \
+	java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l INFO \
 	    -T VariantRecalibrator \
 	    -R $FASTA \
 	    --input $MYOUT/$NAME.raw.vcf \
@@ -267,7 +270,7 @@ if [ -n "$VARIANTRECAL" ]; then
 
 
 	echo "********* variant cut"
-	java $JAVAPARAMS -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
+	java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
 	    -T ApplyRecalibration \
 	    -mode Both \
 	    -R $FASTA \
@@ -279,7 +282,7 @@ if [ -n "$VARIANTRECAL" ]; then
 
 
 	echo "********* Recal eval Variants"
-	java $JAVAPARAMS -jar $PATH_GATKJAR/GenomeAnalysisTK.jar -l WARN \
+	java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
             -T VariantEval \
             -R $FASTA \
             --dbsnp $DBSNPVCF \
