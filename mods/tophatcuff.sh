@@ -286,9 +286,9 @@ if [ -n "$GENCODEGTF" ]; then
 	       echo "********* library is fr-firststrand run ht seq count stranded=yes"
 	       HT_SEQ_OPTIONS="--stranded=yes"
 	fi
-	
-
 	##add secondstrand
+
+	
 	annoF=${GENCODEGTF##*/}
 #	echo ${annoF}
 	anno_version=${annoF%.*}
@@ -354,7 +354,8 @@ if [ -n "$GENCODEGTF" ]; then
 	intersectBed -v -abam $OUTDIR/accepted_hits.bam -b $OUTDIR/mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
 	    
 	samtools index $OUTDIR/tophat_aligned_reads_masked.bam
-	    
+
+    rm $OUTDIR/mask.gff
 	echo ">>>>> Create filtered bamfile - FINISHED"
 fi
 
