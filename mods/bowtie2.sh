@@ -62,19 +62,25 @@ echo "********** programs"
 for MODULE in $MODULE_BOWTIETWO; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_BOWTIETWO:$PATH
 module list
-echo $PATH
+echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
+[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--bowtie2 --\n "$(bowtie2 --version)
+[ -z "$(which bowtie2)" ] && echo "[ERROR] no bowtie2 detected" && exit 1
 echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--R       --\n "$(R --version | head -n 3)
+[ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
+[ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
 echo -e "--PICARD  --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+[ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--samstat --\n "$(samstat | head -n 2 | tail -n1)
-
+[ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 
 # get basename of f
 n=${f##*/}

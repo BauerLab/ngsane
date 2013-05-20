@@ -92,8 +92,9 @@ for MODULE in $MODULE_HICLIB; do module load $MODULE; done  # save way to load m
 
 export PATH=$PATH_HICLIB:$PATH
 module list
-echo $PATH
+echo "PATH=$PATH"
 echo -e "--Python      --\n" $(python --version)
+[ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 echo -e "--Python libs --\n "$(yolk -l)
 
 # get basename of f

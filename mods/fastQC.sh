@@ -9,18 +9,22 @@ while [ "$1" != "" ]; do
     shift
 done
 
-
-
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
+
+JAVAPARAMS="-Xmx"$(expr $MEMORY_TOPHAT - 1 )"G -Djava.io.tmpdir="$TMP
+echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"
 for MODULE in $MODULE_FASTQC; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_FASTQC:$PATH;
 module list
-java -Xmx200M -version
-fastqc -version
+echo "PATH=$PATH"
+echo -e "--JAVA     --\n" $(java $JAVAPARAMS -version 2>&1)
+[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
+echo -e "--FASTqc   --\n" $(fastqc -version 2>&1)
+[ -z "$(which fastqc)" ] && echo "[ERROR] no fastqc detected" && exit 1
 
 echo "********** get input"
 for d in ${DIR[@]}; do

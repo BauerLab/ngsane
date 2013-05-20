@@ -39,6 +39,7 @@ echo "********** programs"
 for MODULE in $MODULE_TRIMGALORE; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_TRIMGALORE:$PATH;
 module list
+echo "PATH=$PATH"
 trim_galore --version  | grep version  | tr -d ' '
 
 #is paired ?

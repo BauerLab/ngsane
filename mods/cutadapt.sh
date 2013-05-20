@@ -43,7 +43,9 @@ echo "********** programs"
 for MODULE in $MODULE_CUTADAPT; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_CUTADAPT:$PATH;
 module list
-cutadapt --version
+echo "PATH=$PATH"
+echo -e "--cutadapt  --\n" $(cutadapt --version 2>&1)
+[ -z "$(which cutadapt)" ] && echo "[ERROR] no cutadapt detected" && exit 1
 
 FASTQDIR=$(basename $(dirname $f))
 o=${f/$FASTQDIR/$FASTQDIR"_trim"}

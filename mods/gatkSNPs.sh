@@ -76,15 +76,19 @@ echo "********** programs"
 for MODULE in $MODULE_GATKSNP; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_GATKSNP:$PATH
 module list
-echo $PATH
+echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 PATH_GATKJAR=$(dirname $(which GenomeAnalysisTK.jar))
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
+[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--R       --\n "$(R --version | head -n 3)
+[ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
-echo -e "--GATK  --\n "$(java -jar $JAVAPARAMS $PATH_GATK/GenomeAnalysisTK.jar --version 2>&1)
+[ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
+echo -e "--GATK  --\n "$(java -jar $JAVAPARAMS $PATH_GATKJAR/GenomeAnalysisTK.jar --version 2>&1)
+[ ! -f $PATH_GATKiJAR/GenomeAnalysisTK.jar ] && echo "[ERROR] no GATK detected" && exit 1
 
 if [ -n "$CALLSNPS" ]; then
 
