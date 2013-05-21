@@ -177,7 +177,7 @@ else
 	echo "RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
 
-tophat -p $THREADS --library-type "$RNA_SEQ_LIBRARY_TYPE" -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
+tophat -p $THREADS --library-type "$RNA_SEQ_LIBRARY_TYPE" --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
 
 echo "********* merge mapped and unmapped"
 #ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
@@ -297,7 +297,7 @@ if [ -n "$GENCODEGTF" ]; then
 #	echo ${HTOUTDIR}
 	mkdir -p $HTOUTDIR
 	
-	samtools sort -n $OUTDIR/accepted_hits.bam $OUTDIR/accepted_hits_sorted.bam
+	samtools sort -n $OUTDIR/accepted_hits.bam $OUTDIR/accepted_hits_sorted
 	
 	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.gene
 	
@@ -306,6 +306,32 @@ if [ -n "$GENCODEGTF" ]; then
     rm $OUTDIR/accepted_hits_sorted.bam
     
 	echo ">>>>> Read counting with htseq count - FINISHED"
+
+##run RNA-SeQC
+
+	echo "********* RNA-SeQC"
+	
+	RNASeQCDIR=$OUTDIR/../RNASeQC
+	mkdir -p $RNASeQCDIR
+	
+	java -jar $PICARD_HOME/AddOrReplaceReadGroups.jar I=$OUTDIR/accepted_hits.bam O=$OUTDIR/accepted_hits_rg.bam LB=$EXPID PL="Illumina" PU="XXXXXX" SM=$EXPID
+
+	java -jar $PICARD_HOME/ReorderSam.jar I=$OUTDIR/accepted_hits_rg.bam O=$OUTDIR/accepted_hits_rg_ro.bam R=$RNA_SeQC_HOME/hg19.fa \
+	ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
+     ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
+     VALIDATION_STRINGENCY=LENIENT
+   
+	samtools index $OUTDIR/accepted_hits_rg_ro.bam
+
+	
+	java -jar $RNA_SeQC_HOME/RNA-SeQC_v1.1.7.jar -n 1000 -s "$EXPID|$OUTDIR/accepted_hits_rg_ro.bam|$EXPID" -t $RNA_SeQC_HOME/gencode.v14.annotation.doctored.gtf  -r $RNA_SeQC_HOME/hg19.fa -o $RNASeQCDIR/ -strat gc -gc $RNA_SeQC_HOME/gencode.v14.annotation.gtf.gc -BWArRNA $RNA_SeQC_HOME/human_all_rRNA.fasta
+
+	rm $OUTDIR/accepted_hits_rg_ro.bam.bai
+	rm $OUTDIR/accepted_hits_rg_ro.bam
+	rm $OUTDIR/accepted_hits_rg.bam
+
+	echo ">>>>> RNA-SeQC - FINISHED"
+
 
 ##make bigwigs for UCSC using gencode masked reads
 
