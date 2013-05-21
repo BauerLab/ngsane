@@ -304,7 +304,7 @@ def compareCorrelationOfEigenvectors(resolution, filename1, filename2, experimen
 	plt.imshow(data, interpolation="nearest", vmin=0, vmax=1)
 	plt.colorbar()
 	plt.show()
-	raise
+	
     
 def plotDiagonalCorrelation(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
     "Correlation of diagonal bins - paper figure"
@@ -406,7 +406,7 @@ def process():
 	genome_db    = genome.Genome(options.genome, gapFile=options.gapFile, readChrms=['#', 'X', 'Y'])
 	
 	for i in xrange(len(args)):
-		print "Process file i:"+	args[i] + os.sep + enzymes[i] +'_' + experiments[i]
+		print " Process file "+i+":"+	args[i] + os.sep + enzymes[i] +'_' + experiments[i]
 		
 		correctedScalingPlot(200000, args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-200k.hdf5', experiments[i], genome_db)
 

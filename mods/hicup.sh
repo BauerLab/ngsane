@@ -119,6 +119,14 @@ echo -e "--fit-hi-c--\n "$(fit-hi-c.py --version)
 # get basename of f
 n=${f##*/}
 
+
+#output for this library
+OUTDIR=${n/'_'$READONE.$FASTQ/}
+if [ -d $MYOUT/$OUTDIR ]; then rm -rf $MYOUT/$OUTDIR; fi
+
+# delete old result files 
+rm -f $MYOUT/${n/'_'$READONE.$FASTQ/}*.txt
+
 #is paired ?
 if [ -e ${f/$READONE/$READTWO} ]; then
     PAIRED="1"
@@ -132,17 +140,12 @@ if [ -n "$DMGET" ]; then
 	dmget -a $(dirname $FASTA)/*
 	dmget -a $(dirname $(which samtools))/*
 	dmget -a $(dirname $(which hicup))/*
-	dmget -a $PATH_PICARD/*
 	dmget -a ${f/$READONE/"*"}
 fi
 
 #is ziped ?
 ZCAT="zcat"
 if [[ $f != *.gz ]]; then ZCAT="cat"; fi
-
-#output for this library
-OUTDIR=${n/'_'$READONE.$FASTQ/}
-mkdir -p $MYOUT/$OUTDIR
 
 echo "********** digest reference"
 FASTASUFFIX=${FASTA##*.}
@@ -159,6 +162,7 @@ ENZYME2=(${ENZYMES[1]//,/ })
 
 DIGESTGENOME=""
 
+mkdir -p $MYOUT/$OUTDIR
 cd $MYOUT/$OUTDIR
 if [ ${#ENZYMES[@]} = 1 ]; then
    echo "Restriction Enzyme 1: ${ENZYME1[1]}:${ENZYME1[0]} "

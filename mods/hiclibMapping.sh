@@ -84,9 +84,6 @@ fi
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-#JAVAPARAMS="-Xmx"$MYMEMORY"g -Djava.io.tmpdir="$TMP # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
-#echo "JAVAPARAMS "$JAVAPARAMS
-
 echo "********** programs"
 for MODULE in $MODULE_HICLIB; do module load $MODULE; done  # save way to load modules that itself load other modules
 
@@ -119,38 +116,32 @@ if [ -n "$DMGET" ]; then
 	dmls -l ${f/$READONE/"*"}
 fi
 
-#is ziped ?                                                                                                       
-ZCAT="zcat"
-if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
-
 echo "********* reads" 
 FASTQNAME=${f##*/}
 READS="$f ${f/$READONE/$READTWO}"
-#READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-#READ2=`$ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}' `
-#let FASTQREADS=$READ1+$READ2
 
 echo "********** hiclib call"
-# run hiclib.py
-PARAMS="--restrictionEnzyme $ENZYME \
-   --experimentName $(echo ${ENZYME}_${FASTQNAME/$READONE.$FASTQ/} | sed 's/_*$//g') \
-   --gapFile $HICLIB_GAPFILE \
-   --referenceGenome $FASTA \
-   --index $BOWTIE2_INDEX"
+
+PARAMS="--restrictionEnzyme=$ENZYME \
+   --experimentName=$(echo ${ENZYME}_${FASTQNAME/$READONE.$FASTQ/} | sed 's/_*$//g') \
+   --gapFile=$HICLIB_GAPFILE \
+   --referenceGenome=$FASTA \
+   --index=$BOWTIE2_INDEX"
 
 if [ "$FASTQSUFFIX" = "sra" ]; then
-	PARAMS="$PARAMS --inputFormat sra --sra-reader $(which fastq-dump)"
+	PARAMS="$PARAMS --inputFormat=sra --sra-reader=$(which fastq-dump)"
 elif [ "$FASTQSUFFIX" = "bam" ]; then
-	PARAMS="$PARAMS --inputFormat bam"
+	PARAMS="$PARAMS --inputFormat=bam"
 else
-	PARAMS="$PARAMS --inputFormat fastq"
+	PARAMS="$PARAMS --inputFormat=fastq"
 fi
 
 if [ -n "$HICLIB_READLENGTH" ]; then
 	PARAMS="$PARAMS --readLength $HICLIB_READLENGTH"
 fi
 
-python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie $(which bowtie2) --cpus $THREADS --outputDir $MYOUT --tmpDir $TMP --verbose $READS
+# run hiclib.py
+python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie=$(which bowtie2) --cpus=$THREADS --outputDir=$MYOUT --tmpDir=$TMP --verbose $READS
 
 rm -f $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
 
@@ -159,30 +150,5 @@ RUNSTATS=$OUT/runStats/hiclib
 mkdir -p $RUNSTATS
 mv $MYOUT/*.pdf $RUNSTATS
 
-#echo "********* verify"
-#BAMREADS=`head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1`
-#if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
-#if [ $BAMREADS -eq $FASTQREADS ]; then
-#    echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-#    rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
-#    rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}
-#    rm $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam}
-#    rm $MYOUT/${n/'_'$READONE.$FASTQ/.unm}.bam
-#    rm $MYOUT/${n/'_'$READONE.$FASTQ/.map}.bam
-#else
-#    echo -e "***ERROR**** We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREA\
-#DS"
-#    exit 1
-#fi
-#
-##coverage for IGV
-#echo "********* coverage track"
-#java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
-#$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/$FASTASUFFIX/}.genome
-#
-#echo "********* samstat"
-#samstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
-#
-#echo ">>>>> readmapping with BWA - FINISHED"
-#echo ">>>>> enddate "`date`
-#
+echo ">>>>> readmapping with hiclib (Bowtie) - FINISHED"
+echo ">>>>> enddate "`date`
