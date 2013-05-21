@@ -102,6 +102,66 @@ Note, read pairs in fastq format (possible gzipped) or bam need to be stated nex
 
 	process()
 
+def correctedScalingPlot(resolution, filename, experiment, genome, mouse=False, **kwargs):
+    "Paper figure to compare scaling before/after correction"
+    
+   	global pp
+    if (options.verbose):
+        print >> sys.stdout, "correctedScalingPlot: res: %d file1: %s exp1:%s gen:%s" % (resolution, filename, experiment, genome)
+
+    #plt.figure(figsize=(4, 4))
+    Tanay = binnedDataAnalysis(resolution, genome)
+    Tanay.simpleLoad(filename, experiment)
+    Tanay.removePoorRegions()
+    Tanay.removeDiagonal()
+    Tanay.plotScaling(experiment, label="Raw data", color="#A7A241")
+    Tanay.iterativeCorrectWithSS()
+    Tanay.plotScaling(experiment, label="Corrected", color="#344370")
+    ax = plt.gca()
+    mirnylib.plotting.removeAxes()
+    fs = 6
+    plt.xlabel("Genomic distance (MB)", fontsize=6)
+    plt.ylabel("Contact probability", fontsize=6)
+    for xlabel_i in ax.get_xticklabels():
+        xlabel_i.set_fontsize(fs)
+    for xlabel_i in ax.get_yticklabels():
+        xlabel_i.set_fontsize(fs)
+    legend = plt.legend(loc=0, prop={"size": 6})
+    legend.draw_frame(False)
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.show()
+	pp.savefig()
+
+def doArmPlot(resolution, filename, experiment, genome, mouse=False, **kwargs):
+    "Plot an single interarm map - paper figure"
+
+	global pp    
+    if (options.verbose):
+        print >> sys.stdout, "doArmPlot: res: %d file: %s exp:%s gen:%s" % (resolution, filename, experiment, genome)
+
+    Tanay = binnedDataAnalysis(resolution, genome)
+    Tanay.simpleLoad(filename, experiment)
+    if mouse == True:
+        Tanay.fakeTranslocations([(0, 0, None, 12, 52000000, None),
+                                  (4, 45000000, None, 12, 0, 30000000),
+                                  (9, 0, 50000000, 12, 0, 35000000)])
+        Tanay.removeChromosome(19)
+    else:
+        Tanay.removeChromosome(22)
+    Tanay.removeDiagonal(1)
+    Tanay.removePoorRegions()
+    Tanay.truncTrans()
+    Tanay.fakeCis()
+    #mat_img(Tanay.dataDict["GM-all"])
+    #plt.figure(figsize = (3.6,3.6))
+    Tanay.averageTransMap(experiment, **kwargs)
+
+    #plotting.removeBorder()
+    cb = plt.colorbar(orientation="vertical")
+    #cb.set_ticks([-0.05,0.05,0.15])
+    for xlabel_i in cb.ax.get_xticklabels():
+        xlabel_i.set_fontsize(6)
 
 def mapFile(fastq, read):
 	global options
@@ -262,16 +322,19 @@ def iterativeFiltering(genome_db, fragments, filesuffix):
 	BD.export(options.experiment, options.outputDir+options.experiment+'-IC'+filesuffix)
 
 	plotting.plot_matrix(np.log(BD.dataDict[options.experiment]))
+	pp.savefig()
 
 def process():
 	global options
 	global args
+	global pp
 	
 	if (options.verbose):
 		print >> sys.stdout, "*** START processing"
 
 	fig = plt.gcf()
-
+	pp = PdfPages(options.outputDir+options.experiment+'.pdf')
+	
 	logging.basicConfig(level=logging.DEBUG)
 	
 	if (options.verbose):
@@ -312,10 +375,16 @@ def process():
 	
 	iterativeFiltering(genome_db, fragments, '-200k.hdf5')
 
+	# plotting
+	correctedScalingPlot(200000, options.outputDir+options.experiment+'-200k.hdf5', options.experiment, genome_db)
+
+	doArmPlot(1000000, options.outputDir+options.experiment+'-1M.hdf5', options.experiment, genome_db)
+
 	if (options.verbose):
 		print >> sys.stdout, "*** FINISHED processing"
 	
-	fig.savefig(options.outputDir+options.experiment+'.pdf')	
+	pp.close()
+	
 	
 ######################################
 # main

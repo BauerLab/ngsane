@@ -86,37 +86,6 @@ takes multiple hiclib output folder and compares the experiments in a pairwise m
 
 	process()
 
-
-def doArmPlot(resolution, filename, experiment, genome, mouse=False, **kwargs):
-    "Plot an single interarm map - paper figure"
-
-	global pp    
-    if (options.verbose):
-        print >> sys.stdout, "doArmPlot: res: %d file: %s exp:%s gen:%s" % (resolution, filename, experiment, genome)
-
-    Tanay = binnedDataAnalysis(resolution, genome)
-    Tanay.simpleLoad(filename, experiment)
-    if mouse == True:
-        Tanay.fakeTranslocations([(0, 0, None, 12, 52000000, None),
-                                  (4, 45000000, None, 12, 0, 30000000),
-                                  (9, 0, 50000000, 12, 0, 35000000)])
-        Tanay.removeChromosome(19)
-    else:
-        Tanay.removeChromosome(22)
-    Tanay.removeDiagonal(1)
-    Tanay.removePoorRegions()
-    Tanay.truncTrans()
-    Tanay.fakeCis()
-    #mat_img(Tanay.dataDict["GM-all"])
-    #plt.figure(figsize = (3.6,3.6))
-    Tanay.averageTransMap(experiment, **kwargs)
-
-    #plotting.removeBorder()
-    cb = plt.colorbar(orientation="vertical")
-    #cb.set_ticks([-0.05,0.05,0.15])
-    for xlabel_i in cb.ax.get_xticklabels():
-        xlabel_i.set_fontsize(6)
-
 def calculateTanayCorrelation(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
     "Calculates correlation between datasets, smoothed in a Tanay way"
 
@@ -170,38 +139,7 @@ def calculateTanayCorrelation(resolution, filename1, filename2, experiment1, exp
     d1 = propagateSmooth(data1)
     d2 = propagateSmooth(data2)
     print scipy.stats.spearmanr(d1[cormask], d2[cormask])
-
-def correctedScalingPlot(resolution, filename1, experiment1, genome, mouse=False, **kwargs):
-    "Paper figure to compare scaling before/after correction"
-    
-   	global pp
-    if (options.verbose):
-        print >> sys.stdout, "correctedScalingPlot: res: %d file1: %s exp1:%s gen:%s" % (resolution, filename1, experiment1, genome)
-
-    #plt.figure(figsize=(4, 4))
-    Tanay = binnedDataAnalysis(resolution, genome)
-    Tanay.simpleLoad(filename1, experiment1)
-    Tanay.removePoorRegions()
-    Tanay.removeDiagonal()
-    Tanay.plotScaling(experiment1, label="Raw data", color="#A7A241")
-    Tanay.iterativeCorrectWithSS()
-    Tanay.plotScaling(experiment1, label="Corrected", color="#344370")
-    ax = plt.gca()
-    mirnylib.plotting.removeAxes()
-    fs = 6
-    plt.xlabel("Genomic distance (MB)", fontsize=6)
-    plt.ylabel("Contact probability", fontsize=6)
-    for xlabel_i in ax.get_xticklabels():
-        xlabel_i.set_fontsize(fs)
-    for xlabel_i in ax.get_yticklabels():
-        xlabel_i.set_fontsize(fs)
-    legend = plt.legend(loc=0, prop={"size": 6})
-    legend.draw_frame(False)
-    plt.xscale("log")
-    plt.yscale("log")
-    plt.show()
-	pp.savefig()
-    
+   
 def compareInterarmMaps(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
     "plots witn 8 inetrarm maps - paper supplement figure"
 	global pp
@@ -220,6 +158,7 @@ def compareInterarmMaps(resolution, filename1, filename2, experiment1, experimen
     vmin = None
     vmax = None
 
+	plt.figure(figsize=(15, 20))
     plt.subplot(421)
     plt.title(experiment1+", raw", fontsize=fs)
     Tanay.averageTransMap(experiment1, vmin=vmin, vmax=vmax)
@@ -415,17 +354,12 @@ def process():
 			print '[ERROR] Could not find: '+ args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-IC-1M.hdf5'
 			sys.exit(1)
 
-	genome_db    = genome.Genome(options.genome, gapFile=options.gapFile, readChrms=['#', 'X', 'Y'])
+	genome_db = genome.Genome(options.genome, gapFile=options.gapFile, readChrms=['#', 'X', 'Y'])
 	
 	for i in xrange(len(args)):
 		print " Process file "+str(i)+":"+	args[i] + os.sep + enzymes[i] +'_' + experiments[i]
 		
-		correctedScalingPlot(200000, args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-200k.hdf5', experiments[i], genome_db)
-
-		doArmPlot(1000000, args[i] + os.sep + enzymes[i] +'_' + experiments[i]+ '-1M.hdf5', experiments[i], genome_db)
-
 		for j in xrange(i+1, len(args)):
-		
 			compareCorrelationOfEigenvectors(1000000, args[i] + os.sep + enzymes[i] +'_' +experiments[i] + '-1M.hdf5', args[j] + os.sep + enzymes[i] +'_' +experiments[j] + '-1M.hdf5', experiments[i], experiments[j], genome_db)
 
 			calculateTanayCorrelation(1000000, args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-1M.hdf5', args[j] + os.sep + enzymes[i] +'_' +experiments[j] + '-1M.hdf5', experiments[i], experiments[j], genome_db)
