@@ -89,7 +89,7 @@ takes multiple hiclib output folder and compares the experiments in a pairwise m
 def calculateTanayCorrelation(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
     "Calculates correlation between datasets, smoothed in a Tanay way"
 
-	global pp
+    global pp
     if (options.verbose):
         print >> sys.stdout, "calculateTanayCorrelation: res: %d file1: %s file2: %s exp1:%s exp2:%s gen:%s" % (resolution, filename1, filename2, experiment1, experiment2, genome)
 
@@ -142,7 +142,7 @@ def calculateTanayCorrelation(resolution, filename1, filename2, experiment1, exp
    
 def compareInterarmMaps(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
     "plots witn 8 inetrarm maps - paper supplement figure"
-	global pp
+    global pp
 	
     if (options.verbose):
         print >> sys.stdout, "compareInterarmMaps: res: %d file1: %s file2: %s exp1:%s exp2:%s gen:%s" % (resolution, filename1, filename2, experiment1, experiment2, genome)
@@ -158,7 +158,7 @@ def compareInterarmMaps(resolution, filename1, filename2, experiment1, experimen
     vmin = None
     vmax = None
 
-	plt.figure(figsize=(15, 20))
+    plt.figure(figsize=(15, 20))
     plt.subplot(421)
     plt.title(experiment1+", raw", fontsize=fs)
     Tanay.averageTransMap(experiment1, vmin=vmin, vmax=vmax)
@@ -211,7 +211,7 @@ def compareInterarmMaps(resolution, filename1, filename2, experiment1, experimen
     plt.colorbar()
 
     plt.show()
-   	pp.savefig()
+    pp.savefig()
     
 def compareCorrelationOfEigenvectors(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
 	"""Plot correlation figure with eigenvector correlation between datasets
@@ -255,7 +255,7 @@ def compareCorrelationOfEigenvectors(resolution, filename1, filename2, experimen
     
 def plotDiagonalCorrelation(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
     "Correlation of diagonal bins - paper figure"
-	global pp
+    global pp
 
     if (options.verbose):
         print >> sys.stdout, "plotDiagonalCorrelation: res: %d file1: %s file2: %s exp1:%s exp2:%s gen:%s" % (resolution, filename1, filename2, experiment1, experiment2, genome)
@@ -325,7 +325,7 @@ def plotDiagonalCorrelation(resolution, filename1, filename2, experiment1, exper
         removeAxes(shift=0)
 
     plt.show()
-	pp.savefig()
+    pp.savefig()
     
 def process():
 	global options
