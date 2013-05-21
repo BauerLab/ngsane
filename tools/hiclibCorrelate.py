@@ -406,7 +406,7 @@ def process():
 	genome_db    = genome.Genome(options.genome, gapFile=options.gapFile, readChrms=['#', 'X', 'Y'])
 	
 	for i in xrange(len(args)):
-		print " Process file "+i+":"+	args[i] + os.sep + enzymes[i] +'_' + experiments[i]
+		print " Process file "+str(i)+":"+	args[i] + os.sep + enzymes[i] +'_' + experiments[i]
 		
 		correctedScalingPlot(200000, args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-200k.hdf5', experiments[i], genome_db)
 
