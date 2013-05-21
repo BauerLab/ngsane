@@ -89,7 +89,8 @@ takes multiple hiclib output folder and compares the experiments in a pairwise m
 
 def doArmPlot(resolution, filename, experiment, genome, mouse=False, **kwargs):
     "Plot an single interarm map - paper figure"
-    
+
+	global pp    
     if (options.verbose):
         print >> sys.stdout, "doArmPlot: res: %d file: %s exp:%s gen:%s" % (resolution, filename, experiment, genome)
 
@@ -119,6 +120,7 @@ def doArmPlot(resolution, filename, experiment, genome, mouse=False, **kwargs):
 def calculateTanayCorrelation(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
     "Calculates correlation between datasets, smoothed in a Tanay way"
 
+	global pp
     if (options.verbose):
         print >> sys.stdout, "calculateTanayCorrelation: res: %d file1: %s file2: %s exp1:%s exp2:%s gen:%s" % (resolution, filename1, filename2, experiment1, experiment2, genome)
 
@@ -171,6 +173,8 @@ def calculateTanayCorrelation(resolution, filename1, filename2, experiment1, exp
 
 def correctedScalingPlot(resolution, filename1, experiment1, genome, mouse=False, **kwargs):
     "Paper figure to compare scaling before/after correction"
+    
+   	global pp
     if (options.verbose):
         print >> sys.stdout, "correctedScalingPlot: res: %d file1: %s exp1:%s gen:%s" % (resolution, filename1, experiment1, genome)
 
@@ -195,11 +199,13 @@ def correctedScalingPlot(resolution, filename1, experiment1, genome, mouse=False
     legend.draw_frame(False)
     plt.xscale("log")
     plt.yscale("log")
-#    plt.show()
+    plt.show()
+	pp.savefig()
     
 def compareInterarmMaps(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
     "plots witn 8 inetrarm maps - paper supplement figure"
-
+	global pp
+	
     if (options.verbose):
         print >> sys.stdout, "compareInterarmMaps: res: %d file1: %s file2: %s exp1:%s exp2:%s gen:%s" % (resolution, filename1, filename2, experiment1, experiment2, genome)
 
@@ -266,10 +272,12 @@ def compareInterarmMaps(resolution, filename1, filename2, experiment1, experimen
     plt.colorbar()
 
     plt.show()
+   	pp.savefig()
     
 def compareCorrelationOfEigenvectors(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
 	"""Plot correlation figure with eigenvector correlation between datasets
 	paper figure """
+	global pp
 	if (options.verbose):
 		print >> sys.stdout, "compareCorrelationOfEigenvectors: res: %d file1: %s file2: %s exp1:%s exp2:%s gen:%s" % (resolution, filename1, filename2, experiment1, experiment2, genome)
 
@@ -304,10 +312,11 @@ def compareCorrelationOfEigenvectors(resolution, filename1, filename2, experimen
 	plt.imshow(data, interpolation="nearest", vmin=0, vmax=1)
 	plt.colorbar()
 	plt.show()
-	
+	pp.savefig()
     
 def plotDiagonalCorrelation(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
     "Correlation of diagonal bins - paper figure"
+	global pp
 
     if (options.verbose):
         print >> sys.stdout, "plotDiagonalCorrelation: res: %d file1: %s file2: %s exp1:%s exp2:%s gen:%s" % (resolution, filename1, filename2, experiment1, experiment2, genome)
@@ -377,12 +386,15 @@ def plotDiagonalCorrelation(resolution, filename1, filename2, experiment1, exper
         removeAxes(shift=0)
 
     plt.show()
+	pp.savefig()
     
 def process():
 	global options
 	global args
+	global pp 
 	
 	fig = plt.gcf()
+	pp = PdfPages(options.outputDir+'HiC-correlate.pdf')
 	
 	experiments = options.experiment.split(',')
 	enzymes = options.enzyme.split(',')
@@ -424,7 +436,8 @@ def process():
 			
 	if (options.verbose):
 		print >> sys.stdout, "print plots into pdf:%s" % (options.outputDir+'HiC-correlate.pdf')
-	fig.savefig(options.outputDir+'HiC-correlate.pdf')
+	
+	pp.close()
 	
 ######################################
 # main
