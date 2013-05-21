@@ -299,9 +299,9 @@ if [ -n "$GENCODEGTF" ]; then
 	
 	samtools sort -n $OUTDIR/accepted_hits.bam $OUTDIR/accepted_hits_sorted
 	
-	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.gene
+	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}.gene
 	
-	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF > $HTOUTDIR/${anno_version}.transcript
+	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
 
     rm $OUTDIR/accepted_hits_sorted.bam
     
@@ -324,16 +324,17 @@ if [ -n "$GENCODEGTF" ]; then
 	samtools index $OUTDIR/accepted_hits_rg_ro.bam
 
 	
-	java -jar $RNA_SeQC_HOME/RNA-SeQC_v1.1.7.jar -n 1000 -s "$EXPID|$OUTDIR/accepted_hits_rg_ro.bam|$EXPID" -t $RNA_SeQC_HOME/gencode.v14.annotation.doctored.gtf  -r $RNA_SeQC_HOME/hg19.fa -o $RNASeQCDIR/ -strat gc -gc $RNA_SeQC_HOME/gencode.v14.annotation.gtf.gc -BWArRNA $RNA_SeQC_HOME/human_all_rRNA.fasta
+	java -jar $RNA_SeQC_HOME/RNA-SeQC_v1.1.7.jar -n 1000 -s "$EXPID|$OUTDIR/accepted_hits_rg_ro.bam|$EXPID" -t $RNA_SeQC_HOME/gencode.v14.annotation.doctored.gtf  -r $RNA_SeQC_HOME/hg19.fa -o $RNASeQCDIR/ -strat gc -gc $RNA_SeQC_HOME/gencode.v14.annotation.gtf.gc # -BWArRNA $RNA_SeQC_HOME/human_all_rRNA.fasta
 
 	rm $OUTDIR/accepted_hits_rg_ro.bam.bai
 	rm $OUTDIR/accepted_hits_rg_ro.bam
 	rm $OUTDIR/accepted_hits_rg.bam
-
+	
+	zip -r ${EXPID}RNASeQC.zip RNASeQC
 	echo ">>>>> RNA-SeQC - FINISHED"
 
 
-##make bigwigs for UCSC using gencode masked reads
+##make bigwigs for UCSC using gencode reads
 
     if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
 	    echo "********* make bigwigs library is fr-unstranded "
@@ -358,13 +359,11 @@ if [ -n "$GENCODEGTF" ]; then
 	
 	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene ${n}gene ${anno_version}
 	
-	echo "********* calculate RPKMs per Gencode Transcript "
-	
-	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.transcript ${n}transcript ${anno_version}
-	
 	echo ">>>>> Gencode RPKM calculation - FINISHED"
 
 	echo "********* Create filtered bamfile "      
+	
+	##remove r_RNA and create counts.
 	
 	grep -P "gene_type \"rRNA\"" $GENCODEGTF > $OUTDIR/mask.gff
 	grep -P "gene_type \"Mt_tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
@@ -382,7 +381,22 @@ if [ -n "$GENCODEGTF" ]; then
 	samtools index $OUTDIR/tophat_aligned_reads_masked.bam
 
     rm $OUTDIR/mask.gff
-	echo ">>>>> Create filtered bamfile - FINISHED"
+    
+	samtools sort -n $OUTDIR/tophat_aligned_reads_masked.bam $OUTDIR/tophat_aligned_reads_masked_sorted
+	
+	samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_masked.gene
+	
+	samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}_masked.transcript
+
+	echo "********* calculate RPKMs per Gencode Gene masked"
+
+	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}_masked.gene ${n}gene_masked ${anno_version}
+
+	echo ">>>>> Gencode RPKM calculation masked- FINISHED"
+
+    rm $OUTDIR/tophat_aligned_reads_masked_sorted.bam
+    
+	echo ">>>>> Create filtered bamfile and counts - FINISHED"
 fi
 
 

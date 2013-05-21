@@ -1,46 +1,34 @@
 
 args <- commandArgs(trailingOnly = TRUE)
-#annotation file name
+#annotation (gencode) file eg gencode.v14.annotation.gtf
 annoF<-args[1]
-#counts table per transcript from ht seq count
+#counts per gene file from ht seq count eg gencode.v14.annotation.gene
 countsF<-args[2]
-#sample name
+#sample name eg RNA3kChr16
 sampleName<-args[3]
-#annotation version identifier
+#annotation version identifier eg gencode.v14
 annoversion<-args[4]
-require(GenomicFeatures)
-#read in gencode annotation
-gencode.annotation.gtf<-read.table(file=annoF,sep="\t",stringsAsFactors=F,comment.char="#")
-#give meaningful column names
-colnames(gencode.annotation.gtf)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
-#select all exons in annotation file to a dataframe
-gencode.annotation.exon.gtf<-gencode.annotation.gtf[which(gencode.annotation.gtf$feature=="exon"),]
- #find the name of the gene id  each exon is associated with
-gene_id<-sapply(gencode.annotation.exon.gtf$attribute,function(x) gsub("gene_id ","",strsplit(x,";")[[1]])[1])
-exons<-GRanges(seqnames=gencode.annotation.exon.gtf$seqname,ranges=IRanges(start=gencode.annotation.exon.gtf$start,end=gencode.annotation.exon.gtf$end,names=gene_id),strand=gencode.annotation.exon.gtf$strand)
-#pull out all genes
-gencode.annotation.gene.gtf<-gencode.annotation.gtf[which(gencode.annotation.gtf$feature=="gene"),]
-gencode.annotation.genes<-sapply(gencode.annotation.gene.gtf$attribute,function(x) gsub("gene_id ","",strsplit(x,";")[[1]])[1])
-#find the sum of the lengths of all exons associated with each gene
-##exon_length_per_gene_id<-sapply(unique(exons@ranges@NAMES),function(x) sum(width(reduce(exons[which(exons@ranges@NAMES==x)]))))
-#speed up without lookup
-exon_length_per_gene_id<-sapply(split(exons, names(ranges(exons))), function(x) sum(width(reduce(x))))
-#reorder to match up with table
-exon_length_per_gene_id<-exon_length_per_gene_id[match(gencode.annotation.genes,names(exon_length_per_gene_id))]
-#add per gene exon length sums (and per kilobase)
-gencode.annotation.gene.gtf.len<-cbind(gencode.annotation.gene.gtf,"exon_length_per_gene_id"=exon_length_per_gene_id,"exon_length_per_gene_id_per1000"=exon_length_per_gene_id/1000)
-#read in per transcript counts
-counts<-read.table(countsF,stringsAsFactors=F)
-#calculate library size per million
-lib_size_per_million<-sum(counts$V2)/1000000
-# get all gene ids
-ids<-sapply(gencode.annotation.gene.gtf.len$attribute,function(x) gsub("gene_id ","",strsplit(x,";")[[1]])[1])
-#combine tables by order of gene ids
-tab2<-cbind(counts,gencode.annotation.gene.gtf.len[match(counts$V1,ids),])
-#calculate RPKMS for each gene
-RPKMs<-(tab2[,2]/as.vector(tab2[,"exon_length_per_gene_id_per1000"]))/lib_size_per_million
-#make a table that has RPKMs and Gene Name
-RPKM<-cbind("RPKM"=RPKMs,"Gene"=tab2$V1)
-#write to file with sample name and annotation version in filename
-write.csv(RPKM,file=paste(sampleName,"RPKM",annoversion,".csv",sep=""),quote=FALSE,row.names=FALSE)
 
+require(GenomicFeatures)
+require(edgeR)
+
+#read in annotation file
+gencode.annotation.gtf<-read.table(file=annoF,sep="\t",stringsAsFactors=F,comment.char="#")
+#name columns
+colnames(gencode.annotation.gtf)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
+#subset exons
+gencode.annotation.exon.gtf<-gencode.annotation.gtf[which(gencode.annotation.gtf$feature=="exon"),]
+#find gene_id for each exon
+gene_id<-sapply(gencode.annotation.exon.gtf$attribute,function(x) gsub("gene_id ","",strsplit(x,";")[[1]])[1])
+#create granges of all exons and name by gene_id
+exons<-GRanges(seqnames=gencode.annotation.exon.gtf$seqname,ranges=IRanges(start=gencode.annotation.exon.gtf$start,end=gencode.annotation.exon.gtf$end,names=gene_id),strand=gencode.annotation.exon.gtf$strand)
+#extract collapsed exon lengths per gene_id
+gene.length.gencode<-sapply(split(exons, names(ranges(exons))), function(x) sum(width(reduce(x))))
+#read in ht-seq-counts
+counts<-read.table(countsF,stringsAsFactors=F)
+#ensure gene lengths by gene_ids are same order as count table (should be identical)
+ordered.gene.length<-gene.length.gencode[match(counts[,1],names(gene.length.gencode))]
+#calculate rpkms using edgeR
+RPKM<-rpkm(matrix(counts[,2]), gene.length=ordered.gene.length)
+#write table of rpkms
+write.csv(cbind("ENSG"=counts[,1],"RPKM"=RPKM[,1]),file=paste(sampleName,"RPKM",annoversion,".csv",sep=""),quote=FALSE,row.names=FALSE)
