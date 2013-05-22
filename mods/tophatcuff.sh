@@ -279,13 +279,7 @@ if [ -n "$GENCODEGTF" ]; then
 	echo "********* htseq-count"
 
 	GENCODEGTF="$GENCODEGTF"; 
-	if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
-	       echo "********* library is fr-unstranded run ht seq count stranded=no" 
-	       HT_SEQ_OPTIONS="--stranded=no"
-	elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
-	       echo "********* library is fr-firststrand run ht seq count stranded=yes"
-	       HT_SEQ_OPTIONS="--stranded=yes"
-	fi
+
 	##add secondstrand
 
 	
@@ -297,13 +291,28 @@ if [ -n "$GENCODEGTF" ]; then
 #	echo ${HTOUTDIR}
 	mkdir -p $HTOUTDIR
 	
-	samtools sort -n $OUTDIR/accepted_hits.bam $OUTDIR/accepted_hits_sorted
 	
-	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}.gene
-	
-	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
+	if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
+	       echo "********* library is fr-unstranded run ht seq count stranded=no" 
+	       HT_SEQ_OPTIONS="--stranded=no"
+	elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
+	       echo "********* library is fr-firststrand run ht seq count stranded=yes"
+	       HT_SEQ_OPTIONS="--stranded=yes"
+	fi
 
-    rm $OUTDIR/accepted_hits_sorted.bam
+	
+	## htseq-count for cufflinks
+
+	samtools sort -n $OUTDIR/accepted_hits.bam $OUTDIR/accepted_hits_sorted
+
+	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $CUFOUT/transcripts.gtf > $HTOUTDIR/cufflinks.gene
+
+	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --idattr="transcript_id" $HT_SEQ_OPTIONS - $CUFOUT/transcripts.gtf > $HTOUTDIR/cufflinks.transcripts
+
+	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}.gene
+	
+	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
+
     
 	echo ">>>>> Read counting with htseq count - FINISHED"
 
@@ -357,7 +366,7 @@ if [ -n "$GENCODEGTF" ]; then
 	
 	echo "********* calculate RPKMs per Gencode Gene "
 	
-	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene ${n}gene ${anno_version}
+	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene ${EXPID}gene ${anno_version}
 	
 	echo ">>>>> Gencode RPKM calculation - FINISHED"
 
@@ -384,9 +393,9 @@ if [ -n "$GENCODEGTF" ]; then
     
 	samtools sort -n $OUTDIR/tophat_aligned_reads_masked.bam $OUTDIR/tophat_aligned_reads_masked_sorted
 	
-	samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count --type="gene" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_masked.gene
+	samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_masked.gene
 	
-	samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count --type="transcript" --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}_masked.transcript
+	samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count  --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}_masked.transcript
 
 	echo "********* calculate RPKMs per Gencode Gene masked"
 
@@ -399,5 +408,6 @@ if [ -n "$GENCODEGTF" ]; then
 	echo ">>>>> Create filtered bamfile and counts - FINISHED"
 fi
 
+rm $OUTDIR/accepted_hits_sorted.bam
 
 echo ">>>>> enddate "`date`
