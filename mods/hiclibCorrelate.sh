@@ -6,13 +6,13 @@ echo ">>>>> hostname "`hostname`
 echo ">>>>> hiclibCorrelate.sh $*"
 
 function usage {
-echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -e ENZYMES -o OUTDIR [OPTIONS]
+echo -e "usage: $(basename $0) -k CONFIG -f FASTQ -r REFERENCE -e ENZYMES -o OUTDIR [OPTIONS]
 
 Script running hiclib pipeline tapping into bowtie2
 It expects a fastq file, paired end, reference genome and digest pattern  as input.
 
 required:
-  -k | --toolkit <path>     location of the NGSANE repository 
+  -k | --toolkit <path>     location of the CONFIG repository 
   -e | --enzymes <name>     restriction enzyme (one per library) seperated by comma
   -o | --outdir <path>      output dir
 
@@ -81,7 +81,7 @@ for MODULE in $MODULE_HICLIB; do module load $MODULE; done  # save way to load m
 
 export PATH=$PATH_HICLIB:$PATH
 module list
-echo $PATH
+echo "PATH=$PATH"
 echo -e "--Python      --\n" $(python --version)
 echo -e "--Python libs --\n "$(yolk -l)
 

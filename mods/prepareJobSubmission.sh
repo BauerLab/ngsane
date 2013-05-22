@@ -146,5 +146,4 @@ if [ -n "$POSTCOMMAND" ]; then
     fi
 fi
 
-
 if [ ! -n "$KEEP" ]; then  rm -f $QOUT/$TASK/runnow.tmp ; fi
