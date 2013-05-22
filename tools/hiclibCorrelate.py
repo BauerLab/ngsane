@@ -34,16 +34,13 @@ def main():
 	usage = '''usage: %prog [options] dataset1 dataset2 [datasetX]*
 
 takes multiple hiclib output folder and compares the experiments in a pairwise manner
+dataset1 should point to the "[ENZYME]-[EXPERIMENT]-fragment-dataset.hdf5" file
 	'''
 	parser = OptionParser(usage)
 	parser.add_option("-q", "--quiet", action="store_false", dest="verbose", default=True,
 					help="don't print status messages to stdout")
 	parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
 					help="print status messages to stdout")
-	parser.add_option("-e", "--restrictionEnzyme", type="string", dest="enzyme", default="", 
-					help="Name (or comma separated list) of the restriction enzyme, e.g. BglII")
-	parser.add_option("-n", "--experimentNames", type="string", dest="experiment", default="", 
-					help="Comma separated list of the experiment names")
 	parser.add_option("-r", "--referenceGenome", type="string", dest="genome", default="", 
 					help="genome in fasta format [default: %default]")
 	parser.add_option("-g", "--gapFile", type="string", dest="gapFile", default="gap.txt",
@@ -57,18 +54,6 @@ takes multiple hiclib output folder and compares the experiments in a pairwise m
 	if (len(args) < 2):
 		parser.print_help()
 		parser.error("[ERROR] Incorrect number of arguments, need at least two datasets")
-		
-	if (options.enzyme == ""):
-		print >> sys.stderr, "[ERROR] Please specify the restriction enzyme(s). Supported enzymes: http://www.biopython.org/DIST/docs/api/Bio.Restriction-module.html)"
-		sys.exit(1)
-
-	if (len(options.enzyme.split(',')) !=  1 and len(options.enzyme.split(',')) != len(args)):
-		print >> sys.stderr, "[ERROR] Number of restriction enzymes must be either 1 (same enzymes for all data) or match the number of datasets"
-		sys.exit(1)
-
-	if (len(options.experiment.split(',')) != len(args)):
-		print >> sys.stderr, "[ERROR] Please provide the (base-)name for each dataset, e.g. [Cellline]_[Enzymename]_[Replica]"
-		sys.exit(1)
 	
 	if (options.genome == ""):
 		print >> sys.stderr, "[ERROR] Please specify the location of the reference genome in fasta format"
@@ -77,16 +62,13 @@ takes multiple hiclib output folder and compares the experiments in a pairwise m
 	if (options.outputDir != ""): 
 		options.outputDir += os.sep
 	
-
 	if (options.verbose):
-		print >> sys.stdout, "restrictionEnzyme:  %s" % (options.enzyme)
-		print >> sys.stdout, "experimentName:     %s" % (options.experiment)
 		print >> sys.stdout, "outputDir:          %s" % (options.outputDir)
 		print >> sys.stdout, "tmpDir:             %s" % (options.tmpDir)
 
 	process()
 
-def calculateTanayCorrelation(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
+def calculateTanayCorrelation(resolution, filename1, filename2, experiment1, experiment2, genome, outfile, mouse=False, **kwargs):
     "Calculates correlation between datasets, smoothed in a Tanay way"
 
     global pp
@@ -138,7 +120,9 @@ def calculateTanayCorrelation(resolution, filename1, filename2, experiment1, exp
 
     d1 = propagateSmooth(data1)
     d2 = propagateSmooth(data2)
-    print scipy.stats.spearmanr(d1[cormask], d2[cormask])
+    (scorr, pvalue) = scipy.stats.spearmanr(d1[cormask], d2[cormask])
+    outfile.write("Spearman corrleation	%s	%s %.4f	%.4f" % (filename1, filename2, scorr, pvalue))
+
    
 def compareInterarmMaps(resolution, filename1, filename2, experiment1, experiment2, genome, mouse=False, **kwargs):
     "plots witn 8 inetrarm maps - paper supplement figure"
@@ -298,7 +282,7 @@ def plotDiagonalCorrelation(resolution, filename1, filename2, experiment1, exper
 
     matplotlib.rcParams['font.sans-serif'] = 'Arial'
 
-    #plt.figure(figsize = (2.3,1.8))
+    print "Eigenvectors"
     print cors
     print cors2
     print cors3
@@ -335,42 +319,42 @@ def process():
 	fig = plt.gcf()
 	pp = PdfPages(options.outputDir+'HiC-correlate.pdf')
 	
-	experiments = options.experiment.split(',')
-	enzymes = options.enzyme.split(',')
-	if (len(enzymes) == 1):
-		enzymes = enzymes * len(args) 
-
 	# check dataset exist
 	for i in xrange(len(args)):
-		if (not os.path.isfile(args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-1M.hdf5')):
-			print '[ERROR] Could not find: '+ args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-1M.hdf5'
+		if (not os.path.isfile(args[i].replace('-fragment_dataset.hdf5','-1M.hdf5'))):
+			print '[ERROR] Could not find: '+ args[i].replace('-fragment_dataset.hdf5','-1M.hdf5')
 			sys.exit(1)
 			
-		if (not os.path.isfile(args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-200k.hdf5')):
-			print '[ERROR] Could not find: '+ args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-1M.hdf5'
+		if (not os.path.isfile(args[i].replace('-fragment_dataset.hdf5','-200k.hdf5'))):
+			print '[ERROR] Could not find: '+ args[i].replace('-fragment_dataset.hdf5','-200k.hdf5')
 			sys.exit(1)
 			
-		if (not os.path.isfile(args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-IC-1M.hdf5')):
-			print '[ERROR] Could not find: '+ args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-IC-1M.hdf5'
+		if (not os.path.isfile(args[i].replace('-fragment_dataset.hdf5','-IC-1M.hdf5'))):
+			print '[ERROR] Could not find: '+ args[i].replace('-fragment_dataset.hdf5','-IC-1M.hdf5')
 			sys.exit(1)
 
 	genome_db = genome.Genome(options.genome, gapFile=options.gapFile, readChrms=['#', 'X', 'Y'])
 	
+	outfile = open(options.outputDir+'HiC-correlate.txt',"w")
 	for i in xrange(len(args)):
-		print " Process file "+str(i)+":"+	args[i] + os.sep + enzymes[i] +'_' + experiments[i]
-		
+		print " Process file "+str(i)+":"+ args[i]
+		enzyme_i = os.path.basename(args[i]).split("_")[0]
+		experiment_i = "_".join(os.path.basename(args[i]).strip("-fragment_dataset.hdf5").split("_")[1:])
 		for j in xrange(i+1, len(args)):
-			compareCorrelationOfEigenvectors(1000000, args[i] + os.sep + enzymes[i] +'_' +experiments[i] + '-1M.hdf5', args[j] + os.sep + enzymes[i] +'_' +experiments[j] + '-1M.hdf5', experiments[i], experiments[j], genome_db)
+			enzyme_j = os.path.basename(args[j]).split("_")[0]
+	                experiment_j = "_".join(os.path.basename(args[j]).strip("-fragment_dataset.hdf5").split("_")[1:])
 
-			calculateTanayCorrelation(1000000, args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-1M.hdf5', args[j] + os.sep + enzymes[i] +'_' +experiments[j] + '-1M.hdf5', experiments[i], experiments[j], genome_db)
+			compareCorrelationOfEigenvectors(1000000, args[i].replace('-fragment_dataset.hdf5','-1M.hdf5'), args[j].replace('-fragment_dataset.hdf5','-1M.hdf5'), experiment_i, experiment_j, genome_db)
 
-			plotDiagonalCorrelation(200000, args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-200k.hdf5', args[j] + os.sep + enzymes[i] +'_' +experiments[j] + '-200k.hdf5', experiments[i], experiments[j], genome_db)
-						
-			compareInterarmMaps(1000000, args[i] + os.sep + enzymes[i] +'_' + experiments[i] + '-1M.hdf5', args[j] + os.sep + enzymes[i] +'_' +experiments[j] + '-1M.hdf5', experiments[i], experiments[j], genome_db)
+			calculateTanayCorrelation(1000000, args[i].replace('-fragment_dataset.hdf5','-1M.hdf5'), args[j].replace('-fragment_dataset.hdf5','-1M.hdf5'), experiment_i, experiment_j, genome_db, outfile)
+
+			plotDiagonalCorrelation(200000, args[i].replace('-fragment_dataset.hdf5','-200k.hdf5'), args[j].replace('-fragment_dataset.hdf5','-200k.hdf5'), experiment_i, experiment_j, genome_db)
+			
+			compareInterarmMaps(1000000, args[i].replace('-fragment_dataset.hdf5','-1M.hdf5'), args[j].replace('-fragment_dataset.hdf5','-1M.hdf5'), experiment_i, experiment_j, genome_db)
 			
 	if (options.verbose):
 		print >> sys.stdout, "print plots into pdf:%s" % (options.outputDir+'HiC-correlate.pdf')
-	
+	outfile.close()
 	pp.close()
 	
 ######################################

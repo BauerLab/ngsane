@@ -7,7 +7,7 @@
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-    -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
+	-k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
 	-i | --input )          shift; ORIGIN=$1 ;; # subfile in $SOURCE
 	-e | --fileending )     shift; ENDING=$1 ;; # select source files of a specific ending
 	-t | --task )           shift; TASK=$1 ;; # what to do
@@ -46,17 +46,17 @@ if [ ! -e $QOUT/$TASK/runnow.tmp ]; then
     for dir in ${DIR[@]}; do
       #ensure dirs are there...
       if [ ! -n "$NODIR" ]; then
-	 	 if [ ! -d $OUT/$dir/$TASK ]; then mkdir -p $OUT/$dir/$TASK; fi
+ 	 if [ ! -d $OUT/$dir/$TASK ]; then mkdir -p $OUT/$dir/$TASK; fi
       fi
       # print out 
       if [ -n "$REV" ]; then
-		  for f in $( ls $SOURCE/$dir/$ORIGIN/*$ENDING); do
-	              echo $f >> $QOUT/$TASK/runnow.tmp
-	          done
-	      else
-		  for f in $( ls $SOURCE/$ORIGIN/$dir/*$ENDING); do
-		      echo $f >> $QOUT/$TASK/runnow.tmp
-		  done
+	  for f in $( ls $SOURCE/$dir/$ORIGIN/*$ENDING); do
+              echo $f >> $QOUT/$TASK/runnow.tmp
+          done
+      else
+	  for f in $( ls $SOURCE/$ORIGIN/$dir/*$ENDING); do
+	      echo $f >> $QOUT/$TASK/runnow.tmp
+	  done
       fi
   done
 fi
@@ -90,34 +90,36 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
     if [ -n "$ARMED" ]; then
 
-	echo $ARMED
+    echo $ARMED
 
     # remove old submission output logs
-	if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.*; fi
+    if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.*; fi
 
-	# submit and collect pbs scheduler return
-	#RECIPT=$($BINQSUB -j oe -o $QOUT/$TASK/$dir'_'$name'.out' -w $(pwd) -l $NODES \
+    # submit and collect pbs scheduler return
+    #RECIPT=$($BINQSUB -j oe -o $QOUT/$TASK/$dir'_'$name'.out' -w $(pwd) -l $NODES \
     #    -l vmem=$MEMORY -N $TASK'_'$dir'_'$name -l walltime=$WALLTIME $QSUBEXTRA \
     #    -command "$COMMAND2")
     
     # record task in log file
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
 
-	RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
-		-j $TASK'_'$dir'_'$name -o $QOUT/$TASK/$dir'_'$name'.out' \
-		--command "$COMMAND2")
-	echo -e "$RECIPT"
-	MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
+    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+	-j $TASK'_'$dir'_'$name -o $QOUT/$TASK/$dir'_'$name'.out' \
+	--command "$COMMAND2")
+    echo -e "$RECIPT"
+    MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
 
 
-	# if only the first task should be submitted as test
-	if [ -n "$FIRST" ]; then exit; fi
+    # if only the first task should be submitted as test
+    if [ -n "$FIRST" ]; then exit; fi
+    
     fi
 done
 
 
 if [ -n "$POSTCOMMAND" ]; then
    # process for postcommand
+	echo $DIR
     DIR=$(echo -e ${DIR// /\\n} | sort -u | gawk 'BEGIN{x=""};{x=x"_"$0}END{print x}' | sed 's/__//')
     FILES=$(echo -e $FILES | sed 's/ /,/g')
     POSTCOMMAND2=${POSTCOMMAND//<FILE>/$FILES}
@@ -130,18 +132,18 @@ if [ -n "$POSTCOMMAND" ]; then
     if [[ -n "$DIRECT" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi
     if [[ -n "$ARMED" ||  -n "$POSTONLY" ]]; then
 
-	# record task in log file
-	cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
+    # record task in log file
+    cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
 
 
-	#RECIPT=$($BINQSUB $QSUBEXTRA -W after:$MYPBSIDS -j oe -o $QOUT/$TASK/$DIR'_postcommand.out' -w $(pwd) -l $NODES \
+    #RECIPT=$($BINQSUB $QSUBEXTRA -W after:$MYPBSIDS -j oe -o $QOUT/$TASK/$DIR'_postcommand.out' -w $(pwd) -l $NODES \
     #        -l vmem=$MEMORY -N $TASK'_'$DIR'_postcommand' -l walltime=$WALLTIME \
     #        -command "$POSTCOMMAND2")
-	RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
-		-j $TASK'_'$DIR'_postcommand' -o $QOUT/$TASK/$DIR'_postcommand.out' \
-		--command "$POSTCOMMAND2")
+    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+	-j $TASK'_'$DIR'_postcommand' -o $QOUT/$TASK/$DIR'_postcommand.out' \
+	--command "$POSTCOMMAND2")
 
-	echo -e "$RECIPT"
+    echo -e "$RECIPT"
 
     fi
 fi

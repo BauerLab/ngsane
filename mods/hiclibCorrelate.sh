@@ -8,20 +8,12 @@ echo ">>>>> hiclibCorrelate.sh $*"
 function usage {
 echo -e "usage: $(basename $0) -k CONFIG -f FASTQ -r REFERENCE -e ENZYMES -o OUTDIR [OPTIONS]
 
-Script running hiclib pipeline tapping into bowtie2
-It expects a fastq file, paired end, reference genome and digest pattern  as input.
+The script correlates all hiclib library in a pairwise manner.
 
 required:
   -k | --toolkit <path>     location of the CONFIG repository 
-  -e | --enzymes <name>     restriction enzyme (one per library) seperated by comma
+  -f | --files <FILE>+      input files, separated by comma
   -o | --outdir <path>      output dir
-
-options:
-  -t | --threads <nr>       number of CPUs to use (default: 1)
-  -m | --memory <nr>        memory available (default: 2)
-
-  --fastqName               name of fastq file ending (fastq.gz)
-  --oldIllumina
 "
 exit
 }
@@ -36,17 +28,7 @@ exit
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
-
 #DEFAULTS
-MYTHREADS=8
-MYMEMORY=16
-EXPID="exp"           # read group identifier RD ID
-LIBRARY="tkcc"        # read group library RD LB
-PLATFORM="illumina"   # read group platform RD PL
-UNIT="flowcell"       # read group platform unit RG PU
-DOBAM=1               # do the bam file
-FORCESINGLE=0
-NOMAPPING=0
 FASTQNAME=""
 ENZYME=""
 QUAL="" # standard Sanger
@@ -54,10 +36,8 @@ QUAL="" # standard Sanger
 #INPUTS                                                                                                           
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
-        -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use                                      
-        -m | --memory )         shift; MEMORY=$1 ;; # memory used 
-        -e | --enzymes )        shift; ENZYME=$1 ;; # digestion patterns
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
+	-f | --files ) 		shift; FILES=$1 ;; # input files
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
         --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
         -h | --help )           usage ;;
@@ -65,11 +45,6 @@ while [ "$1" != "" ]; do
     esac
     shift
 done
-
-if [ -z "$ENZYME" ]; then
-	echo "[ERROR] restriction enzyme not specified"
-	exit 1
-fi
 
 #PROGRAMS
 . $CONFIG
@@ -85,40 +60,38 @@ echo "PATH=$PATH"
 echo -e "--Python      --\n" $(python --version)
 echo -e "--Python libs --\n "$(yolk -l)
 
-# get basename of f
-n=${f##*/}
-
-#is paired ?                                                                                                      
-if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
-    PAIRED="1"
-else
-	echo "[ERROR] hiclib requires paired-end fastq files"
-	exit 1
-fi
+# find files for dataset
+echo $FILES
+OLDFS=$IFS
+IFS=","
+DATASETS=""
+for f in $FILES; do
+    # get basename of f
+    n=${f##*/}
+    n=${n/_$READONE.$FASTQ/}
+    # get directory
+    d=$(dirname $f)
+    d=${d##*/}
+    # get hdf5 file
+    FILE=$(ls $SOURCE/$d/hiclib/*_$n-fragment_dataset.hdf5)
+    # add to dataset
+    if [ -n "$FILE" ]; then 
+	DATASETS="${DATASETS[@]} ${FILE[@]}"
+    fi
+done
+IFS=$OLDFS
 
 if [ -n "$DMGET" ]; then
 	echo "********** reacall files from tape"
 	dmget -a $MYOUT/*
 fi
-
-echo "********* reads" 
-FASTQNAME=${f##*/}
-READS="$f ${f/$READONE/$READTWO}"
+mkdir -p $MYOUT
 
 echo "********** hiclib call"
-# run hiclib.py
-PARAMS="--restrictionEnzyme=$ENZYME \
-   --experimentNames=$(echo ${ENZYME}_${FASTQNAME/$READONE.$FASTQ/} | sed 's/_*$//g') \
-   --gapFile=$HICLIB_GAPFILE \
-   --referenceGenome=$FASTA \
+PARAMS="--gapFile=$HICLIB_GAPFILE \
+   --referenceGenome=$FASTA "
 
-python ${NGSANE_BASE}/tools/hiclibCorrelate.py ${PARAMS} --outputDir=$MYOUT --tmpDir=$TMP --verbose $READS
+python ${NGSANE_BASE}/tools/hiclibCorrelate.py ${PARAMS} --outputDir=$OUT/runStats/hiclib --tmpDir=$TMP --verbose $DATASETS
 
-
-# copy heatmap
-RUNSTATS=$OUT/runStats/hiclib
-mkdir -p $RUNSTATS
-mv $MYOUT/*.pdf $RUNSTATS
-
-echo ">>>>> correlation with hiclib (Bowtie) - FINISHED"
+echo ">>>>> correlation with hiclib - FINISHED"
 echo ">>>>> enddate "`date`

@@ -19,9 +19,7 @@ required:
   -o | --outdir <path>      output dir
 
 options:
-  -t | --threads <nr>       number of CPUs to use (default: 1)
-  -m | --memory <nr>        memory available (default: 2)
-
+  -t | --threads <nr>       number of CPUs to use (default: 88888888)
   --fastqName               name of fastq file ending (fastq.gz)
   --oldIllumina
 "
@@ -38,17 +36,12 @@ exit
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
-
 #DEFAULTS
-MYTHREADS=8
-MYMEMORY=16
+THREADS=8
 EXPID="exp"           # read group identifier RD ID
 LIBRARY="tkcc"        # read group library RD LB
 PLATFORM="illumina"   # read group platform RD PL
 UNIT="flowcell"       # read group platform unit RG PU
-DOBAM=1               # do the bam file
-FORCESINGLE=0
-NOMAPPING=0
 FASTQNAME=""
 ENZYME=""
 QUAL="" # standard Sanger
@@ -58,7 +51,6 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use                                      
-        -m | --memory )         shift; MEMORY=$1 ;; # memory used 
         -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
         -e | --enzymes )        shift; ENZYME=$1 ;; # digestion patterns
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
