@@ -93,11 +93,11 @@ n=${f##*/}
 #if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi
 
 #is paired ?                                                                                                      
-if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+if [ -e ${f/$READONE/$READTWO} ]; then
     PAIRED="1"
 else
-	echo "[ERROR] hiclib requires paired-end fastq files"
-	exit 1
+    echo "[ERROR] hiclib requires paired-end fastq files. Could not find ${f/$READONE/$READTWO}"
+    exit 1
 fi
 
 if [ -n "$DMGET" ]; then

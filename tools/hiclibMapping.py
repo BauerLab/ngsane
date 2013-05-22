@@ -105,7 +105,7 @@ Note, read pairs in fastq format (possible gzipped) or bam need to be stated nex
 def correctedScalingPlot(resolution, filename, experiment, genome, mouse=False, **kwargs):
     "Paper figure to compare scaling before/after correction"
     
-   	global pp
+    global pp
     if (options.verbose):
         print >> sys.stdout, "correctedScalingPlot: res: %d file1: %s exp1:%s gen:%s" % (resolution, filename, experiment, genome)
 
@@ -131,12 +131,12 @@ def correctedScalingPlot(resolution, filename, experiment, genome, mouse=False, 
     plt.xscale("log")
     plt.yscale("log")
     plt.show()
-	pp.savefig()
+    pp.savefig()
 
 def doArmPlot(resolution, filename, experiment, genome, mouse=False, **kwargs):
     "Plot an single interarm map - paper figure"
 
-	global pp    
+    global pp    
     if (options.verbose):
         print >> sys.stdout, "doArmPlot: res: %d file: %s exp:%s gen:%s" % (resolution, filename, experiment, genome)
 
