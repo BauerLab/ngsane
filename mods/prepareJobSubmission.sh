@@ -7,16 +7,20 @@
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
-	-k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
-	-i | --input )          shift; ORIGIN=$1 ;; # subfile in $SOURCE
-	-e | --fileending )     shift; ENDING=$1 ;; # select source files of a specific ending
-	-t | --task )           shift; TASK=$1 ;; # what to do
+	-k | --toolkit )        shift; CONFIG=$1 ;;    # location of the NGSANE repository
+	-i | --input )          shift; ORIGIN=$1 ;;    # subfile in $SOURCE
+	-e | --fileending )     shift; ENDING=$1 ;;    # select source files of a specific ending
+	-t | --task )           shift; TASK=$1 ;;      # what to do
 	-n | --nodes )          shift; NODES=$1;;
-	-c | --cpu    )         shift; CPU=$1 ;; # CPU used
-	-m | --memory )         shift; MEMORY=$1;;
+	-c | --cpu    )         shift; CPU=$1 ;;       # CPU used
+	-m | --memory )         shift; MEMORY=$1;;     # min Memory required
 	-w | --walltime )       shift; WALLTIME=$1;;
 	-p | --command )        shift; COMMAND=$1;;
 	--postcommand )         shift; POSTCOMMAND=$1;;
+	--postnodes )           shift; POSTNODES=$1;;
+	--postcpu               shift; POSTCPU=$1 ;;   # CPU used for postcommand
+	--postmemory )          shift; POSTMEMORY=$1;; # Memory used for postcommand
+	--postwalltime )        shift; POSTWALLTIME=$1;;
 	-r | --reverse )        REV="1";;
 	-d | --nodir )          NODIR="nodir";;
 	-a | --armed )          ARMED="armed";;
@@ -135,11 +139,13 @@ if [ -n "$POSTCOMMAND" ]; then
     # record task in log file
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
 
+    # unless specified otherwise use HPC parameter from main job 
+    if [ -z "POSTNODES" ];    then POSTCPU=$NODES; fi
+    if [ -z "POSTCPU" ];      then POSTCPU=$CPU; fi
+    if [ -z "POSTMEMORY" ];   then POSTMEMORY=$MEMORY; fi
+    if [ -z "POSTWALLTIME" ]; then POSTWALLTIME=$WALLTIME; fi
 
-    #RECIPT=$($BINQSUB $QSUBEXTRA -W after:$MYPBSIDS -j oe -o $QOUT/$TASK/$DIR'_postcommand.out' -w $(pwd) -l $NODES \
-    #        -l vmem=$MEMORY -N $TASK'_'$DIR'_postcommand' -l walltime=$WALLTIME \
-    #        -command "$POSTCOMMAND2")
-    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $POSTMEMORY -n $POSTNODES -c $POSTCPU -w $POSTWALLTIME \
 	-j $TASK'_'$DIR'_postcommand' -o $QOUT/$TASK/$DIR'_postcommand.out' \
 	--command "$POSTCOMMAND2")
 
