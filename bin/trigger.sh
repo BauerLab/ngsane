@@ -20,6 +20,7 @@ options for TASK:
   pushresult puts results to remote server (via smbclient)
   armed      submit tasks to the queue
   direct     run task directly (e.g. on node after qrsh)
+  postonly   run only the postanalysis step of a TASK
   html       check the cluster logfiles for errors and and make summary HTML page
 "
 exit
