@@ -18,7 +18,7 @@ while [ "$1" != "" ]; do
 	-p | --command )        shift; COMMAND=$1;;
 	--postcommand )         shift; POSTCOMMAND=$1;;
 	--postnodes )           shift; POSTNODES=$1;;
-	--postcpu               shift; POSTCPU=$1 ;;   # CPU used for postcommand
+	--postcpu )             shift; POSTCPU=$1 ;;   # CPU used for postcommand
 	--postmemory )          shift; POSTMEMORY=$1;; # Memory used for postcommand
 	--postwalltime )        shift; POSTWALLTIME=$1;;
 	-r | --reverse )        REV="1";;
@@ -140,10 +140,10 @@ if [ -n "$POSTCOMMAND" ]; then
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
 
     # unless specified otherwise use HPC parameter from main job 
-    if [ -z "POSTNODES" ];    then POSTCPU=$NODES; fi
-    if [ -z "POSTCPU" ];      then POSTCPU=$CPU; fi
-    if [ -z "POSTMEMORY" ];   then POSTMEMORY=$MEMORY; fi
-    if [ -z "POSTWALLTIME" ]; then POSTWALLTIME=$WALLTIME; fi
+    if [ -z "$POSTNODES" ];    then POSTNODES=$NODES; fi
+    if [ -z "$POSTCPU" ];      then POSTCPU=$CPU; fi
+    if [ -z "$POSTMEMORY" ];   then POSTMEMORY=$MEMORY; fi
+    if [ -z "$POSTWALLTIME" ]; then POSTWALLTIME=$WALLTIME; fi
 
     RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $POSTMEMORY -n $POSTNODES -c $POSTCPU -w $POSTWALLTIME \
 	-j $TASK'_'$DIR'_postcommand' -o $QOUT/$TASK/$DIR'_postcommand.out' \
