@@ -142,7 +142,7 @@ def compareInterarmMaps(resolution, filename1, filename2, experiment1, experimen
     vmin = None
     vmax = None
 
-    plt.figure(figsize=(15, 20))
+    plt.figure(figsize=(12, 16))
     plt.subplot(421)
     plt.title(experiment1+", raw", fontsize=fs)
     Tanay.averageTransMap(experiment1, vmin=vmin, vmax=vmax)
@@ -226,7 +226,7 @@ def compareCorrelationOfEigenvectors(resolution, filename1, filename2, experimen
 	    for j in xrange(M):
 	        data[i][j] = abs(numpy.corrcoef(E2[i], E1[j])[0, 1])
 	
-	plt.figure(figsize=(7.5, 2.5))
+	plt.figure(figsize=(8, 8))
 	plt.gcf().subplots_adjust(0.2, 0.2, 0.85, 0.85)
 	plt.subplot(111)
 	plt.xlabel(experiment1)
@@ -286,7 +286,7 @@ def plotDiagonalCorrelation(resolution, filename1, filename2, experiment1, exper
     print cors
     print cors2
     print cors3
-    plt.figure(figsize=(10, 3))
+    plt.figure(figsize=(10, 4))
     ax = plt.gca()
     for j, pair in enumerate(pairs):
         plt.subplot(1, len(pairs), j)
