@@ -12,8 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 from mirnylib import plotting
-from hiclib import binnedData
-
+from hiclib import binnedData, binnedDataAnalysis, experimentalBinnedData
 
 # manage option and arguments processing
 def main():
