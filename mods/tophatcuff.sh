@@ -177,7 +177,7 @@ else
 	echo "RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
 
-tophat -p $THREADS --library-type "$RNA_SEQ_LIBRARY_TYPE" --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
+tophat -p $THREADS $TOPHAT_OPTIONS  --library-type "$RNA_SEQ_LIBRARY_TYPE" --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
 
 echo "********* merge mapped and unmapped"
 #ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
@@ -399,7 +399,7 @@ if [ -n "$GENCODEGTF" ]; then
 
 	echo "********* calculate RPKMs per Gencode Gene masked"
 
-	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}_masked.gene ${n}gene_masked ${anno_version}
+	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}_masked.gene ${EXPID}gene_masked ${anno_version}
 
 	echo ">>>>> Gencode RPKM calculation masked- FINISHED"
 
