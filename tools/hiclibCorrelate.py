@@ -190,7 +190,7 @@ def compareInterarmMaps(resolution, filename1, filename2, experiment1, experimen
     plt.colorbar()
     plt.subplot(428)
 
-    plt.title(experiment1+", trans only", fontsize=fs)
+    plt.title(experiment2+", trans only", fontsize=fs)
     Tanay.averageTransMap(experiment2, vmin=vmin, vmax=vmax)
     plt.colorbar()
 
@@ -286,7 +286,7 @@ def plotDiagonalCorrelation(resolution, filename1, filename2, experiment1, exper
     print cors
     print cors2
     print cors3
-    plt.figure(figsize=(10, 4))
+    plt.figure(figsize=(8, 4))
     ax = plt.gca()
     for j, pair in enumerate(pairs):
         plt.subplot(1, len(pairs), j)
@@ -318,7 +318,7 @@ def process():
 	
 	fig = plt.gcf()
 	pp = PdfPages(options.outputDir+'HiC-correlate.pdf')
-	
+	outfilename = []
 	# check dataset exist
 	for i in xrange(len(args)):
 		if (not os.path.isfile(args[i].replace('-fragment_dataset.hdf5','-1M.hdf5'))):
@@ -332,10 +332,12 @@ def process():
 		if (not os.path.isfile(args[i].replace('-fragment_dataset.hdf5','-IC-1M.hdf5'))):
 			print '[ERROR] Could not find: '+ args[i].replace('-fragment_dataset.hdf5','-IC-1M.hdf5')
 			sys.exit(1)
+		outfilename += ["_".join(os.path.basename(args[i]).strip("-fragment_dataset.hdf5").split("_")[1:])]
 
 	genome_db = genome.Genome(options.genome, gapFile=options.gapFile, readChrms=['#', 'X', 'Y'])
 	
-	outfile = open(options.outputDir+'HiC-correlate.txt',"w")
+	outfilename = "-".join(outfilename)
+	outfile = open(options.outputDir+outfilename+'-HiC_correlate.txt',"w")
 	for i in xrange(len(args)):
 		print " Process file "+str(i)+":"+ args[i]
 		enzyme_i = os.path.basename(args[i]).split("_")[0]
@@ -353,7 +355,7 @@ def process():
 			compareInterarmMaps(1000000, args[i].replace('-fragment_dataset.hdf5','-1M.hdf5'), args[j].replace('-fragment_dataset.hdf5','-1M.hdf5'), experiment_i, experiment_j, genome_db)
 			
 	if (options.verbose):
-		print >> sys.stdout, "print plots into pdf:%s" % (options.outputDir+'HiC-correlate.pdf')
+		print >> sys.stdout, "print plots into pdf:%s" % (options.outputDir+outfilename+'-HiC_correlate.pdf')
 	outfile.close()
 	pp.close()
 	
