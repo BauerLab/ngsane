@@ -316,8 +316,6 @@ def process():
 	global args
 	global pp 
 	
-	fig = plt.gcf()
-	pp = PdfPages(options.outputDir+'HiC-correlate.pdf')
 	outfilename = []
 	# check dataset exist
 	for i in xrange(len(args)):
@@ -338,6 +336,10 @@ def process():
 	
 	outfilename = "-".join(outfilename)
 	outfile = open(options.outputDir+outfilename+'-HiC_correlate.txt',"w")
+	fig = plt.gcf()
+        pp = PdfPages(options.outputDir+outfilename+'-HiC_correlate.pdf')
+
+
 	for i in xrange(len(args)):
 		print " Process file "+str(i)+":"+ args[i]
 		enzyme_i = os.path.basename(args[i]).split("_")[0]
