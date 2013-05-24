@@ -639,6 +639,3 @@ if (overAll):
     print "-----------------------------"
     printStats(oaresult,names,0)
 
-
-#python /clusterdata/hiseq_apps/hiSeqInf/tools/Summary.py Ks50/tophat tph.bam.stats tophat
-#python2 /clusterdata/hiseq_apps/hiSeqInf/tools/Summary.py qout/bwa/ .out times
