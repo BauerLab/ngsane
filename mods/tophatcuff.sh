@@ -339,7 +339,7 @@ if [ -n "$GENCODEGTF" ]; then
 	rm $OUTDIR/accepted_hits_rg_ro.bam
 	rm $OUTDIR/accepted_hits_rg.bam
 	
-	zip -r ${EXPID}RNASeQC.zip RNASeQC
+	tar czf ${EXPID}RNASeQC.tar.gz RNASeQC
 	echo ">>>>> RNA-SeQC - FINISHED"
 
 
