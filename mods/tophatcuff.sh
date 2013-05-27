@@ -159,6 +159,13 @@ if [[ $f = *.gz ]]; then # unless its zipped
     ZCAT="zcat";
 fi
 
+## GTF provided?
+if [ -n "$GENCODEGTF" ]; then
+    echo "[NOTE] Gencode GTF: $GENCODEGTF"
+elif [ -n "$REFSEQGTF" ]; then
+    echo "[NOTE] Refseq GTF: $REFSEQGTF"
+fi
+
 ## generating the index files
 if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi                                                                                      
 if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
@@ -171,7 +178,6 @@ if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then
 else
     echo "[NOTE] RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
-
 
 TOPHAT="tophat $TOPHAT_OPTIONS --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
 echo $TOPHAT
