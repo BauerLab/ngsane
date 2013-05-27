@@ -313,10 +313,10 @@ if [ -n "$GENCODEGTF" ]; then
 	
 	
 	if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
-	       echo "********* library is fr-unstranded run ht seq count stranded=no" 
+	       echo "[NOTE] library is fr-unstranded run ht seq count stranded=no" 
 	       HT_SEQ_OPTIONS="--stranded=no"
 	elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
-	       echo "********* library is fr-firststrand run ht seq count stranded=yes"
+	       echo "[NOTE] library is fr-firststrand run ht seq count stranded=yes"
 	       HT_SEQ_OPTIONS="--stranded=yes"
 	fi
 
@@ -334,7 +334,6 @@ if [ -n "$GENCODEGTF" ]; then
 	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}.gene
 	
 	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
-
     
 	echo ">>>>> Read counting with htseq count - FINISHED"
 
@@ -372,12 +371,14 @@ if [ -n "$GENCODEGTF" ]; then
 
 ##make bigwigs for UCSC using gencode reads
 
+    echo "********* Create bigwigs"
+
     if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
-	    echo "********* make bigwigs library is fr-unstranded "
+	    echo "[NOTE] make bigwigs library is fr-unstranded "
 	    BAM2BW_OPTION_1="FALSE"
 	    BAM2BW_OPTION_2="FALSE"
     elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
-	    echo "********* make bigwigs library is fr-firststrand "
+	    echo "[NOTE] make bigwigs library is fr-firststrand "
 	    BAM2BW_OPTION_1="TRUE"
 	    BAM2BW_OPTION_2="TRUE"
     fi
@@ -427,7 +428,6 @@ if [ -n "$GENCODEGTF" ]; then
     echo "********* calculate RPKMs per Gencode Gene masked"
 
     Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}_masked.gene ${EXPID}gene_masked ${anno_version}
-
     echo ">>>>> Gencode RPKM calculation masked- FINISHED"
 
     rm $OUTDIR/tophat_aligned_reads_masked_sorted.bam
