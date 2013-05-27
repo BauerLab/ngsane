@@ -223,7 +223,7 @@ fi
 echo "********* sorting and bam-conversion"
 samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
 
-if [ "$PAIRED" == "1" ]; then
+if [ "$PAIRED" = "1" ]; then
     # fix mates
     samtools sort -n $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp
     samtools fixmate $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp.bam $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
