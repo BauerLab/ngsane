@@ -172,7 +172,7 @@ else
     echo "[NOTE] RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
 
-#tophat $TOPHAT_OPTIONS -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
+tophat $TOPHAT_OPTIONS -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
 #tophat $TOPHAT_OPTIONS -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
 echo "********* merge mapped and unmapped"
 ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
