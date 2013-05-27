@@ -174,42 +174,39 @@ fi
 
 tophat $TOPHAT_OPTIONS -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
 #tophat $TOPHAT_OPTIONS -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
-
-echo "********* merge mapped and unmapped"
+#echo "********* merge mapped and unmapped"
 #ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
-echo "[NOTE] samtools merge"
-samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
-
-if [ "$PAIRED" == 1 ]; then
-    # fix mate pairs
-    echo "[NOTE] samtools fixmate"
-    samtools sort -n $BAMFILE.tmp.bam $BAMFILE.tmp2
-    samtools fixmate $BAMFILE.tmp2.bam $BAMFILE.tmp.bam
-    rm $BAMFILE.tmp2.bam
-fi
-
-samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
-
-echo "********* reorder tophat output to match reference"
-if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
-    echo "[NOTE] Picard CreateSequenceDictionary"
-    java $JAVAPARAMS -jar $PATH_PICARD/CreateSequenceDictionary.jar \
-        REFERENCE=$FASTA \
-        OUTPUT=${FASTA/.$FASTASUFFIX/}.dict
-fi
-
-## sort bam header according to fasta (chromosome order) due to tophat's 
-## own ordering, which can pose problems for other programs 
-echo "[NOTE] picard ReorderSam"
-java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
-     INPUT=${BAMFILE/.bam/.samtools}.bam \
-     OUTPUT=$BAMFILE \
-     REFERENCE=$FASTA \
-     ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
-     ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
-     VALIDATION_STRINGENCY=SILENT
-
-# rm $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}.bam
+#echo "[NOTE] samtools merge"
+#samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
+#
+#if [ "$PAIRED" == 1 ]; then
+#    # fix mate pairs
+#    echo "[NOTE] samtools fixmate"
+#    samtools sort -n $BAMFILE.tmp.bam $BAMFILE.tmp2
+#    samtools fixmate $BAMFILE.tmp2.bam $BAMFILE.tmp.bam
+#    rm $BAMFILE.tmp2.bam
+#fi
+#
+#samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
+#
+#echo "********* reorder tophat output to match reference"
+#if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
+#    echo "[NOTE] Picard CreateSequenceDictionary"
+#    java $JAVAPARAMS -jar $PATH_PICARD/CreateSequenceDictionary.jar \
+#        REFERENCE=$FASTA \
+#        OUTPUT=${FASTA/.$FASTASUFFIX/}.dict
+#fi
+#
+### sort bam header according to fasta (chromosome order) due to tophat's 
+### own ordering, which can pose problems for other programs 
+#echo "[NOTE] picard ReorderSam"
+#java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
+#     INPUT=${BAMFILE/.bam/.samtools}.bam \
+#     OUTPUT=$BAMFILE \
+#     REFERENCE=$FASTA \
+#     ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
+#     ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
+#     VALIDATION_STRINGENCY=SILENT
 
 ##statistics
 echo "********* flagstat"
