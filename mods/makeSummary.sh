@@ -115,6 +115,7 @@ if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
     for dir in ${DIR[@]}; do
 	vali=$vali" $OUT/$dir/$TASKTOPHAT"
 #	vali=$vali" "$(ls -d $OUT/$dir/$TASKTOPHAT/*/)
+        echo "<a href=\"$OUT/$dir/$TASKTOPHAT/RNASeQC\">RNAseq-QC for $dir</a>" >>$SUMMARYTMP
     done
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" bam.stats tophat >>$SUMMARYTMP

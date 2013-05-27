@@ -225,8 +225,9 @@ samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | samtools
 
 if [ "$PAIRED" == "1" ]; then
     # fix mates
-    samtools fixmate $MYOUT/${n/'_'$READONE.$FASTQ/.ash} $MYOUT/${n/'_'$READONE.$FASTQ/.unm}.tmp
-    mv $MYOUT/${n/'_'$READONE.$FASTQ/.unm}.tmp $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
+    samtools sort -n $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp
+    samtools fixmate $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp.bam $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
+    rm $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp.bam
 fi
 
 #TODO look at samtools for rmdup

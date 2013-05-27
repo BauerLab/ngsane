@@ -146,8 +146,9 @@ samtools merge -f $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam $MYOUT/${n/'_'$READONE
 
 if [ "$PAIRED" == "1" ]; then
     # fix mates
-    samtools sort -n -o $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam fixmates | samtools fixmate - | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp.bam
-    mv $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp.bam $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam
+    samtools sort -n $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam.tmp
+    samtools fixmate $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam.tmp.bam - | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
+    rm $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam.tmp.bam
 fi
 
 echo "********* mark duplicates"

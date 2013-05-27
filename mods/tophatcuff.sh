@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Script to run TopHat program
 # It takes comma-seprated list of files containing short sequence reads in fasta or fastq format and bowtie index files as input.
@@ -52,7 +52,7 @@ exit
 if [ ! $# -gt 3 ]; then usage ; fi
 
 #DEFAULTS
-THREADS=1
+THREADS=8
 EXPID="exp"           # read group identifier RD ID
 LIBRARY="qbi"         # read group library RD LB
 PLATFORM="illumina"   # read group platform RD PL
@@ -137,13 +137,13 @@ if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
 if [ -d $CUFOUT ]; then rm -r $CUFOUT; fi
 
 if [ -n "$DMGET" ]; then
-	echo "********** reacall files from tape"
-	dmget -a $(dirname $FASTA)/*
-	dmget -a ${f/$READONE/"*"}
+    echo "********** reacall files from tape"
+    dmget -a $(dirname $FASTA)/*
+    dmget -a ${f/$READONE/"*"}
 fi
 
 echo "********* detect library"
-#is paired ?                                                                                                      
+## is paired ?                                                                                                      
 if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
     f2=${f/$READONE/$READTWO}
@@ -153,7 +153,7 @@ else
     echo "[NOTE] Single-Strand (unpaired) library detected"
 fi
 
-#is ziped ?
+## is ziped ?
 ZCAT="cat" # always cat
 if [[ $f = *.gz ]]; then # unless its zipped
     ZCAT="zcat";
@@ -166,13 +166,14 @@ if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 mkdir $OUTDIR
 echo "********* tophat"
 if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then 
-	echo "[ERROR] RNAseq library type not set (RNA_SEQ_LIBRARY_TYPE): either fr-unstranded or fr-firststrand"
-	exit 1; 
+    echo "[ERROR] RNAseq library type not set (RNA_SEQ_LIBRARY_TYPE): either fr-unstranded or fr-firststrand"
+    exit 1; 
 else
-	echo "[NOTE] RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
+    echo "[NOTE] RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
 
-tophat -p $THREADS $TOPHAT_OPTIONS  --library-type "$RNA_SEQ_LIBRARY_TYPE" --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
+tophat $TOPHAT_OPTIONS -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
+#tophat $TOPHAT_OPTIONS -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
 
 echo "********* merge mapped and unmapped"
 #ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
@@ -182,8 +183,9 @@ samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.ba
 if [ "$PAIRED" == 1 ]; then
     # fix mate pairs
     echo "[NOTE] samtools fixmate"
-    samtools sort -n -o $BAMFILE.tmp.bam fixmates | samtools fixmate - $BAMFILE.tmp2.bam
-    mv $BAMFILE.tmp2.bam $BAMFILE.tmp.bam
+    samtools sort -n $BAMFILE.tmp.bam $BAMFILE.tmp2
+    samtools fixmate $BAMFILE.tmp2.bam $BAMFILE.tmp.bam
+    rm $BAMFILE.tmp2.bam
 fi
 
 samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
@@ -321,7 +323,9 @@ if [ -n "$GENCODEGTF" ]; then
 	
 	## htseq-count for cufflinks
 
-	samtools sort -n $OUTDIR/accepted_hits.bam $OUTDIR/accepted_hits_sorted
+	samtools sort -n $OUTDIR/accepted_hits.bam $OUTDIR/accepted_hits_sorted.tmp
+	samtools fixmate $OUTDIR/accepted_hits_sorted.tmp.bam $OUTDIR/accepted_hits_sorted
+	rm $OUTDIR/accepted_hits_sorted.tmp.bam
 
 	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $CUFOUT/transcripts.gtf > $HTOUTDIR/cufflinks.gene
 
@@ -412,7 +416,9 @@ if [ -n "$GENCODEGTF" ]; then
 
     rm $OUTDIR/mask.gff
     
-    samtools sort -n $OUTDIR/tophat_aligned_reads_masked.bam $OUTDIR/tophat_aligned_reads_masked_sorted
+    samtools sort -n $OUTDIR/tophat_aligned_reads_masked.bam $OUTDIR/tophat_aligned_reads_masked_sorted.tmp
+    samtools fixmate $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam $OUTDIR/tophat_aligned_reads_masked_sorted
+    rm $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam
 	
     samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_masked.gene
 	
