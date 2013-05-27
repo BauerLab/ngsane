@@ -346,7 +346,7 @@ if [ -n "$GENCODEGTF" ]; then
 
 	java -jar $PICARD_HOME/ReorderSam.jar \
 		I=$OUTDIR/accepted_hits_rg.bam \
-		O=$OUTDIR/accepted_hits_rg_ro.bam 
+		O=$OUTDIR/accepted_hits_rg_ro.bam \
 		R=$RNA_SeQC_HOME/hg19.fa \
 		ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
 		ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
