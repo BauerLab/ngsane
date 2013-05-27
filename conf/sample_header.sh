@@ -159,6 +159,8 @@ NODES_TOPHAT="nodes=1:ppn=8"
 MODULE_TOPHATCUFF=
 PATH_TOPHATCUFF=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
+TOPHAT_OPTIONS=
+
 ##############################################################
 # HICLIB 
 # https://bitbucket.org/mirnylab/hiclib
