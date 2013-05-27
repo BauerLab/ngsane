@@ -223,8 +223,14 @@ fi
 echo "********* sorting and bam-conversion"
 samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
 
+if [ "$PAIRED" == "1" ]; then
+    # fix mates
+    samtools fixmate $MYOUT/${n/'_'$READONE.$FASTQ/.ash} $MYOUT/${n/'_'$READONE.$FASTQ/.unm}.tmp
+    mv $MYOUT/${n/'_'$READONE.$FASTQ/.unm}.tmp $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
+fi
+
 #TODO look at samtools for rmdup
-#val string had to be set to LENIENT to avoid crash due to a definition dis-
+#val string had to be set to LENIENT (SIlENT) to avoid crash due to a definition dis-
 #agreement between bwa and picard
 #http://seqanswers.com/forums/showthread.php?t=4246
 echo "********* mark duplicates"
@@ -236,7 +242,7 @@ java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
     INPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} \
     OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     METRICS_FILE=$MYOUT/metrices/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
-    VALIDATION_STRINGENCY=LENIENT \
+    VALIDATION_STRINGENCY=SILENT \
     TMP_DIR=$THISTMP
 rm -rf $THISTMP
 samtools index $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
@@ -262,7 +268,7 @@ java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     INPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
     REFERENCE_SEQUENCE=$FASTA \
     OUTPUT=$MYOUT/metrices/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
-    VALIDATION_STRINGENCY=LENIENT \
+    VALIDATION_STRINGENCY=SILENT \
     PROGRAM=CollectAlignmentSummaryMetrics \
     PROGRAM=CollectInsertSizeMetrics \
     PROGRAM=QualityScoreDistribution \

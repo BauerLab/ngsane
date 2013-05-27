@@ -144,6 +144,11 @@ samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam} | samto
 # merge mappend and unmapped
 samtools merge -f $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.map}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.unm}.bam 
 
+if [ "$PAIRED" == "1" ]; then
+    # fix mates
+    samtools sort -n -o $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam fixmates | samtools fixmate - | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp.bam
+    mv $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp.bam $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam
+fi
 
 echo "********* mark duplicates"
 if [ ! -e $MYOUT/metrices ]; then mkdir -p $MYOUT/metrices ; fi

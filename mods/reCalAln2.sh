@@ -223,6 +223,13 @@ echo "********* sort/index"
 samtools sort ${f3/bam/recal.bam} $MYOUT/${n/$ASD.bam/$ASR}
 samtools index $MYOUT/${n/$ASD/$ASR}
 
+if [ "$PAIRED" == "1" ]; then
+    # fix mates
+    samtools fixmate $MYOUT/${n/'_'$READONE.$FASTQ/.ash} $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp 
+    mv $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp $MYOUT/${n/'_'$READONE.$FASTQ/.ash
+fi
+
+
 # statistics
 echo "********* statistics"
 samtools flagstat $MYOUT/${n/$ASD/$ASR} >> $MYOUT/${n/$ASD/$ASR}.stats

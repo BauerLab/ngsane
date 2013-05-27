@@ -142,26 +142,21 @@ if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 fi
 
+echo "********* detect library"
 #is paired ?                                                                                                      
 if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
     f2=${f/$READONE/$READTWO}
+    echo "[NOTE] Paired library detected"
 else
     PAIRED="0"
+    echo "[NOTE] Single-Strand (unpaired) library detected"
 fi
 
 #is ziped ?
 ZCAT="cat" # always cat
-if [[ $f = *.gz ]]; then
+if [[ $f = *.gz ]]; then # unless its zipped
     ZCAT="zcat";
-#    echo "unzip first"
-#    f=${f/fastq.gz/fastq}
-#    if [ ! -e $f ]; then gunzip -c $f.gz >$f; fi
-#    if [ -n "$f2" ]; then
-#	f2=${f2/fastq.gz/fastq}
-#	if [ ! -e $f2 ]; then gunzip -c $f2.gz >$f2; fi
-#    fi
-#    n=${n/fastq.gz/fastq}
 fi
 
 ## generating the index files
@@ -174,56 +169,76 @@ if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then
 	echo "[ERROR] RNAseq library type not set (RNA_SEQ_LIBRARY_TYPE): either fr-unstranded or fr-firststrand"
 	exit 1; 
 else
-	echo "RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
+	echo "[NOTE] RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
 
 tophat -p $THREADS $TOPHAT_OPTIONS  --library-type "$RNA_SEQ_LIBRARY_TYPE" --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
 
 echo "********* merge mapped and unmapped"
 #ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
+echo "[NOTE] samtools merge"
 samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
+
+if [ "$PAIRED" == 1 ]; then
+    # fix mate pairs
+    echo "[NOTE] samtools fixmate"
+    samtools sort -n -o $BAMFILE.tmp.bam fixmates | samtools fixmate - $BAMFILE.tmp2.bam
+    mv $BAMFILE.tmp2.bam $BAMFILE.tmp.bam
+fi
+
 samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
 
 echo "********* reorder tophat output to match reference"
 if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
-	java $JAVAPARAMS -jar $PATH_PICARD/CreateSequenceDictionary.jar \
-		REFERENCE=$FASTA \
-		OUTPUT=${FASTA/.$FASTASUFFIX/}.dict
+    echo "[NOTE] Picard CreateSequenceDictionary"
+    java $JAVAPARAMS -jar $PATH_PICARD/CreateSequenceDictionary.jar \
+        REFERENCE=$FASTA \
+        OUTPUT=${FASTA/.$FASTASUFFIX/}.dict
 fi
 
 ## sort bam header according to fasta (chromosome order) due to tophat's 
 ## own ordering, which can pose problems for other programs 
+echo "[NOTE] picard ReorderSam"
 java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
      INPUT=${BAMFILE/.bam/.samtools}.bam \
      OUTPUT=$BAMFILE \
      REFERENCE=$FASTA \
      ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
      ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
-     VALIDATION_STRINGENCY=LENIENT
+     VALIDATION_STRINGENCY=SILENT
 
-rm $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}.bam
+# rm $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}.bam
 
 ##statistics
 echo "********* flagstat"
-samtools flagstat $BAMFILE >$BAMFILE.stats
+echo "[NOTE] samtools flagstat"
+samtools flagstat $BAMFILE > $BAMFILE.stats
 READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
 FASTQREADS=$READ1
 if [ -n "$f2" ]; then 
-	READ2=`$ZCAT $f2 | wc -l | gawk '{print int($1/4)}' `;
-	let FASTQREADS=$READ1+$READ2
+    READ2=`$ZCAT $f2 | wc -l | gawk '{print int($1/4)}' `;
+    let FASTQREADS=$READ1+$READ2
 fi
-echo $FASTQREADS" fastq reads" >>$BAMFILE.stats
+echo $FASTQREADS" fastq reads" >> $BAMFILE.stats
 JUNCTION=`wc -l $OUTDIR/junctions.bed | cut -d' ' -f 1 `
 echo $JUNCTION" junction reads" >> $BAMFILE.stats
 ## get junction genes overlapping exons +-200bp
-JUNCTGENE=`$BEDTOOLS/windowBed -a $OUTDIR/junctions.bed -b $REFSEQGTF -u -w 200 | wc -l | cut -d' ' -f 1 `
-echo $JUNCTGENE" junction reads NCBIM37" >> $BAMFILE.stats
+
+if [ -n "$GENCODEGTF" ]; then
+    JUNCTGENE=`windowBed -a $OUTDIR/junctions.bed -b $GENCODEGTF -u -w 200 | wc -l | cut -d' ' -f 1 `
+    echo $JUNCTGENE" junction reads Gencode" >> $BAMFILE.stats
+elif [ -n "$REFSEQGTF" ]; then
+    JUNCTGENE=`windowBed -a $OUTDIR/junctions.bed -b $REFSEQGTF -u -w 200 | wc -l | cut -d' ' -f 1 `
+    echo $JUNCTGENE" junction reads NCBIM37" >> $BAMFILE.stats
+fi
 
 ##index
 echo "********* index"
+echo "[NOTE] samtools index"
 samtools index $BAMFILE
 
 echo "********* calculate inner distance"
+echo "[NOTE] picard CollectMultipleMetrics"
 if [ ! -e $OUTDIR/../metrices ]; then mkdir $OUTDIR/../metrices ; fi
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
 mkdir $THISTMP
@@ -231,11 +246,12 @@ java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     INPUT=$BAMFILE \
     REFERENCE_SEQUENCE=$FASTA \
     OUTPUT=$OUTDIR/../metrices/$(basename $BAMFILE) \
-    VALIDATION_STRINGENCY=LENIENT \
+    VALIDATION_STRINGENCY=SILENT \
     PROGRAM=CollectAlignmentSummaryMetrics \
     PROGRAM=CollectInsertSizeMetrics \
     PROGRAM=QualityScoreDistribution \
     TMP_DIR=$THISTMP
+
 for im in $( ls $OUTDIR/../metrices/$(basename $BAMFILE)*.pdf ); do
     convert $im ${im/pdf/jpg}
 done
@@ -243,32 +259,34 @@ rm -r $THISTMP
 
 ##coverage for IGV
 echo "********* coverage track"
+echo "[NOTE] igvtools"
 java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $BAMFILE \
     $BAMFILE.cov.tdf ${FASTA/$FASTASUFFIX/}genome
 
 echo "********* samstat"
+echo "[NOTE] samstat"
 samstat $BAMFILE
 
 
 ##run cufflinks
 echo "********* cufflinks"
 echo ">>>>> from $BAMFILE to $CUFOUT"
-
+echo "[NOTE] cufflink
+"
 #specify REFSEQ or Gencode GTF depending on analysis desired.
-
 ## add GTF file if present
 if [ -n "$GENCODEGTF" ]; then 
-	GENCODEGTF="$GENCODEGTF"; 
-	cufflinks --quiet --GTF-guide $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE 
+    GENCODEGTF="$GENCODEGTF"; 
+    cufflinks --quiet --GTF-guide $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE 
 
 elif [ -n "$REFSEQGTF" ]; then 
-	REFSEQGTF="$REFSEQGTF"; 
-	cufflinks --quiet --GTF-guide $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE 
+    REFSEQGTF="$REFSEQGTF"; 
+    cufflinks --quiet --GTF-guide $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE 
 
 else
-	# non reference guided
+    # non reference guided
     echo "non reference guided run (neither GENCODEGTF nor REFSEQGTF defined)"
-    cufflinks --quiet -r $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE \
+    cufflinks --quiet --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE \
          -o $CUFOUT $BAMFILE    
 fi
 
@@ -323,16 +341,21 @@ if [ -n "$GENCODEGTF" ]; then
 	RNASeQCDIR=$OUTDIR/../RNASeQC
 	mkdir -p $RNASeQCDIR
 	
-	java -jar $PICARD_HOME/AddOrReplaceReadGroups.jar I=$OUTDIR/accepted_hits.bam O=$OUTDIR/accepted_hits_rg.bam LB=$EXPID PL="Illumina" PU="XXXXXX" SM=$EXPID
+	java -jar $PICARD_HOME/AddOrReplaceReadGroups.jar \
+		I=$OUTDIR/accepted_hits.bam \
+		O=$OUTDIR/accepted_hits_rg.bam \
+		LB=$EXPID PL="Illumina" PU="XXXXXX" SM=$EXPID
 
-	java -jar $PICARD_HOME/ReorderSam.jar I=$OUTDIR/accepted_hits_rg.bam O=$OUTDIR/accepted_hits_rg_ro.bam R=$RNA_SeQC_HOME/hg19.fa \
-	ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
-     ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
-     VALIDATION_STRINGENCY=LENIENT
+	java -jar $PICARD_HOME/ReorderSam.jar \
+		I=$OUTDIR/accepted_hits_rg.bam \
+		O=$OUTDIR/accepted_hits_rg_ro.bam 
+		R=$RNA_SeQC_HOME/hg19.fa \
+		ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
+		ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
+		VALIDATION_STRINGENCY=SILENT
    
 	samtools index $OUTDIR/accepted_hits_rg_ro.bam
 
-	
 	java -jar $RNA_SeQC_HOME/RNA-SeQC_v1.1.7.jar -n 1000 -s "$EXPID|$OUTDIR/accepted_hits_rg_ro.bam|$EXPID" -t $RNA_SeQC_HOME/gencode.v14.annotation.doctored.gtf  -r $RNA_SeQC_HOME/hg19.fa -o $RNASeQCDIR/ -strat gc -gc $RNA_SeQC_HOME/gencode.v14.annotation.gtf.gc # -BWArRNA $RNA_SeQC_HOME/human_all_rRNA.fasta
 
 	rm $OUTDIR/accepted_hits_rg_ro.bam.bai
@@ -355,59 +378,57 @@ if [ -n "$GENCODEGTF" ]; then
 	    BAM2BW_OPTION_2="TRUE"
     fi
 
-	BIGWIGSDIR=$OUTDIR/../bigwigs
-	#	echo ${BIGWIGSDIR}
-	mkdir -p $BIGWIGSDIR
+    BIGWIGSDIR=$OUTDIR/../bigwigs
+    #	echo ${BIGWIGSDIR}
+    mkdir -p $BIGWIGSDIR
 	
-	#file_arg sample_arg stranded_arg firststrand_arg paired_arg
-	Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${n} $BAM2BW_OPTION_1 $BAM2BW_OPTION_2 $BIGWIGSDIR
+    #file_arg sample_arg stranded_arg firststrand_arg paired_arg
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${n} $BAM2BW_OPTION_1 $BAM2BW_OPTION_2 $BIGWIGSDIR
 	
-	echo ">>>>> make bigwigs - FINISHED"
+    echo ">>>>> make bigwigs - FINISHED"
 	
-	echo "********* calculate RPKMs per Gencode Gene "
+    echo "********* calculate RPKMs per Gencode Gene "
 	
-	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene ${EXPID}gene ${anno_version}
+    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene ${EXPID}gene ${anno_version}
 	
-	echo ">>>>> Gencode RPKM calculation - FINISHED"
+    echo ">>>>> Gencode RPKM calculation - FINISHED"
 
-	echo "********* Create filtered bamfile "      
+    echo "********* Create filtered bamfile "      
 	
-	##remove r_RNA and create counts.
-	
-	grep -P "gene_type \"rRNA\"" $GENCODEGTF > $OUTDIR/mask.gff
-	grep -P "gene_type \"Mt_tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
-	grep -P "gene_type \"Mt_rRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
-	grep -P "gene_type \"tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
-	
-	grep -P "gene_type \"rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-	grep -P "gene_type \"tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-	grep -P "gene_type \"Mt_tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-	grep -P "gene_type \"Mt_rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
+    ##remove r_RNA and create counts.
+    grep -P "gene_type \"rRNA\"" $GENCODEGTF > $OUTDIR/mask.gff
+    grep -P "gene_type \"Mt_tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
+    grep -P "gene_type \"Mt_rRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
+    grep -P "gene_type \"tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
+    grep -P "gene_type \"rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
+    grep -P "gene_type \"tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
+    grep -P "gene_type \"Mt_tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
+    grep -P "gene_type \"Mt_rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
 	
 	        
-	intersectBed -v -abam $OUTDIR/accepted_hits.bam -b $OUTDIR/mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
+    intersectBed -v -abam $OUTDIR/accepted_hits.bam -b $OUTDIR/mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
 	    
-	samtools index $OUTDIR/tophat_aligned_reads_masked.bam
+    samtools index $OUTDIR/tophat_aligned_reads_masked.bam
 
     rm $OUTDIR/mask.gff
     
-	samtools sort -n $OUTDIR/tophat_aligned_reads_masked.bam $OUTDIR/tophat_aligned_reads_masked_sorted
+    samtools sort -n $OUTDIR/tophat_aligned_reads_masked.bam $OUTDIR/tophat_aligned_reads_masked_sorted
 	
-	samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_masked.gene
+    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_masked.gene
 	
-	samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count  --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}_masked.transcript
+    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count  --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}_masked.transcript
 
-	echo "********* calculate RPKMs per Gencode Gene masked"
+    echo "********* calculate RPKMs per Gencode Gene masked"
 
-	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}_masked.gene ${EXPID}gene_masked ${anno_version}
+    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}_masked.gene ${EXPID}gene_masked ${anno_version}
 
-	echo ">>>>> Gencode RPKM calculation masked- FINISHED"
+    echo ">>>>> Gencode RPKM calculation masked- FINISHED"
 
     rm $OUTDIR/tophat_aligned_reads_masked_sorted.bam
     
-	echo ">>>>> Create filtered bamfile and counts - FINISHED"
-fi
+    echo ">>>>> Create filtered bamfile and counts - FINISHED"
 
-rm $OUTDIR/accepted_hits_sorted.bam
+    rm $OUTDIR/accepted_hits_sorted.bam
+fi
 
 echo ">>>>> enddate "`date`
