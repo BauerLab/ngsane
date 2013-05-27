@@ -371,11 +371,9 @@ if [ -n "$GENCODEGTF" ]; then
     if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
 	    echo "[NOTE] make bigwigs library is fr-unstranded "
 	    BAM2BW_OPTION_1="FALSE"
-	    BAM2BW_OPTION_2="FALSE"
     elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
 	    echo "[NOTE] make bigwigs library is fr-firststrand "
 	    BAM2BW_OPTION_1="TRUE"
-	    BAM2BW_OPTION_2="TRUE"
     fi
 
     BIGWIGSDIR=$OUTDIR/../bigwigs
@@ -383,7 +381,7 @@ if [ -n "$GENCODEGTF" ]; then
     mkdir -p $BIGWIGSDIR
 	
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${n} $BAM2BW_OPTION_1 $BAM2BW_OPTION_2 $BIGWIGSDIR
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${EXPID} $BAM2BW_OPTION_1 $BIGWIGSDIR
 	
     echo ">>>>> make bigwigs - FINISHED"
 	
