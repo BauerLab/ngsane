@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 # Script to run TopHat program
 # It takes comma-seprated list of files containing short sequence reads in fasta or fastq format and bowtie index files as input.
@@ -133,8 +133,8 @@ BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.tph.bam}
 CUFOUT=${OUTDIR/$TASKTOPHAT/$TASKCUFF}
 
 #remove old files
-#if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
-#if [ -d $CUFOUT ]; then rm -r $CUFOUT; fi
+if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
+if [ -d $CUFOUT ]; then rm -r $CUFOUT; fi
 
 if [ -n "$DMGET" ]; then
     echo "********** reacall files from tape"
@@ -178,7 +178,7 @@ echo $TOPHAT
 eval $TOPHAT
 
 echo "********* merge mapped and unmapped"
-ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
+#ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
 echo "[NOTE] samtools merge"
 samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
 
