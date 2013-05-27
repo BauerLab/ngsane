@@ -179,9 +179,8 @@ else
     echo "[NOTE] RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
 
-TOPHAT_COMMAND="tophat $TOPHAT_OPTIONS --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
-echo $TOPHAT_COMMAND
-eval $TOPHAT_COMMAND
+RUN_COMMAND="tophat $TOPHAT_OPTIONS --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
+echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo "********* merge mapped and unmapped"
 echo "[NOTE] samtools merge"
@@ -208,13 +207,14 @@ fi
 ## sort bam header according to fasta (chromosome order) due to tophat's 
 ## own ordering, which can pose problems for other programs 
 echo "[NOTE] picard ReorderSam"
-java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
+RUN_COMMAND="java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
      INPUT=${BAMFILE/.bam/.samtools}.bam \
      OUTPUT=$BAMFILE \
      REFERENCE=$FASTA \
      ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
      ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
-     VALIDATION_STRINGENCY=SILENT
+     VALIDATION_STRINGENCY=SILENT"
+echo $RUN_COMMAND && eval $RUN_COMMAND
 
 ##statistics
 echo "********* flagstat"
@@ -249,7 +249,7 @@ echo "[NOTE] picard CollectMultipleMetrics"
 if [ ! -e $OUTDIR/../metrices ]; then mkdir $OUTDIR/../metrices ; fi
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
 mkdir $THISTMP
-java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
+RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     INPUT=$BAMFILE \
     REFERENCE_SEQUENCE=$FASTA \
     OUTPUT=$OUTDIR/../metrices/$(basename $BAMFILE) \
@@ -257,7 +257,8 @@ java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     PROGRAM=CollectAlignmentSummaryMetrics \
     PROGRAM=CollectInsertSizeMetrics \
     PROGRAM=QualityScoreDistribution \
-    TMP_DIR=$THISTMP
+    TMP_DIR=$THISTMP"
+echo $RUN_COMMAND && eval $RUN_COMMAND
 
 for im in $( ls $OUTDIR/../metrices/$(basename $BAMFILE)*.pdf ); do
     convert $im ${im/pdf/jpg}
@@ -282,15 +283,13 @@ echo "[NOTE] cufflink"
 ## add GTF file if present
 if [ -n "$GENCODEGTF" ]; then 
     cufflinks --quiet --GTF-guide "$GENCODEGTF" -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE 
-
 elif [ -n "$REFSEQGTF" ]; then 
     cufflinks --quiet --GTF-guide "$REFSEQGTF" -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE 
 
 else
     # non reference guided
-    echo "non reference guided run (neither GENCODEGTF nor REFSEQGTF defined)"
-    cufflinks --quiet --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE \
-         -o $CUFOUT $BAMFILE    
+    echo "[NOTE] non reference guided run (neither GENCODEGTF nor REFSEQGTF defined)"
+    cufflinks --quiet --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE    
 fi
 
 echo ">>>>> alignment with TopHat - FINISHED"
@@ -308,11 +307,11 @@ if [ -n "$GENCODEGTF" ]; then
 #	echo ${HTOUTDIR}
 	mkdir -p $HTOUTDIR
 
-	if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
-	       echo "[NOTE] library is fr-unstranded run ht seq count stranded=no" 
+	if [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-unstranded" ]; then
+	       echo "[NOTE] library is fr-unstranded; don't run ht seq count stranded"
 	       HT_SEQ_OPTIONS="--stranded=no"
-	elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
-	       echo "[NOTE] library is fr-firststrand run ht seq count stranded=yes"
+	elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-firststrand" ]; then
+	       echo "[NOTE] library is fr-firststrand; run ht seq count stranded"
 	       HT_SEQ_OPTIONS="--stranded=yes"
 	fi
 
@@ -339,22 +338,24 @@ if [ -n "$GENCODEGTF" ]; then
 	RNASeQCDIR=$OUTDIR/../RNASeQC
 	mkdir -p $RNASeQCDIR
 	
-	java -jar $PICARD_HOME/AddOrReplaceReadGroups.jar \
+	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
 		I=$OUTDIR/accepted_hits.bam \
 		O=$OUTDIR/accepted_hits_rg.bam \
-		LB=$EXPID PL="Illumina" PU="XXXXXX" SM=$EXPID
+		LB=$EXPID PL=\"Illumina\" PU=\"XXXXXX\" SM=$EXPID"
+	echo $RUN_COMMAND && eval $RUN_COMMAND
 
-	java -jar $PICARD_HOME/ReorderSam.jar \
+	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/ReorderSam.jar \
 		I=$OUTDIR/accepted_hits_rg.bam \
 		O=$OUTDIR/accepted_hits_rg_ro.bam \
-		R=$RNA_SeQC_HOME/hg19.fa \
+		R=${RNA_SeQC_HOME}/hg19.fa \
 		ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
 		ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
-		VALIDATION_STRINGENCY=SILENT
+		VALIDATION_STRINGENCY=SILENT"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
    
 	samtools index $OUTDIR/accepted_hits_rg_ro.bam
 
-	java -jar $RNA_SeQC_HOME/RNA-SeQC_v1.1.7.jar -n 1000 -s "$EXPID|$OUTDIR/accepted_hits_rg_ro.bam|$EXPID" -t $RNA_SeQC_HOME/gencode.v14.annotation.doctored.gtf  -r $RNA_SeQC_HOME/hg19.fa -o $RNASeQCDIR/ -strat gc -gc $RNA_SeQC_HOME/gencode.v14.annotation.gtf.gc # -BWArRNA $RNA_SeQC_HOME/human_all_rRNA.fasta
+	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "$EXPID|$OUTDIR/accepted_hits_rg_ro.bam|$EXPID" -t ${RNA_SeQC_HOME}/gencode.v14.annotation.doctored.gtf  -r ${RNA_SeQC_HOME}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
 
 	rm $OUTDIR/accepted_hits_rg_ro.bam.bai
 	rm $OUTDIR/accepted_hits_rg_ro.bam
