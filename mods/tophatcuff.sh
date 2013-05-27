@@ -133,8 +133,8 @@ BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.tph.bam}
 CUFOUT=${OUTDIR/$TASKTOPHAT/$TASKCUFF}
 
 #remove old files
-if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
-if [ -d $CUFOUT ]; then rm -r $CUFOUT; fi
+#if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
+#if [ -d $CUFOUT ]; then rm -r $CUFOUT; fi
 
 if [ -n "$DMGET" ]; then
     echo "********** reacall files from tape"
@@ -163,7 +163,7 @@ fi
 if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi                                                                                      
 if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
-mkdir $OUTDIR
+mkdir -p $OUTDIR
 echo "********* tophat"
 if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then 
     echo "[ERROR] RNAseq library type not set (RNA_SEQ_LIBRARY_TYPE): either fr-unstranded or fr-firststrand"
@@ -172,41 +172,44 @@ else
     echo "[NOTE] RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
 
-tophat $TOPHAT_OPTIONS -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
-#tophat $TOPHAT_OPTIONS -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY -o $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2
-#echo "********* merge mapped and unmapped"
-#ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
-#echo "[NOTE] samtools merge"
-#samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
-#
-#if [ "$PAIRED" == 1 ]; then
-#    # fix mate pairs
-#    echo "[NOTE] samtools fixmate"
-#    samtools sort -n $BAMFILE.tmp.bam $BAMFILE.tmp2
-#    samtools fixmate $BAMFILE.tmp2.bam $BAMFILE.tmp.bam
-#    rm $BAMFILE.tmp2.bam
-#fi
-#
-#samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
-#
-#echo "********* reorder tophat output to match reference"
-#if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
-#    echo "[NOTE] Picard CreateSequenceDictionary"
-#    java $JAVAPARAMS -jar $PATH_PICARD/CreateSequenceDictionary.jar \
-#        REFERENCE=$FASTA \
-#        OUTPUT=${FASTA/.$FASTASUFFIX/}.dict
-#fi
-#
-### sort bam header according to fasta (chromosome order) due to tophat's 
-### own ordering, which can pose problems for other programs 
-#echo "[NOTE] picard ReorderSam"
-#java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
-#     INPUT=${BAMFILE/.bam/.samtools}.bam \
-#     OUTPUT=$BAMFILE \
-#     REFERENCE=$FASTA \
-#     ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
-#     ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
-#     VALIDATION_STRINGENCY=SILENT
+
+TOPHAT="tophat $TOPHAT_OPTIONS --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
+echo $TOPHAT
+eval $TOPHAT
+
+echo "********* merge mapped and unmapped"
+ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
+echo "[NOTE] samtools merge"
+samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
+
+if [ "$PAIRED" == 1 ]; then
+    # fix mate pairs
+    echo "[NOTE] samtools fixmate"
+    samtools sort -n $BAMFILE.tmp.bam $BAMFILE.tmp2
+    samtools fixmate $BAMFILE.tmp2.bam $BAMFILE.tmp.bam
+    rm $BAMFILE.tmp2.bam
+fi
+
+samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
+
+echo "********* reorder tophat output to match reference"
+if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
+    echo "[NOTE] Picard CreateSequenceDictionary"
+    java $JAVAPARAMS -jar $PATH_PICARD/CreateSequenceDictionary.jar \
+        REFERENCE=$FASTA \
+        OUTPUT=${FASTA/.$FASTASUFFIX/}.dict
+fi
+
+## sort bam header according to fasta (chromosome order) due to tophat's 
+## own ordering, which can pose problems for other programs 
+echo "[NOTE] picard ReorderSam"
+java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
+     INPUT=${BAMFILE/.bam/.samtools}.bam \
+     OUTPUT=$BAMFILE \
+     REFERENCE=$FASTA \
+     ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
+     ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
+     VALIDATION_STRINGENCY=SILENT
 
 ##statistics
 echo "********* flagstat"
@@ -321,7 +324,7 @@ if [ -n "$GENCODEGTF" ]; then
 	## htseq-count for cufflinks
 
 	samtools sort -n $OUTDIR/accepted_hits.bam $OUTDIR/accepted_hits_sorted.tmp
-	samtools fixmate $OUTDIR/accepted_hits_sorted.tmp.bam $OUTDIR/accepted_hits_sorted
+	samtools fixmate $OUTDIR/accepted_hits_sorted.tmp.bam $OUTDIR/accepted_hits_sorted.bam
 	rm $OUTDIR/accepted_hits_sorted.tmp.bam
 
 	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $CUFOUT/transcripts.gtf > $HTOUTDIR/cufflinks.gene
@@ -414,7 +417,7 @@ if [ -n "$GENCODEGTF" ]; then
     rm $OUTDIR/mask.gff
     
     samtools sort -n $OUTDIR/tophat_aligned_reads_masked.bam $OUTDIR/tophat_aligned_reads_masked_sorted.tmp
-    samtools fixmate $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam $OUTDIR/tophat_aligned_reads_masked_sorted
+    samtools fixmate $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam $OUTDIR/tophat_aligned_reads_masked_sorted.bam
     rm $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam
 	
     samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_masked.gene
