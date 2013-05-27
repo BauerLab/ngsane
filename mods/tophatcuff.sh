@@ -179,12 +179,11 @@ else
     echo "[NOTE] RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
 
-TOPHAT="tophat $TOPHAT_OPTIONS --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
-echo $TOPHAT
-eval $TOPHAT
+TOPHAT_COMMAND="tophat $TOPHAT_OPTIONS --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
+echo $TOPHAT_COMMAND
+eval $TOPHAT_COMMAND
 
 echo "********* merge mapped and unmapped"
-#ln -f  $OUTDIR/accepted_hits.bam $BAMFILE
 echo "[NOTE] samtools merge"
 samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
 
@@ -275,21 +274,17 @@ echo "********* samstat"
 echo "[NOTE] samstat"
 samstat $BAMFILE
 
-
 ##run cufflinks
 echo "********* cufflinks"
 echo ">>>>> from $BAMFILE to $CUFOUT"
-echo "[NOTE] cufflink
-"
+echo "[NOTE] cufflink"
 #specify REFSEQ or Gencode GTF depending on analysis desired.
 ## add GTF file if present
 if [ -n "$GENCODEGTF" ]; then 
-    GENCODEGTF="$GENCODEGTF"; 
-    cufflinks --quiet --GTF-guide $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE 
+    cufflinks --quiet --GTF-guide "$GENCODEGTF" -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE 
 
 elif [ -n "$REFSEQGTF" ]; then 
-    REFSEQGTF="$REFSEQGTF"; 
-    cufflinks --quiet --GTF-guide $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE 
+    cufflinks --quiet --GTF-guide "$REFSEQGTF" -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE 
 
 else
     # non reference guided
@@ -303,11 +298,7 @@ echo ">>>>> alignment with TopHat - FINISHED"
 # add Gencode GTF if present 
 if [ -n "$GENCODEGTF" ]; then 
 	echo "********* htseq-count"
-
-	GENCODEGTF="$GENCODEGTF"; 
-
 	##add secondstrand
-
 	
 	annoF=${GENCODEGTF##*/}
 #	echo ${annoF}
@@ -316,8 +307,7 @@ if [ -n "$GENCODEGTF" ]; then
 	HTOUTDIR=$OUTDIR/../htseq_count
 #	echo ${HTOUTDIR}
 	mkdir -p $HTOUTDIR
-	
-	
+
 	if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
 	       echo "[NOTE] library is fr-unstranded run ht seq count stranded=no" 
 	       HT_SEQ_OPTIONS="--stranded=no"
@@ -326,7 +316,6 @@ if [ -n "$GENCODEGTF" ]; then
 	       HT_SEQ_OPTIONS="--stranded=yes"
 	fi
 
-	
 	## htseq-count for cufflinks
 
 	samtools sort -n $OUTDIR/accepted_hits.bam $OUTDIR/accepted_hits_sorted.tmp
