@@ -182,7 +182,7 @@ echo "********* merge mapped and unmapped"
 echo "[NOTE] samtools merge"
 samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
 
-if [ "$PAIRED" == 1 ]; then
+if [ "$PAIRED" == "1" ]; then
     # fix mate pairs
     echo "[NOTE] samtools fixmate"
     samtools sort -n $BAMFILE.tmp.bam $BAMFILE.tmp2
