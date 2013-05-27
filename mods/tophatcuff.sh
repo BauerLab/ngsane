@@ -204,7 +204,7 @@ if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then
         OUTPUT=${FASTA/.$FASTASUFFIX/}.dict
 fi
 
-## sort bam header according to fasta (chromosome order) due to tophat's 
+## sort bam header according to fasta (chromosome order) due to tophat its 
 ## own ordering, which can pose problems for other programs 
 echo "[NOTE] picard ReorderSam"
 RUN_COMMAND="java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
@@ -227,15 +227,15 @@ if [ -n "$f2" ]; then
     let FASTQREADS=$READ1+$READ2
 fi
 echo $FASTQREADS" fastq reads" >> $BAMFILE.stats
-JUNCTION=`wc -l $OUTDIR/junctions.bed | cut -d' ' -f 1 `
+JUNCTION=$(wc -l $OUTDIR/junctions.bed | cut -d' ' -f 1)
 echo $JUNCTION" junction reads" >> $BAMFILE.stats
 ## get junction genes overlapping exons +-200bp
 
 if [ -n "$GENCODEGTF" ]; then
-    JUNCTGENE=`windowBed -a $OUTDIR/junctions.bed -b $GENCODEGTF -u -w 200 | wc -l | cut -d' ' -f 1 `
+    JUNCTGENE=$(windowBed -a $OUTDIR/junctions.bed -b $GENCODEGTF -u -w 200 | wc -l | cut -d' ' -f 1)
     echo $JUNCTGENE" junction reads Gencode" >> $BAMFILE.stats
 elif [ -n "$REFSEQGTF" ]; then
-    JUNCTGENE=`windowBed -a $OUTDIR/junctions.bed -b $REFSEQGTF -u -w 200 | wc -l | cut -d' ' -f 1 `
+    JUNCTGENE=$(windowBed -a $OUTDIR/junctions.bed -b $REFSEQGTF -u -w 200 | wc -l | cut -d' ' -f 1)
     echo $JUNCTGENE" junction reads NCBIM37" >> $BAMFILE.stats
 fi
 
@@ -308,7 +308,7 @@ if [ -n "$GENCODEGTF" ]; then
 	mkdir -p $HTOUTDIR
 
 	if [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-unstranded" ]; then
-	       echo "[NOTE] library is fr-unstranded; don't run ht seq count stranded"
+	       echo "[NOTE] library is fr-unstranded; do not run ht seq count stranded"
 	       HT_SEQ_OPTIONS="--stranded=no"
 	elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-firststrand" ]; then
 	       echo "[NOTE] library is fr-firststrand; run ht seq count stranded"
@@ -341,7 +341,7 @@ if [ -n "$GENCODEGTF" ]; then
 	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
 		I=$OUTDIR/accepted_hits.bam \
 		O=$OUTDIR/accepted_hits_rg.bam \
-		LB=$EXPID PL=\"Illumina\" PU=\"XXXXXX\" SM=$EXPID"
+		LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID"
 	echo $RUN_COMMAND && eval $RUN_COMMAND
 
 	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/ReorderSam.jar \
@@ -351,7 +351,7 @@ if [ -n "$GENCODEGTF" ]; then
 		ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
 		ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
 		VALIDATION_STRINGENCY=SILENT"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
+        echo $RUN_COMMAND && eval $RUN_COMMAND
    
 	samtools index $OUTDIR/accepted_hits_rg_ro.bam
 
