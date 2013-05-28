@@ -376,7 +376,8 @@ if [ -n "$GENCODEGTF" ]; then
 	    BAM2BW_OPTION_1="TRUE"
     fi
 
-    BIGWIGSDIR=$OUTDIR/../bigwigs
+    BIGWIGSDIR=$OUTDIR/../
+
     #	echo ${BIGWIGSDIR}
 	
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
@@ -387,8 +388,6 @@ if [ -n "$GENCODEGTF" ]; then
     echo "********* calculate RPKMs per Gencode Gene "
 	
     RPKMSSDIR=$OUTDIR/../
- 
-    mkdir -p $RPKMSSDIR
 	
     Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene $RPKMSSDIR/${n/_$READONE.$FASTQ/_gene} ${anno_version}
 	
