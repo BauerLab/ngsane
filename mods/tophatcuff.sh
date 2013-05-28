@@ -334,7 +334,7 @@ if [ -n "$GENCODEGTF" ]; then
 
 	echo "********* RNA-SeQC"
 	
-	RNASeQCDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_RNASeQC}
+	RNASeQCDIR=$OUTDIR/${n/_$READONE.$FASTQ/_RNASeQC}
 	mkdir -p $RNASeQCDIR
 	
 	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
@@ -376,7 +376,7 @@ if [ -n "$GENCODEGTF" ]; then
 	    BAM2BW_OPTION_1="TRUE"
     fi
 
-    BIGWIGSDIR=$OUTDIR/../
+    BIGWIGSDIR=$OUTDIR/$BIGWIGSDIR
     #	echo ${BIGWIGSDIR}
     mkdir -p $BIGWIGSDIR
 	
