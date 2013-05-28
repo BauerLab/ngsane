@@ -304,7 +304,7 @@ if [ -n "$GENCODEGTF" ]; then
 #	echo ${annoF}
 	anno_version=${annoF%.*}
 	
-	HTOUTDIR=$OUTDIR/../${n/_$READONE.$FASTQ/htseq_count}
+	HTOUTDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_htseq_count}
 #	echo ${HTOUTDIR}
 	mkdir -p $HTOUTDIR
 
@@ -334,7 +334,7 @@ if [ -n "$GENCODEGTF" ]; then
 
 	echo "********* RNA-SeQC"
 	
-	RNASeQCDIR=$OUTDIR/${n/_$READONE.$FASTQ/_RNASeQC}
+	RNASeQCDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_RNASeQC}
 	mkdir -p $RNASeQCDIR
 	
 	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
@@ -360,7 +360,7 @@ if [ -n "$GENCODEGTF" ]; then
 	rm $OUTDIR/accepted_hits_rg_ro.bam
 	rm $OUTDIR/accepted_hits_rg.bam
 	
-	tar czf ${EXPID}RNASeQC.tar.gz RNASeQC
+	tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR
 	echo ">>>>> RNA-SeQC - FINISHED"
 
 
@@ -376,9 +376,8 @@ if [ -n "$GENCODEGTF" ]; then
 	    BAM2BW_OPTION_1="TRUE"
     fi
 
-    BIGWIGSDIR=$OUTDIR/$BIGWIGSDIR
+    BIGWIGSDIR=$OUTDIR/../
     #	echo ${BIGWIGSDIR}
-    mkdir -p $BIGWIGSDIR
 	
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
     Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${n/_$READONE.$FASTQ/} $BAM2BW_OPTION_1 $BIGWIGSDIR
@@ -387,7 +386,7 @@ if [ -n "$GENCODEGTF" ]; then
 	
     echo "********* calculate RPKMs per Gencode Gene "
 	
-	    RPKMSSDIR=$OUTDIR/../
+    RPKMSSDIR=$OUTDIR/../
  
     mkdir -p $RPKMSSDIR
 	
