@@ -370,10 +370,10 @@ if [ -n "$GENCODEGTF" ]; then
     echo "********* Create bigwigs"
 
     if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
-	    echo "[NOTE] make bigwigs library is fr-unstranded "
+	    echo "[NOTE] make bigwigs; library is fr-unstranded "
 	    BAM2BW_OPTION_1="FALSE"
     elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
-	    echo "[NOTE] make bigwigs library is fr-firststrand "
+	    echo "[NOTE] make bigwigs; library is fr-firststrand "
 	    BAM2BW_OPTION_1="TRUE"
     fi
 
@@ -382,13 +382,13 @@ if [ -n "$GENCODEGTF" ]; then
     mkdir -p $BIGWIGSDIR
 	
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${EXPID} $BAM2BW_OPTION_1 $BIGWIGSDIR
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${n/_$READONE.$FASTQ/} $BAM2BW_OPTION_1 $BIGWIGSDIR
 	
     echo ">>>>> make bigwigs - FINISHED"
 	
     echo "********* calculate RPKMs per Gencode Gene "
 	
-    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene ${EXPID}gene ${anno_version}
+    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene ${n/_$READONE.$FASTQ/_gene} ${anno_version}
 	
     echo ">>>>> Gencode RPKM calculation - FINISHED"
 
@@ -421,7 +421,7 @@ if [ -n "$GENCODEGTF" ]; then
 
     echo "********* calculate RPKMs per Gencode Gene masked"
 
-    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}_masked.gene ${EXPID}gene_masked ${anno_version}
+    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}_masked.gene ${n/_$READONE.$FASTQ/_gene_masked} ${anno_version}
     echo ">>>>> Gencode RPKM calculation masked- FINISHED"
 
     rm $OUTDIR/tophat_aligned_reads_masked_sorted.bam
