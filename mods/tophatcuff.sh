@@ -376,7 +376,7 @@ if [ -n "$GENCODEGTF" ]; then
 	    BAM2BW_OPTION_1="TRUE"
     fi
 
-    BIGWIGSDIR=$OUTDIR/../
+    BIGWIGSDIR=$OUTDIR/../bigwigs
     #	echo ${BIGWIGSDIR}
 	
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
