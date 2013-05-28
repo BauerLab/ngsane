@@ -388,7 +388,11 @@ if [ -n "$GENCODEGTF" ]; then
 	
     echo "********* calculate RPKMs per Gencode Gene "
 	
-    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene ${n/_$READONE.$FASTQ/_gene} ${anno_version}
+	    RPKMSSDIR=$OUTDIR/../rpkms
+ 
+    mkdir -p $RPKMSSDIR
+	
+    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $RPKMSSDIR/${anno_version}.gene ${n/_$READONE.$FASTQ/_gene} ${anno_version}
 	
     echo ">>>>> Gencode RPKM calculation - FINISHED"
 
@@ -415,9 +419,9 @@ if [ -n "$GENCODEGTF" ]; then
     samtools fixmate $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam $OUTDIR/tophat_aligned_reads_masked_sorted.bam
     rm $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam
 	
-    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_masked.gene
+    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $RPKMSSDIR/${anno_version}_masked.gene
 	
-    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count  --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}_masked.transcript
+    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count  --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $RPKMSSDIR/${anno_version}_masked.transcript
 
     echo "********* calculate RPKMs per Gencode Gene masked"
 
