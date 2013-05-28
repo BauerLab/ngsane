@@ -133,8 +133,8 @@ BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.tph.bam}
 CUFOUT=${OUTDIR/$TASKTOPHAT/$TASKCUFF}
 
 #remove old files
-if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
-if [ -d $CUFOUT ]; then rm -r $CUFOUT; fi
+#if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
+#if [ -d $CUFOUT ]; then rm -r $CUFOUT; fi
 
 if [ -n "$DMGET" ]; then
     echo "********** reacall files from tape"
@@ -180,7 +180,7 @@ else
 fi
 
 RUN_COMMAND="tophat $TOPHAT_OPTIONS --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
-echo $RUN_COMMAND && eval $RUN_COMMAND
+#echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo "********* merge mapped and unmapped"
 echo "[NOTE] samtools merge"
@@ -199,9 +199,10 @@ samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
 echo "********* reorder tophat output to match reference"
 if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
     echo "[NOTE] Picard CreateSequenceDictionary"
-    java $JAVAPARAMS -jar $PATH_PICARD/CreateSequenceDictionary.jar \
+    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CreateSequenceDictionary.jar \
         REFERENCE=$FASTA \
-        OUTPUT=${FASTA/.$FASTASUFFIX/}.dict
+        OUTPUT=${FASTA/.$FASTASUFFIX/}.dict"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
 fi
 
 ## sort bam header according to fasta (chromosome order) due to tophat its 
@@ -258,7 +259,7 @@ RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     PROGRAM=CollectInsertSizeMetrics \
     PROGRAM=QualityScoreDistribution \
     TMP_DIR=$THISTMP"
-echo $RUN_COMMAND && eval $RUN_COMMAND
+#echo $RUN_COMMAND && eval $RUN_COMMAND
 
 for im in $( ls $OUTDIR/../metrices/$(basename $BAMFILE)*.pdf ); do
     convert $im ${im/pdf/jpg}
@@ -282,15 +283,15 @@ echo "[NOTE] cufflink"
 #specify REFSEQ or Gencode GTF depending on analysis desired.
 ## add GTF file if present
 if [ -n "$GENCODEGTF" ]; then 
-    cufflinks --quiet --GTF-guide "$GENCODEGTF" -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE 
+    RUN_COMMAND="cufflinks --quiet --GTF-guide $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
 elif [ -n "$REFSEQGTF" ]; then 
-    cufflinks --quiet --GTF-guide "$REFSEQGTF" -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE 
-
+    RUN_COMMAND="cufflinks --quiet --GTF-guide $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
 else
     # non reference guided
     echo "[NOTE] non reference guided run (neither GENCODEGTF nor REFSEQGTF defined)"
-    cufflinks --quiet --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE    
+    RUN_COMMAND="cufflinks --quiet --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
 fi
+#echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo ">>>>> alignment with TopHat - FINISHED"
 
@@ -335,7 +336,7 @@ if [ -n "$GENCODEGTF" ]; then
 
 	echo "********* RNA-SeQC"
 	
-	RNASeQCDIR=$OUTDIR/../RNASeQC
+	RNASeQCDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_RNASeQC}
 	mkdir -p $RNASeQCDIR
 	
 	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
@@ -355,7 +356,7 @@ if [ -n "$GENCODEGTF" ]; then
    
 	samtools index $OUTDIR/accepted_hits_rg_ro.bam
 
-	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "$EXPID|$OUTDIR/accepted_hits_rg_ro.bam|$EXPID" -t ${RNA_SeQC_HOME}/gencode.v14.annotation.doctored.gtf  -r ${RNA_SeQC_HOME}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
+	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${RNA_SeQC_HOME}/gencode.v14.annotation.doctored.gtf  -r ${RNA_SeQC_HOME}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
 
 	rm $OUTDIR/accepted_hits_rg_ro.bam.bai
 	rm $OUTDIR/accepted_hits_rg_ro.bam

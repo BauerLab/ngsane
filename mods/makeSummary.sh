@@ -112,11 +112,16 @@ if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
     echo "<a name=\"tophat\"><h2>tophat Mapping</h2><br>Note, the duplication rate is not calculated by tophat and hence zero.">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT >>$SUMMARYTMP
+    CURDIR=$(pwd)
     for dir in ${DIR[@]}; do
 	vali=$vali" $OUT/$dir/$TASKTOPHAT"
 #	vali=$vali" "$(ls -d $OUT/$dir/$TASKTOPHAT/*/)
-        echo "<a href=\"$OUT/$dir/$TASKTOPHAT/RNASeQC\">RNAseq-QC for $dir</a>" >>$SUMMARYTMP
+	cd $dir
+	for d in $(find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \; | grep "RNASeQC"); do
+	        echo "<a href=\"$OUT/$dir/$TASKTOPHAT/$d/index.html\">RNAseq-QC for $dir/$d</a>" >>$SUMMARYTMP
+	done
     done
+    cd $CURDIR
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" bam.stats tophat >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
@@ -186,7 +191,7 @@ if [ -n "$RUNANNOTATION" ]; then
 
 fi
 
-if [ -n "RUNHICLIB" ];then
+if [ -n "$RUNHICLIB" ];then
     LINKS=$LINKS" hiclib"
     echo "<a name=\"hiclib\"><h2>HiC results</h2></a><pre>">>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/hiclibMapping.sh $QOUT/$TASKHICLIB >> $SUMMARYTMP
@@ -196,7 +201,7 @@ if [ -n "RUNHICLIB" ];then
     echo "</pre>" >>$SUMMARYTMP
 fi
 
-if [ -n "RUNHICUP" ];then
+if [ -n "$RUNHICUP" ];then
     LINKS=$LINKS" hicup"
     echo "<a name=\"hicup\"><h2>HiC results</h2></a><pre>">>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/hicup.sh $QOUT/$TASKHICUP >> $SUMMARYTMP
