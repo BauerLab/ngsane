@@ -25,7 +25,7 @@ echo -e "usage: $(basename $0) -k NGSANE -f FASTA -r REFERENCE -o OUTDIR [OPTION
 
 Script running read mapping for single and paired DNA reads from fastq files
 It expects a fastq file, pairdend, reference genome  as input and 
-It runs BWA, converts the output to .bam files, adds header information and
+It runs tophat, converts the output to .bam files, adds header information and
 writes the coverage information for IGV.
 
 required:
