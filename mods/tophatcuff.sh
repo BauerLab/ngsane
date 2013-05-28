@@ -180,7 +180,7 @@ else
 fi
 
 RUN_COMMAND="tophat $TOPHAT_OPTIONS --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
-#echo $RUN_COMMAND && eval $RUN_COMMAND
+echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo "********* merge mapped and unmapped"
 echo "[NOTE] samtools merge"
@@ -259,7 +259,7 @@ RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     PROGRAM=CollectInsertSizeMetrics \
     PROGRAM=QualityScoreDistribution \
     TMP_DIR=$THISTMP"
-#echo $RUN_COMMAND && eval $RUN_COMMAND
+echo $RUN_COMMAND && eval $RUN_COMMAND
 
 for im in $( ls $OUTDIR/../metrices/$(basename $BAMFILE)*.pdf ); do
     convert $im ${im/pdf/jpg}
@@ -291,7 +291,7 @@ else
     echo "[NOTE] non reference guided run (neither GENCODEGTF nor REFSEQGTF defined)"
     RUN_COMMAND="cufflinks --quiet --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
 fi
-#echo $RUN_COMMAND && eval $RUN_COMMAND
+echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo ">>>>> alignment with TopHat - FINISHED"
 
@@ -304,7 +304,7 @@ if [ -n "$GENCODEGTF" ]; then
 #	echo ${annoF}
 	anno_version=${annoF%.*}
 	
-	HTOUTDIR=$OUTDIR/../htseq_count
+	HTOUTDIR=$OUTDIR/../${n/_$READONE.$FASTQ/htseq_count}
 #	echo ${HTOUTDIR}
 	mkdir -p $HTOUTDIR
 
@@ -323,11 +323,9 @@ if [ -n "$GENCODEGTF" ]; then
 	rm $OUTDIR/accepted_hits_sorted.tmp.bam
 
 	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $CUFOUT/transcripts.gtf > $HTOUTDIR/cufflinks.gene
-
 	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --idattr="transcript_id" $HT_SEQ_OPTIONS - $CUFOUT/transcripts.gtf > $HTOUTDIR/cufflinks.transcripts
 
 	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}.gene
-	
 	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
     
 	echo ">>>>> Read counting with htseq count - FINISHED"
@@ -378,7 +376,7 @@ if [ -n "$GENCODEGTF" ]; then
 	    BAM2BW_OPTION_1="TRUE"
     fi
 
-    BIGWIGSDIR=$OUTDIR/../bigwigs
+    BIGWIGSDIR=$OUTDIR/../
     #	echo ${BIGWIGSDIR}
     mkdir -p $BIGWIGSDIR
 	
@@ -389,7 +387,7 @@ if [ -n "$GENCODEGTF" ]; then
 	
     echo "********* calculate RPKMs per Gencode Gene "
 	
-	    RPKMSSDIR=$OUTDIR/../rpkms
+	    RPKMSSDIR=$OUTDIR/../
  
     mkdir -p $RPKMSSDIR
 	

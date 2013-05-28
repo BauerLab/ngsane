@@ -112,17 +112,17 @@ if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
     echo "<a name=\"tophat\"><h2>tophat Mapping</h2><br>Note, the duplication rate is not calculated by tophat and hence zero.">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT >>$SUMMARYTMP
+    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     CURDIR=$(pwd)
     for dir in ${DIR[@]}; do
 	vali=$vali" $OUT/$dir/$TASKTOPHAT"
 #	vali=$vali" "$(ls -d $OUT/$dir/$TASKTOPHAT/*/)
-	cd $dir
+	cd $OUT/$dir/$TASKTOPHAT
 	for d in $(find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \; | grep "RNASeQC"); do
-	        echo "<a href=\"$OUT/$dir/$TASKTOPHAT/$d/index.html\">RNAseq-QC for $dir/$d</a>" >>$SUMMARYTMP
+	        echo "<a href=\"$dir/$TASKTOPHAT/$d/index.html\">RNAseq-QC for $dir/$d</a><br/>" >> $CURDIR/$SUMMARYTMP
 	done
     done
     cd $CURDIR
-    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" bam.stats tophat >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
