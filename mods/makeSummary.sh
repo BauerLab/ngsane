@@ -220,11 +220,15 @@ if [ -n "$RUNHICUP" ];then
 	vali=$vali" $OUT/$dir/$TASKHICUP"
     done
     
-    echo "</pre><h3>hicup</h3><pre>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_truncater_summary.txt" hicup --noSummary >> $SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_mapper_summary.txt" hicup --noSummary >> $SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_filter_summary_results.txt" hicup --noSummary >> $SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_deduplicater_summary_results.txt" hicup --noSummary >> $SUMMARYTMP
+    echo "</pre><h3>hicup</h3>">>$SUMMARYTMP
+    echo "<h4>truncater</h4><pre>">>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_truncater_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    echo "</pre><h4>mapper</h4><pre>">>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_mapper_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    echo "</pre><h4>filter</h4><pre>">>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_filter_summary_results.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    echo "</pre><h4>deduplicator</h4><pre>">>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_deduplicater_summary_results.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
     
     row0=""

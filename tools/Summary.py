@@ -10,6 +10,7 @@ type=sys.argv[3]
 printing=True
 percent=False
 noSummary=False
+noOverallSummary=False
 overAll=True
 link=False
 
@@ -31,6 +32,8 @@ while(len(sys.argv)>i):
         link=True
     if(sys.argv[i]=="--noSummary" or sys.argv[i]=="--s"):
         noSummary=True
+    if(sys.argv[i]=="--noOverallSummary" or sys.argv[i]=="--o"):
+        noOverallSummary=True
     i+=1
 
 if (dir == ["all"]):
@@ -672,8 +675,8 @@ for d in dir:
     print "\n#### "+d
     printStats(result,names,psresult,noSummary)
 
-if (overAll):
+if (not noOverallSummary and overAll):
     print "\n#### over all"
     print "-----------------------------"
-    printStats(oaresult,names,0,0)
-
+    printStats(oaresult,names,0,noOverallSummary)
+print "<hr style='border: 0; border-top: 1px solid #ccc;'/>"
