@@ -188,7 +188,16 @@ if [ -n "$RUNANNOTATION" ]; then
 
 
     echo "</pre>" >>$SUMMARYTMP
+fi
 
+if [ -n "$RUNTRIMGALORE" ];then
+    LINKS=$LINKS" trimgalore"
+    echo "<a name=\"trimgalore\"><h2>Trim-Galore results</h2></a><pre>">>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/trimgalore.sh $QOUT/$TASKTRIMGALORE >> $SUMMARYTMP
+
+    echo "</pre><h3>trimgalore</h3><pre>">>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py $QOUT/$TASKTRIMGALORE ".out" trimgalore >> $SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
 fi
 
 if [ -n "$RUNHICLIB" ];then
