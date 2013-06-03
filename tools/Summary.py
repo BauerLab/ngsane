@@ -9,6 +9,7 @@ ext=sys.argv[2]
 type=sys.argv[3]
 printing=True
 percent=False
+noSummary=False
 overAll=True
 link=False
 
@@ -27,7 +28,9 @@ while(len(sys.argv)>i):
     if(sys.argv[i]=="--noOverAll" or sys.argv[i]=="--n"):
         overAll=False
     if(sys.argv[i]=="--link" or sys.argv[i]=="--l"):
-        link=True      
+        link=True
+    if(sys.argv[i]=="--noSummary" or sys.argv[i]=="--s"):
+        noSummary=True
     i+=1
 
 if (dir == ["all"]):
@@ -39,10 +42,9 @@ if (dir == ["all"]):
             else:
                 dir.append(f+"/aln")
 #if(printing):
-#   print dir
+#    print >>sys.stderr, dir
 
 names=[]
-
 
 def average(arr):
     sum=0
@@ -73,7 +75,7 @@ def per(max,arr):
     return sum
 
 
-def printStats(arrV, arrN, arrS):
+def printStats(arrV, arrN, arrS, noSummary):
     out=[[],[],[],[],[],[]]
     string="    "
     for c in range(0,len(arrV)):
@@ -100,9 +102,10 @@ def printStats(arrV, arrN, arrS):
                 resultPerS+= formatString % e
             resultPerS+=" "+l[1]
             print resultPerS
-        if(arrS==0 or len(arrS)>1):    
-            print "-----------------------------"
-    if(arrS==0 or len(arrS)>1):
+    if(noSummary):
+        return
+    elif(arrS==0 or len(arrS)>1):
+        print "-----------------------------"
         print string
         print "sum "+" ".join(out[5])
         print "min "+" ".join(out[0])
@@ -112,7 +115,6 @@ def printStats(arrV, arrN, arrS):
         if (percent):
             print "av% "+" ".join(out[4])
             
-
 # sam statiscis for initial aligment
 def samstats_old(statsfile):
     names=["total","QCfail","dupl","dupl%","mapped","mapped%","paired", "paired%", "singletons", "transv", "regmapped", "regmapped%", "regpaired", "regpaired%"]
@@ -445,7 +447,7 @@ def hicupStats(statsFile):
     names=[]
     values=[]
     file=open(statsFile).read()
- 
+
     if (file.find("Average_length_truncated_sequence")>-1):
     	lines = file.split("\n")
     	p1 = lines[1].split("\t")
@@ -473,8 +475,7 @@ def hicupStats(statsFile):
     	val = lines[1].split("\t")[1:]
     	names += sig
     	values += [float(i) for i in val]
-  		
-  		
+
     return names,values
     
 #################33
@@ -656,6 +657,7 @@ for d in dir:
                     names,values=hiclibStats(d+"/"+f)
                 if (type=="hicup"):
                     names,values=hicupStats(d+"/"+f)
+
                 result=addValues(result,values)
                 filename=f
                 if (link):
@@ -668,11 +670,10 @@ for d in dir:
                 traceback.print_exc()
                 #sys.exit()
     print "\n#### "+d
-    printStats(result,names,psresult)
+    printStats(result,names,psresult,noSummary)
 
 if (overAll):
     print "\n#### over all"
     print "-----------------------------"
-    print "-----------------------------"
-    printStats(oaresult,names,0)
+    printStats(oaresult,names,0,0)
 

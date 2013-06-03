@@ -196,7 +196,7 @@ if [ -n "$RUNTRIMGALORE" ];then
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/trimgalore.sh $QOUT/$TASKTRIMGALORE >> $SUMMARYTMP
 
     echo "</pre><h3>trimgalore</h3><pre>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py $QOUT/$TASKTRIMGALORE ".out" trimgalore >> $SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py $QOUT/$TASKTRIMGALORE ".out" trimgalore --noSummary >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
@@ -221,10 +221,10 @@ if [ -n "$RUNHICUP" ];then
     done
     
     echo "</pre><h3>hicup</h3><pre>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_truncater_summary.txt" hicup >> $SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_mapper_summary.txt" hicup >> $SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_filter_summary_results.txt" hicup >> $SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_deduplicater_summary_results.txt" hicup >> $SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_truncater_summary.txt" hicup --noSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_mapper_summary.txt" hicup --noSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_filter_summary_results.txt" hicup --noSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_deduplicater_summary_results.txt" hicup --noSummary >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
     
     row0=""
