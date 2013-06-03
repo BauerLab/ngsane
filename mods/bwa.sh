@@ -117,7 +117,7 @@ PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--bwa     --\n "$(bwa 2>&1 | head -n 3 | tail -n-2)
-[ -z "$(which baw)" ] && echo "[ERROR] no bwa detected" && exit 1
+[ -z "$(which bwa)" ] && echo "[ERROR] no bwa detected" && exit 1
 echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--R       --\n "$(R --version | head -n 3)
