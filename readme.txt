@@ -41,12 +41,34 @@ ngsane
 	mostly tapping into python and R
 
 #########################################################
-# How to run NGSANE:
+# How to create a new project:
 
-NGSANE requires a config file for each of your projects.
-Examples of config files for different pipelines are given in sampleConfigs/
+NGSANE requires a config file for each of your projects and a (set of) fastq 
+files that need to be placed in a simple but predefined structure.
 
-The main access point is trigger.sh which can be invoked to run in different
+Make a new folder for your project and create the following folder structure:
+<PROJECT>
+- fastq
+- - <EXPERIMENT1>
+- - - <LIBRARY1_READ1>.fq[.gz]
+- - - <LIBRARY1_READ2>.fq[.gz] (if paired library)
+- - - <LIBRARY2_READ1>.fq[.gz]
+- - - <LIBRARY2_READ2>.fq[.gz] (if paired library)
+- config.txt
+
+Here <PROJECT> is your project name. The fastq folder contains all raw data
+grouped by EXPERIMENT (or any other meaningful way). Each EXPERIMENT folder
+can contain multiple sequencing libraries. You probably want them gzipped to
+save space. You can add additional EXPERIMENT folders if you like. However, 
+all libraries should have the same ending as well as the same read-pair 
+identification (e.g. have the suffix _R1.fq.gz for read1 of a zipped fastq).
+for examples of config files for different pipelines look in the 
+ngsane/sampleConfigs/.
+
+#########################################################
+# How to run NGSANE jobs:
+
+The main access point is trigger.sh, which can be invoked to run in different
 modes
 >trigger.sh <CONFIG> <TASK>
 
@@ -60,6 +82,12 @@ done
   verify     check the pbs logfiles for errors
   html       check the pbs logfiles for errors and and make summary HTML page
   clean      clean up
+
+Following the folder structure example from above, you can submit jobs
+using a properly configured config.txt form within the PROJECT folder as 
+follows:
+
+PROJECT>trigger.sh ./config.txt armed
 
 #########################################################	
 Contact:
