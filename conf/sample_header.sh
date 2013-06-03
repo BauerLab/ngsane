@@ -37,6 +37,7 @@ TASKANNOVAR="annovar"
 TASKBAMANN="bamann"
 TASKSAMVAR="samvar"
 TASKCUTADAPT="cutadapt"
+TASKTRIMGALORE="trimgalore"
 TASKHICUP="hicup"
 TASKHICLIB="hiclib"
 

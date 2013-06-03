@@ -133,7 +133,7 @@ fi
 if [ -n "$RUNTRIMAT" ]; then
     $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMAT -i fastq -e "_"$READONE.$FASTQ -n $NODES_TRIMAT \
         -c $CPU_TRIMAT -m $MEMORY_TRIMAT"G" -w $WALLTIME_TRIMAT \
-        --command "$HISEQINF/pbsTemp/trimmomatic.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKTRIMAT" 
+        --command "$NGSANE_BASE/mods/trimmomatic.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKTRIMAT" 
 fi
 
 ############################################
@@ -142,7 +142,7 @@ fi
 # OUT:$SOURCE/$dir/fastq_trim/*read1.fastq
 ############################################ 
 if [ -n "$RUNTRIMGALORE" ]; then
-    $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMGALORE -i fastq -e "_"$READONE.$FASTQ -n $NODES_CUTADAPT \
+    $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMGALORE -i fastq -e "_"$READONE.$FASTQ -n $NODES_TRIMGALORE \
         -c $CPU_TRIMGALORE -m $MEMORY_TRIMGALORE"G" -w $WALLTIME_TRIMGALORE \
         --command "${NGSANE_BASE}/mods/trimgalore.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKTRIMGALORE"
 fi

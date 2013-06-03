@@ -40,7 +40,12 @@ for MODULE in $MODULE_TRIMGALORE; do module load $MODULE; done  # save way to lo
 export PATH=$PATH_TRIMGALORE:$PATH;
 module list
 echo "PATH=$PATH"
-trim_galore --version  | grep version  | tr -d ' '
+echo -e "--trim galore --\n "$(trim_galore --version  | grep version  | tr -d ' ')
+[ -z "$(which trim_galore)" ] && echo "[ERROR] no trim_galore detected" && exit 1
+
+#SAMPLENAME
+# get basename of f
+n=${f##*/}
 
 #is paired ?
 if [ -e ${f/$READONE/$READTWO} ]; then
@@ -56,7 +61,7 @@ FASTQDIRTRIM=$(dirname $o)
 echo $FASTQDIRTRIM
 if [ ! -d $FASTQDIRTRIM ]; then mkdir -p $FASTQDIRTRIM; fi
 echo $f "->" $o
-if [ "$PAIRED" = 1 ]; then echo ${f/$READONE/$READTWO} "->" ${o/$READONE/$READTWO} ; fi
+if [ "$PAIRED" = "1" ]; then echo ${f/$READONE/$READTWO} "->" ${o/$READONE/$READTWO} ; fi
 
 echo "********** get contaminators"
 
@@ -65,34 +70,28 @@ CONTAM=""
 if [ -n "$TRIMGALORE_ADAPTER1" ]; then
 	CONTAM="$CONTAM --adapter $TRIMGALORE_ADAPTER1"
 fi
-if [ "$PAIRED" = 1 ] && [ -n "$TRIMGALORE_ADAPTER2" ]; then
+if [ "$PAIRED" = "1" ] && [ -n "$TRIMGALORE_ADAPTER2" ]; then
 	CONTAM="$CONTAM --adapter2 $TRIMGALORE_ADAPTER2"
 fi
 echo $CONTAM
 
 echo "********** trim"
 # Paired read
-if [ "$PAIRED" = 1 ]
+if [ "$PAIRED" = "1" ]
 then
 	trim_galore $CONTAM --paired --output_dir $FASTQDIRTRIM $f ${f/$READONE/$READTWO}
 else
 	trim_galore $CONTAM --output_dir $FASTQDIRTRIM $f
 fi
 
-echo "********** zip"
-for TRIMMED in $(ls $$FASTQDIRTRIM/*_trimmed.*); do
-    if [[ $f != *.gz ]]; then
-        $GZIP $TRIMMED
-    fi
-done
-
 echo "********** rename files"
-for TRIMMED in $(ls $$FASTQDIRTRIM/*$READONE_trimmed.gz); do
-	mv $TRIMMED ${TRIMMED/$READONE_trimmed.gz/trim_$READONE.gz}
-	if [ "$PAIRED" = 1 ]; 
-		mv $TRIMMED ${TRIMMED/$READTWO_trimmed.gz/trim_$READTWO.gz}
-	fi
-done
+if [ "$PAIRED" = "1" ]; then
+    mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READONE"_val_1".fq.gz} $FASTQDIRTRIM/$n
+    mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READTWO"_val_2".fq.gz} $FASTQDIRTRIM/${n/$READONE/$READTWO}
+else
+    mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READONE"_trimmed".fq.gz} $FASTQDIRTRIM/$n
+fi
+
 
 echo ">>>>> readtrimming with TRIMGALORE - FINISHED"
 echo ">>>>> enddate "`date`
