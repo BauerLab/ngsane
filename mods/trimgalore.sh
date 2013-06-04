@@ -49,14 +49,20 @@ n=${f##*/}
 
 #is paired ?
 if [ -e ${f/$READONE/$READTWO} ]; then
+    echo "[NOTE] PAIRED library"
     PAIRED="1"
 else
+    echo "[NOTE] SINGLE library"
     PAIRED="0"
 fi
 
 FASTQDIR=$(basename $(dirname $f))
 o=${f/$FASTQDIR/$FASTQDIR"_trim"}
 FASTQDIRTRIM=$(dirname $o)
+
+if [ -n "$DMGET" ]; then
+    dmget -a ${f/$READONE/"*"}
+fi
 
 echo $FASTQDIRTRIM
 if [ ! -d $FASTQDIRTRIM ]; then mkdir -p $FASTQDIRTRIM; fi

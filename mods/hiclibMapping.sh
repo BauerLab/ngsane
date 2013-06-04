@@ -138,7 +138,7 @@ python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie=$(which bowtie2)
 rm -f $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
 
 # copy heatmap
-RUNSTATS=$OUT/runStats/hiclib
+RUNSTATS=$OUT/runStats/$TASKHICLIB
 mkdir -p $RUNSTATS
 mv $MYOUT/*.pdf $RUNSTATS
 
