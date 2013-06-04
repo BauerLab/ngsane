@@ -228,7 +228,7 @@ ln -f -s $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/'_'$READONE.$FASTQ/'_'$READTWO}
 cd $CURDIR
 
 # copy piecharts
-RUNSTATS=$OUT/runStats/hicup
+RUNSTATS=$OUT/runStats/$TASKHICUP
 mkdir -p $RUNSTATS
 cp $MYOUT/$OUTDIR/uniques_*_cis-trans.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_uniques_cis-trans.png 2>/dev/null
 cp $MYOUT/$OUTDIR/*_ditag_classification.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_ditag_classification.png 2>/dev/null
