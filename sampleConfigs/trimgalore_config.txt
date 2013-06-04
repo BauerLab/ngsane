@@ -1,5 +1,5 @@
 # author: Fabian Buske
-# date: May 2013
+# date: June 2013
 
 ######################################
 # Resources
@@ -30,10 +30,6 @@ READTWO="R2"
 
 # fastq file suffix
 FASTQ="fq.gz"
-# which files to run on (replace samples with folders within fastq firectory)
-
-# reference genome
-FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
 
 #********************
 # PARAMETER (mandatory)
@@ -54,5 +50,4 @@ TRIMGALORE_ADAPTER2=""
 
 ## location of ngsane
 #NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
-
 
