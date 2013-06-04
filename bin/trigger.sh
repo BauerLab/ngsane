@@ -138,7 +138,8 @@ fi
 
 ############################################
 #   TRIMGALORE remove contaminants
-#                                                                                                                                                                        # IN:$SOURCE/$dir/fastq/*read1.fastq
+#
+# IN:$SOURCE/$dir/fastq/*read1.fastq
 # OUT:$SOURCE/$dir/fastq_trim/*read1.fastq
 ############################################ 
 if [ -n "$RUNTRIMGALORE" ]; then
