@@ -276,6 +276,8 @@ echo "********* samstat"
 echo "[NOTE] samstat"
 samstat $BAMFILE
 
+
+
 ##run cufflinks
 echo "********* cufflinks"
 echo ">>>>> from $BAMFILE to $CUFOUT"
@@ -316,14 +318,11 @@ if [ -n "$GENCODEGTF" ]; then
 	       HT_SEQ_OPTIONS="--stranded=yes"
 	fi
 
-	## htseq-count for cufflinks
+	## htseq-count 
 
 	samtools sort -n $OUTDIR/accepted_hits.bam $OUTDIR/accepted_hits_sorted.tmp
 	samtools fixmate $OUTDIR/accepted_hits_sorted.tmp.bam $OUTDIR/accepted_hits_sorted.bam
 	rm $OUTDIR/accepted_hits_sorted.tmp.bam
-
-	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $CUFOUT/transcripts.gtf > $HTOUTDIR/cufflinks.gene
-	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --idattr="transcript_id" $HT_SEQ_OPTIONS - $CUFOUT/transcripts.gtf > $HTOUTDIR/cufflinks.transcripts
 
 	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}.gene
 	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
@@ -382,6 +381,9 @@ if [ -n "$GENCODEGTF" ]; then
 	
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
     Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${n/_$READONE.$FASTQ/} $BAM2BW_OPTION_1 $BIGWIGSDIR
+	
+	# index accepted_hits.bam
+	samtools index $OUTDIR/accepted_hits.bam
 	
     echo ">>>>> make bigwigs - FINISHED"
 	
