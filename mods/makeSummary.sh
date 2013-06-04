@@ -186,7 +186,6 @@ if [ -n "$RUNANNOTATION" ]; then
     done
     echo "<br>More information about the columns can be found on the <a target=new href=\"http://redmine.qbi.uq.edu.au/knowledgebase/articles/12\">Project Server</a> (uqlogin). and the description of the <a href=\"http://www.broadinstitute.org/gsa/wiki/index.php/Understanding_the_Unified_Genotyper%27s_VCF_files\">vcf file</a>">> $SUMMARYTMP
 
-
     echo "</pre>" >>$SUMMARYTMP
 fi
 
@@ -197,6 +196,16 @@ if [ -n "$RUNTRIMGALORE" ];then
 
     echo "</pre><h3>trimgalore</h3><pre>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py $QOUT/$TASKTRIMGALORE ".out" trimgalore --noSummary >> $SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
+
+if [ -n "$RUNCUTADAPT" ];then
+    LINKS=$LINKS" cutadapt"
+    echo "<a name=\"cutadapt\"><h2>Cutadapt results</h2></a><pre>">>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/cutadapt.sh $QOUT/$TASKCUTADAPT >> $SUMMARYTMP
+
+    echo "</pre><h3>cutadapt</h3><pre>">>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py $QOUT/$TASKCUTADAPT ".out" cutadapt --noSummary >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 

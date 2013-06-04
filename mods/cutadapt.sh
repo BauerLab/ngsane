@@ -47,48 +47,65 @@ echo "PATH=$PATH"
 echo -e "--cutadapt  --\n" $(cutadapt --version 2>&1)
 [ -z "$(which cutadapt)" ] && echo "[ERROR] no cutadapt detected" && exit 1
 
+#SAMPLENAME
+# get basename of f
+n=${f##*/}
+
+if [ -e ${f/$READONE/$READTWO} ] ; then
+    echo "[NOTE] PAIRED library"
+    PAIRED="1"
+else
+    echo "[NOTE] SINGLE library"
+    PAIRED="0"
+fi
+
 FASTQDIR=$(basename $(dirname $f))
 o=${f/$FASTQDIR/$FASTQDIR"_trim"}
 FASTQDIRTRIM=$(dirname $o)
-
-
-if [ -e ${f/$READONE/$READTWO} ] ; then
-    echo "PAIRED"
-    PAIRED="1"
-    o2=${o/$READONE/$READTWO}
-else
-    echo "SINGLE"
-    PAIRED="0"
-fi
 
 if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
 fi
 
-#echo $FASTQDIRTRIM
-if [ ! -d $FASTQDIRTRIM ]; then mkdir $FASTQDIRTRIM; fi
+echo $FASTQDIRTRIM
+if [ ! -d $FASTQDIRTRIM ]; then mkdir -p $FASTQDIRTRIM; fi
 echo $f "->" $o
-if [ "$PAIRED" = 1 ]; then echo ${f/$READONE/$READTWO} "->" $o2 ; fi
-echo "contaminants: "$CONTAMINANTS
-if [ ! -n "$CONTAMINANTS" ];then echo "need variable CONTAMINANTS defined in $CONFIG"; fi
+if [ "$PAIRED" = 1 ]; then echo ${f/$READONE/$READTWO} "->" ${o/$READONE/$READTWO} ; fi
 
 echo "********** get contaminators"
+echo "[NOTE] contaminants: "$CONTAMINANTS
+if [ ! -n "$CONTAMINANTS" ];then echo "[WARN] need variable CONTAMINANTS defined in $CONFIG"; fi
+
 CONTAM=$(cat $CONTAMINANTS | tr '\n' ' ')
-echo $CONTAM
+echo "[NOTE] $CONTAM"
 
 echo "********** trim"
-cutadapt $CONTAM $f -o $o > $o.stats
+RUN_COMMAND="cutadapt $CUTADAPT_OPTIONS $CONTAM $f -o $o > $o.stats"
+echo $RUN_COMMAND
+eval $RUN_COMMAND
+cat $o.stats
 
 if [ "$PAIRED" = 1 ]; then
     echo "********** paired end"
-    cutadapt $CONTAM ${f/$READONE/$READTWO} -o $o2 > $o2.stats
+    RUN_COMMAND="cutadapt $CUTADAPT_OPTIONS $CONTAM ${f/$READONE/$READTWO} -o ${o/$READONE/$READTWO} > ${o/$READONE/$READTWO}.stats"
+    echo $RUN_COMMAND
+    eval $RUN_COMMAND
+    cat ${o/$READONE/$READTWO}.stats
     #TODO: clean up unmached pairs
 fi
 
 echo "********** zip"
-for i in $o $o2 ; do
-    $GZIP -f $i
-done
+$GZIP -t $o 2>/dev/null
+if [[ $? -ne 0 ]]; then
+    $GZIP -f $o
+    if [ "$PAIRED" = "1" ]; then
+        $GZIP -f ${o/$READONE/$READTWO}
+    fi
+fi
+
+RUNSTATS=$OUT/runStats/$TASKCUTADAPT
+mkdir -p $RUNSTATS
+mv $FASTQDIRTRIM/*.stats $RUNSTATS
 
 echo ">>>>> readtrimming with CUTADAPT - FINISHED"
 echo ">>>>> enddate "`date`

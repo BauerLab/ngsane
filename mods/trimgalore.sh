@@ -92,6 +92,20 @@ else
     mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READONE"_trimmed".fq.gz} $FASTQDIRTRIM/$n
 fi
 
+echo "********** zip"
+$GZIP -t $FASTQDIRTRIM/$n 2>/dev/null
+if [[ $? -ne 0 ]]; then
+    $GZIP -f $FASTQDIRTRIM/$n
+    mv $FASTQDIRTRIM/$n.gz $FASTQDIRTRIM/$n
+    if [ "$PAIRED" = "1" ]; then
+        $GZIP -f $FASTQDIRTRIM/${n/$READONE/$READTWO}
+        mv $FASTQDIRTRIM/${n/$READONE/$READTWO}.gz $FASTQDIRTRIM/${n/$READONE/$READTWO}
+    fi
+fi
+
+RUNSTATS=$OUT/runStats/$TASKTRIMGALORE
+mkdir -p $RUNSTATS
+mv $FASTQDIRTRIM/*_trimming_report.txt $RUNSTATS
 
 echo ">>>>> readtrimming with TRIMGALORE - FINISHED"
 echo ">>>>> enddate "`date`

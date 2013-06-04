@@ -403,6 +403,35 @@ def trimgaloreStats(logFile):
 
     return names, values
 
+def cutadaptStats(logFile):
+    names=["Processed reads", "Processed bases", "Trimmed reads","%","Too short reads","%","Too long reads","%"]
+    values=[]
+    file=open(logFile).read()
+    # populate
+    tmp=file.split("Processed reads:")[1].strip().split()[0]
+    PR=float(tmp.strip())
+    values.append(PR)
+
+    tmp=file.split("Processed bases:")[1].strip().split()[0]
+    PB=float(tmp.strip())
+    values.append(PB)
+
+    tmp=file.split("Trimmed reads:")[1].split("(")[0]
+    TR=float(tmp.strip())
+    values.append(TR)
+    values.append(100*TR/PR)
+
+    tmp=file.split("Too short reads:")[1].split("(")[0]
+    TS=float(tmp.strip())
+    values.append(TS)
+    values.append(100*TS/PR)
+
+    tmp=file.split("Too long reads:")[1].split("(")[0]
+    TL=float(tmp.strip())
+    values.append(TL)
+    values.append(100*TL/PR)
+
+    return names, values
 
 def hiclibStats(logFile):
     names=["Original reads", "Unmapped", "(%)", "Semi-dangling", "(%)", "Duplicates", "(%)", "Sm/Lg Fragments","(%)", "Extreme Fragments","(%)", "# Reads (final)", "(%)", "# Fragments (final)"]
@@ -656,6 +685,8 @@ for d in dir:
                     names,values=annoStats(d+"/"+f)
                 if (type=="trimgalore"):
                     names,values=trimgaloreStats(d+"/"+f)                
+                if (type=="cutadapt"):
+                    names,values=cutadaptStats(d+"/"+f)
                 if (type=="hiclibMapping"):
                     names,values=hiclibStats(d+"/"+f)
                 if (type=="hicup"):
