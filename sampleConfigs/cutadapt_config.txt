@@ -1,0 +1,57 @@
+# author: Fabian Buske
+# date: June 2013
+
+######################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNCUTADAPT="1"    # adapter trimming with cutadapt
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq firectory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+# read indicator
+READONE="R1"
+READTWO="R2"
+
+# fastq file suffix
+FASTQ="fq.gz"
+
+#********************
+# PARAMETER (mandatory)
+#********************
+# Location of the file containing the contaminants.
+# Contaminants need to be specified with -a, -b or -g followed by the sequence, e.g.:
+# -a AAGGAEE
+CONTAMINANTS=
+
+#********************
+# PARAMETER (optinal overwriting defaults)
+#********************
+# additional options to be passed to cutadapt
+CUTADAPT_OPTIONS=""
+
+#WALLTIME_CUTADAPT=4:00:00
+#MEMORY_CUTADAPT=40
+#CPU_CUTADAPT=1
+#NODES_CUTADAPT="nodes=1:ppn=1"
+#MODULE_CUTADAPT=
+#PATH_CUTADAPT=
+
+## location of ngsane
+#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+
