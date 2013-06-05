@@ -105,6 +105,8 @@ if [ ! -d $QOUT ]; then mkdir -p $QOUT; fi
 ############################################
 
 if [ -n "$RUNFASTQC" ]; then
+    [[ -z "$TASKFASTQC" ] || [ -z "$NODES_FASTQC" ] || [ -z "$CPU_FASTQC" ] || [ -z "$MEMORY_FASTQC" ] || [ -z "$WALLTIME_FASTQC" ]] && echo "[ERROR] Server misconfigured" && exit 1
+    
     $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -i fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQC \
 	-c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
 	--postcommand "${NGSANE_BASE}/mods/fastQC.sh -k $CONFIG" 
@@ -118,6 +120,8 @@ fi
 ############################################
 
 if [ -n "$RUNCUTADAPT" ]; then
+    [[ -z "$TASKCUTADAPT" ] || [ -z "$NODES_CUTADAPT" ] || [ -z "$CPU_CUTADAPT" ] || [ -z "$MEMORY_CUTADAPT" ] || [ -z "$WALLTIME_CUTADAPT" ]] && echo "[ERROR] Server misconfigured" && exit 1
+    
     $QSUB $ARMED -d -k $CONFIG -t $TASKCUTADAPT -i fastq -e "_"$READONE.$FASTQ -n $NODES_CUTADAPT \
 	-c $CPU_CUTADAPT -m $MEMORY_CUTADAPT"G" -w $WALLTIME_CUTADAPT \
 	--command "${NGSANE_BASE}/mods/cutadapt.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKCUTADAPT" 
@@ -143,9 +147,117 @@ fi
 # OUT:$SOURCE/$dir/fastq_trim/*read1.fastq
 ############################################ 
 if [ -n "$RUNTRIMGALORE" ]; then
+    [[ -z "$TASKTRIMGALORE" ] || [ -z "$NODES_TRIMGALORE" ] || [ -z "$CPU_TRIMGALORE" ] || [ -z "$MEMORY_TRIMGALORE" ] || [ -z "$WALLTIME_TRIMGALORE" ]] && echo "[ERROR] Server misconfigured" && exit 1
+    
     $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMGALORE -i fastq -e "_"$READONE.$FASTQ -n $NODES_TRIMGALORE \
         -c $CPU_TRIMGALORE -m $MEMORY_TRIMGALORE"G" -w $WALLTIME_TRIMGALORE \
         --command "${NGSANE_BASE}/mods/trimgalore.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKTRIMGALORE"
+fi
+
+############################################ 
+# IN */bwa/*.bam
+# OUT */bwa/*.ann
+############################################ 
+if [ -n "$RUNANNOTATINGBAM" ]; then
+    [[ -z "$TASKBWA" ] || [ -z "$NODES_BAMANN" ] || [ -z "$CPU_BAMANN" ] || [ -z "$MEMORY_BAMANN" ] || [ -z "$WALLTIME_BAMANN" ]] && echo "[ERROR] Server misconfigured" && exit 1
+    
+    $QSUB --nodir -r $ARMED -k $CONFIG -t $TASKBAMANN -i $TASKBWA -e .bam \
+    -n $NODES_BAMANN -c $CPU_BAMANN -m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN \
+        --command "${NGSANE_BASE}/mods/annotateBam.sh -k $CONFIG -f <FILE>"
+fi
+
+
+############################################
+# IN: */bwa/*.bam
+# OUT: */bwa_var/*.clean.vcf
+############################################
+
+if [ -n "$RUNSAMVAR" ]; then
+    [[ -z "$TASKBWA" ] || [ -z "$NODES_SAMVAR" ] || [ -z "$CPU_SAMVAR" ] || [ -z "$MEMORY_SAMVAR" ] || [ -z "$WALLTIME_SAMVAR" ]] && echo "[ERROR] Server misconfigured" && exit 1
+    
+    $QSUB -r $ARMED -k $CONFIG -t $TASKBWA-$TASKSAMVAR -i $TASKBWA -e .$ASD.bam \
+       -n $NODES_SAMVAR -c $CPU_SAMVAR -m $MEMORY_SAMVAR'G' -w $WALLTIME_SAMVAR \
+       --command "${NGSANE_BASE}/mods/samSNPs.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBWA-$TASKSAMVAR" \
+	   --postcommand "${NGSANE_BASE}/mods/samSNPscollect.sh -k $CONFIG -f <FILE> -o $OUT/variant/$TASKBWA-$TASKSAMVAR-<DIR>"
+fi
+
+############################################
+#   Mapping using HiCUP
+############################################
+
+if [ -n "$RUNHICUP" ]; then
+    [[ -z "$TASKHICUP" ] || [ -z "$NODES_HICUP" ] || [ -z "$CPU_HICUP" ] || [ -z "$MEMORY_HICUP" ] || [ -z "$WALLTIME_HICUP" ]] && echo "[ERROR] Server misconfigured" && exit 1
+    
+    $QSUB $ARMED -k $CONFIG -t $TASKHICUP -i fastq -e "_"$READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
+    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP \
+        --command "${NGSANE_BASE}/mods/hicup.sh $HICUPADDPARM -k $CONFIG -t $CPU_HICUP -m $(expr $MEMORY_HICUP - 1 ) -f <FILE> -r $FASTA --digest '$HICUP_RENZYMES' -o $OUT/<DIR>/$TASKHICUP --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
+fi
+
+############################################
+#  Assessing HiC data with hiclib
+#
+# IN: $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/hiclib/*.hdf5
+############################################
+
+if [ -n "$RUNHICLIB" ]; then
+    [[ -z "$TASKHICLIB" ] || [ -z "$NODES_HICLIB" ] || [ -z "$CPU_HICLIB" ] || [ -z "$MEMORY_HICLIB" ] || [ -z "$WALLTIME_HICLIB" ]] && echo "[ERROR] Server misconfigured" && exit 1
+    
+    $QSUB $ARMED -k $CONFIG -t $TASKHICLIB -i fastq -e "_"$READONE.$FASTQ \
+    	-n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
+    	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND \
+        --command "${NGSANE_BASE}/mods/hiclibMapping.sh $HICLIBADDPARM -k $CONFIG --threads $CPU_HICLIB --fastq <FILE> --enzymes $HICLIB_RENZYMES --outdir $OUT/<DIR>/$TASKHICLIB --fastqName <NAME>" \
+        --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh $HICLIBADDPARM -f <FILE> -k $CONFIG --outdir $OUT/hiclib/$TASKHICLIB-<DIR>"
+
+fi
+
+
+############################################
+#   Mapping using BWA
+#
+# IN:$SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/bwa/*.$ASD.bam
+############################################
+
+if [ -n "$RUNMAPPINGBWA2" ]; then
+    [[ -z "$TASKBWA" ] || [ -z "$NODES_BWA" ] || [ -z "$CPU_BWA" ] || [ -z "$MEMORY_BWA" ] || [ -z "$WALLTIME_BWA" ]] && echo "[ERROR] Server misconfigured" && exit 1
+
+    $QSUB $ARMED -k $CONFIG -t $TASKBWA -i fastq -e "_"$READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA \
+        --command "${NGSANE_BASE}/mods/bwa.sh $BWAADDPARM -k $CONFIG -t $CPU_BWA -m $(expr $MEMORY_BWA - 1 ) -f <FILE> -r $FASTA \
+                -o $OUT/<DIR>/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> \
+                --fastqName $FASTQ -R $SEQREG"
+fi
+
+############################################
+#   Mapping using Bowtie v1
+#
+# IN:$SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/bowtie/*.bam
+############################################
+
+if [ -n "$RUNMAPPINGBOWTIE" ]; then
+    [[ -z "$TASKBOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]] && echo "[ERROR] Server misconfigured" && exit 1
+
+    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e "_"$READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
+        --command "${NGSANE_BASE}/mods/bwa.sh $BOWTIEADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f <FILE> -r $FASTA \
+        -o $OUT/<DIR>/$TASKBOWTIE --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> \
+        --fastqName $FASTQ -R $SEQREG"
+fi
+
+
+
+############################################
+#  Mapping with bowtie v2
+#
+# IN: $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/bowtie/*.bam
+############################################
+if [ -n "$RUNMAPPINGBOWTIE2" ]; then
+    [[ -z "$TASKBOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]] && echo "[ERROR] Server misconfigured" && exit 1
+    
+    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e "_"$READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
+	--command "${NGSANE_BASE}/mods/bowtie2.sh $BOWTIEADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE \
+        --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
 fi
 
 
@@ -265,63 +377,6 @@ fi
 
 
 ############################################
-#   Mapping using BWA
-#
-# IN:$SOURCE/$dir/fastq/*read1.fastq
-# OUT: $OUT/$dir/bwa/*.$ASD.bam
-############################################
-
-if [ -n "$RUNMAPPINGBWA2" ]; then
-    $QSUB $ARMED -k $CONFIG -t $TASKBWA -i fastq -e "_"$READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA \
-        --command "${NGSANE_BASE}/mods/bwa.sh $BWAADDPARM -k $CONFIG -t $CPU_BWA -m $(expr $MEMORY_BWA - 1 ) -f <FILE> -r $FASTA \
-                -o $OUT/<DIR>/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> \
-                --fastqName $FASTQ -R $SEQREG"
-fi
-
-
-############################################
-#   Mapping using BOWTIE
-############################################
-
-if [ -n "$RUNMAPPINGBOWTIE" ]
-then
-    echo "********* $TASKBOWTIE"
-    CPUS=$CPU_BOWTIE
-
-    if [ ! -d $QOUT/$TASKBOWTIE ]; then mkdir -p $QOUT/$TASKBOWTIE; fi
-
-    for dir in ${DIR[@]}; do
-
-      if [ ! -d $OUT/$dir/$TASKBOWTIE ]; then mkdir -p $OUT/$dir/$TASKBOWTIE; fi
-
-      for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ); do
-        n=`basename $f`
-        name=${n/'_'$READONE.$FASTQ/}
-        echo ">>>>>"$dir$n
-        # remove old pbs output
-	if [ -e $QOUT/$TASKBOWTIE/$dir'_'$name.out ]; then rm $QOUT/$TASKBOWTIE/$dir'_'$name.*; fi
-        if [ -n "$ARMED" ]; then
-           $BINQSUB -j oe -o $QOUT/$TASKBOWTIE/$dir'_'$name'.out' -w $(pwd) -l $NODES_BOWTIE \
-                -l vmem=$MEMORY_BOWTIE"G" -N $TASKBOWTIE'_'$dir'_'$name -l walltime=$WALLTIME_BOWTIE \
-                -command "${NGSANE_BASE}/mods/bowtie2.sh $BWAADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f $f -r $FASTA \
-                -o $OUT/$dir/$TASKBOWTIE --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi $dir \
-                --fastqName $FASTQ"
-        fi
-      done
-    done
-
-fi
-
-
-
-if [ -n "$RUNMAPPINGBOWTIE2" ]; then
-    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e "_"$READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
-	--command "${NGSANE_BASE}/mods/bowtie2.sh $BOWTIEADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE \
-        --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
-fi
-
-
-############################################
 # combine flowcell lenes files for recalibration
 #
 ############################################
@@ -344,6 +399,8 @@ fi
 ########
 if [ -n "$RUNTOPHATCUFF" ]; then
     
+    [[ -z "$TASKTOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]] && echo "[ERROR] Server misconfigured" && exit 1
+        
     echo "********* $TASKTOPHAT"
     
     #CPUS_TOPHAT=24
@@ -1114,51 +1171,3 @@ then
 
 fi
 
-############################################ 
-# IN */bwa/*.bam
-# OUT */bwa/*.ann
-############################################ 
-if [ -n "$RUNANNOTATINGBAM" ]; then
-    $QSUB --nodir -r $ARMED -k $CONFIG -t $TASKBAMANN -i $TASKBWA -e .bam \
-    -n $NODES_BAMANN -c $CPU_BAMANN -m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN \
-        --command "${NGSANE_BASE}/mods/annotateBam.sh -k $CONFIG -f <FILE>"
-fi
-
-
-############################################
-# IN: */bwa/*.bam
-# OUT: */bwa_var/*.clean.vcf
-############################################
-
-if [ -n "$RUNSAMVAR" ]; then
-   $QSUB -r $ARMED -k $CONFIG -t $TASKBWA-$TASKSAMVAR -i $TASKBWA -e .$ASD.bam \
-   -n $NODES_SAMVAR -c $CPU_SAMVAR -m $MEMORY_SAMVAR'G' -w $WALLTIME_SAMVAR \
-        --command "${NGSANE_BASE}/mods/samSNPs.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBWA-$TASKSAMVAR" \
-	--postcommand "${NGSANE_BASE}/mods/samSNPscollect.sh -k $CONFIG -f <FILE> -o $OUT/variant/$TASKBWA-$TASKSAMVAR-<DIR>"
-fi
-
-############################################
-#   Mapping using HiCUP
-############################################
-
-if [ -n "$RUNHICUP" ]; then
-    $QSUB $ARMED -k $CONFIG -t $TASKHICUP -i fastq -e "_"$READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
-    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP \
-        --command "${NGSANE_BASE}/mods/hicup.sh $HICUPADDPARM -k $CONFIG -t $CPU_HICUP -m $(expr $MEMORY_HICUP - 1 ) -f <FILE> -r $FASTA --digest '$HICUP_RENZYMES' -o $OUT/<DIR>/$TASKHICUP --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
-fi
-
-############################################
-#  Assessing HiC data with hiclib
-#
-# IN: $SOURCE/$dir/fastq/*read1.fastq
-# OUT: $OUT/$dir/hiclib/*.hdf5
-############################################
-
-if [ -n "$RUNHICLIB" ]; then
-    $QSUB $ARMED -k $CONFIG -t $TASKHICLIB -i fastq -e "_"$READONE.$FASTQ \
-    	-n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
-    	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND \
-        --command "${NGSANE_BASE}/mods/hiclibMapping.sh $HICLIBADDPARM -k $CONFIG --threads $CPU_HICLIB --fastq <FILE> --enzymes $HICLIB_RENZYMES --outdir $OUT/<DIR>/$TASKHICLIB --fastqName <NAME>" \
-        --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh $HICLIBADDPARM -f <FILE> -k $CONFIG --outdir $OUT/hiclib/$TASKHICLIB-<DIR>"
-
-fi

@@ -94,7 +94,7 @@ MODULE_BWA=
 PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
-# Bowtie2 (2.1.0)
+# Bowtie2 (2.1.0) or Bowtie (1.0.0)
 # http://bowtie-bio.sourceforge.net/index.shtml
 WALLTIME_BOWTIE=10:00:00
 MEMORY_BOWTIE=60
@@ -104,6 +104,10 @@ NODES_BOWTIE="nodes=1:ppn=8"
 MODULE_BOWTIETWO=
 PATH_BOWTIETWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 BOWTIE2_INDEX=
+
+MODULE_BOWTIE=
+PATH_BOWTIE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+BOWTIE_INDEX=
 
 ##############################################################
 # Trim adapter with CUTADAPT ()

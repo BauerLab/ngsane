@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo ">>>>> alignment with with bowtie "
+echo ">>>>> alignment with bowtie2"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> bowtie.sh $*"
@@ -129,13 +129,11 @@ fi
 
 #readgroup
 FULLSAMPLEID=$SAMPLEID"${n/'_'$READONE.$FASTQ/}"
-#RG="--sam-rg ID:$EXPID --sam-rg SM:$FULLSAMPLEID --sam-rg LB:$LIBRARY --sam-rg PL:$PLATFORM"
 RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
 
-#BOWTIETWO/bowtie2
-bowtie2 $RG -t -x ${FASTA/.${FASTASUFFIX}/} -p $THREADS $READS -S $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} --un $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}
-#$BOWTIETWO/bowtie2 -t -x ~/Documents/datahome/ErrorCorrection/ExCap/bowtie_index_konsta/human_g1k_v37 -p $THREADS $READS -S $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} --un $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}
-
+RUN_COMMAND="bowtie2 $RG -t -x ${FASTA/.${FASTASUFFIX}/} -p $THREADS $READS -S $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} --un $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}"
+echo $RUN_COMMAND
+eval $RUN_COMMAND
 
 # continue for normal bam file conversion                                                                         
 echo "********* sorting and bam-conversion"
@@ -198,8 +196,6 @@ for im in $( ls $MYOUT/metrices/*.pdf ); do
 done
 rm -r $THISTMP
 
-
-
 echo "********* verify"
 BAMREADS=`head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1`
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
@@ -211,8 +207,7 @@ if [ $BAMREADS -eq $FASTQREADS ]; then
     rm $MYOUT/${n/'_'$READONE.$FASTQ/.unm}.bam
     rm $MYOUT/${n/'_'$READONE.$FASTQ/.map}.bam
 else
-    echo -e "***ERROR**** We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREA\
-DS"
+    echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
     exit 1
 fi
 
@@ -224,6 +219,6 @@ $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/$FASTASUFFIX/}.genome
 echo "********* samstat"
 samstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
 
-echo ">>>>> readmapping with BWA - FINISHED"
+echo ">>>>> readmapping with bowtie2 - FINISHED"
 echo ">>>>> enddate "`date`
 
