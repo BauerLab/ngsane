@@ -14,7 +14,7 @@ exit
 # It takes comma-seprated list of files containing short sequence reads in fasta or fastq format and bowtie index files as input.
 # It produces output files: read alignments in .bam format and other files.
 # author: Fabian Buske
-# date: June. 2013
+# date: June 2013
 
 # QCVARIABLES,Resource temporarily unavailable
 
@@ -23,7 +23,7 @@ if [ ! $# -gt 3 ]; then usage ; fi
 THREADS=1
 MEMORY=2
 EXPID="exp"           # read group identifier RD ID                                                               
-LIBRARY="qbi"         # read group library RD LB                                                                  
+LIBRARY="tkcc"        # read group library RD LB                                                                  
 PLATFORM="illumina"   # read group platform RD PL                                                                 
 UNIT="flowcell"       # read group platform unit RG PU                                                            
 FASTQNAME=""
@@ -69,8 +69,8 @@ PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
-echo -e "--bowtie2 --\n "$(bowtie2 --version)
-[ -z "$(which bowtie2)" ] && echo "[ERROR] no bowtie2 detected" && exit 1
+echo -e "--bowtie  --\n "$(bowtie --version)
+[ -z "$(which bowtie)" ] && echo "[ERROR] no bowtie detected" && exit 1
 echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--R       --\n "$(R --version | head -n 3)
