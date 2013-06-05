@@ -214,7 +214,7 @@ fi
 #coverage for IGV
 echo "********* coverage track"
 java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
-$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/$FASTASUFFIX/}.genome
+$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/}.genome
 
 echo "********* samstat"
 samstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
