@@ -315,7 +315,7 @@ if [ -n "$GENCODEGTF" ]; then
 	       HT_SEQ_OPTIONS="--stranded=no"
 	elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-firststrand" ]; then
 	       echo "[NOTE] library is fr-firststrand; run ht seq count stranded"
-	       HT_SEQ_OPTIONS="--stranded=yes"
+	       HT_SEQ_OPTIONS="--stranded=reverse"
 	fi
 
 	## htseq-count 
@@ -323,6 +323,9 @@ if [ -n "$GENCODEGTF" ]; then
 	samtools sort -n $OUTDIR/accepted_hits.bam $OUTDIR/accepted_hits_sorted.tmp
 	samtools fixmate $OUTDIR/accepted_hits_sorted.tmp.bam $OUTDIR/accepted_hits_sorted.bam
 	rm $OUTDIR/accepted_hits_sorted.tmp.bam
+
+	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $CUFOUT/transcripts.gtf > $HTOUTDIR/cufflinks.gene
+	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --idattr="transcript_id" $HT_SEQ_OPTIONS - $CUFOUT/transcripts.gtf > $HTOUTDIR/cufflinks.transcripts
 
 	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}.gene
 	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
