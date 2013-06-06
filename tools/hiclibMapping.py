@@ -12,7 +12,8 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 from mirnylib import plotting
-from hiclib import binnedData, binnedDataAnalysis, experimentalBinnedData
+from hiclib import binnedData
+from hiclib.binnedData import binnedDataAnalysis, experimentalBinnedData
 
 # manage option and arguments processing
 def main():
@@ -261,7 +262,7 @@ def filterFragments(genome_db):
 	- the reads that start within the 5 bp range from the restriction site
 	- the identical read pairs, with both ends starting at exactly the same positions
 	- the reads coming from extremely large and extremely small restriction fragments (length > 10^5 bp or length < 100 bp)
-	- the reads coming from the top 0.5% most frequently detected restriction fragments
+	- the reads coming from the top 1% most frequently detected restriction fragments
 
 	The rationale behind each of the filters is discussed in the hiclib publication. The API documentation contains the description of the filters.
 	'''
@@ -277,19 +278,26 @@ def filterFragments(genome_db):
 	# object.
 	fragments.parseInputData(dictLike=options.outputDir+options.experiment+'-mapped_reads.hdf5')
 	
-	fragments.filterRsiteStart(offset=5)
+	# Removes reads that start within 5 bp (default) near rsite
+	fragments.filterRsiteStart()
+	
+	# Remove fragment pairs separated by less then minRsitesDist (=2) restriction sites within the same chromosome
+	fragments.filterTooClose()
+	
+	# Removes duplicate molecules in DS reads
 	fragments.filterDuplicates()
 	
+	# Removes very large and small fragments
 	fragments.filterLarge()
-	fragments.filterExtreme(cutH=0.005, cutL=0)
+	
+	# Removes fragments with most and/or least # counts
+	fragments.filterExtreme(cutH=0.01, cutL=0)
 	
 	fragments.saveHeatmap(options.outputDir+options.experiment+'-1M.hdf5', resolution=1000000)
-
 	fragments.saveHeatmap(options.outputDir+options.experiment+'-200k.hdf5', resolution=200000)
-	
-	return fragments
 
-def iterativeFiltering(genome_db, fragments, filesuffix):
+
+def iterativeFiltering(genome_db, filesuffix):
 	'''
 	Filter the data at the binned level and perform the iterative correction.
 	'''
@@ -304,6 +312,9 @@ def iterativeFiltering(genome_db, fragments, filesuffix):
 
 	# Remove the contacts between loci located within the same bin.
 	BD.removeDiagonal()
+	
+	# Remove empty bins
+	BD.removeZeros()
 	
 	# Remove bins with less than half of a bin sequenced.
 	BD.removeBySequencedCount(0.5)
@@ -365,14 +376,14 @@ def process():
 	if (options.verbose):
 		print >> sys.stdout, "**  Filter fragments"
 	
-	fragments = filterFragments(genome_db)
+	filterFragments(genome_db)
 	
 	if (options.verbose):
 		print >> sys.stdout, "**  Iterative filtering of fragments"
 
-	iterativeFiltering(genome_db, fragments, '-1M.hdf5')
+	iterativeFiltering(genome_db, '-1M.hdf5')
 	
-	iterativeFiltering(genome_db, fragments, '-200k.hdf5')
+	iterativeFiltering(genome_db, '-200k.hdf5')
 
 	# plotting
 	correctedScalingPlot(200000, options.outputDir+options.experiment+'-200k.hdf5', options.experiment, genome_db)
