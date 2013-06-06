@@ -34,7 +34,9 @@ FASTQ="fq.gz"
 
 # reference genome
 FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
-BOWTIE_INDEX=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+
+# chromosome sizes
+GENOME_CHROMSIZES=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
 
 #********************
 # PARAMETER (mandatory)

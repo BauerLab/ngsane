@@ -83,6 +83,8 @@ echo -e "--samstat --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 echo -e "--homer   --\n "$(which makeTagDirectory)
 [ -z "$(which makeTagDirectory)" ] && echo "[ERROR] no homer detected (makeTagDirectory)" && exit 1
+echo -e "--convert  --\n "$(convert -version | head -n 1)
+[ -z "$(which convert)" ] && echo "[WARN] imagemagick convert not detected" && exit 1
 
 # get basename of f
 n=${f##*/}
@@ -104,14 +106,6 @@ fi
 ZCAT="zcat"
 if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
 
-# check genome assembly
-if [ -n "$GENOME" ]; then
-    fetchChromSizes $GENOME > $MYOUT/$GENOME.chrom.sizes
-else
-    echo "[ERROR] genome assembly not found"
-    exit 1
-fi
-
 echo "********* generating the index files"
 FASTASUFFIX=${FASTA##*.}
 if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.ebwt ]; then echo ">>>>> make .ebwt"; bowtie-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
@@ -125,7 +119,7 @@ if [ -n "$DMGET" ]; then
 	dmls -l ${f/$READONE/"*"}
 fi
 
-#run bowtie command -v $MISMATCH -m 1
+#run bowtie command -v 3 -m 1
 echo "********* bowtie" 
 if [ $PAIRED == "0" ]; then 
     READS="$f"
@@ -141,64 +135,87 @@ fi
 FULLSAMPLEID=$SAMPLEID"${n/'_'$READONE.$FASTQ/}"
 RG="--sam-RG \"ID:$EXPID\" --sam-RG \"SM:$FULLSAMPLEID\" --sam-RG \"LB:$LIBRARY\" --sam-RG \"PL:$PLATFORM\""
 
-# pipe gzipped fastqs into bowtie
+# check if fastq are compressed
 $GZIP -t $f 2>/dev/null
 if [[ $? -eq 0 ]] && [ $PAIRED == "0" ]; then
-    RUN_COMMAND="$GZIP -dc $f | bowtie $RG --tryhard --best --strata --time --threads $THREADS -v 3 -m 1 --un $MYOUT/${n/'_'$READONE.$FASTQ/.unm.fq} --max $MYOUT/${n/'_'$READONE.$FASTQ/.mul.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}"
+    # pipe gzipped fastqs into bowtie
+    RUN_COMMAND="$GZIP -dc $f | bowtie $RG --tryhard --best --strata --time --threads $THREADS -v 3 -m 1 --un $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}"
 else
     echo "[NOTE] unzip fastq files"
     $GZIP -cd $f > $f.unzipped
     $GZIP -cd ${f/$READONE/$READTWO} > ${f/$READONE/$READTWO}.unzipped
-    RUN_COMMAND="bowtie $RG --tryhard --best --strata --time --threads $THREADS -v 3 -m 1 --un $MYOUT/${n/'_'$READONE.$FASTQ/.unm.fq} --max $MYOUT/${n/'_'$READONE.$FASTQ/.mul.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $f.unzipped -2 ${f/$READONE/$READTWO}.unzipped $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}"
+    RUN_COMMAND="bowtie $RG --tryhard --best --strata --time --threads $THREADS -v 3 -m 1 --un $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $f.unzipped -2 ${f/$READONE/$READTWO}.unzipped $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}"
 fi
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
-if [ $PAIRED == "1" ]; then
-    cat $MYOUT/${n/'_'$READONE.$FASTQ/.unm_*.fq} > $MYOUT/${n/'_'$READONE.$FASTQ/.unm.fq}
-fi
-
 # create bam files for discarded reads and remove fastq files
-java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
-    FASTQ=$MYOUT/${n/'_'$READONE.$FASTQ/.unm.fq} \
-    OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.unm.bam} \
-    QUALITY_FORMAT=Standard \
-    SAMPLE_NAME=${n/'_'$READONE.$FASTQ/} \
-    READ_GROUP_NAME=null \
-    QUIET=TRUE \
-    VERBOSITY=ERROR
-
-samtools sort $MYOUT/${n/'_'$READONE.$FASTQ/.unm.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.unm.tmp} 
-mv $MYOUT/${n/'_'$READONE.$FASTQ/.unm.tmp.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.unm.bam}
-rm $MYOUT/${n/'_'$READONE.$FASTQ/.unm*.fq}
-
-if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.mul.fq} ]; then
+if [ $PAIRED == "1" ]; then
+    if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.${UNM}_1.fq} ]; then
     java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
-        FASTQ=$MYOUT/${n/'_'$READONE.$FASTQ/.mul.fq} \
-        OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.mul.bam} \
+        FASTQ=$MYOUT/${n/'_'$READONE.$FASTQ/.${UNM}_1.fq} \
+        FASTQ2=$MYOUT/${n/'_'$READONE.$FASTQ/.${UNM}_2.fq} \
+        OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.bam} \
+        QUALITY_FORMAT=Standard \
+        SAMPLE_NAME=${n/'_'$READONE.$FASTQ/} \
+        READ_GROUP_NAME=null \
+        QUIET=TRUE \
+        VERBOSITY=ERROR
+    samtools sort $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.tmp}
+    mv $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.tmp.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.bam}
+    fi
+
+    if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.${MUL}_1.fq} ]; then
+    java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
+        FASTQ=$MYOUT/${n/'_'$READONE.$FASTQ/.${MUL}_1.fq} \
+        FASTQ2=$MYOUT/${n/'_'$READONE.$FASTQ/.${MUL}_2.fq} \
+        OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.${MUL}.bam} \
         QUALITY_FORMAT=Standard \
         SAMPLE_NAME=${n/'_'$READONE.$FASTQ/} \
         READ_GROUP_NAME=null \
         QUIET=TRUE \
         VERBOSITY=ERROR
 
-    samtools sort $MYOUT/${n/'_'$READONE.$FASTQ/.mul.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.mul.tmp} 
-    mv $MYOUT/${n/'_'$READONE.$FASTQ/.mul.tmp.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.mul.bam}
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.mul.fq}
+    samtools sort $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.tmp}
+    mv $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.tmp.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.bam}
+    fi
+else
+    if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.fq} ]; then
+    java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
+        FASTQ=$MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.fq} \
+        OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.bam} \
+        QUALITY_FORMAT=Standard \
+        SAMPLE_NAME=${n/'_'$READONE.$FASTQ/} \
+        READ_GROUP_NAME=null \
+        QUIET=TRUE \
+        VERBOSITY=ERROR
+    samtools sort $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.tmp}
+    mv $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.tmp.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.bam}
+    fi
 
+    if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.fq} ]; then
+    java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
+        FASTQ=$MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.fq} \
+        OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.bam} \
+        QUALITY_FORMAT=Standard \
+        SAMPLE_NAME=${n/'_'$READONE.$FASTQ/} \
+        READ_GROUP_NAME=null \
+        QUIET=TRUE \
+        VERBOSITY=ERROR
+
+    samtools sort $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.tmp}
+    mv $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.tmp.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.bam} 
+    fi
 fi
-
 # cleanup
-[ -e $f.unzipped ] && rm $f.unzipped
-[ $PAIRED == "1" ] && [ -e ${f/$READONE/$READTWO}.unzipped ] && rm ${f/$READONE/$READTWO}.unzipped
+rm -f $f.unzipped ${f/$READONE/$READTWO}.unzipped
+rm -f $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM*.fq}
+rm -f $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL*.fq}
 
 # continue for normal bam file conversion                                                                         
 echo "********* sorting and bam-conversion"
-samtools view -F 4 -S -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} > $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam}
-samtools sort $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.map}
-
-# merge mappend and unmapped
-samtools merge -f $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.map}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.unm}.bam  $MYOUT/${n/'_'$READONE.$FASTQ/.mul.bam}
+samtools view -Sbt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} > $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam}
+samtools sort $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
 
 if [ "$PAIRED" = "1" ]; then
     # fix mates
@@ -226,20 +243,18 @@ samtools index $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
 echo "********* statistics"
 STATSOUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats
 samtools flagstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} > $STATSOUT
+echo "#overall" >> $STATSOUT
+echo $(samtools view -c $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.bam})" unaligned_reads " >> $STATSOUT
+echo $(samtools view -c $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.bam})" multiple_reads " >> $STATSOUT
+echo $(samtools -F 4 view -c $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam})" aligned_reads" >> $STATSOUT
+
 if [ -n $SEQREG ]; then
     echo "#custom region" >> $STATSOUT
     echo $(samtools view $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" total reads in region " >> $STATSOUT
     echo $(samtools view -f 2 $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" properly paired reads in region " >> $STATSOUT
-else
-    echo $(samtools view -c $MYOUT/${n/'_'$READONE.$FASTQ/.unm.bam})" unaligned_reads " >> $STATSOUT
-    echo $(samtools view -c $MYOUT/${n/'_'$READONE.$FASTQ/.mul.bam})" multiple_reads " >> $STATSOUT
-    echo $(samtools view -c $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam})" aligned_reads" >> $STATSOUT
-    echo $(samtools view -c $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam})" unique_reads " >> $STATSOUT
 fi
 
-
 echo "********* calculate inner distance"
-export PATH=$PATH:/usr/bin/
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
 mkdir $THISTMP
 java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
@@ -262,16 +277,15 @@ mkdir -p $TAGDIRECTORY
 makeTagDirectory $TAGDIRECTORY $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
 
 echo "********* create Bigwig"
-makeUCSCfile $TAGDIRECTORY -o $MYOUT/${n/'_'$READONE.$FASTQ/.bw} -bigWig $MYOUT/$GENOME.chrom.sizes -norm 1e6 -fsize 1e20 -fragLength 300
+makeUCSCfile $TAGDIRECTORY -o $MYOUT/${n/'_'$READONE.$FASTQ/.bw} -bigWig $GENOME_CHROMSIZES -norm 1e6 -fsize 1e20 -fragLength 300
 
 echo "********* verify"
-BAMREADS=`head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1`
+BAMREADS=$(head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1)
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam}
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.map}.bam
+    rm -f $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
+    rm -f $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam}
 else
     echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
     exit 1
@@ -285,6 +299,6 @@ $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/}.genome
 echo "********* samstat"
 samstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
 
-echo ">>>>> readmapping with bowtie2 - FINISHED"
+echo ">>>>> readmapping with bowtie - FINISHED"
 echo ">>>>> enddate "`date`
 
