@@ -19,7 +19,7 @@ required:
   -o | --outdir <path>      output dir
 
 options:
-  -t | --threads <nr>       number of CPUs to use (default: 88888888)
+  -t | --threads <nr>       number of CPUs to use (default: 8)
   --fastqName               name of fastq file ending (fastq.gz)
   --oldIllumina
 "
@@ -142,5 +142,5 @@ RUNSTATS=$OUT/runStats/$TASKHICLIB
 mkdir -p $RUNSTATS
 mv $MYOUT/*.pdf $RUNSTATS
 
-echo ">>>>> readmapping with hiclib (Bowtie) - FINISHED"
+echo ">>>>> readmapping with hiclib (Bowtie2) - FINISHED"
 echo ">>>>> enddate "`date`
