@@ -324,11 +324,11 @@ if [ -n "$GENCODEGTF" ]; then
 	samtools fixmate $OUTDIR/accepted_hits_sorted.tmp.bam $OUTDIR/accepted_hits_sorted.bam
 	rm $OUTDIR/accepted_hits_sorted.tmp.bam
 
-	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $CUFOUT/transcripts.gtf > $HTOUTDIR/cufflinks.gene
-	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --idattr="transcript_id" $HT_SEQ_OPTIONS - $CUFOUT/transcripts.gtf > $HTOUTDIR/cufflinks.transcripts
+	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --quiet $HT_SEQ_OPTIONS - $CUFOUT/transcripts.gtf > $HTOUTDIR/cufflinks.gene
+	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $CUFOUT/transcripts.gtf > $HTOUTDIR/cufflinks.transcripts
 
-	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}.gene
-	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count  --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
+	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --quiet $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}.gene
+	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
     
 	echo ">>>>> Read counting with htseq count - FINISHED"
 
@@ -421,9 +421,9 @@ if [ -n "$GENCODEGTF" ]; then
     samtools fixmate $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam $OUTDIR/tophat_aligned_reads_masked_sorted.bam
     rm $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam
 	
-    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count  $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_masked.gene
+    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count --quiet $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_masked.gene
 	
-    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count  --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}_masked.transcript
+    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}_masked.transcript
 
     echo "********* calculate RPKMs per Gencode Gene masked"
 
