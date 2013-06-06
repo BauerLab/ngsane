@@ -38,14 +38,18 @@ if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 	command="qsub -W after:$JOBIDS -V -j oe -o $SOUTPUT -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
 		-N $SNAME -l walltime=$SWALLTIME $QSUBEXTRA $TMPFILE"
 	echo "# $command" >>$TMPFILE
-	eval $command
+	RECIPT=$($command)
+        MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
+	echo $MYPBSIDS
+
 elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
 #	echo "********** submit with SGE submission system"
 	if [ -n "$JOBIDS" ];then HOLD_JID="-hold_jid $JOBIDS"; fi
 	command="qsub $HOLD_JID -V -S /bin/bash -j y -o $SOUTPUT -cwd -pe smp $SCPU -l h_vmem=$SMEMORY \
 	    -N $SNAME -l h_rt=$SWALLTIME $QSUBEXTRA $TMPFILE"
 	echo "# $command" >>$TMPFILE
-	eval $command
+	RECIPT=$($command)
+	echo $(echo "$RECIPT" | awk '{print $3}')
 else
 	echo "Submission system, $SUBMISSIONSYSTEM, not implemented; only SGE or PBS work"
 	exit

@@ -110,9 +110,9 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
 	-j $TASK'_'$dir'_'$name -o $QOUT/$TASK/$dir'_'$name'.out' \
 	--command "$COMMAND2")
-    echo -e "$RECIPT"
-    MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
-
+    echo -e "Jobnumber $RECIPT"
+    MYPBSIDS=$MYPBSIDS":"$RECIPT
+#    MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
 
     # if only the first task should be submitted as test
     if [ -n "$FIRST" ]; then exit; fi
