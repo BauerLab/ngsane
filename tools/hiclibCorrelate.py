@@ -204,6 +204,7 @@ def compareCorrelationOfEigenvectors(resolution, filename1, filename2, experimen
 	if (options.verbose):
 		print >> sys.stdout, "compareCorrelationOfEigenvectors: res: %d file1: %s file2: %s exp1:%s exp2:%s gen:%s" % (resolution, filename1, filename2, experiment1, experiment2, genome)
 
+	plt.figure()
 	Tanay = binnedDataAnalysis(resolution, genome)
 	Tanay.simpleLoad(filename1, experiment1)
 	Tanay.simpleLoad(filename2, experiment2)
@@ -336,7 +337,7 @@ def process():
 	
 	outfilename = "-".join(outfilename)
 	outfile = open(options.outputDir+outfilename+'-HiC_correlate.txt',"w")
-	fig = plt.gcf()
+	fig = plt.figure()
         pp = PdfPages(options.outputDir+outfilename+'-HiC_correlate.pdf')
 
 

@@ -5,14 +5,13 @@ import matplotlib
 matplotlib.use('PDF')
 
 from hiclib import mapping
-from mirnylib import h5dict, genome
-from hiclib import fragmentHiC
+from mirnylib import h5dict, genome, plotting
+from hiclib import fragmentHiC, binnedData
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
-from mirnylib import plotting
-from hiclib import binnedData
+from mirnylib.plotting import mat_img, removeAxes, removeBorder, niceShow
 from hiclib.binnedData import binnedDataAnalysis, experimentalBinnedData
 
 # manage option and arguments processing
@@ -109,7 +108,7 @@ def correctedScalingPlot(resolution, filename, experiment, genome, mouse=False, 
     if (options.verbose):
         print >> sys.stdout, "correctedScalingPlot: res: %d file1: %s exp1:%s gen:%s" % (resolution, filename, experiment, genome)
 
-    #plt.figure(figsize=(4, 4))
+    plt.figure()
     Tanay = binnedDataAnalysis(resolution, genome)
     Tanay.simpleLoad(filename, experiment)
     Tanay.removePoorRegions()
@@ -118,7 +117,7 @@ def correctedScalingPlot(resolution, filename, experiment, genome, mouse=False, 
     Tanay.iterativeCorrectWithSS()
     Tanay.plotScaling(experiment, label="Corrected", color="#344370")
     ax = plt.gca()
-    mirnylib.plotting.removeAxes()
+    plotting.removeAxes()
     fs = 6
     plt.xlabel("Genomic distance (MB)", fontsize=6)
     plt.ylabel("Contact probability", fontsize=6)
@@ -136,7 +135,8 @@ def correctedScalingPlot(resolution, filename, experiment, genome, mouse=False, 
 def doArmPlot(resolution, filename, experiment, genome, mouse=False, **kwargs):
     "Plot an single interarm map - paper figure"
 
-    global pp    
+    global pp
+    plt.figure()
     if (options.verbose):
         print >> sys.stdout, "doArmPlot: res: %d file: %s exp:%s gen:%s" % (resolution, filename, experiment, genome)
 
@@ -281,9 +281,6 @@ def filterFragments(genome_db):
 	# Removes reads that start within 5 bp (default) near rsite
 	fragments.filterRsiteStart()
 	
-	# Remove fragment pairs separated by less then minRsitesDist (=2) restriction sites within the same chromosome
-	fragments.filterTooClose()
-	
 	# Removes duplicate molecules in DS reads
 	fragments.filterDuplicates()
 	
@@ -313,9 +310,6 @@ def iterativeFiltering(genome_db, filesuffix):
 	# Remove the contacts between loci located within the same bin.
 	BD.removeDiagonal()
 	
-	# Remove empty bins
-	BD.removeZeros()
-	
 	# Remove bins with less than half of a bin sequenced.
 	BD.removeBySequencedCount(0.5)
 	
@@ -324,13 +318,17 @@ def iterativeFiltering(genome_db, filesuffix):
 	
 	# Truncate top 0.05% of interchromosomal counts (possibly, PCR blowouts).
 	BD.truncTrans(high=0.0005)
-	
+
+        # Remove empty bins
+        BD.removeZeros()
+
 	# Perform iterative correction.
 	BD.iterativeCorrectWithoutSS()
 
 	# Save the iteratively corrected heatmap.
 	BD.export(options.experiment, options.outputDir+options.experiment+'-IC'+filesuffix)
 
+	plt.figure()
 	plotting.plot_matrix(np.log(BD.dataDict[options.experiment]))
 	pp.savefig()
 
@@ -342,7 +340,7 @@ def process():
 	if (options.verbose):
 		print >> sys.stdout, "*** START processing"
 
-	fig = plt.gcf()
+	fig = plt.figure()
 	pp = PdfPages(options.outputDir+options.experiment+'.pdf')
 	
 	logging.basicConfig(level=logging.DEBUG)
@@ -382,8 +380,8 @@ def process():
 		print >> sys.stdout, "**  Iterative filtering of fragments"
 
 	iterativeFiltering(genome_db, '-1M.hdf5')
-	
 	iterativeFiltering(genome_db, '-200k.hdf5')
+
 
 	# plotting
 	correctedScalingPlot(200000, options.outputDir+options.experiment+'-200k.hdf5', options.experiment, genome_db)

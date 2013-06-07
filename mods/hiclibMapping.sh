@@ -110,6 +110,7 @@ fi
 
 echo "********* reads" 
 FASTQNAME=${f##*/}
+FASTQSUFFIX=${f##*.}
 READS="$f ${f/$READONE/$READTWO}"
 
 echo "********** hiclib call"
@@ -133,9 +134,12 @@ if [ -n "$HICLIB_READLENGTH" ]; then
 fi
 
 # run hiclib.py
-python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie=$(which bowtie2) --cpus=$THREADS --outputDir=$MYOUT --tmpDir=$TMP --verbose $READS
+RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie=$(which bowtie2) --cpus=$THREADS --outputDir=$MYOUT --tmpDir=$TMP --verbose $READS"
+echo $RUN_COMMAND
+eval $RUN_COMMAND
 
-rm -f $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
+# rm -f $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
+
 
 # copy heatmap
 RUNSTATS=$OUT/runStats/$TASKHICLIB
