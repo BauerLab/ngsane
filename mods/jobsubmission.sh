@@ -39,8 +39,8 @@ if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 		-N $SNAME -l walltime=$SWALLTIME $QSUBEXTRA $TMPFILE"
 	echo "# $command" >>$TMPFILE
 	RECIPT=$($command)
-        MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
-	echo $MYPBSIDS
+        JOBID=$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
+	echo $JOBID
 
 elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
 #	echo "********** submit with SGE submission system"
@@ -49,7 +49,8 @@ elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
 	    -N $SNAME -l h_rt=$SWALLTIME $QSUBEXTRA $TMPFILE"
 	echo "# $command" >>$TMPFILE
 	RECIPT=$($command)
-	echo $(echo "$RECIPT" | awk '{print $3}')
+	JOBID=$(echo "$RECIPT" | awk '{print $3}')
+	echo $JOBID
 else
 	echo "Submission system, $SUBMISSIONSYSTEM, not implemented; only SGE or PBS work"
 	exit
