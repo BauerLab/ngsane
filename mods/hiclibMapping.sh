@@ -138,7 +138,7 @@ RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie=$(w
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
-# rm -f $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
+rm -f $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
 
 
 # copy heatmap
