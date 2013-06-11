@@ -123,12 +123,10 @@ done
 
 if [ -n "$POSTCOMMAND" ]; then
    # process for postcommand
-	echo $DIR
     DIR=$(echo -e ${DIR// /\\n} | sort -u | gawk 'BEGIN{x=""};{x=x"_"$0}END{print x}' | sed 's/__//')
     FILES=$(echo -e $FILES | sed 's/ /,/g')
     POSTCOMMAND2=${POSTCOMMAND//<FILE>/$FILES}
     POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$DIR}
-    MYPBSIDS=$(echo -e $MYPBSIDS | sed 's/://')
 
     echo ">>>>>"$DIR" wait for "$MYPBSIDS
     echo $POSTCOMMAND2
