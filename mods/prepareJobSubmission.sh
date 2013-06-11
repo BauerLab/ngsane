@@ -135,7 +135,7 @@ if [ -n "$POSTCOMMAND" ]; then
     if [[ -n "$ARMED" ||  -n "$POSTONLY" ]]; then
 
     # remove old submission output logs
-    if [ -e $QOUT/$TASK/$DIR'_postcommand.out' ]; then rm -rf $QOUT/$TASK/$DIR'_postcommand.*'; fi
+    if [ -e $QOUT/$TASK/$DIR'_postcommand.out' ]; then rm -rf $QOUT/$TASK/$DIR"_postcommand.out"; fi
 
     # record task in log file
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
