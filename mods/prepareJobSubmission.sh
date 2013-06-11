@@ -97,7 +97,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     echo $ARMED
 
     # remove old submission output logs
-    if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.*; fi
+    if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm -rf $QOUT/$TASK/$dir'_'$name.*; fi
 
     # submit and collect pbs scheduler return
     #RECIPT=$($BINQSUB -j oe -o $QOUT/$TASK/$dir'_'$name'.out' -w $(pwd) -l $NODES \
@@ -133,6 +133,9 @@ if [ -n "$POSTCOMMAND" ]; then
 
     if [[ -n "$DIRECT" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi
     if [[ -n "$ARMED" ||  -n "$POSTONLY" ]]; then
+
+    # remove old submission output logs
+    if [ -e $QOUT/$TASK/$DIR'_postcommand.out' ]; then rm -rf $QOUT/$TASK/$DIR'_postcommand.*'; fi
 
     # record task in log file
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
