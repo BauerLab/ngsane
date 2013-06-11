@@ -119,6 +119,7 @@ NODES_CUTADAPT="nodes=1:ppn=1"
 
 MODULE_CUTADAPT=
 PATH_CUTADAPT=
+CUTADAPT_OPTIONS=
 
 ##############################################################
 # Trim adapter with TRIMGALORE
@@ -132,6 +133,7 @@ MODULE_TRIMGALORE=
 PATH_TRIMGALORE=
 TRIMGALORE_ADAPTER1=
 TRIMGALORE_ADAPTER2=
+TRIMGALORE_OPTIONS=
 
 ##############################################################
 # Snp calling with GATK

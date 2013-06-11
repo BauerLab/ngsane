@@ -85,9 +85,9 @@ echo "********** trim"
 # Paired read
 if [ "$PAIRED" = "1" ]
 then
-	trim_galore $CONTAM --paired --output_dir $FASTQDIRTRIM $f ${f/$READONE/$READTWO}
+	trim_galore $TRIMGALORE_OPTIONS $CONTAM --paired --output_dir $FASTQDIRTRIM $f ${f/$READONE/$READTWO}
 else
-	trim_galore $CONTAM --output_dir $FASTQDIRTRIM $f
+	trim_galore $TRIMGALORE_OPTIONS $CONTAM --output_dir $FASTQDIRTRIM $f
 fi
 
 echo "********** rename files"
