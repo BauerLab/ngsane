@@ -46,7 +46,7 @@ LIBRARY="ChIPseq"
 PLATFORM="Illumina"
 
 #********************
-# PARAMETER (optinal overwriting defaults)
+# PARAMETER (optional overwriting defaults)
 #********************
 #WALLTIME_BOWTIE=10:00:00
 #MEMORY_BOWTIE=60

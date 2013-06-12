@@ -49,7 +49,7 @@ HICLIB_RENZYMES="BglII"
 HICUP_RENZYMES=A^GATCT,BglII
 
 #********************
-# PARAMETER (optinal overwriting defaults)
+# PARAMETER (optional overwriting defaults)
 #********************
 #WALLTIME_HICUP=10:00:00
 #MEMORY_HICUP=60

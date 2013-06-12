@@ -58,7 +58,7 @@ LIBRARY="HiC"
 PLATFORM="Illumina"
 
 #********************
-# PARAMETER (optinal overwriting defaults)
+# PARAMETER (optional overwriting defaults)
 #********************
 ## limit variant calling to to specific region
 #REF=chr:start-end

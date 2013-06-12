@@ -42,7 +42,7 @@ FASTQ="fq.gz"
 #********************
 
 #********************
-# PARAMETER (optinal overwriting defaults)
+# PARAMETER (optional overwriting defaults)
 #********************
 
 ## location of ngsane

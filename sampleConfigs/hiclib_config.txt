@@ -50,7 +50,7 @@ HICLIB_RENZYMES="HindIII"
 HICLIB_READLENGTH=
 
 #********************
-# PARAMETER (optinal overwriting defaults)
+# PARAMETER (optional overwriting defaults)
 #********************
 #WALLTIME_HICLIB=60:00:00
 #MEMORY_HICLIB=60

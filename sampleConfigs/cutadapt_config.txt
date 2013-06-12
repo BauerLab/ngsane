@@ -40,7 +40,7 @@ FASTQ="fq.gz"
 CONTAMINANTS=
 
 #********************
-# PARAMETER (optinal overwriting defaults)
+# PARAMETER (optional overwriting defaults)
 #********************
 # additional options to be passed to cutadapt
 CUTADAPT_OPTIONS=""

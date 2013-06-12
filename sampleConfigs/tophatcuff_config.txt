@@ -50,7 +50,7 @@ LIBRARY="RNAseq"
 PLATFORM="Illumina"
 
 #********************
-# PARAMETER (optinal overwriting defaults)
+# PARAMETER (optional overwriting defaults)
 #********************
 
 ## If next line is commented HT-Seq-count will not run.
