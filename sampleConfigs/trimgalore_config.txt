@@ -34,11 +34,11 @@ FASTQ="fq.gz"
 #********************
 # PARAMETER (mandatory)
 #********************
-TRIMGALORE_ADAPTER1=
 
 #********************
 # PARAMETER (optinal overwriting defaults)
 #********************
+TRIMGALORE_ADAPTER1=
 TRIMGALORE_ADAPTER2=
 TRIMGALORE_OPTIONS=
 
