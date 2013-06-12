@@ -215,10 +215,10 @@ echo "$f | ${f/$READONE/$READTWO} " >> $HICUP_CONF
 
 echo "********* execute hicup"
 CURDIR=$(pwd)
-HICUP_CALL="$(which perl) $(which hicup) -c $HICUP_CONF"
-echo $HICUP_CALL
+RUN_COMMAND="$(which perl) $(which hicup) -c $HICUP_CONF"
+echo $RUN_COMMAND
 cd $MYOUT/$OUTDIR
-$($HICUP_CALL)
+eval $RUN_COMMAND
 cp hicup_deduplicater_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_deduplicater_summary_results.txt 2>/dev/null
 cp hicup_filter_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_filter_summary_results.txt 2>/dev/null
 cp hicup_mapper_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_mapper_summary.txt 2>/dev/null
@@ -230,8 +230,8 @@ cd $CURDIR
 # copy piecharts
 RUNSTATS=$OUT/runStats/$TASKHICUP
 mkdir -p $RUNSTATS
-cp $MYOUT/$OUTDIR/uniques_*_cis-trans.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_uniques_cis-trans.png 2>/dev/null
-cp $MYOUT/$OUTDIR/*_ditag_classification.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_ditag_classification.png 2>/dev/null
+cp $MYOUT/$OUTDIR/uniques_*_cis-trans.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_uniques_cis-trans.png
+cp $MYOUT/$OUTDIR/*_ditag_classification.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_ditag_classification.png
 
 echo "********* fit-hi-c"
 python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=${DIGESTGENOME} --outputDir=$MYOUT/  $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam
@@ -239,8 +239,8 @@ cd $MYOUT
 python $(which fit-hi-c.py) --mappabilityThres=2 --fragments=$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam.fragmentLists --interactions=$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam.contactCounts --lib=${n/'_'$READONE.$FASTQ/}
 cd $CURDIR
 
-awk 'float($7)<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.significances.txt | $GZIP > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.q05.txt
-awk 'float($7)<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.significances.txt | $GZIP > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.q05.txt
+awk '$7<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.significances.txt > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.q05.txt
+awk '$7<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.significances.txt > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.q05.txt
 
 $GZIP $MYOUT/${n/'_'$READONE.$FASTQ/}*.significances.txt
 

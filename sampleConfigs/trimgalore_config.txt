@@ -34,12 +34,13 @@ FASTQ="fq.gz"
 #********************
 # PARAMETER (mandatory)
 #********************
-TRIMGALORE_ADAPTER1=""
 
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
-TRIMGALORE_ADAPTER2=""
+TRIMGALORE_ADAPTER1=
+TRIMGALORE_ADAPTER2=
+TRIMGALORE_OPTIONS=
 
 #WALLTIME_TRIMGALORE=4:00:00
 #MEMORY_TRIMGALORE=40

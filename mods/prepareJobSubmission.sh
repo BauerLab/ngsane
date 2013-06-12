@@ -97,7 +97,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     echo $ARMED
 
     # remove old submission output logs
-    if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.*; fi
+    if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm -rf $QOUT/$TASK/$dir'_'$name.*; fi
 
     # submit and collect pbs scheduler return
     #RECIPT=$($BINQSUB -j oe -o $QOUT/$TASK/$dir'_'$name'.out' -w $(pwd) -l $NODES \
@@ -110,9 +110,9 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
 	-j $TASK'_'$dir'_'$name -o $QOUT/$TASK/$dir'_'$name'.out' \
 	--command "$COMMAND2")
-    echo -e "$RECIPT"
-    MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
-
+    echo -e "Jobnumber $RECIPT"
+    MYPBSIDS=$MYPBSIDS":"$RECIPT
+#    MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
 
     # if only the first task should be submitted as test
     if [ -n "$FIRST" ]; then exit; fi
@@ -123,18 +123,19 @@ done
 
 if [ -n "$POSTCOMMAND" ]; then
    # process for postcommand
-	echo $DIR
     DIR=$(echo -e ${DIR// /\\n} | sort -u | gawk 'BEGIN{x=""};{x=x"_"$0}END{print x}' | sed 's/__//')
     FILES=$(echo -e $FILES | sed 's/ /,/g')
     POSTCOMMAND2=${POSTCOMMAND//<FILE>/$FILES}
     POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$DIR}
-    MYPBSIDS=$(echo -e $MYPBSIDS | sed 's/://')
 
     echo ">>>>>"$DIR" wait for "$MYPBSIDS
     echo $POSTCOMMAND2
 
     if [[ -n "$DIRECT" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi
     if [[ -n "$ARMED" ||  -n "$POSTONLY" ]]; then
+
+    # remove old submission output logs
+    if [ -e $QOUT/$TASK/$DIR'_postcommand.out' ]; then rm -rf $QOUT/$TASK/$DIR"_postcommand.out"; fi
 
     # record task in log file
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log

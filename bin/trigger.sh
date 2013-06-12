@@ -95,7 +95,7 @@ for dir in ${DIR[@]}; do
 done
 
 if [ ! -d $QOUT ]; then mkdir -p $QOUT; fi
-
+if [ ! -d $TMP ]; then mkdir -p $TMP; fi
 
 ############################################
 #   FastQC summary of fastq files

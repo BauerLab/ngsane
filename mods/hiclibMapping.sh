@@ -19,7 +19,7 @@ required:
   -o | --outdir <path>      output dir
 
 options:
-  -t | --threads <nr>       number of CPUs to use (default: 88888888)
+  -t | --threads <nr>       number of CPUs to use (default: 8)
   --fastqName               name of fastq file ending (fastq.gz)
   --oldIllumina
 "
@@ -110,6 +110,7 @@ fi
 
 echo "********* reads" 
 FASTQNAME=${f##*/}
+FASTQSUFFIX=${f##*.}
 READS="$f ${f/$READONE/$READTWO}"
 
 echo "********** hiclib call"
@@ -133,14 +134,17 @@ if [ -n "$HICLIB_READLENGTH" ]; then
 fi
 
 # run hiclib.py
-python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie=$(which bowtie2) --cpus=$THREADS --outputDir=$MYOUT --tmpDir=$TMP --verbose $READS
+RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie=$(which bowtie2) --cpus=$THREADS --outputDir=$MYOUT --tmpDir=$TMP --verbose $READS"
+echo $RUN_COMMAND
+eval $RUN_COMMAND
 
 rm -f $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
+
 
 # copy heatmap
 RUNSTATS=$OUT/runStats/$TASKHICLIB
 mkdir -p $RUNSTATS
 mv $MYOUT/*.pdf $RUNSTATS
 
-echo ">>>>> readmapping with hiclib (Bowtie) - FINISHED"
+echo ">>>>> readmapping with hiclib (Bowtie2) - FINISHED"
 echo ">>>>> enddate "`date`
