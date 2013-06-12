@@ -10,7 +10,7 @@
 #********************
 RUNBWA2="1"        # map with BWA
 RUNREALRECAL3="1"  # recalibrate with GATK
-RUNVARCALLS3="1"    # variant calling with GATH
+RUNVARCALLS3="1"    # variant calling with GATK
 
 ## if running bowtie instead of bwa
 #RUNBOWTIE2="1"
@@ -58,7 +58,7 @@ LIBRARY="HiC"
 PLATFORM="Illumina"
 
 #********************
-# PARAMETER (optinal overwriting defaults)
+# PARAMETER (optional overwriting defaults)
 #********************
 ## limit variant calling to to specific region
 #REF=chr:start-end
