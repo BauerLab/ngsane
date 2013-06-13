@@ -22,10 +22,10 @@ if [ ! $# -gt 3 ]; then usage ; fi
 
 THREADS=1
 MEMORY=2
-EXPID="exp"           # read group identifier RD ID                                                               
-LIBRARY="qbi"         # read group library RD LB                                                                  
-PLATFORM="illumina"   # read group platform RD PL                                                                 
-UNIT="flowcell"       # read group platform unit RG PU                                                            
+#EXPID="exp"           # read group identifier RD ID                                                               
+#LIBRARY="qbi"         # read group library RD LB                                                                  
+#PLATFORM="illumina"   # read group platform RD PL                                                                 
+#UNIT="flowcell"       # read group platform unit RG PU                                                            
 FASTQNAME=""
 FORCESINGLE=0
 
@@ -85,6 +85,14 @@ echo -e "--convert  --\n "$(convert -version | head -n 1)
 [ -z "$(which convert)" ] && echo "[WARN] imagemagick convert not detected" && exit 1
 # get basename of f
 n=${f##*/}
+
+# check library variables are set
+if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
+    echo "[ERROR] library info not set (EXPID, LIBRARY, and PLATFORM): free text needed"
+    exit 1;
+else
+    echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
+fi
 
 
 # delete old bam file                                                                                             

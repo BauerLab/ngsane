@@ -42,6 +42,7 @@ if [ "$CPUS" -gt "$CPU_FASTQC" ]; then echo "reduce to $CPU_FASTQC CPUs"; CPUS=$
 echo "********** run fastqc"
 fastqc --nogroup -t $CPUS --outdir $OUT/runStats/$TASKFASTQC `echo $FILES`
 
+chmod a+rx $OUT/runStats/
 chmod a+rx $OUT/runStats/fastQC
 chmod a+rx $OUT/runStats/fastQC/*fastqc/Images
 chmod a+rx $OUT/runStats/fastQC/*fastqc/Icons

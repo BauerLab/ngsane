@@ -36,7 +36,7 @@ echo "rm $TMPFILE" >>$TMPFILE
 if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 #	echo "********** submit with PBS submission system"
 	JOBIDS=$(echo -e $JOBIDS | sed 's/://')
-	command="qsub -W after:$JOBIDS -V -j oe -o $SOUTPUT -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
+	command="qsub -W depend=afterok:$JOBIDS -V -j oe -o $SOUTPUT -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
 		-N $SNAME -l walltime=$SWALLTIME $QSUBEXTRA $TMPFILE"
 	echo "# $command" >>$TMPFILE
 	RECIPT=$($command)
