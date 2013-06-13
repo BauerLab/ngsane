@@ -52,16 +52,32 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
+JAVAPARAMS="-Xmx"$MEMORY_SAMVAR"G -Djava.io.tmpdir="$TMP #-XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=10G"
+echo "JAVAPARAMS "$JAVAPARAMS
 
+echo "********** programs"
+for MODULE in $MODULE_SAMVAR; do module load $MODULE; done  # save way to load modules that itself load other modules
+export PATH=$PATH_SAMVAR:$PATH
+module list
+echo "PATH=$PATH"
+#this is to get the full path (modules should work but for path we need the full path and this is the\
+# best common denominator)
+PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
+echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
+[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
+echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
+echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
+[ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
 # get basename of f
 n=${f##*/}
-
-module load samtools
 
 # delete old bam file
 #if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi
 #if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats; fi
 #if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl; fi
+
+if [ -n $DMGET ]; then dmget -a $f; fi
 
 echo "********* rm duplicate reads $(date)"
 samtools rmdup $f $MYOUT/${n/bam/drm.bam}
@@ -74,7 +90,7 @@ echo "********* convert bcf->vcf; index $(date)"
 vcfutils.pl varFilter -D1000 -w0 -e0 $MYOUT/${n/bam/vcf}  >$MYOUT/${n/bam/clean.vcf}
 
 echo "********* index vcf file for viewing in IGV $(date)"
-java -Xmx2g -jar $IGVTOOLS index $MYOUT/${n/bam/clean.vcf}
+java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $MYOUT/${n/bam/clean.vcf}
 
 
 rm $MYOUT/${n/bam/drm.bam} $MYOUT/${n/bam/drm.bam}.bai
