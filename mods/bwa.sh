@@ -180,8 +180,8 @@ then
     rm $MYOUT/${n/$FASTQ/sai}
     rm $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
     fi
-    READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-    READ2=`$ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}' `
+    READ1=$($ZCAT $f | wc -l | gawk '{print int($1/4)}')
+    READ2=$($ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}')
     let FASTQREADS=$READ1+$READ2
 # Single read
 else
@@ -200,7 +200,7 @@ else
 #	$f >$MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
 
     rm $MYOUT/${n/$FASTQ/sai}
-    let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
+    let FASTQREADS=$($ZCAT $f | wc -l | gawk '{print int($1/4)}')
 fi
 
 # exit if only the sam file is required
@@ -256,8 +256,8 @@ STATSMYOUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats
 samtools flagstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} > $STATSMYOUT
 if [ -n $SEQREG ]; then
     echo "#custom region" >> $STATSMYOUT
-    echo `samtools view $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" total reads in region " >> $STATSMYOUT
-    echo `samtools view -f 2 $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" properly paired reads in region " >> $STATSMYOUT
+    echo $(samtools view $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" total reads in region " >> $STATSMYOUT
+    echo $(samtools view -f 2 $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" properly paired reads in region " >> $STATSMYOUT
 fi
 
 

@@ -21,7 +21,6 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of NGSANE
         -f | --file )           shift; f=$1 ;; # fastq file
-        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -57,7 +56,7 @@ else
 fi
 
 FASTQDIR=$(basename $(dirname $f))
-o=${f/$FASTQDIR/$FASTQDIR"_trim"}
+o=${f/$FASTQDIR/$FASTQDIR"_"$TASKTRIMGALORE}
 FASTQDIRTRIM=$(dirname $o)
 
 if [ -n "$DMGET" ]; then
@@ -111,9 +110,13 @@ if [[ $? -ne 0 ]]; then
     fi
 fi
 
-RUNSTATS=$OUT/runStats/$TASKTRIMGALORE
-mkdir -p $RUNSTATS
-mv $FASTQDIRTRIM/*_trimming_report.txt $RUNSTATS
+# count remaining reads
+echo "=== Remaining reads ===" >> $FASTQDIRTRIM/${n}_trimming_report.txt
+echo "remaining reads "$(zcat $FASTQDIRTRIM/$n | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n}_trimming_report.txt
+if [ "$PAIRED" = "1" ]; then
+    echo "=== Remaining reads ===" >> $FASTQDIRTRIM/${n/$READONE/$READTWO}_trimming_report.txt
+    echo "remaining reads "$(zcat $FASTQDIRTRIM/${n/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n/$READONE/$READTWO}_trimming_report.txt
+fi
 
 echo ">>>>> readtrimming with TRIMGALORE - FINISHED"
 echo ">>>>> enddate "`date`

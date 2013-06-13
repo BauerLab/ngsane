@@ -124,7 +124,7 @@ if [ -n "$RUNCUTADAPT" ]; then
     
     $QSUB $ARMED -d -k $CONFIG -t $TASKCUTADAPT -i fastq -e "_"$READONE.$FASTQ -n $NODES_CUTADAPT \
 	-c $CPU_CUTADAPT -m $MEMORY_CUTADAPT"G" -w $WALLTIME_CUTADAPT \
-	--command "${NGSANE_BASE}/mods/cutadapt.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKCUTADAPT" 
+	--command "${NGSANE_BASE}/mods/cutadapt.sh -k $CONFIG -f <FILE>" 
 fi
 
 ############################################
@@ -137,7 +137,7 @@ fi
 if [ -n "$RUNTRIMAT" ]; then
     $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMAT -i fastq -e "_"$READONE.$FASTQ -n $NODES_TRIMAT \
         -c $CPU_TRIMAT -m $MEMORY_TRIMAT"G" -w $WALLTIME_TRIMAT \
-        --command "$NGSANE_BASE/mods/trimmomatic.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKTRIMAT" 
+        --command "$NGSANE_BASE/mods/trimmomatic.sh -k $CONFIG -f <FILE>"
 fi
 
 ############################################
@@ -151,7 +151,7 @@ if [ -n "$RUNTRIMGALORE" ]; then
     
     $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMGALORE -i fastq -e "_"$READONE.$FASTQ -n $NODES_TRIMGALORE \
         -c $CPU_TRIMGALORE -m $MEMORY_TRIMGALORE"G" -w $WALLTIME_TRIMGALORE \
-        --command "${NGSANE_BASE}/mods/trimgalore.sh -k $CONFIG -f <FILE> -o fastq/<DIR>_$TASKTRIMGALORE"
+        --command "${NGSANE_BASE}/mods/trimgalore.sh -k $CONFIG -f <FILE>"
 fi
 
 ############################################ 
@@ -202,11 +202,11 @@ fi
 
 if [ -n "$RUNHICLIB" ]; then
     if [ -z "$TASKHICLIB" ] || [ -z "$NODES_HICLIB" ] || [ -z "$CPU_HICLIB" ] || [ -z "$MEMORY_HICLIB" ] || [ -z "$WALLTIME_HICLIB" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
-    
+
     $QSUB $ARMED -k $CONFIG -t $TASKHICLIB -i fastq -e "_"$READONE.$FASTQ \
     	-n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
     	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND \
-        --command "${NGSANE_BASE}/mods/hiclibMapping.sh $HICLIBADDPARM -k $CONFIG --threads $CPU_HICLIB --fastq <FILE> --enzymes $HICLIB_RENZYMES --outdir $OUT/<DIR>/$TASKHICLIB --fastqName <NAME>" \
+        --command "${NGSANE_BASE}/mods/hiclibMapping.sh $HICLIBADDPARM -k $CONFIG --threads $CPU_HICLIB --fastq <FILE> --enzymes '$HICLIB_RENZYMES' --outdir $OUT/<DIR>/$TASKHICLIB --fastqName <NAME>" \
         --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh $HICLIBADDPARM -f <FILE> -k $CONFIG --outdir $OUT/hiclib/$TASKHICLIB-<DIR>"
 
 fi

@@ -25,7 +25,6 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE
         -f | --file )           shift; f=$1 ;; # fastq file
-        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -60,7 +59,7 @@ else
 fi
 
 FASTQDIR=$(basename $(dirname $f))
-o=${f/$FASTQDIR/$FASTQDIR"_trim"}
+o=${f/$FASTQDIR/$FASTQDIR"_"$TASKCUTADAPT}
 FASTQDIRTRIM=$(dirname $o)
 
 if [ -n "$DMGET" ]; then
@@ -103,9 +102,13 @@ if [[ $? -ne 0 ]]; then
     fi
 fi
 
-RUNSTATS=$OUT/runStats/$TASKCUTADAPT
-mkdir -p $RUNSTATS
-mv $FASTQDIRTRIM/*.stats $RUNSTATS
+# count remaining reads
+echo "=== Remaining reads ===" >> $FASTQDIRTRIM/${n}.stats
+echo "remaining reads "$(zcat $FASTQDIRTRIM/$n | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n}.stats
+if [ "$PAIRED" = "1" ]; then
+    echo "=== Remaining reads ===" >> $FASTQDIRTRIM/${n/$READONE/$READTWO}.stats
+    echo "remaining reads "$(zcat $FASTQDIRTRIM/${n/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n/$READONE/$READTWO}.stats
+fi
 
 echo ">>>>> readtrimming with CUTADAPT - FINISHED"
 echo ">>>>> enddate "`date`

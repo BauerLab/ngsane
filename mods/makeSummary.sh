@@ -56,7 +56,7 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bwa.sh $QOUT/$TASKBWA >>$SUMMARYTMP
     echo "gather dirs"
     for dir in ${DIR[@]}; do
-	vali=$vali" $OUT/$dir/$TASKBWA"
+	vali=$vali" $OUT/$dir/$TASKBWA/"
     done
     echo "python summary"
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
@@ -83,7 +83,7 @@ if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" ]]; then
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA >>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
-	vali=$vali" $OUT/$dir/$TASKRCA"
+	vali=$vali" $OUT/$dir/$TASKRCA/"
     done
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
@@ -95,10 +95,10 @@ if [[ -n "$RUNMAPPINGBOWTIE" || -n "$RUNMAPPINGBOWTIE2" ]]; then
     LINKS=$LINKS" mapping"
     echo "<a name=\"mapping\"><h2>BOWTIE Mapping</h2>">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie2.sh $QOUT/$TASKBOWTIE >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie2.sh $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
-        vali=$vali" $OUT/$dir/$TASKBOWTIE"
+        vali=$vali" $OUT/$dir/$TASKBOWTIE/"
     done
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
@@ -115,7 +115,7 @@ if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     CURDIR=$(pwd)
     for dir in ${DIR[@]}; do
-	vali=$vali" $OUT/$dir/$TASKTOPHAT"
+	vali=$vali" $OUT/$dir/$TASKTOPHAT/"
 #	vali=$vali" "$(ls -d $OUT/$dir/$TASKTOPHAT/*/)
 	cd $OUT/$dir/$TASKTOPHAT
 	for d in $(find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \; | grep "RNASeQC"); do
@@ -134,7 +134,7 @@ if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
     echo "<a name=\"coverage\"><h2>Coverage</h2>">>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
-	vali=$vali" $OUT/$dir/$TASKDOC"
+	vali=$vali" $OUT/$dir/$TASKDOC/"
     done
     echo "<h3>Average coverage</h3><pre>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.doc.sample_summary" coverage >>$SUMMARYTMP
@@ -155,7 +155,7 @@ if [ -n "$RUNVARCALLS" ]; then
 
     vali=""
     for dir in ${DIR[@]}; do
-	vali=$vali" $OUT/$TASKVAR/$dir"
+	vali=$vali" $OUT/$TASKVAR/$dir/"
     done
 
     echo "</pre><h3>SNPs</h3><pre>">>$SUMMARYTMP
@@ -195,7 +195,11 @@ if [ -n "$RUNTRIMGALORE" ];then
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/trimgalore.sh $QOUT/$TASKTRIMGALORE >> $SUMMARYTMP
 
     echo "</pre><h3>trimgalore</h3><pre>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py $QOUT/$TASKTRIMGALORE ".out" trimgalore --noSummary >> $SUMMARYTMP
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/fastq/${dir/_$TASKTRIMGALORE/}_$TASKTRIMGALORE/"
+    done
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" "_trimming_report.txt" trimgalore --noSummary >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
@@ -205,7 +209,11 @@ if [ -n "$RUNCUTADAPT" ];then
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/cutadapt.sh $QOUT/$TASKCUTADAPT >> $SUMMARYTMP
 
     echo "</pre><h3>cutadapt</h3><pre>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py $QOUT/$TASKCUTADAPT ".out" cutadapt --noSummary >> $SUMMARYTMP
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/fastq/${dir/_$TASKCUTADAPT/}_$TASKCUTADAPT/"
+    done
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" ".stats" cutadapt --noSummary >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
@@ -215,7 +223,7 @@ if [ -n "$RUNHICLIB" ];then
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/hiclibMapping.sh $QOUT/$TASKHICLIB >> $SUMMARYTMP
 
     echo "</pre><h3>hiclib</h3><pre>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py $QOUT/$TASKHICLIB ".out" hiclibMapping >> $SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py $QOUT/$TASKHICLIB/ ".out" hiclibMapping >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 
@@ -226,7 +234,7 @@ if [ -n "$RUNHICUP" ];then
 
     vali=""
     for dir in ${DIR[@]}; do
-	vali=$vali" $OUT/$dir/$TASKHICUP"
+	vali=$vali" $OUT/$dir/$TASKHICUP/"
     done
     
     echo "</pre><h3>hicup</h3>">>$SUMMARYTMP

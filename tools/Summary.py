@@ -1,4 +1,5 @@
 import sys,os,math,re,traceback,datetime
+import glob
 
 if (len(sys.argv)==1 or sys.argv[0].find("help")>-1):
     print "python2 times"
@@ -149,24 +150,44 @@ def samstats_old(statsfile):
 
 # sam statiscis for initial aligment
 def samstats(statsfile):
-    names=["total","QCfail","dupl","dupl%","mapped","maped%","paired", "paired%", "singletons", "regmapped", "regmapped%", "regpaired", "regpaired%"]
+    names=["total","QCfail","dupl","dupl%","mapped","mapped%","paired", "paired%", "singletons", "regmapped", "regmapped%", "regpaired", "regpaired%"]
     values=[]
-    st=re.split("[ \n]+",open(statsfile).read())
+    st=re.split("[\n]+",open(statsfile).read())
+    total= int(st[0].strip().split(" ")[0])
+    QCfail = int(st[0].strip().split(" ")[2])
+    dupl = int(st[1].strip().split(" ")[0]) 
+    duplPercent = float(dupl)/float(total)*100
+    mapped = int(st[2].strip().split(" ")[0])
+    mappedPercent = float(mapped)/float(total)*100
+    paired = int(st[3].strip().split(" ")[0])
+    pairedPercent = float(paired)/float(total)*100
+    singletons = int(st[8].strip().split(" ")[0])
     #sys.stderr.write(",".join(st))
-    values.append(int(st[0])) # total
-    values.append(int(st[2])) # QCfail
-    values.append(int(st[10])) # dupl
-    values.append(float(values[-1])/float(values[0])*100) # dupl%
-    values.append(int(st[14])) # mapped
-    values.append(float(values[-1])/float(values[0])*100) # mapped %
-    values.append(int(st[33])) # paired
-    values.append(float(values[-1])/float(values[0])*100) # paired %
-    values.append(int(st[47]))
-    if (len(st)>75):
-        values.append(int(st[75])) # regmapped
-        values.append(float(values[-1])/values[0]*100) 
-        values.append(int(st[80]))
-        values.append(float(values[-1])/values[0]*100)
+#    values.append(int(st[0])) # total
+#    values.append(int(st[2])) # QCfail
+#    values.append(int(st[10])) # dupl
+#    values.append(float(values[-1])/float(values[0])*100) # dupl%
+#    values.append(int(st[14])) # mapped
+#    values.append(float(values[-1])/float(values[0])*100) # mapped %
+#    values.append(int(st[33])) # paired
+#    values.append(float(values[-1])/float(values[0])*100) # paired %
+#    values.append(int(st[47]))
+    values = [total, QCfail, dupl, duplPercent, mapped, mappedPercent, paired, pairedPercent, singletons ]
+    customRegion = open(statsfile).read().split("#custom region")
+    if (len(customRegion) > 0):
+        st = customRegion[1].split("\n")
+        regmapped = int(st[1].strip().split(" ")[0])
+        regmappedPercent = float(regmapped)/float(total)*100
+        regpaired = int(st[2].strip().split(" ")[0])
+        regpairedPercent = float(regpaired)/float(total)*100
+        values += [regmapped, regmappedPercent, regpaired, regpairedPercent]
+#    if (len(st)>75):
+#	print st
+#        values.append(int(st[75])) # regmapped
+#        values.append(float(values[-1])/values[0]*100) 
+#        values.append(int(st[80]))
+#        values.append(float(values[-1])/values[0]*100)
+        
     return names,values
 
 
@@ -174,10 +195,9 @@ def samstats(statsfile):
 
 # sam statiscis for initial aligment
 def tophat(statsfile):
-    names=["total","accepted","QCfail","dupl","dupl%","mapped","maped%","paired", "paired%", "singletons"]
+    names=["total","accepted","QCfail","dupl","dupl%","mapped","mapped%","paired", "paired%", "singletons"]
     values=[]
     st=re.split("[ \n]+",open(statsfile).read())
-#    print st
     values.append(int(st[73])) # total
     values.append(int(st[0])) # acepted
     values.append(int(st[2])) # QCfail
@@ -369,27 +389,18 @@ def variant(variantFile):
     return names,values
 
 def trimgaloreStats(logFile):
-    names=["Processed reads", "Processed bases", "Trimmed reads","%","Quality-trimmed","%","Too short reads","%","Too long reads","%"]
+    names=["Processed reads", "Trimmed reads","%","Too short reads","%","Too long reads","%", "Remaining reads","%"]
     values=[]
     file=open(logFile).read()
     # populate
     tmp=file.split("Processed reads:")[1].strip().split()[0]
     PR=float(tmp.strip())
     values.append(PR)
-
-    tmp=file.split("Processed bases:")[1].strip().split()[0]
-    PB=float(tmp.strip())
-    values.append(PB)
    
     tmp=file.split("Trimmed reads:")[1].split("(")[0]
     TR=float(tmp.strip())
     values.append(TR)
     values.append(100*TR/PR)
-   
-    tmp=file.split("Quality-trimmed:")[1].split(" bp")[0]
-    QT=float(tmp.strip())
-    values.append(QT)
-    values.append(100*QT/PB)
 
     tmp=file.split("Too short reads:")[1].split("(")[0]
     TS=float(tmp.strip())
@@ -400,21 +411,22 @@ def trimgaloreStats(logFile):
     TL=float(tmp.strip())
     values.append(TL)
     values.append(100*TL/PR)
+
+    tmp=file.split("remaining reads ")[1].split()[0]
+    RM=float(tmp.strip())
+    values.append(RM)
+    values.append(100*RM/PR)
 
     return names, values
 
 def cutadaptStats(logFile):
-    names=["Processed reads", "Processed bases", "Trimmed reads","%","Too short reads","%","Too long reads","%"]
+    names=["Processed reads", "Trimmed reads","%","Too short reads","%","Too long reads","%", "Remaining reads","%"]
     values=[]
     file=open(logFile).read()
     # populate
     tmp=file.split("Processed reads:")[1].strip().split()[0]
     PR=float(tmp.strip())
     values.append(PR)
-
-    tmp=file.split("Processed bases:")[1].strip().split()[0]
-    PB=float(tmp.strip())
-    values.append(PB)
 
     tmp=file.split("Trimmed reads:")[1].split("(")[0]
     TR=float(tmp.strip())
@@ -430,6 +442,11 @@ def cutadaptStats(logFile):
     TL=float(tmp.strip())
     values.append(TL)
     values.append(100*TL/PR)
+
+    tmp=file.split("remaining reads ")[1].split()[0]
+    RM=float(tmp.strip())
+    values.append(RM)
+    values.append(100*RM/PR)
 
     return names, values
 
@@ -657,40 +674,38 @@ oaresult=[]
 for d in dir:
     result=[]
     psresult=[]
-    name=os.listdir(d)
+    name=glob.glob(d+'*'+ext)
     name.sort()
     for f in name:
-        if (re.compile(ext).search(f)):
-#        if(f[-len(ext)::]==ext):
             try:
                 if (type=="samstats"):
-                    names,values=samstats(d+"/"+f)
+                    names,values=samstats(f)
                 if (type=="samstatsrecal"):
-                    names,values=samstatsrecal(d+"/"+f)
+                    names,values=samstatsrecal(f)
                 if (type=="bamdistMapped"):
-                    names,values=bamDist(d+"/"+f, 5)
+                    names,values=bamDist(f, 5)
                 if (type=="coverage"):
-                    names,values=coverage(d+"/"+f)                    
+                    names,values=coverage(f)                    
                 if (type=="variant"):
-                    names,values=variant(d+"/"+f)
+                    names,values=variant(f)
                 if (type=="tophat"):
-                    names,values=tophat(d+"/"+f)
+                    names,values=tophat(f)
                 if (type=="times"):
-                    names,values=time(d+"/"+f)
+                    names,values=time(f)
                 if (type=="target"):
-                    names,values=onTarget(d+"/"+f)
+                    names,values=onTarget(f)
                 if (type=="intersection"):
-                    names,values=intersection(d+"/"+f)     
+                    names,values=intersection(f)     
                 if (type=="annostats"):
-                    names,values=annoStats(d+"/"+f)
+                    names,values=annoStats(f)
                 if (type=="trimgalore"):
-                    names,values=trimgaloreStats(d+"/"+f)                
+                    names,values=trimgaloreStats(f)                
                 if (type=="cutadapt"):
-                    names,values=cutadaptStats(d+"/"+f)
+                    names,values=cutadaptStats(f)
                 if (type=="hiclibMapping"):
-                    names,values=hiclibStats(d+"/"+f)
+                    names,values=hiclibStats(f)
                 if (type=="hicup"):
-                    names,values=hicupStats(d+"/"+f)
+                    names,values=hicupStats(f)
 
                 result=addValues(result,values)
                 filename=f
@@ -700,7 +715,7 @@ for d in dir:
                 oaresult=addValues(oaresult,values)
                     
             except :
-                sys.stderr.write("error with "+d+"/"+f+"\n")
+                sys.stderr.write("error with "+f+"\n")
                 traceback.print_exc()
                 #sys.exit()
     print "\n#### "+d
