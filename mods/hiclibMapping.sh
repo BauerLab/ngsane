@@ -113,10 +113,22 @@ FASTQNAME=${f##*/}
 FASTQSUFFIX=${f##*.}
 READS="$f ${f/$READONE/$READTWO}"
 
+if [ -f "$MYOUT/${FASTQNAME/.$FASTQSUFFIX/_R1.bam.25}"  ]; then
+    echo "[NOTE] using bam files from previous run"
+    LIBONE=${FASTQNAME/.$FASTQSUFFIX/_R1.bam}
+    LIBTWO=${FASTQNAME/$READONE/$READTWO}
+    LIBTWO=${LIBTWO/.$FASTQSUFFIX/_R2.bam}
+    READS="$MYOUT/$LIBONE $MYOUT/$LIBTWO"
+    FASTQSUFFIX=bam
+    echo $READS
+else
+    echo "[NOTE] mapping data from scratch"
+fi
 echo "********** hiclib call"
 
+EXPERIMENT=$(echo ${ENZYME}_${FASTQNAME/$READONE.$FASTQ/} | sed 's/_*$//g')
 PARAMS="--restrictionEnzyme=$ENZYME \
-   --experimentName=$(echo ${ENZYME}_${FASTQNAME/$READONE.$FASTQ/} | sed 's/_*$//g') \
+   --experimentName=$EXPERIMENT \
    --gapFile=$HICLIB_GAPFILE \
    --referenceGenome=$FASTA \
    --index=$BOWTIE2_INDEX"
@@ -134,17 +146,17 @@ if [ -n "$HICLIB_READLENGTH" ]; then
 fi
 
 # run hiclib.py
-RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie=$(which bowtie2) --cpus=$THREADS --outputDir=$MYOUT --tmpDir=$TMP --verbose $READS"
+RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie=$(which bowtie2) --cpus=$THREADS --outputDir=$MYOUT --tmpDir=$TMP --verbose $READS &> $MYOUT/$EXPERIMENT.hiclib.log"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
-rm -f $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
-
+#rm -f $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
 
 # copy heatmap
 RUNSTATS=$OUT/runStats/$TASKHICLIB
 mkdir -p $RUNSTATS
-mv $MYOUT/*.pdf $RUNSTATS
+mv -f $MYOUT/$EXPERIMENT*.pdf $RUNSTATS
+mv -f $MYOUT/$EXPERIMENT.hiclib.log $RUNSTATS
 
 echo ">>>>> readmapping with hiclib (Bowtie2) - FINISHED"
 echo ">>>>> enddate "`date`

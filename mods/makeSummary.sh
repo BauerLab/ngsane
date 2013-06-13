@@ -223,8 +223,17 @@ if [ -n "$RUNHICLIB" ];then
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/hiclibMapping.sh $QOUT/$TASKHICLIB >> $SUMMARYTMP
 
     echo "</pre><h3>hiclib</h3><pre>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py $QOUT/$TASKHICLIB/ ".out" hiclibMapping >> $SUMMARYTMP
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/$dir/$TASKHICLIB/"
+    done
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" ".log" hiclibMapping >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
+    for dir in $vali; do
+        for pdf in $(ls -f $dir/*.pdf 2>/dev/null ); do
+            echo "<a href='$pdf'>${pdf##*/}</a> " >> $SUMMARYTMP
+        done
+    done
 fi
 
 if [ -n "$RUNHICUP" ];then

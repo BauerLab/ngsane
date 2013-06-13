@@ -91,7 +91,7 @@ echo "********** hiclib call"
 PARAMS="--gapFile=$HICLIB_GAPFILE \
    --referenceGenome=$FASTA "
 
-python ${NGSANE_BASE}/tools/hiclibCorrelate.py ${PARAMS} --outputDir=$OUT/runStats/i$TASKHICLIB --tmpDir=$TMP --verbose $DATASETS
+python ${NGSANE_BASE}/tools/hiclibCorrelate.py ${PARAMS} --outputDir=$OUT/runStats/$TASKHICLIB --tmpDir=$TMP --verbose $DATASETS
 
 echo ">>>>> correlation with hiclib - FINISHED"
 echo ">>>>> enddate "`date`

@@ -219,10 +219,10 @@ RUN_COMMAND="$(which perl) $(which hicup) -c $HICUP_CONF"
 echo $RUN_COMMAND
 cd $MYOUT/$OUTDIR
 eval $RUN_COMMAND
-cp hicup_deduplicater_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_deduplicater_summary_results.txt 2>/dev/null
-cp hicup_filter_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_filter_summary_results.txt 2>/dev/null
-cp hicup_mapper_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_mapper_summary.txt 2>/dev/null
-cp hicup_truncater_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_truncater_summary.txt 2>/dev/null
+cp -f $MYOUT/$OUTDIR/hicup_deduplicater_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_deduplicater_summary_results.txt
+cp -f $MYOUT/$OUTDIR/hicup_filter_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_filter_summary_results.txt
+cp -f $MYOUT/$OUTDIR/hicup_mapper_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_mapper_summary.txt
+cp -f $MYOUT/$OUTDIR/hicup_truncater_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_truncater_summary.txt
 ln -f -s $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/'_'$READONE.$FASTQ/'_'$READTWO}_trunc.bam $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam
 
 cd $CURDIR
@@ -230,8 +230,8 @@ cd $CURDIR
 # copy piecharts
 RUNSTATS=$OUT/runStats/$TASKHICUP
 mkdir -p $RUNSTATS
-cp $MYOUT/$OUTDIR/uniques_*_cis-trans.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_uniques_cis-trans.png
-cp $MYOUT/$OUTDIR/*_ditag_classification.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_ditag_classification.png
+cp -f $MYOUT/$OUTDIR/uniques_*_cis-trans.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_uniques_cis-trans.png
+cp -f $MYOUT/$OUTDIR/*_ditag_classification.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_ditag_classification.png
 
 echo "********* fit-hi-c"
 python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=${DIGESTGENOME} --outputDir=$MYOUT/  $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam
