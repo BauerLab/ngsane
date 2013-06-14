@@ -64,6 +64,14 @@ if [ -n "$ADDITIONALTASK" ]; then
     elif [ "$ADDITIONALTASK" = "armed" ]; then
 	    echo ">>>>>>>>>> $ADDITIONALTASK"
 	    ARMED="--armed"
+            echo -n "Double check! Then type 'safetyoff' and hit enter to launch the job: "
+            read safetyoff
+            if [ "$safetyoff" != "safetyoff" ];then
+                echo "Holstering..."
+                exit 0
+            else
+                echo "... take cover!\n"
+            fi
     elif [ "$ADDITIONALTASK" = "keep" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--keep"
