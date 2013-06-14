@@ -75,12 +75,14 @@ MODULE_LATEX=
 PATH_LATEX=
 
 ##############################################################
-# SAMTOOLS (0.1.19)
+# SAMTOOLS (0.1.19) SNP calling
 # http://samtools.sourceforge.net/
 WALLTIME_SAMVAR=40:00:00
 MEMORY_SAMVAR=40
 CPU_SAMVAR=1
 NODES_SAMVAR="nodes=1:ppn=1"
+
+MODULE_SAMVAR="jdk samtools/0.1.18 igvtools/2.3.5 gatk/2.5"
 
 ##############################################################
 # BWA (0.7.4) 

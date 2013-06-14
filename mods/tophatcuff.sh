@@ -53,9 +53,9 @@ if [ ! $# -gt 3 ]; then usage ; fi
 
 #DEFAULTS
 THREADS=8
-EXPID="exp"           # read group identifier RD ID
-LIBRARY="qbi"         # read group library RD LB
-PLATFORM="illumina"   # read group platform RD PL
+#EXPID="exp"           # read group identifier RD ID
+#LIBRARY="qbi"         # read group library RD LB
+#PLATFORM="illumina"   # read group platform RD PL
 DOBAM=1               # do the bam file
 FORCESINGLE=0
 INSERT=200
@@ -172,12 +172,21 @@ if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
 mkdir -p $OUTDIR
 echo "********* tophat"
+# check library info is set
 if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then 
     echo "[ERROR] RNAseq library type not set (RNA_SEQ_LIBRARY_TYPE): either fr-unstranded or fr-firststrand"
     exit 1; 
 else
     echo "[NOTE] RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
+if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
+    echo "[ERROR] library info not set (EXPID, LIBRARY, and PLATFORM): free text needed"
+    exit 1;
+else
+    echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
+fi
+
+
 
 RUN_COMMAND="tophat $TOPHAT_OPTIONS --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
 echo $RUN_COMMAND && eval $RUN_COMMAND

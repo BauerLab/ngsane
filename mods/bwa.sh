@@ -60,10 +60,10 @@ if [ ! $# -gt 3 ]; then usage ; fi
 #DEFAULTS
 MYTHREADS=1
 MYMEMORY=2
-EXPID="exp"           # read group identifier RD ID
-LIBRARY="qbi"         # read group library RD LB
-PLATFORM="illumina"   # read group platform RD PL
-UNIT="flowcell"       # read group platform unit RG PU
+#EXPID="exp"           # read group identifier RD ID
+#LIBRARY="qbi"         # read group library RD LB
+#PLATFORM="illumina"   # read group platform RD PL
+#UNIT="flowcell"       # read group platform unit RG PU
 DOBAM=1               # do the bam file
 FORCESINGLE=0
 NOMAPPING=0
@@ -84,7 +84,6 @@ while [ "$1" != "" ]; do
         -l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB
         -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
-        -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU 
         -R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         -S | --sam )            DOBAM=0 ;;
         --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
@@ -129,8 +128,24 @@ echo -e "--PICARD  --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar
 echo -e "--samstat --\n "$(samstat -h | head -n 2 | tail -n 1 )
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 
+if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
+    echo "[ERROR] library info not set (EXPID, LIBRARY, and PLATFORM): free text needed"
+    exit 1;
+else
+    echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
+fi
+
 # get basename of f
 n=${f##*/}
+
+# check library variables are set
+if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
+    echo "[ERROR] library info not set (EXPID, LIBRARY, and PLATFORM): free text needed"
+    exit 1;
+else
+    echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
+fi
+
 
 # delete old bam file
 if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi
