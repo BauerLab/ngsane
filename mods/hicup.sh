@@ -239,8 +239,8 @@ cd $MYOUT
 python $(which fit-hi-c.py) --mappabilityThres=2 --fragments=$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam.fragmentLists --interactions=$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam.contactCounts --lib=${n/'_'$READONE.$FASTQ/}
 cd $CURDIR
 
-awk '$7<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.significances.txt > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.q05.txt
-awk '$7<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.significances.txt > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.q05.txt
+awk '$7<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.significances.txt | sort -k7g > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.q05.txt
+awk '$7<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.significances.txt | sort -k7g > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.q05.txt
 
 $GZIP $MYOUT/${n/'_'$READONE.$FASTQ/}*.significances.txt
 
