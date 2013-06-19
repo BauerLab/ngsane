@@ -2,7 +2,7 @@
 
 # Script to trim adapters using TRIMGALORE (tapping into CUTADAPT)
 # It takes a <Run>/*.$FASTQ[.gz] file and gets the file containing the contaminats
-# via config and writes out <Run>_trim/*.$FASTQ[.gz]
+# via config and writes out <Run>_trimgalore/*.$FASTQ[.gz]
 #
 # author: Fabian Buske
 # date: April. 2013
