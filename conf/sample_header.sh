@@ -40,6 +40,7 @@ TASKCUTADAPT="cutadapt"
 TASKTRIMGALORE="trimgalore"
 TASKHICUP="hicup"
 TASKHICLIB="hiclib"
+TASKFASTQ2SANGER ="sanger"
 
 ##############################################################
 # PROGRAM PATHS
@@ -73,6 +74,18 @@ MODULE_FASTQC=
 PATH_FASTQC=
 MODULE_LATEX=
 PATH_LATEX=
+
+##############################################################
+# FASTQ2SANGER (requires perl)
+# 
+WALLTIME_FASTQ2SANGER=10:00:00
+MEMORY_FASTQ2SANGER=20
+CPU_FASTQ2SANGER=1
+NODES_FASTQ2SANGER="nodes=1:ppn=1"
+
+MODULE_FASTQ2SANGER=
+PATH_FASTQ2SANGER=
+FASTQ2SANGER_SOURCEFORMAT=
 
 ##############################################################
 # SAMTOOLS (0.1.19) SNP calling
