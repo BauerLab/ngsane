@@ -108,8 +108,8 @@ if [ ! -d $TMP ]; then mkdir -p $TMP; fi
 ############################################
 #   FastQC summary of fastq files
 #
-# IN:$SOURCE/$dir/fastq/*read1.fastq
-# OUT: $OUT/$dir/bwa/*.$ASD.bam
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $OUT/runstats/fastQC/*
 ############################################
 
 if [ -n "$RUNFASTQC" ]; then
@@ -121,10 +121,26 @@ if [ -n "$RUNFASTQC" ]; then
 fi
 
 ############################################
+#   FASTQ2SANGER
+#
+# IN : $SOURCE/fastq/$dir/*read1.fastq.gz
+# OUT: $OUT/fastq/$dir_sanger/*read1.fastq.gz
+############################################
+
+if [ -n "$RUNFASTQ2SANGER" ]; then
+    if [ -z "$FASTQ2SANGER_SOURCEFORMAT" ]; then echo "[ERROR] Source fastq format not set (FASTQ2SANGER_SOURCEFORMAT)"; exit 1; fi
+    if [ -z "$TASKFASTQ2SANGER" ] || [ -z "$NODES_FASTQ2SANGER" ] || [ -z "$CPU_FASTQ2SANGER" ] || [ -z "$MEMORY_FASTQ2SANGER" ] || [ -z "$WALLTIME_FASTQ2SANGER" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQ2SANGER -i fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQ2SANGER \
+        -c $CPU_FASTQ2SANGER -m $MEMORY_FASTQ2SANGER"G" -w $WALLTIME_FASTQ2SANGER \
+        --command "${NGSANE_BASE}/mods/fastq2sanger.sh -k $CONFIG -f <FILE>"
+fi
+
+############################################
 #   CUTADAPT remove contaminants
 #
-# IN:$SOURCE/$dir/fastq/*read1.fastq
-# OUT:$SOURCE/$dir/fastq_trim/*read1.fastq
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $SOURCE/fastq/$dir_cutadapt/*read1.fastq
 ############################################
 
 if [ -n "$RUNCUTADAPT" ]; then
@@ -138,8 +154,8 @@ fi
 ############################################
 #   TRIMMOMATIC remove contaminants
 #
-# IN:$SOURCE/$dir/fastq/*read1.fastq
-# OUT:$SOURCE/$dir/fastq_trim/*read1.fastq
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $SOURCE/fastq/$dir_trimmomatic/*read1.fastq
 ############################################
 
 if [ -n "$RUNTRIMAT" ]; then
@@ -151,8 +167,8 @@ fi
 ############################################
 #   TRIMGALORE remove contaminants
 #
-# IN:$SOURCE/$dir/fastq/*read1.fastq
-# OUT:$SOURCE/$dir/fastq_trim/*read1.fastq
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $SOURCE/fastq/$dir_trimgalore/*read1.fastq
 ############################################ 
 if [ -n "$RUNTRIMGALORE" ]; then
     if [ -z "$TASKTRIMGALORE" ] || [ -z "$NODES_TRIMGALORE" ] || [ -z "$CPU_TRIMGALORE" ] || [ -z "$MEMORY_TRIMGALORE" ] || [ -z "$WALLTIME_TRIMGALORE" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
@@ -163,8 +179,8 @@ if [ -n "$RUNTRIMGALORE" ]; then
 fi
 
 ############################################ 
-# IN */bwa/*.bam
-# OUT */bwa/*.ann
+# IN : */bwa/*.bam
+# OUT: */bwa/*.ann
 ############################################ 
 if [ -n "$RUNANNOTATINGBAM" ]; then
     if [ -z "$TASKBWA" ] || [ -z "$NODES_BAMANN" ] || [ -z "$CPU_BAMANN" ] || [ -z "$MEMORY_BAMANN" ] || [ -z "$WALLTIME_BAMANN" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
