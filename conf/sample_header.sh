@@ -40,7 +40,7 @@ TASKCUTADAPT="cutadapt"
 TASKTRIMGALORE="trimgalore"
 TASKHICUP="hicup"
 TASKHICLIB="hiclib"
-TASKFASTQ2SANGER ="sanger"
+TASKFASTQ2SANGER="sanger"
 
 ##############################################################
 # PROGRAM PATHS
