@@ -60,36 +60,19 @@ if [ -z "$TARGET_LOCATION" ]; then
   exit 1
 fi
 
-# test if source data is defined
-echo "${DIR[@]}"
-if [ -z "${DIR[@]}" ]; then
-  echo "[ERROR] no input directories specified (DIR)."
-  exit 1
-fi
-
-# ensure out directory is there 
-for dir in ${DIR[@]}; do
-  if [ ! -d $SOURCE/fastq/$dir ]; then 
-  	echo "[ERROR] source data not found (DIR)."
-  	exit 1
-  fi
-done
-
-if [ ! -d $QOUT ]; then mkdir -p $QOUT; fi
-
 echo "********* write results to REMOTE server"
-for dir in ${DIR[@]}; do
-    for f in $(ls $SOURCE); do
-   		fn="${f##*/}" # basename
-   		# don't copy the raw files or the tmp folder
-   		if [ "$fn" != "fastq" ] && [ "$fn" != "tmp" ]; then 
-#   			echo "smbclient ${TARGET_SERVER} -A ~/.smbclient -c \"prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}\""
-	   		if [ -f  ~/.smbclient ]; then
-			   smbclient ${TARGET_SERVER} -A ~/.smbclient -c "prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}"
-			else
-			   smbclient ${TARGET_SERVER} -U `whoami` -c "prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}"
-			fi
+
+for f in $(ls $SOURCE); do
+	fn="${f##*/}" # basename
+   	# don't copy the raw files or the tmp folder
+   	if [ "$fn" != "fastq" ] && [ "$fn" != "tmp" ]; then 
+   		echo "smbclient ${TARGET_SERVER} -A ~/.smbclient -c \"prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}\""
+ 		if [ -f  ~/.smbclient ]; then
+		   smbclient ${TARGET_SERVER} -A ~/.smbclient -c "prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}"
+		else
+		   smbclient ${TARGET_SERVER} -U `whoami` -c "prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}"
 		fi
-	done
+	fi
 done
+
 echo ">>>>> enddate "`date`

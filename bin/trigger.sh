@@ -70,7 +70,7 @@ if [ -n "$ADDITIONALTASK" ]; then
                 echo "Holstering..."
                 exit 0
             else
-                echo "... take cover!\n"
+                echo "... take cover!"
             fi
     elif [ "$ADDITIONALTASK" = "keep" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"

@@ -1,5 +1,5 @@
 # author: Fabian Buske
-# date: May 2013
+# date: June 2013
 
 ######################################
 # Resources
@@ -14,13 +14,13 @@
 #********************
 SOURCE=$(pwd)
 
-# which folder to put the files in (only one permitted)
-declare -a DIR; DIR=( sample )
+# leave emtpy, as all data except the raw data (fastq folder) will be copied 
+declare -a DIR; DIR=(  )
 
 # server location e.g. '//gagri/GRIW'
 TARGET_SERVER=
 
-# location on the target server to put the result into (should already exist)
+# location (folder) on the target server to put the result into (should already exist)
 TARGET_LOCATION=
 
 # where to write the output
