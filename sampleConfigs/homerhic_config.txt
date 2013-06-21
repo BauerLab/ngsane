@@ -39,7 +39,7 @@ FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sap
 # PARAMETER (mandatory)
 #********************
 EXPID="Celltype"
-LIBRARY="RNAseq"
+LIBRARY="HiC"
 PLATFORM="Illumina"
 
 
@@ -49,12 +49,12 @@ HOMER_HIC_TAGDIR_OPTIONS="-tbp 1 -illuminaPE -genome hg19 -checkGC -restrictionS
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
-#WALLTIME_HOMERHIC=10:00:00
+#WALLTIME_HOMERHIC=60:00:00
 #MEMORY_HOMERHIC=60
-#CPU_HOMERHIC=8
-#NODES_HOMERHIC="nodes=1:ppn=8"
-#MODULE_HOMERHICTWO=
-#PATH_HOMERHICTWO=
+#CPU_HOMERHIC=16
+#NODES_HOMERHIC="nodes=2:ppn=8"
+#MODULE_HOMERHIC=
+#PATH_HOMERHIC=
 
 ## location of ngsane
 #NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
