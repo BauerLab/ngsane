@@ -44,6 +44,7 @@ while [ "$1" != "" ]; do
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)                             
         -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU
         --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
+        --forceSingle )         FORCESINGLE=1;;
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -124,7 +125,6 @@ if [ -n "$DMGET" ]; then
 	dmls -l ${f/$READONE/"*"}
 fi
 
-#run bowtie command -v $MISMATCH -m 1
 echo "********* bowtie" 
 if [ $PAIRED == "0" ]; then 
     READS="-U $f"

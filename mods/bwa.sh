@@ -44,7 +44,7 @@ options:
                              format chr:pos-pos
   -S | --sam                do not convert to bam file (default confert); not the
                              resulting sam file is not duplicate removed
-  --forceSingle             run single end eventhough second read is present
+  --forceSingle             run single end even though second read is present
   --oldIllumina             old Illumina encoding 1.3+
   --noMapping
   --fastqName               name of fastq file ending (fastq.gz)
