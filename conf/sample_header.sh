@@ -128,14 +128,14 @@ BOWTIE_INDEX=
 ##############################################################
 # HOMER HIC + Bowtie2
 # http://bowtie-bio.sourceforge.net/index.shtml
-WALLTIME_HOMERHIC=10:00:00
+# http://biowhat.ucsd.edu/homer/index.html
+WALLTIME_HOMERHIC=60:00:00
 MEMORY_HOMERHIC=60
-CPU_HOMERHIC=8
-NODES_HOMERHIC="nodes=1:ppn=8"
+CPU_HOMERHIC=16
+NODES_HOMERHIC="nodes=2:ppn=8"
 
-MODULE_HOMERHICTWO=
-PATH_HOMERHICTWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
-BOWTIE2_INDEX=
+MODULE_HOMERHIC=
+PATH_HOMERHIC=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
 # Trim adapter with CUTADAPT ()
