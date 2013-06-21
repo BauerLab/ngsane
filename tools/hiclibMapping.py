@@ -278,6 +278,9 @@ def filterFragments(genome_db):
 	# object.
 	fragments.parseInputData(dictLike=options.outputDir+options.experiment+'-mapped_reads.hdf5')
 	
+	# save unfiltered data
+	fragments.save(options.outputDir+options.experiment+'-fragment_unfiltered.hdf5')
+	
 	# Removes reads that start within 5 bp (default) near rsite
 	fragments.filterRsiteStart()
 	
@@ -290,9 +293,17 @@ def filterFragments(genome_db):
 	# Removes fragments with most and/or least # counts
 	fragments.filterExtreme(cutH=0.01, cutL=0)
 	
-	fragments.saveHeatmap(options.outputDir+options.experiment+'-1M.hdf5', resolution=1000000)
-	fragments.saveHeatmap(options.outputDir+options.experiment+'-200k.hdf5', resolution=200000)
+	# Get Fragment weights
+	fragments.calculateFragmentWeights()
+	
+	# save filtered data
+	fragments.save(options.outputDir+options.experiment+'-fragment_filtered.hdf5')
+	
+	# save heatmap
+	fragments.saveHeatmap(options.outputDir+options.experiment+'-1M.hdf5')
 
+	# save heatmap chr by chr (high resolution scale)
+#    fragments.saveByChromosomeHeatmap(options.outputDir+options.experiment+'-chrbychr.hdf5')
 
 def iterativeFiltering(genome_db, filesuffix):
 	'''
@@ -319,8 +330,8 @@ def iterativeFiltering(genome_db, filesuffix):
 	# Truncate top 0.05% of interchromosomal counts (possibly, PCR blowouts).
 	BD.truncTrans(high=0.0005)
 
-        # Remove empty bins
-        BD.removeZeros()
+    # Remove empty bins
+    BD.removeZeros()
 
 	# Perform iterative correction.
 	BD.iterativeCorrectWithoutSS()
@@ -380,11 +391,10 @@ def process():
 		print >> sys.stdout, "**  Iterative filtering of fragments"
 
 	iterativeFiltering(genome_db, '-1M.hdf5')
-	iterativeFiltering(genome_db, '-200k.hdf5')
 
 
 	# plotting
-	correctedScalingPlot(200000, options.outputDir+options.experiment+'-200k.hdf5', options.experiment, genome_db)
+	correctedScalingPlot(1000000, options.outputDir+options.experiment+'-1M.hdf5', options.experiment, genome_db)
 
 	doArmPlot(1000000, options.outputDir+options.experiment+'-1M.hdf5', options.experiment, genome_db)
 
