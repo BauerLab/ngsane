@@ -286,6 +286,20 @@ fi
 
 
 ############################################
+#  Mapping with bowtie v2
+#
+# IN: $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/bowtie/*.bam
+############################################
+if [ -n "$RUNHOMERHIC" ]; then
+    if [ -z "$TASKHOMERHIC" ] || [ -z "$NODES_HOMERHIC" ] || [ -z "$CPU_HOMERHIC" ] || [ -z "$MEMORY_HOMERHIC" ] || [ -z "$WALLTIME_HOMERHIC" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e "_"$READONE.$FASTQ -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
+	--command "${NGSANE_BASE}/mods/bowtie2.sh $BOWTIEADDPARM -k $CONFIG -t $CPU_HOMERHIC -m $(expr $MEMORY_HOMERHIC - 1 ) -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKHOMERHIC \
+        --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
+fi
+
+############################################
 #   FASTXTOOLKIT based trimming to a certain length
 ############################################
 

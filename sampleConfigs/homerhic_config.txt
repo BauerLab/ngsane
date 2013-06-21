@@ -1,0 +1,62 @@
+# author: Fabian Buske
+# date: June 2013
+
+######################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNHOMERHIC="1"    # mapping with bowtie2 + homer hoc
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq firectory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+# read indicator
+READONE="R1"
+READTWO="R2"
+
+# fastq file suffix
+FASTQ="fq.gz"
+# which files to run on (replace samples with folders within fastq firectory)
+
+# reference genome
+FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
+
+#********************
+# PARAMETER (mandatory)
+#********************
+EXPID="Celltype"
+LIBRARY="RNAseq"
+PLATFORM="Illumina"
+
+
+HOMER_HIC_TAGDIR_OPTIONS="-tbp 1 -illuminaPE -genome hg19 -checkGC -restrictionSite AAGCTT -removePEbg -removeSelfLigation -removeRestrictionEnds -removeSpikes 10000 5"
+
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+#WALLTIME_HOMERHIC=10:00:00
+#MEMORY_HOMERHIC=60
+#CPU_HOMERHIC=8
+#NODES_HOMERHIC="nodes=1:ppn=8"
+#MODULE_HOMERHICTWO=
+#PATH_HOMERHICTWO=
+
+## location of ngsane
+#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+
+

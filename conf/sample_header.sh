@@ -41,6 +41,7 @@ TASKTRIMGALORE="trimgalore"
 TASKHICUP="hicup"
 TASKHICLIB="hiclib"
 TASKFASTQ2SANGER="sanger"
+TASKHOMERHIC="homerhic"
 
 ##############################################################
 # PROGRAM PATHS
@@ -123,6 +124,18 @@ BOWTIE2_INDEX=
 MODULE_BOWTIE=
 PATH_BOWTIE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 BOWTIE_INDEX=
+
+##############################################################
+# HOMER HIC + Bowtie2
+# http://bowtie-bio.sourceforge.net/index.shtml
+WALLTIME_HOMERHIC=10:00:00
+MEMORY_HOMERHIC=60
+CPU_HOMERHIC=8
+NODES_HOMERHIC="nodes=1:ppn=8"
+
+MODULE_HOMERHICTWO=
+PATH_HOMERHICTWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+BOWTIE2_INDEX=
 
 ##############################################################
 # Trim adapter with CUTADAPT ()
