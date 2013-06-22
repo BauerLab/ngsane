@@ -126,8 +126,7 @@ PATH_BOWTIE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 BOWTIE_INDEX=
 
 ##############################################################
-# HOMER HIC + Bowtie2
-# http://bowtie-bio.sourceforge.net/index.shtml
+# HOMER HIC 
 # http://biowhat.ucsd.edu/homer/index.html
 WALLTIME_HOMERHIC=60:00:00
 MEMORY_HOMERHIC=60

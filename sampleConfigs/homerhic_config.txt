@@ -4,11 +4,33 @@
 ######################################
 # Resources
 #####################################
+#
+# Homer requires individually mapped read pairs. 
+# The following procedure can be used to tap into existing bowtie or bwa mods:
+#
+# 1) For each experiment in fastq/<exp> make a folder in the
+# fastq/<exp>_homer
+# 2) create symbolic links to the original files. Add a new suffix indicating 
+# all fastq files as first reads, e.g. for 
+# 	fastq/<exp>/test_R1.fa.gz
+# 	fastq/<exp>/test_R2.fa.gz
+#    use
+#       ln -s fastq/<exp>/test_R1.fa.gz fastq/<exp_homer>/test_R1_P1.fa.gz
+#	ln -s fastq/<exp>/test_R1.fa.gz fastq/<exp_homer>/test_R2_P1.fa.gz
+# 3) use bowtie2 or bwa as usual, specify the first read suffix as being P1.
+# 4) when running homerhic use the following suffix in the config to link read pairs to each
+# other
+#       READONE="R1_P1"
+#       READTOW="R2_P1"
+#
+# Note, Mapping with bowtie is assumed by default.
+#
+# June 2013 Fabian Buske
 
 #********************
 # Tasks
 #********************
-RUNHOMERHIC="1"    # mapping with bowtie2 + homer hoc
+RUNHOMERHIC="1"    # homer HIC
 
 #********************
 # Paths
@@ -25,23 +47,15 @@ OUT=$SOURCE
 QOUT=$OUT/qout
 
 # read indicator
-READONE="R1"
-READTWO="R2"
-
-# fastq file suffix
-FASTQ="fq.gz"
-# which files to run on (replace samples with folders within fastq firectory)
-
-# reference genome
-FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
+READONE="R1_P1"
+READTWO="R2_P1"
 
 #********************
 # PARAMETER (mandatory)
 #********************
-EXPID="Celltype"
-LIBRARY="HiC"
-PLATFORM="Illumina"
 
+# if bwa was used to map file then set TASKBOWTIE to TASKBWA
+# TASKBOWTIE=$TASKBWA
 
 HOMER_HIC_TAGDIR_OPTIONS="-tbp 1 -illuminaPE -genome hg19 -checkGC -restrictionSite AAGCTT -removePEbg -removeSelfLigation -removeRestrictionEnds -removeSpikes 10000 5"
 
