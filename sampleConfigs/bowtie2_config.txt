@@ -15,7 +15,7 @@ RUNMAPPINGBOWTIE2="1"    # mapping with bowtie2
 #********************
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq firectory)
+# which files to run on (replace sample with folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # where to write the output
