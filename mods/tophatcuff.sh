@@ -189,7 +189,6 @@ else
     echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
 fi
 
-<<EOF
 
 RUN_COMMAND="tophat $TOPHAT_OPTIONS --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
 echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -346,8 +345,6 @@ if [ -n "$GENCODEGTF" ]; then
 	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
     
 	echo ">>>>> Read counting with htseq count - FINISHED"
-
-EOF
 
 ##run RNA-SeQC
 
