@@ -119,22 +119,22 @@ if [ -n "$RUNFASTQC" ]; then
 	-c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
 	--postcommand "${NGSANE_BASE}/mods/fastQC.sh -k $CONFIG" 
 fi
-
-############################################
-#   FASTQ2SANGER
 #
-# IN : $SOURCE/fastq/$dir/*read1.fastq.gz
-# OUT: $OUT/fastq/$dir_sanger/*read1.fastq.gz
-############################################
-
-if [ -n "$RUNFASTQ2SANGER" ]; then
-    if [ -z "$FASTQ2SANGER_SOURCEFORMAT" ]; then echo "[ERROR] Source fastq format not set (FASTQ2SANGER_SOURCEFORMAT)"; exit 1; fi
-    if [ -z "$TASKFASTQ2SANGER" ] || [ -z "$NODES_FASTQ2SANGER" ] || [ -z "$CPU_FASTQ2SANGER" ] || [ -z "$MEMORY_FASTQ2SANGER" ] || [ -z "$WALLTIME_FASTQ2SANGER" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
-    
-    $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQ2SANGER -i fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQ2SANGER \
-        -c $CPU_FASTQ2SANGER -m $MEMORY_FASTQ2SANGER"G" -w $WALLTIME_FASTQ2SANGER \
-        --command "${NGSANE_BASE}/mods/fastq2sanger.sh -k $CONFIG -f <FILE>"
-fi
+#############################################
+##   FASTQ2SANGER
+##
+## IN : $SOURCE/fastq/$dir/*read1.fastq.gz
+## OUT: $OUT/fastq/$dir_sanger/*read1.fastq.gz
+#############################################
+#
+#if [ -n "$RUNFASTQ2SANGER" ]; then
+#    if [ -z "$FASTQ2SANGER_SOURCEFORMAT" ]; then echo "[ERROR] Source fastq format not set (FASTQ2SANGER_SOURCEFORMAT)"; exit 1; fi
+#    if [ -z "$TASKFASTQ2SANGER" ] || [ -z "$NODES_FASTQ2SANGER" ] || [ -z "$CPU_FASTQ2SANGER" ] || [ -z "$MEMORY_FASTQ2SANGER" ] || [ -z "$WALLTIME_FASTQ2SANGER" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+#    
+#    $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQ2SANGER -i fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQ2SANGER \
+#        -c $CPU_FASTQ2SANGER -m $MEMORY_FASTQ2SANGER"G" -w $WALLTIME_FASTQ2SANGER \
+#        --command "${NGSANE_BASE}/mods/fastq2sanger.sh -k $CONFIG -f <FILE>"
+#fi
 
 ############################################
 #   CUTADAPT remove contaminants
@@ -365,6 +365,18 @@ then
    done	      
 fi
 
+############################################
+#  Creating normalized (wig) files with wiggler
+#
+# IN: $SOURCE/<DIR>/bowtie/*.bam
+# OUT: $OUT/$dir/wiggler/
+############################################
+if [ -n "$RUNWIGGLER" ]; then
+    if [ -z "$TASKWIGGLER" ] || [ -z "$NODES_WIGGLER" ] || [ -z "$CPU_WIGGLER" ] || [ -z "$MEMORY_WIGGLER" ] || [ -z "$WALLTIME_WIGGLER" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASKWIGGLER -i $TASKBOWTIE2/ -e "_"$READONE.$ASD.bam -n $NODES_WIGGLER -c $CPU_WIGGLER -m $MEMORY_WIGGLER"G" -w $WALLTIME_WIGGLER \
+        --postcommand "${NGSANE_BASE}/mods/wiggler.sh -k $CONFIG -f <FILE> -m $MEMORY_WIGGLER -o $OUT/<DIR>/$TASKWIGGLER" 
+fi
 
 ############################################
 # downsampling

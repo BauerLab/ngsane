@@ -41,6 +41,7 @@ TASKTRIMGALORE="trimgalore"
 TASKHICUP="hicup"
 TASKHICLIB="hiclib"
 TASKFASTQ2SANGER="sanger"
+TASKWIGGLER="wiggler"
 
 ##############################################################
 # PROGRAM PATHS
@@ -123,6 +124,20 @@ BOWTIE2_INDEX=
 MODULE_BOWTIE=
 PATH_BOWTIE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 BOWTIE_INDEX=
+
+##############################################################
+# Wiggler
+# https://sites.google.com/site/anshulkundaje/projects/wiggler
+WALLTIME_WIGGLER=10:00:00
+MEMORY_WIGGLER=60
+CPU_WIGGLER=8
+NODES_WIGGLER="nodes=1:ppn=8"
+
+MODULE_WIGGLER=
+PATH_WIGGLER=
+WIGGLER_INDEX=
+
+WIGGLER_UMAPDIR=
 
 ##############################################################
 # Trim adapter with CUTADAPT ()
