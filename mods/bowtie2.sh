@@ -140,7 +140,7 @@ fi
 FULLSAMPLEID=$SAMPLEID"${n/'_'$READONE.$FASTQ/}"
 RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
 
-RUN_COMMAND="bowtie2 $RG -t -x ${FASTA/.${FASTASUFFIX}/} -p $THREADS $READS -S $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} --un $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}"
+RUN_COMMAND="bowtie2 $ADDBOWTIE2PARAMS $RG -t -x ${FASTA/.${FASTASUFFIX}/} -p $THREADS $READS -S $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} --un $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
