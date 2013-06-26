@@ -203,6 +203,20 @@ if [ -n "$RUNTRIMGALORE" ];then
     echo "</pre>" >>$SUMMARYTMP
 fi
 
+if [ -n "$RUNTRIMMOMATIC" ];then
+    LINKS=$LINKS" trimmomatic"
+    echo "<a name=\"trimmomatic\"><h2>Trimmomatic results</h2></a><pre>">>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/trimmomatic.sh $QOUT/$TASKTRIMMOMATIC >> $SUMMARYTMP
+
+    echo "</pre><h3>trimmomatic</h3><pre>">>$SUMMARYTMP
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/fastq/${dir/_$TASKTRIMMOMATIC/}_$TASKTRIMMOMATIC/"
+    done
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" ".log" trimmomatic --noSummary >> $SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
+
 if [ -n "$RUNCUTADAPT" ];then
     LINKS=$LINKS" cutadapt"
     echo "<a name=\"cutadapt\"><h2>Cutadapt results</h2></a><pre>">>$SUMMARYTMP

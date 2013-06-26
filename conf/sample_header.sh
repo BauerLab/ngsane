@@ -42,6 +42,7 @@ TASKHICUP="hicup"
 TASKHICLIB="hiclib"
 TASKFASTQ2SANGER="sanger"
 TASKWIGGLER="wiggler"
+TASKTRIMMOMATIC="trimmomatic"
 
 ##############################################################
 # PROGRAM PATHS
@@ -135,9 +136,9 @@ NODES_WIGGLER="nodes=1:ppn=8"
 
 MODULE_WIGGLER=
 PATH_WIGGLER=
-WIGGLER_INDEX=
 
 WIGGLER_UMAPDIR=
+WIGGLERADDPARAMS=""
 
 ##############################################################
 # Trim adapter with CUTADAPT ()
@@ -164,6 +165,19 @@ PATH_TRIMGALORE=
 TRIMGALORE_ADAPTER1=
 TRIMGALORE_ADAPTER2=
 TRIMGALORE_OPTIONS=
+
+##############################################################
+# Trimming with TRIMMOMATIC
+# http://www.usadellab.org/cms/index.php?page=trimmomatic
+WALLTIME_TRIMMOMATIC=8:00:00
+MEMORY_TRIMMOMATIC=40
+CPU_TRIMMOMATIC=8
+NODES_TRIMMOMATIC="nodes=1:ppn=8"
+
+MODULE_TRIMMOMATIC=
+PATH_TRIMMOMATIC=
+TRIMMOMATICADDPARAMS=
+TRIMMOMATICSTEPS=
 
 ##############################################################
 # Snp calling with GATK
@@ -245,8 +259,6 @@ RSCRIPT=Rscript
 #GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
 #GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
 #GATKJAR=$GATKHOME/dist/
-
-FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
 
 VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"

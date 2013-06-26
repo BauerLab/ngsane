@@ -419,6 +419,65 @@ def trimgaloreStats(logFile):
 
     return names, values
 
+def trimmomaticStats(logFile):
+    values=[]
+    if "Input Read Pairs" in open(logFile).read():
+        # paired library
+        names=["Input Read Pairs", "Both Surviving","%","Forward Only","%","Reverse Only","%", "Dropped","%"]
+        file=open(logFile).read()
+
+        # populate
+        tmp=file.split("Input Read Pairs:")[1].split("Both Surviving")[0].strip()
+        PR=float(tmp.strip())
+        values.append(PR)
+
+        tmp=file.split("Both Surviving:")[1].split("(")[0]
+        BSR=float(tmp.strip())
+        values.append(BSR)
+        values.append(100*BSR/PR)
+
+        tmp=file.split("Forward Only Surviving:")[1].split("(")[0]
+        FS=float(tmp.strip())
+        values.append(FS)
+        values.append(100*FS/PR)
+
+        tmp=file.split("Reverse Only Surviving:")[1].split("(")[0]
+        RS=float(tmp.strip())
+        values.append(RS)
+        values.append(100*RS/PR)
+
+        tmp=file.split("Dropped:")[1].split("(")[0]
+        DR=float(tmp.strip())
+        values.append(DR)
+        values.append(100*DR/PR)
+
+    else:
+        # single library
+        names=["Input Reads", "Surviving","%","Forward Only","%","Reverse Only","%","Dropped","%"]
+        file=open(logFile).read()
+
+        # populate
+        tmp=file.split("Input Reads:")[1].split("Surviving")[0].strip()
+        PR=float(tmp.strip())
+        values.append(PR)
+
+        tmp=file.split("Surviving:")[1].split("(")[0]
+        SR=float(tmp.strip())
+        values.append(SR)
+        values.append(100*SR/PR)
+     
+        values.append(0.)
+        values.append(0.)
+        values.append(0.)
+        values.append(0.)
+
+        tmp=file.split("Dropped:")[1].split("(")[0]
+        DR=float(tmp.strip())
+        values.append(DR)
+        values.append(100*DR/PR)
+
+    return names, values
+
 def cutadaptStats(logFile):
     names=["Processed reads", "Trimmed reads","%","Too short reads","%","Too long reads","%", "Remaining reads","%"]
     values=[]
@@ -699,7 +758,9 @@ for d in dir:
                 if (type=="annostats"):
                     names,values=annoStats(f)
                 if (type=="trimgalore"):
-                    names,values=trimgaloreStats(f)                
+                    names,values=trimgaloreStats(f)
+		if (type=="trimmomatic"):
+		    names,values=trimmomaticStats(f)
                 if (type=="cutadapt"):
                     names,values=cutadaptStats(f)
                 if (type=="hiclibMapping"):
