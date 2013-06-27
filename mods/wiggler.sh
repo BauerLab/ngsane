@@ -55,8 +55,8 @@ module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-echo -e "--wiggler  --\n "$(align2rawsignal 2>&1 | head -n 3 | tail -n 1)
-[ -z "$(which align2rawsignal)" ] && echo "[ERROR] wiggler not detected (align2rawsignal)" && exit 1
+#echo -e "--wiggler  --\n "$(align2rawsignal 2>&1 | head -n 3 | tail -n 1)
+#[ -z "$(which align2rawsignal)" ] && echo "[ERROR] wiggler not detected (align2rawsignal)" && exit 1
 
 # get basename of f
 n=${f##*/}
@@ -77,13 +77,13 @@ fi
 # check output format
 if [ -z "$WIGGLER_OUTPUTFORMAT" ]; then
     echo "[ERROR] wiggler output format not set" && exit 1
-else if [ "$WIGGLER_OUTPUTFORMAT" ne "bg"] && [ "$WIGGLER_OUTPUTFORMAT" ne "wig"] && [ "$WIGGLER_OUTPUTFORMAT" ne "mat"]; then
+elif [ "$WIGGLER_OUTPUTFORMAT" != "bg" ] && [ "$WIGGLER_OUTPUTFORMAT" != "wig" ] && [ "$WIGGLER_OUTPUTFORMAT" != "mat" ]; then
     echo "[ERROR] wiggler output format not known" && exit 1
 fi
 
 echo "********** get input"
 for d in ${DIR[@]}; do
-    FILES=$FILES" "$( ls $OUT/$d/$TASKBOWTIE2/*$ASD.bam )
+    FILES=$FILES" "$( ls $OUT/$d/$TASKBOWTIE/*$ASD.bam )
 done
 echo $FILES
 
@@ -95,9 +95,11 @@ fi
 
 echo "********* align2rawsignal" 
 INPUTS=""
-for FILE in FILES; do
-    INPUTS="${INPUTS} -i=${$FILE}"
+for FILE in $FILES; do
+    INPUTS="${INPUTS} -i=$FILE"
 done
+
+mkdir -p ${MYOUT}
 
 RUN_COMMAND="align2rawsignal $WIGGLERADDPARAMS -of=$WIGGLER_OUTPUTFORMAT ${INPUTS} -s=${FASTA} -u=${WIGGLER_UMAPDIR} -v=${MYOUT}/wiggler-${n/$READONE/}.log -o=${MYOUT}/${n/$READONE/}.$WIGGLER_OUTPUTFORMAT -mm=$MEMORY"
 echo $RUN_COMMAND
