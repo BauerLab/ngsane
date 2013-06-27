@@ -83,7 +83,7 @@ if [ $PAIRED == "0" ]; then
 fi
 
 echo "********* makeTagDirectory" 
-RUN_COMMAND="makeTagDirectory $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_unfiltered} $f ${f/'_'$READONE/'_'$READTWO} $HOMER_HIC_TAGDIR_OPTIONS"
+RUN_COMMAND="makeTagDirectory $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_unfiltered} $f,${f/'_'$READONE/'_'$READTWO} $HOMER_HIC_TAGDIR_OPTIONS"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
@@ -107,7 +107,7 @@ eval $RUN_COMMAND
 
 echo "********* PCA clustering"
 
-RUN_COMMAND="runHiCpca pca $MYOUT $HOMER_HIC_PCA_OPTIONS -cpu $THREADS "
+RUN_COMMAND="runHiCpca.pl pca $MYOUT $HOMER_HIC_PCA_OPTIONS -cpu $THREADS "
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
