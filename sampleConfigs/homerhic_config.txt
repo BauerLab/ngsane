@@ -59,6 +59,15 @@ READTWO="R2_P1"
 
 HOMER_HIC_TAGDIR_OPTIONS="-tbp 1 -illuminaPE -genome hg19 -checkGC -restrictionSite AAGCTT -removePEbg -removeSelfLigation -removeRestrictionEnds -removeSpikes 10000 5"
 
+HOMER_HIC_BACKGROUND_OPTIONS="-bgonly -res 100000"
+
+HOMER_HIC_NORMALIZE_OPTIONS="-res 100000 -superRes 200000"
+
+HOMER_HIC_PCA_OPTIONS="-res 100000 -genome hg19"
+
+HOMER_HIC_INTERACTION_OPTIONS="-res 100000 -center"
+
+HOMER_HIC_ANNOTATE_OPTIONS="hg19"
 
 #********************
 # PARAMETER (optional overwriting defaults)

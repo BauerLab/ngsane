@@ -90,14 +90,44 @@ eval $RUN_COMMAND
 cp -r $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_unfiltered} $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered}
 
 RUN_COMMAND="makeTagDirectory $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} -update $HOMER_HIC_TAGDIR_OPTIONS"
-
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
-echo "********* analyzeHiC" 
+echo "********* create background model" 
 
+RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_BACKGROUND_OPTIONS -createModel $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt} active.model.txt -cpu $THREADS"
+echo $RUN_COMMAND
+eval $RUN_COMMAND
 
+echo "********* normalize matrices"
 
+RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_OPTIONS -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/'_'$READONE.$ASD.bam/_matrix.txt}"
+echo $RUN_COMMAND
+eval $RUN_COMMAND
+
+echo "********* PCA clustering"
+
+RUN_COMMAND="runHiCpca pca $MYOUT $HOMER_HIC_PCA_OPTIONS -cpu $THREADS "
+echo $RUN_COMMAND
+eval $RUN_COMMAND
+
+echo "********* Significant interactions"
+
+RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $THREADS "
+echo $RUN_COMMAND
+eval $RUN_COMMAND
+
+echo "********* Annotate interactions"
+
+RUN_COMMAND="annotateInteractions.pl $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions.txt} $HOMER_HIC_ANNOTATE_OPTIONS $MYOUT/${n/'_'$READONE.$ASD.bam/_annotations}"
+echo $RUN_COMMAND
+eval $RUN_COMMAND
+
+echo "********* Circos plots"
+
+RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} -res 1000000 -pvalue 1e-7 -cpu $THREADS -circos interChrom -minDist 2000000000 -nomatrix"
+echo $RUN_COMMAND
+eval $RUN_COMMAND
 
 echo ">>>>> HiC analysis with homer - FINISHED"
 echo ">>>>> enddate "`date`
