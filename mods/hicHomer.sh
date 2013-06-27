@@ -56,7 +56,7 @@ echo "PATH=$PATH"
 # best common denominator)
 echo -e "--R       --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
-echo -e "--homer   --\n "$(makeTagDirectory -version | head -n 1)
+echo -e "--homer   --\n "$(which makeTagDirectory)
 [ -z "$(which makeTagDirectory)" ] && echo "[ERROR] homer not detected" && exit 1
 
 # get basename of f
