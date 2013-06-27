@@ -204,6 +204,7 @@ if [ "$PAIRED" = "1" ]; then
 fi
 
 samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
+rm $BAMFILE.tmp.bam
 
 echo "********* reorder tophat output to match reference"
 if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
@@ -225,6 +226,7 @@ RUN_COMMAND="java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
      ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
      VALIDATION_STRINGENCY=SILENT"
 echo $RUN_COMMAND && eval $RUN_COMMAND
+rm ${BAMFILE/.bam/.samtools}.bam
 
 ##statistics
 echo "********* flagstat"
