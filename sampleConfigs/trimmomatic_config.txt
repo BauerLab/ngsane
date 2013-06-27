@@ -1,0 +1,59 @@
+# author: Fabian Buske
+# date: June 2013
+
+######################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNTRIMMOMATIC="1"    # trimming with trimmomatic
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq firectory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+# read indicator
+READONE="R1"
+READTWO="R2"
+
+# fastq file suffix
+FASTQ="fq.gz"
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# trimming steps to be perfomed, e.g. ILLUMINACLIP, SLIDINGWINDOW, LEADING,
+# TRAILING, CROP, HEADCROP, MINLEN, TOPHRED33, TOPHRED64
+# see http://www.usadellab.org/cms/index.php?page=trimmomatic for help
+TRIMMOMATICSTEPS=
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# additional trimmomatic parameters e.g. --phred33 or --phred64
+TRIMMOMATICADDPARAMS=
+
+#WALLTIME_TRIMMOMATIC=8:00:00
+#MEMORY_TRIMMOMATIC=40
+#CPU_TRIMMOMATIC=8
+#NODES_TRIMMOMATIC="nodes=1:ppn=8"
+#MODULE_TRIMMOMATIC=
+#PATH_TRIMMOMATIC=
+
+## location of ngsane
+#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+
