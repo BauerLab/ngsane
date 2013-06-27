@@ -330,8 +330,8 @@ def iterativeFiltering(genome_db, filesuffix):
 	# Truncate top 0.05% of interchromosomal counts (possibly, PCR blowouts).
 	BD.truncTrans(high=0.0005)
 
-    # Remove empty bins
-    BD.removeZeros()
+	# Remove empty bins
+	BD.removeZeros()
 
 	# Perform iterative correction.
 	BD.iterativeCorrectWithoutSS()
