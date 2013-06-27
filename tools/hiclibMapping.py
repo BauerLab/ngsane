@@ -359,7 +359,7 @@ def process():
 
 	mapped_reads = h5dict.h5dict(options.outputDir+options.experiment+'-mapped_reads.hdf5')
 	genome_db    = genome.Genome(options.genome, gapFile=options.gapFile, readChrms=['#', 'X', 'Y'])
-
+	genome_db.setEnzyme("BglII")
 	bams = []
 	if (options.inputFormat != 'bam'):
 		bams = mapFiles()
