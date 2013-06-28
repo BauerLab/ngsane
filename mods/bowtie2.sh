@@ -150,6 +150,9 @@ samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | samtools
 samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam} | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.unm}
 # merge mappend and unmapped
 samtools merge -f $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.map}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.unm}.bam 
+# remove sam files 
+rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
+rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}
 
 if [ "$PAIRED" = "1" ]; then
     # fix mates
@@ -209,8 +212,6 @@ BAMREADS=`head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}
     rm $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam}
     rm $MYOUT/${n/'_'$READONE.$FASTQ/.unm}.bam
     rm $MYOUT/${n/'_'$READONE.$FASTQ/.map}.bam

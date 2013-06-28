@@ -237,6 +237,7 @@ fi
 # continue for normal bam file conversion
 echo "********* sorting and bam-conversion"
 samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
+rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
 
 if [ "$PAIRED" = "1" ]; then
     # fix mates
@@ -299,7 +300,6 @@ BAMREADS=`head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi			
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
     rm $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam}
 else
     echo -e "***ERROR**** We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
