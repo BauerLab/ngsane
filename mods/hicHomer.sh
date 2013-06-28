@@ -31,10 +31,10 @@ THREADS=8
 #INPUTS                                                                                                           
 while [ "$1" != "" ]; do
     case $1 in
-        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
-        -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use                                      
-        -f | --bam )            shift; f=$1 ;; # bam file                                                       
-        -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
+        -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
+        -f | --bam )            shift; f=$1 ;; # bam file
+        -o | --outdir )         shift; MYOUT=$1 ;; # output dir 
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -58,6 +58,8 @@ echo -e "--R       --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--homer   --\n "$(which makeTagDirectory)
 [ -z "$(which makeTagDirectory)" ] && echo "[ERROR] homer not detected" && exit 1
+echo -e "--circos  --\n "$(circos --version)
+[ -z "$(which circos)" ] && echo "[WARN] circos not detected"
 
 # get basename of f
 n=${f##*/}
@@ -81,6 +83,10 @@ if [ $PAIRED == "0" ]; then
     echo "[ERROR] paired library required for HIC analysis"
     exit 1
 fi
+
+#homer likes to write in the current directory, so change to target
+CURDIR=$(pwd)
+cd $MYOUT
 
 echo "********* makeTagDirectory" 
 RUN_COMMAND="makeTagDirectory $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_unfiltered} $f,${f/'_'$READONE/'_'$READTWO} $HOMER_HIC_TAGDIR_OPTIONS"
@@ -107,7 +113,7 @@ eval $RUN_COMMAND
 
 echo "********* PCA clustering"
 
-RUN_COMMAND="runHiCpca.pl pca $MYOUT $HOMER_HIC_PCA_OPTIONS -cpu $THREADS "
+RUN_COMMAND="runHiCpca.pl ${n/'_'$READONE.$ASD.bam/} $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt} $HOMER_HIC_PCA_OPTIONS -cpu $THREADS "
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
@@ -123,11 +129,15 @@ RUN_COMMAND="annotateInteractions.pl $MYOUT/${n/'_'$READONE.$ASD.bam/_significan
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
-echo "********* Circos plots"
+if hash ${CIRCOS} 2>&- ; then
+    echo "********* Circos plots"
+    RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} -res 1000000 -pvalue 1e-7 -cpu $THREADS -circos ${n/'_'$READONE.$ASD.bam/} -minDist 2000000000 -nomatrix"
+    echo $RUN_COMMAND
+    eval $RUN_COMMAND
+fi
 
-RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} -res 1000000 -pvalue 1e-7 -cpu $THREADS -circos interChrom -minDist 2000000000 -nomatrix"
-echo $RUN_COMMAND
-eval $RUN_COMMAND
+# and back to where we used to be
+cd $CURDIR
 
 echo ">>>>> HiC analysis with homer - FINISHED"
 echo ">>>>> enddate "`date`
