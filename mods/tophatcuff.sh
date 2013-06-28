@@ -5,7 +5,8 @@
 # It produces output files: read alignments in .bam format and other files.
 # author: Chikako Ragan, Denis Bauer
 # date: Jan. 2011
-
+# modified by Fabian Buske and Hugh French
+# date: 2013-
 
 
 # messages to look out for -- relevant for the QC.sh script:
@@ -327,6 +328,9 @@ if [ -n "$GENCODEGTF" ]; then
 	elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-firststrand" ]; then
 	       echo "[NOTE] library is fr-firststrand; run ht seq count stranded"
 	       HT_SEQ_OPTIONS="--stranded=reverse"
+	elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-secondstrand" ]; then
+	       echo "[NOTE] library is fr-secondstrand; run ht seq count stranded"
+	       HT_SEQ_OPTIONS="--stranded=yes"
 	fi
 
 	## htseq-count 
@@ -335,8 +339,11 @@ if [ -n "$GENCODEGTF" ]; then
 	samtools fixmate $OUTDIR/accepted_hits_sorted.tmp.bam $OUTDIR/accepted_hits_sorted.bam
 	rm $OUTDIR/accepted_hits_sorted.tmp.bam
 
-	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --quiet $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}.gene
-	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
+	samtools view $OUTDIR/accepted_hits_sorted.bam -f 3 | htseq-count --quiet $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}.gene
+	samtools view $OUTDIR/accepted_hits_sorted.bam -f 3 | htseq-count --quiet --mode=intersection-strict $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_strict.gene
+	samtools view $OUTDIR/accepted_hits_sorted.bam -f 3 | htseq-count --quiet --mode=intersection-nonempty $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_nonempty.gene
+	
+#	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
     
 	echo ">>>>> Read counting with htseq count - FINISHED"
 
@@ -374,24 +381,35 @@ if [ -n "$GENCODEGTF" ]; then
 	echo ">>>>> RNA-SeQC - FINISHED"
 
 
-##make bigwigs for UCSC using gencode reads
+##make bigwigs for UCSC 
 
     echo "********* Create bigwigs"
 
     if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
 	    echo "[NOTE] make bigwigs; library is fr-unstranded "
 	    BAM2BW_OPTION_1="FALSE"
+	    BAM2BW_OPTION_2="FALSE"
     elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
 	    echo "[NOTE] make bigwigs; library is fr-firststrand "
 	    BAM2BW_OPTION_1="TRUE"
+	    BAM2BW_OPTION_2="TRUE"
+    elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-secondstrand" ]; then
+	    echo "[NOTE] make bigwigs; library is fr-secondstrand "
+	    BAM2BW_OPTION_1="TRUE"
+	    BAM2BW_OPTION_2="FALSE"	    
     fi
 
     BIGWIGSDIR=$OUTDIR/../
 
     #	echo ${BIGWIGSDIR}
 	
+	
+	#make a paired only (f -3 ) bam so bigwigs are comparable to counts.
+	samtools view -f 3 -h -b $OUTDIR/accepted_hits.bam > $OUTDIR/accepted_hits_f3.bam
+	
+	
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits.bam ${n/_$READONE.$FASTQ/} $BAM2BW_OPTION_1 $BIGWIGSDIR
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits_f3.bam ${n/_$READONE.$FASTQ/} $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
 	
 	# index accepted_hits.bam
 	samtools index $OUTDIR/accepted_hits.bam
@@ -429,9 +447,12 @@ if [ -n "$GENCODEGTF" ]; then
     samtools fixmate $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam $OUTDIR/tophat_aligned_reads_masked_sorted.bam
     rm $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam
 	
-    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count --quiet $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_masked.gene
-	
-    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}_masked.transcript
+    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam -f 3  | htseq-count --quiet $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_masked.gene
+    # add intersect
+    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam -f 3  | htseq-count --quiet --mode intersection-strict $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_masked_strict.gene
+    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam -f 3  | htseq-count --quiet --mode intersection-nonempty $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_masked_nonempty.gene
+  
+  #  samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}_masked.transcript
 
     echo "********* calculate RPKMs per Gencode Gene masked"
 
@@ -444,5 +465,9 @@ if [ -n "$GENCODEGTF" ]; then
 
     rm $OUTDIR/accepted_hits_sorted.bam
 fi
+
+    #file_arg sample_arg stranded_arg firststrand_arg paired_arg
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits_f3.bam ${n/_$READONE.$FASTQ/}_masked $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
+
 
 echo ">>>>> enddate "`date`
