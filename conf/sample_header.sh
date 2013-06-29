@@ -111,7 +111,7 @@ PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 ##############################################################
 # Bowtie2 (2.1.0) or Bowtie (1.0.0)
 # http://bowtie-bio.sourceforge.net/index.shtml
-WALLTIME_BOWTIE=10:00:00
+WALLTIME_BOWTIE=72:00:00
 MEMORY_BOWTIE=60
 CPU_BOWTIE=8
 NODES_BOWTIE="nodes=1:ppn=8"

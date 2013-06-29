@@ -43,8 +43,6 @@ options:
   -s | --rgsi <name>        read group sample RG SM prefac (default: )
   -R | --region <ps>        region of specific interest, e.g. targeted reseq
                              format chr:pos-pos
-  -S | --sam                do not convert to bam file (default confert); not the
-                             resulting sam file is not duplicate removed
   --forceSingle             run single end eventhough second read is present
 "
 exit
@@ -57,7 +55,7 @@ THREADS=8
 #EXPID="exp"           # read group identifier RD ID
 #LIBRARY="qbi"         # read group library RD LB
 #PLATFORM="illumina"   # read group platform RD PL
-DOBAM=1               # do the bam file
+
 FORCESINGLE=0
 INSERT=200
 MEMORY=2G
@@ -77,7 +75,6 @@ while [ "$1" != "" ]; do
 	-p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
 	-s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
 	-R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
-	-S | --sam )            DOBAM=0 ;;
 	
 	--forceSingle )         FORCESINGLE=1;;
 	-h | --help )           usage ;;
@@ -363,15 +360,15 @@ if [ -n "$GENCODEGTF" ]; then
 	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/ReorderSam.jar \
 		I=$OUTDIR/accepted_hits_rg.bam \
 		O=$OUTDIR/accepted_hits_rg_ro.bam \
-		R=${RNA_SeQC_HOME}/hg19.fa \
+		R=${FASTA} \
 		ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
 		ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
 		VALIDATION_STRINGENCY=SILENT"
         echo $RUN_COMMAND && eval $RUN_COMMAND
-   
+ 
 	samtools index $OUTDIR/accepted_hits_rg_ro.bam
 
-	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${RNA_SeQC_HOME}/gencode.v14.annotation.doctored.gtf  -r ${RNA_SeQC_HOME}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
+	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${GENCODEGTF}  -r ${FASTA} -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
 
 	rm $OUTDIR/accepted_hits_rg_ro.bam.bai
 	rm $OUTDIR/accepted_hits_rg_ro.bam
@@ -415,7 +412,7 @@ if [ -n "$GENCODEGTF" ]; then
 	samtools index $OUTDIR/accepted_hits.bam
 	
     echo ">>>>> make bigwigs - FINISHED"
-	
+
     echo "********* calculate RPKMs per Gencode Gene "
 	
     RPKMSSDIR=$OUTDIR/../

@@ -37,8 +37,6 @@ options:
   -p | --rgpl <name>        read group platform RD PL (default: illumna)
   -s | --rgsi <name>        read group sample RG SM prefac (default: )
   -u | --rgpu <name>        read group platform unit RG PU (default:flowcell )
-  -S | --sam                do not convert to bam file (default confert); not the
-                             resulting sam file is not duplicate removed
   --noMapping
   --fastqName               name of fastq file ending (fastq.gz)
   --oldIllumina
@@ -58,7 +56,7 @@ EXPID="exp"           # read group identifier RD ID
 LIBRARY="qbi"         # read group library RD LB
 PLATFORM="illumina"   # read group platform RD PL
 UNIT="flowcell"       # read group platform unit RG PU
-DOBAM=1               # do the bam file
+
 FORCESINGLE=0
 NOMAPPING=0
 FASTQNAME=""
@@ -80,7 +78,7 @@ while [ "$1" != "" ]; do
 	-p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
 	-s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
 	-u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU 
-        -S | --sam )            DOBAM=0 ;;
+
 	--fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
 	--noMapping )           NOMAPPING=1;;
 	--oldIllumina )         QUAL="-S";;   # old illumina encoding 1.3+
