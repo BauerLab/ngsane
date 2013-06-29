@@ -44,8 +44,8 @@ WIGGLER_OUTPUTDIR=
 # wiggler output format (one of bg, wig, mat)
 WIGGLER_OUTPUTFORMAT=wig
 
-# specify mod that generated the bam files (default Bowtie2)
-TASKBOWTIE2=TASKBOWTIE2
+# specify mod that generated the bam files (default BWA)
+#TASKBWA=TASKBOWTIE2
 
 #********************
 # PARAMETER (optional)
