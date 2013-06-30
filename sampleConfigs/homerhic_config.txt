@@ -54,8 +54,8 @@ READTWO="R2_P1"
 # PARAMETER (mandatory)
 #********************
 
-# if bwa was used to map file then set TASKBOWTIE to TASKBWA
-# TASKBOWTIE=$TASKBWA
+# if bowtie was used to map file then set TASKBWA to TASKBOWTIE
+#TASKBWA=$TASKBOWTIE
 
 HOMER_HIC_TAGDIR_OPTIONS="-tbp 1 -illuminaPE -genome hg19 -checkGC -restrictionSite AAGCTT -removePEbg -removeSelfLigation -removeRestrictionEnds -removeSpikes 10000 5"
 
