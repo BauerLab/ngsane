@@ -83,7 +83,7 @@ fi
 
 echo "********** get input"
 for d in ${DIR[@]}; do
-    FILES=$FILES" "$( ls $OUT/$d/$TASKBOWTIE/*$ASD.bam )
+    FILES=$FILES" "$( ls $OUT/$d/$TASKBWA/*$ASD.bam )
 done
 echo $FILES
 
