@@ -360,7 +360,7 @@ if [ -n "$GENCODEGTF" ]; then
 	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/ReorderSam.jar \
 		I=$OUTDIR/accepted_hits_rg.bam \
 		O=$OUTDIR/accepted_hits_rg_ro.bam \
-		R=${FASTA} \
+		R=${RNA_SeQC_HOME}/hg19.fa \
 		ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
 		ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
 		VALIDATION_STRINGENCY=SILENT"
@@ -368,7 +368,9 @@ if [ -n "$GENCODEGTF" ]; then
  
 	samtools index $OUTDIR/accepted_hits_rg_ro.bam
 
-	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${GENCODEGTF}  -r ${FASTA} -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
+	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${RNA_SeQC_HOME}/gencode.v14.annotation.doctored.gtf  -r ${RNA_SeQC_HOME}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
+
+#	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${GENCODEGTF}  -r ${FASTA} -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
 
 	rm $OUTDIR/accepted_hits_rg_ro.bam.bai
 	rm $OUTDIR/accepted_hits_rg_ro.bam
