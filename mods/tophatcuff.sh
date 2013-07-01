@@ -101,7 +101,7 @@ echo "PATH=$PATH"
 # best common denominator)
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
-echo -e "--JAVA     --\n" $(java $JAVAPARAMS -version 2>&1)a
+echo -e "--JAVA     --\n" $(java $JAVAPARAMS -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--bowtie2  --\n "$(bowtie2 --version)
 [ -z "$(which bowtie2)" ] && echo "[ERROR] no bowtie2 detected" && exit 1
@@ -302,7 +302,7 @@ else
     echo "[NOTE] non reference guided run (neither GENCODEGTF nor REFSEQGTF defined)"
     RUN_COMMAND="cufflinks --quiet --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
 fi
-#echo $RUN_COMMAND && eval $RUN_COMMAND
+echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo ">>>>> alignment with TopHat - FINISHED"
 
