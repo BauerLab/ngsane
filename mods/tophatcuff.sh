@@ -371,7 +371,9 @@ if [ -n "$GENCODEGTF" ]; then
 
 #	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${RNA_SeQC_HOME}/gencode.v14.annotation.doctored.gtf  -r ${RNA_SeQC_HOME}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
 
-	    java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${GENCODEGTF/%.gtf/.doctored.gtf}  -r ${FASTA} -o $RNASeQCDIR/ -strat gc -gc ${GENCODEGTF/%.gtf/.doctored.gtf.gc}
+	    COMMAND="java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s '${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}' -t ${GENCODEGTF/%.gtf/.doctored.gtf}  -r ${FASTA} -o $RNASeQCDIR/ -strat gc -gc ${GENCODEGTF/%.gtf/.doctored.gtf.gc}"
+	    echo $COMMAND
+	    eval $COMMAND
 
 	    rm $OUTDIR/accepted_hits_rg_ro.bam.bai $OUTDIR/accepted_hits_rg_ro.bam $OUTDIR/accepted_hits_rg.bam	
 
