@@ -11,7 +11,7 @@
 RUNTRIMMOMATIC="1"    # trimming with trimmomatic
 
 #********************
-# Paths
+# PARAMETER (mandatory)
 #********************
 SOURCE=$(pwd)
 
@@ -31,10 +31,6 @@ READTWO="R2"
 # fastq file suffix
 FASTQ="fq.gz"
 
-#********************
-# PARAMETER (mandatory)
-#********************
-
 # trimming steps to be perfomed, e.g. ILLUMINACLIP, SLIDINGWINDOW, LEADING,
 # TRAILING, CROP, HEADCROP, MINLEN, TOPHRED33, TOPHRED64
 # see http://www.usadellab.org/cms/index.php?page=trimmomatic for help
@@ -45,7 +41,7 @@ TRIMMOMATICSTEPS=
 #********************
 
 # additional trimmomatic parameters e.g. --phred33 or --phred64
-TRIMMOMATICADDPARAMS=
+TRIMMOMATICADDPARAM=
 
 #WALLTIME_TRIMMOMATIC=8:00:00
 #MEMORY_TRIMMOMATIC=40
