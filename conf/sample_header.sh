@@ -131,8 +131,8 @@ BOWTIE_INDEX=
 # https://sites.google.com/site/anshulkundaje/projects/wiggler
 WALLTIME_WIGGLER=10:00:00
 MEMORY_WIGGLER=60
-CPU_WIGGLER=8
-NODES_WIGGLER="nodes=1:ppn=8"
+CPU_WIGGLER=1
+NODES_WIGGLER="nodes=1:ppn=1"
 
 MODULE_WIGGLER=
 PATH_WIGGLER=
