@@ -103,6 +103,7 @@ echo "PATH=$PATH"
 # best common denominator)
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
+PATH_RNASEQC=$(dirname $(which RNA-SeQC.jar))
 echo -e "--JAVA     --\n" $(java $JAVAPARAMS -version 2>&1)a
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--bowtie2  --\n "$(bowtie2 --version)
@@ -120,7 +121,9 @@ echo -e "--samstat  --\n "$(samstat -h | head -n 2 | tail -n1)
 echo -e "--bedtools --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 echo -e "--htSeq    --\n "$(htseq-count | tail -n 1)
-[ -z "$(which htseq-count)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no htseq-count detected" && exit 1
+[ -z "$(which htseq-count)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no htseq-count or GENCODEGTF detected" && exit 1
+echo -e "--RNA_SeQC    --\n "$(java -jar $JAVAPARAMS $PATH_RNASEQC/RNA-SeQC.jar 2>&1 | head -n 2 )
+[ -z "$(which htseq-count)" ] && echo "[ERROR] no RNA_SeQC detected" && exit 1
 
 #SAMPLENAME
 # get basename of f
@@ -187,7 +190,6 @@ else
 fi
 
 
-
 RUN_COMMAND="tophat $TOPHAT_OPTIONS --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
 echo $RUN_COMMAND && eval $RUN_COMMAND
 
@@ -204,6 +206,7 @@ if [ "$PAIRED" = "1" ]; then
 fi
 
 samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
+rm $BAMFILE.tmp.bam
 
 echo "********* reorder tophat output to match reference"
 if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
@@ -225,6 +228,7 @@ RUN_COMMAND="java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
      ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
      VALIDATION_STRINGENCY=SILENT"
 echo $RUN_COMMAND && eval $RUN_COMMAND
+rm ${BAMFILE/.bam/.samtools}.bam
 
 ##statistics
 echo "********* flagstat"
@@ -306,6 +310,7 @@ echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo ">>>>> alignment with TopHat - FINISHED"
 
+
 # add Gencode GTF if present 
 if [ -n "$GENCODEGTF" ]; then 
 	echo "********* htseq-count"
@@ -351,27 +356,29 @@ if [ -n "$GENCODEGTF" ]; then
 	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
 		I=$OUTDIR/accepted_hits.bam \
 		O=$OUTDIR/accepted_hits_rg.bam \
-		LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID"
+		LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID \
+	        VALIDATION_STRINGENCY=SILENT"
 	echo $RUN_COMMAND && eval $RUN_COMMAND
 
 	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/ReorderSam.jar \
 		I=$OUTDIR/accepted_hits_rg.bam \
 		O=$OUTDIR/accepted_hits_rg_ro.bam \
-		R=${RNA_SeQC_HOME}/hg19.fa \
+		R=${PATH_RNASEQC}/hg19.fa \
 		ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
 		ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
-		VALIDATION_STRINGENCY=SILENT"
+		VALIDATION_STRINGENCY=SILENT \
+                QUIET=TRUE"
         echo $RUN_COMMAND && eval $RUN_COMMAND
    
 	samtools index $OUTDIR/accepted_hits_rg_ro.bam
 
-	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${RNA_SeQC_HOME}/gencode.v14.annotation.doctored.gtf  -r ${RNA_SeQC_HOME}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
+	java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${PATH_RNASEQC}/gencode.v14.annotation.doctored.gtf  -r ${PATH_RNASEQC}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${PATH_RNASEQC}/gencode.v14.annotation.gtf.gc # -BWArRNA ${PATH_RNASEQC}/human_all_rRNA.fasta
 
 	rm $OUTDIR/accepted_hits_rg_ro.bam.bai
 	rm $OUTDIR/accepted_hits_rg_ro.bam
 	rm $OUTDIR/accepted_hits_rg.bam
 	
-	tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR
+	#tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR
 	echo ">>>>> RNA-SeQC - FINISHED"
 
 

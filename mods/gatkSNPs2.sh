@@ -88,7 +88,7 @@ echo -e "--GATK  --\n "$(java -jar $JAVAPARAMS $PATH_GATK/GenomeAnalysisTK.jar -
 
 if [ -n $DMGET ]; then dmget -a ${FILES//,/ }; fi
 
-if [ ! -d $MYOUT ]; then mkdir $MYOUT; fi
+if [ ! -d $MYOUT ]; then mkdir -p $MYOUT; fi
 
 if [ -n "$CALLSNPS" ]; then
 
