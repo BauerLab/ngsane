@@ -302,7 +302,7 @@ else
     echo "[NOTE] non reference guided run (neither GENCODEGTF nor REFSEQGTF defined)"
     RUN_COMMAND="cufflinks --quiet --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
 fi
-echo $RUN_COMMAND && eval $RUN_COMMAND
+#echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo ">>>>> alignment with TopHat - FINISHED"
 
@@ -346,7 +346,7 @@ if [ -n "$GENCODEGTF" ]; then
 
 ##run RNA-SeQC
 
-	if [ -f ${GENCODEGTF/%.gtf/.doctored.gtf} && -f ${GENCODEGTF/%.gtf/.doctored.gtf.gc} ]; then
+	if [ -f ${GENCODEGTF/%.gtf/.doctored.gtf} ] && [ -f ${GENCODEGTF/%.gtf/.doctored.gtf.gc} ] ; then
 	    echo "********* RNA-SeQC"
 	
 	    RNASeQCDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_RNASeQC}
@@ -433,9 +433,8 @@ if [ -n "$GENCODEGTF" ]; then
     grep -P "gene_type \"tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
     grep -P "gene_type \"Mt_tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
     grep -P "gene_type \"Mt_rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-	grep -P "gene_type \"pseudogene\"" $GENCODEGTF | grep -P RNA18S5  >> $OUTDIR/mask.gff
-	grep -P "gene_type \"pseudogene\"" $GENCODEGTF | grep -P RNA28S5  >> $OUTDIR/mask.gff
-	
+    grep -P "gene_type \"pseudogene\"" $GENCODEGTF | grep -P RNA18S5  >> $OUTDIR/mask.gff
+    grep -P "gene_type \"pseudogene\"" $GENCODEGTF | grep -P RNA28S5  >> $OUTDIR/mask.gff
 	        
     intersectBed -v -abam $OUTDIR/accepted_hits.bam -b $OUTDIR/mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
 	    
