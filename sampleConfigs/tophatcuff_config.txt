@@ -53,6 +53,9 @@ PLATFORM="Illumina"
 # PARAMETER (optional overwriting defaults)
 #********************
 
+## additional parameters for tophat
+#TOPHAT_OPTIONS=""
+
 ## If next line is commented HT-Seq-count will not run.
 #Specify one or another.
 #GENCODEGTF=/share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.gtf
