@@ -49,10 +49,7 @@ options:
 exit
 }
 
-
 if [ ! $# -gt 3 ]; then usage ; fi
-
-
 
 #DEFAULTS
 MYTHREADS=1
@@ -65,7 +62,6 @@ FORCESINGLE=0
 NOMAPPING=0
 FASTQNAME=""
 QUAL="" # standard Sanger
-
 
 #INPUTS
 while [ "$1" != "" ]; do
@@ -181,10 +177,10 @@ if [ "$PAIRED" = 1 ]
 then
     if [ "$NOMAPPING" = 0 ]; then
        echo "********* PAIRED READS"
-       bwa aln $QUAL -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
-       bwa aln $QUAL -t $MYTHREADS $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
+       bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
+       bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
        bwa sampe $FASTA $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} \
-   	-r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
+   	$BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
 	$f ${f/$READONE/$READTWO} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam}
 
        rm $MYOUT/${n/$FASTQ/sai}
@@ -196,9 +192,9 @@ then
 # Single read
 else
     echo "********* SINGLE READS"
-    bwa aln $QUAL -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
+    bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
 
-    bwa samse $FASTA $MYOUT/${n/$FASTQ/sai} \
+    bwa samse $FASTA $MYOUT/${n/$FASTQ/sai} $BWASAMPLEADDPARAM \
 	-r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
 	$f | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam}
 

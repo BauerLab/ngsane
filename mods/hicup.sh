@@ -32,11 +32,6 @@ required:
 options:
   -t | --threads <nr>       number of CPUs to use (default: 1)
   -m | --memory <nr>        memory available (default: 2)
-  -i | --rgid <name>        read group identifier RD ID (default: exp)
-  -l | --rglb <name>        read group library RD LB (default: qbi)
-  -p | --rgpl <name>        read group platform RD PL (default: illumna)
-  -s | --rgsi <name>        read group sample RG SM prefac (default: )
-  -u | --rgpu <name>        read group platform unit RG PU (default:flowcell )
   --noMapping
   --fastqName               name of fastq file ending (fastq.gz)
   --oldIllumina
@@ -52,16 +47,7 @@ if [ ! $# -gt 3 ]; then usage ; fi
 #DEFAULTS
 MYTHREADS=1
 MYMEMORY=2
-EXPID="exp"           # read group identifier RD ID
-LIBRARY="qbi"         # read group library RD LB
-PLATFORM="illumina"   # read group platform RD PL
-UNIT="flowcell"       # read group platform unit RG PU
-
-FORCESINGLE=0
-NOMAPPING=0
 FASTQNAME=""
-QUAL="" # standard Sanger
-
 
 #INPUTS
 while [ "$1" != "" ]; do
@@ -73,15 +59,7 @@ while [ "$1" != "" ]; do
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
 	-d | --digest )         shift; DIGEST=$1 ;; # digestion patterns
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir
-	-i | --rgid )           shift; EXPID=$1 ;; # read group identifier RD ID
-	-l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB
-	-p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
-	-s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
-	-u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU 
-
 	--fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
-	--noMapping )           NOMAPPING=1;;
-	--oldIllumina )         QUAL="-S";;   # old illumina encoding 1.3+
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac

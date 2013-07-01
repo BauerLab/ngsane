@@ -8,11 +8,13 @@
 #********************
 # Tasks
 #********************
+
 RUNMAPPINGBWA2="1"     # mapping with bwa
 
 #********************
-# Paths
+# PARAMETER (mandatory)
 #********************
+
 SOURCE=$(pwd)
 
 # which files to run on (replace sample with folders within fastq firectory)
@@ -35,9 +37,6 @@ FASTQ="fq.gz"
 # reference genome
 FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
 
-#********************
-# PARAMETER (mandatory)
-#********************
 EXPID="Celltype"
 LIBRARY="RNAseq"
 PLATFORM="Illumina"
@@ -45,6 +44,11 @@ PLATFORM="Illumina"
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
+
+## additional bwa parameters
+#BWAALNADDPARAM=
+#BWASAMPLEADDPARAM=
+
 #WALLTIME_BWA=50:00:00
 #MEMORY_BWA=50
 #CPU_BWA=32

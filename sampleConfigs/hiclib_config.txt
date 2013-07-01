@@ -11,8 +11,9 @@
 RUNHICLIB="1"        # map HiC data with hiclib
 
 #********************
-# Paths
+# PARAMETER (mandatory)
 #********************
+
 SOURCE=$(pwd)
 
 # which files to run on (replace sample with folders within fastq firectory)
@@ -37,13 +38,6 @@ FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sap
 
 # bowtie v2.0 index including basename
 BOWTIE2_INDEX=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome
-
-#********************
-# PARAMETER (mandatory)
-#********************
-EXPID="LnCap"
-LIBRARY="HiC"
-PLATFORM="Illumina"
 
 HICLIB_GAPFILE= #/share/ClusterShare/software/contrib/fabbus/hiclib/30_04_13/hiclib/hg19.gap.txt
 HICLIB_RENZYMES="HindIII"

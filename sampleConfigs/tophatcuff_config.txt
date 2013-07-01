@@ -15,6 +15,10 @@ RUNTOPHATCUFF2="1"    # mapping with tophat (RNAseq)
 #********************
 SOURCE=$(pwd)
 
+#********************
+## PARAMETER (mandatory)
+##********************
+
 # which files to run on (replace sample with folders within fastq firectory)
 declare -a DIR; DIR=( sample1 sample2 )
 
@@ -36,15 +40,9 @@ FASTQ="fq.gz"
 FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
 
 #specify library type for tophat.
+# choose "fr-firststrand" "fr-unstranded" "fr-secondstrand"
 RNA_SEQ_LIBRARY_TYPE="fr-firststrand"
-#at the moment choose "fr-firststrand" "fr-unstranded"
 
-# bowtie v2.0 index including basename
-# BOWTIE2_INDEX=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome
-
-#********************
-# PARAMETER (mandatory)
-#********************
 EXPID="Celltype"
 LIBRARY="RNAseq"
 PLATFORM="Illumina"
@@ -54,15 +52,16 @@ PLATFORM="Illumina"
 #********************
 
 ## additional parameters for tophat
-#TOPHAT_OPTIONS=""
+TOPHATADDPARAM=
 
-## If next line is commented HT-Seq-count will not run.
-#Specify one or another.
-#GENCODEGTF=/share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.gtf
+## HT-Seq-count runs only if a GENCODEGTF is specified and an extended version is available at the same location. 
+## e.g. gencode.v14.annotation.gtf and gencode.v14.annotation.doctored.gtf 
+## see https://bitbucket.org/allpowerde/gtf_doctor for more informations 
+## ATTENTION: make sure the GTF file matches your genome assembly (chr naming)
+#GENCODEGTF=/share/ClusterShare/biodata/contrib/GENCODE_doctored/release_14/gencode.v14.annotation.gtf
+
+# Alternatively use REFSEQ
 #REFSEQGTF=
-
-
-
 
 #WALLTIME_TOPHAT=60:00:00
 #MEMORY_TOPHAT=50

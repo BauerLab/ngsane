@@ -186,7 +186,7 @@ fi
 
 
 
-RUN_COMMAND="tophat $TOPHAT_OPTIONS --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
+RUN_COMMAND="tophat $TOPHATADDPARAM --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
 echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo "********* merge mapped and unmapped"
@@ -346,39 +346,38 @@ if [ -n "$GENCODEGTF" ]; then
 
 ##run RNA-SeQC
 
-	echo "********* RNA-SeQC"
+	if [ -f ${GENCODEGTF/%.gtf/.doctored.gtf} && -f ${GENCODEGTF/%.gtf/.doctored.gtf.gc} ]; then
+	    echo "********* RNA-SeQC"
 	
-	RNASeQCDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_RNASeQC}
-	mkdir -p $RNASeQCDIR
+	    RNASeQCDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_RNASeQC}
+	    mkdir -p $RNASeQCDIR
 	
-	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
+	    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
 		I=$OUTDIR/accepted_hits.bam \
 		O=$OUTDIR/accepted_hits_rg.bam \
 		LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID"
-	echo $RUN_COMMAND && eval $RUN_COMMAND
+	    echo $RUN_COMMAND && eval $RUN_COMMAND
 
-	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/ReorderSam.jar \
+	    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/ReorderSam.jar \
 		I=$OUTDIR/accepted_hits_rg.bam \
 		O=$OUTDIR/accepted_hits_rg_ro.bam \
-		R=${RNA_SeQC_HOME}/hg19.fa \
+		R=$FASTA \
 		ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
 		ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
 		VALIDATION_STRINGENCY=SILENT"
-        echo $RUN_COMMAND && eval $RUN_COMMAND
+            echo $RUN_COMMAND && eval $RUN_COMMAND
  
-	samtools index $OUTDIR/accepted_hits_rg_ro.bam
+	    samtools index $OUTDIR/accepted_hits_rg_ro.bam
 
-	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${RNA_SeQC_HOME}/gencode.v14.annotation.doctored.gtf  -r ${RNA_SeQC_HOME}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
+#	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${RNA_SeQC_HOME}/gencode.v14.annotation.doctored.gtf  -r ${RNA_SeQC_HOME}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
 
-#	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${GENCODEGTF}  -r ${FASTA} -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
+	    java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${GENCODEGTF/%.gtf/.doctored.gtf}  -r ${FASTA} -o $RNASeQCDIR/ -strat gc -gc ${GENCODEGTF/%.gtf/.doctored.gtf.gc}
 
-	rm $OUTDIR/accepted_hits_rg_ro.bam.bai
-	rm $OUTDIR/accepted_hits_rg_ro.bam
-	rm $OUTDIR/accepted_hits_rg.bam
-	
-	tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR
-	echo ">>>>> RNA-SeQC - FINISHED"
+	    rm $OUTDIR/accepted_hits_rg_ro.bam.bai $OUTDIR/accepted_hits_rg_ro.bam $OUTDIR/accepted_hits_rg.bam	
 
+	    tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR
+	    echo ">>>>> RNA-SeQC - FINISHED"
+    fi
 
 ##make bigwigs for UCSC 
 
