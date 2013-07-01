@@ -433,6 +433,8 @@ if [ -n "$GENCODEGTF" ]; then
     grep -P "gene_type \"tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
     grep -P "gene_type \"Mt_tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
     grep -P "gene_type \"Mt_rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
+	grep -P "gene_type \"pseudogene\"" $GENCODEGTF | grep -P RNA18S5  >> $OUTDIR/mask.gff
+	grep -P "gene_type \"pseudogene\"" $GENCODEGTF | grep -P RNA28S5  >> $OUTDIR/mask.gff
 	
 	        
     intersectBed -v -abam $OUTDIR/accepted_hits.bam -b $OUTDIR/mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
