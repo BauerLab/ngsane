@@ -113,7 +113,7 @@ eval $RUN_COMMAND
 
 echo "********* PCA clustering"
 
-RUN_COMMAND="runHiCpca.pl ${n/'_'$READONE.$ASD.bam/} $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt} $HOMER_HIC_PCA_OPTIONS -cpu $THREADS "
+RUN_COMMAND="runHiCpca.pl ${n/'_'$READONE.$ASD.bam/} $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_PCA_OPTIONS -cpu $THREADS "
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
