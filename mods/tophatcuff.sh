@@ -417,15 +417,7 @@ if [ -n "$GENCODEGTF" ]; then
     echo "********* Create filtered bamfile "      
 	
     ##remove r_RNA and create counts.
-    grep -P "gene_type \"rRNA\"" $GENCODEGTF > $OUTDIR/mask.gff
-    grep -P "gene_type \"Mt_tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
-    grep -P "gene_type \"Mt_rRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
-    grep -P "gene_type \"tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
-    grep -P "gene_type \"rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-    grep -P "gene_type \"tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-    grep -P "gene_type \"Mt_tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-    grep -P "gene_type \"Mt_rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-	
+	python extractFeature.py -f $GENCODEGTF --keep rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene > $OUTDIR/mask.gff
 	        
     intersectBed -v -abam $OUTDIR/accepted_hits.bam -b $OUTDIR/mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
 	    
