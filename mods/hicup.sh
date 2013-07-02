@@ -32,13 +32,6 @@ required:
 options:
   -t | --threads <nr>       number of CPUs to use (default: 1)
   -m | --memory <nr>        memory available (default: 2)
-  -i | --rgid <name>        read group identifier RD ID (default: exp)
-  -l | --rglb <name>        read group library RD LB (default: qbi)
-  -p | --rgpl <name>        read group platform RD PL (default: illumna)
-  -s | --rgsi <name>        read group sample RG SM prefac (default: )
-  -u | --rgpu <name>        read group platform unit RG PU (default:flowcell )
-  -S | --sam                do not convert to bam file (default confert); not the
-                             resulting sam file is not duplicate removed
   --noMapping
   --fastqName               name of fastq file ending (fastq.gz)
   --oldIllumina
@@ -54,16 +47,7 @@ if [ ! $# -gt 3 ]; then usage ; fi
 #DEFAULTS
 MYTHREADS=1
 MYMEMORY=2
-EXPID="exp"           # read group identifier RD ID
-LIBRARY="qbi"         # read group library RD LB
-PLATFORM="illumina"   # read group platform RD PL
-UNIT="flowcell"       # read group platform unit RG PU
-DOBAM=1               # do the bam file
-FORCESINGLE=0
-NOMAPPING=0
 FASTQNAME=""
-QUAL="" # standard Sanger
-
 
 #INPUTS
 while [ "$1" != "" ]; do
@@ -75,15 +59,7 @@ while [ "$1" != "" ]; do
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
 	-d | --digest )         shift; DIGEST=$1 ;; # digestion patterns
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir
-	-i | --rgid )           shift; EXPID=$1 ;; # read group identifier RD ID
-	-l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB
-	-p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
-	-s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
-	-u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU 
-        -S | --sam )            DOBAM=0 ;;
 	--fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
-	--noMapping )           NOMAPPING=1;;
-	--oldIllumina )         QUAL="-S";;   # old illumina encoding 1.3+
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -239,8 +215,8 @@ cd $MYOUT
 python $(which fit-hi-c.py) --mappabilityThres=2 --fragments=$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam.fragmentLists --interactions=$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam.contactCounts --lib=${n/'_'$READONE.$FASTQ/}
 cd $CURDIR
 
-awk '$7<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.significances.txt > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.q05.txt
-awk '$7<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.significances.txt > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.q05.txt
+awk '$7<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.significances.txt | sort -k7g > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.q05.txt
+awk '$7<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.significances.txt | sort -k7g > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.q05.txt
 
 $GZIP $MYOUT/${n/'_'$READONE.$FASTQ/}*.significances.txt
 

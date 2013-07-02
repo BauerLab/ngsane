@@ -147,12 +147,12 @@ RG="--sam-RG \"ID:$EXPID\" --sam-RG \"SM:$FULLSAMPLEID\" --sam-RG \"LB:$LIBRARY\
 $GZIP -t $f 2>/dev/null
 if [[ $? -eq 0 ]] && [ $PAIRED == "0" ]; then
     # pipe gzipped fastqs into bowtie
-    RUN_COMMAND="$GZIP -dc $f | bowtie $RG --tryhard --best --strata --time --threads $THREADS -v 3 -m 1 --un $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}"
+    RUN_COMMAND="$GZIP -dc $f | bowtie $RG $BOWTIEADDPARAM --tryhard --best --strata --time --threads $THREADS -v 3 -m 1 --un $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}"
 else
     echo "[NOTE] unzip fastq files"
     $GZIP -cd $f > $f.unzipped
     $GZIP -cd ${f/$READONE/$READTWO} > ${f/$READONE/$READTWO}.unzipped
-    RUN_COMMAND="bowtie $RG --tryhard --best --strata --time --threads $THREADS -v 3 -m 1 --un $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $f.unzipped -2 ${f/$READONE/$READTWO}.unzipped $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}"
+    RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM --tryhard --best --strata --time --threads $THREADS -v 3 -m 1 --un $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $f.unzipped -2 ${f/$READONE/$READTWO}.unzipped $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}"
 fi
 echo $RUN_COMMAND
 eval $RUN_COMMAND
@@ -223,6 +223,8 @@ rm -f $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL*.fq}
 # continue for normal bam file conversion                                                                         
 echo "********* sorting and bam-conversion"
 samtools view -Sbt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} > $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam}
+rm -f $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
+
 samtools sort $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
 
 if [ "$PAIRED" = "1" ]; then
@@ -292,7 +294,6 @@ BAMREADS=$(head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " 
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-    rm -f $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
     rm -f $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam}
 else
     echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"

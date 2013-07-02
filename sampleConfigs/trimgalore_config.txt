@@ -11,7 +11,7 @@
 RUNTRIMGALORE="1"    # adapter trimming with trimgalore
 
 #********************
-# Paths
+# PARAMETER (mandatory)
 #********************
 SOURCE=$(pwd)
 
@@ -32,15 +32,13 @@ READTWO="R2"
 FASTQ="fq.gz"
 
 #********************
-# PARAMETER (mandatory)
-#********************
-
-#********************
 # PARAMETER (optional overwriting defaults)
 #********************
 TRIMGALORE_ADAPTER1=
 TRIMGALORE_ADAPTER2=
-TRIMGALORE_OPTIONS=
+
+## additional trimgalore parameters e.g. --phred33 or --phred64
+TRIMGALOREADDPARAM=
 
 #WALLTIME_TRIMGALORE=4:00:00
 #MEMORY_TRIMGALORE=40

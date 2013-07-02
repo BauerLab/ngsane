@@ -1,5 +1,5 @@
 # author: Fabian Buske
-# date: May 2013
+# date: June 2013
 
 ######################################
 # Resources
@@ -8,13 +8,11 @@
 #********************
 # Tasks
 #********************
-
-RUNMAPPINGBWA2="1"     # mapping with bwa
+RUNTRIMMOMATIC="1"    # trimming with trimmomatic
 
 #********************
 # PARAMETER (mandatory)
 #********************
-
 SOURCE=$(pwd)
 
 # which files to run on (replace sample with folders within fastq firectory)
@@ -32,31 +30,26 @@ READTWO="R2"
 
 # fastq file suffix
 FASTQ="fq.gz"
-# which files to run on (replace samples with folders within fastq firectory)
 
-# reference genome
-FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
-
-EXPID="Celltype"
-LIBRARY="RNAseq"
-PLATFORM="Illumina"
+# trimming steps to be perfomed, e.g. ILLUMINACLIP, SLIDINGWINDOW, LEADING,
+# TRAILING, CROP, HEADCROP, MINLEN, TOPHRED33, TOPHRED64
+# see http://www.usadellab.org/cms/index.php?page=trimmomatic for help
+TRIMMOMATICSTEPS=
 
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
 
-## additional bwa parameters
-#BWAALNADDPARAM=
-#BWASAMPLEADDPARAM=
+# additional trimmomatic parameters e.g. --phred33 or --phred64
+TRIMMOMATICADDPARAM=
 
-#WALLTIME_BWA=50:00:00
-#MEMORY_BWA=50
-#CPU_BWA=32
-#NODES_BWA="nodes=4:ppn=8"
-#MODULE_BWA=
-#PATH_BWA=
+#WALLTIME_TRIMMOMATIC=8:00:00
+#MEMORY_TRIMMOMATIC=40
+#CPU_TRIMMOMATIC=1
+#NODES_TRIMMOMATIC="nodes=1:ppn=1"
+#MODULE_TRIMMOMATIC=
+#PATH_TRIMMOMATIC=
 
 ## location of ngsane
 #NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
-
 

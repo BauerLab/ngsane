@@ -64,6 +64,14 @@ if [ -n "$ADDITIONALTASK" ]; then
     elif [ "$ADDITIONALTASK" = "armed" ]; then
 	    echo ">>>>>>>>>> $ADDITIONALTASK"
 	    ARMED="--armed"
+            echo -n "Double check! Then type 'safetyoff' and hit enter to launch the job: "
+            read safetyoff
+            if [ "$safetyoff" != "safetyoff" ];then
+                echo "Holstering..."
+                exit 0
+            else
+                echo "... take cover!"
+            fi
     elif [ "$ADDITIONALTASK" = "keep" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--keep"
@@ -100,8 +108,8 @@ if [ ! -d $TMP ]; then mkdir -p $TMP; fi
 ############################################
 #   FastQC summary of fastq files
 #
-# IN:$SOURCE/$dir/fastq/*read1.fastq
-# OUT: $OUT/$dir/bwa/*.$ASD.bam
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $OUT/runstats/fastQC/*
 ############################################
 
 if [ -n "$RUNFASTQC" ]; then
@@ -115,8 +123,8 @@ fi
 ############################################
 #   CUTADAPT remove contaminants
 #
-# IN:$SOURCE/$dir/fastq/*read1.fastq
-# OUT:$SOURCE/$dir/fastq_trim/*read1.fastq
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $SOURCE/fastq/$dir_cutadapt/*read1.fastq
 ############################################
 
 if [ -n "$RUNCUTADAPT" ]; then
@@ -130,21 +138,21 @@ fi
 ############################################
 #   TRIMMOMATIC remove contaminants
 #
-# IN:$SOURCE/$dir/fastq/*read1.fastq
-# OUT:$SOURCE/$dir/fastq_trim/*read1.fastq
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $SOURCE/fastq/$dir_trimmomatic/*read1.fastq
 ############################################
 
-if [ -n "$RUNTRIMAT" ]; then
-    $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMAT -i fastq -e "_"$READONE.$FASTQ -n $NODES_TRIMAT \
-        -c $CPU_TRIMAT -m $MEMORY_TRIMAT"G" -w $WALLTIME_TRIMAT \
+if [ -n "$RUNTRIMMOMATIC" ]; then
+    $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMMOMATIC -i fastq -e "_"$READONE.$FASTQ -n $NODES_TRIMMOMATIC \
+        -c $CPU_TRIMMOMATIC -m $MEMORY_TRIMMOMATIC"G" -w $WALLTIME_TRIMMOMATIC \
         --command "$NGSANE_BASE/mods/trimmomatic.sh -k $CONFIG -f <FILE>"
 fi
 
 ############################################
 #   TRIMGALORE remove contaminants
 #
-# IN:$SOURCE/$dir/fastq/*read1.fastq
-# OUT:$SOURCE/$dir/fastq_trim/*read1.fastq
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $SOURCE/fastq/$dir_trimgalore/*read1.fastq
 ############################################ 
 if [ -n "$RUNTRIMGALORE" ]; then
     if [ -z "$TASKTRIMGALORE" ] || [ -z "$NODES_TRIMGALORE" ] || [ -z "$CPU_TRIMGALORE" ] || [ -z "$MEMORY_TRIMGALORE" ] || [ -z "$WALLTIME_TRIMGALORE" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
@@ -155,8 +163,8 @@ if [ -n "$RUNTRIMGALORE" ]; then
 fi
 
 ############################################ 
-# IN */bwa/*.bam
-# OUT */bwa/*.ann
+# IN : */bwa/*.bam
+# OUT: */bwa/*.ann
 ############################################ 
 if [ -n "$RUNANNOTATINGBAM" ]; then
     if [ -z "$TASKBWA" ] || [ -z "$NODES_BAMANN" ] || [ -z "$CPU_BAMANN" ] || [ -z "$MEMORY_BAMANN" ] || [ -z "$WALLTIME_BAMANN" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
@@ -190,7 +198,7 @@ if [ -n "$RUNHICUP" ]; then
     
     $QSUB $ARMED -k $CONFIG -t $TASKHICUP -i fastq -e "_"$READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
     	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP \
-        --command "${NGSANE_BASE}/mods/hicup.sh $HICUPADDPARM -k $CONFIG -t $CPU_HICUP -m $(expr $MEMORY_HICUP - 1 ) -f <FILE> -r $FASTA --digest '$HICUP_RENZYMES' -o $OUT/<DIR>/$TASKHICUP --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
+        --command "${NGSANE_BASE}/mods/hicup.sh $HICUPADDPARM -k $CONFIG -t $CPU_HICUP -m $(expr $MEMORY_HICUP - 1 ) -f <FILE> -r $FASTA --digest '$HICUP_RENZYMES' -o $OUT/<DIR>/$TASKHICUP --fastqName <NAME>"
 fi
 
 ############################################
@@ -260,87 +268,31 @@ if [ -n "$RUNMAPPINGBOWTIE2" ]; then
         --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
 fi
 
-
 ############################################
-#   FASTXTOOLKIT based trimming to a certain length
+#  Analysis with homer
+#
+# IN: $SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/homerhic/
 ############################################
-
-if [ -n "$RUNTRIMMING" ]
-then
-
-    TASKTRIMMING="fastxtrim"
-    echo "********* $TASKTRIMMING"
-
-    for dir in ${DIR[@]}; do
-
-      if [ ! -d $QOUT/$TASKTRIMMING ]; then mkdir -p $QOUT/$TASKTRIMMING; fi
-      if [ ! -d $OUT/fastq/$dir$TRIMLENGTH ]; then mkdir -p $OUT/fastq/$dir$TRIMLENGTH; fi
-
-      for f in $( ls $SOURCE/fastq/$dir/*$FASTQ ); do
-	  n=`basename $f`
-	  NAME=$dir"_"$n
-	  echo $NAME
-
-	  if [ -e $QOUT/$TASKTRIMMING/$NAME.out ]; then rm $QOUT/$TASKTRIMMING/$NAME.out; fi
-
-          # run trimmer -z for gz output
-	  if [ -n "$ARMED" ]; then
-	      if [ $FASTQ=="fastq.gz" ]; then
-		  echo "gunzip -c $f >${f/.gz/}" >$f.tmp
-		  echo "rm $f.tmp" >>$f.tmp
-		  chmod -u=rwx $f.tmp
-		  qsub $PRIORITY -j y -o $QOUT/$TASKTRIMMING/$NAME.out -cwd -b y -N "unzip_"$NAME \
-		      $f.tmp
-		  HOLD="-hold_jid unzip_"$NAME
-		  f=${f/.gz/}
-		  n=${n/.gz/}
-	      fi
-	      qsub $PRIORITY -j y -o $QOUT/$TASKTRIMMING/$NAME.out -cwd -b y -N $TASKTRIMMING"_"$NAME $HOLD\
-		  $FASTXTK/fastx_trimmer -f 1 -l $TRIMLENGTH -i $f -o $OUT/fastq/$dir$TRIMLENGTH/$n -Q 33
-
-	      if [ -n "$ZIPAGAIN" ]; then
-		  qsub $PRIORITY -j y -o $QOUT/$TASKTRIMMING/$NAME.out -cwd -b y -N "zip_"$NAME -hold_jid $TASKTRIMMING"_"$NAME $HOLD\
-	               gzip $OUT/fastq/$dir$TRIMLENGTH/$n
-	      fi
-
-	  fi
-      done
-  done
-
+if [ -n "$RUNHOMERHIC" ]; then
+    if [ -z "$TASKHOMERHIC" ] || [ -z "$NODES_HOMERHIC" ] || [ -z "$CPU_HOMERHIC" ] || [ -z "$MEMORY_HOMERHIC" ] || [ -z "$WALLTIME_HOMERHIC" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERHIC -i $TASKBWA -e "_"$READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
+	--command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -t $CPU_HOMERHIC -f <FILE> -o $OUT/<DIR>/$TASKHOMERHIC"
 fi
 
 ############################################
-#   FASTXTOOLKIT based trimming to a certain length
+#  Creating normalized (wig) files with wiggler
+#
+# IN: $SOURCE/<DIR>/bowtie/*.bam
+# OUT: $OUT/$dir/wiggler/
 ############################################
+if [ -n "$RUNWIGGLER" ]; then
+    if [ -z "$TASKWIGGLER" ] || [ -z "$NODES_WIGGLER" ] || [ -z "$CPU_WIGGLER" ] || [ -z "$MEMORY_WIGGLER" ] || [ -z "$WALLTIME_WIGGLER" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
-if [ -n "$RUNCUSTOMPLEX" ]
-then
-    TASKCUSTOMPLEX="cdmult"
-    echo "********* $TASKCUSTOMPLEX"
-    for dir in ${DIR[@]}; do
-
-      if [ ! -d $QOUT/$TASKCUSTOMPLEX ]; then mkdir -p $QOUT/$TASKCUSTOMPLEX; fi
-      if [ ! -d $OUT/fastq/$dir$TASKCUSTOMPLEX ]; then mkdir -p $OUT/fastq/$dir$TASKCUSTOMPLEX; fi
-
-      for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ ); do
-	  n=`basename $f`
-	  p=${n/"_"$READONE.$FASTQ/}
-	  NAME=$dir"_"$n
-	  echo $NAME
-
-          # run trimmer -z for gz output
-	  if [ -n "$ARMED" ]; then
-
-	      if [ -e $QOUT/$TASKCUSTOMPLEX/$NAME.out ]; then rm $QOUT/$TASKCUSTOMPLEX/$NAME.out; fi
-
-	      qsub $PRIORITY -j y -o $QOUT/$TASKCUSTOMPLEX/$NAME.out -cwd -b y -N $TASKCUSTOMPLEX"_"$NAME \
-		  ${NGSANE_BASE}/mods/customplex.sh -k $CONFIG -f $f -b $CUSTOMBARCODE -p $p -o $OUT/fastq/$dir$TASKCUSTOMPLEX
-
-	  fi
-      done
-   done	      
+    $QSUB $ARMED -r -k $CONFIG -t $TASKWIGGLER -i $TASKBWA -e .$ASD.bam -n $NODES_WIGGLER -c $CPU_WIGGLER -m $MEMORY_WIGGLER"G" -w $WALLTIME_WIGGLER \
+        --postcommand "${NGSANE_BASE}/mods/wiggler.sh -k $CONFIG -f <FILE> -m $MEMORY_WIGGLER -o $OUT/<DIR>/$TASKWIGGLER" 
 fi
-
 
 ############################################
 # downsampling

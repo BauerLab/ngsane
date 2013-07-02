@@ -33,6 +33,9 @@ echo "cd $(pwd)" > $TMPFILE
 echo $SCOMMAND >> $TMPFILE
 echo "rm $TMPFILE" >>$TMPFILE
 
+# truncate jobname to 64 characters due to job schedule constraints
+SNAME=${SNAME:0:64}
+
 if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 #	echo "********** submit with PBS submission system"
 	JOBIDS=$(echo -e $JOBIDS | sed 's/://')

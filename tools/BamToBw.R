@@ -6,7 +6,7 @@ file_arg<-args[1]
 sample_arg<-args[2]
 stranded_arg<-args[3]
 path_arg<-args[4]
-
+firststrand_arg<-args[5]
 
 library(rtracklayer)
 library(GenomicFeatures)
@@ -44,7 +44,7 @@ RNAbamTobw <- function(file, name, stranded=TRUE, firstStrand=TRUE, paired=TRUE,
                 }
 }
 
-firststrand_arg=TRUE
+
 
 RNAbamTobw(file=file_arg,name=sample_arg,stranded=stranded_arg,firstStrand=firststrand_arg,path=path_arg)
 

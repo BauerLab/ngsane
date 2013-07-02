@@ -11,8 +11,9 @@
 RUNMAPPINGBOWTIE="1"    # mapping with bowtie
 
 #********************
-# Paths
+# PARAMETER (mandatory)
 #********************
+
 SOURCE=$(pwd)
 
 # which files to run on (replace sample with folders within fastq firectory)
@@ -38,9 +39,6 @@ FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sap
 # chromosome sizes
 GENOME_CHROMSIZES=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
 
-#********************
-# PARAMETER (mandatory)
-#********************
 EXPID="Celltype"
 LIBRARY="ChIPseq"
 PLATFORM="Illumina"
@@ -48,6 +46,10 @@ PLATFORM="Illumina"
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
+
+## additional bowtie parameters
+#BOWTIEADDPARAM=
+
 #WALLTIME_BOWTIE=10:00:00
 #MEMORY_BOWTIE=60
 #CPU_BOWTIE=8

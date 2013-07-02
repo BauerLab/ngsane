@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 echo ">>>>> HiC analysis with hiclib "
 echo ">>>>> startdate "`date`
@@ -38,10 +38,6 @@ if [ ! $# -gt 3 ]; then usage ; fi
 
 #DEFAULTS
 THREADS=8
-EXPID="exp"           # read group identifier RD ID
-LIBRARY="tkcc"        # read group library RD LB
-PLATFORM="illumina"   # read group platform RD PL
-UNIT="flowcell"       # read group platform unit RG PU
 FASTQNAME=""
 ENZYME=""
 QUAL="" # standard Sanger

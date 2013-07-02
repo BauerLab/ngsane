@@ -37,8 +37,6 @@ options:
   -s | --rgsi <name>        read group sample RG SM prefac (default: )
   -R | --region <ps>        region of specific interest, e.g. targeted reseq
                              format chr:pos-pos
-  -S | --sam                do not convert to bam file (default confert); not the
-                             resulting sam file is not duplicate removed
 "
 exit
 }

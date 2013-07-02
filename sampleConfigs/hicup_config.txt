@@ -11,7 +11,7 @@
 RUNHICUP="1"        # map HiC data with hicup
 
 #********************
-# Paths
+# PARAMETER (mandatory)
 #********************
 SOURCE=$(pwd)
 
@@ -38,9 +38,6 @@ FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sap
 # bowtie v1.0 index including basename
 BOWTIE_INDEX=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome
 
-#********************
-# PARAMETER (mandatory)
-#********************
 EXPID="LnCap"
 LIBRARY="HiC"
 PLATFORM="Illumina"

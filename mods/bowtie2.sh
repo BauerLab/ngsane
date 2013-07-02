@@ -44,6 +44,7 @@ while [ "$1" != "" ]; do
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)                             
         -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU
         --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
+        --forceSingle )         FORCESINGLE=1;;
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -124,7 +125,6 @@ if [ -n "$DMGET" ]; then
 	dmls -l ${f/$READONE/"*"}
 fi
 
-#run bowtie command -v $MISMATCH -m 1
 echo "********* bowtie" 
 if [ $PAIRED == "0" ]; then 
     READS="-U $f"
@@ -140,16 +140,19 @@ fi
 FULLSAMPLEID=$SAMPLEID"${n/'_'$READONE.$FASTQ/}"
 RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
 
-RUN_COMMAND="bowtie2 $RG -t -x ${FASTA/.${FASTASUFFIX}/} -p $THREADS $READS -S $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} --un $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}"
+RUN_COMMAND="bowtie2 $RG $BOWTIEADDPARAM -t -x ${FASTA/.${FASTASUFFIX}/} -p $THREADS $READS --un $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam}"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
 # continue for normal bam file conversion                                                                         
 echo "********* sorting and bam-conversion"
-samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.map}
+samtools sort $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.map}
 samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam} | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.unm}
 # merge mappend and unmapped
 samtools merge -f $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.map}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.unm}.bam 
+# remove sam files 
+rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam}
+rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}
 
 if [ "$PAIRED" = "1" ]; then
     # fix mates
@@ -209,8 +212,6 @@ BAMREADS=`head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.un.sam}
     rm $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam}
     rm $MYOUT/${n/'_'$READONE.$FASTQ/.unm}.bam
     rm $MYOUT/${n/'_'$READONE.$FASTQ/.map}.bam

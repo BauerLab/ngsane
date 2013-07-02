@@ -4,11 +4,10 @@
 # author: Denis C. Bauer
 # date: Nov.2010
 
+# modified June 2013 - Fabian Buske
+
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,We are loosing reads,MAPQ should be 0 for unmapped read,no such file,file not found,bwa.sh: line,Resource temporarily unavailable
-
-#module load bwa
-#BWA=bwa
 
 echo ">>>>> readmapping with BWA "
 echo ">>>>> startdate "`date`
@@ -42,8 +41,6 @@ options:
   -u | --rgpu <name>        read group platform unit RG PU (default:flowcell )
   -R | --region <ps>        region of specific interest, e.g. targeted reseq
                              format chr:pos-pos
-  -S | --sam                do not convert to bam file (default confert); not the
-                             resulting sam file is not duplicate removed
   --forceSingle             run single end eventhough second read is present
   --oldIllumina             old Illumina encoding 1.3+
   --noMapping
@@ -52,10 +49,7 @@ options:
 exit
 }
 
-
 if [ ! $# -gt 3 ]; then usage ; fi
-
-
 
 #DEFAULTS
 MYTHREADS=1
@@ -64,12 +58,10 @@ MYMEMORY=2
 #LIBRARY="qbi"         # read group library RD LB
 #PLATFORM="illumina"   # read group platform RD PL
 #UNIT="flowcell"       # read group platform unit RG PU
-DOBAM=1               # do the bam file
 FORCESINGLE=0
 NOMAPPING=0
 FASTQNAME=""
 QUAL="" # standard Sanger
-
 
 #INPUTS
 while [ "$1" != "" ]; do
@@ -85,7 +77,6 @@ while [ "$1" != "" ]; do
         -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
         -R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
-        -S | --sam )            DOBAM=0 ;;
         --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
         --forceSingle )         FORCESINGLE=1;;
         --noMapping )           NOMAPPING=1;;
@@ -185,15 +176,15 @@ echo "********* mapping"
 if [ "$PAIRED" = 1 ]
 then
     if [ "$NOMAPPING" = 0 ]; then
-    echo "********* PAIRED READS"
-    bwa aln $QUAL -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
-    bwa aln $QUAL -t $MYTHREADS $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
-    bwa sampe $FASTA $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} \
-	-r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-	$f ${f/$READONE/$READTWO} >$MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
+       echo "********* PAIRED READS"
+       bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
+       bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
+       bwa sampe $FASTA $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} \
+   	$BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
+	$f ${f/$READONE/$READTWO} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam}
 
-    rm $MYOUT/${n/$FASTQ/sai}
-    rm $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
+       rm $MYOUT/${n/$FASTQ/sai}
+       rm $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
     fi
     READ1=$($ZCAT $f | wc -l | gawk '{print int($1/4)}')
     READ2=$($ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}')
@@ -201,42 +192,20 @@ then
 # Single read
 else
     echo "********* SINGLE READS"
-    bwa aln $QUAL -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
+    bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
 
-    bwa samse $FASTA $MYOUT/${n/$FASTQ/sai} \
+    bwa samse $FASTA $MYOUT/${n/$FASTQ/sai} $BWASAMPLEADDPARAM \
 	-r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-	$f >$MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
-
-#    bwa samse $FASTA $MYOUT/${n/$FASTQ/sai} \
-#	-i $EXPID \
-#	-m $FULLSAMPLEID \
-#	-p $PLATFORM \
-#	-l $LIBRARY \
-#	$f >$MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
+	$f | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam}
 
     rm $MYOUT/${n/$FASTQ/sai}
     let FASTQREADS=$($ZCAT $f | wc -l | gawk '{print int($1/4)}')
 fi
 
-# exit if only the sam file is required
-if [ "$DOBAM" = 0 ]; then
-    SAMREADS=`grep -v @ $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | wc -l`
-    if [ "$SAMREADS" = "" ]; then let SAMREADS="0"; fi			
-    if [ $SAMREADS -eq $FASTQREADS ]; then
-	echo "-----------------> PASS check mapping: $SAMREADS == $FASTQREADS"
-	echo ">>>>> readmapping with BWA - FINISHED"
-	echo ">>>>> enddate "`date`
-	exit
-    else
-	echo -e "***ERROR**** We are loosing reads from .fastq -> .sam in $f: 
-                 Fastq had $FASTQREADS Bam has $SAMREADS"
-	exit 1
-    fi
-fi
-
 # continue for normal bam file conversion
 echo "********* sorting and bam-conversion"
-samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
+samtools sort $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam} $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
+rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam}
 
 if [ "$PAIRED" = "1" ]; then
     # fix mates
@@ -263,8 +232,6 @@ java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
 rm -rf $THISTMP
 samtools index $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
 
-
-
 # statistics
 echo "********* statistics"
 STATSMYOUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats
@@ -274,7 +241,6 @@ if [ -n $SEQREG ]; then
     echo $(samtools view $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" total reads in region " >> $STATSMYOUT
     echo $(samtools view -f 2 $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" properly paired reads in region " >> $STATSMYOUT
 fi
-
 
 echo "********* calculate inner distance"
 export PATH=$PATH:/usr/bin/
@@ -295,11 +261,10 @@ done
 rm -rf $THISTMP
 
 echo "********* verify"
-BAMREADS=`head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1`
+BAMREADS=$(head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1)
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi			
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
     rm $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam}
 else
     echo -e "***ERROR**** We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"

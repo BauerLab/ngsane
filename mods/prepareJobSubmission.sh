@@ -135,7 +135,7 @@ if [ -n "$POSTCOMMAND" ]; then
     if [[ -n "$ARMED" ||  -n "$POSTONLY" ]]; then
 
     # remove old submission output logs
-    if [ -e $QOUT/$TASK/$DIR'_postcommand.out' ]; then rm -rf $QOUT/$TASK/$DIR"_postcommand.out"; fi
+    if [ -e $QOUT/$TASK/postcommand.out ]; then rm -rf $QOUT/$TASK/postcommand.out; fi
 
     # record task in log file
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
@@ -146,9 +146,12 @@ if [ -n "$POSTCOMMAND" ]; then
     if [ -z "$POSTMEMORY" ];   then POSTMEMORY=$MEMORY; fi
     if [ -z "$POSTWALLTIME" ]; then POSTWALLTIME=$WALLTIME; fi
 
+#    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $POSTMEMORY -n $POSTNODES -c $POSTCPU -w $POSTWALLTIME \
+#	-j $TASK'_'$DIR'_postcommand' -o $QOUT/$TASK/$DIR'_postcommand.out' \
+#	--command "$POSTCOMMAND2")
     RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $POSTMEMORY -n $POSTNODES -c $POSTCPU -w $POSTWALLTIME \
-	-j $TASK'_'$DIR'_postcommand' -o $QOUT/$TASK/$DIR'_postcommand.out' \
-	--command "$POSTCOMMAND2")
+        -j $TASK'_postcommand' -o $QOUT/$TASK/postcommand.out \
+        --command "$POSTCOMMAND2")
 
     echo -e "$RECIPT"
 
