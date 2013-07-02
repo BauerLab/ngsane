@@ -462,10 +462,10 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
     echo ">>>>> Create filtered bamfile and counts - FINISHED"
 
     rm $OUTDIR/accepted_hits_sorted.bam
-fi
 
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
     Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits_f3.bam ${n/_$READONE.$FASTQ/}_masked $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
 
+fi
 
 echo ">>>>> enddate "`date`
