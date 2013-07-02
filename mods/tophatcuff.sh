@@ -128,8 +128,8 @@ BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.$ASD.bam}
 CUFOUT=${OUTDIR/$TASKTOPHAT/$TASKCUFF}
 
 #remove old files
-#if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
-#if [ -d $CUFOUT ]; then rm -r $CUFOUT; fi
+if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
+if [ -d $CUFOUT ]; then rm -r $CUFOUT; fi
 
 if [ -n "$DMGET" ]; then
     echo "********** reacall files from tape"
