@@ -117,7 +117,7 @@ echo -e "--bedtools --\n "$(bedtools --version)
 echo -e "--htSeq    --\n "$(htseq-count | tail -n 1)
 [ -z "$(which htseq-count)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no htseq-count or GENCODEGTF detected" && exit 1
 echo -e "--RNA-SeQC --\n "$(java -jar $JAVAPARAMS ${PATH_RNASEQC}/RNA-SeQC.jar --version  2>&1 | head -n 1 )
-[ -z "$(which RNA-SeQC.jar)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no RNA_SeQC.jar detected" && exit 1
+[ -z "$(which RNA-SeQC.jar)" ] && echo "[ERROR] no RNA_SeQC.jar detected" && exit 1
 
 #SAMPLENAME
 # get basename of f
@@ -174,11 +174,11 @@ fi
 if [ -n "$REFSEQGTF" ] && [ -n "$GENCODEGTF" ]; then
     echo "[WARN] GENCODE and REFSEQ GTF found. GENCODE takes preference."
 fi
-if [ -n "$GENCODEDOCTOREDGTFSUFFIX" ] && [ ! -f ${GENCODEGTF/%.gtf/$GENCODEDOCTOREDGTFSUFFIX} ] ; then
-    echo "[ERROR] Doctored GTF suffix specified but gtf not found: ${GENCODEGTF/%.gtf/$GENCODEDOCTOREDGTFSUFFIX}"
+if [ -n "$DOCTOREDGTFSUFFIX" ] && [ ! -f ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX} ] ; then
+    echo "[ERROR] Doctored GTF suffix specified but gtf not found: ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX}"
     exit 1
 else
-    echo "[NOTE] Doctored GTF: ${GENCODEGTF/%.gtf/$GENCODEDOCTOREDGTFSUFFIX}"
+    echo "[NOTE] Doctored GTF: ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX}"
 fi
 
 # check library info is set
@@ -208,8 +208,7 @@ echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo "********* merge mapped and unmapped"
 echo "[NOTE] samtools merge"
-RUN_COMMAND="samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam"
-echo $RUN_COMMAND && eval $RUN_COMMAND
+samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
 
 if [ "$PAIRED" = "1" ]; then
     # fix mate pairs
@@ -223,35 +222,18 @@ echo "[NOTE] samtools sort"
 samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
 rm $BAMFILE.tmp.bam
 
-#echo "********* reorder tophat output to match reference"
-#if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
-#    echo "[NOTE] Picard CreateSequenceDictionary"
-#    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CreateSequenceDictionary.jar \
-#        REFERENCE=$FASTA \
-#        OUTPUT=${FASTA/.$FASTASUFFIX/}.dict"
-#    echo $RUN_COMMAND && eval $RUN_COMMAND
-#fi
-#
-### sort bam header according to fasta (chromosome order) due to tophat its 
-### own ordering, which can pose problems for other programs 
-#echo "[NOTE] picard ReorderSam"
-#RUN_COMMAND="java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
-#     INPUT=${BAMFILE/.bam/.samtools}.bam \
-#     OUTPUT=$BAMFILE \
-#     REFERENCE=$FASTA \
-#     ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
-#     ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
-#     VALIDATION_STRINGENCY=SILENT"
-#echo $RUN_COMMAND && eval $RUN_COMMAND
-#rm ${BAMFILE/.bam/.samtools}.bam
-
 echo "[NOTE] add read group"
+THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
+mkdir -p  $THISTMP
 RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
-     I=$OUTDIR/${BAMFILE/.bam/.samtools}.bam \
-     O=$OUTDIR/$BAMFILE \
+     I=${BAMFILE/.bam/.samtools}.bam \
+     O=$BAMFILE \
      LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID \
-     VALIDATION_STRINGENCY=SILENT"
+     VALIDATION_STRINGENCY=SILENT \
+    TMP_DIR=$THISTMP"
 echo $RUN_COMMAND && eval $RUN_COMMAND
+rm -r $THISTMP
+rm ${BAMFILE/.bam/.samtools}.bam
 
 ##statistics
 echo "********* flagstat"
@@ -285,7 +267,7 @@ echo "********* calculate inner distance"
 echo "[NOTE] picard CollectMultipleMetrics"
 if [ ! -e $OUTDIR/../metrices ]; then mkdir $OUTDIR/../metrices ; fi
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
-mkdir $THISTMP
+mkdir -p  $THISTMP
 RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     INPUT=$BAMFILE \
     REFERENCE_SEQUENCE=$FASTA \
@@ -312,7 +294,38 @@ echo "********* samstat"
 echo "[NOTE] samstat"
 samstat $BAMFILE
 
+echo "[NOTE] extract mapped reads"
+if [ "$PAIRED" = "1" ]; then
+    samtools view -f 3 -b $BAMFILE > ${BAMFILE/.$ASD/.$ALN}
+else
+    samtools view -F 4 -b $BAMFILE > ${BAMFILE/.$ASD/.$ALN}
+fi
+samtools index ${BAMFILE/.$ASD/.$ALN}
 
+echo "********* RNA-SeQC"
+
+if [ -n "$GENCODEGTF" ]; then 
+    RNASEQC_GTF=$GENCODEGTF
+elif [ -n "$REFSEQGTF" ]; then
+    RNASEQC_GTF=$REFSEQGTF
+fi
+# take doctored GTF if available
+if [ -n "$DOCTOREDGTFSUFFIX" ]; then RNASEQC_GTF=${RNASEQC_GTF/%.gtf/$DOCTOREDGTFSUFFIX}; fi
+# run GC stratification if available
+RNASEQC_CG=
+if [ -f ${RNASEQC_GTF}.gc ]; then RNASEQC_CG="-strat gc -gc ${RNASEQC_GTF}.gc"; fi
+# add parameter flag
+if [ -z "$RNASEQC_GTF" ]; then
+    echo "[NOTE] no GTF file specified, skipping RNA-SeQC"
+else
+    RNASeQCDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_RNASeQC}
+    mkdir -p $RNASeQCDIR
+
+    COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar -n 1000 -s '${n/_$READONE.$FASTQ/}|${BAMFILE/.$ASD/.$ALN}|${n/_$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
+    echo $COMMAND && eval $COMMAND
+
+    #tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR 
+fi
 
 ##run cufflinks
 echo "********* cufflinks"
@@ -331,10 +344,13 @@ else
 fi
 echo $RUN_COMMAND && eval $RUN_COMMAND
 
+
+rm ${BAMFILE/.$ASD/.$ALN}
+
 echo ">>>>> alignment with TopHat - FINISHED"
 
 # add Gencode GTF if present 
-if [ -n "$GENCODEGTF" ]; then 
+if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then 
 	echo "********* htseq-count"
 	##add secondstrand
 	
@@ -366,54 +382,9 @@ if [ -n "$GENCODEGTF" ]; then
 	samtools view $OUTDIR/accepted_hits_sorted.bam -f 3 | htseq-count --quiet $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}.gene
 	samtools view $OUTDIR/accepted_hits_sorted.bam -f 3 | htseq-count --quiet --mode=intersection-strict $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_strict.gene
 	samtools view $OUTDIR/accepted_hits_sorted.bam -f 3 | htseq-count --quiet --mode=intersection-nonempty $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $HTOUTDIR/${anno_version}_nonempty.gene
-	
 #	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
     
 	echo ">>>>> Read counting with htseq count - FINISHED"
-
-    ##run RNA-SeQC
-
-    echo "********* RNA-SeQC"
-
-	RNASEQC_GTF=$GENCODEGTF
-        # take doctored GTF if available
-	if [ -n "$GENCODEDOCTOREDGTFSUFFIX" ]; then RNASEQC_GTF=${GENCODEGTF/%.gtf/$GENCODEDOCTOREDGTFSUFFIX}; fi
-
-        # run GC stratification if available
-	RNASEQC_CG=
-	if [ -f ${RNASEQC_GTF}.gc ]; then RNASEQC_CG="-strat gc -gc ${RNASEQC_GTF}.gc"; fi
-	
-	RNASeQCDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_RNASeQC}
-	mkdir -p $RNASeQCDIR
-	
-	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
-		I=$OUTDIR/accepted_hits.bam \
-		O=$OUTDIR/accepted_hits_rg.bam \
-		LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID \
-	        VALIDATION_STRINGENCY=SILENT"
-	echo $RUN_COMMAND && eval $RUN_COMMAND
-
-	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/ReorderSam.jar \
-		I=$OUTDIR/accepted_hits_rg.bam \
-		O=$OUTDIR/accepted_hits_rg_ro.bam \
-		R=$FASTA \
-		ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
-		ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
-		VALIDATION_STRINGENCY=SILENT \
-                QUIET=TRUE"
-        echo $RUN_COMMAND && eval $RUN_COMMAND
- 
-	samtools index $OUTDIR/accepted_hits_rg_ro.bam
-
-#	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${RNA_SeQC_HOME}/gencode.v14.annotation.doctored.gtf  -r ${RNA_SeQC_HOME}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
-
-	COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar -n 1000 -s '${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
-	echo $COMMAND && eval $COMMAND
-
-	rm $OUTDIR/accepted_hits_rg_ro.bam.bai $OUTDIR/accepted_hits_rg_ro.bam $OUTDIR/accepted_hits_rg.bam	
-
-	#tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR
-	echo ">>>>> RNA-SeQC - FINISHED"
 
 ##make bigwigs for UCSC 
 
