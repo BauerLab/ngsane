@@ -96,7 +96,7 @@ echo "PATH=$PATH"
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 PATH_RNASEQC=$(dirname $(which RNA-SeQC.jar))
-echo -e "--JAVA     --\n" $(java $JAVAPARAMS -version 2>&1)
+echo -e "--JAVA     --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--bowtie2  --\n "$(bowtie2 --version)
 [ -z "$(which bowtie2)" ] && echo "[ERROR] no bowtie2 detected" && exit 1
