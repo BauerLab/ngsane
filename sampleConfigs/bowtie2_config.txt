@@ -54,6 +54,9 @@ PLATFORM="Illumina"
 #MODULE_BOWTIETWO=
 #PATH_BOWTIETWO=
 
+# additional parameters passed to Bowite2 e.g. --phred64 (illumina 1.5) or --phred33 (sanger)
+ADDBOWTIE2PARAMS=
+
 ## location of ngsane
 #NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
 

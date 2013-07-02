@@ -1,0 +1,85 @@
+# author: Fabian Buske
+# date: June 2013
+
+######################################
+# Resources
+#####################################
+#
+# Homer requires individually mapped read pairs. 
+# The following procedure can be used to tap into existing bowtie or bwa mods:
+#
+# 1) For each experiment in fastq/<exp> make a folder in the
+# fastq/<exp>_homer
+# 2) create symbolic links to the original files. Add a new suffix indicating 
+# all fastq files as first reads, e.g. for 
+# 	fastq/<exp>/test_R1.fa.gz
+# 	fastq/<exp>/test_R2.fa.gz
+#    use
+#       ln -s fastq/<exp>/test_R1.fa.gz fastq/<exp_homer>/test_R1_P1.fa.gz
+#	ln -s fastq/<exp>/test_R1.fa.gz fastq/<exp_homer>/test_R2_P1.fa.gz
+# 3) use bowtie2 or bwa as usual, specify the first read suffix as being P1.
+# 4) when running homerhic use the following suffix in the config to link read pairs to each
+# other
+#       READONE="R1_P1"
+#       READTOW="R2_P1"
+#
+# Note, Mapping with bowtie is assumed by default.
+#
+# June 2013 Fabian Buske
+
+#********************
+# Tasks
+#********************
+RUNHOMERHIC="1"    # homer HIC
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq firectory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+# read indicator
+READONE="R1_P1"
+READTWO="R2_P1"
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# if bowtie was used to map file then set TASKBWA to TASKBOWTIE
+#TASKBWA=$TASKBOWTIE
+
+HOMER_HIC_TAGDIR_OPTIONS="-tbp 1 -illuminaPE -genome hg19 -checkGC -restrictionSite AAGCTT -removePEbg -removeSelfLigation -removeRestrictionEnds -removeSpikes 10000 5"
+
+HOMER_HIC_BACKGROUND_OPTIONS="-bgonly -res 100000"
+
+HOMER_HIC_NORMALIZE_OPTIONS="-res 100000 -superRes 200000"
+
+HOMER_HIC_PCA_OPTIONS="-res 100000 -genome hg19"
+
+HOMER_HIC_INTERACTION_OPTIONS="-res 100000 -center"
+
+HOMER_HIC_ANNOTATE_OPTIONS="hg19"
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+#WALLTIME_HOMERHIC=60:00:00
+#MEMORY_HOMERHIC=60
+#CPU_HOMERHIC=16
+#NODES_HOMERHIC="nodes=2:ppn=8"
+#MODULE_HOMERHIC=
+#PATH_HOMERHIC=
+
+## location of ngsane
+#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+
+

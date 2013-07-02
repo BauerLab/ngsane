@@ -43,6 +43,7 @@ TASKHICLIB="hiclib"
 TASKFASTQ2SANGER="sanger"
 TASKWIGGLER="wiggler"
 TASKTRIMMOMATIC="trimmomatic"
+TASKHOMERHIC="homerhic"
 
 ##############################################################
 # PROGRAM PATHS
@@ -139,6 +140,17 @@ PATH_WIGGLER=
 
 WIGGLER_UMAPDIR=
 WIGGLERADDPARAMS=""
+
+##############################################################
+# HOMER HIC 
+# http://biowhat.ucsd.edu/homer/index.html
+WALLTIME_HOMERHIC=60:00:00
+MEMORY_HOMERHIC=60
+CPU_HOMERHIC=8
+NODES_HOMERHIC="nodes=1:ppn=8"
+
+MODULE_HOMERHIC=
+PATH_HOMERHIC=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
 # Trim adapter with CUTADAPT ()
