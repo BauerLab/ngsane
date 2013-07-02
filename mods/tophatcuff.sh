@@ -101,6 +101,7 @@ echo "PATH=$PATH"
 # best common denominator)
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
+PATH_RNASEQC=$(dirname $(which RNA-SeQC.jar))
 echo -e "--JAVA     --\n" $(java $JAVAPARAMS -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--bowtie2  --\n "$(bowtie2 --version)
@@ -119,6 +120,8 @@ echo -e "--bedtools --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 echo -e "--htSeq    --\n "$(htseq-count | tail -n 1)
 [ -z "$(which htseq-count)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no htseq-count detected" && exit 1
+echo -e "--RNA-SeQC --\n "$(java -jar $JAVAPARAMS $PATH_RNASEQC/RNA-SeQC.jar --version | head -n 1 2>&1 )
+[ -z "$(which RNA-SeQC.jar)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no RNA_SeQC.jar detected" && exit 1
 
 #SAMPLENAME
 # get basename of f
@@ -126,7 +129,7 @@ n=${f##*/}
 
 # get info about input file
 FASTASUFFIX=${FASTA##*.}
-BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.tph.bam}
+BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.$ASD.bam}
 
 CUFOUT=${OUTDIR/$TASKTOPHAT/$TASKCUFF}
 
@@ -160,20 +163,32 @@ fi
 ## GTF provided?
 if [ -n "$GENCODEGTF" ]; then
     echo "[NOTE] Gencode GTF: $GENCODEGTF"
+    if [ ! -f $GENCODEGTF ]; then
+        echo "[ERROR] GENCODE GTF specified but not found!"
+        exit 1
+    fi 
 elif [ -n "$REFSEQGTF" ]; then
     echo "[NOTE] Refseq GTF: $REFSEQGTF"
+    if [ ! -f $REFSEQGTF ]; then
+        echo "[ERROR] REFSEQ GTF specified but not found!"
+        exit 1
+    fi
 fi
 
-## generating the index files
-if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi                                                                                      
-if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
+if [ -n "$REFSEQGTF" ] && [ -n "$GENCODEGTF" ]; then
+    echo "[WARN] GENCODE and REFSEQ GTF found. GENCODE takes preference."
+fi
+if [ -n "$GENCODEDOCTOREDGTFSUFFIX" ] && [ ! -f ${GENCODEGTF/%.gtf/$GENCODEDOCTOREDGTFSUFFIX} ] ; then
+    echo "[ERROR] Doctored GTF suffix specified but gtf not found: ${GENCODEGTF/%.gtf/$GENCODEDOCTOREDGTFSUFFIX}"
+    exit 1
+else
+    echo "[NOTE] Doctored GTF: ${GENCODEGTF/%.gtf/$GENCODEDOCTOREDGTFSUFFIX}"
+fi
 
-mkdir -p $OUTDIR
-echo "********* tophat"
 # check library info is set
-if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then 
+if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then
     echo "[ERROR] RNAseq library type not set (RNA_SEQ_LIBRARY_TYPE): either fr-unstranded or fr-firststrand"
-    exit 1; 
+    exit 1;
 else
     echo "[NOTE] RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
@@ -184,14 +199,21 @@ else
     echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
 fi
 
+mkdir -p $OUTDIR
 
+echo "********* tophat"
+
+## generating the index files
+if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
+if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
 RUN_COMMAND="tophat $TOPHATADDPARAM --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
 echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo "********* merge mapped and unmapped"
 echo "[NOTE] samtools merge"
-samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
+RUN_COMMAND="samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam"
+echo $RUN_COMMAND && eval $RUN_COMMAND
 
 if [ "$PAIRED" = "1" ]; then
     # fix mate pairs
@@ -201,6 +223,7 @@ if [ "$PAIRED" = "1" ]; then
     rm $BAMFILE.tmp2.bam
 fi
 
+echo "[NOTE] samtools sort"
 samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
 rm $BAMFILE.tmp.bam
 
@@ -320,13 +343,13 @@ if [ -n "$GENCODEGTF" ]; then
 	mkdir -p $HTOUTDIR
 
 	if [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-unstranded" ]; then
-	       echo "[NOTE] library is fr-unstranded; do not run ht seq count stranded"
+	       echo "[NOTE] library is fr-unstranded; do not run htseq-count stranded"
 	       HT_SEQ_OPTIONS="--stranded=no"
 	elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-firststrand" ]; then
-	       echo "[NOTE] library is fr-firststrand; run ht seq count stranded"
+	       echo "[NOTE] library is fr-firststrand; run htseq-count stranded"
 	       HT_SEQ_OPTIONS="--stranded=reverse"
 	elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-secondstrand" ]; then
-	       echo "[NOTE] library is fr-secondstrand; run ht seq count stranded"
+	       echo "[NOTE] library is fr-secondstrand; run htseq-count stranded"
 	       HT_SEQ_OPTIONS="--stranded=yes"
 	fi
 
@@ -346,40 +369,46 @@ if [ -n "$GENCODEGTF" ]; then
 
 ##run RNA-SeQC
 
-	if [ -f ${GENCODEGTF/%.gtf/.doctored.gtf} ] && [ -f ${GENCODEGTF/%.gtf/.doctored.gtf.gc} ] ; then
-	    echo "********* RNA-SeQC"
+        echo "********* RNA-SeQC"
+
+	RNASEQC_GTF=$GENCODEGTF
+        # take doctored GTF if available
+	if [ -n "$GENCODEDOCTOREDGTFSUFFIX" ]; then RNASEQC_GTF=${GENCODEGTF/%.gtf/$GENCODEDOCTOREDGTFSUFFIX}; fi
+
+        # run GC stratification if available
+	RNASEQC_CG=
+	if [ -f ${RNASEQC_GTF}.gc ]; then RNASEQC_CG="-strat gc -gc ${RNASEQC_GTF}.gc"; fi
 	
-	    RNASeQCDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_RNASeQC}
-	    mkdir -p $RNASeQCDIR
+	RNASeQCDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_RNASeQC}
+	mkdir -p $RNASeQCDIR
 	
-	    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
+	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
 		I=$OUTDIR/accepted_hits.bam \
 		O=$OUTDIR/accepted_hits_rg.bam \
 		LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID"
-	    echo $RUN_COMMAND && eval $RUN_COMMAND
+	echo $RUN_COMMAND && eval $RUN_COMMAND
 
-	    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/ReorderSam.jar \
+	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/ReorderSam.jar \
 		I=$OUTDIR/accepted_hits_rg.bam \
 		O=$OUTDIR/accepted_hits_rg_ro.bam \
 		R=$FASTA \
 		ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
 		ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
 		VALIDATION_STRINGENCY=SILENT"
-            echo $RUN_COMMAND && eval $RUN_COMMAND
+        echo $RUN_COMMAND && eval $RUN_COMMAND
  
-	    samtools index $OUTDIR/accepted_hits_rg_ro.bam
+	samtools index $OUTDIR/accepted_hits_rg_ro.bam
 
-#	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${RNA_SeQC_HOME}/gencode.v14.annotation.doctored.gtf  -r ${RNA_SeQC_HOME}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
+#	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${RNA_SeQC_HOME}/gencode.v14.annotation.doctored.gtf  -r ${RNA_SeQC_HOME}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
 
-	    COMMAND="java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC_v1.1.7.jar -n 1000 -s '${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}' -t ${GENCODEGTF/%.gtf/.doctored.gtf}  -r ${FASTA} -o $RNASeQCDIR/ -strat gc -gc ${GENCODEGTF/%.gtf/.doctored.gtf.gc}"
-	    echo $COMMAND
-	    eval $COMMAND
+	COMMAND="java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC.jar -n 1000 -s '${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
+	echo $COMMAND
+	eval $COMMAND
 
-	    rm $OUTDIR/accepted_hits_rg_ro.bam.bai $OUTDIR/accepted_hits_rg_ro.bam $OUTDIR/accepted_hits_rg.bam	
+	rm $OUTDIR/accepted_hits_rg_ro.bam.bai $OUTDIR/accepted_hits_rg_ro.bam $OUTDIR/accepted_hits_rg.bam	
 
-	    tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR
-	    echo ">>>>> RNA-SeQC - FINISHED"
-    fi
+	tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR
+	echo ">>>>> RNA-SeQC - FINISHED"
 
 ##make bigwigs for UCSC 
 

@@ -60,6 +60,13 @@ TOPHATADDPARAM=
 ## ATTENTION: make sure the GTF file matches your genome assembly (chr naming)
 #GENCODEGTF=/share/ClusterShare/biodata/contrib/GENCODE_doctored/release_14/gencode.v14.annotation.gtf
 
+## activate to use doctored GTF file for RNA-SeQC (provides additional info)
+## assumes the doctored GTF is at the same location as the original one but
+## has a different suffix
+## In addition RNA-SeQC will look for the suffix <GTF-FILE>.gc and apply gc
+## stratification if found
+#GENCODEDOCTOREDGTFSUFFIX=".doctored.gtf"
+
 # Alternatively use REFSEQ
 #REFSEQGTF=
 
