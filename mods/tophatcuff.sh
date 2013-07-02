@@ -247,8 +247,8 @@ rm $BAMFILE.tmp.bam
 
 echo "[NOTE] add read group"
 RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
-     I=$OUTDIR/${BAMFILE/.bam/.samtools}.bam \
-     O=$OUTDIR/$BAMFILE \
+     I=${BAMFILE/.bam/.samtools}.bam \
+     O=$BAMFILE \
      LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID \
      VALIDATION_STRINGENCY=SILENT"
 echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -329,7 +329,7 @@ else
     echo "[NOTE] non reference guided run (neither GENCODEGTF nor REFSEQGTF defined)"
     RUN_COMMAND="cufflinks --quiet --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
 fi
-echo $RUN_COMMAND && eval $RUN_COMMAND
+#echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo ">>>>> alignment with TopHat - FINISHED"
 
