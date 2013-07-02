@@ -98,6 +98,8 @@ PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 PATH_RNASEQC=$(dirname $(which RNA-SeQC.jar))
 echo -e "--JAVA     --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
+echo -e "--tophat2  --\n "$(tophat --version)
+[ -z "$(which tophat)" ] && echo "[ERROR] no tophat detected" && exit 1
 echo -e "--bowtie2  --\n "$(bowtie2 --version)
 [ -z "$(which bowtie2)" ] && echo "[ERROR] no bowtie2 detected" && exit 1
 echo -e "--samtools --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
@@ -114,7 +116,7 @@ echo -e "--bedtools --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 echo -e "--htSeq    --\n "$(htseq-count | tail -n 1)
 [ -z "$(which htseq-count)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no htseq-count or GENCODEGTF detected" && exit 1
-echo -e "--RNA-SeQC --\n "$(java -jar $JAVAPARAMS $PATH_RNASEQC/RNA-SeQC.jar --version  >& | head -n 1 )
+echo -e "--RNA-SeQC --\n "$(java -jar $JAVAPARAMS ${PATH_RNASEQC}/RNA-SeQC.jar --version  2>&1 | head -n 1 )
 [ -z "$(which RNA-SeQC.jar)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no RNA_SeQC.jar detected" && exit 1
 
 #SAMPLENAME
@@ -201,7 +203,7 @@ echo "********* tophat"
 if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
 if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
-RUN_COMMAND="tophat $TOPHATADDPARAM --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
+RUN_COMMAND="tophat $TOPHATADDPARAM --keep-fasta-order --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
 echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo "********* merge mapped and unmapped"
@@ -221,36 +223,44 @@ echo "[NOTE] samtools sort"
 samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
 rm $BAMFILE.tmp.bam
 
-echo "********* reorder tophat output to match reference"
-if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
-    echo "[NOTE] Picard CreateSequenceDictionary"
-    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CreateSequenceDictionary.jar \
-        REFERENCE=$FASTA \
-        OUTPUT=${FASTA/.$FASTASUFFIX/}.dict"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-fi
+#echo "********* reorder tophat output to match reference"
+#if [ ! -e ${FASTA/.${FASTASUFFIX}/}.dict ]; then 
+#    echo "[NOTE] Picard CreateSequenceDictionary"
+#    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CreateSequenceDictionary.jar \
+#        REFERENCE=$FASTA \
+#        OUTPUT=${FASTA/.$FASTASUFFIX/}.dict"
+#    echo $RUN_COMMAND && eval $RUN_COMMAND
+#fi
+#
+### sort bam header according to fasta (chromosome order) due to tophat its 
+### own ordering, which can pose problems for other programs 
+#echo "[NOTE] picard ReorderSam"
+#RUN_COMMAND="java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
+#     INPUT=${BAMFILE/.bam/.samtools}.bam \
+#     OUTPUT=$BAMFILE \
+#     REFERENCE=$FASTA \
+#     ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
+#     ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
+#     VALIDATION_STRINGENCY=SILENT"
+#echo $RUN_COMMAND && eval $RUN_COMMAND
+#rm ${BAMFILE/.bam/.samtools}.bam
 
-## sort bam header according to fasta (chromosome order) due to tophat its 
-## own ordering, which can pose problems for other programs 
-echo "[NOTE] picard ReorderSam"
-RUN_COMMAND="java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar \
-     INPUT=${BAMFILE/.bam/.samtools}.bam \
-     OUTPUT=$BAMFILE \
-     REFERENCE=$FASTA \
-     ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
-     ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
+echo "[NOTE] add read group"
+RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
+     I=$OUTDIR/${BAMFILE/.bam/.samtools}.bam \
+     O=$OUTDIR/$BAMFILE \
+     LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID \
      VALIDATION_STRINGENCY=SILENT"
 echo $RUN_COMMAND && eval $RUN_COMMAND
-rm ${BAMFILE/.bam/.samtools}.bam
 
 ##statistics
 echo "********* flagstat"
 echo "[NOTE] samtools flagstat"
 samtools flagstat $BAMFILE > $BAMFILE.stats
-READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
+READ1=$($ZCAT $f | wc -l | gawk '{print int($1/4)}' )
 FASTQREADS=$READ1
 if [ -n "$f2" ]; then 
-    READ2=`$ZCAT $f2 | wc -l | gawk '{print int($1/4)}' `;
+    READ2=$($ZCAT $f2 | wc -l | gawk '{print int($1/4)}' );
     let FASTQREADS=$READ1+$READ2
 fi
 echo $FASTQREADS" fastq reads" >> $BAMFILE.stats
@@ -323,7 +333,6 @@ echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo ">>>>> alignment with TopHat - FINISHED"
 
-
 # add Gencode GTF if present 
 if [ -n "$GENCODEGTF" ]; then 
 	echo "********* htseq-count"
@@ -362,9 +371,9 @@ if [ -n "$GENCODEGTF" ]; then
     
 	echo ">>>>> Read counting with htseq count - FINISHED"
 
-##run RNA-SeQC
+    ##run RNA-SeQC
 
-        echo "********* RNA-SeQC"
+    echo "********* RNA-SeQC"
 
 	RNASEQC_GTF=$GENCODEGTF
         # take doctored GTF if available
@@ -398,9 +407,8 @@ if [ -n "$GENCODEGTF" ]; then
 
 #	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${RNA_SeQC_HOME}/gencode.v14.annotation.doctored.gtf  -r ${RNA_SeQC_HOME}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
 
-	COMMAND="java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC.jar -n 1000 -s '${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
-	echo $COMMAND
-	eval $COMMAND
+	COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar -n 1000 -s '${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
+	echo $COMMAND && eval $COMMAND
 
 	rm $OUTDIR/accepted_hits_rg_ro.bam.bai $OUTDIR/accepted_hits_rg_ro.bam $OUTDIR/accepted_hits_rg.bam	
 
@@ -453,16 +461,8 @@ if [ -n "$GENCODEGTF" ]; then
     echo "********* Create filtered bamfile "      
 	
     ##remove r_RNA and create counts.
-    grep -P "gene_type \"rRNA\"" $GENCODEGTF > $OUTDIR/mask.gff
-    grep -P "gene_type \"Mt_tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
-    grep -P "gene_type \"Mt_rRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
-    grep -P "gene_type \"tRNA\"" $GENCODEGTF >> $OUTDIR/mask.gff
-    grep -P "gene_type \"rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-    grep -P "gene_type \"tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-    grep -P "gene_type \"Mt_tRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-    grep -P "gene_type \"Mt_rRNA_pseudogene\"" $GENCODEGTF >> $OUTDIR/mask.gff
-    grep -P "gene_type \"pseudogene\"" $GENCODEGTF | grep -P RNA18S5  >> $OUTDIR/mask.gff
-    grep -P "gene_type \"pseudogene\"" $GENCODEGTF | grep -P RNA28S5  >> $OUTDIR/mask.gff
+	python extractFeature.py -f $GENCODEGTF --keep rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene > $OUTDIR/mask.gff
+	python extractFeature.py -f $GENCODEGTF --keep RNA18S5 RNA28S5 -l 17 >> $OUTDIR/mask.gff
 	        
     intersectBed -v -abam $OUTDIR/accepted_hits.bam -b $OUTDIR/mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
 	    
