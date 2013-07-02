@@ -52,12 +52,7 @@ if [ ! $# -gt 3 ]; then usage ; fi
 
 #DEFAULTS
 THREADS=8
-#EXPID="exp"           # read group identifier RD ID
-#LIBRARY="qbi"         # read group library RD LB
-#PLATFORM="illumina"   # read group platform RD PL
-
 FORCESINGLE=0
-INSERT=200
 MEMORY=2G
 
 #INPUTS
@@ -69,7 +64,6 @@ while [ "$1" != "" ]; do
 	-r | --reference )      shift; FASTA=$1 ;; # reference genome
 	-o | --outdir )         shift; OUTDIR=$1 ;; # output dir
 	-a | --annot )          shift; REFSEQGTF=$1 ;; # refseq annotation
-	-i | --insert )         shift; INSERT=$1 ;; #mate insert size
 	
 	-l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB
 	-p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
@@ -119,8 +113,8 @@ echo -e "--samstat  --\n "$(samstat -h | head -n 2 | tail -n1)
 echo -e "--bedtools --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 echo -e "--htSeq    --\n "$(htseq-count | tail -n 1)
-[ -z "$(which htseq-count)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no htseq-count detected" && exit 1
-echo -e "--RNA-SeQC --\n "$(java -jar $JAVAPARAMS $PATH_RNASEQC/RNA-SeQC.jar --version | head -n 1 2>&1 )
+[ -z "$(which htseq-count)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no htseq-count or GENCODEGTF detected" && exit 1
+echo -e "--RNA-SeQC --\n "$(java -jar $JAVAPARAMS $PATH_RNASEQC/RNA-SeQC.jar --version  >& | head -n 1 )
 [ -z "$(which RNA-SeQC.jar)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no RNA_SeQC.jar detected" && exit 1
 
 #SAMPLENAME
@@ -329,6 +323,7 @@ echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo ">>>>> alignment with TopHat - FINISHED"
 
+
 # add Gencode GTF if present 
 if [ -n "$GENCODEGTF" ]; then 
 	echo "********* htseq-count"
@@ -385,7 +380,8 @@ if [ -n "$GENCODEGTF" ]; then
 	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
 		I=$OUTDIR/accepted_hits.bam \
 		O=$OUTDIR/accepted_hits_rg.bam \
-		LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID"
+		LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID \
+	        VALIDATION_STRINGENCY=SILENT"
 	echo $RUN_COMMAND && eval $RUN_COMMAND
 
 	RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/ReorderSam.jar \
@@ -394,7 +390,8 @@ if [ -n "$GENCODEGTF" ]; then
 		R=$FASTA \
 		ALLOW_INCOMPLETE_DICT_CONCORDANCE=TRUE \
 		ALLOW_CONTIG_LENGTH_DISCORDANCE=TRUE \
-		VALIDATION_STRINGENCY=SILENT"
+		VALIDATION_STRINGENCY=SILENT \
+                QUIET=TRUE"
         echo $RUN_COMMAND && eval $RUN_COMMAND
  
 	samtools index $OUTDIR/accepted_hits_rg_ro.bam
@@ -407,7 +404,7 @@ if [ -n "$GENCODEGTF" ]; then
 
 	rm $OUTDIR/accepted_hits_rg_ro.bam.bai $OUTDIR/accepted_hits_rg_ro.bam $OUTDIR/accepted_hits_rg.bam	
 
-	tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR
+	#tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR
 	echo ">>>>> RNA-SeQC - FINISHED"
 
 ##make bigwigs for UCSC 
