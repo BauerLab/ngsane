@@ -81,7 +81,7 @@ module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
+echo -e "--JAVA    --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--bowtie  --\n "$(bowtie --version | head -n 1 )
 [ -z "$(which bowtie)" ] && echo "[ERROR] no bowtie detected" && exit 1

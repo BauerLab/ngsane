@@ -104,7 +104,7 @@ echo "PATH=$PATH"
 # best common denominator)
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
-echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
+echo -e "--JAVA    --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--bwa     --\n "$(bwa 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which bwa)" ] && echo "[ERROR] no bwa detected" && exit 1

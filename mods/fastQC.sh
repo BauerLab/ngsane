@@ -26,7 +26,7 @@ for MODULE in $MODULE_FASTQC; do module load $MODULE; done  # save way to load m
 export PATH=$PATH_FASTQC:$PATH;
 module list
 echo "PATH=$PATH"
-echo -e "--JAVA     --\n" $(java $JAVAPARAMS -version 2>&1)
+echo -e "--JAVA     --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--FASTqc   --\n" $(fastqc -version 2>&1)
 [ -z "$(which fastqc)" ] && echo "[ERROR] no fastqc detected" && exit 1

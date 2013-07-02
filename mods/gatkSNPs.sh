@@ -81,7 +81,7 @@ echo "PATH=$PATH"
 # best common denominator)
 PATH_GATKJAR=$(dirname $(which GenomeAnalysisTK.jar))
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
-echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
+echo -e "--JAVA    --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--R       --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1

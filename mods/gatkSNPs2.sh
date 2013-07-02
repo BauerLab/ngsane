@@ -81,7 +81,7 @@ echo $PATH
 # best common denominator)
 PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
-echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
+echo -e "--JAVA    --\n" $(java -version 2>&1)
 echo -e "--R       --\n "$(R --version | head -n 3)
 echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
 echo -e "--GATK  --\n "$(java -jar $JAVAPARAMS $PATH_GATK/GenomeAnalysisTK.jar --version 2>&1)
