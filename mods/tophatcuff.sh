@@ -116,7 +116,7 @@ echo -e "--bedtools --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 echo -e "--htSeq    --\n "$(htseq-count | tail -n 1)
 [ -z "$(which htseq-count)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no htseq-count or GENCODEGTF detected" && exit 1
-echo -e "--RNA-SeQC --\n "$(java -jar $JAVAPARAMS $PATH_RNASEQC/RNA-SeQC.jar --version  >& | head -n 1 )
+echo -e "--RNA-SeQC --\n "$(java -jar $JAVAPARAMS ${PATH_RNASEQC}/RNA-SeQC.jar --version  2>&1 | head -n 1 )
 [ -z "$(which RNA-SeQC.jar)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no RNA_SeQC.jar detected" && exit 1
 
 #SAMPLENAME
@@ -244,16 +244,23 @@ rm $BAMFILE.tmp.bam
 #     VALIDATION_STRINGENCY=SILENT"
 #echo $RUN_COMMAND && eval $RUN_COMMAND
 #rm ${BAMFILE/.bam/.samtools}.bam
-mv ${BAMFILE/.bam/.samtools}.bam $BAMFILE
+
+echo "[NOTE] add read group"
+RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
+     I=$OUTDIR/${BAMFILE/.bam/.samtools}.bam \
+     O=$OUTDIR/$BAMFILE \
+     LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID \
+     VALIDATION_STRINGENCY=SILENT"
+echo $RUN_COMMAND && eval $RUN_COMMAND
 
 ##statistics
 echo "********* flagstat"
 echo "[NOTE] samtools flagstat"
 samtools flagstat $BAMFILE > $BAMFILE.stats
-READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
+READ1=$($ZCAT $f | wc -l | gawk '{print int($1/4)}' )
 FASTQREADS=$READ1
 if [ -n "$f2" ]; then 
-    READ2=`$ZCAT $f2 | wc -l | gawk '{print int($1/4)}' `;
+    READ2=$($ZCAT $f2 | wc -l | gawk '{print int($1/4)}' );
     let FASTQREADS=$READ1+$READ2
 fi
 echo $FASTQREADS" fastq reads" >> $BAMFILE.stats
@@ -325,7 +332,6 @@ fi
 echo $RUN_COMMAND && eval $RUN_COMMAND
 
 echo ">>>>> alignment with TopHat - FINISHED"
-
 
 # add Gencode GTF if present 
 if [ -n "$GENCODEGTF" ]; then 
@@ -401,9 +407,8 @@ if [ -n "$GENCODEGTF" ]; then
 
 #	java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC.jar -n 1000 -s "${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}" -t ${RNA_SeQC_HOME}/gencode.v14.annotation.doctored.gtf  -r ${RNA_SeQC_HOME}/hg19.fa -o $RNASeQCDIR/ -strat gc -gc ${RNA_SeQC_HOME}/gencode.v14.annotation.gtf.gc # -BWArRNA ${RNA_SeQC_HOME}/human_all_rRNA.fasta
 
-	COMMAND="java $JAVAPARAMS -jar ${RNA_SeQC_HOME}/RNA-SeQC.jar -n 1000 -s '${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
-	echo $COMMAND
-	eval $COMMAND
+	COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar -n 1000 -s '${n/_$READONE.$FASTQ/}|$OUTDIR/accepted_hits_rg_ro.bam|${n/_$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
+	echo $COMMAND && eval $COMMAND
 
 	rm $OUTDIR/accepted_hits_rg_ro.bam.bai $OUTDIR/accepted_hits_rg_ro.bam $OUTDIR/accepted_hits_rg.bam	
 
