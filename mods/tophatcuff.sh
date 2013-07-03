@@ -12,7 +12,6 @@
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,truncated file
 
-
 echo ">>>>> readmapping with Tophat "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
@@ -325,7 +324,6 @@ else
     echo $COMMAND && eval $COMMAND
 
     #tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR 
-fi
 
 ##run cufflinks
 echo "********* cufflinks"
@@ -342,12 +340,16 @@ else
     echo "[NOTE] non reference guided run (neither GENCODEGTF nor REFSEQGTF defined)"
     RUN_COMMAND="cufflinks --quiet --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
 fi
-#echo $RUN_COMMAND && eval $RUN_COMMAND
+echo $RUN_COMMAND && eval $RUN_COMMAND
 
 
 rm ${BAMFILE/.$ASD/.$ALN}
 
 echo ">>>>> alignment with TopHat - FINISHED"
+
+
+fi
+
 
 # add Gencode GTF if present 
 if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then 
