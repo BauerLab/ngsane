@@ -434,8 +434,8 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
     echo "********* Create filtered bamfile "      
 	
     ##remove r_RNA and create counts.
-	python extractFeature.py -f $GENCODEGTF --keep rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene > $OUTDIR/mask.gff
-	python extractFeature.py -f $GENCODEGTF --keep RNA18S5 RNA28S5 -l 17 >> $OUTDIR/mask.gff
+	python ${NGSANE_BASE}/tools/extractFeature.py -f $GENCODEGTF --keep rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene > $OUTDIR/mask.gff
+	python ${NGSANE_BASE}/tools/extractFeature.py -f $GENCODEGTF --keep RNA18S5 RNA28S5 -l 17 >> $OUTDIR/mask.gff
 	        
     intersectBed -v -abam $OUTDIR/accepted_hits.bam -b $OUTDIR/mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
 	    
