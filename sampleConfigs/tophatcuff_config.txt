@@ -51,8 +51,9 @@ PLATFORM="Illumina"
 # PARAMETER (optional overwriting defaults)
 #********************
 
-## additional parameters for tophat
+## additional parameters for tophat and cufflinks
 TOPHATADDPARAM=
+CUFFLINKSADDPARAM=
 
 ## ATTENTION: make sure the GTF file matches your genome assembly (chr naming)
 ## see https://bitbucket.org/allpowerde/gtf_doctor for more informations and

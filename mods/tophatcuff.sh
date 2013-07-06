@@ -173,11 +173,13 @@ fi
 if [ -n "$REFSEQGTF" ] && [ -n "$GENCODEGTF" ]; then
     echo "[WARN] GENCODE and REFSEQ GTF found. GENCODE takes preference."
 fi
-if [ -n "$DOCTOREDGTFSUFFIX" ] && [ ! -f ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX} ] ; then
-    echo "[ERROR] Doctored GTF suffix specified but gtf not found: ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX}"
-    exit 1
-else
-    echo "[NOTE] Doctored GTF: ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX}"
+if [ ! -z "$DOCTOREDGTFSUFFIX" ]; then
+    if [ ! -f ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX} ] ; then
+        echo "[ERROR] Doctored GTF suffix specified but gtf not found: ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX}"
+        exit 1
+    else 
+        echo "[NOTE] Doctored GTF: ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX}"
+    fi
 fi
 
 # check library info is set
@@ -255,6 +257,8 @@ if [ -n "$GENCODEGTF" ]; then
 elif [ -n "$REFSEQGTF" ]; then
     JUNCTGENE=$(windowBed -a $OUTDIR/junctions.bed -b $REFSEQGTF -u -w 200 | wc -l | cut -d' ' -f 1)
     echo $JUNCTGENE" junction reads NCBIM37" >> $BAMFILE.stats
+else 
+    echo "0 junction reads (no gtf given)" >> $BAMFILE.stats
 fi
 
 ##index
@@ -324,6 +328,8 @@ else
     echo $COMMAND && eval $COMMAND
 
     #tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR 
+    rm -f ${BAMFILE/.$ASD/.$ALN}
+fi
 
 ##run cufflinks
 echo "********* cufflinks"
@@ -332,24 +338,17 @@ echo "[NOTE] cufflink"
 #specify REFSEQ or Gencode GTF depending on analysis desired.
 ## add GTF file if present
 if [ -n "$GENCODEGTF" ]; then 
-    RUN_COMMAND="cufflinks --quiet --GTF-guide $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
+    RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --GTF-guide $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
 elif [ -n "$REFSEQGTF" ]; then 
-    RUN_COMMAND="cufflinks --quiet --GTF-guide $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
+    RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --GTF-guide $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
 else
     # non reference guided
     echo "[NOTE] non reference guided run (neither GENCODEGTF nor REFSEQGTF defined)"
-    RUN_COMMAND="cufflinks --quiet --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
+    RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
 fi
 echo $RUN_COMMAND && eval $RUN_COMMAND
 
-
-rm ${BAMFILE/.$ASD/.$ALN}
-
 echo ">>>>> alignment with TopHat - FINISHED"
-
-
-fi
-
 
 # add Gencode GTF if present 
 if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then 
