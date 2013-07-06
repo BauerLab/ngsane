@@ -210,7 +210,7 @@ rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.bam}
 if [ "$PAIRED" = "1" ]; then
     # fix mates
     samtools sort -n $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp
-    samtools fixmate $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp.bam $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
+    samtools fixmate $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp.bam $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam
     rm $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp.bam
 fi
 
