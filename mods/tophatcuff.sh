@@ -99,6 +99,8 @@ echo -e "--JAVA     --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--tophat2  --\n "$(tophat --version)
 [ -z "$(which tophat)" ] && echo "[ERROR] no tophat detected" && exit 1
+echo -e "--cufflinks--\n "$(cufflinks 2>&1 | head -n 2 )
+[ -z "$(which cufflinks)" ] && echo "[ERROR] no cufflinks detected" && exit 1
 echo -e "--bowtie2  --\n "$(bowtie2 --version)
 [ -z "$(which bowtie2)" ] && echo "[ERROR] no bowtie2 detected" && exit 1
 echo -e "--samtools --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
