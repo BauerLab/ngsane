@@ -1,0 +1,65 @@
+# author: Fabian Buske
+# date: July 2013
+
+######################################
+# Resources
+#####################################
+#
+# July 2013 Fabian Buske
+
+#********************
+# Tasks
+#********************
+RUNHOMERCHIPSEQ="1"    # homer ChIP-seq
+
+#********************
+# PARAMETER (mandatory)
+#********************
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq firectory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+# read indicator
+READONE="R1"
+READTWO="R2"
+
+# if bwa was used to map file then set TASKBOWTIE to TASKBWA
+#TASKBOWTIE=$TASKBWA
+
+# ChIP-seq style, any of factor|histone|groseq
+HOMER_CHIPSEQ_STYLE="factor"
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# location of the input (control) for the chip experiments (bam file)
+CHIPINPUT=
+
+# Parameter to pass to TAGDIR generation
+HOMER_CHIPSEQ_TAGDIR_OPTIONS="-unique"
+
+# parameters to pass to findpeaks
+HOMER_CHIPSEQ_FINDPEAKS_OPTIONS=
+
+# Focal peak calling options for peak calling of transcription factors
+HOMER_CHIPSEQ_FOCALPEAKS_OPTIONS=
+
+#WALLTIME_HOMERCHIPSEQ=60:00:00
+#MEMORY_HOMERCHIPSEQ=60
+#CPU_HOMERCHIPSEQ=8
+#NODES_HOMERCHIPSEQ="nodes=1:ppn=8"
+#MODULE_HOMERCHIPSEQ=
+#PATH_HOMERCHIPSEQ=
+
+## location of ngsane
+#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+
+

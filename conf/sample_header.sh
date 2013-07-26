@@ -44,6 +44,7 @@ TASKFASTQ2SANGER="sanger"
 TASKWIGGLER="wiggler"
 TASKTRIMMOMATIC="trimmomatic"
 TASKHOMERHIC="homerhic"
+TASKHOMERCHIPSEQ="homerchipseq"
 
 ##############################################################
 # PROGRAM PATHS
@@ -151,6 +152,17 @@ NODES_HOMERHIC="nodes=1:ppn=8"
 
 MODULE_HOMERHIC=
 PATH_HOMERHIC=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+
+##############################################################
+# HOMER CHIPSEQ
+# http://biowhat.ucsd.edu/homer/index.html
+WALLTIME_HOMERCHIPSEQ=60:00:00
+MEMORY_HOMERCHIPSEQ=60
+CPU_HOMERCHIPSEQ=8
+NODES_HOMERCHIPSEQ="nodes=1:ppn=8"
+
+MODULE_HOMERCHIPSEQ=
+PATH_HOMERCHIPSEQ=
 
 ##############################################################
 # Trim adapter with CUTADAPT ()

@@ -81,8 +81,6 @@ echo -e "--PICARD  --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--samstat --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
-echo -e "--homer   --\n "$(which makeTagDirectory)
-[ -z "$(which makeTagDirectory)" ] && echo "[ERROR] no homer detected (makeTagDirectory)" && exit 1
 echo -e "--convert  --\n "$(convert -version | head -n 1)
 [ -z "$(which convert)" ] && echo "[WARN] imagemagick convert not detected" && exit 1
 
@@ -147,12 +145,12 @@ RG="--sam-RG \"ID:$EXPID\" --sam-RG \"SM:$FULLSAMPLEID\" --sam-RG \"LB:$LIBRARY\
 $GZIP -t $f 2>/dev/null
 if [[ $? -eq 0 ]] && [ $PAIRED == "0" ]; then
     # pipe gzipped fastqs into bowtie
-    RUN_COMMAND="$GZIP -dc $f | bowtie $RG $BOWTIEADDPARAM --tryhard --best --strata --time --threads $THREADS -v 3 -m 1 --un $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}"
+    RUN_COMMAND="$GZIP -dc $f | bowtie $RG $BOWTIEADDPARAM --threads $THREADS --un $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}"
 else
     echo "[NOTE] unzip fastq files"
     $GZIP -cd $f > $f.unzipped
     $GZIP -cd ${f/$READONE/$READTWO} > ${f/$READONE/$READTWO}.unzipped
-    RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM --tryhard --best --strata --time --threads $THREADS -v 3 -m 1 --un $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $f.unzipped -2 ${f/$READONE/$READTWO}.unzipped $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}"
+    RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM --threads $THREADS --un $MYOUT/${n/'_'$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/'_'$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $f.unzipped -2 ${f/$READONE/$READTWO}.unzipped $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}"
 fi
 echo $RUN_COMMAND
 eval $RUN_COMMAND
@@ -280,25 +278,6 @@ for im in $( ls $MYOUT/metrices/*.pdf ); do
     convert $im ${im/pdf/jpg}
 done
 rm -r $THISTMP
-
-echo "********* create Homer Tag directory"
-TAGDIRECTORY=$MYOUT/${n/'_'$READONE.$FASTQ/_homer}
-mkdir -p $TAGDIRECTORY
-makeTagDirectory $TAGDIRECTORY $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
-
-echo "********* create Bigwig"
-makeUCSCfile $TAGDIRECTORY -o $MYOUT/${n/'_'$READONE.$FASTQ/.bw} -bigWig $GENOME_CHROMSIZES -norm 1e6 -fsize 1e20 -fragLength 300
-
-echo "********* verify"
-BAMREADS=$(head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1)
-if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
-if [ $BAMREADS -eq $FASTQREADS ]; then
-    echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-    rm -f $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam}
-else
-    echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
-    exit 1
-fi
 
 #coverage for IGV
 echo "********* coverage track"

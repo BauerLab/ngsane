@@ -48,7 +48,7 @@ PLATFORM="Illumina"
 #********************
 
 ## additional bowtie parameters
-#BOWTIEADDPARAM=
+BOWTIEADDPARAM="-v 3 -m 1 --tryhard --best --strata --time"
 
 #WALLTIME_BOWTIE=10:00:00
 #MEMORY_BOWTIE=60

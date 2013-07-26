@@ -269,9 +269,9 @@ if [ -n "$RUNMAPPINGBOWTIE2" ]; then
 fi
 
 ############################################
-#  Analysis with homer
+#  HiC analysis with homer
 #
-# IN: $SOURCE/$dir/bowtie/*.bam
+# IN: $SOURCE/$dir/bwa/*.bam
 # OUT: $OUT/$dir/homerhic/
 ############################################
 if [ -n "$RUNHOMERHIC" ]; then
@@ -279,6 +279,19 @@ if [ -n "$RUNHOMERHIC" ]; then
     
     $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERHIC -i $TASKBWA -e "_"$READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
 	--command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -t $CPU_HOMERHIC -f <FILE> -o $OUT/<DIR>/$TASKHOMERHIC"
+fi
+
+############################################
+#  ChIP-seq analysis with homer
+#
+# IN: $SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/homerchipseq/
+############################################
+if [ -n "$RUNHOMERCHIPSEQ" ]; then
+    if [ -z "$TASKHOMERCHIPSEQ" ] || [ -z "$NODES_HOMERCHIPSEQ" ] || [ -z "$CPU_HOMERCHIPSEQ" ] || [ -z "$MEMORY_HOMERCHIPSEQ" ] || [ -z "$WALLTIME_HOMERCHIPSEQ" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERCHIPSEQ -i $TASKBOWTIE -e "_"$READONE.$ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ \
+	--command "${NGSANE_BASE}/mods/chipseqHomer.sh -k $CONFIG -t $CPU_HOMERCHIPSEQ -f <FILE> -o $OUT/<DIR>/$TASKHOMERCHIPSEQ"
 fi
 
 ############################################

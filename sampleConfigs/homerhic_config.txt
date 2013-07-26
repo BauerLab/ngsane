@@ -23,7 +23,7 @@
 #       READONE="R1_P1"
 #       READTOW="R2_P1"
 #
-# Note, Mapping with bowtie is assumed by default.
+# Note, Mapping with bwa is assumed by default.
 #
 # June 2013 Fabian Buske
 
