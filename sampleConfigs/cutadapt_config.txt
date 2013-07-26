@@ -24,12 +24,12 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# read indicator
-READONE="R1"
-READTWO="R2"
-
-# fastq file suffix
+# fastq file suffix (which files to run on)
 FASTQ="fq.gz"
+
+# read indicator  immediately preceeding the file suffixes
+READONE="_R1"
+READTWO="_R2"
 
 # Location of the file containing the contaminants.
 # Contaminants need to be specified with -a, -b or -g followed by the sequence, e.g.:

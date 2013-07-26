@@ -68,7 +68,7 @@ DATASETS=""
 for f in $FILES; do
     # get basename of f
     n=${f##*/}
-    n=${n/_$READONE.$FASTQ/}
+    n=${n/%$READONE.$FASTQ/}
     # get directory
     d=$(dirname $f)
     d=${d##*/}

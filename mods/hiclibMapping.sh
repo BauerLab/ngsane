@@ -85,9 +85,6 @@ echo -e "--Python libs --\n "$(yolk -l)
 # get basename of f
 n=${f##*/}
 
-# delete old bam file                                                                       
-#if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi
-
 #is paired ?                                                                                                      
 if [ -n "$READTWO" ] && [ -e ${f/$READONE/$READTWO} ]; then
     PAIRED="1"

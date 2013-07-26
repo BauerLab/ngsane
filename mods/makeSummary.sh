@@ -18,7 +18,7 @@ SUMMARYFILE="Summary.html"
 echo "Last modified "`date` >$SUMMARYTMP
 
 
-#if [ -n "$fastQC" ]; then
+if [ -n "$RUNFASTQC" ]; then
     echo "fastqc"
     echo "<h2>Read biases (FASTQC)</h2>">>$SUMMARYTMP
     echo ${NGSANE_BASE}/tools/makeFastQCplot.sh
@@ -43,7 +43,7 @@ echo "Last modified "`date` >$SUMMARYTMP
     echo "</td><td>">>$SUMMARYTMP
     echo "<img src=\"runStats/fastQCSummary.jpg\" alt=\"Quality scores for all reads\"/>" >>$SUMMARYTMP
     echo "</td></tr></table>">>$SUMMARYTMP
-#fi
+fi
 
 
 
