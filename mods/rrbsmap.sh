@@ -93,7 +93,7 @@ if [ -e $OUT/${n/'_'$READONE.$FASTQ/.rrbs.bam}.stats ]; then rm $OUT/${n/'_'$REA
 
 
 #is paired ?
-if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+if [ -n "$READTWO" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="true"
 else
     PAIRED="false"

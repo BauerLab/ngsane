@@ -142,7 +142,7 @@ fi
 
 echo "********* detect library"
 ## is paired ?                                                                                                      
-if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+if [ -n "$READTWO" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
     f2=${f/$READONE/$READTWO}
     echo "[NOTE] Paired library detected"

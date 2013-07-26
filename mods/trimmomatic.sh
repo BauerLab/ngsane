@@ -58,7 +58,7 @@ fi
 n=${f##*/}
 
 #is paired ?
-if [ -e ${f/$READONE/$READTWO} ]; then
+if [ -n "$READTWO" ] && [ -e ${f/$READONE/$READTWO} ]; then
     echo "[NOTE] PAIRED library"
     PAIRED="1"
 else

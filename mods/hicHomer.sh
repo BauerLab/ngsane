@@ -65,7 +65,7 @@ echo -e "--circos  --\n "$(circos --version)
 n=${f##*/}
 
 #is paired ?                                                                                                      
-if [ -e ${f/$READONE/$READTWO} ]; then
+if [ -n "$READTWO" ] && [ -e ${f/$READONE/$READTWO} ]; then
     PAIRED="1"
 else
     PAIRED="0"
