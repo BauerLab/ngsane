@@ -366,7 +366,7 @@ if [ -n "$RUNTOPHATCUFF" ]; then
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
 	do
 	n=`basename $f`
-	name=${n/'_'$READONE.$FASTQ/}
+	name=${n/%$READONE.$FASTQ/}
 	echo $name
 	echo ">>>>>"$dir"/"$TASKTOPHAT"/"$n" ("$TASKCUFF")"
 	
@@ -480,8 +480,8 @@ if [ -n "$RUNREALRECAL" ]; then
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
 	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.$ASD.bam}
-	name=${n/'_'$READONE.$FASTQ/}
+	n2=${n/%$READONE.$FASTQ/.$ASD.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n2
 
 	# wait on pipeline steps
@@ -557,8 +557,8 @@ then
 	do
 	
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.$ASR.bam}
-	name=${n/'_'$READONE.$FASTQ/}
+	n2=${n/%$READONE.$FASTQ/.$ASR.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir/$TASKRCA/$n2
 
 	if [ ! -d $OUT/$dir/$TASKDOC ]; then mkdir -p $OUT/$dir/$TASKDOC; fi
@@ -610,8 +610,8 @@ then
 	do
 	
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.$ASD.bam}
-	name=${n/'_'$READONE.$FASTQ/}
+	n2=${n/%$READONE.$FASTQ/.$ASD.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n2
 
 	if [ ! -d $OUT/$dir/$TASKDOWN ]; then mkdir -p $OUT/$dir/$TASKDOWN; fi
@@ -653,7 +653,7 @@ then
     for dir in ${DIR[@]}; do
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.ashrr.bam.dindel.VCF}
+	n2=${n/%$READONE.$FASTQ/.ashrr.bam.dindel.VCF}
 	echo "$OUT/$dir/dindelS/$n2" >> dindelVCFmerge.tmp
       done
     done
@@ -686,7 +686,7 @@ then
     for dir in ${DIR[@]}; do
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.fastq/.ashrr.bam.dindel.VCF}
+	n2=${n/%$READONE.$FASTQ/.ashrr.bam.dindel.VCF}
 	#qsub -j y -o $QOUT/$TASKDINS/reg$dir"_"$n2.out -cwd -b y -N reg$dir"_"$n2.out \
 	    python $DINDELHOME/dindel-1.01-python/convertVCFToDindel.py -i $OUT/$dir/dindelS/$n2 \
 	        -o $OUT/$dir/dindelS/$n2.reg -r $FASTA
@@ -764,8 +764,8 @@ then
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.fastq )
 	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.fastq/.$ASR.bam}
-	name=${n/'_'$READONE.fastq/}
+	n2=${n/%$READONE.$FASTQ/.$ASR.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n2
 
 	# remove old pbs output
@@ -817,7 +817,7 @@ then
     for dir in ${DIR[@]};do
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.fastq );do
 	n=`basename $f`
-	echo $OUT/$dir/$TASKRCA/${n/'_'$READONE.fastq/.$ASR.bam} >> $TASKIND"bamfiles.tmp"
+	echo $OUT/$dir/$TASKRCA/${n/%$READONE.$FASTQ/.$ASR.bam} >> $TASKIND"bamfiles.tmp"
       done
     done
 
@@ -868,7 +868,7 @@ then
             if [ -e  $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp" ]; then rm  $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp"; fi
 	    for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );do
 		n=`basename $f`
-		echo $OUT/$dir/$TASKRCA/${n/'_'$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp"
+		echo $OUT/$dir/$TASKRCA/${n/%$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp"
 	    done
 	done
     # one over all folders
@@ -880,7 +880,7 @@ then
 	for dir in ${DIR[@]};do
 	    for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );do
 		n=`basename $f`
-		echo $OUT/$dir/$TASKRCA/${n/'_'$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp"
+		echo $OUT/$dir/$TASKRCA/${n/%$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp"
 	    done
 	done
 	
@@ -1006,8 +1006,8 @@ then
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
 	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.$ASR.bam}
-	name=${n/'_'$READONE.$FASTQ/}
+	n2=${n/%$READONE.$FASTQ/.$ASR.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n2
 
 	# remove old pbs output
@@ -1055,7 +1055,7 @@ if [ -n "$RUNCUFFDIFF" ]; then
     for dir in ${DIR[@]}; do
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );	do
 	n=`basename $f`
-	name=$name${n/'_'$READONE.$FASTQ/}","
+	name=$name${n/%$READONE.$FASTQ/}","
       done
     done
     name=$(echo $name | sed 's/\(.*\),/\1/')
@@ -1103,7 +1103,7 @@ then
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
 	do
 	n=`basename $f`
-	name=${n/'_'$READONE.$FASTQ/}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n
 		
 	# remove old pbs output

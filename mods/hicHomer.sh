@@ -89,7 +89,7 @@ CURDIR=$(pwd)
 cd $MYOUT
 
 echo "********* makeTagDirectory" 
-RUN_COMMAND="makeTagDirectory $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $f,${f/'_'$READONE/'_'$READTWO} $HOMER_HIC_TAGDIR_OPTIONS"
+RUN_COMMAND="makeTagDirectory $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $f,${f/$READONE/$READTWO} $HOMER_HIC_TAGDIR_OPTIONS"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 

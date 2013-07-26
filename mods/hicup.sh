@@ -54,12 +54,12 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -t | --threads )        shift; MYTHREADS=$1 ;; # number of CPUs to use
-	-m | --memory )         shift; MYMEMORY=$1 ;; # memory used
+        -m | --memory )         shift; MYMEMORY=$1 ;; # memory used
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
-	-d | --digest )         shift; DIGEST=$1 ;; # digestion patterns
+        -d | --digest )         shift; DIGEST=$1 ;; # digestion patterns
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir
-	--fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
+        --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -199,7 +199,7 @@ cp -f $MYOUT/$OUTDIR/hicup_deduplicater_summary_results_*.txt $MYOUT/${n/%$READO
 cp -f $MYOUT/$OUTDIR/hicup_filter_summary_results_*.txt $MYOUT/${n/%$READONE.$FASTQ/}_hicup_filter_summary_results.txt
 cp -f $MYOUT/$OUTDIR/hicup_mapper_summary_*.txt $MYOUT/${n/%$READONE.$FASTQ/}_hicup_mapper_summary.txt
 cp -f $MYOUT/$OUTDIR/hicup_truncater_summary_*.txt $MYOUT/${n/%$READONE.$FASTQ/}_hicup_truncater_summary.txt
-ln -f -s $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/'_'$READTWO}_trunc.bam $MYOUT/${n/%$READONE.$FASTQ/}_uniques.bam
+ln -f -s $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam $MYOUT/${n/%$READONE.$FASTQ/}_uniques.bam
 
 cd $CURDIR
 

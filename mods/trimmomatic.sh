@@ -83,7 +83,7 @@ echo "********** trim"
 # Paired read
 if [ "$PAIRED" = "1" ]
 then
-    RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $TRIMMOMATICADDPARAM -threads $CPU_TRIMMOMATIC $f ${f/_$READONE/_$READTWO} $o ${o/_$READONE/_${READONE}_unpaired} ${o/_$READONE/_$READTWO} ${o/_$READONE/_${READTWO}_unpaired} $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
+    RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $TRIMMOMATICADDPARAM -threads $CPU_TRIMMOMATIC $f ${f/$READONE/$READTWO} $o ${o/$READONE/${READONE}_unpaired} ${o/$READONE/$READTWO} ${o/$READONE/${READTWO}_unpaired} $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
 else
     RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $TRIMMOMATICADDPARAM -threads $CPU_TRIMMOMATIC $f $o $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
 fi
