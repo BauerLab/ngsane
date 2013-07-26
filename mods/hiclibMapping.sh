@@ -89,7 +89,7 @@ n=${f##*/}
 #if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi
 
 #is paired ?                                                                                                      
-if [ -e ${f/$READONE/$READTWO} ]; then
+if [ -n "$READTWO" ] && [ -e ${f/$READONE/$READTWO} ]; then
     PAIRED="1"
 else
     echo "[ERROR] hiclib requires paired-end fastq files. Could not find ${f/$READONE/$READTWO}"

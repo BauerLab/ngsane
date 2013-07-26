@@ -104,7 +104,7 @@ if [ -d $MYOUT/$OUTDIR ]; then rm -rf $MYOUT/$OUTDIR; fi
 rm -f $MYOUT/${n/'_'$READONE.$FASTQ/}*.txt
 
 #is paired ?
-if [ -e ${f/$READONE/$READTWO} ]; then
+if [ -n "$READTWO" ] && [ -e ${f/$READONE/$READTWO} ]; then
     PAIRED="1"
 else
     echo "HiCUP requires pair end fastq files"
