@@ -97,11 +97,11 @@ n=${f##*/}
 
 
 #output for this library
-OUTDIR=${n/'_'$READONE.$FASTQ/}
+OUTDIR=${n/%$READONE.$FASTQ/}
 if [ -d $MYOUT/$OUTDIR ]; then rm -rf $MYOUT/$OUTDIR; fi
 
 # delete old result files 
-rm -f $MYOUT/${n/'_'$READONE.$FASTQ/}*.txt
+rm -f $MYOUT/${n/%$READONE.$FASTQ/}*.txt
 
 #is paired ?
 if [ -n "$READTWO" ] && [ -e ${f/$READONE/$READTWO} ]; then
@@ -158,12 +158,12 @@ else
 fi
 cd $SOURCE
 
-FULLSAMPLEID=$SAMPLEID"${n/'_'$READONE.$FASTQ/}"
+FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 echo ">>>>> full sample ID "$FULLSAMPLEID
 
 echo "********* create hicup conf script"
 
-HICUP_CONF=$MYOUT/${n/'_'$READONE.$FASTQ/.conf}
+HICUP_CONF=$MYOUT/${n/%$READONE.$FASTQ/.conf}
 
 cat /dev/null > $HICUP_CONF
 echo "#Number of threads to use" >> $HICUP_CONF
@@ -195,30 +195,30 @@ RUN_COMMAND="$(which perl) $(which hicup) -c $HICUP_CONF"
 echo $RUN_COMMAND
 cd $MYOUT/$OUTDIR
 eval $RUN_COMMAND
-cp -f $MYOUT/$OUTDIR/hicup_deduplicater_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_deduplicater_summary_results.txt
-cp -f $MYOUT/$OUTDIR/hicup_filter_summary_results_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_filter_summary_results.txt
-cp -f $MYOUT/$OUTDIR/hicup_mapper_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_mapper_summary.txt
-cp -f $MYOUT/$OUTDIR/hicup_truncater_summary_*.txt $MYOUT/${n/'_'$READONE.$FASTQ/}_hicup_truncater_summary.txt
-ln -f -s $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/'_'$READONE.$FASTQ/'_'$READTWO}_trunc.bam $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam
+cp -f $MYOUT/$OUTDIR/hicup_deduplicater_summary_results_*.txt $MYOUT/${n/%$READONE.$FASTQ/}_hicup_deduplicater_summary_results.txt
+cp -f $MYOUT/$OUTDIR/hicup_filter_summary_results_*.txt $MYOUT/${n/%$READONE.$FASTQ/}_hicup_filter_summary_results.txt
+cp -f $MYOUT/$OUTDIR/hicup_mapper_summary_*.txt $MYOUT/${n/%$READONE.$FASTQ/}_hicup_mapper_summary.txt
+cp -f $MYOUT/$OUTDIR/hicup_truncater_summary_*.txt $MYOUT/${n/%$READONE.$FASTQ/}_hicup_truncater_summary.txt
+ln -f -s $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/'_'$READTWO}_trunc.bam $MYOUT/${n/%$READONE.$FASTQ/}_uniques.bam
 
 cd $CURDIR
 
 # copy piecharts
 RUNSTATS=$OUT/runStats/$TASKHICUP
 mkdir -p $RUNSTATS
-cp -f $MYOUT/$OUTDIR/uniques_*_cis-trans.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_uniques_cis-trans.png
-cp -f $MYOUT/$OUTDIR/*_ditag_classification.png $RUNSTATS/${n/'_'$READONE.$FASTQ/}_ditag_classification.png
+cp -f $MYOUT/$OUTDIR/uniques_*_cis-trans.png $RUNSTATS/${n/%$READONE.$FASTQ/}_uniques_cis-trans.png
+cp -f $MYOUT/$OUTDIR/*_ditag_classification.png $RUNSTATS/${n/%$READONE.$FASTQ/}_ditag_classification.png
 
 echo "********* fit-hi-c"
-python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=${DIGESTGENOME} --outputDir=$MYOUT/  $MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam
+python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=${DIGESTGENOME} --outputDir=$MYOUT/  $MYOUT/${n/%$READONE.$FASTQ/}_uniques.bam
 cd $MYOUT
-python $(which fit-hi-c.py) --mappabilityThres=2 --fragments=$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam.fragmentLists --interactions=$MYOUT/${n/'_'$READONE.$FASTQ/}_uniques.bam.contactCounts --lib=${n/'_'$READONE.$FASTQ/}
+python $(which fit-hi-c.py) --mappabilityThres=2 --fragments=$MYOUT/${n/%$READONE.$FASTQ/}_uniques.bam.fragmentLists --interactions=$MYOUT/${n/%$READONE.$FASTQ/}_uniques.bam.contactCounts --lib=${n/%$READONE.$FASTQ/}
 cd $CURDIR
 
-awk '$7<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.significances.txt | sort -k7g > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass1.q05.txt
-awk '$7<=0.05' $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.significances.txt | sort -k7g > $MYOUT/${n/'_'$READONE.$FASTQ/}.spline_pass2.q05.txt
+awk '$7<=0.05' $MYOUT/${n/%$READONE.$FASTQ/}.spline_pass1.significances.txt | sort -k7g > $MYOUT/${n/%$READONE.$FASTQ/}.spline_pass1.q05.txt
+awk '$7<=0.05' $MYOUT/${n/%$READONE.$FASTQ/}.spline_pass2.significances.txt | sort -k7g > $MYOUT/${n/%$READONE.$FASTQ/}.spline_pass2.q05.txt
 
-$GZIP $MYOUT/${n/'_'$READONE.$FASTQ/}*.significances.txt
+$GZIP $MYOUT/${n/%$READONE.$FASTQ/}*.significances.txt
 
 echo ">>>>> readmapping with hicup (bowtie) - FINISHED"
 echo ">>>>> enddate "`date`

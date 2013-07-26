@@ -225,8 +225,8 @@ samtools index $MYOUT/${n/$ASD/$ASR}
 
 if [ "$PAIRED" == "1" ]; then
     # fix mates
-    samtools fixmate $MYOUT/${n/'_'$READONE.$FASTQ/.ash} $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp 
-    mv $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp $MYOUT/${n/'_'$READONE.$FASTQ/.ash
+    samtools fixmate $MYOUT/${n/%$READONE.$FASTQ/.ash} $MYOUT/${n/%$READONE.$FASTQ/.ash}.tmp 
+    mv $MYOUT/${n/%$READONE.$FASTQ/.ash}.tmp $MYOUT/${n/%$READONE.$FASTQ/.ash
 fi
 
 
