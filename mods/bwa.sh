@@ -207,13 +207,6 @@ echo "********* sorting and bam-conversion"
 samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} $MYOUT/${n/%$READONE.$FASTQ/.ash}
 rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
 
-if [ "$PAIRED" = "1" ]; then
-    # fix mates
-    samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam $MYOUT/${n/%$READONE.$FASTQ/.ash}.tmp
-    samtools fixmate $MYOUT/${n/%$READONE.$FASTQ/.ash}.tmp.bam $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam
-    rm $MYOUT/${n/%$READONE.$FASTQ/.ash}.tmp.bam
-fi
-
 #TODO look at samtools for rmdup
 #val string had to be set to LENIENT (SIlENT) to avoid crash due to a definition dis-
 #agreement between bwa and picard
