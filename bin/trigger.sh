@@ -115,7 +115,7 @@ if [ ! -d $TMP ]; then mkdir -p $TMP; fi
 if [ -n "$RUNFASTQC" ]; then
     if [ -z "$TASKFASTQC" ] || [ -z "$NODES_FASTQC" ] || [ -z "$CPU_FASTQC" ] || [ -z "$MEMORY_FASTQC" ] || [ -z "$WALLTIME_FASTQC" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -i fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQC \
+    $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -i fastq -e $READONE.$FASTQ -n $NODES_FASTQC \
 	-c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
 	--postcommand "${NGSANE_BASE}/mods/fastQC.sh -k $CONFIG" 
 fi
@@ -130,7 +130,7 @@ fi
 if [ -n "$RUNCUTADAPT" ]; then
     if [ -z "$TASKCUTADAPT" ] || [ -z "$NODES_CUTADAPT" ] || [ -z "$CPU_CUTADAPT" ] || [ -z "$MEMORY_CUTADAPT" ] || [ -z "$WALLTIME_CUTADAPT" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -d -k $CONFIG -t $TASKCUTADAPT -i fastq -e "_"$READONE.$FASTQ -n $NODES_CUTADAPT \
+    $QSUB $ARMED -d -k $CONFIG -t $TASKCUTADAPT -i fastq -e $READONE.$FASTQ -n $NODES_CUTADAPT \
 	-c $CPU_CUTADAPT -m $MEMORY_CUTADAPT"G" -w $WALLTIME_CUTADAPT \
 	--command "${NGSANE_BASE}/mods/cutadapt.sh -k $CONFIG -f <FILE>" 
 fi
@@ -143,7 +143,7 @@ fi
 ############################################
 
 if [ -n "$RUNTRIMMOMATIC" ]; then
-    $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMMOMATIC -i fastq -e "_"$READONE.$FASTQ -n $NODES_TRIMMOMATIC \
+    $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMMOMATIC -i fastq -e $READONE.$FASTQ -n $NODES_TRIMMOMATIC \
         -c $CPU_TRIMMOMATIC -m $MEMORY_TRIMMOMATIC"G" -w $WALLTIME_TRIMMOMATIC \
         --command "$NGSANE_BASE/mods/trimmomatic.sh -k $CONFIG -f <FILE>"
 fi
@@ -157,7 +157,7 @@ fi
 if [ -n "$RUNTRIMGALORE" ]; then
     if [ -z "$TASKTRIMGALORE" ] || [ -z "$NODES_TRIMGALORE" ] || [ -z "$CPU_TRIMGALORE" ] || [ -z "$MEMORY_TRIMGALORE" ] || [ -z "$WALLTIME_TRIMGALORE" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMGALORE -i fastq -e "_"$READONE.$FASTQ -n $NODES_TRIMGALORE \
+    $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMGALORE -i fastq -e $READONE.$FASTQ -n $NODES_TRIMGALORE \
         -c $CPU_TRIMGALORE -m $MEMORY_TRIMGALORE"G" -w $WALLTIME_TRIMGALORE \
         --command "${NGSANE_BASE}/mods/trimgalore.sh -k $CONFIG -f <FILE>"
 fi
@@ -196,7 +196,7 @@ fi
 if [ -n "$RUNHICUP" ]; then
     if [ -z "$TASKHICUP" ] || [ -z "$NODES_HICUP" ] || [ -z "$CPU_HICUP" ] || [ -z "$MEMORY_HICUP" ] || [ -z "$WALLTIME_HICUP" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -k $CONFIG -t $TASKHICUP -i fastq -e "_"$READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
+    $QSUB $ARMED -k $CONFIG -t $TASKHICUP -i fastq -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
     	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP \
         --command "${NGSANE_BASE}/mods/hicup.sh $HICUPADDPARM -k $CONFIG -t $CPU_HICUP -m $(expr $MEMORY_HICUP - 1 ) -f <FILE> -r $FASTA --digest '$HICUP_RENZYMES' -o $OUT/<DIR>/$TASKHICUP --fastqName <NAME>"
 fi
@@ -211,7 +211,7 @@ fi
 if [ -n "$RUNHICLIB" ]; then
     if [ -z "$TASKHICLIB" ] || [ -z "$NODES_HICLIB" ] || [ -z "$CPU_HICLIB" ] || [ -z "$MEMORY_HICLIB" ] || [ -z "$WALLTIME_HICLIB" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -k $CONFIG -t $TASKHICLIB -i fastq -e "_"$READONE.$FASTQ \
+    $QSUB $ARMED -k $CONFIG -t $TASKHICLIB -i fastq -e $READONE.$FASTQ \
     	-n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
     	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND \
         --command "${NGSANE_BASE}/mods/hiclibMapping.sh $HICLIBADDPARM -k $CONFIG --threads $CPU_HICLIB --fastq <FILE> --enzymes '$HICLIB_RENZYMES' --outdir $OUT/<DIR>/$TASKHICLIB --fastqName <NAME>" \
@@ -230,7 +230,7 @@ fi
 if [ -n "$RUNMAPPINGBWA2" ]; then
     if [ -z "$TASKBWA" ] || [ -z "$NODES_BWA" ] || [ -z "$CPU_BWA" ] || [ -z "$MEMORY_BWA" ] || [ -z "$WALLTIME_BWA" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -k $CONFIG -t $TASKBWA -i fastq -e "_"$READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA \
+    $QSUB $ARMED -k $CONFIG -t $TASKBWA -i fastq -e $READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA \
         --command "${NGSANE_BASE}/mods/bwa.sh $BWAADDPARM -k $CONFIG -t $CPU_BWA -m $(expr $MEMORY_BWA - 1 ) -f <FILE> -r $FASTA \
                 -o $OUT/<DIR>/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> \
                 --fastqName $FASTQ -R $SEQREG"
@@ -246,7 +246,7 @@ fi
 if [ -n "$RUNMAPPINGBOWTIE" ]; then
     if [ -z "$TASKBOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e "_"$READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
+    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
         --command "${NGSANE_BASE}/mods/bowtie.sh $BOWTIEADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f <FILE> -r $FASTA \
         -o $OUT/<DIR>/$TASKBOWTIE --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> \
         --fastqName $FASTQ -R $SEQREG"
@@ -263,7 +263,7 @@ fi
 if [ -n "$RUNMAPPINGBOWTIE2" ]; then
     if [ -z "$TASKBOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e "_"$READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
+    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
 	--command "${NGSANE_BASE}/mods/bowtie2.sh $BOWTIEADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE \
         --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
 fi
@@ -277,7 +277,7 @@ fi
 if [ -n "$RUNHOMERHIC" ]; then
     if [ -z "$TASKHOMERHIC" ] || [ -z "$NODES_HOMERHIC" ] || [ -z "$CPU_HOMERHIC" ] || [ -z "$MEMORY_HOMERHIC" ] || [ -z "$WALLTIME_HOMERHIC" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERHIC -i $TASKBWA -e "_"$READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
+    $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERHIC -i $TASKBWA -e $READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
 	--command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -t $CPU_HOMERHIC -f <FILE> -o $OUT/<DIR>/$TASKHOMERHIC"
 fi
 
@@ -366,7 +366,7 @@ if [ -n "$RUNTOPHATCUFF" ]; then
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
 	do
 	n=`basename $f`
-	name=${n/'_'$READONE.$FASTQ/}
+	name=${n/%$READONE.$FASTQ/}
 	echo $name
 	echo ">>>>>"$dir"/"$TASKTOPHAT"/"$n" ("$TASKCUFF")"
 	
@@ -390,7 +390,7 @@ fi
 
 
 if [ -n "$RUNTOPHATCUFF2" ]; then
-  $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e "_"$READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
+  $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
         --command "${NGSANE_BASE}/mods/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -f <FILE> \
          -t $CPU_TOPHAT -o $OUT/<DIR>/$TASKTOPHAT/<NAME> "
 
@@ -480,8 +480,8 @@ if [ -n "$RUNREALRECAL" ]; then
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
 	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.$ASD.bam}
-	name=${n/'_'$READONE.$FASTQ/}
+	n2=${n/%$READONE.$FASTQ/.$ASD.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n2
 
 	# wait on pipeline steps
@@ -557,8 +557,8 @@ then
 	do
 	
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.$ASR.bam}
-	name=${n/'_'$READONE.$FASTQ/}
+	n2=${n/%$READONE.$FASTQ/.$ASR.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir/$TASKRCA/$n2
 
 	if [ ! -d $OUT/$dir/$TASKDOC ]; then mkdir -p $OUT/$dir/$TASKDOC; fi
@@ -610,8 +610,8 @@ then
 	do
 	
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.$ASD.bam}
-	name=${n/'_'$READONE.$FASTQ/}
+	n2=${n/%$READONE.$FASTQ/.$ASD.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n2
 
 	if [ ! -d $OUT/$dir/$TASKDOWN ]; then mkdir -p $OUT/$dir/$TASKDOWN; fi
@@ -653,7 +653,7 @@ then
     for dir in ${DIR[@]}; do
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.ashrr.bam.dindel.VCF}
+	n2=${n/%$READONE.$FASTQ/.ashrr.bam.dindel.VCF}
 	echo "$OUT/$dir/dindelS/$n2" >> dindelVCFmerge.tmp
       done
     done
@@ -686,7 +686,7 @@ then
     for dir in ${DIR[@]}; do
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.fastq/.ashrr.bam.dindel.VCF}
+	n2=${n/%$READONE.$FASTQ/.ashrr.bam.dindel.VCF}
 	#qsub -j y -o $QOUT/$TASKDINS/reg$dir"_"$n2.out -cwd -b y -N reg$dir"_"$n2.out \
 	    python $DINDELHOME/dindel-1.01-python/convertVCFToDindel.py -i $OUT/$dir/dindelS/$n2 \
 	        -o $OUT/$dir/dindelS/$n2.reg -r $FASTA
@@ -764,8 +764,8 @@ then
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.fastq )
 	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.fastq/.$ASR.bam}
-	name=${n/'_'$READONE.fastq/}
+	n2=${n/%$READONE.$FASTQ/.$ASR.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n2
 
 	# remove old pbs output
@@ -817,7 +817,7 @@ then
     for dir in ${DIR[@]};do
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.fastq );do
 	n=`basename $f`
-	echo $OUT/$dir/$TASKRCA/${n/'_'$READONE.fastq/.$ASR.bam} >> $TASKIND"bamfiles.tmp"
+	echo $OUT/$dir/$TASKRCA/${n/%$READONE.$FASTQ/.$ASR.bam} >> $TASKIND"bamfiles.tmp"
       done
     done
 
@@ -868,7 +868,7 @@ then
             if [ -e  $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp" ]; then rm  $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp"; fi
 	    for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );do
 		n=`basename $f`
-		echo $OUT/$dir/$TASKRCA/${n/'_'$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp"
+		echo $OUT/$dir/$TASKRCA/${n/%$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp"
 	    done
 	done
     # one over all folders
@@ -880,7 +880,7 @@ then
 	for dir in ${DIR[@]};do
 	    for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );do
 		n=`basename $f`
-		echo $OUT/$dir/$TASKRCA/${n/'_'$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp"
+		echo $OUT/$dir/$TASKRCA/${n/%$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp"
 	    done
 	done
 	
@@ -1006,8 +1006,8 @@ then
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
 	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.$ASR.bam}
-	name=${n/'_'$READONE.$FASTQ/}
+	n2=${n/%$READONE.$FASTQ/.$ASR.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n2
 
 	# remove old pbs output
@@ -1055,7 +1055,7 @@ if [ -n "$RUNCUFFDIFF" ]; then
     for dir in ${DIR[@]}; do
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );	do
 	n=`basename $f`
-	name=$name${n/'_'$READONE.$FASTQ/}","
+	name=$name${n/%$READONE.$FASTQ/}","
       done
     done
     name=$(echo $name | sed 's/\(.*\),/\1/')
@@ -1103,7 +1103,7 @@ then
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
 	do
 	n=`basename $f`
-	name=${n/'_'$READONE.$FASTQ/}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n
 		
 	# remove old pbs output

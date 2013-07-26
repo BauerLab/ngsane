@@ -126,7 +126,7 @@ n=${f##*/}
 
 # get info about input file
 FASTASUFFIX=${FASTA##*.}
-BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.$ASD.bam}
+BAMFILE=$OUTDIR/../${n/%$READONE.$FASTQ/.$ASD.bam}
 
 CUFOUT=${OUTDIR/$TASKTOPHAT/$TASKCUFF}
 
@@ -323,13 +323,13 @@ if [ -f ${RNASEQC_GTF}.gc ]; then RNASEQC_CG="-strat gc -gc ${RNASEQC_GTF}.gc"; 
 if [ -z "$RNASEQC_GTF" ]; then
     echo "[NOTE] no GTF file specified, skipping RNA-SeQC"
 else
-    RNASeQCDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_RNASeQC}
+    RNASeQCDIR=$OUTDIR/../${n/%$READONE.$FASTQ/_RNASeQC}
     mkdir -p $RNASeQCDIR
 
-    COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar -n 1000 -s '${n/_$READONE.$FASTQ/}|${BAMFILE/.$ASD/.$ALN}|${n/_$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
+    COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE/.$ASD/.$ALN}|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
     echo $COMMAND && eval $COMMAND
 
-    #tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR 
+    #tar czf ${n/%$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR 
     rm -f ${BAMFILE/.$ASD/.$ALN}
 fi
 
@@ -361,7 +361,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
 #	echo ${annoF}
 	anno_version=${annoF%.*}
 	
-	HTOUTDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_htseq_count}
+	HTOUTDIR=$OUTDIR/../${n/%$READONE.$FASTQ/_htseq_count}
 #	echo ${HTOUTDIR}
 	mkdir -p $HTOUTDIR
 
@@ -417,7 +417,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
 	
 	
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits_f3.bam ${n/_$READONE.$FASTQ/} $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits_f3.bam ${n/%$READONE.$FASTQ/} $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
 	
 	# index accepted_hits.bam
 	samtools index $OUTDIR/accepted_hits.bam
@@ -428,7 +428,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
 	
     RPKMSSDIR=$OUTDIR/../
 	
-    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene $RPKMSSDIR/${n/_$READONE.$FASTQ/_gene} ${anno_version}
+    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene $RPKMSSDIR/${n/%$READONE.$FASTQ/_gene} ${anno_version}
 	
     echo ">>>>> Gencode RPKM calculation - FINISHED"
 
@@ -457,7 +457,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
 
     echo "********* calculate RPKMs per Gencode Gene masked"
 
-    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}_masked.gene $RPKMSSDIR/${n/_$READONE.$FASTQ/_gene_masked} ${anno_version}
+    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}_masked.gene $RPKMSSDIR/${n/%$READONE.$FASTQ/_gene_masked} ${anno_version}
     echo ">>>>> Gencode RPKM calculation masked- FINISHED"
 
     rm $OUTDIR/tophat_aligned_reads_masked_sorted.bam
@@ -467,7 +467,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
     rm $OUTDIR/accepted_hits_sorted.bam
 
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits_f3.bam ${n/_$READONE.$FASTQ/}_masked $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits_f3.bam ${n/%$READONE.$FASTQ/}_masked $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
 
 fi
 
