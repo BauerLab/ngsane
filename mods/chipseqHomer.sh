@@ -3,7 +3,7 @@
 echo ">>>>> ChIP-seq peak calling Homer"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> bowtie.sh $*"
+echo ">>>>> chipseqHomer.sh $*"
 
 function usage {
 echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
@@ -80,15 +80,15 @@ CURDIR=$(pwd)
 cd $MYOUT
 
 echo "********* make tag directory"
-TAGDIRECTORY=$MYOUT/${n/'_'$READONE.$ASD.bam/_homer}
+TAGDIRECTORY=$MYOUT/${n/%$READONE.$ASD.bam/_homer}
 mkdir -p $TAGDIRECTORY
-RUN_COMMAND="makeTagDirectory $HOMER_CHIPSEQ_TAGDIR_OPTIONS -format bam $TAGDIRECTORY $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}"
+RUN_COMMAND="makeTagDirectory $HOMER_CHIPSEQ_TAGDIR_OPTIONS -format bam $TAGDIRECTORY $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
 
 if [ -n "$CHIPINPUT" ];then
-    TAGDIRECTORY=$MYOUT/${n/'_'$READONE.$ASD.bam/_homer}
+    TAGDIRECTORY=$MYOUT/${n/%$READONE.$ASD.bam/_homer}
     mkdir -p $TAGDIRECTORY
     RUN_COMMAND="makeTagDirectory $HOMER_CHIPSEQ_TAGDIR_OPTIONS -format bam ${TAGDIRECTORY}_input $CHIPINPUT}"
     echo $RUN_COMMAND
@@ -104,12 +104,12 @@ fi
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
-RUN_COMMAND="pos2bed.pl $MYOUT/${n/'_'$READONE.$ASD.bam/_homer}/peaks.txt > $MYOUT/${n/'_'$READONE.$ASD.bam/_homer}/peaks.bed"
+RUN_COMMAND="pos2bed.pl $MYOUT/${n/%$READONE.$ASD.bam/_homer}/peaks.txt > $MYOUT/${n/%$READONE.$ASD.bam/_homer}/peaks.bed"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
 if [ "$HOMER_CHIPSEQ_STYLE" == "factor"]; then
-    RUN_COMMAND="getFocalPeaks.pl $MYOUT/${n/'_'$READONE.$ASD.bam/_homer}/peaks.txt $HOMER_CHIPSEQ_FOCALPEAKS_OPTIONS > $MYOUT/${n/'_'$READONE.$ASD.bam/_homer}/focal_peaks.bed"
+    RUN_COMMAND="getFocalPeaks.pl $MYOUT/${n/%$READONE.$ASD.bam/_homer}/peaks.txt $HOMER_CHIPSEQ_FOCALPEAKS_OPTIONS > $MYOUT/${n/%$READONE.$ASD.bam/_homer}/focal_peaks.bed"
     echo $RUN_COMMAND
     eval $RUN_COMMAND 
 fi
