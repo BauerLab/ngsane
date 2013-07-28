@@ -50,7 +50,8 @@ echo -e "--cutadapt  --\n" $(cutadapt --version 2>&1)
 # get basename of f
 n=${f##*/}
 
-if [ -n "$READTWO" ] && [ -e ${f/$READONE/$READTWO} ] ; then
+#is paired ?
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] ; then
     echo "[NOTE] PAIRED library"
     PAIRED="1"
 else

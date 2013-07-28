@@ -141,8 +141,8 @@ if [ -n "$DMGET" ]; then
 fi
 
 echo "********* detect library"
-## is paired ?                                                                                                      
-if [ -n "$READTWO" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+#is paired ?
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
     f2=${f/$READONE/$READTWO}
     echo "[NOTE] Paired library detected"

@@ -21,7 +21,6 @@ required:
 options:
   -t | --threads <nr>       number of CPUs to use (default: 8)
   --fastqName               name of fastq file ending (fastq.gz)
-  --oldIllumina
 "
 exit
 }
@@ -86,7 +85,7 @@ echo -e "--Python libs --\n "$(yolk -l)
 n=${f##*/}
 
 #is paired ?                                                                                                      
-if [ -n "$READTWO" ] && [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
     PAIRED="1"
 else
     echo "[ERROR] hiclib requires paired-end fastq files. Could not find ${f/$READONE/$READTWO}"
