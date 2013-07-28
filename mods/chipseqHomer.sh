@@ -58,21 +58,10 @@ echo -e "--homer   --\n "$(which makeTagDirectory)
 # get basename of f
 n=${f##*/}
 
-#is paired ?                                                                                                      
-if [ -e ${f/$READONE/$READTWO} ]; then
-    PAIRED="1"
-else
-    PAIRED="0"
-fi
-
 if [ -n "$DMGET" ]; then
 	echo "********** reacall files from tape"
 	dmget -a ${f/$READONE/"*"}
 	dmls -l ${f/$READONE/"*"}
-fi
-
-if [ $PAIRED == "1" ]; then 
-    echo "[WARN] paired library not utilized, using first read only"
 fi
 
 #homer likes to write in the current directory, so change to target
@@ -80,17 +69,17 @@ CURDIR=$(pwd)
 cd $MYOUT
 
 echo "********* make tag directory"
-TAGDIRECTORY=$MYOUT/${n/%$READONE.$ASD.bam/_homer}
+TAGDIRECTORY=$MYOUT/${n/.$ASD.bam/_homer}
 mkdir -p $TAGDIRECTORY
-RUN_COMMAND="makeTagDirectory $HOMER_CHIPSEQ_TAGDIR_OPTIONS -format bam $TAGDIRECTORY $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}"
+RUN_COMMAND="makeTagDirectory $TAGDIRECTORY $f $HOMER_CHIPSEQ_TAGDIR_OPTIONS"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
 
 if [ -n "$CHIPINPUT" ];then
-    TAGDIRECTORY=$MYOUT/${n/%$READONE.$ASD.bam/_homer}
+    TAGDIRECTORY=$MYOUT/${n/.$ASD.bam/_homer}
     mkdir -p $TAGDIRECTORY
-    RUN_COMMAND="makeTagDirectory $HOMER_CHIPSEQ_TAGDIR_OPTIONS -format bam ${TAGDIRECTORY}_input $CHIPINPUT}"
+    RUN_COMMAND="makeTagDirectory ${TAGDIRECTORY}_input $CHIPINPUT $HOMER_CHIPSEQ_TAGDIR_OPTIONS"
     echo $RUN_COMMAND
     eval $RUN_COMMAND
 fi
@@ -108,7 +97,7 @@ RUN_COMMAND="pos2bed.pl $MYOUT/${n/%$READONE.$ASD.bam/_homer}/peaks.txt > $MYOUT
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
-if [ "$HOMER_CHIPSEQ_STYLE" == "factor"]; then
+if [ "$HOMER_CHIPSEQ_STYLE" == "factor" ]; then
     RUN_COMMAND="getFocalPeaks.pl $MYOUT/${n/%$READONE.$ASD.bam/_homer}/peaks.txt $HOMER_CHIPSEQ_FOCALPEAKS_OPTIONS > $MYOUT/${n/%$READONE.$ASD.bam/_homer}/focal_peaks.bed"
     echo $RUN_COMMAND
     eval $RUN_COMMAND 
