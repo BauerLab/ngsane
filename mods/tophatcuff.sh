@@ -82,7 +82,9 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-JAVAPARAMS="-Xmx"$(expr $MEMORY_TOPHAT - 1 )"G -Djava.io.tmpdir="$TMP
+JAVAPARAMS="-Xmx"$(expr $MEMORY_TOPHAT - 4 )"G -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1"
+unset _JAVA_OPTIONS
+
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"
