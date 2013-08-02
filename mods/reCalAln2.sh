@@ -68,7 +68,7 @@ done
 . $CONFIG
 #export PATH=$PATH:$RSCRIPT
 
-JAVAPARAMS="-Xmx"$(expr $MEMORY_RECAL - 1)"g -Djava.io.tmpdir="$TMP # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
+JAVAPARAMS="-Xmx"$(expr $MEMORY_RECAL - 4)"g -Djava.io.tmpdir="$TMP # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"
@@ -119,7 +119,8 @@ f3=${f2/bam/real.bam}
 # REALIGMENT
 #################
 
-echo "********* realignment"
+
+echo "[NOTE] realignment"
 echo "********* find intervals to improve"
 java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
     -T RealignerTargetCreator \
@@ -142,7 +143,7 @@ java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
 #    -nt $MYTHREADS
 
 
-echo "********* index"
+echo "********* index after realigment"
 #samtools sort ${f2/bam/real.fix.bam} $MYOUT/${n/asd.bam/asdrr}
 samtools index $f3
 
@@ -153,6 +154,7 @@ samtools index $f3
 
 echo "********* recalibrating"
 echo "********* counting covariantes" 
+# there seems to be a warning reg. Rscript but it does not affect output
 java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
     -T BaseRecalibrator \
     -R $FASTA \
@@ -177,7 +179,6 @@ java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
     -nct $MYTHREADS
 
 echo "********* QC Step"
-echo "********* index"
 samtools index ${f3/.bam/.recal.bam}
 
 echo "********* evaluate performace" #experimental
@@ -188,9 +189,10 @@ java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
      --recal ${f3/.bam/.covar.grp} \
      -nct $MYTHREADS 
 
+
 # TODO remove the below once it is not experimental anymore
 echo "********* counting covariantes after recalibration"
-java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
+java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar  -l WARN \
     -T BaseRecalibrator \
     -R $FASTA \
     -knownSites $DBROD \
@@ -203,7 +205,7 @@ java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
     -o ${f3/.bam/.recal.covar.grp} \
     -nt $MYTHREADS
 
-#echo "********* plotting both"
+#echo " plotting both"
 #java $JAVAPARAMS -jar $PATH_GATK/AnalyzeCovariates.jar \
 #    -recalFile ${f3/.bam/.covar.csv} \
 #    -outputDir $MYOUT/GATKorig/$n \
@@ -221,16 +223,16 @@ java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
 
 echo "********* sort/index"
 samtools sort ${f3/bam/recal.bam} $MYOUT/${n/$ASD.bam/$ASR}
-samtools index $MYOUT/${n/$ASD/$ASR}
 
 if [ "$PAIRED" == "1" ]; then
     # fix mates
-    samtools fixmate $MYOUT/${n/'_'$READONE.$FASTQ/.ash} $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp 
-    mv $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp $MYOUT/${n/'_'$READONE.$FASTQ/.ash
+    samtools fixmate $MYOUT/${n/$ASD/$ASR} $MYOUT/${n/$ASD.bam/$ASR}.tmp.bam
+    mv $MYOUT/${n/$ASD.bam/$ASR}.tmp.bam $MYOUT/${n/$ASD/$ASR}.bam
 fi
 
+samtools index $MYOUT/${n/$ASD/$ASR}
 
-# statistics
+
 echo "********* statistics"
 samtools flagstat $MYOUT/${n/$ASD/$ASR} >> $MYOUT/${n/$ASD/$ASR}.stats
 if [ -n $SEQREG ]; then
@@ -239,12 +241,14 @@ if [ -n $SEQREG ]; then
     echo `samtools view -f 2 $MYOUT/${n/$ASD/$ASR} $SEQREG | wc -l`" properly paired reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
 fi
 
+exit
+
 #f2=/reCalAln/name.asd.bam
 #f3=/reCalAln/name.asd.real.bam
 
 BAMREADSRERE=`head -n1 $MYOUT/${n/$ASD/$ASR}.stats | cut -d " " -f 1`
 if [ "$BAMREADSRERE" = "" ]; then let BAMREADSRERE="0"; fi	
-if [ $BAMREADS -eq $BAMREADSRERE ]; then
+if [[ $BAMREADS -eq $BAMREADSRERE  && ! $BAMREADS -eq 0 ]]; then
     echo "-----------------> PASS check recalibration and realignment: $BAMREADS == $BAMREADSRERE"
     rm ${f3/.bam/.covar.grp}
     rm ${f3/.bam/.recal.covar.grp}
