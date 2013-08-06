@@ -61,6 +61,10 @@ echo -e "--homer   --\n "$(which makeTagDirectory)
 echo -e "--circos  --\n "$(circos --version)
 [ -z "$(which circos)" ] && echo "[WARN] circos not detected"
 
+if [ "$HOMER_HIC_INTERACTIONS" != "all" ] && [ "$HOMER_HIC_INTERACTIONS" != "cis" ] && [ "$HOMER_HIC_INTERACTIONS" != "trans" ]; then
+    echo "[ERROR] HiC interactions not specified (all, cis or trans) : $HOMER_HIC_INTERACTIONS"
+fi
+
 # get basename of f
 n=${f##*/}
 
@@ -107,7 +111,35 @@ eval $RUN_COMMAND
 
 echo "********* normalize matrices"
 
-RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_OPTIONS -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/'_'$READONE.$ASD.bam/_matrix.txt}"
+if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
+    RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_OPTIONS -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/'_'$READONE.$ASD.bam/_matrix.txt}"
+    echo $RUN_COMMAND
+    eval $RUN_COMMAND
+
+elif [ "$HOMER_HIC_INTERACTIONS" == "cis" ]; then
+    [ ! -f $FASTA.fai ] && samtools faidx $FASTA
+
+    for CHR in $(awk '{print $1'} $FASTA.fai); do
+	    RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_OPTIONS -chr $CHR -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/'_'$READONE.$ASD.bam/_${CHR}_matrix.txt}"
+	    echo $RUN_COMMAND
+	    eval $RUN_COMMAND
+    done
+elif [ "$HOMER_HIC_INTERACTIONS" == "trans" ]; then
+   [ ! -f $FASTA.fai ] && samtools faidx $FASTA
+
+    for CHR1 in $(awk '{print $1'} $FASTA.fai); do
+        for CHR2 in $(awk '{print $1'} $FASTA.fai); do
+            if [ "$CHR1" != "$CHR2" ]; then
+                RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_OPTIONS -chr $CHR1 -chr2 $CHR2 -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/'_'$READONE.$ASD.bam/_${CHR1}-${CHR2}_matrix.txt}"
+                echo $RUN_COMMAND
+                eval $RUN_COMMAND
+            fi
+        done
+    done
+fi
+
+
+
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
@@ -119,9 +151,29 @@ eval $RUN_COMMAND
 
 echo "********* Significant interactions"
 
-RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $THREADS "
-echo $RUN_COMMAND
-eval $RUN_COMMAND
+if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
+    RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $THREADS "
+    echo $RUN_COMMAND
+    eval $RUN_COMMAND
+
+elif [ "$HOMER_HIC_INTERACTIONS" == "cis" ]; then
+    for CHR in $(awk '{print $1'} $FASTA.fai); do
+        RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -chr $CHR -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $THREADS "
+        echo $RUN_COMMAND
+        eval $RUN_COMMAND
+    done
+
+elif [ "$HOMER_HIC_INTERACTIONS" == "trans" ]; then
+    for CHR1 in $(awk '{print $1'} $FASTA.fai); do
+        for CHR2 in $(awk '{print $1'} $FASTA.fai); do
+            if [ "$CHR1" != "$CHR2" ]; then
+                RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -chr $CHR1 -chr2 $CHR2 -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $THREADS "
+                echo $RUN_COMMAND
+                eval $RUN_COMMAND
+            fi
+        done
+    done
+fi
 
 echo "********* Annotate interactions"
 
