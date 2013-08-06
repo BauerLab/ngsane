@@ -158,7 +158,7 @@ if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
 
 elif [ "$HOMER_HIC_INTERACTIONS" == "cis" ]; then
     for CHR in $(awk '{print $1'} $FASTA.fai); do
-        RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -chr $CHR -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $THREADS "
+        RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -chr $CHR -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions_$CHR.txt} -nomatrix -cpu $THREADS "
         echo $RUN_COMMAND
         eval $RUN_COMMAND
     done
@@ -167,7 +167,7 @@ elif [ "$HOMER_HIC_INTERACTIONS" == "trans" ]; then
     for CHR1 in $(awk '{print $1'} $FASTA.fai); do
         for CHR2 in $(awk '{print $1'} $FASTA.fai); do
             if [ "$CHR1" != "$CHR2" ]; then
-                RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -chr $CHR1 -chr2 $CHR2 -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $THREADS "
+                RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -chr $CHR1 -chr2 $CHR2 -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions_$CHR1-$CHR2.txt} -nomatrix -cpu $THREADS "
                 echo $RUN_COMMAND
                 eval $RUN_COMMAND
             fi
