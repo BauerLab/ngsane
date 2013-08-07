@@ -11,8 +11,9 @@
 RUNMAPPINGBOWTIE="1"    # mapping with bowtie
 
 #********************
-# Paths
+# PARAMETER (mandatory)
 #********************
+
 SOURCE=$(pwd)
 
 # which files to run on (replace sample with folders within fastq firectory)
@@ -24,13 +25,12 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# read indicator
-READONE="R1"
-READTWO="R2"
-
-# fastq file suffix
+# fastq file suffix (which files to run on)
 FASTQ="fq.gz"
-# which files to run on (replace samples with folders within fastq firectory)
+
+# read indicator  immediately preceeding the file suffixes
+READONE="_R1"
+READTWO="_R2"
 
 # reference genome
 FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
@@ -38,9 +38,6 @@ FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sap
 # chromosome sizes
 GENOME_CHROMSIZES=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
 
-#********************
-# PARAMETER (mandatory)
-#********************
 EXPID="Celltype"
 LIBRARY="ChIPseq"
 PLATFORM="Illumina"
@@ -48,6 +45,10 @@ PLATFORM="Illumina"
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
+
+## additional bowtie parameters
+#BOWTIEADDPARAM=
+
 #WALLTIME_BOWTIE=10:00:00
 #MEMORY_BOWTIE=60
 #CPU_BOWTIE=8

@@ -11,11 +11,12 @@
 RUNMAPPINGBOWTIE2="1"    # mapping with bowtie2
 
 #********************
-# Paths
+# PARAMETER (mandatory)
 #********************
+
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq firectory)
+# which files to run on (replace sample with folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # where to write the output
@@ -24,20 +25,16 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# read indicator
-READONE="R1"
-READTWO="R2"
-
-# fastq file suffix
+# fastq file suffix (which files to run on)
 FASTQ="fq.gz"
-# which files to run on (replace samples with folders within fastq firectory)
+
+# read indicator  immediately preceeding the file suffixes
+READONE="_R1"
+READTWO="_R2"
 
 # reference genome
 FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
 
-#********************
-# PARAMETER (mandatory)
-#********************
 EXPID="Celltype"
 LIBRARY="RNAseq"
 PLATFORM="Illumina"
@@ -45,6 +42,10 @@ PLATFORM="Illumina"
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
+
+# additional bowtie parameters
+#BOWTIEADDPARAM=
+
 #WALLTIME_BOWTIE=10:00:00
 #MEMORY_BOWTIE=60
 #CPU_BOWTIE=8

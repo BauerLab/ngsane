@@ -18,7 +18,7 @@ SUMMARYFILE="Summary.html"
 echo "Last modified "`date` >$SUMMARYTMP
 
 
-#if [ -n "$fastQC" ]; then
+if [ -n "$RUNFASTQC" ]; then
     echo "fastqc"
     echo "<h2>Read biases (FASTQC)</h2>">>$SUMMARYTMP
     echo ${NGSANE_BASE}/tools/makeFastQCplot.sh
@@ -43,7 +43,7 @@ echo "Last modified "`date` >$SUMMARYTMP
     echo "</td><td>">>$SUMMARYTMP
     echo "<img src=\"runStats/fastQCSummary.jpg\" alt=\"Quality scores for all reads\"/>" >>$SUMMARYTMP
     echo "</td></tr></table>">>$SUMMARYTMP
-#fi
+fi
 
 
 
@@ -111,7 +111,7 @@ if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
     LINKS=$LINKS" tophat"
     echo "<a name=\"tophat\"><h2>tophat Mapping</h2><br>Note, the duplication rate is not calculated by tophat and hence zero.">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT/ >>$SUMMARYTMP
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     CURDIR=$(pwd)
     for dir in ${DIR[@]}; do
@@ -200,6 +200,20 @@ if [ -n "$RUNTRIMGALORE" ];then
         vali=$vali" $OUT/fastq/${dir/_$TASKTRIMGALORE/}_$TASKTRIMGALORE/"
     done
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "_trimming_report.txt" trimgalore --noSummary >> $SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
+
+if [ -n "$RUNTRIMMOMATIC" ];then
+    LINKS=$LINKS" trimmomatic"
+    echo "<a name=\"trimmomatic\"><h2>Trimmomatic results</h2></a><pre>">>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/trimmomatic.sh $QOUT/$TASKTRIMMOMATIC >> $SUMMARYTMP
+
+    echo "</pre><h3>trimmomatic</h3><pre>">>$SUMMARYTMP
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/fastq/${dir/_$TASKTRIMMOMATIC/}_$TASKTRIMMOMATIC/"
+    done
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" ".log" trimmomatic --noSummary >> $SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
 fi
 

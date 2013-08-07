@@ -4,11 +4,10 @@
 # author: Denis C. Bauer
 # date: Nov.2010
 
+# modified June 2013 - Fabian Buske
+
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,We are loosing reads,MAPQ should be 0 for unmapped read,no such file,file not found,bwa.sh: line,Resource temporarily unavailable
-
-#module load bwa
-#BWA=bwa
 
 echo ">>>>> readmapping with BWA "
 echo ">>>>> startdate "`date`
@@ -42,9 +41,7 @@ options:
   -u | --rgpu <name>        read group platform unit RG PU (default:flowcell )
   -R | --region <ps>        region of specific interest, e.g. targeted reseq
                              format chr:pos-pos
-  -S | --sam                do not convert to bam file (default confert); not the
-                             resulting sam file is not duplicate removed
-  --forceSingle             run single end even though second read is present
+  --forceSingle             run single end eventhough second read is present
   --oldIllumina             old Illumina encoding 1.3+
   --noMapping
   --fastqName               name of fastq file ending (fastq.gz)
@@ -52,10 +49,7 @@ options:
 exit
 }
 
-
 if [ ! $# -gt 3 ]; then usage ; fi
-
-
 
 #DEFAULTS
 MYTHREADS=1
@@ -64,12 +58,10 @@ MYMEMORY=2
 #LIBRARY="qbi"         # read group library RD LB
 #PLATFORM="illumina"   # read group platform RD PL
 #UNIT="flowcell"       # read group platform unit RG PU
-DOBAM=1               # do the bam file
 FORCESINGLE=0
 NOMAPPING=0
 FASTQNAME=""
 QUAL="" # standard Sanger
-
 
 #INPUTS
 while [ "$1" != "" ]; do
@@ -85,7 +77,6 @@ while [ "$1" != "" ]; do
         -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
         -R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
-        -S | --sam )            DOBAM=0 ;;
         --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
         --forceSingle )         FORCESINGLE=1;;
         --noMapping )           NOMAPPING=1;;
@@ -113,7 +104,7 @@ echo "PATH=$PATH"
 # best common denominator)
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
-echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
+echo -e "--JAVA    --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--bwa     --\n "$(bwa 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which bwa)" ] && echo "[ERROR] no bwa detected" && exit 1
@@ -148,12 +139,12 @@ fi
 
 
 # delete old bam file
-if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi
-if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats; fi
-if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl; fi
+if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
+if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
+if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
 
 #is paired ?
-if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
 else
     PAIRED="0"
@@ -172,7 +163,7 @@ fi
 ZCAT="zcat"
 if [[ $f != *.gz ]]; then ZCAT="cat"; fi
 
-FULLSAMPLEID=$SAMPLEID"${n/'_'$READONE.$FASTQ/}"
+FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 echo ">>>>> full sample ID "$FULLSAMPLEID
 FASTASUFFIX=${FASTA##*.}
 
@@ -185,15 +176,15 @@ echo "********* mapping"
 if [ "$PAIRED" = 1 ]
 then
     if [ "$NOMAPPING" = 0 ]; then
-    echo "********* PAIRED READS"
-    bwa aln $QUAL -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
-    bwa aln $QUAL -t $MYTHREADS $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
-    bwa sampe $FASTA $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} \
-	-r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-	$f ${f/$READONE/$READTWO} >$MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
+       echo "********* PAIRED READS"
+       bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
+       bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
+       bwa sampe $FASTA $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} \
+   	$BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
+	$f ${f/$READONE/$READTWO} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
 
-    rm $MYOUT/${n/$FASTQ/sai}
-    rm $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
+       rm $MYOUT/${n/$FASTQ/sai}
+       rm $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
     fi
     READ1=$($ZCAT $f | wc -l | gawk '{print int($1/4)}')
     READ2=$($ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}')
@@ -201,49 +192,20 @@ then
 # Single read
 else
     echo "********* SINGLE READS"
-    bwa aln $QUAL -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
+    bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
 
-    bwa samse $FASTA $MYOUT/${n/$FASTQ/sai} \
+    bwa samse $FASTA $MYOUT/${n/$FASTQ/sai} $BWASAMPLEADDPARAM \
 	-r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-	$f >$MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
-
-#    bwa samse $FASTA $MYOUT/${n/$FASTQ/sai} \
-#	-i $EXPID \
-#	-m $FULLSAMPLEID \
-#	-p $PLATFORM \
-#	-l $LIBRARY \
-#	$f >$MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
+	$f | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
 
     rm $MYOUT/${n/$FASTQ/sai}
     let FASTQREADS=$($ZCAT $f | wc -l | gawk '{print int($1/4)}')
 fi
 
-# exit if only the sam file is required
-if [ "$DOBAM" = 0 ]; then
-    SAMREADS=`grep -v @ $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | wc -l`
-    if [ "$SAMREADS" = "" ]; then let SAMREADS="0"; fi			
-    if [ $SAMREADS -eq $FASTQREADS ]; then
-	echo "-----------------> PASS check mapping: $SAMREADS == $FASTQREADS"
-	echo ">>>>> readmapping with BWA - FINISHED"
-	echo ">>>>> enddate "`date`
-	exit
-    else
-	echo -e "***ERROR**** We are loosing reads from .fastq -> .sam in $f: 
-                 Fastq had $FASTQREADS Bam has $SAMREADS"
-	exit 1
-    fi
-fi
-
 # continue for normal bam file conversion
 echo "********* sorting and bam-conversion"
-samtools view -bt $FASTA.fai $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam} | samtools sort - $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
-
-if [ "$PAIRED" = "1" ]; then
-    # fix mates
-    samtools sort -n $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.bam $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp
-    samtools fixmate $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp.bam $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp.bam
-fi
+samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} $MYOUT/${n/%$READONE.$FASTQ/.ash}
+rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
 
 #TODO look at samtools for rmdup
 #val string had to be set to LENIENT (SIlENT) to avoid crash due to a definition dis-
@@ -255,35 +217,32 @@ THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
 echo $THISTMP
 mkdir -p $THISTMP
 java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
-    INPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} \
-    OUTPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
-    METRICS_FILE=$MYOUT/metrices/${n/'_'$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
+    INPUT=$MYOUT/${n/%$READONE.$FASTQ/.ash.bam} \
+    OUTPUT=$MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} \
+    METRICS_FILE=$MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
     VALIDATION_STRINGENCY=SILENT \
     TMP_DIR=$THISTMP
 rm -rf $THISTMP
-samtools index $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
-
-
+samtools index $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 
 # statistics
 echo "********* statistics"
-STATSMYOUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats
-samtools flagstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} > $STATSMYOUT
+STATSMYOUT=$MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
+samtools flagstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} > $STATSMYOUT
 if [ -n $SEQREG ]; then
     echo "#custom region" >> $STATSMYOUT
-    echo $(samtools view $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" total reads in region " >> $STATSMYOUT
-    echo $(samtools view -f 2 $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" properly paired reads in region " >> $STATSMYOUT
+    echo $(samtools view $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" total reads in region " >> $STATSMYOUT
+    echo $(samtools view -f 2 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" properly paired reads in region " >> $STATSMYOUT
 fi
-
 
 echo "********* calculate inner distance"
 export PATH=$PATH:/usr/bin/
 THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
 mkdir -p $THISTMP
 java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
-    INPUT=$MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
+    INPUT=$MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} \
     REFERENCE_SEQUENCE=$FASTA \
-    OUTPUT=$MYOUT/metrices/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
+    OUTPUT=$MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam} \
     VALIDATION_STRINGENCY=SILENT \
     PROGRAM=CollectAlignmentSummaryMetrics \
     PROGRAM=CollectInsertSizeMetrics \
@@ -295,12 +254,11 @@ done
 rm -rf $THISTMP
 
 echo "********* verify"
-BAMREADS=`head -n1 $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1`
+BAMREADS=$(head -n1 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1)
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi			
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ALN.sam}
-    rm $MYOUT/${n/'_'$READONE.$FASTQ/.ash.bam}
+    rm $MYOUT/${n/%$READONE.$FASTQ/.ash.bam}
 else
     echo -e "***ERROR**** We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
     exit 1 
@@ -308,12 +266,12 @@ fi
 
 echo "********* coverage track"
 GENOME=$(echo $FASTA | sed 's/.${FASTASUFFIX}/.genome/' )
-java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} \
-    $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam.cov.tdf} $GENOME
+java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} \
+    $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} $GENOME
 
 
 echo "********* samstat"
-samstat $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}
+samstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 
 echo ">>>>> readmapping with BWA - FINISHED"
 echo ">>>>> enddate "`date`

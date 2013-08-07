@@ -47,7 +47,7 @@ echo -e "--trim galore --\n "$(trim_galore --version  | grep version  | tr -d ' 
 n=${f##*/}
 
 #is paired ?
-if [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
     echo "[NOTE] PAIRED library"
     PAIRED="1"
 else
@@ -84,9 +84,9 @@ echo "********** trim"
 # Paired read
 if [ "$PAIRED" = "1" ]
 then
-    RUN_COMMAND="trim_galore $TRIMGALORE_OPTIONS $CONTAM --paired --output_dir $FASTQDIRTRIM $f ${f/$READONE/$READTWO}"
+    RUN_COMMAND="trim_galore $TRIMGALOREADDPARAM $CONTAM --paired --output_dir $FASTQDIRTRIM $f ${f/$READONE/$READTWO}"
 else
-    RUN_COMMAND="trim_galore $TRIMGALORE_OPTIONS $CONTAM --output_dir $FASTQDIRTRIM $f"
+    RUN_COMMAND="trim_galore $TRIMGALOREADDPARAM $CONTAM --output_dir $FASTQDIRTRIM $f"
 fi
 echo $RUN_COMMAND
 eval $RUN_COMMAND

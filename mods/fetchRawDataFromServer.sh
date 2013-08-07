@@ -99,7 +99,7 @@ for sourcefile in ${SOURCE_FILES[@]}; do
 	fi
 	
 	# get second read
-	if [ -n "$READTWO" ]; then  
+	if [ -n "$READTWO" ] && [ "$f" != "${f/$READONE/$READTWO}" ]; then  
 		if [ -f  ~/.smbclient ]; then
 		   smbclient ${SOURCE_SERVER} -A ~/.smbclient -c "prompt; cd ${dn}; get ${fn/$READONE/$READTWO}"
 		else

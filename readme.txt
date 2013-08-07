@@ -1,6 +1,6 @@
 NGSANE is a framework for advanced production informatics of Next Generation Sequencing libraries.
 
-Version: 0.0.1
+Version: 0.1
 
 #########################################################
 # Setup:
@@ -81,7 +81,7 @@ done
   direct     run task directly (e.g. on node after qrsh)
   verify     check the pbs logfiles for errors
   html       check the pbs logfiles for errors and and make summary HTML page
-  clean      clean up
+
 
 Following the folder structure example from above, you can submit jobs
 using a properly configured config.txt form within the PROJECT folder as 

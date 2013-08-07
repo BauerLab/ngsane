@@ -21,7 +21,6 @@ required:
 options:
   -t | --threads <nr>       number of CPUs to use (default: 8)
   --fastqName               name of fastq file ending (fastq.gz)
-  --oldIllumina
 "
 exit
 }
@@ -38,10 +37,6 @@ if [ ! $# -gt 3 ]; then usage ; fi
 
 #DEFAULTS
 THREADS=8
-EXPID="exp"           # read group identifier RD ID
-LIBRARY="tkcc"        # read group library RD LB
-PLATFORM="illumina"   # read group platform RD PL
-UNIT="flowcell"       # read group platform unit RG PU
 FASTQNAME=""
 ENZYME=""
 QUAL="" # standard Sanger
@@ -89,11 +84,8 @@ echo -e "--Python libs --\n "$(yolk -l)
 # get basename of f
 n=${f##*/}
 
-# delete old bam file                                                                       
-#if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi
-
 #is paired ?                                                                                                      
-if [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
     PAIRED="1"
 else
     echo "[ERROR] hiclib requires paired-end fastq files. Could not find ${f/$READONE/$READTWO}"

@@ -41,6 +41,8 @@ TASKTRIMGALORE="trimgalore"
 TASKHICUP="hicup"
 TASKHICLIB="hiclib"
 TASKFASTQ2SANGER="sanger"
+TASKWIGGLER="wiggler"
+TASKTRIMMOMATIC="trimmomatic"
 TASKHOMERHIC="homerhic"
 
 ##############################################################
@@ -112,7 +114,7 @@ PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 ##############################################################
 # Bowtie2 (2.1.0) or Bowtie (1.0.0)
 # http://bowtie-bio.sourceforge.net/index.shtml
-WALLTIME_BOWTIE=10:00:00
+WALLTIME_BOWTIE=72:00:00
 MEMORY_BOWTIE=60
 CPU_BOWTIE=8
 NODES_BOWTIE="nodes=1:ppn=8"
@@ -124,6 +126,20 @@ BOWTIE2_INDEX=
 MODULE_BOWTIE=
 PATH_BOWTIE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 BOWTIE_INDEX=
+
+##############################################################
+# Wiggler
+# https://sites.google.com/site/anshulkundaje/projects/wiggler
+WALLTIME_WIGGLER=10:00:00
+MEMORY_WIGGLER=60
+CPU_WIGGLER=1
+NODES_WIGGLER="nodes=1:ppn=1"
+
+MODULE_WIGGLER=
+PATH_WIGGLER=
+
+WIGGLER_UMAPDIR=
+WIGGLERADDPARAMS=""
 
 ##############################################################
 # HOMER HIC 
@@ -163,6 +179,19 @@ TRIMGALORE_ADAPTER2=
 TRIMGALORE_OPTIONS=
 
 ##############################################################
+# Trimming with TRIMMOMATIC
+# http://www.usadellab.org/cms/index.php?page=trimmomatic
+WALLTIME_TRIMMOMATIC=8:00:00
+MEMORY_TRIMMOMATIC=40
+CPU_TRIMMOMATIC=1
+NODES_TRIMMOMATIC="nodes=1:ppn=1"
+
+MODULE_TRIMMOMATIC=
+PATH_TRIMMOMATIC=
+TRIMMOMATICADDPARAMS=
+TRIMMOMATICSTEPS=
+
+##############################################################
 # Snp calling with GATK
 # http://www.broadinstitute.org/gatk/
 # COVERAGE
@@ -191,9 +220,7 @@ CPU_TOPHAT=8
 NODES_TOPHAT="nodes=1:ppn=8"
 
 MODULE_TOPHATCUFF=
-PATH_TOPHATCUFF=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
-
-TOPHAT_OPTIONS=
+PATH_TOPHATCUFF=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT:$PATH_RNASEQC
 
 ##############################################################
 # HICLIB 
@@ -242,8 +269,6 @@ RSCRIPT=Rscript
 #GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
 #GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
 #GATKJAR=$GATKHOME/dist/
-
-FASTXTK="/clusterdata/hiseq_apps/bin/devel/fastx_toolkit/"
 
 VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"

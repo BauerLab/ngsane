@@ -69,7 +69,7 @@ fi
 n=${f##*/}
 
 #is paired ?                                                                                                      
-if [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
     PAIRED="1"
 else
     PAIRED="0"
@@ -93,19 +93,19 @@ CURDIR=$(pwd)
 cd $MYOUT
 
 echo "********* makeTagDirectory" 
-RUN_COMMAND="makeTagDirectory $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_unfiltered} $f,${f/'_'$READONE/'_'$READTWO} $HOMER_HIC_TAGDIR_OPTIONS"
+RUN_COMMAND="makeTagDirectory $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $f,${f/$READONE/$READTWO} $HOMER_HIC_TAGDIR_OPTIONS"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
-cp -r $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_unfiltered} $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered}
+cp -r $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered}
 
-RUN_COMMAND="makeTagDirectory $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} -update $HOMER_HIC_TAGDIR_OPTIONS"
+RUN_COMMAND="makeTagDirectory $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} -update $HOMER_HIC_TAGDIR_OPTIONS"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
 echo "********* create background model" 
 
-RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_BACKGROUND_OPTIONS -createModel $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt} active.model.txt -cpu $THREADS"
+RUN_COMMAND="analyzeHiC $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_BACKGROUND_OPTIONS -createModel $MYOUT/${n/%$READONE.$ASD.bam/_background.txt} active.model.txt -cpu $THREADS"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
@@ -139,13 +139,9 @@ elif [ "$HOMER_HIC_INTERACTIONS" == "trans" ]; then
 fi
 
 
-
-echo $RUN_COMMAND
-eval $RUN_COMMAND
-
 echo "********* PCA clustering"
 
-RUN_COMMAND="runHiCpca.pl ${n/'_'$READONE.$ASD.bam/} $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_PCA_OPTIONS -cpu $THREADS "
+RUN_COMMAND="runHiCpca.pl ${n/%$READONE.$ASD.bam/} $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_PCA_OPTIONS -cpu $THREADS "
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
@@ -177,13 +173,13 @@ fi
 
 echo "********* Annotate interactions"
 
-RUN_COMMAND="annotateInteractions.pl $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions.txt} $HOMER_HIC_ANNOTATE_OPTIONS $MYOUT/${n/'_'$READONE.$ASD.bam/_annotations}"
+RUN_COMMAND="annotateInteractions.pl $MYOUT/${n/%$READONE.$ASD.bam/_significantInteractions.txt} $HOMER_HIC_ANNOTATE_OPTIONS $MYOUT/${n/%$READONE.$ASD.bam/_annotations}"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
 if hash ${CIRCOS} 2>&- ; then
     echo "********* Circos plots"
-    RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} -res 1000000 -pvalue 1e-7 -cpu $THREADS -circos ${n/'_'$READONE.$ASD.bam/} -minDist 2000000000 -nomatrix"
+    RUN_COMMAND="analyzeHiC $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} -res 1000000 -pvalue 1e-7 -cpu $THREADS -circos ${n/%$READONE.$ASD.bam/} -minDist 2000000000 -nomatrix"
     echo $RUN_COMMAND
     eval $RUN_COMMAND
 fi

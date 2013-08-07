@@ -50,7 +50,8 @@ echo -e "--cutadapt  --\n" $(cutadapt --version 2>&1)
 # get basename of f
 n=${f##*/}
 
-if [ -e ${f/$READONE/$READTWO} ] ; then
+#is paired ?
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] ; then
     echo "[NOTE] PAIRED library"
     PAIRED="1"
 else
@@ -79,14 +80,14 @@ CONTAM=$(cat $CONTAMINANTS | tr '\n' ' ')
 echo "[NOTE] $CONTAM"
 
 echo "********** trim"
-RUN_COMMAND="cutadapt $CUTADAPT_OPTIONS $CONTAM $f -o $o > $o.stats"
+RUN_COMMAND="cutadapt $CUTADAPTADDPARAM $CONTAM $f -o $o > $o.stats"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 cat $o.stats
 
 if [ "$PAIRED" = 1 ]; then
     echo "********** paired end"
-    RUN_COMMAND="cutadapt $CUTADAPT_OPTIONS $CONTAM ${f/$READONE/$READTWO} -o ${o/$READONE/$READTWO} > ${o/$READONE/$READTWO}.stats"
+    RUN_COMMAND="cutadapt $CUTADAPTADDPARAM $CONTAM ${f/$READONE/$READTWO} -o ${o/$READONE/$READTWO} > ${o/$READONE/$READTWO}.stats"
     echo $RUN_COMMAND
     eval $RUN_COMMAND
     cat ${o/$READONE/$READTWO}.stats

@@ -15,6 +15,10 @@ RUNTOPHATCUFF2="1"    # mapping with tophat (RNAseq)
 #********************
 SOURCE=$(pwd)
 
+#********************
+## PARAMETER (mandatory)
+##********************
+
 # which files to run on (replace sample with folders within fastq firectory)
 declare -a DIR; DIR=( sample1 sample2 )
 
@@ -24,9 +28,9 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# read indicator
-READONE="R1"
-READTWO="R2"
+# read indicator immediately preceeding the file suffixes
+READONE="_R1"
+READTWO="_R2"
 
 # fastq file suffix
 FASTQ="fq.gz"
@@ -36,15 +40,9 @@ FASTQ="fq.gz"
 FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
 
 #specify library type for tophat.
+# choose "fr-firststrand" "fr-unstranded" "fr-secondstrand"
 RNA_SEQ_LIBRARY_TYPE="fr-firststrand"
-#at the moment choose "fr-firststrand" "fr-unstranded"
 
-# bowtie v2.0 index including basename
-# BOWTIE2_INDEX=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome
-
-#********************
-# PARAMETER (mandatory)
-#********************
 EXPID="Celltype"
 LIBRARY="RNAseq"
 PLATFORM="Illumina"
@@ -53,13 +51,29 @@ PLATFORM="Illumina"
 # PARAMETER (optional overwriting defaults)
 #********************
 
-## If next line is commented HT-Seq-count will not run.
-#Specify one or another.
-#GENCODEGTF=/share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.gtf
+## additional parameters for tophat and cufflinks
+TOPHATADDPARAM=
+CUFFLINKSADDPARAM=
+
+## ATTENTION: make sure the GTF file matches your genome assembly (chr naming)
+## see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
+## conversion scripts
+#GENCODEGTF=/share/ClusterShare/biodata/contrib/GENCODE_doctored/release_14/gencode.v14.annotation.gtf
+
+## Alternatively use REFSEQ
 #REFSEQGTF=
 
+## activate to use doctored GTF file for RNA-SeQC (provides additional info)
+## assumes the doctored GTF is at the same location as the original one but
+## has a different suffix
+## In addition RNA-SeQC will look for the suffix <GTF-FILE>.gc and apply gc
+## stratification if found
+#DOCTOREDGTFSUFFIX=".doctored.gtf"
 
-
+## htseq-count is still in experimental stage. To activate this state
+## uncomment the next line
+## NOTE: HT-Seq-count expects a GENCODEGTF with the doctored version is available at the same location.
+#RUNEXPERIMENTAL_HTSEQCOUNT="1"
 
 #WALLTIME_TOPHAT=60:00:00
 #MEMORY_TOPHAT=50

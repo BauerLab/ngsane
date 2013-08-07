@@ -80,7 +80,7 @@ echo $PATH
 # best common denominator)
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
-echo -e "--JAVA    --\n" $(java $JAVAPARAMS -version 2>&1)
+echo -e "--JAVA    --\n" $(java -version 2>&1)
 echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 echo -e "--R       --\n "$(R --version | head -n 3)
 echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
@@ -225,8 +225,8 @@ samtools index $MYOUT/${n/$ASD/$ASR}
 
 if [ "$PAIRED" == "1" ]; then
     # fix mates
-    samtools fixmate $MYOUT/${n/'_'$READONE.$FASTQ/.ash} $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp 
-    mv $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp $MYOUT/${n/'_'$READONE.$FASTQ/.ash
+    samtools fixmate $MYOUT/${n/%$READONE.$FASTQ/.ash} $MYOUT/${n/%$READONE.$FASTQ/.ash}.tmp 
+    mv $MYOUT/${n/%$READONE.$FASTQ/.ash}.tmp $MYOUT/${n/%$READONE.$FASTQ/.ash
 fi
 
 
