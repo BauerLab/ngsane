@@ -66,10 +66,6 @@ done
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
-#export PATH=$PATH:$RSCRIPT
-
-JAVAPARAMS="-Xmx"$(expr $MEMORY_RECAL - 1)"g -Djava.io.tmpdir="$TMP # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
-echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"
 for MODULE in $MODULE_GATK; do module load $MODULE; done  # save way to load modules that itself load other modules
@@ -87,6 +83,10 @@ echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar ver
 echo -e "--GATK    --\n "$(java -jar $JAVAPARAMS $PATH_GATK/GenomeAnalysisTK.jar --version)
 
 
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_RECAL*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
 
 # get basename of f
 n=${f##*/}
@@ -119,6 +119,8 @@ f3=${f2/bam/real.bam}
 # REALIGMENT
 #################
 
+<<EOF
+
 echo "********* realignment"
 echo "********* find intervals to improve"
 java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
@@ -146,6 +148,7 @@ echo "********* index"
 #samtools sort ${f2/bam/real.fix.bam} $MYOUT/${n/asd.bam/asdrr}
 samtools index $f3
 
+EOF
 
 #################
 # RECALIBRATION
@@ -163,8 +166,8 @@ java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
     -cov QualityScoreCovariate \
     -cov CycleCovariate \
     --plot_pdf_file $MYOUT/GATKorig.pdf \
-    -o ${f3/.bam/.covar.grp} \
-    -nt $MYTHREADS
+    -o ${f3/.bam/.covar.grp} 
+#    -nt $MYTHREADS
 
 
 echo "********* change score"
@@ -238,6 +241,8 @@ if [ -n $SEQREG ]; then
     echo `samtools view $MYOUT/${n/$ASD/$ASR} $SEQREG | wc -l`" total reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
     echo `samtools view -f 2 $MYOUT/${n/$ASD/$ASR} $SEQREG | wc -l`" properly paired reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
 fi
+
+exit
 
 #f2=/reCalAln/name.asd.bam
 #f3=/reCalAln/name.asd.real.bam

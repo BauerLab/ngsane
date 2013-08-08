@@ -55,9 +55,6 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-JAVAPARAMS="-Xmx"$MEMORY"G -Djava.io.tmpdir="$TMP #-XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=10G"
-echo "JAVAPARAMS "$JAVAPARAMS
-
 echo "********** programs"
 for MODULE in $MODULE_BOWTIE; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_BOWTIE:$PATH
@@ -85,6 +82,11 @@ echo -e "--homer   --\n "$(which makeTagDirectory)
 [ -z "$(which makeTagDirectory)" ] && echo "[ERROR] no homer detected (makeTagDirectory)" && exit 1
 echo -e "--convert  --\n "$(convert -version | head -n 1)
 [ -z "$(which convert)" ] && echo "[WARN] imagemagick convert not detected" && exit 1
+
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_BOWTIE*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
 
 # check library variables are set
 if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then

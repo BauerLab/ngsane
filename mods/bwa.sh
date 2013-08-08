@@ -92,9 +92,6 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-JAVAPARAMS="-Xmx"$MYMEMORY"g -Djava.io.tmpdir="$TMP # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
-echo "JAVAPARAMS "$JAVAPARAMS
-
 echo "********** programs"
 for MODULE in $MODULE_BWA; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_BWA:$PATH
@@ -118,6 +115,11 @@ echo -e "--PICARD  --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--samstat --\n "$(samstat -h | head -n 2 | tail -n 1 )
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
+
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_BWA*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
 
 if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
     echo "[ERROR] library info not set (EXPID, LIBRARY, and PLATFORM): free text needed"
