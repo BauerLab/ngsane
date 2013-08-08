@@ -119,8 +119,6 @@ f3=${f2/bam/real.bam}
 # REALIGMENT
 #################
 
-<<EOF
-
 echo "********* realignment"
 echo "********* find intervals to improve"
 java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
@@ -147,8 +145,6 @@ java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
 echo "********* index"
 #samtools sort ${f2/bam/real.fix.bam} $MYOUT/${n/asd.bam/asdrr}
 samtools index $f3
-
-EOF
 
 #################
 # RECALIBRATION
@@ -229,7 +225,7 @@ samtools index $MYOUT/${n/$ASD/$ASR}
 if [ "$PAIRED" == "1" ]; then
     # fix mates
     samtools fixmate $MYOUT/${n/'_'$READONE.$FASTQ/.ash} $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp 
-    mv $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp $MYOUT/${n/'_'$READONE.$FASTQ/.ash
+    mv $MYOUT/${n/'_'$READONE.$FASTQ/.ash}.tmp $MYOUT/${n/'_'$READONE.$FASTQ/.ash}
 fi
 
 
@@ -241,8 +237,6 @@ if [ -n $SEQREG ]; then
     echo `samtools view $MYOUT/${n/$ASD/$ASR} $SEQREG | wc -l`" total reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
     echo `samtools view -f 2 $MYOUT/${n/$ASD/$ASR} $SEQREG | wc -l`" properly paired reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
 fi
-
-exit
 
 #f2=/reCalAln/name.asd.bam
 #f3=/reCalAln/name.asd.real.bam
