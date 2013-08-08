@@ -12,6 +12,7 @@ options for TASK:
   -h          hold
   -r          release
   -d          delete
+  -p          priority
 "
 exit
 }
@@ -45,6 +46,18 @@ read input
 if [ "$input" != "y" ];then exit 0; fi
 for ((i=$1; i<=$2;i++)); do
     echo "qdel $i"
-    qrls $i
+    qdel $i
 done
 fi
+
+if [[ "$3" = "-p" ]]; then
+echo "Priority down jobs ? y|n"
+read input
+if [ "$input" != "y" ];then exit 0; fi
+for ((i=$1; i<=$2;i++)); do
+    echo "qalter -p -10 $i"
+    qalter -p -10 $i
+done
+fi
+
+
