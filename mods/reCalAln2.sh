@@ -76,11 +76,11 @@ echo $PATH
 # best common denominator)
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
-echo -e "--JAVA    --\n" $(java -version 2>&1)
+echo -e "--JAVA    --\n" $(java -Xmx200m -version 2>&1)
 echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 echo -e "--R       --\n "$(R --version | head -n 3)
-echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
-echo -e "--GATK    --\n "$(java -jar $JAVAPARAMS $PATH_GATK/GenomeAnalysisTK.jar --version)
+echo -e "--igvtools--\n "$(java -jar -Xmx200m $PATH_IGVTOOLS/igvtools.jar version 2>&1)
+echo -e "--GATK    --\n "$(java -jar -Xmx200m $PATH_GATK/GenomeAnalysisTK.jar --version)
 
 
 echo "[NOTE] set java parameters"
@@ -239,8 +239,6 @@ if [ -n $SEQREG ]; then
     echo `samtools view $MYOUT/${n/$ASD/$ASR} $SEQREG | wc -l`" total reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
     echo `samtools view -f 2 $MYOUT/${n/$ASD/$ASR} $SEQREG | wc -l`" properly paired reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
 fi
-
-exit
 
 #f2=/reCalAln/name.asd.bam
 #f3=/reCalAln/name.asd.real.bam
