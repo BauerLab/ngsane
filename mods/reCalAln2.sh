@@ -201,8 +201,8 @@ java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar  -l WARN \
     -cov QualityScoreCovariate \
     -cov CycleCovariate \
     --plot_pdf_file $MYOUT/GATKrecal.pdf \
-    -o ${f3/.bam/.recal.covar.grp} \
-    -nt $MYTHREADS
+    -o ${f3/.bam/.recal.covar.grp} 
+#    -nt $MYTHREADS
 
 #echo " plotting both"
 #java $JAVAPARAMS -jar $PATH_GATK/AnalyzeCovariates.jar \
