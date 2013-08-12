@@ -44,7 +44,7 @@ HOMER_CHIPSEQ_STYLE="factor"
 CHIPINPUT=
 
 # Parameter to pass to TAGDIR generation
-HOMER_CHIPSEQ_TAGDIR_OPTIONS="-unique"
+#HOMER_CHIPSEQ_TAGDIR_OPTIONS="-unique -genome hg19"
 
 # parameters to pass to findpeaks
 HOMER_CHIPSEQ_FINDPEAKS_OPTIONS=
