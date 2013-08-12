@@ -49,6 +49,9 @@ PLATFORM="Illumina"
 ## additional bowtie parameters
 BOWTIEADDPARAM="-v 3 -m 1 --tryhard --best --strata --time"
 
+# Fragment length to extend reads downstream  - only relevant for single-end libraries during bigwig generation
+FRAGMENTLENGTH=0
+
 #WALLTIME_BOWTIE=10:00:00
 #MEMORY_BOWTIE=60
 #CPU_BOWTIE=8
