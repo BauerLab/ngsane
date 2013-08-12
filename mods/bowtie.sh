@@ -67,22 +67,24 @@ echo "PATH=$PATH"
 # best common denominator)
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
-echo -e "--JAVA    --\n" $(java -version 2>&1)
+echo -e "--JAVA       --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
-echo -e "--bowtie  --\n "$(bowtie --version)
+echo -e "--bowtie     --\n "$(bowtie --version)
 [ -z "$(which bowtie)" ] && echo "[ERROR] no bowtie detected" && exit 1
-echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+echo -e "--samtools   --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
-echo -e "--R       --\n "$(R --version | head -n 3)
+echo -e "--R          --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
-echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
+echo -e "--igvtools   --\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
 [ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
-echo -e "--PICARD  --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+echo -e "--PICARD     --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
-echo -e "--samstat --\n "$(samstat -h | head -n 2 | tail -n1)
+echo -e "--samstat    --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
-echo -e "--convert  --\n "$(convert -version | head -n 1)
-[ -z "$(which convert)" ] && echo "[WARN] imagemagick convert not detected" && exit 1
+echo -e "--convert    --\n "$(convert -version | head -n 1)
+[ -z "$(which convert)" ] && echo "[WARN] imagemagick convert not detected" 
+echo -e "--wigToBigWig --\n "$(wigToBigWig 2>&1 | tee | head -n 1)
+[ -z "$(which wigToBigWig)" ] && echo "[WARN] wigToBigWig not detected - no bigwigs will be generated"
 
 # check library variables are set
 if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
@@ -274,9 +276,13 @@ java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
     PROGRAM=CollectInsertSizeMetrics \
     PROGRAM=QualityScoreDistribution \
     TMP_DIR=$THISTMP
-for im in $( ls $MYOUT/metrices/*.pdf ); do
-    convert $im ${im/pdf/jpg}
-done
+  
+# create pdfs
+if [ -n "$(which convert)" ]; then 
+    for im in $( ls $MYOUT/metrices/*.pdf ); do
+        convert $im ${im/pdf/jpg}
+    done
+fi
 rm -r $THISTMP
 
 #coverage for IGV
@@ -287,6 +293,24 @@ $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/}.genome
 echo "********* samstat"
 samstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 
+# generate bigwigs
+if [ -n "$(which wigToBigWig)" ]; then 
+    echo "********* bigwigs"
+    N=$(samtools view -c -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})
+    
+    if [ "$PAIRED" = "1" ]; then
+        # generate bigwig for properly paired reads on the same chromosomes
+        samtools view -b -F 1028 -f 0x2 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed -bedpe | awk '($1 == $4){ print $1"\t"$2"\t"$6"\t"$7"\t"$8"\t"$9}' | genomeCoverageBed -scale $(echo "scale=3; $NC/$N" | bc) -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
+        
+    else
+        # generate (strand-specific) bigwigs for single ended libraries
+        samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r 300 -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $(echo "scale=3; $NC/$N" | bc) -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
+        
+        samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r 300 -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $(echo "scale=3; $NC/$N" | bc) -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
+        
+        samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r 300 -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $(echo "scale=3; $NC/$N" | bc) -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.-.bw}
+    fi
+fi
+
 echo ">>>>> readmapping with bowtie - FINISHED"
 echo ">>>>> enddate "`date`
-
