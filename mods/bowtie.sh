@@ -22,11 +22,7 @@ if [ ! $# -gt 3 ]; then usage ; fi
 
 THREADS=1
 MEMORY=2
-#EXPID="exp"           # read group identifier RD ID                                                               
-#LIBRARY="tkcc"        # read group library RD LB                                                                  
-#PLATFORM="illumina"   # read group platform RD PL                                                                 
-#UNIT="flowcell"       # read group platform unit RG PU                                                            
-FASTQNAME=""
+FASTQNAME=
 FORCESINGLE=0
 
 #INPUTS                                                                                                           
@@ -256,7 +252,7 @@ samtools flagstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} > $STATSOUT
 echo "#overall" >> $STATSOUT
 echo $(samtools view -c $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam})" unaligned_reads " >> $STATSOUT
 echo $(samtools view -c $MYOUT/${n/%$READONE.$FASTQ/.$MUL.bam})" multiple_reads " >> $STATSOUT
-echo $(samtools -F 4 view -c $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})" aligned_reads" >> $STATSOUT
+echo $(samtools view -F 4 -c $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})" aligned_reads" >> $STATSOUT
 
 if [ -n $SEQREG ]; then
     echo "#custom region" >> $STATSOUT
@@ -297,14 +293,17 @@ samstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 if [ -n "$(which wigToBigWig)" ]; then 
     echo "********* bigwigs"
     N=$(samtools view -c -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})
-    
-    if [ "$PAIRED" = "1" ]; then
-        # generate bigwig for properly paired reads on the same chromosomes
-        samtools view -b -F 1028 -f 0x2 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed -bedpe | awk '($1 == $4){ print $1"\t"$2"\t"$6"\t"$7"\t"$8"\t"$9}' | genomeCoverageBed -scale $(echo "scale=3; $NC/$N" | bc) -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
-        
+    echo "[NOTE] library size (mapped reads): $N" 
+
+    if [ "$PAIRED" = "1" ] && [ "$FRAGMENTLENGTH" < "0" ]; then
+	echo "[NOTE] generate bigwig for properly paired reads on the same chromosomes"
+        COMMAND="samtools view -b -F 1028 -f 0x2 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed -bedpe | awk '($1 == $4){OFS=\"\t\"; print $1 $2 $6 $7 $8 $9}' | genomeCoverageBed -scale $(echo "scale=3; $NC/$N" | bc) -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}"
+        echo $COMMAND && eval $COMMAND
+
     else
-        # generate (strand-specific) bigwigs for single ended libraries
-        samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $(echo "scale=3; $NC/$N" | bc) -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
+        echo "[NOTE] generate (strand-specific) bigwigs considering single reads"
+        COMMAND="samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $(echo "scale=3; $NC/$N" | bc) -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}"
+	echo $COMMAND && eval $COMMAND
         
         samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $(echo "scale=3; $NC/$N" | bc) -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
         
