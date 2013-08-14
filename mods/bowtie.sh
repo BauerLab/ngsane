@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-echo ">>>>> alignment with bowtie v1"
+echo ">>>>> read mapping with bowtie 1"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> bowtie.sh $*"
@@ -54,7 +54,7 @@ done
 JAVAPARAMS="-Xmx"$MEMORY"G -Djava.io.tmpdir="$TMP #-XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=10G"
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo "********** programs"
+echo "********* programs"
 for MODULE in $MODULE_BOWTIE; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_BOWTIE:$PATH
 module list
@@ -116,15 +116,14 @@ if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.ebwt ]; then echo ">>>>> make .ebwt"; bowt
 if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
 if [ -n "$DMGET" ]; then
-	echo "********** reacall files from tape"
+	echo "********* recall files from tape"
 	dmget -a $(dirname $FASTA)/*
 	dmls -l $FASTA*
 	dmget -a ${f/$READONE/"*"}
 	dmls -l ${f/$READONE/"*"}
 fi
 
-#run bowtie command -v 3 -m 1
-echo "********* bowtie" 
+echo "********* bowtie"
 if [ $PAIRED == "0" ]; then 
     READS="$f"
     let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
@@ -249,15 +248,11 @@ samtools index $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 echo "********* statistics"
 STATSOUT=$MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
 samtools flagstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} > $STATSOUT
-echo "#overall" >> $STATSOUT
-echo $(samtools view -c $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam})" unaligned_reads " >> $STATSOUT
-echo $(samtools view -c $MYOUT/${n/%$READONE.$FASTQ/.$MUL.bam})" multiple_reads " >> $STATSOUT
-echo $(samtools view -F 4 -c $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})" aligned_reads" >> $STATSOUT
 
 if [ -n $SEQREG ]; then
     echo "#custom region" >> $STATSOUT
-    echo $(samtools view $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" total reads in region " >> $STATSOUT
-    echo $(samtools view -f 2 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" properly paired reads in region " >> $STATSOUT
+    echo $(samtools view -b $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" total reads in region " >> $STATSOUT
+    echo $(samtools view -b -f 2 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" properly paired reads in region " >> $STATSOUT
 fi
 
 echo "********* calculate inner distance"
@@ -281,6 +276,19 @@ if [ -n "$(which convert)" ]; then
 fi
 rm -r $THISTMP
 
+echo "********* verify"
+BAMREADS=`head -n1 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1`
+if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
+if [ $BAMREADS -eq $FASTQREADS ]; then
+    echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
+    rm $MYOUT/${n/%$READONE.$FASTQ/.ash.bam}
+    rm $MYOUT/${n/%$READONE.$FASTQ/.$UNM}.bam
+    rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN}.bam
+else
+    echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
+    exit 1
+fi
+
 #coverage for IGV
 echo "********* coverage track"
 java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} \
@@ -290,26 +298,30 @@ echo "********* samstat"
 samstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 
 # generate bigwigs
-if [ -n "$(which wigToBigWig)" ]; then 
+if [ -n "$(which wigToBigWig)" ] && [ -n "$FRAGMENTLENGTH" ]; then 
     echo "********* bigwigs"
+    NC=1000000
     N=$(samtools view -c -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})
+    SCALEFACTOR=`echo "scale=3; $NC/$N" | bc `
+  
     echo "[NOTE] library size (mapped reads): $N" 
+    echo "[NOTE] scale factor: $SCALEFACTOR"
+    echo "[NOTE] fragment length: $FRAGMENTLENGTH"
 
-    if [ "$PAIRED" = "1" ] && [ "$FRAGMENTLENGTH" < "0" ]; then
+    if [ "$PAIRED" = "1" ] && [[ $FRAGMENTLENGTH -le 0 ]]; then
 	echo "[NOTE] generate bigwig for properly paired reads on the same chromosomes"
-        COMMAND="samtools view -b -F 1028 -f 0x2 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed -bedpe | awk '($1 == $4){OFS=\"\t\"; print $1 $2 $6 $7 $8 $9}' | genomeCoverageBed -scale $(echo "scale=3; $NC/$N" | bc) -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}"
-        echo $COMMAND && eval $COMMAND
-
+	samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp}
+        samtools view -b -F 1028 -f 0x2 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
+	rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
     else
         echo "[NOTE] generate (strand-specific) bigwigs considering single reads"
-        COMMAND="samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $(echo "scale=3; $NC/$N" | bc) -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}"
-	echo $COMMAND && eval $COMMAND
+        samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
         
-        samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $(echo "scale=3; $NC/$N" | bc) -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
+        samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
         
-        samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $(echo "scale=3; $NC/$N" | bc) -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.-.bw}
+        samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.-.bw}
     fi
 fi
 
-echo ">>>>> readmapping with bowtie - FINISHED"
+echo ">>>>> read mapping with bowtie 1 - FINISHED"
 echo ">>>>> enddate "`date`
