@@ -295,6 +295,18 @@ if [ -n "$RUNHOMERCHIPSEQ" ]; then
 fi
 
 ############################################
+#  ChIP-seq analysis with peakranger
+#
+# IN: $SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/peakranger/
+############################################
+if [ -n "$RUNPEAKRANGER" ]; then
+    if [ -z "$TASKPEAKRANGER" ] || [ -z "$NODES_PEAKRANGER" ] || [ -z "$CPU_PEAKRANGER" ] || [ -z "$MEMORY_PEAKRANGER" ] || [ -z "$WALLTIME_PEAKRANGER" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASKPEAKRANGER -i $TASKBOWTIE -e $READONE.$ASD.bam -n $NODES_PEAKRANGER -c $CPU_PEAKRANGER -m $MEMORY_PEAKRANGER"G" -w $WALLTIME_PEAKRANGER \       --command "${NGSANE_BASE}/mods/peakranger.sh -k $CONFIG -t $CPU_PEAKRANGER -f <FILE> -o $OUT/<DIR>/$PEAKRANGER"
+fi
+
+############################################
 #  Creating normalized (wig) files with wiggler
 #
 # IN: $SOURCE/<DIR>/bowtie/*.bam

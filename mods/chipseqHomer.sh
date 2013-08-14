@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-echo ">>>>> ChIP-seq peak calling Homer"
+echo ">>>>> ChIPseq analysis with Homer"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> chipseqHomer.sh $*"
@@ -14,7 +14,7 @@ exit
 # It takes read alignments in .bam format.
 # It produces output files: peak regions in bed format
 # author: Fabian Buske
-# date: July 2013
+# date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
 if [ ! $# -gt 3 ]; then usage ; fi
@@ -111,6 +111,6 @@ fi
 # and back to where we used to be
 cd $CURDIR
 
-echo ">>>>> ChIPseq analysis with homer - FINISHED"
+echo ">>>>> ChIPseq analysis with Homer - FINISHED"
 echo ">>>>> enddate "`date`
 

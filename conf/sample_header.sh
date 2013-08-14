@@ -45,6 +45,7 @@ TASKWIGGLER="wiggler"
 TASKTRIMMOMATIC="trimmomatic"
 TASKHOMERHIC="homerhic"
 TASKHOMERCHIPSEQ="homerchipseq"
+TASKPEAKRANGER="peakranger"
 
 ##############################################################
 # PROGRAM PATHS
@@ -163,6 +164,17 @@ NODES_HOMERCHIPSEQ="nodes=1:ppn=1"
 
 MODULE_HOMERCHIPSEQ=
 PATH_HOMERCHIPSEQ=
+
+##############################################################
+# Peakranger
+# http://ranger.sourceforge.net/
+WALLTIME_PEAKRANGER=24:00:00
+MEMORY_PEAKRANGER=60
+CPU_PEAKRANGER=1
+NODES_PEAKRANGER="nodes=1:ppn=1"
+
+MODULE_PEAKRANGER=
+PATH_PEAKRANGER=
 
 ##############################################################
 # Trim adapter with CUTADAPT ()
