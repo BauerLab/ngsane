@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo ">>>>> alignment with bowtie2"
+echo ">>>>> readmapping with Bowtie2 "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> bowtie.sh $*"
@@ -59,7 +59,7 @@ done
 JAVAPARAMS="-Xmx"$MEMORY"G -Djava.io.tmpdir="$TMP #-XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=10G"
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo "********** programs"
+echo "********* programs"
 for MODULE in $MODULE_BOWTIETWO; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_BOWTIETWO:$PATH
 module list
@@ -118,14 +118,14 @@ if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie
 if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
 if [ -n "$DMGET" ]; then
-	echo "********** reacall files from tape"
+	echo "********** recall files from tape"
 	dmget -a $(dirname $FASTA)/*
 	dmls -l $FASTA*
 	dmget -a ${f/$READONE/"*"}
 	dmls -l ${f/$READONE/"*"}
 fi
 
-echo "********* bowtie" 
+echo "********* bowtie"
 if [ $PAIRED == "0" ]; then 
     READS="-U $f"
     let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
@@ -228,6 +228,5 @@ $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/}.genome
 echo "********* samstat"
 samstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 
-echo ">>>>> readmapping with bowtie2 - FINISHED"
+echo ">>>>> readmapping with Bowtie2 - FINISHED"
 echo ">>>>> enddate "`date`
-

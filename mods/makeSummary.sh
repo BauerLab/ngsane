@@ -58,7 +58,6 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     for dir in ${DIR[@]}; do
 	vali=$vali" $OUT/$dir/$TASKBWA/"
     done
-    echo "python summary"
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
@@ -91,11 +90,13 @@ if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" ]]; then
 fi
 
 
-if [[ -n "$RUNMAPPINGBOWTIE" || -n "$RUNMAPPINGBOWTIE2" ]]; then
+if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
     LINKS=$LINKS" mapping"
-    echo "<a name=\"mapping\"><h2>BOWTIE Mapping</h2>">>$SUMMARYTMP
+    echo "<a name=\"mapping\"><h2>BOWTIE v1 Mapping</h2>">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie2.sh $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
+    echo "QC"
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie.sh $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
+    echo "gather dirs"
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKBOWTIE/"
@@ -105,6 +106,21 @@ if [[ -n "$RUNMAPPINGBOWTIE" || -n "$RUNMAPPINGBOWTIE2" ]]; then
     echo "</pre>" >>$SUMMARYTMP
 fi
 
+if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
+    LINKS=$LINKS" mapping"
+    echo "<a name=\"mapping\"><h2>BOWTIE v2 Mapping</h2>">>$SUMMARYTMP
+    echo "<pre>" >>$SUMMARYTMP
+    echo "QC"
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie2.sh $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
+    echo "gather dirs"
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/$dir/$TASKBOWTIE/"
+    done
+    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
 
 if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
     vali=""
