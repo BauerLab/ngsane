@@ -46,6 +46,7 @@ TASKTRIMMOMATIC="trimmomatic"
 TASKHOMERHIC="homerhic"
 TASKHOMERCHIPSEQ="homerchipseq"
 TASKPEAKRANGER="peakranger"
+TASKMEMECHIP="memechip"
 
 ##############################################################
 # PROGRAM PATHS
@@ -175,6 +176,19 @@ NODES_PEAKRANGER="nodes=1:ppn=1"
 
 MODULE_PEAKRANGER=
 PATH_PEAKRANGER=
+
+##############################################################
+# MEMECHIP
+# http://meme.nbcr.net/
+WALLTIME_MEMECHIP=48:00:00
+MEMORY_MEMECHIP=40
+CPU_MEMECHIP=8
+NODES_MEMECHIP="nodes=1:ppn=8"
+
+MODULE_MEMECHIP=
+PATH_MEMECHIP=
+
+MEMECHIPDATABASES=
 
 ##############################################################
 # Trim adapter with CUTADAPT ()
