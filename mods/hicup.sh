@@ -32,9 +32,7 @@ required:
 options:
   -t | --threads <nr>       number of CPUs to use (default: 1)
   -m | --memory <nr>        memory available (default: 2)
-  --noMapping
   --fastqName               name of fastq file ending (fastq.gz)
-  --oldIllumina
 "
 exit
 }
@@ -104,7 +102,7 @@ if [ -d $MYOUT/$OUTDIR ]; then rm -rf $MYOUT/$OUTDIR; fi
 rm -f $MYOUT/${n/%$READONE.$FASTQ/}*.txt
 
 #is paired ?
-if [ -n "$READTWO" ] && [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
     PAIRED="1"
 else
     echo "HiCUP requires pair end fastq files"

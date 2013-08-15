@@ -75,7 +75,7 @@ fi
 
 
 
-if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" ]]; then 
+if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" || -n "$RUNREALRECAL3" ]]; then 
     LINKS=$LINKS" recal"
     echo "<a name=\"recal\"><h2>RECAL Mapping</h2>">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP

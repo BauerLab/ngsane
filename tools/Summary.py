@@ -57,6 +57,8 @@ def average(arr):
     sum/=len(arr)
     return(sum)
 
+# EXCEL comparable is =STDEV.P()
+# because this is the population std
 def std(arr,av):
     sum=0
     for a in arr:

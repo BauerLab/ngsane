@@ -45,14 +45,18 @@ echo "********* $TASK $NODIR"
 
 if [ ! -d $QOUT/$TASK ]; then mkdir -p $QOUT/$TASK; fi
 
-## Select files in dir to run
-if [ ! -e $QOUT/$TASK/runnow.tmp ]; then
+## Select files in dir to run (since direct and keep do not delete
+# the runnow.tmp they need to be forced to overwite this file every
+# time it is called)
+if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
+    echo ">>>>> setup enviroment"
+    if [ -e $QOUT/$TASK/runnow.tmp ]; then rm $QOUT/$TASK/runnow.tmp; fi
     for dir in ${DIR[@]}; do
-      #ensure dirs are there...
+      #ensure dirs are there... 
       if [ ! -n "$NODIR" ]; then
  	 if [ ! -d $OUT/$dir/$TASK ]; then mkdir -p $OUT/$dir/$TASK; fi
       fi
-      # print out 
+      # generate the runnow.tmp
       if [ -n "$REV" ]; then
 	  for f in $( ls $SOURCE/$dir/$ORIGIN/*$ENDING); do
               echo $f >> $QOUT/$TASK/runnow.tmp
