@@ -302,6 +302,21 @@ if [ -n "$RUNHICUP" ];then
     echo "<table><tr>$row0</tr><tr>$row1</tr><tr>$row2</tr></table>" >> $SUMMARYTMP
 fi
 
+if [ -n "$RUNPEAKRANGER" ];then
+    LINKS=$LINKS" peakranger"
+    echo "<a name=\"peakranger\"><h2>Peakranger results</h2></a><pre>">>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/peakranger.sh $QOUT/$TASKPEAKRANGER >> $SUMMARYTMP
+
+    echo "</pre><h3>peakranger</h3><pre>">>$SUMMARYTMP
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/$dir/$TASKPEAKRANGER/"
+    done
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" peakranger >> $SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
+
+
 #
 # Old code ...
 #

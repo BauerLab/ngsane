@@ -585,7 +585,39 @@ def hicupStats(statsFile):
     	values += [float(i) for i in val]
 
     return names,values
-    
+   
+
+def peakrangerStats(logFile):
+    names=["Estimated noise rate", "Total reads", "Unique reads","Library complexity","Peaks","Summits"]
+    values=[]
+    file=open(logFile).read()
+    # populate
+    tmp=file.split("Estimated noise rate:")[1].strip().split()[0]
+    EN=float(tmp.strip())
+    values.append(EN)
+
+    tmp=file.split("Total reads:")[1].strip().split()[0]
+    TR=float(tmp.strip())
+    values.append(TR)
+
+    tmp=file.split("Unique reads:")[1].strip().split()[0]
+    UR=float(tmp.strip())
+    values.append(UR)
+
+    tmp=file.split("Library complexity:")[1].strip().split("%")[0]
+    LC=float(tmp.strip())
+    values.append(LC)
+
+    tmp=file.split("Peaks:")[1].strip().split()[0]
+    PE=float(tmp.strip())
+    values.append(PE)
+
+    tmp=file.split("Summits:")[1].strip().split()[0]
+    SM=float(tmp.strip())
+    values.append(SM)
+
+    return names, values
+ 
 #################33
 # TEMP
 
@@ -767,6 +799,8 @@ for d in dir:
                     names,values=hiclibStats(f)
                 if (type=="hicup"):
                     names,values=hicupStats(f)
+		if (type=="peakranger"):
+		    names,values=peakrangerStats(f)
 
                 result=addValues(result,values)
                 filename=f

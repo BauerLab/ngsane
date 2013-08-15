@@ -71,15 +71,15 @@ fi
 echo "********* peakranger"
 
 echo "[NOTE] data quality"
-peakranger nr --data $f --control $CHIPINPUT > $MYOUT/${n/.bam/}-${CONTROL/.bam/}.nr.txt
+peakranger nr --format bam --data $f --control $CHIPINPUT > $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
 
 echo "[NOTE] library complexity"
-peakranger lc --data $f > $MYOUT/${n/.bam/}-${CONTROL/.bam/}.lc.txt
+peakranger lc --data $f >> $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
 
 
 if [ "$PEAKRANGER_PEAKS" == "broad" ]; then
     echo "[NOTE] calling broad peaks"
-    COMMAND="peakranger ccat $PEAKRANGERADDPARAM --format bam --data  $f --control $CHIPINPUT --output $MYOUT/${n/.bam/}-${c/.bam/}"
+    COMMAND="peakranger ccat $PEAKRANGERADDPARAM --format bam --data  $f --control $CHIPINPUT --output $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}"
 elif [ "$PEAKRANGER_PEAKS" == "sharp" ]; then
     echo "[NOTE] calling tight peaks"
     COMMAND="peakranger ranger $PEAKRANGERADDPARAM --format bam --data $f --control $CHIPINPUT --output $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/} -t $CPU_PEAKRANGER"
@@ -88,6 +88,17 @@ else
     exit 1
 fi
 echo $COMMAND && eval $COMMAND
+
+# echo remove comments from bed files
+grep -v "#" $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed > $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.tmp && mv $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.tmp $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed
+
+grep -v "#" $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed > $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.tmp && mv $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.tmp $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed
+
+echo "Peaks: `wc -l $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed | awk '{print $1}'`" >> $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
+echo "Summits: `wc -l $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed | awk '{print $1}'`" >> $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
+
+echo "********* zip"
+$GZIP $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_details
 
 echo ">>>>> ChIPseq analysis with Peakranger - FINISHED"
 echo ">>>>> enddate "`date`
