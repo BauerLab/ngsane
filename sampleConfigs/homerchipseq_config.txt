@@ -44,16 +44,13 @@ HOMER_CHIPSEQ_STYLE="factor"
 CHIPINPUT=
 
 # Parameter to pass to TAGDIR generation
-#HOMER_CHIPSEQ_TAGDIR_ADDPARAM="-unique -genome hg19"
+#HOMER_CHIPSEQ_TAGDIR_OPTIONS="-unique -genome hg19"
 
 # parameters to pass to findpeaks
-HOMER_CHIPSEQ_FINDPEAKS_ADDPARAM=
+HOMER_CHIPSEQ_FINDPEAKS_OPTIONS=
 
 # Focal peak calling options for peak calling of transcription factors
-HOMER_CHIPSEQ_FOCALPEAKS_ADDPARAM=
-
-# uncomment if you want to keep the tagdirectory tsv files
-#HOMER_KEEPTAGDIRECTORY="1"
+HOMER_CHIPSEQ_FOCALPEAKS_OPTIONS=
 
 #WALLTIME_HOMERCHIPSEQ=24:00:00
 #MEMORY_HOMERCHIPSEQ=60

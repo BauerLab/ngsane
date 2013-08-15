@@ -588,23 +588,6 @@ def hicupStats(statsFile):
 
     return names,values
    
-def homerchipseqStats(logFile):
-    names=["peaks","peak size","% approx IP efficiency"]
-    values=[]
-    file=open(logFile).read()
-    # populate
-    tmp=file.split("# total peaks =")[1].strip().split()[0]
-    TP=float(tmp.strip())
-    values.append(TP)
-
-    tmp=file.split("# peak size =")[1].strip().split()[0]
-    PS=float(tmp.strip())
-    values.append(PS)
-
-    tmp=file.split("# Approximate IP efficiency =")[1].strip().split("%")[0]
-    IP=float(tmp.strip())
-    values.append(IP)
-
 
 def peakrangerStats(logFile):
     names=["Estimated noise rate", "Total reads", "Unique reads","Library complexity","Peaks","Summits"]
@@ -820,8 +803,6 @@ for d in dir:
                     names,values=hicupStats(f)
 		if (type=="peakranger"):
 		    names,values=peakrangerStats(f)
-		if (type=="homerchipseq"):
-		   names,values=homerchipseqStats(f)
 
                 result=addValues(result,values)
                 filename=f

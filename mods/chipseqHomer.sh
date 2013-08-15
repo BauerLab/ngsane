@@ -57,12 +57,11 @@ echo -e "--homer   --\n "$(which makeTagDirectory)
 
 # get basename of f
 n=${f##*/}
-c=${CHIPINPUT##*/}
 
 if [ -n "$DMGET" ]; then
 	echo "********** reacall files from tape"
-	dmget -a $f
-	dmls -l $f
+	dmget -a ${f/$READONE/"*"}
+	dmls -l ${f/$READONE/"*"}
 fi
 
 #homer likes to write in the current directory, so change to target
@@ -72,50 +71,45 @@ cd $MYOUT
 echo "********* make tag directory"
 TAGDIRECTORY=$MYOUT/${n/.$ASD.bam/_homer}
 mkdir -p $TAGDIRECTORY
-RUN_COMMAND="makeTagDirectory $TAGDIRECTORY $f $HOMER_CHIPSEQ_TAGDIR_ADDPARAM"
-echo $RUN_COMMAND && eval $RUN_COMMAND
+RUN_COMMAND="makeTagDirectory $TAGDIRECTORY $f $HOMER_CHIPSEQ_TAGDIR_OPTIONS"
+echo $RUN_COMMAND
+eval $RUN_COMMAND
 
-if [ -n "$CHIPINPUT" ] && [ -f $CHIPINPUT ]; then
-    # copy input as homer collides with multiple processess access same file
-    cp $CHIPINPUT $TAGDIRECTORY
-    RUN_COMMAND="makeTagDirectory ${TAGDIRECTORY}_input $TAGDIRECTORY/$c $HOMER_CHIPSEQ_TAGDIR_ADDPARAM"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-    rm $TAGDIRECTORY/${CHIPINPUT##*/}
 
-    INPUT=${c/.$ASD.bam/}
-else
-    INPUT="NONE"
+if [ -n "$CHIPINPUT" ];then
+    TAGDIRECTORY=$MYOUT/${n/.$ASD.bam/_homer}
+    mkdir -p $TAGDIRECTORY
+    RUN_COMMAND="makeTagDirectory ${TAGDIRECTORY}_input $CHIPINPUT $HOMER_CHIPSEQ_TAGDIR_OPTIONS"
+    echo $RUN_COMMAND
+    eval $RUN_COMMAND
 fi
 
 echo "********* find peaks" 
 
-RUN_COMMAND="findPeaks $TAGDIRECTORY -style $HOMER_CHIPSEQ_STYLE  $HOMER_CHIPSEQ_FINDPEAKS_ADDPARAM -o auto"
+RUN_COMMAND="findPeaks $TAGDIRECTORY -style $HOMER_CHIPSEQ_STYLE  $HOMER_CHIPSEQ_FINDPEAKS_OPTIONS -o auto"
 if [ -n "$CHIPINPUT" ];then
   RUN_COMMAND="$RUN_COMMAND -i ${TAGDIRECTORY}_input"  
 fi
-echo $RUN_COMMAND &&  eval $RUN_COMMAND
+echo $RUN_COMMAND
+eval $RUN_COMMAND
 
+RUN_COMMAND="pos2bed.pl $MYOUT/${n/%$READONE.$ASD.bam/_homer}/peaks.txt > $MYOUT/${n/%$READONE.$ASD.bam/_homer}/peaks.bed"
+echo $RUN_COMMAND
+eval $RUN_COMMAND
 
 if [ "$HOMER_CHIPSEQ_STYLE" == "factor" ]; then
-    pos2bed.pl $MYOUT/${n/.$ASD.bam/_homer}/peaks.txt > $MYOUT/${n/.$ASD.bam/}-${INPUT}_peaks.bed
-    grep "^#" $MYOUT/${n/.$ASD.bam/_homer}/peaks.txt > $MYOUT/${n/.$ASD.bam/}-${INPUT}_summary.bed
+    RUN_COMMAND="getFocalPeaks.pl $MYOUT/${n/%$READONE.$ASD.bam/_homer}/peaks.txt $HOMER_CHIPSEQ_FOCALPEAKS_OPTIONS > $MYOUT/${n/%$READONE.$ASD.bam/_homer}/focal_peaks.bed"
+    echo $RUN_COMMAND
+    eval $RUN_COMMAND 
+fi
 
-elif [ "$HOMER_CHIPSEQ_STYLE" == "histone" ]; then
-    pos2bed.pl $MYOUT/${n/.$ASD.bam/_homer}/regions.txt > $MYOUT/${n/.$ASD.bam/}-${INPUT}_regions.bed
-    grep "^#" $MYOUT/${n/.$ASD.bam/_homer}/regions.txt > $MYOUT/${n/.$ASD.bam/}-${INPUT}_summary.bed
+# cleanup
+if [ -n "$CHIPINPUT" ]; then
+    rm -rf ${TAGDIRECTORY}_input
 fi
 
 # and back to where we used to be
 cd $CURDIR
-
-# cleanup
-if [ -z "$HOMER_KEEPTAGDIRECTORY" ]; then
-   rm $TAGDIRECTORY/*.tags.tsv
-fi
-
-if [ -n "$CHIPINPUT" ]; then
-    rm -rf ${TAGDIRECTORY}_input
-fi
 
 echo ">>>>> ChIPseq analysis with Homer - FINISHED"
 echo ">>>>> enddate "`date`
