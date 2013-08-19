@@ -69,7 +69,7 @@ CURDIR=$(pwd)
 cd $MYOUT
 
 echo "********* make tag directory"
-TAGDIRECTORY=$MYOUT/${n/.$ASD.bam/_homer}
+TAGDIRECTORY=$MYOUT/${n/%.$ASD.bam/_homer}
 mkdir -p $TAGDIRECTORY
 RUN_COMMAND="makeTagDirectory $TAGDIRECTORY $f $HOMER_CHIPSEQ_TAGDIR_OPTIONS"
 echo $RUN_COMMAND
@@ -77,7 +77,7 @@ eval $RUN_COMMAND
 
 
 if [ -n "$CHIPINPUT" ];then
-    TAGDIRECTORY=$MYOUT/${n/.$ASD.bam/_homer}
+    TAGDIRECTORY=$MYOUT/${n/%.$ASD.bam/_homer}
     mkdir -p $TAGDIRECTORY
     RUN_COMMAND="makeTagDirectory ${TAGDIRECTORY}_input $CHIPINPUT $HOMER_CHIPSEQ_TAGDIR_OPTIONS"
     echo $RUN_COMMAND
@@ -93,12 +93,12 @@ fi
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
-RUN_COMMAND="pos2bed.pl $MYOUT/${n/%$READONE.$ASD.bam/_homer}/peaks.txt > $MYOUT/${n/%$READONE.$ASD.bam/_homer}/peaks.bed"
+RUN_COMMAND="pos2bed.pl $MYOUT/${n/%.$ASD.bam/_homer}/peaks.txt > $MYOUT/${n/%.$ASD.bam/_homer}/peaks.bed"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
 if [ "$HOMER_CHIPSEQ_STYLE" == "factor" ]; then
-    RUN_COMMAND="getFocalPeaks.pl $MYOUT/${n/%$READONE.$ASD.bam/_homer}/peaks.txt $HOMER_CHIPSEQ_FOCALPEAKS_OPTIONS > $MYOUT/${n/%$READONE.$ASD.bam/_homer}/focal_peaks.bed"
+    RUN_COMMAND="getFocalPeaks.pl $MYOUT/${n/%.$ASD.bam/_homer}/peaks.txt $HOMER_CHIPSEQ_FOCALPEAKS_OPTIONS > $MYOUT/${n/%.$ASD.bam/_homer}/focal_peaks.bed"
     echo $RUN_COMMAND
     eval $RUN_COMMAND 
 fi

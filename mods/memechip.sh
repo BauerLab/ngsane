@@ -50,12 +50,8 @@ echo "PATH=$PATH"
 # best common denominator)
 echo -e "--bedtools --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
-echo -e "--fasta-get-markov --\n "$(memechip | head -n 3 | tail -n 1)
-[ -z "$(which fasta-get-markov)" ] && echo "[ERROR] fasta-get-markov not detected" && exit 1
-echo -e "--memechip         --\n "$(memechip | head -n 3 | tail -n 1)
-[ -z "$(which memechip)" ] && echo "[ERROR] memechip not detected" && exit 1
-echo -e "--fimo             --\n "$(memechip | head -n 3 | tail -n 1)
-[ -z "$(which fimo)" ] && echo "[ERROR] fimo not detected" && exit 1
+echo -e "--meme-chip         --\n "$(cat `which meme`.bin | strings | grep -A 2 "MEME - Motif discovery tool" | tail -n 1)
+[ -z "$(which meme-chip)" ] && echo "[ERROR] meme-chip not detected" && exit 1
 
 # get basename of f
 n=${f##*/}
@@ -69,21 +65,22 @@ fi
 if [ -z "$FASTA" ] || [ ! -f $FASTA ]; then
     echo "[ERROR] genome not provided" && exit 1
 fi
-if [ -z "$GENOME_CHROMSIZES" ] || [ ! -f $GENOME_CHROMSIZES ]; then
+if [ -z "$CHROMSIZES" ] || [ ! -f $CHROMSIZES ]; then
     echo "[ERROR] chromosome sizes not provided" && exit 1
 fi
 
-if [[ -n "$EXTENDREGION" ] && [ "$EXTENDREGION" -gt "0" ]] ; then
-    echo "[NOTE] extend bed regions by $EXTENDREGION"
+if [ -n "$SLOPBEDADDPARAM" ]; then
+    echo "[NOTE] extend bed regions: $EXTENDREGION"
 
-    slopBed -g $CHROMSIZES -b $MEMEEXTENDREGION > $MYOUT/$n
+    COMMAND="bedtools slop -i $f -g $CHROMSIZES $SLOPBEDADDPARAM > $MYOUT/$n"
+    echo $COMMAND && eval $COMMAND
     f=$MYOUT/$n
 fi
 
 echo "********* get sequence data"
 
-fastaFromBed -fi $FASTA -bed $f -fo $MYOUT/${n/$BED/.fasta}
-"regions: ($wc -l $f)" > $MYOUT/${n/$BED/_summary.txt}
+bedtools getfasta -name -fi $FASTA -bed $f -fo $MYOUT/${n/$BED/.fasta}
+echo "regions: `wc -l $f | awk '{print $1}'`" > $MYOUT/${n/$BED/_summary.txt}
 
 echo "********* create background model"
 
@@ -93,13 +90,15 @@ if [ -z $MEMEBACKGROUND ]; then
     MEMEBACKGROUND=$MYOUT/${n/$BED/.bg}
 fi
 
-echo "********* memechip"
+echo "********* meme-chip"
 
-memechip $MEMECHIPADDPARAM -oc $MYOUT/${n/$BED/} -bfile $MEMEBACKGROUND -desc ${n/$BED/} -db $MEMECHIPDATABASES -meme-p $CPU_MEMECHIP
+COMMAND="meme-chip $MEMECHIPADDPARAM -oc $MYOUT/${n/$BED/} -bfile $MEMEBACKGROUND -desc ${n/$BED/} -db $MEMECHIPDATABASES -meme-p $CPU_MEMECHIP $MYOUT/${n/$BED/.fasta}"
+echo $COMMAND && eval $COMMAND
 
 echo "********* fimo"
 
-fimo $FIMOADDPARAM --bgfile $MEMEBACKGROUND --oc $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/}/combined.meme $MYOUT/${n/$BED/.fasta}
+COMMAND="fimo $FIMOADDPARAM --bgfile $MEMEBACKGROUND --oc $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/}/combined.meme $MYOUT/${n/$BED/.fasta}"
+echo $COMMAND && eval $COMMAND
 
 for PATTERN in $(tail -n+2 fimo.txt | awk '{print $1}' | sort -u); do
   
@@ -111,8 +110,8 @@ for PATTERN in $(tail -n+2 fimo.txt | awk '{print $1}' | sort -u); do
     sort -k4,4 -k1,1 -k2,2g $f > $MYOUT/${n/$BED/_fimo}/$n{$BED/sorted.bed}
     join -1 4 -2 1 $MYOUT/${n/$BED/_fimo}/$n{$BED/sorted.bed} $MYOUT/${n/$BED/tmp.txt} | awk '{OFS="\t"; print 2,$3,$4,$1,$5,$6}' > $MYOUT/${n/$BED/_fimo}_$PATTERN.indirect.bed
     
-    "motif $PATTERN direct bound: ($wc -l $MYOUT/${n/$BED/_fimo}_$PATTERN.direct.bed)" >> $MYOUT/${n/$BED/_summary.txt}
-    "motif $PATTERN indirect bound: ($wc -l $MYOUT/${n/$BED/_fimo}_$PATTERN.indirect.bed)" >> $MYOUT/${n/$BED/_summary.txt}
+    "motif $PATTERN bound directely: ($wc -l $MYOUT/${n/$BED/_fimo}_$PATTERN.direct.bed)" >> $MYOUT/${n/$BED/_summary.txt}
+    "motif $PATTERN bound indirectely: ($wc -l $MYOUT/${n/$BED/_fimo}_$PATTERN.indirect.bed)" >> $MYOUT/${n/$BED/_summary.txt}
 done
 echo "********* cleanup"
 

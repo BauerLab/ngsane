@@ -32,7 +32,7 @@ QOUT=$OUT/qout
 FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
 
 # chromosome sizes
-GENOME_CHROMSIZES=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
+CHROMSIZES=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
 
 # bed file suffix
 BED="_summit.bed"
@@ -42,7 +42,7 @@ BED="_summit.bed"
 #********************
 
 # extend regions by this number of basepairs (e.g. pad the summit by x bp either side)
-EXTENDREGION=100
+SLOPBEDADDPARAM="-b 100"
 
 # location of the background file (otherwise generated from the peak file)
 MEMEBACKGROUNDFILE=
