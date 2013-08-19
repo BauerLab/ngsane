@@ -115,7 +115,7 @@ for PATTERN in $(tail -n+2 $MYOUT/${n/$BED/_fimo}/fimo.txt | awk '{print $1}' | 
 done
 echo "********* cleanup"
 
-rm $MYOUT/${n/$BED/.fasta} MYOUT/${n/$BED/_fimo}
+rm $MYOUT/${n/$BED/.fasta} $MYOUT/${n/$BED/_fimo}
 
 echo ">>>>> Motif discovery with memechip - FINISHED"
 echo ">>>>> enddate "`date`
