@@ -199,13 +199,14 @@ fi
 mkdir -p $OUTDIR
 
 echo "********* tophat"
-
+echo "[NOTE] tophat $(date)"
 ## generating the index files
 if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
 if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
 RUN_COMMAND="tophat $TOPHATADDPARAM --keep-fasta-order --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
 echo $RUN_COMMAND && eval $RUN_COMMAND
+echo "[NOTE] tophat end $(date)"
 
 echo "********* merge mapped and unmapped"
 echo "[NOTE] samtools merge"
@@ -330,7 +331,7 @@ else
 ##run cufflinks
 echo "********* cufflinks"
 echo ">>>>> from $BAMFILE to $CUFOUT"
-echo "[NOTE] cufflink"
+echo "[NOTE] cufflinks $(date)"
 #specify REFSEQ or Gencode GTF depending on analysis desired.
 ## add GTF file if present
 if [ -n "$GENCODEGTF" ]; then 
@@ -348,6 +349,7 @@ echo $RUN_COMMAND && eval $RUN_COMMAND
 rm ${BAMFILE/.$ASD/.$ALN}
 
 echo ">>>>> alignment with TopHat - FINISHED"
+echo "[NOTE] cufflinks end $(date)"
 
 
 fi
