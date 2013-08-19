@@ -100,7 +100,7 @@ echo "********* fimo"
 COMMAND="fimo $FIMOADDPARAM --bgfile $MEMEBACKGROUND --oc $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/}/combined.meme $MYOUT/${n/$BED/.fasta}"
 echo $COMMAND && eval $COMMAND
 
-for PATTERN in $(tail -n+2 fimo.txt | awk '{print $1}' | sort -u); do
+for PATTERN in $(tail -n+2 $MYOUT/${n/$BED/_fimo}/fimo.txt | awk '{print $1}' | sort -u); do
   
     grep "^$PATTERN\t" $MYOUT/${n/$BED/_fimo}/fimo.txt | cut -f2-4,6 | tail -n+2 > $MYOUT/${n/$BED/_fimo}/$PATTERN.bed
     join -1 1 -2 4 $MYOUT/${n/$BED/_fimo}/$PATTERN.bed $f | awk '{OFS="\t"; print $5,$6+$2,$6+$3,$1,$4,$9}' > $MYOUT/${n/$BED/_fimo}_$PATTERN.direct.bed
@@ -110,8 +110,8 @@ for PATTERN in $(tail -n+2 fimo.txt | awk '{print $1}' | sort -u); do
     sort -k4,4 -k1,1 -k2,2g $f > $MYOUT/${n/$BED/_fimo}/$n{$BED/sorted.bed}
     join -1 4 -2 1 $MYOUT/${n/$BED/_fimo}/$n{$BED/sorted.bed} $MYOUT/${n/$BED/tmp.txt} | awk '{OFS="\t"; print 2,$3,$4,$1,$5,$6}' > $MYOUT/${n/$BED/_fimo}_$PATTERN.indirect.bed
     
-    "motif $PATTERN bound directely: ($wc -l $MYOUT/${n/$BED/_fimo}_$PATTERN.direct.bed)" >> $MYOUT/${n/$BED/_summary.txt}
-    "motif $PATTERN bound indirectely: ($wc -l $MYOUT/${n/$BED/_fimo}_$PATTERN.indirect.bed)" >> $MYOUT/${n/$BED/_summary.txt}
+    "motif $PATTERN bound directely: $(wc -l $MYOUT/${n/$BED/_fimo}_$PATTERN.direct.bed)" >> $MYOUT/${n/$BED/_summary.txt}
+    "motif $PATTERN bound indirectely: $(wc -l $MYOUT/${n/$BED/_fimo}_$PATTERN.indirect.bed)" >> $MYOUT/${n/$BED/_summary.txt}
 done
 echo "********* cleanup"
 
