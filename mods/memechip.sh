@@ -72,7 +72,7 @@ fi
 if [ -n "$SLOPBEDADDPARAM" ]; then
     echo "[NOTE] extend bed regions: $EXTENDREGION"
 
-    COMMAND="bedtools slop -i $f -g $CHROMSIZES $SLOPBEDADDPARAM > $MYOUT/$n"
+    COMMAND="bedtools slop -i $f -g $CHROMSIZES $SLOPBEDADDPARAM  > $MYOUT/$n"
     echo $COMMAND && eval $COMMAND
     f=$MYOUT/$n
 fi
@@ -80,7 +80,7 @@ fi
 echo "********* get sequence data"
 
 bedtools getfasta -name -fi $FASTA -bed $f -fo $MYOUT/${n/$BED/.fasta}
-echo "regions: `wc -l $f | awk '{print $1}'`" > $MYOUT/${n/$BED/_summary.txt}
+echo "Peak regions: `wc -l $f | awk '{print $1}'`" > $MYOUT/${n/$BED/.summary.txt}
 
 echo "********* create background model"
 
@@ -93,29 +93,33 @@ fi
 echo "********* meme-chip"
 
 COMMAND="meme-chip $MEMECHIPADDPARAM -oc $MYOUT/${n/$BED/} -bfile $MEMEBACKGROUND -desc ${n/$BED/} -db $MEMECHIPDATABASES -meme-p $CPU_MEMECHIP $MYOUT/${n/$BED/.fasta}"
-echo $COMMAND && eval $COMMAND
+#echo $COMMAND && eval $COMMAND
 
 echo "********* fimo"
 
-COMMAND="fimo $FIMOADDPARAM --bgfile $MEMEBACKGROUND --oc $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/}/combined.meme $MYOUT/${n/$BED/.fasta}"
+COMMAND="fimo $FIMOADDPARAM --oc $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/}/combined.meme $MYOUT/${n/$BED/.fasta}"
+#TODO add bgfile
 echo $COMMAND && eval $COMMAND
 
+echo "********* direct binding motifs"
+sort -k4,4 -k1,1 -k2,2g $f > $MYOUT/${n/$BED/_sorted.bed}
 for PATTERN in $(tail -n+2 $MYOUT/${n/$BED/_fimo}/fimo.txt | awk '{print $1}' | sort -u); do
-  
-    grep "^$PATTERN\t" $MYOUT/${n/$BED/_fimo}/fimo.txt | cut -f2-4,6 | tail -n+2 > $MYOUT/${n/$BED/_fimo}/$PATTERN.bed
-    join -1 1 -2 4 $MYOUT/${n/$BED/_fimo}/$PATTERN.bed $f | awk '{OFS="\t"; print $5,$6+$2,$6+$3,$1,$4,$9}' > $MYOUT/${n/$BED/_fimo}_$PATTERN.direct.bed
+    echo "[NOTE] Motif: $PATTERN"
+
+    grep -P "^${PATTERN}\t" $MYOUT/${n/$BED/_fimo}/fimo.txt | cut -f2-4,6 | tail -n+2 | sort -k1,1 > $MYOUT/${n/$BED/_fimo}/$PATTERN.txt
+
+    join -1 1 -2 4 $MYOUT/${n/$BED/_fimo}/$PATTERN.txt $MYOUT/${n/$BED/_sorted.bed} | awk '{OFS="\t"; print $5,$6+$2,$6+$3,$1,$4,$9}' > $MYOUT/${n/$BED/_motif}_${PATTERN}.direct.bed
     
-    comm -13 <(awk '{print $1}' $MYOUT/${n/$BED/_fimo}/$PATTERN.bed | sort -u ) <(awk '{print $4}' $f | sort -u ) > $MYOUT/${n/$BED/tmp.txt}
+    comm -13 <(awk '{print $1}' $MYOUT/${n/$BED/_fimo}/$PATTERN.txt | sort -u ) <(awk '{print $4}' $f | sort -u ) > $MYOUT/${n/$BED/_fimo}/${PATTERN}_tmp.txt
+
+    join -1 4 -2 1 $MYOUT/${n/$BED/_sorted.bed} $MYOUT/${n/$BED/_fimo}/${PATTERN}_tmp.txt | awk '{OFS="\t"; print 2,$3,$4,$1,$5,$6}' > $MYOUT/${n/$BED/_motif}_${PATTERN}.indirect.bed
     
-    sort -k4,4 -k1,1 -k2,2g $f > $MYOUT/${n/$BED/_fimo}/$n{$BED/sorted.bed}
-    join -1 4 -2 1 $MYOUT/${n/$BED/_fimo}/$n{$BED/sorted.bed} $MYOUT/${n/$BED/tmp.txt} | awk '{OFS="\t"; print 2,$3,$4,$1,$5,$6}' > $MYOUT/${n/$BED/_fimo}_$PATTERN.indirect.bed
-    
-    "motif $PATTERN bound directely: $(wc -l $MYOUT/${n/$BED/_fimo}_$PATTERN.direct.bed)" >> $MYOUT/${n/$BED/_summary.txt}
-    "motif $PATTERN bound indirectely: $(wc -l $MYOUT/${n/$BED/_fimo}_$PATTERN.indirect.bed)" >> $MYOUT/${n/$BED/_summary.txt}
+    echo "Motif $PATTERN bound directely (strong site): $(cat $MYOUT/${n/$BED/_motif}_${PATTERN}.direct.bed | awk '{print $4}' | sort -u | wc -l | awk '{print $1}')" >> $MYOUT/${n/$BED/.summary.txt}
+    echo "Motif $PATTERN bound indirectely (weak or no site): $(cat $MYOUT/${n/$BED/_motif}_${PATTERN}.indirect.bed | awk '{print $4}' | sort -u | wc -l | awk '{print $1}')" >> $MYOUT/${n/$BED/.summary.txt}
 done
 echo "********* cleanup"
 
-rm $MYOUT/${n/$BED/.fasta} $MYOUT/${n/$BED/_fimo}
+#rm -rf $MYOUT/${n/$BED/.fasta} $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/_sorted.bed} $MYOUT/${n/$BED/.bg} $MYOUT/$n
 
 echo ">>>>> Motif discovery with memechip - FINISHED"
 echo ">>>>> enddate "`date`

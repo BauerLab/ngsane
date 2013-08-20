@@ -619,6 +619,28 @@ def peakrangerStats(logFile):
     values.append(SM)
 
     return names, values
+
+
+def memechipStats(logFile):
+    names=["Peak regions", "with strong sites","%", "w/o strong sites","%"]
+    values=[]
+    file=open(logFile).read()
+    # populate
+    tmp=file.split("Peak regions:")[1].strip().split()[0]
+    PR=float(tmp.strip())
+    values.append(PR)
+
+    tmp=file.split("bound directely (strong site):")[1].strip().split()[0]
+    SS=float(tmp.strip())
+    values.append(SS)
+    values.append(SS/PR)
+
+    tmp=file.split("bound indirectely (weak or no site):")[1].strip().split()[0]
+    WS=float(tmp.strip())
+    values.append(WS)
+    values.append(WS/PR)
+
+    return names, values
  
 #################33
 # TEMP
@@ -803,6 +825,8 @@ for d in dir:
                     names,values=hicupStats(f)
 		if (type=="peakranger"):
 		    names,values=peakrangerStats(f)
+		if (type=="memechip"):
+		    names,values=memechipStats(f)
 
                 result=addValues(result,values)
                 filename=f

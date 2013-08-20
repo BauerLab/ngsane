@@ -316,6 +316,22 @@ if [ -n "$RUNPEAKRANGER" ];then
     echo "</pre>" >>$SUMMARYTMP
 fi
 
+if [ -n "$RUNMEMECHIP" ];then
+    LINKS=$LINKS" meme-chip"
+    echo "<a name=\"meme-chip\"><h2>MEME-chip results</h2></a><pre>">>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/memechip.sh $QOUT/$TASKMEMECHIP >> $SUMMARYTMP
+
+    echo "</pre><h3>MEME-chip</h3><pre>">>$SUMMARYTMP
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/$dir/$TASKMEMECHIP/"
+        for d in $(find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \; | grep "index.html"); do
+                echo "<a href=\"$dir/$TASKMEMECHIP/$d/index.html\">MEME-chip results for $dir/$d</a><br/>" >> $CURDIR/$SUMMARYTMP
+        done
+    done
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" memechip >> $SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
 
 #
 # Old code ...
