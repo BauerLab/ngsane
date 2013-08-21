@@ -89,7 +89,7 @@ else
     INPUT="NONE"
 fi
 
-echo "********* find peaks" 
+echo "********* find peaks"
 
 RUN_COMMAND="findPeaks $TAGDIRECTORY -style $HOMER_CHIPSEQ_STYLE  $HOMER_CHIPSEQ_FINDPEAKS_ADDPARAM -o auto"
 if [ -n "$CHIPINPUT" ];then
@@ -99,11 +99,11 @@ echo $RUN_COMMAND && eval $RUN_COMMAND
 
 if [ "$HOMER_CHIPSEQ_STYLE" == "factor" ]; then
     pos2bed.pl $MYOUT/${n/.$ASD.bam/_homer}/peaks.txt > $MYOUT/${n/.$ASD.bam/}-${INPUT}_peaks.bed
-    grep "^#" $MYOUT/${n/.$ASD.bam/_homer}/peaks.txt > $MYOUT/${n/.$ASD.bam/}-${INPUT}_summary.bed
+    grep "^#" $MYOUT/${n/.$ASD.bam/_homer}/peaks.txt > $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt
 
 elif [ "$HOMER_CHIPSEQ_STYLE" == "histone" ]; then
     pos2bed.pl $MYOUT/${n/.$ASD.bam/_homer}/regions.txt > $MYOUT/${n/.$ASD.bam/}-${INPUT}_regions.bed
-    grep "^#" $MYOUT/${n/.$ASD.bam/_homer}/regions.txt > $MYOUT/${n/.$ASD.bam/}-${INPUT}_summary.bed
+    grep "^#" $MYOUT/${n/.$ASD.bam/_homer}/regions.txt > $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt
 fi
 
 # cleanup

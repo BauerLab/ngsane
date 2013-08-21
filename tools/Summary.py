@@ -589,7 +589,7 @@ def hicupStats(statsFile):
     return names,values
    
 def homerchipseqStats(logFile):
-    names=["peaks","peak size","% approx IP efficiency"]
+    names=["peaks","peak size","IP efficiency (%)"]
     values=[]
     file=open(logFile).read()
     # populate
