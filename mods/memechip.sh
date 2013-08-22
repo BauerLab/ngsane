@@ -11,7 +11,7 @@ exit
 }
 
 # Script for de-novo motif discovery using meme-chip
-# It takes bed regions that are enriched for the ChIPed protein.
+# It takes bed regions that are enriched for the ChIPed molecule.
 # It produces enriched DNA binding motifs and run the most enriched motif on the input bed file
 # author: Fabian Buske
 # date: August 2013
@@ -22,7 +22,7 @@ if [ ! $# -gt 3 ]; then usage ; fi
 #DEFAULTS
 THREADS=8
 
-#INPUTS                                                                                                           
+#INPUTS
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
@@ -97,8 +97,7 @@ echo $COMMAND && eval $COMMAND
 
 echo "********* fimo"
 
-COMMAND="fimo $FIMOADDPARAM --oc $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/}/combined.meme $MYOUT/${n/$BED/.fasta}"
-#TODO add bgfile
+COMMAND="fimo $FIMOADDPARAM --bgfile $MEMEBACKGROUND --oc $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/}/combined.meme $MYOUT/${n/$BED/.fasta}"
 echo $COMMAND && eval $COMMAND
 
 echo "********* direct binding motifs"
@@ -119,7 +118,7 @@ for PATTERN in $(tail -n+2 $MYOUT/${n/$BED/_fimo}/fimo.txt | awk '{print $1}' | 
 done
 echo "********* cleanup"
 
-#rm -rf $MYOUT/${n/$BED/.fasta} $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/_sorted.bed} $MYOUT/${n/$BED/.bg} $MYOUT/$n
+rm -rf $MYOUT/${n/$BED/.fasta} $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/_sorted.bed} $MYOUT/${n/$BED/.bg} $MYOUT/$n
 
 echo ">>>>> Motif discovery with memechip - FINISHED"
 echo ">>>>> enddate "`date`

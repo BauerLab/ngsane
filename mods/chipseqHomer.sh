@@ -3,14 +3,14 @@
 echo ">>>>> ChIPseq analysis with Homer"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> chipseqHomer.sh $*"
+echo ">>>>> $(basename $0) $*"
 
 function usage {
 echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
 exit
 }
 
-# Script to homer for ChIP-seq peak calling.
+# Script for ChIP-seq peak calling using Homer.
 # It takes read alignments in .bam format.
 # It produces output files: peak regions in bed format
 # author: Fabian Buske
@@ -60,9 +60,9 @@ n=${f##*/}
 c=${CHIPINPUT##*/}
 
 if [ -n "$DMGET" ]; then
-	echo "********** reacall files from tape"
-	dmget -a $f
-	dmls -l $f
+    echo "********** reacall files from tape"
+    dmget -a $f
+    dmls -l $f
 fi
 
 #homer likes to write in the current directory, so change to target
