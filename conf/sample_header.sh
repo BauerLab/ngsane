@@ -44,6 +44,7 @@ TASKFASTQ2SANGER="sanger"
 TASKWIGGLER="wiggler"
 TASKTRIMMOMATIC="trimmomatic"
 TASKHOMERHIC="homerhic"
+HTMLOUT="Summary"
 
 ##############################################################
 # PROGRAM PATHS

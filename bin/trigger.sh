@@ -72,6 +72,9 @@ if [ -n "$ADDITIONALTASK" ]; then
             else
                 echo "... take cover!"
             fi
+    elif [ "$ADDITIONALTASK" = "forcearmed" ]; then
+	echo ">>>>>>>>>> $ADDITIONALTASK"
+	ARMED="--armed"
     elif [ "$ADDITIONALTASK" = "keep" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--keep"
