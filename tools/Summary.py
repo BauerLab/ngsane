@@ -18,6 +18,9 @@ link=False
 if(dir[0]==""):
     dir.pop(0)
 
+
+pseudocount=1e-20
+
 #print "looking at "+str(dir)
 
 i=3
@@ -74,7 +77,7 @@ def per(max,arr):
     sum=0
     for a in range(0,len(arr)):
         if (float(arr[a])!=0.0):
-            sum+=float(arr[a])/float(max[a])*100
+            sum+=float(arr[a])/(float(max[a])+pseudocount)*100
     if (sum==0.0):
         return 0
     sum/=len(arr)
@@ -158,11 +161,11 @@ def samstats(statsfile):
     total= int(st[0].strip().split(" ")[0])
     QCfail = int(st[0].strip().split(" ")[2])
     dupl = int(st[1].strip().split(" ")[0]) 
-    duplPercent = float(dupl)/float(total)*100
+    duplPercent = float(dupl)/(float(total)+pseudocount)*100
     mapped = int(st[2].strip().split(" ")[0])
-    mappedPercent = float(mapped)/float(total)*100
+    mappedPercent = float(mapped)/(float(total)+pseudocount)*100
     paired = int(st[3].strip().split(" ")[0])
-    pairedPercent = float(paired)/float(total)*100
+    pairedPercent = float(paired)/(float(total)+pseudocount)*100
     singletons = int(st[8].strip().split(" ")[0])
     #sys.stderr.write(",".join(st))
 #    values.append(int(st[0])) # total
@@ -179,9 +182,9 @@ def samstats(statsfile):
     if (len(customRegion) > 0):
         st = customRegion[1].split("\n")
         regmapped = int(st[1].strip().split(" ")[0])
-        regmappedPercent = float(regmapped)/float(total)*100
+        regmappedPercent = float(regmapped)/(float(total)+pseudocount)*100
         regpaired = int(st[2].strip().split(" ")[0])
-        regpairedPercent = float(regpaired)/float(total)*100
+        regpairedPercent = float(regpaired)/(float(total)+pseudocount)*100
         values += [regmapped, regmappedPercent, regpaired, regpairedPercent]
 #    if (len(st)>75):
 #	print st
@@ -849,7 +852,8 @@ for d in dir:
 		    names,values=memechipStats(f)
 
                 result=addValues(result,values)
-                filename=f
+                # only list file structure from current root
+                filename="/".join(f.split("/")[-4::])
                 if (link):
                     filename="<a href=\""+d.replace("illumina/","")+"/"+f+"\">"+f+"</a>"
                 psresult.append([values,filename])
@@ -859,7 +863,7 @@ for d in dir:
                 sys.stderr.write("error with "+f+"\n")
                 traceback.print_exc()
                 #sys.exit()
-    print "\n#### "+d
+    print "\n#### "+"/".join(d.split("/")[-4::]) # only list file structure from current root
     printStats(result,names,psresult,noSummary)
 
 if (not noOverallSummary and overAll):

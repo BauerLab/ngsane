@@ -7,12 +7,12 @@ CONFIG=$2
 
 
 #PROGRAMS
+. $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-
-SUMMARYTMP="Summary.tmp"
-SUMMARYFILE="Summary.html"
+SUMMARYTMP=$HTMLOUT".tmp"
+SUMMARYFILE=$HTMLOUT".html"
 
 
 echo "Last modified "`date` >$SUMMARYTMP
@@ -27,6 +27,7 @@ if [ -n "$RUNFASTQC" ]; then
     fi
     echo "done"
     echo "<table><tr><td valign=top>" >>$SUMMARYTMP
+    if [[ -e runStats/ && -e runStats/$TASKFASTQC/ ]]; then
     for f in $( ls runStats/$TASKFASTQC/*.zip ); do
 	# get basename of f
 	n=${f##*/}
@@ -40,6 +41,7 @@ if [ -n "$RUNFASTQC" ]; then
 	if [ "$F" -ne "0" ]; then CHART=$CHART""$ICO"error.png\"\>"$F; fi
 	echo "<a href=\"runStats/$TASKFASTQC/"$n"_fastqc/fastqc_report.html\">$n.fastq</a>$CHART<br>" >>$SUMMARYTMP
     done
+    fi
     echo "</td><td>">>$SUMMARYTMP
     echo "<img src=\"runStats/fastQCSummary.jpg\" alt=\"Quality scores for all reads\"/>" >>$SUMMARYTMP
     echo "</td></tr></table>">>$SUMMARYTMP

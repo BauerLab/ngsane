@@ -44,10 +44,13 @@ TASKFASTQ2SANGER="sanger"
 TASKWIGGLER="wiggler"
 TASKTRIMMOMATIC="trimmomatic"
 TASKHOMERHIC="homerhic"
+<<<<<<< HEAD
 TASKHOMERCHIPSEQ="homerchipseq"
 TASKPEAKRANGER="peakranger"
 TASKMEMECHIP="memechip"
+=======
 HTMLOUT="Summary"
+>>>>>>> upstream/master
 
 ##############################################################
 # PROGRAM PATHS

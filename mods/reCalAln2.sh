@@ -226,7 +226,7 @@ samtools sort ${f3/bam/recal.bam} $MYOUT/${n/$ASD.bam/$ASR}
 if [ "$PAIRED" == "1" ]; then
     # fix mates
     samtools fixmate $MYOUT/${n/$ASD/$ASR} $MYOUT/${n/$ASD.bam/$ASR}.tmp.bam
-    mv $MYOUT/${n/$ASD.bam/$ASR}.tmp.bam $MYOUT/${n/$ASD/$ASR}.bam
+    mv $MYOUT/${n/$ASD.bam/$ASR}.tmp.bam $MYOUT/${n/$ASD/$ASR}
 fi
 
 samtools index $MYOUT/${n/$ASD/$ASR}
