@@ -54,12 +54,18 @@ module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
+echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--R       --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--homer   --\n "$(which makeTagDirectory)
 [ -z "$(which makeTagDirectory)" ] && echo "[ERROR] homer not detected" && exit 1
 echo -e "--circos  --\n "$(circos --version)
 [ -z "$(which circos)" ] && echo "[WARN] circos not detected"
+
+if [ "$HOMER_HIC_INTERACTIONS" != "all" ] && [ "$HOMER_HIC_INTERACTIONS" != "cis" ] && [ "$HOMER_HIC_INTERACTIONS" != "trans" ]; then
+    echo "[ERROR] HiC interactions not specified (all, cis or trans) : $HOMER_HIC_INTERACTIONS"
+fi
 
 # get basename of f
 n=${f##*/}
@@ -107,9 +113,33 @@ eval $RUN_COMMAND
 
 echo "********* normalize matrices"
 
-RUN_COMMAND="analyzeHiC $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_OPTIONS -model $MYOUT/${n/%$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/%$READONE.$ASD.bam/_matrix.txt}"
-echo $RUN_COMMAND
-eval $RUN_COMMAND
+if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
+    RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_OPTIONS -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/'_'$READONE.$ASD.bam/_matrix.txt}"
+    echo $RUN_COMMAND
+    eval $RUN_COMMAND
+
+elif [ "$HOMER_HIC_INTERACTIONS" == "cis" ]; then
+    [ ! -f $FASTA.fai ] && samtools faidx $FASTA
+
+    for CHR in $(awk '{print $1'} $FASTA.fai); do
+	    RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_OPTIONS -chr $CHR -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/'_'$READONE.$ASD.bam/_${CHR}_matrix.txt}"
+	    echo $RUN_COMMAND
+	    eval $RUN_COMMAND
+    done
+elif [ "$HOMER_HIC_INTERACTIONS" == "trans" ]; then
+   [ ! -f $FASTA.fai ] && samtools faidx $FASTA
+
+    for CHR1 in $(awk '{print $1'} $FASTA.fai); do
+        for CHR2 in $(awk '{print $1'} $FASTA.fai); do
+            if [ "$CHR1" != "$CHR2" ]; then
+                RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_OPTIONS -chr $CHR1 -chr2 $CHR2 -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/'_'$READONE.$ASD.bam/_${CHR1}-${CHR2}_matrix.txt}"
+                echo $RUN_COMMAND
+                eval $RUN_COMMAND
+            fi
+        done
+    done
+fi
+
 
 echo "********* PCA clustering"
 
@@ -119,9 +149,29 @@ eval $RUN_COMMAND
 
 echo "********* Significant interactions"
 
-RUN_COMMAND="analyzeHiC $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -interactions $MYOUT/${n/%$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $THREADS "
-echo $RUN_COMMAND
-eval $RUN_COMMAND
+if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
+    RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $THREADS "
+    echo $RUN_COMMAND
+    eval $RUN_COMMAND
+
+elif [ "$HOMER_HIC_INTERACTIONS" == "cis" ]; then
+    for CHR in $(awk '{print $1'} $FASTA.fai); do
+        RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -chr $CHR -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions_$CHR.txt} -nomatrix -cpu $THREADS "
+        echo $RUN_COMMAND
+        eval $RUN_COMMAND
+    done
+
+elif [ "$HOMER_HIC_INTERACTIONS" == "trans" ]; then
+    for CHR1 in $(awk '{print $1'} $FASTA.fai); do
+        for CHR2 in $(awk '{print $1'} $FASTA.fai); do
+            if [ "$CHR1" != "$CHR2" ]; then
+                RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -chr $CHR1 -chr2 $CHR2 -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions_$CHR1-$CHR2.txt} -nomatrix -cpu $THREADS "
+                echo $RUN_COMMAND
+                eval $RUN_COMMAND
+            fi
+        done
+    done
+fi
 
 echo "********* Annotate interactions"
 

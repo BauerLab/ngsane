@@ -269,9 +269,9 @@ if [ -n "$RUNMAPPINGBOWTIE2" ]; then
 fi
 
 ############################################
-#  Analysis with homer
+#  HiC analysis with homer
 #
-# IN: $SOURCE/$dir/bowtie/*.bam
+# IN: $SOURCE/$dir/bwa/*.bam
 # OUT: $OUT/$dir/homerhic/
 ############################################
 if [ -n "$RUNHOMERHIC" ]; then
@@ -279,6 +279,45 @@ if [ -n "$RUNHOMERHIC" ]; then
     
     $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERHIC -i $TASKBWA -e $READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
 	--command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -t $CPU_HOMERHIC -f <FILE> -o $OUT/<DIR>/$TASKHOMERHIC"
+fi
+
+############################################
+#  ChIP-seq analysis with homer
+#
+# IN: $SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/homerchipseq/
+############################################
+if [ -n "$RUNHOMERCHIPSEQ" ]; then
+    if [ -z "$TASKHOMERCHIPSEQ" ] || [ -z "$NODES_HOMERCHIPSEQ" ] || [ -z "$CPU_HOMERCHIPSEQ" ] || [ -z "$MEMORY_HOMERCHIPSEQ" ] || [ -z "$WALLTIME_HOMERCHIPSEQ" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERCHIPSEQ -i $TASKBOWTIE -e .$ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ \
+	--command "${NGSANE_BASE}/mods/chipseqHomer.sh -k $CONFIG -t $CPU_HOMERCHIPSEQ -f <FILE> -o $OUT/<DIR>/$TASKHOMERCHIPSEQ"
+fi
+
+############################################
+#  ChIP-seq analysis with peakranger
+#
+# IN: $SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/peakranger/
+############################################
+if [ -n "$RUNPEAKRANGER" ]; then
+    if [ -z "$TASKPEAKRANGER" ] || [ -z "$NODES_PEAKRANGER" ] || [ -z "$CPU_PEAKRANGER" ] || [ -z "$MEMORY_PEAKRANGER" ] || [ -z "$WALLTIME_PEAKRANGER" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASKPEAKRANGER -i $TASKBOWTIE -e .$ASD.bam -n $NODES_PEAKRANGER -c $CPU_PEAKRANGER -m $MEMORY_PEAKRANGER"G" -w $WALLTIME_PEAKRANGER \
+	--command "${NGSANE_BASE}/mods/peakranger.sh -k $CONFIG -t $CPU_PEAKRANGER -f <FILE> -o $OUT/<DIR>/$TASKPEAKRANGER"
+fi
+
+############################################
+#  De-novo motif discovery with memechip
+#
+# IN: $SOURCE/$dir/peakranger/*.bed
+# OUT: $OUT/$dir/memechip/
+############################################
+if [ -n "$RUNMEMECHIP" ]; then
+    if [ -z "$TASKMEMECHIP" ] || [ -z "$NODES_MEMECHIP" ] || [ -z "$CPU_MEMECHIP" ] || [ -z "$MEMORY_MEMECHIP" ] || [ -z "$WALLTIME_MEMECHIP" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASKMEMECHIP -i $TASKPEAKRANGER -e $BED -n $NODES_MEMECHIP -c $CPU_MEMECHIP -m $MEMORY_MEMECHIP"G" -w $WALLTIME_MEMECHIP \
+	--command "${NGSANE_BASE}/mods/memechip.sh -k $CONFIG -t $CPU_MEMECHIP -f <FILE> -o $OUT/<DIR>/$TASKMEMECHIP"
 fi
 
 ############################################

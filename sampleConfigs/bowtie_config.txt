@@ -47,7 +47,14 @@ PLATFORM="Illumina"
 #********************
 
 ## additional bowtie parameters
-#BOWTIEADDPARAM=
+BOWTIEADDPARAM="-v 3 -m 1 --tryhard --best --strata --time"
+
+# Fragment length to extend reads downstream  - only relevant for single-end libraries during bigwig generation
+# Fragment length of -1 will use the genomic fragment covered by the read-mates if the input is a paired read library
+FRAGMENTLENGTH=0
+
+# uncomment to generate strand-specific bigwig files
+#BIGWIGSTRANDS=strandspecific
 
 #WALLTIME_BOWTIE=10:00:00
 #MEMORY_BOWTIE=60

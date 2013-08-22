@@ -23,7 +23,7 @@
 #       READONE="R1_P1"
 #       READTOW="R2_P1"
 #
-# Note, Mapping with bowtie is assumed by default.
+# Note, Mapping with bwa is assumed by default.
 #
 # June 2013 Fabian Buske
 
@@ -50,6 +50,9 @@ QOUT=$OUT/qout
 READONE="_R1_P1"
 READTWO="_R2_P1"
 
+# reference genome
+FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+
 #********************
 # PARAMETER (mandatory)
 #********************
@@ -60,6 +63,9 @@ READTWO="_R2_P1"
 HOMER_HIC_TAGDIR_OPTIONS="-tbp 1 -illuminaPE -genome hg19 -checkGC -restrictionSite AAGCTT -removePEbg -removeSelfLigation -removeRestrictionEnds -removeSpikes 10000 5"
 
 HOMER_HIC_BACKGROUND_OPTIONS="-bgonly -res 100000"
+
+# either all, trans for cis
+HOMER_HIC_INTERACTIONS="all"
 
 HOMER_HIC_NORMALIZE_OPTIONS="-res 100000 -superRes 200000"
 

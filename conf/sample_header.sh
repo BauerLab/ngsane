@@ -44,6 +44,9 @@ TASKFASTQ2SANGER="sanger"
 TASKWIGGLER="wiggler"
 TASKTRIMMOMATIC="trimmomatic"
 TASKHOMERHIC="homerhic"
+TASKHOMERCHIPSEQ="homerchipseq"
+TASKPEAKRANGER="peakranger"
+TASKMEMECHIP="memechip"
 
 ##############################################################
 # PROGRAM PATHS
@@ -151,6 +154,41 @@ NODES_HOMERHIC="nodes=1:ppn=8"
 
 MODULE_HOMERHIC=
 PATH_HOMERHIC=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+
+##############################################################
+# HOMER CHIPSEQ
+# http://biowhat.ucsd.edu/homer/index.html
+WALLTIME_HOMERCHIPSEQ=24:00:00
+MEMORY_HOMERCHIPSEQ=60
+CPU_HOMERCHIPSEQ=1
+NODES_HOMERCHIPSEQ="nodes=1:ppn=1"
+
+MODULE_HOMERCHIPSEQ=
+PATH_HOMERCHIPSEQ=
+
+##############################################################
+# Peakranger
+# http://ranger.sourceforge.net/
+WALLTIME_PEAKRANGER=24:00:00
+MEMORY_PEAKRANGER=60
+CPU_PEAKRANGER=1
+NODES_PEAKRANGER="nodes=1:ppn=1"
+
+MODULE_PEAKRANGER=
+PATH_PEAKRANGER=
+
+##############################################################
+# MEMECHIP
+# http://meme.nbcr.net/
+WALLTIME_MEMECHIP=48:00:00
+MEMORY_MEMECHIP=40
+CPU_MEMECHIP=8
+NODES_MEMECHIP="nodes=1:ppn=8"
+
+MODULE_MEMECHIP=
+PATH_MEMECHIP=
+
+MEMECHIPDATABASES=
 
 ##############################################################
 # Trim adapter with CUTADAPT ()
