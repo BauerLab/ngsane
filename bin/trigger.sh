@@ -31,6 +31,13 @@ if [ ! $# -gt 0 ]; then usage ; fi
 CONFIG=$1
 ADDITIONALTASK=$2
 
+# convert possibly relative path of CONFIG to absolute path
+ABSPATH=`cd \`dirname "$CONFIG"\`; pwd`"/"`basename "$CONFIG"`
+CONFIG=$ABSPATH
+
+# check if CONFIG exists
+[ ! -f $CONFIG ] && echo "[ERROR] config not found." && exit 1
+
 # get all the specs defined in the config  (note both configs are necessary)
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
