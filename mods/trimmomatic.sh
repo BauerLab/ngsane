@@ -21,6 +21,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of NGSANE
         -f | --file )           shift; f=$1 ;; # fastq file
+        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -31,10 +32,9 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-JAVAPARAMS="-Xmx"$(expr $MEMORY_TRIMMOMATIC - 1 )"G -Djava.io.tmpdir="$TMP
-echo "JAVAPARAMS "$JAVAPARAMS
+###################################################################################################
+CHECKPOINT="programs"
 
-echo "********** programs"
 for MODULE in $MODULE_TRIMMOMATIC; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_TRIMMOMATIC:$PATH;
 module list
@@ -47,13 +47,14 @@ echo -e "--JAVA        --\n" $(java -version 2>&1)
 echo -e "--trimmomatic --\n " $(which $PATH_TRIMMOMATIC/trimmomatic.jar)
 [ ! -f $PATH_TRIMMOMATIC/trimmomatic.jar ] && echo "[ERROR] no trimmomatic detected" && exit 1
 
-# check if trimming steps are set
-if [ -z "$TRIMMOMATICSTEPS" ]; then
-    echo "[ERROR] no trimming steps specified: TRIMMOMATICSTEPS"
-    exit 1
-fi
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(expr $MEMORY_TRIMMOMATIC - 1 )"G -Djava.io.tmpdir="$TMP
+echo "JAVAPARAMS "$JAVAPARAMS
 
-#SAMPLENAME
+echo -n "********* $CHECKPOINT"
+###################################################################################################
+CHECKPOINT="parameters"
+
 # get basename of f
 n=${f##*/}
 
@@ -66,30 +67,59 @@ else
     PAIRED="0"
 fi
 
+# check if trimming steps are set
+if [ -z "$TRIMMOMATICSTEPS" ]; then
+    echo "[ERROR] no trimming steps specified: TRIMMOMATICSTEPS"
+    exit 1
+fi
+
 FASTQDIR=$(basename $(dirname $f))
 o=${f/$FASTQDIR/$FASTQDIR"_"$TASKTRIMMOMATIC}
 FASTQDIRTRIM=$(dirname $o)
-
-if [ -n "$DMGET" ]; then
-    dmget -a ${f/$READONE/"*"}
-fi
 
 echo $FASTQDIRTRIM
 if [ ! -d $FASTQDIRTRIM ]; then mkdir -p $FASTQDIRTRIM; fi
 echo $f "->" $o
 if [ "$PAIRED" = "1" ]; then echo ${f/$READONE/$READTWO} "->" ${o/$READONE/$READTWO} ; fi
 
-echo "********** trim"
-# Paired read
-if [ "$PAIRED" = "1" ]
-then
-    RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $TRIMMOMATICADDPARAM -threads $CPU_TRIMMOMATIC $f ${f/$READONE/$READTWO} $o ${o/$READONE/${READONE}_unpaired} ${o/$READONE/$READTWO} ${o/$READONE/${READTWO}_unpaired} $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
-else
-    RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $TRIMMOMATICADDPARAM -threads $CPU_TRIMMOMATIC $f $o $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
-fi
-echo $RUN_COMMAND
-eval $RUN_COMMAND
 
+echo -n "********* $CHECKPOINT"
+###################################################################################################
+CHECKPOINT="recall files from tape"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
+    
+    if [ -n "$DMGET" ]; then
+        dmget -a ${f/$READONE/"*"}
+    fi
+    # mark checkpoint
+    [ -f ${f} ] && echo -n "********* $CHECKPOINT"
+fi
+
+
+###################################################################################################
+CHECKPOINT="trim"    
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
+    # Paired read
+    if [ "$PAIRED" = "1" ]
+    then
+        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $TRIMMOMATICADDPARAM -threads $CPU_TRIMMOMATIC $f ${f/$READONE/$READTWO} $o ${o/$READONE/${READONE}_unpaired} ${o/$READONE/$READTWO} ${o/$READONE/${READTWO}_unpaired} $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
+    else
+        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $TRIMMOMATICADDPARAM -threads $CPU_TRIMMOMATIC $f $o $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
+    fi
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+
+    # mark checkpoint
+    [ -f $o ] && echo -n "********* $CHECKPOINT"
+    
+fi
+
+###################################################################################################
 echo ">>>>> readtrimming with TRIMMOMATIC - FINISHED"
 echo ">>>>> enddate "`date`
 

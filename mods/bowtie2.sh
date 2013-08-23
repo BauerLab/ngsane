@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 echo ">>>>> readmapping with Bowtie2 "
 echo ">>>>> startdate "`date`
@@ -16,7 +16,8 @@ exit
 # It takes comma-seprated list of files containing short sequence reads in fasta or fastq format and bowtie index files as input.
 # It produces output files: read alignments in .bam format and other files.
 # author: Denis Bauer
-# date: June. 2012
+# date: June 2012
+# modified: August 2013 Fabian Buske
 
 # QCVARIABLES,Resource temporarily unavailable
 
@@ -43,6 +44,7 @@ while [ "$1" != "" ]; do
         -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU
         --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
         --forceSingle )         FORCESINGLE=1;;
+        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -54,7 +56,9 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-echo "********* programs"
+###################################################################################################
+CHECKPOINT="programs"
+
 for MODULE in $MODULE_BOWTIETWO; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_BOWTIETWO:$PATH
 module list
@@ -63,6 +67,7 @@ echo "PATH=$PATH"
 # best common denominator)
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
+
 echo -e "--JAVA    --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--bowtie2 --\n "$(bowtie2 --version)
@@ -79,11 +84,17 @@ echo -e "--samstat --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 echo -e "--convert  --\n "$(convert -version | head -n 1)
 [ -z "$(which convert)" ] && echo "[WARN] imagemagick convert not detected" && exit 1
+echo -e "--wigToBigWig --\n "$(wigToBigWig 2>&1 | tee | head -n 1)
+[ -z "$(which wigToBigWig)" ] && echo "[WARN] wigToBigWig not detected - no bigwigs will be generated"
 
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_BOWTIE*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
+
+echo -n "********* $CHECKPOINT"
+###################################################################################################
+CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
@@ -97,10 +108,12 @@ else
 fi
 
 
-# delete old bam file                                                                                             
-if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
-if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
-if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
+# delete old bam files unless attempting to recover
+if [ -z "$RECOVERFROM" ]; then
+    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
+    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
+    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
+fi
 
 #is paired ?                                                                                                      
 if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
@@ -113,20 +126,44 @@ fi
 ZCAT="zcat"
 if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
 
-echo "********* generating the index files"
-FASTASUFFIX=${FASTA##*.}
-if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
-if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
+echo -n "********* $CHECKPOINT"
+###################################################################################################
+CHECKPOINT="recall files from tape"
 
-if [ -n "$DMGET" ]; then
-	echo "********** recall files from tape"
-	dmget -a $(dirname $FASTA)/*
-	dmls -l $FASTA*
-	dmget -a ${f/$READONE/"*"}
-	dmls -l ${f/$READONE/"*"}
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
+	
+    if [ -n "$DMGET" ]; then
+    	dmget -a $(dirname $FASTA)/*
+    	dmls -l $FASTA*
+    	dmget -a ${f/$READONE/"*"}
+    	dmls -l ${f/$READONE/"*"}
+    fi
+    
+    # mark checkpoint
+    [ -f ${f} ] && echo -n "********* $CHECKPOINT"
 fi
 
-echo "********* bowtie"
+###################################################################################################
+CHECKPOINT="generating the index files"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
+
+    
+    FASTASUFFIX=${FASTA##*.}
+    if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
+    if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
+
+    # mark checkpoint
+    [ -f ${FASTA/.${FASTASUFFIX}/}.1.bt2 ] && echo -n "********* $CHECKPOINT"
+fi 
+
+###################################################################################################
+CHECKPOINT="bowtie"
+
 if [ $PAIRED == "0" ]; then 
     READS="-U $f"
     let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
@@ -141,74 +178,156 @@ fi
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
 
-RUN_COMMAND="bowtie2 $RG $BOWTIEADDPARAM -t -x ${FASTA/.${FASTASUFFIX}/} -p $THREADS $READS --un $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}"
-echo $RUN_COMMAND
-eval $RUN_COMMAND
 
-# continue for normal bam file conversion                                                                         
-echo "********* sorting and bam-conversion"
-samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} $MYOUT/${n/%$READONE.$FASTQ/.map}
-samtools view -bt $FASTA.fai $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools sort - $MYOUT/${n/%$READONE.$FASTQ/.unm}
-# merge mappend and unmapped
-samtools merge -f $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam $MYOUT/${n/%$READONE.$FASTQ/.map}.bam $MYOUT/${n/%$READONE.$FASTQ/.unm}.bam 
-# remove sam files 
-rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
-rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam}
-
-if [ "$PAIRED" = "1" ]; then
-    # fix mates
-    samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp
-    samtools fixmate $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam - | samtools sort - $MYOUT/${n/%$READONE.$FASTQ/.ash}
-    rm $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam
-fi
-
-echo "********* mark duplicates"
-if [ ! -e $MYOUT/metrices ]; then mkdir -p $MYOUT/metrices ; fi
-THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files                                        
-mkdir -p $THISTMP
-java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
-    INPUT=$MYOUT/${n/%$READONE.$FASTQ/.ash.bam} \
-    OUTPUT=$MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} \
-    METRICS_FILE=$MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
-    VALIDATION_STRINGENCY=LENIENT \
-    TMP_DIR=$THISTMP
-rm -rf $THISTMP
-samtools index $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
-
-
-
-# statistics                                                                                                      
-echo "********* statistics"
-STATSOUT=$MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
-samtools flagstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} > $STATSOUT
-if [ -n $SEQREG ]; then
-    echo "#custom region" >> $STATSOUT
-    echo `samtools view $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" total reads in region " >> $STAT\
-SOUT
-    echo `samtools view -f 2 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" properly paired reads in re\
-gion " >> $STATSOUT
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
+    
+    RUN_COMMAND="bowtie2 $RG $BOWTIEADDPARAM -t -x ${FASTA/.${FASTASUFFIX}/} -p $THREADS $READS --un $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}"
+    echo $RUN_COMMAND
+    eval $RUN_COMMAND
+    
+    # mark checkpoint
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam ] && echo -n "********* $CHECKPOINT"
 fi
 
 
+###################################################################################################
+CHECKPOINT="bam conversion and sorting"
 
-echo "********* calculate inner distance"
-THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
-mkdir $THISTMP
-java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
-    INPUT=$MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} \
-    REFERENCE_SEQUENCE=$FASTA \
-    OUTPUT=$MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam} \
-    VALIDATION_STRINGENCY=LENIENT \
-    PROGRAM=CollectAlignmentSummaryMetrics \
-    PROGRAM=CollectInsertSizeMetrics \
-    PROGRAM=QualityScoreDistribution \
-    TMP_DIR=$THISTMP
-for im in $( ls $MYOUT/metrices/*.pdf ); do
-    convert $im ${im/pdf/jpg}
-done
-rm -r $THISTMP
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
+    
+        
+    samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} $MYOUT/${n/%$READONE.$FASTQ/.map}
+    samtools view -bt $FASTA.fai $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools sort - $MYOUT/${n/%$READONE.$FASTQ/.unm}
+    # merge mappend and unmapped
+    samtools merge -f $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam $MYOUT/${n/%$READONE.$FASTQ/.map}.bam $MYOUT/${n/%$READONE.$FASTQ/.unm}.bam 
+    # remove sam files 
+    rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
+    rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam}
+    
+    if [ "$PAIRED" = "1" ]; then
+        # fix mates
+        samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp
+        samtools fixmate $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam - | samtools sort - $MYOUT/${n/%$READONE.$FASTQ/.ash}
+        rm $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam
+    fi
+    
+    # mark checkpoint
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam ] && echo -n "********* $CHECKPOINT"
+fi
 
-echo "********* verify"
+
+###################################################################################################
+CHECKPOINT="mark duplicates"
+# create bam files for discarded reads and remove fastq files
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
+    
+    
+    
+    if [ ! -e $MYOUT/metrices ]; then mkdir -p $MYOUT/metrices ; fi
+    THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files                                        
+    mkdir -p $THISTMP
+    java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
+        INPUT=$MYOUT/${n/%$READONE.$FASTQ/.ash.bam} \
+        OUTPUT=$MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} \
+        METRICS_FILE=$MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
+        VALIDATION_STRINGENCY=LENIENT \
+        TMP_DIR=$THISTMP
+    rm -rf $THISTMP
+    samtools index $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
+    
+    # mark checkpoint
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -n "********* $CHECKPOINT"
+fi
+
+###################################################################################################
+CHECKPOINT="statistics"                                                                                                
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
+    
+    STATSOUT=$MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
+    samtools flagstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} > $STATSOUT
+    if [ -n $SEQREG ]; then
+        echo "#custom region" >> $STATSOUT
+        echo `samtools view $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" total reads in region " >> $STAT\
+    SOUT
+        echo `samtools view -f 2 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" properly paired reads in re\
+    gion " >> $STATSOUT
+    fi
+
+    # mark checkpoint
+    [ -f $STATSOUT ] && echo -n "********* $CHECKPOINT"
+fi
+
+
+###################################################################################################
+CHECKPOINT="calculate inner distance"                                                                                                
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
+    
+
+    THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
+    mkdir $THISTMP
+    java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
+        INPUT=$MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} \
+        REFERENCE_SEQUENCE=$FASTA \
+        OUTPUT=$MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam} \
+        VALIDATION_STRINGENCY=LENIENT \
+        PROGRAM=CollectAlignmentSummaryMetrics \
+        PROGRAM=CollectInsertSizeMetrics \
+        PROGRAM=QualityScoreDistribution \
+        TMP_DIR=$THISTMP
+    for im in $( ls $MYOUT/metrices/*.pdf ); do
+        convert $im ${im/pdf/jpg}
+    done
+    rm -r $THISTMP
+
+    # mark checkpoint
+    [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -n "********* $CHECKPOINT"
+fi
+
+
+###################################################################################################
+CHECKPOINT="coverage track"    
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
+
+    
+    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/}.genome
+    # mark checkpoint
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -n "********* $CHECKPOINT"
+fi
+
+
+###################################################################################################
+CHECKPOINT="samstat"    
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
+    
+    samstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
+
+    # mark checkpoint
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ] && echo -n "********* $CHECKPOINT"
+    
+fi
+
+
+###################################################################################################
+CHECKPOINT="verify"    
+
 BAMREADS=`head -n1 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1`
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
 if [ $BAMREADS -eq $FASTQREADS ]; then
@@ -221,13 +340,55 @@ else
     exit 1
 fi
 
-#coverage for IGV
-echo "********* coverage track"
-java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} \
-$MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/}.genome
+echo "********* $CHECKPOINT"
+###################################################################################################
+CHECKPOINT="generate  bigwigs"    
 
-echo "********* samstat"
-samstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
+        
+    if [ -z "$(which wigToBigWig)" ]; then
+        echo "[NOTE] Skip bigwig generation due to missing software: wigToBigWig"
+        
+    elif [ -z "$FRAGMENTLENGTH" ]; then 
+        echo "[NOTE] Skip bigwig generation due to missing parameter: FRAGMENTLENGTH"
+        
+    else
+        NC=1000000
+        N=$(samtools view -c -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})
+        SCALEFACTOR=`echo "scale=3; $NC/$N" | bc`
+      
+        echo "[NOTE] library size (mapped reads): $N" 
+        echo "[NOTE] scale factor: $SCALEFACTOR"
+        echo "[NOTE] fragment length: $FRAGMENTLENGTH"
+    
+        if [ "$PAIRED" = "1" ] && [[ $FRAGMENTLENGTH -le 0 ]]; then
+            echo "[NOTE] generate bigwig for properly paired reads on the same chromosomes"
+            samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp}
+            samtools view -b -F 1028 -f 0x2 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
+            rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
+    	
+        else
+        	if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
+                echo "[NOTE] generate strand-specific bigwigs considering single reads"
+                samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
+                
+                samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.-.bw}
+    
+            else
+                echo "[NOTE] generate bigwig considering single reads"
+                samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
+                
+        	fi
+        fi
+    
+        # mark checkpoint
+        [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ] && echo -n "********* $CHECKPOINT"
 
+    fi   
+fi
+
+###################################################################################################
 echo ">>>>> readmapping with Bowtie2 - FINISHED"
 echo ">>>>> enddate "`date`

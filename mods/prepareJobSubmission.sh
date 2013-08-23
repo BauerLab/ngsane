@@ -25,6 +25,7 @@ while [ "$1" != "" ]; do
 	-d | --nodir )          NODIR="nodir";;
 	-a | --armed )          ARMED="armed";;
 	--keep )                KEEP="keep";;
+	--recover )             RECOVER="recover";;
 	--direct )              DIRECT="direct";;
 	--first )               FIRST="first";;
 	--postonly )            POSTONLY="postonly" ;;
@@ -52,19 +53,22 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
     echo ">>>>> setup enviroment"
     if [ -e $QOUT/$TASK/runnow.tmp ]; then rm $QOUT/$TASK/runnow.tmp; fi
     for dir in ${DIR[@]}; do
-      #ensure dirs are there... 
+
+      #ensure dirs are there
       if [ ! -n "$NODIR" ]; then
- 	 if [ ! -d $OUT/$dir/$TASK ]; then mkdir -p $OUT/$dir/$TASK; fi
+        if [ ! -d $OUT/$dir/$TASK ]; then mkdir -p $OUT/$dir/$TASK; fi
       fi
+
       # generate the runnow.tmp
       if [ -n "$REV" ]; then
-	  for f in $( ls $SOURCE/$dir/$ORIGIN/*$ENDING); do
-              echo $f >> $QOUT/$TASK/runnow.tmp
-          done
+        for f in $( ls $SOURCE/$dir/$ORIGIN/*$ENDING); do
+            echo $f >> $QOUT/$TASK/runnow.tmp
+        done
+
       else
-	  for f in $( ls $SOURCE/$ORIGIN/$dir/*$ENDING); do
-	      echo $f >> $QOUT/$TASK/runnow.tmp
-	  done
+        for f in $( ls $SOURCE/$ORIGIN/$dir/*$ENDING); do
+            echo $f >> $QOUT/$TASK/runnow.tmp
+        done
       fi
   done
 fi
@@ -85,6 +89,11 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     COMMAND2=${COMMAND2//<DIR>/$dir} # insert output dir
     COMMAND2=${COMMAND2//<NAME>/$name} # insert ??
 
+    LOGFILE=$QOUT/$TASK/$dir'_'$name'.out'
+    if [ -n "$RECOVER" ] && [ -f $LOGFILE ] ; then
+        COMMAND2='$COMMAND2 --recover-from $LOGFILE"
+    fi
+
     DIR=$DIR" $dir"
     FILES=$FILES" $i"
 
@@ -102,17 +111,12 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     # remove old submission output logs
     if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm -rf $QOUT/$TASK/$dir'_'$name.*; fi
 
-    # submit and collect pbs scheduler return
-    #RECIPT=$($BINQSUB -j oe -o $QOUT/$TASK/$dir'_'$name'.out' -w $(pwd) -l $NODES \
-    #    -l vmem=$MEMORY -N $TASK'_'$dir'_'$name -l walltime=$WALLTIME $QSUBEXTRA \
-    #    -command "$COMMAND2")
-    
     # record task in log file
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
 
     RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
-	-j $TASK'_'$dir'_'$name -o $QOUT/$TASK/$dir'_'$name'.out' \
-	--command "$COMMAND2")
+    	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
+    	
     echo -e "Jobnumber $RECIPT"
     MYPBSIDS=$MYPBSIDS":"$RECIPT
 #    MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
@@ -149,12 +153,8 @@ if [ -n "$POSTCOMMAND" ]; then
     if [ -z "$POSTMEMORY" ];   then POSTMEMORY=$MEMORY; fi
     if [ -z "$POSTWALLTIME" ]; then POSTWALLTIME=$WALLTIME; fi
 
-#    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $POSTMEMORY -n $POSTNODES -c $POSTCPU -w $POSTWALLTIME \
-#	-j $TASK'_'$DIR'_postcommand' -o $QOUT/$TASK/$DIR'_postcommand.out' \
-#	--command "$POSTCOMMAND2")
     RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $POSTMEMORY -n $POSTNODES -c $POSTCPU -w $POSTWALLTIME \
-        -j $TASK'_postcommand' -o $QOUT/$TASK/postcommand.out \
-        --command "$POSTCOMMAND2")
+            -j $TASK'_postcommand' -o $QOUT/$TASK/postcommand.out --command "$POSTCOMMAND2")
 
     echo -e "$RECIPT"
 

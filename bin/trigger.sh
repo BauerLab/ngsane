@@ -21,6 +21,7 @@ options for TASK:
   direct     run task directly (e.g. on node after qrsh)
   postonly   run only the post analysis steps of a task (if available)
   html       checks logfiles for errors and creates summary HTML page
+  recover    attempt to pick up job where it stoped perviously
 "
 exit
 }
@@ -50,11 +51,11 @@ if [ -n "$ADDITIONALTASK" ]; then
     if [ "$ADDITIONALTASK" = "verify" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         if [ -n "$RUNMAPPINGBWA" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bwa.sh $QOUT/$TASKBWA; fi
-    	if [ -n "$recalibrateQualScore" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA; fi
-    	if [ -n "$GATKcallIndels" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkIndel.sh $QOUT/$TASKIND; fi
-    	if [ -n "$GATKcallSNPS" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKSNP; fi
-    	if [ -n "$RUNTOPHATCUFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT; fi
-    	if [ -n "$RUNCUFFDIFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/cuffdiff.sh $QOUT/$TASKCUFFDIFF; fi
+        if [ -n "$recalibrateQualScore" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA; fi
+        if [ -n "$GATKcallIndels" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkIndel.sh $QOUT/$TASKIND; fi
+        if [ -n "$GATKcallSNPS" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKSNP; fi
+        if [ -n "$RUNTOPHATCUFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT; fi
+        if [ -n "$RUNCUFFDIFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/cuffdiff.sh $QOUT/$TASKCUFFDIFF; fi
     	exit
     	
 	elif [ "$ADDITIONALTASK" = "fetchdata" ]; then
@@ -104,6 +105,10 @@ if [ -n "$ADDITIONALTASK" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--postonly"
         
+    elif [ "$ADDITIONALTASK" = "recover" ]; then
+        echo ">>>>>>>>>> $ADDITIONALTASK"
+        ARMED="--recover --armed"
+
     else
         echo -e "[ERROR] don't understand $ADDITIONALTASK"
         exit 1
