@@ -14,6 +14,7 @@ CONFIG=$2
 SUMMARYTMP=$HTMLOUT".tmp"
 SUMMARYFILE=$HTMLOUT".html"
 
+for MODULE in $MODULE_SUMMARY; do module load $MODULE; done  # save way to load modules that itself load other modules
 
 echo "Last modified "`date` >$SUMMARYTMP
 
@@ -408,9 +409,15 @@ for i in $LINKS; do
 done
 echo "<br><br>" >>$SUMMARYFILE.tmp
 
-cat $SUMMARYFILE.tmp  $SUMMARYTMP> $SUMMARYFILE
+cat $SUMMARYFILE.tmp  $SUMMARYTMP > $SUMMARYFILE
 
 #echo "</body>" >>$SUMMARYFILE
 
 rm $SUMMARYTMP
 rm $SUMMARYFILE.tmp
+
+if [ "$(which prince)" != "" ]; then
+    # convert html to pdf
+    prince $SUMMARYFILE -o ${HTMLOUT}.pdf
+fi
+

@@ -3,7 +3,9 @@
 echo ">>>>> read mapping with bowtie 1"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> bowtie.sh $*"
+echo ">>>>> job_name "$JOB_NAME
+echo ">>>>> job_id "$JOB_ID
+echo ">>>>> $(basename $0) $*"
 
 function usage {
 echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
@@ -293,8 +295,7 @@ fi
 
 #coverage for IGV
 echo "********* coverage track"
-java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} \
-$MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/}.genome
+java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/}.genome
 
 echo "********* samstat"
 samstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
@@ -304,29 +305,30 @@ if [ -n "$(which wigToBigWig)" ] && [ -n "$FRAGMENTLENGTH" ]; then
     echo "********* bigwigs"
     NC=1000000
     N=$(samtools view -c -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})
-    SCALEFACTOR=`echo "scale=3; $NC/$N" | bc `
+    SCALEFACTOR=`echo "scale=3; $NC/$N" | bc`
   
     echo "[NOTE] library size (mapped reads): $N" 
     echo "[NOTE] scale factor: $SCALEFACTOR"
     echo "[NOTE] fragment length: $FRAGMENTLENGTH"
 
     if [ "$PAIRED" = "1" ] && [[ $FRAGMENTLENGTH -le 0 ]]; then
-	echo "[NOTE] generate bigwig for properly paired reads on the same chromosomes"
-	samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp}
+        echo "[NOTE] generate bigwig for properly paired reads on the same chromosomes"
+        samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp}
         samtools view -b -F 1028 -f 0x2 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
-	rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
+        rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
+	
     else
+    	if [ "$BIGWIGSTRANDS" = "strandspecific" ]; then 
+            echo "[NOTE] generate strand-specific bigwigs considering single reads"
+            samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
+            
+            samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.-.bw}
 
-	if [ "$BIGWIGSTRANDS" == "strandspecific" ]; then 
-                echo "[NOTE] generate strand-specific bigwigs considering single reads"
-                samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
-
-                samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.-.bw}
-	else
-	        echo "[NOTE] generate bigwig considering single reads"
-        	samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
-        
-	fi
+        else
+            echo "[NOTE] generate bigwig considering single reads"
+            samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
+            
+    	fi
     fi
 fi
 

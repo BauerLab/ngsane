@@ -19,7 +19,7 @@ echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
 echo ">>>>> job_id "$JOB_ID
-echo ">>>>> cutadapt.sh $*"
+echo ">>>>> $(basename $0) $*"
 
 while [ "$1" != "" ]; do
     case $1 in

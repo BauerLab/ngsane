@@ -3,7 +3,9 @@
 echo ">>>>> readmapping with Bowtie2 "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> bowtie.sh $*"
+echo ">>>>> job_name "$JOB_NAME
+echo ">>>>> job_id "$JOB_ID
+echo ">>>>> $(basename $0) $*"
 
 function usage {
 echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
@@ -22,10 +24,6 @@ if [ ! $# -gt 3 ]; then usage ; fi
 
 THREADS=1
 MEMORY=2
-#EXPID="exp"           # read group identifier RD ID                                                               
-#LIBRARY="qbi"         # read group library RD LB                                                                  
-#PLATFORM="illumina"   # read group platform RD PL                                                                 
-#UNIT="flowcell"       # read group platform unit RG PU                                                            
 FASTQNAME=""
 FORCESINGLE=0
 

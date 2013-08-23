@@ -3,7 +3,9 @@
 echo ">>>>> HiC analysis with homer"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> hicHomer.sh $*"
+echo ">>>>> job_name "$JOB_NAME
+echo ">>>>> job_id "$JOB_ID
+echo ">>>>> $(basename $0) $*"
 
 function usage {
 echo -e "usage: $(basename $0) -k NGSANE -f bam -o OUTDIR [OPTIONS]
@@ -95,26 +97,26 @@ CURDIR=$(pwd)
 cd $MYOUT
 
 echo "********* makeTagDirectory" 
-RUN_COMMAND="makeTagDirectory $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $f,${f/$READONE/$READTWO} $HOMER_HIC_TAGDIR_OPTIONS"
+RUN_COMMAND="makeTagDirectory $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $f,${f/$READONE/$READTWO} $HOMER_HIC_TAGDIR_ADDPARAM"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
 cp -r $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered}
 
-RUN_COMMAND="makeTagDirectory $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} -update $HOMER_HIC_TAGDIR_OPTIONS"
+RUN_COMMAND="makeTagDirectory $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} -update $HOMER_HIC_TAGDIR_ADDPARAM"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
 echo "********* create background model" 
 
-RUN_COMMAND="analyzeHiC $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_BACKGROUND_OPTIONS -createModel $MYOUT/${n/%$READONE.$ASD.bam/_background.txt} active.model.txt -cpu $THREADS"
+RUN_COMMAND="analyzeHiC $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_BACKGROUND_ADDPARAM -createModel $MYOUT/${n/%$READONE.$ASD.bam/_background.txt} active.model.txt -cpu $THREADS"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
 echo "********* normalize matrices"
 
 if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
-    RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_OPTIONS -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/'_'$READONE.$ASD.bam/_matrix.txt}"
+    RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_ADDPARAM -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/'_'$READONE.$ASD.bam/_matrix.txt}"
     echo $RUN_COMMAND
     eval $RUN_COMMAND
 
@@ -122,7 +124,7 @@ elif [ "$HOMER_HIC_INTERACTIONS" == "cis" ]; then
     [ ! -f $FASTA.fai ] && samtools faidx $FASTA
 
     for CHR in $(awk '{print $1'} $FASTA.fai); do
-	    RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_OPTIONS -chr $CHR -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/'_'$READONE.$ASD.bam/_${CHR}_matrix.txt}"
+	    RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/'_'$READONE.$ASD.bam/_${CHR}_matrix.txt}"
 	    echo $RUN_COMMAND
 	    eval $RUN_COMMAND
     done
@@ -132,7 +134,7 @@ elif [ "$HOMER_HIC_INTERACTIONS" == "trans" ]; then
     for CHR1 in $(awk '{print $1'} $FASTA.fai); do
         for CHR2 in $(awk '{print $1'} $FASTA.fai); do
             if [ "$CHR1" != "$CHR2" ]; then
-                RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_OPTIONS -chr $CHR1 -chr2 $CHR2 -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/'_'$READONE.$ASD.bam/_${CHR1}-${CHR2}_matrix.txt}"
+                RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR1 -chr2 $CHR2 -model $MYOUT/${n/'_'$READONE.$ASD.bam/_background.txt}  > $MYOUT/${n/'_'$READONE.$ASD.bam/_${CHR1}-${CHR2}_matrix.txt}"
                 echo $RUN_COMMAND
                 eval $RUN_COMMAND
             fi
@@ -143,20 +145,20 @@ fi
 
 echo "********* PCA clustering"
 
-RUN_COMMAND="runHiCpca.pl ${n/%$READONE.$ASD.bam/} $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_PCA_OPTIONS -cpu $THREADS "
+RUN_COMMAND="runHiCpca.pl ${n/%$READONE.$ASD.bam/} $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_PCA_ADDPARAM -cpu $THREADS "
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 
 echo "********* Significant interactions"
 
 if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
-    RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $THREADS "
+    RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_ADDPARAM -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $THREADS "
     echo $RUN_COMMAND
     eval $RUN_COMMAND
 
 elif [ "$HOMER_HIC_INTERACTIONS" == "cis" ]; then
     for CHR in $(awk '{print $1'} $FASTA.fai); do
-        RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -chr $CHR -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions_$CHR.txt} -nomatrix -cpu $THREADS "
+        RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_ADDPARAM -chr $CHR -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions_$CHR.txt} -nomatrix -cpu $THREADS "
         echo $RUN_COMMAND
         eval $RUN_COMMAND
     done
@@ -165,7 +167,7 @@ elif [ "$HOMER_HIC_INTERACTIONS" == "trans" ]; then
     for CHR1 in $(awk '{print $1'} $FASTA.fai); do
         for CHR2 in $(awk '{print $1'} $FASTA.fai); do
             if [ "$CHR1" != "$CHR2" ]; then
-                RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_OPTIONS -chr $CHR1 -chr2 $CHR2 -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions_$CHR1-$CHR2.txt} -nomatrix -cpu $THREADS "
+                RUN_COMMAND="analyzeHiC $MYOUT/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_ADDPARAM -chr $CHR1 -chr2 $CHR2 -interactions $MYOUT/${n/'_'$READONE.$ASD.bam/_significantInteractions_$CHR1-$CHR2.txt} -nomatrix -cpu $THREADS "
                 echo $RUN_COMMAND
                 eval $RUN_COMMAND
             fi
@@ -175,7 +177,7 @@ fi
 
 echo "********* Annotate interactions"
 
-RUN_COMMAND="annotateInteractions.pl $MYOUT/${n/%$READONE.$ASD.bam/_significantInteractions.txt} $HOMER_HIC_ANNOTATE_OPTIONS $MYOUT/${n/%$READONE.$ASD.bam/_annotations}"
+RUN_COMMAND="annotateInteractions.pl $MYOUT/${n/%$READONE.$ASD.bam/_significantInteractions.txt} $HOMER_HIC_ANNOTATE_ADDPARAM $MYOUT/${n/%$READONE.$ASD.bam/_annotations}"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
 

@@ -8,20 +8,19 @@ function usage {
 echo -e "usage: $(basename $0) CONFIG [TASK]
 
 Script interpreting the CONFIG file in the project directory and submitting
-tasks to the queue.
+tasks to the HPC queue.
 
 required:
-  CONFIG     config.txt file specifying what needs to be done and
-               where the resources are located
+  CONFIG     config.txt file specifying the tasks and location of the resources
 
 options for TASK:
-  empty      start dry-run: make dirs, delete old files, print what will be done
+  empty      start dry-run: creates dirs, delete old files, print what will be done
   fetchdata  get data from remote server (via smbclient)
   pushresult puts results to remote server (via smbclient)
   armed      submit tasks to the queue
   direct     run task directly (e.g. on node after qrsh)
-  postonly   run only the postanalysis step of a TASK
-  html       check the cluster logfiles for errors and and make summary HTML page
+  postonly   run only the post analysis steps of a task (if available)
+  html       checks logfiles for errors and creates summary HTML page
 "
 exit
 }
@@ -35,10 +34,10 @@ ADDITIONALTASK=$2
 ABSPATH=`cd \`dirname "$CONFIG"\`; pwd`"/"`basename "$CONFIG"`
 CONFIG=$ABSPATH
 
-# check if CONFIG exists
-[ ! -f $CONFIG ] && echo "[ERROR] config not found." && exit 1
+# check if CONFIG file exists
+[ ! -f $CONFIG ] && echo "[ERROR] config file not found." && exit 1
 
-# get all the specs defined in the config  (note both configs are necessary)
+# get all the specs defined in the config and defaults from the header (note: sourcing config twice is necessary)
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
@@ -47,27 +46,32 @@ CONFIG=$ABSPATH
 #   Verify
 ############################################
 if [ -n "$ADDITIONALTASK" ]; then
+
     if [ "$ADDITIONALTASK" = "verify" ]; then
-	echo ">>>>>>>>>> $ADDITIONALTASK"
-	if [ -n "$RUNMAPPINGBWA" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bwa.sh $QOUT/$TASKBWA; fi
-	if [ -n "$recalibrateQualScore" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA; fi
-	if [ -n "$GATKcallIndels" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkIndel.sh $QOUT/$TASKIND; fi
-	if [ -n "$GATKcallSNPS" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKSNP; fi
-	if [ -n "$RUNTOPHATCUFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT; fi
-	if [ -n "$RUNCUFFDIFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/cuffdiff.sh $QOUT/$TASKCUFFDIFF; fi
-	exit
+        echo ">>>>>>>>>> $ADDITIONALTASK"
+        if [ -n "$RUNMAPPINGBWA" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bwa.sh $QOUT/$TASKBWA; fi
+    	if [ -n "$recalibrateQualScore" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA; fi
+    	if [ -n "$GATKcallIndels" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkIndel.sh $QOUT/$TASKIND; fi
+    	if [ -n "$GATKcallSNPS" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKSNP; fi
+    	if [ -n "$RUNTOPHATCUFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT; fi
+    	if [ -n "$RUNCUFFDIFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/cuffdiff.sh $QOUT/$TASKCUFFDIFF; fi
+    	exit
+    	
 	elif [ "$ADDITIONALTASK" = "fetchdata" ]; then
 	    echo ">>>>>>>>>> $ADDITIONALTASK"
 	    ${NGSANE_BASE}/mods/fetchRawDataFromServer.sh -k $CONFIG
 	    exit
+	    
 	elif [ "$ADDITIONALTASK" = "pushresult" ]; then
 	    echo ">>>>>>>>>> $ADDITIONALTASK"
 	    ${NGSANE_BASE}/mods/pushResultToServer.sh -k $CONFIG
 	    exit
+	    
     elif [ "$ADDITIONALTASK" = "html" ]; then
-	   echo ">>>>>>>>>> $ADDITIONALTASK"
-	   ${NGSANE_BASE}/mods/makeSummary.sh ${NGSANE_BASE} $CONFIG
-	    exit
+        echo ">>>>>>>>>> $ADDITIONALTASK"
+        ${NGSANE_BASE}/mods/makeSummary.sh ${NGSANE_BASE} $CONFIG
+        exit
+	    
     elif [ "$ADDITIONALTASK" = "armed" ]; then
 	    echo ">>>>>>>>>> $ADDITIONALTASK"
 	    ARMED="--armed"
@@ -79,41 +83,60 @@ if [ -n "$ADDITIONALTASK" ]; then
             else
                 echo "... take cover!"
             fi
+
     elif [ "$ADDITIONALTASK" = "forcearmed" ]; then
-	echo ">>>>>>>>>> $ADDITIONALTASK"
-	ARMED="--armed"
+    	echo ">>>>>>>>>> $ADDITIONALTASK"
+	   ARMED="--armed"
+
     elif [ "$ADDITIONALTASK" = "keep" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--keep"
+
     elif [ "$ADDITIONALTASK" = "direct" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--direct"
+
     elif [ "$ADDITIONALTASK" = "first" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--first --armed"
+
     elif [ "$ADDITIONALTASK" = "postonly" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--postonly"
+        
     else
-	echo -e "[ERROR] don't understand $ADDITIONALTASK"
-	exit -1
+        echo -e "[ERROR] don't understand $ADDITIONALTASK"
+        exit 1
     fi
 fi
 
+############################################
 # test if source data is defined
 echo "${DIR[@]}"
 if [[ -z "${DIR[@]}" ]]; then
-  echo "[ERROR] no input directories specified (DIR)."
-  exit 1
+    echo "[ERROR] no input directories specified (DIR)."
+    exit 1
 fi
 
-# ensure out directory is there 
+############################################
+# create output directories
 for dir in ${DIR[@]}; do
-  if [ ! -d $OUT/$dir ]; then mkdir -p $OUT/$dir; fi
+    if [ ! -d $OUT/$dir ]; then mkdir -p $OUT/$dir; fi
 done
 
 if [ ! -d $QOUT ]; then mkdir -p $QOUT; fi
 if [ ! -d $TMP ]; then mkdir -p $TMP; fi
+
+############################################
+############################################
+############################################
+#
+#  Pipeline task definitions
+#
+############################################
+############################################
+############################################
+
 
 ############################################
 #   FastQC summary of fastq files
@@ -186,6 +209,7 @@ fi
 
 
 ############################################
+#   Variance calling
 # IN: */bwa/*.bam
 # OUT: */bwa_var/*.clean.vcf
 ############################################
@@ -201,6 +225,8 @@ fi
 
 ############################################
 #   Mapping using HiCUP
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $OUT/$dir/hicup/*.$ASD.bam
 ############################################
 
 if [ -n "$RUNHICUP" ]; then
@@ -233,7 +259,7 @@ fi
 ############################################
 #   Mapping using BWA
 #
-# IN:$SOURCE/$dir/fastq/*read1.fastq
+# IN : $SOURCE/$dir/fastq/*read1.fastq
 # OUT: $OUT/$dir/bwa/*.$ASD.bam
 ############################################
 
@@ -267,15 +293,30 @@ fi
 ############################################
 #  Mapping with bowtie v2
 #
-# IN: $SOURCE/$dir/fastq/*read1.fastq
+# IN:  $SOURCE/$dir/fastq/*read1.fastq
 # OUT: $OUT/$dir/bowtie/*.bam
 ############################################
 if [ -n "$RUNMAPPINGBOWTIE2" ]; then
     if [ -z "$TASKBOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
     $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
-	--command "${NGSANE_BASE}/mods/bowtie2.sh $BOWTIEADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE \
+    	--command "${NGSANE_BASE}/mods/bowtie2.sh $BOWTIEADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE \
         --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
+fi
+
+
+############################################
+#  Gene expression analysis with tophat + cufflinks
+#
+# IN : $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/tophat/*.bam/
+############################################       
+if [ -n "$RUNTOPHATCUFF2" ]; then
+    if [ -z "$TASKTOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+  $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
+        --command "${NGSANE_BASE}/mods/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -f <FILE> \
+         -t $CPU_TOPHAT -o $OUT/<DIR>/$TASKTOPHAT/<NAME> "
 fi
 
 ############################################
@@ -373,7 +414,6 @@ if [ -n "$RUNDOWNSAMPLING" ]; then
 		  fi
       done
   done
-
 fi
 
 
@@ -391,62 +431,6 @@ if [ -n "$mergeBWAbams" ]; then
 	merge.sh ${NGSANE_BASE} $OUT/combined/mergeguide/lanes/$e $OUT/combined/bwa/ ${e/tmp/$ASD.bam} bam qout/merged/
     done
 fi
-
-
-########
-# run tophat,
-# already upgraded to take the config rather than the toolkit CAREFULL to move $OUT ->$OUTDIR 
-# already cleanup in armed only
-########
-if [ -n "$RUNTOPHATCUFF" ]; then
-    if [ -z "$TASKTOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
-        
-    echo "********* $TASKTOPHAT"
-    
-    #CPUS_TOPHAT=24
- 
-    # ensure directory is there
-    if [ ! -d $QOUT/$TASKTOPHAT ]; then mkdir -p $QOUT/$TASKTOPHAT; fi
-    for dir in ${DIR[@]}
-      do
-       
-      if [ ! -d $OUT/$dir/$TASKTOPHAT ]; then mkdir -p $OUT/$dir/$TASKTOPHAT; fi
-
-      for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
-	do
-	n=`basename $f`
-	name=${n/%$READONE.$FASTQ/}
-	echo $name
-	echo ">>>>>"$dir"/"$TASKTOPHAT"/"$n" ("$TASKCUFF")"
-	
-        #submit
-	if [ -n "$ARMED" ]; then
-
-            #cleanup old qouts
-	    if [ -e $QOUT/$TASKTOPHAT/$dir'_'$name.out ]; then rm $QOUT/$TASKTOPHAT/$dir'_'$name.out; fi
-
-	    $BINQSUB -j oe -o $QOUT/$TASKTOPHAT/$dir'_'$name.out -w $(pwd) -l walltime=$WALLTIME_TOPHAT \
-		-N $TASKTOPHAT"_"$dir"_"$name -l $NODES_TOPHAT -l vmem=$MEMORY_TOPHAT"G" \
-		-command "${NGSANE_BASE}/mods/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -r $FASTA -f $f \
-		-t $CPU_TOPHAT -o $OUT/$dir/$TASKTOPHAT/$name/ -a $REFSEQGTF"
-	    #exit
-	fi
-      done
-
-
-    done
-fi
-
-
-if [ -n "$RUNTOPHATCUFF2" ]; then
-  $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
-        --command "${NGSANE_BASE}/mods/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -f <FILE> \
-         -t $CPU_TOPHAT -o $OUT/<DIR>/$TASKTOPHAT/<NAME> "
-
-fi
-
-
-
 
 ############################################
 #   recalibrate quality scores OLD

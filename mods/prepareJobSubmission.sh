@@ -81,7 +81,6 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     name=${n/$ENDING/}
     echo ">>>>>"$dir"/"$name
                 
-
     COMMAND2=${COMMAND//<FILE>/$i} # insert files for which parallele jobs are submitted
     COMMAND2=${COMMAND2//<DIR>/$dir} # insert output dir
     COMMAND2=${COMMAND2//<NAME>/$name} # insert ??

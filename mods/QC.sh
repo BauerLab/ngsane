@@ -1,6 +1,6 @@
 # author: Denis C. Bauer
 # date: Feb.2011
-# modified bu Fabian Buske, Jul 2013
+# modified by Fabian Buske, Jul 2013
 SCRIPT=$1
 QOUT=$2
 
@@ -53,5 +53,3 @@ do
     echo "QC_PASS .. $var have $i/$files"
   fi
 done
-
-#dmput $QOUT/*.out

@@ -11,7 +11,7 @@
 RUNHICLIB="1"        # map HiC data with hiclib
 
 #********************
-# PARAMETER (mandatory)
+# Paths
 #********************
 
 SOURCE=$(pwd)
@@ -25,21 +25,31 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# fastq file suffix (which files to run on)
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# fastq file suffix
 FASTQ="fq.gz"
 
-# read indicator  immediately preceeding the file suffixes
+# read indicator immediately preceeding the fastq file suffix
 READONE="_R1"
 READTWO="_R2"
 
 # reference as single chromosomes
-FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Chromosomes/
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Chromosomes/
+FASTA=
 
 # bowtie v2.0 index including basename
-BOWTIE2_INDEX=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome
+BOWTIE2_INDEX=
 
-HICLIB_GAPFILE= #/share/ClusterShare/software/contrib/fabbus/hiclib/30_04_13/hiclib/hg19.gap.txt
-HICLIB_RENZYMES="HindIII"
+# restriction enzyme specifics
+
+# e.g. /share/ClusterShare/software/contrib/fabbus/hiclib/30_04_13/hiclib/hg19.gap.txt
+HICLIB_GAPFILE=
+# e.g. "HindIII"
+HICLIB_RENZYMES=
 HICLIB_READLENGTH=
 
 #********************
@@ -49,11 +59,11 @@ HICLIB_READLENGTH=
 #MEMORY_HICLIB=60
 #CPU_HICLIB=32
 #NODES_HICLIB="nodes=1:ppn=8"
-#MODULE_HICLIB="fabbus/python/2.7.3 gi/bowtie/2.1.0 gi/samtools/0.1.19 fabbus/hiclib/30_04_13 fabbus/picard/1.89"
-#PATH_HICLIB="$PATH_PICARD"
+#MODULE_HICLIB=
+#PATH_HICLIB=
 
 ## location of ngsane
-#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+#NGSANE_BASE=
 
 
 

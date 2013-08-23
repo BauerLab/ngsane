@@ -1,7 +1,7 @@
 # author: Fabian Buske
 # date: May 2013
 
-######################################
+#####################################
 # Resources
 #####################################
 
@@ -11,8 +11,9 @@
 RUNHICUP="1"        # map HiC data with hicup
 
 #********************
-# PARAMETER (mandatory)
+# Paths
 #********************
+
 SOURCE=$(pwd)
 
 # which files to run on (replace sample with folders within fastq firectory)
@@ -24,23 +25,31 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# fastq file suffix (which files to run on)
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# fastq file suffix
 FASTQ="fq.gz"
 
-# read indicator  immediately preceeding the file suffixes
+# read indicator immediately preceeding the fastq file suffix
 READONE="_R1"
 READTWO="_R2"
 
 # reference genome
-FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+FASTA=
 
 # bowtie v1.0 index including basename
-BOWTIE_INDEX=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome
+BOWTIE_INDEX=
 
+# library tags
 EXPID="LnCap"
 LIBRARY="HiC"
 PLATFORM="Illumina"
 
+# restriction enzymes
 HICLIB_RENZYMES="BglII"
 HICUP_RENZYMES=A^GATCT,BglII
 
@@ -55,5 +64,5 @@ HICUP_RENZYMES=A^GATCT,BglII
 #PATH_HICUP=
 
 ## location of ngsane
-#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+#NGSANE_BASE=
 

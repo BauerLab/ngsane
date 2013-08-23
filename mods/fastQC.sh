@@ -1,9 +1,13 @@
 #!/bin/bash
+# author: Denis C. Bauer
+# date: Feb.2011
 
-echo ">>>>> fastqc"
+echo ">>>>> fastQC"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> fastQC.sh $*"
+echo ">>>>> job_name "$JOB_NAME
+echo ">>>>> job_id "$JOB_ID
+echo ">>>>> $(basename $0) $*"
 
 while [ "$1" != "" ]; do
     case $1 in

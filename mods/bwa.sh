@@ -14,7 +14,7 @@ echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
 echo ">>>>> job_id "$JOB_ID
-echo ">>>>> bwa.sh $*"
+echo ">>>>> $(basename $0) $*"
 
 
 function usage {
@@ -54,10 +54,6 @@ if [ ! $# -gt 3 ]; then usage ; fi
 #DEFAULTS
 MYTHREADS=1
 MYMEMORY=2
-#EXPID="exp"           # read group identifier RD ID
-#LIBRARY="qbi"         # read group library RD LB
-#PLATFORM="illumina"   # read group platform RD PL
-#UNIT="flowcell"       # read group platform unit RG PU
 FORCESINGLE=0
 NOMAPPING=0
 FASTQNAME=""

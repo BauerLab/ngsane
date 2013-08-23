@@ -8,7 +8,7 @@
 echo ">>>>> Transfer data to HPC cluster "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> getRawDataFromServer.sh $*"
+echo ">>>>> $(basename $0) $*"
 
 
 function usage {

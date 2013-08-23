@@ -3,7 +3,9 @@
 echo ">>>>> ChIPseq analysis with Peakranger"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> peakranger.sh $*"
+echo ">>>>> job_name "$JOB_NAME
+echo ">>>>> job_id "$JOB_ID
+echo ">>>>> $(basename $0) $*"
 
 function usage {
 echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
@@ -64,8 +66,8 @@ c=${CHIPINPUT##*/}
 
 if [ -n "$DMGET" ]; then
 	echo "********** reacall files from tape"
-	dmget -a ${f/$READONE/"*"}
-	dmls -l ${f/$READONE/"*"}
+	dmget -a ${f}
+	dmls -l ${f}
 fi
 
 echo "********* peakranger"

@@ -1,7 +1,7 @@
 # author: Fabian Buske
 # date: May 2013
 
-######################################
+#####################################
 # Resources
 #####################################
 
@@ -11,7 +11,7 @@
 RUNMAPPINGBOWTIE2="1"    # mapping with bowtie2
 
 #********************
-# PARAMETER (mandatory)
+# Paths
 #********************
 
 SOURCE=$(pwd)
@@ -25,16 +25,22 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# fastq file suffix (which files to run on)
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# fastq file suffix
 FASTQ="fq.gz"
 
-# read indicator  immediately preceeding the file suffixes
+# read indicator immediately preceeding the fastq file suffix
 READONE="_R1"
 READTWO="_R2"
 
 # reference genome
-FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
+FASTA=
 
+# library tags
 EXPID="Celltype"
 LIBRARY="RNAseq"
 PLATFORM="Illumina"
@@ -44,7 +50,7 @@ PLATFORM="Illumina"
 #********************
 
 # additional bowtie parameters
-#BOWTIEADDPARAM=
+BOWTIEADDPARAM=
 
 #WALLTIME_BOWTIE=10:00:00
 #MEMORY_BOWTIE=60
@@ -57,6 +63,6 @@ PLATFORM="Illumina"
 ADDBOWTIE2PARAMS=
 
 ## location of ngsane
-#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+#NGSANE_BASE=
 
 

@@ -3,7 +3,9 @@
 echo ">>>>> Create wig files with wiggler"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> wiggler.sh $*"
+echo ">>>>> job_name "$JOB_NAME
+echo ">>>>> job_id "$JOB_ID
+echo ">>>>> $(basename $0) $*"
 
 function usage {
 echo -e "usage: $(basename $0) -k NGSANE -f bam -o OUTDIR [OPTIONS]
@@ -61,13 +63,6 @@ echo "PATH=$PATH"
 # get basename of f
 n=${f##*/}
 
-#is paired ?                                                                                                      
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
-    PAIRED="1"
-else
-    PAIRED="0"
-fi
-
 # check UMAP folder exist
 if [ -z "$WIGGLER_UMAPDIR" ] || [ ! -d ${WIGGLER_UMAPDIR} ]; then
     echo "[ERROR] umap dir not specified not non-existant (WIGGLER_UMAPDIR)"
@@ -101,10 +96,9 @@ done
 
 mkdir -p ${MYOUT}
 
-RUN_COMMAND="align2rawsignal $WIGGLERADDPARAMS -of=$WIGGLER_OUTPUTFORMAT ${INPUTS} -s=${FASTA} -u=${WIGGLER_UMAPDIR} -v=${MYOUT}/wiggler-${n/$READONE/}.log -o=${MYOUT}/${n/$READONE/}.$WIGGLER_OUTPUTFORMAT -mm=$MEMORY"
+RUN_COMMAND="align2rawsignal $WIGGLERADDPARAMS -of=$WIGGLER_OUTPUTFORMAT ${INPUTS} -s=${FASTA_CHROMDIR} -u=${WIGGLER_UMAPDIR} -v=${MYOUT}/wiggler-${n}.log -o=${MYOUT}/${n}.$WIGGLER_OUTPUTFORMAT -mm=$MEMORY"
 echo $RUN_COMMAND
 eval $RUN_COMMAND
-
 
 echo ">>>>> wiggler - FINISHED"
 echo ">>>>> enddate "`date`

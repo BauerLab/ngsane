@@ -27,7 +27,7 @@ GENOME=$(echo $FASTA| sed 's/.fasta/.BEDgenome/' | sed 's/.fa/.BEDgenome/' )
 echo ">>>>> identify novel RNAs "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> novelmiRNAV2.sh $CONFIG $f $FASTA $MIRNA $GENES $OUT"
+echo ">>>>> $(basename $0) $CONFIG $f $FASTA $MIRNA $GENES $OUT"
 
 transcrFilter="1"
 consFilter="1"
