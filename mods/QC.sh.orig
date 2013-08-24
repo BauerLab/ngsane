@@ -42,7 +42,11 @@ done
 
 echo ">>>>>>>>>> CheckPoints "
 
+<<<<<<< HEAD
+PROGRESS=$(grep "\*\*\*\*\*\*" $SCRIPT | gawk '{ sub(/\*+/,""); gsub(/\"/,""); sub(/echo/,""); sub(/ +/,""); printf $0","}')
+=======
 PROGRESS=`grep "\*\*\*\*\*\*" $SCRIPT | gawk '{ sub(/\*+/,""); gsub(/\"/,""); sub(/echo/,""); sub(/[ \t]+/,""); printf $0","}'`
+>>>>>>> upstream/master
 
 for i in $PROGRESS
 do
