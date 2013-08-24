@@ -357,6 +357,7 @@ fi
 
 # add Gencode GTF if present 
 if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then 
+
 	echo "********* htseq-count"
 	##add secondstrand
 	
@@ -427,7 +428,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
 	
     echo ">>>>> make bigwigs - FINISHED"
 
-    echo "********* calculate RPKMs per Gencode Gene "
+    echo "********* calculate RPKMs per Gencode Gene"
 	
     RPKMSSDIR=$OUTDIR/../
 	
@@ -435,7 +436,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
 	
     echo ">>>>> Gencode RPKM calculation - FINISHED"
 
-    echo "********* Create filtered bamfile "      
+    echo "********* Create filtered bamfile"
 	
     ##remove r_RNA and create counts.
 	python ${NGSANE_BASE}/tools/extractFeature.py -f $GENCODEGTF --keep rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene > $OUTDIR/mask.gff

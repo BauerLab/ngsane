@@ -153,11 +153,8 @@ else
 fi
 
 if [ -n "$DMGET" ]; then
-	echo "********** reacall files from tape"
+	echo "[NOTE] reacall files from tape"
 	dmget -a $(dirname $FASTA)/*
-	dmget -a $(dirname $(which samtools))/*
-	dmget -a $(dirname $(which bwa))/*
-	dmget -a $PATH_PICARD/*
 	dmget -a ${f/$READONE/"*"}
 fi
 
@@ -178,7 +175,7 @@ echo "********* mapping"
 if [ "$PAIRED" = 1 ]
 then
     if [ "$NOMAPPING" = 0 ]; then
-       echo "********* PAIRED READS"
+       echo "[NOTE] PAIRED READS"
        bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
        bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
        bwa sampe $FASTA $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} \
@@ -193,7 +190,7 @@ then
     let FASTQREADS=$READ1+$READ2
 # Single read
 else
-    echo "********* SINGLE READS"
+    echo "[NOTE] SINGLE READS"
     bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
 
     bwa samse $FASTA $MYOUT/${n/$FASTQ/sai} $BWASAMPLEADDPARAM \

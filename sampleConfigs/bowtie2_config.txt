@@ -44,15 +44,12 @@ PLATFORM="Illumina"
 # PARAMETER (optional overwriting defaults)
 #********************
 
-# additional bowtie parameters
-#BOWTIEADDPARAM=
-
-#WALLTIME_BOWTIE=10:00:00
-#MEMORY_BOWTIE=60
-#CPU_BOWTIE=8
-#NODES_BOWTIE="nodes=1:ppn=8"
-#MODULE_BOWTIETWO=
-#PATH_BOWTIETWO=
+#WALLTIME_BOWTIE2=10:00:00
+#MEMORY_BOWTIE2=60
+#CPU_BOWTIE2=8
+#NODES_BOWTIE2="nodes=1:ppn=8"
+#MODULE_BOWTIE2=
+#PATH_BOWTIE2=
 
 # additional parameters passed to Bowite2 e.g. --phred64 (illumina 1.5) or --phred33 (sanger)
 ADDBOWTIE2PARAMS=

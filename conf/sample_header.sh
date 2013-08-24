@@ -17,6 +17,7 @@ TMP=$(pwd)/tmp                                       # TMP dir
 TASKFASTQC="fastQC"
 TASKBWA="bwa"
 TASKBOWTIE="bowtie"
+TASKBOWTIE2="bowtie2"
 TASKRCA="reCalAln"
 TASKMERGE="merged"
 TASKVAR="variant"
@@ -113,20 +114,30 @@ MODULE_BWA=
 PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
-# Bowtie2 (2.1.0) or Bowtie (1.0.0)
+# Bowtie (1.0.0)
 # http://bowtie-bio.sourceforge.net/index.shtml
 WALLTIME_BOWTIE=72:00:00
 MEMORY_BOWTIE=60
 CPU_BOWTIE=8
 NODES_BOWTIE="nodes=1:ppn=8"
 
-MODULE_BOWTIETWO=
-PATH_BOWTIETWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
-BOWTIE2_INDEX=
-
 MODULE_BOWTIE=
 PATH_BOWTIE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 BOWTIE_INDEX=
+
+
+##############################################################
+# Bowtie2 (2.1.0) 
+# http://bowtie-bio.sourceforge.net/index.shtml
+
+WALLTIME_BOWTIE2=72:00:00
+MEMORY_BOWTIE2=60
+CPU_BOWTIE2=8
+NODES_BOWTIE2="nodes=1:ppn=8"
+
+MODULE_BOWTIE2=
+PATH_BOWTIE2=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+BOWTIE2_INDEX=
 
 ##############################################################
 # Wiggler

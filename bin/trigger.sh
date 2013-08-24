@@ -264,10 +264,10 @@ fi
 # OUT: $OUT/$dir/bowtie/*.bam
 ############################################
 if [ -n "$RUNMAPPINGBOWTIE2" ]; then
-    if [ -z "$TASKBOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    if [ -z "$TASKBOWTIE2" ] || [ -z "$NODES_BOWTIE2" ] || [ -z "$CPU_BOWTIE2" ] || [ -z "$MEMORY_BOWTIE2" ] || [ -z "$WALLTIME_BOWTIE2" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e "_"$READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
-	--command "${NGSANE_BASE}/mods/bowtie2.sh $BOWTIEADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE \
+    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE2 -i fastq -e "_"$READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" -w $WALLTIME_BOWTIE2 \
+	--command "${NGSANE_BASE}/mods/bowtie2.sh $BOWTIE2ADDPARM -k $CONFIG -t $CPU_BOWTIE2 -m $(expr $MEMORY_BOWTIE2 - 1 ) -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE2 \
         --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
 fi
 
