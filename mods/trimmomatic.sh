@@ -69,8 +69,7 @@ fi
 
 # check if trimming steps are set
 if [ -z "$TRIMMOMATICSTEPS" ]; then
-    echo "[ERROR] no trimming steps specified: TRIMMOMATICSTEPS"
-    exit 1
+    echo "[ERROR] no trimming steps specified: TRIMMOMATICSTEPS" && exit 1
 fi
 
 FASTQDIR=$(basename $(dirname $f))
@@ -87,18 +86,11 @@ echo -n "********* $CHECKPOINT"
 ###################################################################################################
 CHECKPOINT="recall files from tape"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
-else 
-    
-    if [ -n "$DMGET" ]; then
-        dmget -a ${f/$READONE/"*"}
-    fi
-    # mark checkpoint
-    [ -f ${f} ] && echo -n "********* $CHECKPOINT"
+if [ -n "$DMGET" ]; then
+    dmget -a ${f/$READONE/"*"}
 fi
 
-
+echo -n "********* $CHECKPOINT"
 ###################################################################################################
 CHECKPOINT="trim"    
 
@@ -116,7 +108,6 @@ else
 
     # mark checkpoint
     [ -f $o ] && echo -n "********* $CHECKPOINT"
-    
 fi
 
 ###################################################################################################

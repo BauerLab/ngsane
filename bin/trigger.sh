@@ -239,7 +239,7 @@ if [ -n "$RUNHICUP" ]; then
     
     $QSUB $ARMED -k $CONFIG -t $TASKHICUP -i fastq -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
     	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP \
-        --command "${NGSANE_BASE}/mods/hicup.sh $HICUPADDPARM -k $CONFIG -t $CPU_HICUP -m $(expr $MEMORY_HICUP - 1 ) -f <FILE> -r $FASTA --digest '$HICUP_RENZYMES' -o $OUT/<DIR>/$TASKHICUP --fastqName <NAME>"
+        --command "${NGSANE_BASE}/mods/hicup.sh $HICUPADDPARM -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHICUP"
 fi
 
 ############################################
@@ -255,7 +255,7 @@ if [ -n "$RUNHICLIB" ]; then
     $QSUB $ARMED -k $CONFIG -t $TASKHICLIB -i fastq -e $READONE.$FASTQ \
     	-n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
     	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND \
-        --command "${NGSANE_BASE}/mods/hiclibMapping.sh $HICLIBADDPARM -k $CONFIG --threads $CPU_HICLIB --fastq <FILE> --enzymes '$HICLIB_RENZYMES' --outdir $OUT/<DIR>/$TASKHICLIB --fastqName <NAME>" \
+        --command "${NGSANE_BASE}/mods/hiclibMapping.sh $HICLIBADDPARM -k $CONFIG --fastq <FILE> --outdir $OUT/<DIR>/$TASKHICLIB --fastqName <NAME>" \
         --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh $HICLIBADDPARM -f <FILE> -k $CONFIG --outdir $OUT/hiclib/$TASKHICLIB-<DIR>"
 
 fi
@@ -334,7 +334,7 @@ if [ -n "$RUNHOMERHIC" ]; then
     if [ -z "$TASKHOMERHIC" ] || [ -z "$NODES_HOMERHIC" ] || [ -z "$CPU_HOMERHIC" ] || [ -z "$MEMORY_HOMERHIC" ] || [ -z "$WALLTIME_HOMERHIC" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
     $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERHIC -i $TASKBWA -e $READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
-	--command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -t $CPU_HOMERHIC -f <FILE> -o $OUT/<DIR>/$TASKHOMERHIC"
+	--command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHOMERHIC"
 fi
 
 ############################################
@@ -347,7 +347,7 @@ if [ -n "$RUNHOMERCHIPSEQ" ]; then
     if [ -z "$TASKHOMERCHIPSEQ" ] || [ -z "$NODES_HOMERCHIPSEQ" ] || [ -z "$CPU_HOMERCHIPSEQ" ] || [ -z "$MEMORY_HOMERCHIPSEQ" ] || [ -z "$WALLTIME_HOMERCHIPSEQ" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
     $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERCHIPSEQ -i $TASKBOWTIE -e .$ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ \
-	--command "${NGSANE_BASE}/mods/chipseqHomer.sh -k $CONFIG -t $CPU_HOMERCHIPSEQ -f <FILE> -o $OUT/<DIR>/$TASKHOMERCHIPSEQ"
+	--command "${NGSANE_BASE}/mods/chipseqHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHOMERCHIPSEQ"
 fi
 
 ############################################
@@ -360,7 +360,7 @@ if [ -n "$RUNPEAKRANGER" ]; then
     if [ -z "$TASKPEAKRANGER" ] || [ -z "$NODES_PEAKRANGER" ] || [ -z "$CPU_PEAKRANGER" ] || [ -z "$MEMORY_PEAKRANGER" ] || [ -z "$WALLTIME_PEAKRANGER" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKPEAKRANGER -i $TASKBOWTIE -e .$ASD.bam -n $NODES_PEAKRANGER -c $CPU_PEAKRANGER -m $MEMORY_PEAKRANGER"G" -w $WALLTIME_PEAKRANGER \
-	--command "${NGSANE_BASE}/mods/peakranger.sh -k $CONFIG -t $CPU_PEAKRANGER -f <FILE> -o $OUT/<DIR>/$TASKPEAKRANGER"
+	--command "${NGSANE_BASE}/mods/peakranger.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKPEAKRANGER"
 fi
 
 ############################################
@@ -373,7 +373,7 @@ if [ -n "$RUNMEMECHIP" ]; then
     if [ -z "$TASKMEMECHIP" ] || [ -z "$NODES_MEMECHIP" ] || [ -z "$CPU_MEMECHIP" ] || [ -z "$MEMORY_MEMECHIP" ] || [ -z "$WALLTIME_MEMECHIP" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKMEMECHIP -i $TASKPEAKRANGER -e $BED -n $NODES_MEMECHIP -c $CPU_MEMECHIP -m $MEMORY_MEMECHIP"G" -w $WALLTIME_MEMECHIP \
-	--command "${NGSANE_BASE}/mods/memechip.sh -k $CONFIG -t $CPU_MEMECHIP -f <FILE> -o $OUT/<DIR>/$TASKMEMECHIP"
+	--command "${NGSANE_BASE}/mods/memechip.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKMEMECHIP"
 fi
 
 ############################################
@@ -386,7 +386,7 @@ if [ -n "$RUNWIGGLER" ]; then
     if [ -z "$TASKWIGGLER" ] || [ -z "$NODES_WIGGLER" ] || [ -z "$CPU_WIGGLER" ] || [ -z "$MEMORY_WIGGLER" ] || [ -z "$WALLTIME_WIGGLER" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKWIGGLER -i $TASKBWA -e .$ASD.bam -n $NODES_WIGGLER -c $CPU_WIGGLER -m $MEMORY_WIGGLER"G" -w $WALLTIME_WIGGLER \
-        --postcommand "${NGSANE_BASE}/mods/wiggler.sh -k $CONFIG -f <FILE> -m $MEMORY_WIGGLER -o $OUT/<DIR>/$TASKWIGGLER" 
+        --postcommand "${NGSANE_BASE}/mods/wiggler.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKWIGGLER" 
 fi
 
 ############################################

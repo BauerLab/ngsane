@@ -69,6 +69,7 @@ while [ "$1" != "" ]; do
 	-s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
 	-R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
 	
+    --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
 	--forceSingle )         FORCESINGLE=1;;
 	-h | --help )           usage ;;
 	* )                     echo "dont understand $1"
@@ -209,22 +210,14 @@ echo -n "********* $CHECKPOINT"
 ###################################################################################################
 CHECKPOINT="recall files from tape"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
-else 
-
-    if [ -n "$DMGET" ]; then
-        echo "********** reacall files from tape"
-        dmget -a $(dirname $FASTA)/*
-        dmget -a ${f/$READONE/"*"}
-    fi
-    
-    # mark checkpoint
-    [ -f ${f} ] && echo -n "********* $CHECKPOINT"
+if [ -n "$DMGET" ]; then
+    dmget -a $(dirname $FASTA)/*
+    dmget -a ${f/$READONE/"*"}
 fi
 
+echo -n "********* $CHECKPOINT"
 ###################################################################################################
-CHECKPOINT="tophat"
+CHECKPOINT="run tophat"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo -n "::::::::: passed $CHECKPOINT"
@@ -242,7 +235,6 @@ else
     # mark checkpoint
     [ -d $OUTDIR ] && echo -n "********* $CHECKPOINT"
 fi 
-
 
 ###################################################################################################
 CHECKPOINT="merge mapped and unmapped"
@@ -351,7 +343,6 @@ else
     [ -f $OUTDIR/../metrices/$(basename $BAMFILE) ] && echo -n "********* $CHECKPOINT"
 fi 
 
-
 ###################################################################################################
 CHECKPOINT="coverage track"    
 
@@ -424,8 +415,8 @@ else
         RNASeQCDIR=$OUTDIR/../${n/%$READONE.$FASTQ/_RNASeQC}
         mkdir -p $RNASeQCDIR
     
-        COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE/.$ASD/.$ALN}|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
-        echo $COMMAND && eval $COMMAND
+        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE/.$ASD/.$ALN}|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
     
         #tar czf ${n/%$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR 
         rm -f ${BAMFILE/.$ASD/.$ALN}

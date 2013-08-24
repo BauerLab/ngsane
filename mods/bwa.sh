@@ -161,30 +161,20 @@ fi
 ZCAT="zcat"
 if [[ $f != *.gz ]]; then ZCAT="cat"; fi
 
-echo -n "********* $CHECKPOINT"
-###################################################################################################
-CHECKPOINT="recall files from tape"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
-else 
-	
-    if [ -n "$DMGET" ]; then
-       	dmget -a $(dirname $FASTA)/*
-       	dmget -a $(dirname $(which samtools))/*
-       	dmget -a $(dirname $(which bwa))/*
-       	dmget -a $PATH_PICARD/*
-       	dmget -a ${f/$READONE/"*"}
-    fi
-    
-    # mark checkpoint
-    [ -f ${f} ] && echo -n "********* $CHECKPOINT"
-fi
-
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 echo ">>>>> full sample ID "$FULLSAMPLEID
 FASTASUFFIX=${FASTA##*.}
 
+echo -n "********* $CHECKPOINT"
+###################################################################################################
+CHECKPOINT="recall files from tape"
+
+if [ -n "$DMGET" ]; then
+    dmget -a $(dirname $FASTA)/*
+    dmget -a ${f/$READONE/"*"}
+fi
+    
+echo -n "********* $CHECKPOINT"
 ###################################################################################################
 CHECKPOINT="generating the index files"
 

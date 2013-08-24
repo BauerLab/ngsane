@@ -21,14 +21,10 @@ exit
 # QCVARIABLES,Resource temporarily unavailable
 if [ ! $# -gt 3 ]; then usage ; fi
 
-#DEFAULTS
-THREADS=8
-
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
-        -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -f | --bed )            shift; f=$1 ;; # bed file containing enriched regions (peaks)
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir 
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
@@ -76,19 +72,12 @@ echo -n "********* $CHECKPOINT"
 ###################################################################################################
 CHECKPOINT="recall files from tape"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
-else 
-
-    if [ -n "$DMGET" ]; then
-    	echo "********** reacall files from tape"
-    	dmget -a ${f}
-    	dmls -l ${f}
-    fi
-    # mark checkpoint
-    [ -f ${f} ] && echo -n "********* $CHECKPOINT"
+if [ -n "$DMGET" ]; then
+	dmget -a ${f}
+	dmls -l ${f}
 fi
 
+echo -n "********* $CHECKPOINT"
 ###################################################################################################
 CHECKPOINT="get sequence data"
 
@@ -99,8 +88,8 @@ else
     if [ -n "$SLOPBEDADDPARAM" ]; then
         echo "[NOTE] extend bed regions: $EXTENDREGION"
     
-        COMMAND="bedtools slop -i $f -g $CHROMSIZES $SLOPBEDADDPARAM  > $MYOUT/$n"
-        echo $COMMAND && eval $COMMAND
+        RUN_COMMAND="bedtools slop -i $f -g $CHROMSIZES $SLOPBEDADDPARAM  > $MYOUT/$n"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
         f=$MYOUT/$n
     fi
     
@@ -134,8 +123,8 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo -n "::::::::: passed $CHECKPOINT"
 else 
     
-    COMMAND="meme-chip $MEMECHIPADDPARAM -oc $MYOUT/${n/$BED/} -bfile $MEMEBACKGROUND -desc ${n/$BED/} -db $MEMECHIPDATABASES -meme-p $CPU_MEMECHIP $MYOUT/${n/$BED/.fasta}"
-    echo $COMMAND && eval $COMMAND
+    RUN_COMMAND="meme-chip $MEMECHIPADDPARAM -oc $MYOUT/${n/$BED/} -bfile $MEMEBACKGROUND -desc ${n/$BED/} -db $MEMECHIPDATABASES -meme-p $CPU_MEMECHIP $MYOUT/${n/$BED/.fasta}"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
     [ -f $MYOUT/${n/$BED/}/combined.meme} ] && echo -n "********* $CHECKPOINT"
@@ -148,8 +137,8 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo -n "::::::::: passed $CHECKPOINT"
 else 
    
-    COMMAND="fimo $FIMOADDPARAM --bgfile $MEMEBACKGROUND --oc $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/}/combined.meme $MYOUT/${n/$BED/.fasta}"
-    echo $COMMAND && eval $COMMAND
+    RUN_COMMAND="fimo $FIMOADDPARAM --bgfile $MEMEBACKGROUND --oc $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/}/combined.meme $MYOUT/${n/$BED/.fasta}"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
 
     sort -k4,4 -k1,1 -k2,2g $f > $MYOUT/${n/$BED/_sorted.bed}
     for PATTERN in $(tail -n+2 $MYOUT/${n/$BED/_fimo}/fimo.txt | awk '{print $1}' | sort -u); do

@@ -21,14 +21,10 @@ exit
 # QCVARIABLES,Resource temporarily unavailable
 if [ ! $# -gt 3 ]; then usage ; fi
 
-#DEFAULTS
-THREADS=8
-
 #INPUTS                                                                                                           
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
-        -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -f | --bam )            shift; f=$1 ;; # bam file
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir 
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
@@ -72,19 +68,12 @@ echo -n "********* $CHECKPOINT"
 ###################################################################################################
 CHECKPOINT="recall files from tape"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
-else 
-    
-    if [ -n "$DMGET" ]; then
-        echo "********** reacall files from tape"
-        dmget -a $f
-        dmls -l $f
-    fi
-    # mark checkpoint
-    [ -f ${f} ] && echo -n "********* $CHECKPOINT"
+if [ -n "$DMGET" ]; then
+    dmget -a $f
+    dmls -l $f
 fi
 
+echo -n "********* $CHECKPOINT"
 ###################################################################################################
 CHECKPOINT="create tagdirectory"
 
@@ -116,7 +105,7 @@ else
 fi
 
 ###################################################################################################
-CHECKPOINT="find peaks"    
+CHECKPOINT="find peaks"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo -n "::::::::: passed $CHECKPOINT"

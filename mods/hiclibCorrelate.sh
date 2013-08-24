@@ -39,7 +39,7 @@ QUAL="" # standard Sanger
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
-	-f | --files ) 		shift; FILES=$1 ;; # input files
+        -f | --files ) 		shift; FILES=$1 ;; # input files
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
         --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
         -h | --help )           usage ;;

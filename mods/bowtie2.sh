@@ -128,22 +128,13 @@ if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
 echo -n "********* $CHECKPOINT"
 ###################################################################################################
 CHECKPOINT="recall files from tape"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
-else 
 	
-    if [ -n "$DMGET" ]; then
-    	dmget -a $(dirname $FASTA)/*
-    	dmls -l $FASTA*
-    	dmget -a ${f/$READONE/"*"}
-    	dmls -l ${f/$READONE/"*"}
-    fi
-    
-    # mark checkpoint
-    [ -f ${f} ] && echo -n "********* $CHECKPOINT"
+if [ -n "$DMGET" ]; then
+	dmget -a $(dirname $FASTA)/*
+	dmget -a ${f/$READONE/"*"}
 fi
-
+    
+echo -n "********* $CHECKPOINT"
 ###################################################################################################
 CHECKPOINT="generating the index files"
 

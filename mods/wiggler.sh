@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# author: Fabian Buske
+# date: August 2013
+
 echo ">>>>> Create wig files with wiggler"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
@@ -16,9 +19,6 @@ required:
   -k | --toolkit <path>     location of the NGSANE repository 
   -f | --bam <file>         bam file
   -o | --outdir <path>      output dir
-
-options:
-  -t | --threads <nr>       number of CPUs to use (default: 8)
 "
 exit
 }
@@ -26,18 +26,13 @@ exit
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
-#DEFAULTS
-THREADS=8
-MEMORY=2
-
 #INPUTS                                                                                                           
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
-        -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use                                      
-        -m | --memory )         shift; MEMORY=$1 ;; # memory used 
         -f | --bam )            shift; f=$1 ;; # bam file                                                       
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
+        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -49,7 +44,9 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-echo "********** programs"
+###################################################################################################
+CHECKPOINT="programs"
+
 for MODULE in $MODULE_WIGGLER; do module load $MODULE; done  # save way to load modules that itself load other modules
 
 export PATH=$PATH_WIGGLER:$PATH
@@ -59,6 +56,10 @@ echo "PATH=$PATH"
 # best common denominator)
 #echo -e "--wiggler  --\n "$(align2rawsignal 2>&1 | head -n 3 | tail -n 1)
 #[ -z "$(which align2rawsignal)" ] && echo "[ERROR] wiggler not detected (align2rawsignal)" && exit 1
+
+echo -n "********* $CHECKPOINT"
+###################################################################################################
+CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
@@ -76,30 +77,42 @@ elif [ "$WIGGLER_OUTPUTFORMAT" != "bg" ] && [ "$WIGGLER_OUTPUTFORMAT" != "wig" ]
     echo "[ERROR] wiggler output format not known" && exit 1
 fi
 
-echo "********** get input"
+mkdir -p ${MYOUT}
+
+echo -n "********* $CHECKPOINT"
+###################################################################################################
+CHECKPOINT="recall files from tape"
+
 for d in ${DIR[@]}; do
     FILES=$FILES" "$( ls $OUT/$d/$TASKBWA/*$ASD.bam )
 done
 echo $FILES
 
 if [ -n "$DMGET" ]; then
-	echo "********** reacall files from tape"
 	dmget -a $FILES
 	dmls -l $FILES
 fi
 
-echo "********* align2rawsignal" 
-INPUTS=""
-for FILE in $FILES; do
-    INPUTS="${INPUTS} -i=$FILE"
-done
+echo -n "********* $CHECKPOINT"
+###################################################################################################
+CHECKPOINT="run align2rawsignal"
 
-mkdir -p ${MYOUT}
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
+    INPUTS=""
+    for FILE in $FILES; do
+        INPUTS="${INPUTS} -i=$FILE"
+    done
+    
+    RUN_COMMAND="align2rawsignal $WIGGLERADDPARAMS -of=$WIGGLER_OUTPUTFORMAT ${INPUTS} -s=${FASTA_CHROMDIR} -u=${WIGGLER_UMAPDIR} -v=${MYOUT}/wiggler-${n}.log -o=${MYOUT}/${n}.$WIGGLER_OUTPUTFORMAT -mm=$MEMORY_WIGGLER"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
 
-RUN_COMMAND="align2rawsignal $WIGGLERADDPARAMS -of=$WIGGLER_OUTPUTFORMAT ${INPUTS} -s=${FASTA_CHROMDIR} -u=${WIGGLER_UMAPDIR} -v=${MYOUT}/wiggler-${n}.log -o=${MYOUT}/${n}.$WIGGLER_OUTPUTFORMAT -mm=$MEMORY"
-echo $RUN_COMMAND
-eval $RUN_COMMAND
+    # mark checkpoint
+    [ -f ${MYOUT}/${n}.$WIGGLER_OUTPUTFORMAT ] && echo -n "********* $CHECKPOINT"
+fi 
 
+###################################################################################################
 echo ">>>>> wiggler - FINISHED"
 echo ">>>>> enddate "`date`
 

@@ -36,9 +36,6 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-#JAVAPARAMS="-Xmx"$(expr $MEMORY_CUTADAPT - 1 )"G"
-#echo "JAVAPARAMS "$JAVAPARAMS
-
 ###################################################################################################
 CHECKPOINT="programs"
 for MODULE in $MODULE_CUTADAPT; do module load $MODULE; done  # save way to load modules that itself load other modules
@@ -85,17 +82,11 @@ echo -n "********* $CHECKPOINT"
 ###################################################################################################
 CHECKPOINT="recall files from tape"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
-else 
-    
-    if [ -n "$DMGET" ]; then
-        dmget -a ${f/$READONE/"*"}
-    fi
-    # mark checkpoint
-    [ -f ${f} ] && echo -n "********* $CHECKPOINT"
+if [ -n "$DMGET" ]; then
+    dmget -a ${f/$READONE/"*"}
 fi
 
+echo -n "********* $CHECKPOINT"
 ###################################################################################################
 CHECKPOINT="trim"    
 
@@ -116,8 +107,7 @@ else
     fi
     
     # mark checkpoint
-    [ -f $o ] && echo -n "********* $CHECKPOINT"
-    
+    [ -f $o ] && echo -n "********* $CHECKPOINT"  
 fi
 
 ###################################################################################################
@@ -136,8 +126,7 @@ else
     fi
 
     # mark checkpoint
-    echo -n "********* $CHECKPOINT"
-    
+    echo -n "********* $CHECKPOINT"  
 fi
 
 ###################################################################################################

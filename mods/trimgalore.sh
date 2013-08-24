@@ -80,21 +80,15 @@ if [ "$PAIRED" = "1" ] && [ -n "$TRIMGALORE_ADAPTER2" ]; then
 fi
 echo $CONTAM
 
-
 echo -n "********* $CHECKPOINT"
 ###################################################################################################
 CHECKPOINT="recall files from tape"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
-else 
-    if [ -n "$DMGET" ]; then
-        dmget -a ${f/$READONE/"*"}
-    fi
-    # mark checkpoint
-    [ -f ${f} ] && echo -n "********* $CHECKPOINT"
+if [ -n "$DMGET" ]; then
+    dmget -a ${f/$READONE/"*"}
 fi
 
+echo -n "********* $CHECKPOINT"
 ###################################################################################################
 CHECKPOINT="trim"    
 
@@ -115,7 +109,6 @@ else
 
     # mark checkpoint
     [ -f $FASTQDIRTRIM/$n ] && echo -n "********* $CHECKPOINT"
-    
 fi
 
 ###################################################################################################
@@ -135,7 +128,6 @@ else
     fi
     # mark checkpoint
     echo -n "********* $CHECKPOINT"
-    
 fi
 
 ###################################################################################################
