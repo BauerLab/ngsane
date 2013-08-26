@@ -103,9 +103,9 @@ fi
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
-    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
-    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
+    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
+    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
+    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl
 fi
 
 #is ziped ?
@@ -180,14 +180,14 @@ else
     # merge mappend and unmapped
     samtools merge -f $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam $MYOUT/${n/%$READONE.$FASTQ/.map}.bam $MYOUT/${n/%$READONE.$FASTQ/.unm}.bam 
     # remove sam files 
-    rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
-    rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam}
+    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
+    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam}
     
     if [ "$PAIRED" = "1" ]; then
         # fix mates
         samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp
         samtools fixmate $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam - | samtools sort - $MYOUT/${n/%$READONE.$FASTQ/.ash}
-        rm $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam
+        rm -f $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam
     fi
     
     # mark checkpoint
@@ -301,9 +301,9 @@ BAMREADS=`head -n1 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-    rm $MYOUT/${n/%$READONE.$FASTQ/.ash.bam}
-    rm $MYOUT/${n/%$READONE.$FASTQ/.unm}.bam
-    rm $MYOUT/${n/%$READONE.$FASTQ/.map}.bam
+    rm -f $MYOUT/${n/%$READONE.$FASTQ/.ash.bam}
+    rm -f $MYOUT/${n/%$READONE.$FASTQ/.unm}.bam
+    rm -f $MYOUT/${n/%$READONE.$FASTQ/.map}.bam
 else
     echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
     exit 1
@@ -336,7 +336,7 @@ else
             echo "[NOTE] generate bigwig for properly paired reads on the same chromosomes"
             samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp}
             samtools view -b -F 1028 -f 0x2 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
-            rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
+            rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
     	
         else
         	if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
