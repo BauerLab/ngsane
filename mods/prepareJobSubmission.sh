@@ -93,6 +93,9 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     if [ -n "$RECOVER" ] && [ -f $LOGFILE ] ; then
         # add log-file for recovery
         COMMAND2="$COMMAND2 --recover-from $LOGFILE"
+        echo "################################################################################" >> $LOGFILE
+        echo "[NOTE] Recover from logfile: $LOGFILE" >> $LOGFILE
+	echo "################################################################################" >> $LOGFILE
     else
         # remove old submission output logs
         if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm -rf $QOUT/$TASK/$dir'_'$name.*; fi
