@@ -108,16 +108,27 @@ if [ -z "$RECOVERFROM" ]; then
     if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
 fi
 
+#is ziped ?
+ZCAT="zcat"
+if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
+
 #is paired ?                                                                                                      
 if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
+    READS="-1 $f -2 ${f/$READONE/$READTWO}"
+    READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
+    READ2=`$ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}' `
+    let FASTQREADS=$READ1+$READ2
 else
     PAIRED="0"
+    READS="-U $f"
+    let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
 fi
 
-#is ziped ?                                                                                                       
-ZCAT="zcat"
-if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
+#readgroup
+FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
+RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
+
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
@@ -135,7 +146,6 @@ CHECKPOINT="generating the index files"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-
     
     FASTASUFFIX=${FASTA##*.}
     if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
@@ -146,35 +156,17 @@ else
 fi 
 
 ################################################################################
-CHECKPOINT="bowtie"
-
-if [ $PAIRED == "0" ]; then 
-    READS="-U $f"
-    let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-else 
-    READS="-1 $f -2 ${f/$READONE/$READTWO}"
-    READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-    READ2=`$ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}' `
-    let FASTQREADS=$READ1+$READ2
-fi
-
-#readgroup
-FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
-RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
-
-
+CHECKPOINT="run bowtie2"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
     RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM -t -x ${FASTA/.${FASTASUFFIX}/} -p $CPU_BOWTIE2 $READS --un $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}"
-    echo $RUN_COMMAND
-    eval $RUN_COMMAND
+    echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} ] && echo -e "\n********* $CHECKPOINT"
 fi
-
 
 ################################################################################
 CHECKPOINT="bam conversion and sorting"
@@ -273,7 +265,7 @@ else
     rm -r $THISTMP
 
     # mark checkpoint
-    [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 

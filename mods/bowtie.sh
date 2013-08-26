@@ -279,8 +279,7 @@ CHECKPOINT="mark duplicates"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-    
-    
+   
     if [ ! -e $MYOUT/metrices ]; then mkdir -p $MYOUT/metrices ; fi
     THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files                                        
     mkdir -p $THISTMP
@@ -346,7 +345,7 @@ else
     rm -r $THISTMP
 
     # mark checkpoint
-    [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 

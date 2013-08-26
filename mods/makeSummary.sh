@@ -114,11 +114,11 @@ if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
     echo "<a name=\"mapping\"><h2>BOWTIE v2 Mapping</h2>">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
     echo "QC"
-    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie2.sh $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie2.sh $QOUT/$TASKBOWTIE2/ >>$SUMMARYTMP
     echo "gather dirs"
     vali=""
     for dir in ${DIR[@]}; do
-        vali=$vali" $OUT/$dir/$TASKBOWTIE/"
+        vali=$vali" $OUT/$dir/$TASKBOWTIE2/"
     done
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
@@ -416,7 +416,7 @@ cat $SUMMARYFILE.tmp  $SUMMARYTMP > $SUMMARYFILE
 rm $SUMMARYTMP
 rm $SUMMARYFILE.tmp
 
-if [ "$(which prince)" != "" ]; then
+if [ "$(hash prince)" != "" ]; then
     # convert html to pdf
     prince $SUMMARYFILE -o ${HTMLOUT}.pdf
 fi

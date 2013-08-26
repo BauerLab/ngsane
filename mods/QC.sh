@@ -42,7 +42,7 @@ done
 
 echo ">>>>>>>>>> CheckPoints "
 
-PROGRESS=`grep "\*\*\*\*\*\*" $SCRIPT | gawk '{ sub(/\*+/,""); gsub(/\"/,""); sub(/echo/,""); sub(/[ \t]+/,""); printf $0","}'`
+PROGRESS=`grep -P '^CHECKPOINT="' $SCRIPT | awk -F'"' '{print $2}' | tr '\n' ','`
 
 for i in $PROGRESS
 do

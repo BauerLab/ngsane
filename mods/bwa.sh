@@ -293,8 +293,7 @@ CHECKPOINT="calculate inner distance"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-    
-    
+      
     export PATH=$PATH:/usr/bin/
     THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
     mkdir -p $THISTMP
@@ -313,9 +312,8 @@ else
     rm -rf $THISTMP
 
     # mark checkpoint
-    [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT"
 fi
-
 
 
 ################################################################################
@@ -325,10 +323,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    
-    
-    GENOME=$(echo $FASTA | sed 's/.${FASTASUFFIX}/.genome/' )
-    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} $GENOME
+    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/.genome}
    
     # mark checkpoint
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -e "\n********* $CHECKPOINT"
