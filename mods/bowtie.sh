@@ -186,7 +186,6 @@ else
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam} ] && echo -e "\n********* $CHECKPOINT"
 fi
 
-exit 1
 ################################################################################
 CHECKPOINT="bam conversion and sorting"
 

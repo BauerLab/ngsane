@@ -136,16 +136,21 @@ if [ -z "$RECOVERFROM" ]; then
     if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
 fi
 
-#is paired ?
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
-    PAIRED="1"
-else
-    PAIRED="0"
-fi
-
 #is ziped ?
 ZCAT="zcat"
 if [[ $f != *.gz ]]; then ZCAT="cat"; fi
+
+#is paired ?
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+    PAIRED="1"
+    READ1=$($ZCAT $f | wc -l | gawk '{print int($1/4)}')
+    READ2=$($ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}')
+    let FASTQREADS=$READ1+$READ2
+else
+    PAIRED="0"
+    READS="$f"
+    let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
+fi
 
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 echo ">>>>> full sample ID "$FULLSAMPLEID
@@ -178,13 +183,11 @@ else
 fi 
 
 ################################################################################
-CHECKPOINT="bwa"
+CHECKPOINT="run bwa"
 
-if [ $PAIRED == "0" ]; then 
-    READS="$f"
-    let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-else 
-
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else
     
     if [ "$PAIRED" = 1 ]; then
 
@@ -193,16 +196,13 @@ else
            bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA $f > $MYOUT/${n/$FASTQ/sai}
            bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
            bwa sampe $FASTA $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} \
-       	$BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-    	$f ${f/$READONE/$READTWO} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
+       	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
+    	       $f ${f/$READONE/$READTWO} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
     
            rm $MYOUT/${n/$FASTQ/sai}
            rm $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
         fi
-        READ1=$($ZCAT $f | wc -l | gawk '{print int($1/4)}')
-        READ2=$($ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}')
-        let FASTQREADS=$READ1+$READ2
-    # Single read
+
     else
         echo "[NOTE] SINGLE READS"
         bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA $f > $MYOUT/${n/$FASTQ/sai}
@@ -212,7 +212,6 @@ else
     	$f | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
     
         rm $MYOUT/${n/$FASTQ/sai}
-        let FASTQREADS=$($ZCAT $f | wc -l | gawk '{print int($1/4)}')
     fi
     
     # mark checkpoint
@@ -234,7 +233,6 @@ else
     # mark checkpoint
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} ] && echo -e "\n********* $CHECKPOINT"
 fi
-
 
 
 ################################################################################

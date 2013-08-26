@@ -240,16 +240,13 @@ else
     samtools flagstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} > $STATSOUT
     if [ -n $SEQREG ]; then
         echo "#custom region" >> $STATSOUT
-        echo `samtools view $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" total reads in region " >> $STAT\
-    SOUT
-        echo `samtools view -f 2 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" properly paired reads in re\
-    gion " >> $STATSOUT
+        echo `samtools view $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" total reads in region " >> $STATSOUT
+        echo `samtools view -f 2 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l`" properly paired reads in region " >> $STATSOUT
     fi
 
     # mark checkpoint
     [ -f $STATSOUT ] && echo -e "\n********* $CHECKPOINT"
 fi
-
 
 ################################################################################
 CHECKPOINT="calculate inner distance"                                                                                                
@@ -308,8 +305,7 @@ else
     
 fi
 
-
-################################################################################
+###############################################################################
 CHECKPOINT="verify"    
 
 BAMREADS=`head -n1 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1`
