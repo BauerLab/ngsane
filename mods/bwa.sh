@@ -179,7 +179,7 @@ else
     if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
     # mark checkpoint
-    [ -f $FASTA.bwt ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $FASTA.bwt ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi 
 
 ################################################################################
@@ -215,7 +215,7 @@ else
     fi
     
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 
@@ -231,7 +231,7 @@ else
     rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
 
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 
@@ -262,7 +262,7 @@ else
     samtools index $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 
@@ -283,7 +283,7 @@ else
     fi
 
     # mark checkpoint
-    [ -f $STATSOUT ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $STATSOUT ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 
@@ -312,7 +312,7 @@ else
     rm -rf $THISTMP
 
     # mark checkpoint
-    [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 
@@ -326,7 +326,7 @@ else
     java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/.genome}
    
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 
@@ -340,7 +340,7 @@ else
     samstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
     
 fi
 

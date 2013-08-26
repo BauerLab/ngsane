@@ -109,7 +109,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -f ${MYOUT}/${n}.$WIGGLER_OUTPUTFORMAT ] && echo -e "\n********* $CHECKPOINT"
+    [ -f ${MYOUT}/${n}.$WIGGLER_OUTPUTFORMAT ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi 
 
 ################################################################################

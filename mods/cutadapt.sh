@@ -107,7 +107,7 @@ else
     fi
     
     # mark checkpoint
-    [ -f $o ] && echo -e "\n********* $CHECKPOINT"  
+    [ -f $o ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM  
 fi
 
 ################################################################################

@@ -145,7 +145,7 @@ else
     cd $SOURCE
     
     # mark checkpoint
-    [ -f $DIGESTGENOME ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $DIGESTGENOME ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -182,7 +182,7 @@ else
     echo "$f | ${f/$READONE/$READTWO} " >> $HICUP_CONF
 
     # mark checkpoint
-    [ -f $HICUP_CONF ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $HICUP_CONF ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -212,7 +212,7 @@ else
     cp -f $MYOUT/$OUTDIR/*_ditag_classification.png $RUNSTATS/${n/%$READONE.$FASTQ/}_ditag_classification.png
 
     # mark checkpoint
-    [ -f $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -233,7 +233,7 @@ else
     $GZIP $MYOUT/${n/%$READONE.$FASTQ/}*.significances.txt
 
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$FASTQ/}.spline_pass1.significances.txt ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/}.spline_pass1.significances.txt ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################

@@ -113,7 +113,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -d $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} ] && echo -e "\n********* $CHECKPOINT"
+    [ -d $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -127,7 +127,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$ASD.bam/_background.txt} ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/%$READONE.$ASD.bam/_background.txt} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -176,7 +176,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -f $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -221,7 +221,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -d $MYOUT/${n/%$READONE.$ASD.bam/_annotations} ] && echo -e "\n********* $CHECKPOINT"
+    [ -d $MYOUT/${n/%$READONE.$ASD.bam/_annotations} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################

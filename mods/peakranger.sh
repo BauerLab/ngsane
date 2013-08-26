@@ -117,7 +117,7 @@ else
 
 
     # mark checkpoint
-    [ -f $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################

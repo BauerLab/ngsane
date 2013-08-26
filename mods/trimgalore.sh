@@ -108,7 +108,7 @@ else
     fi
 
     # mark checkpoint
-    [ -f $FASTQDIRTRIM/$n ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $FASTQDIRTRIM/$n ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################

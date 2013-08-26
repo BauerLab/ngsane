@@ -135,7 +135,7 @@ else
     #    --minBaseQuality 20 \
     
     # mark checkpoint
-    [ -f $OUT/$n.doc ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $OUT/$n.doc ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi 
 
 ################################################################################
@@ -164,7 +164,7 @@ else
     	-abam $f -b stdin -u | $SAMTOOLS flagstat - >> $OUT/$n.stats
 
         # mark checkpoint
-        [ -f $OUT/$n.stats ] && echo -e "\n********* $CHECKPOINT"
+        [ -f $OUT/$n.stats ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
     
     fi
 fi

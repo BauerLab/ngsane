@@ -89,7 +89,7 @@ else
     samtools index $MYOUT/${n/bam/drm.bam}
 
     # mark checkpoint
-    [ -f $MYOUT/${n/bam/drm.bam} ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/bam/drm.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi 
 
 ################################################################################
@@ -102,7 +102,7 @@ else
     samtools mpileup -uf $FASTA -q1 -D $MYOUT/${n/bam/drm.bam} |  bcftools view -vcg - >$MYOUT/${n/bam/vcf}
 
     # mark checkpoint
-    [ -f $MYOUT/${n/bam/vcf} ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/bam/vcf} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi 
 
 ################################################################################
@@ -115,7 +115,7 @@ else
     vcfutils.pl varFilter -D1000 -w0 -e0 $MYOUT/${n/bam/vcf}  > $MYOUT/${n/bam/clean.vcf}
  
     # mark checkpoint
-    [ -f $MYOUT/${n/bam/clean.vcf} ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/bam/clean.vcf} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi 
 
 ################################################################################

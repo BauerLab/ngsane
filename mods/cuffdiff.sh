@@ -131,7 +131,7 @@ else
         GTF=$OUT/comp.combined.gtf
         
         # mark checkpoint
-        [ -f $OUT/comp.combined.gtf ] && echo -e "\n********* $CHECKPOINT"
+        [ -f $OUT/comp.combined.gtf ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 
     fi    
 fi

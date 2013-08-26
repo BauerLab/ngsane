@@ -97,7 +97,7 @@ else
     echo "Peak regions: `wc -l $f | awk '{print $1}'`" > $MYOUT/${n/$BED/.summary.txt}
 
     # mark checkpoint
-    [ -f $MYOUT/${n/$BED/.fasta} ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/$BED/.fasta} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -113,7 +113,7 @@ else
         MEMEBACKGROUND=$MYOUT/${n/$BED/.bg}
     fi
     # mark checkpoint
-    [ -f $MYOUT/${n/$BED/.bg} ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/$BED/.bg} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -127,7 +127,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    [ -f $MYOUT/${n/$BED/}/combined.meme} ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/$BED/}/combined.meme} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -157,7 +157,7 @@ else
     done
     
     # mark checkpoint
-    [ -f $MYOUT/${n/$BED/_motif}_${PATTERN}.direct.bed ] && [ -f $MYOUT/${n/$BED/_motif}_${PATTERN}.indirect.bed ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/$BED/_motif}_${PATTERN}.direct.bed ] && [ -f $MYOUT/${n/$BED/_motif}_${PATTERN}.indirect.bed ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################

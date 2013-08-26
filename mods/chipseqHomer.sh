@@ -101,7 +101,7 @@ else
     fi
 
     # mark checkpoint
-    [ -d $TAGDIRECTORY ] && echo -e "\n********* $CHECKPOINT"
+    [ -d $TAGDIRECTORY ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -127,7 +127,7 @@ else
     fi
 
     # mark checkpoint
-    [ -f $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt ] && echo -e "\n********* $CHECKPOINT"
+    [ -f $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
