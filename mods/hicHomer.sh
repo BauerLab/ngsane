@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Script running HIC HOMER pipeline tapping into bowtie2
 # It expects bam files, paired end, as input.

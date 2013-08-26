@@ -160,7 +160,7 @@ if [ -n "$POSTCOMMAND" ]; then
     RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $POSTMEMORY -n $POSTNODES -c $POSTCPU -w $POSTWALLTIME \
             -j $TASK'_postcommand' -o $QOUT/$TASK/postcommand.out --command "$POSTCOMMAND2")
 
-    echo -e "$RECIPT"
+    echo -e "Jobnumber $RECIPT"
 
     fi
 fi

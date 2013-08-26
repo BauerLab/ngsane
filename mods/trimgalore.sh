@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Script to trim adapters using TRIMGALORE (tapping into CUTADAPT)
 # It takes a <Run>/*.$FASTQ[.gz] file and gets the file containing the contaminats

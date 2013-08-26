@@ -59,13 +59,13 @@ FRAGMENTLENGTH=0
 # uncomment to generate strand-specific bigwig files
 #BIGWIGSTRANDS=strand-specific
 
-
 #WALLTIME_BOWTIE2=10:00:00
 #MEMORY_BOWTIE2=60
 #CPU_BOWTIE2=8
 #NODES_BOWTIE2="nodes=1:ppn=8"
 #MODULE_BOWTIE2=
 #PATH_BOWTIE2=
+
 
 ## location of ngsane
 #NGSANE_BASE=

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Script to run TopHat program
 # It takes comma-seprated list of files containing short sequence reads in fasta or fastq format and bowtie index files as input.
@@ -339,7 +339,7 @@ else
     rm -r $THISTMP
    
     # mark checkpoint
-    [ -f $OUTDIR/../metrices/$(basename $BAMFILE) ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUTDIR/../metrices/${BAMFILE##*/}.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi 
 
 ################################################################################
@@ -449,9 +449,11 @@ else
     # mark checkpoint
     [ -d $CUFOUT ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM    
 fi
-
-echo ">>>>> alignment with TopHat - FINISHED"
 echo "[NOTE] cufflinks end $(date)"
+
+################################################################################
+echo ">>>>> alignment with TopHat - FINISHED"
+
 
 ################################################################################
 ################################################################################

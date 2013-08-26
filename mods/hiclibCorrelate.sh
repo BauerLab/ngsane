@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 echo ">>>>> HiC correlation analysis with hiclib "
 echo ">>>>> startdate "`date`

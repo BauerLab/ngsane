@@ -192,8 +192,8 @@ else
     
     # mark checkpoint
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
-fi
 
+fi
 
 ################################################################################
 CHECKPOINT="mark duplicates"
@@ -265,7 +265,6 @@ else
     [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
-exit 1
 ################################################################################
 CHECKPOINT="coverage track"    
 
@@ -278,7 +277,6 @@ else
     # mark checkpoint
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
-
 
 ################################################################################
 CHECKPOINT="samstat"    
