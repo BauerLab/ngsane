@@ -157,7 +157,7 @@ if [ -n "$POSTCOMMAND" ]; then
         -j $TASK'_postcommand' -o $QOUT/$TASK/postcommand.out \
         --command "$POSTCOMMAND2")
 
-    echo -e "$RECIPT"
+    echo -e "Jobnumber $RECIPT"
 
     fi
 fi
