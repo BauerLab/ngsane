@@ -39,7 +39,7 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-###################################################################################################
+################################################################################
 CHECKPOINT="programs"
 
 for MODULE in $MODULE_HOMERCHIPSEQ; do module load $MODULE; done  # save way to load modules that itself load other modules
@@ -57,7 +57,7 @@ echo -e "--homer   --\n "$(which makeTagDirectory)
 [ -z "$(which makeTagDirectory)" ] && echo "[ERROR] homer not detected" && exit 1
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="parameters"
 
 # get basename of f
@@ -65,7 +65,7 @@ n=${f##*/}
 c=${CHIPINPUT##*/}
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
@@ -74,7 +74,7 @@ if [ -n "$DMGET" ]; then
 fi
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="create tagdirectory"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -104,7 +104,7 @@ else
     [ -d $TAGDIRECTORY ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="find peaks"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -130,7 +130,7 @@ else
     [ -f $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="cleanup"
 
 if [ -z "$HOMER_KEEPTAGDIRECTORY" ]; then
@@ -142,7 +142,7 @@ if [ -n "$CHIPINPUT" ]; then
 fi
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 echo ">>>>> ChIPseq analysis with Homer - FINISHED"
 echo ">>>>> enddate "`date`
 

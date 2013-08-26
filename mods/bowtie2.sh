@@ -24,17 +24,12 @@ exit
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
-THREADS=1
-MEMORY=2
-FASTQNAME=""
 FORCESINGLE=0
 
 #INPUTS                                                                                                           
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
-        -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use                                      
-        -m | --memory )         shift; MEMORY=$1 ;; # memory used 
         -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
         -r | --reference )      shift; FASTA=$1 ;; # reference genome                                             
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
@@ -43,7 +38,6 @@ while [ "$1" != "" ]; do
         -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL                                 
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)                             
         -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU
-        --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
         --forceSingle )         FORCESINGLE=1;;
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
@@ -92,7 +86,7 @@ unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="parameters"
 
 # get basename of f
@@ -126,7 +120,7 @@ ZCAT="zcat"
 if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="recall files from tape"
 	
 if [ -n "$DMGET" ]; then
@@ -135,7 +129,7 @@ if [ -n "$DMGET" ]; then
 fi
     
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="generating the index files"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -151,7 +145,7 @@ else
     [ -f ${FASTA/.${FASTASUFFIX}/}.1.bt2 ] && echo -n "********* $CHECKPOINT"
 fi 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="bowtie"
 
 if [ $PAIRED == "0" ]; then 
@@ -173,7 +167,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo -n "::::::::: passed $CHECKPOINT"
 else 
     
-    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM -t -x ${FASTA/.${FASTASUFFIX}/} -p $THREADS $READS --un $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}"
+    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM -t -x ${FASTA/.${FASTASUFFIX}/} -p $CPU_BOWTIE2 $READS --un $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}"
     echo $RUN_COMMAND
     eval $RUN_COMMAND
     
@@ -182,7 +176,7 @@ else
 fi
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="bam conversion and sorting"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -210,7 +204,7 @@ else
 fi
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="mark duplicates"
 # create bam files for discarded reads and remove fastq files
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -235,7 +229,7 @@ else
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="statistics"                                                                                                
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -257,7 +251,7 @@ else
 fi
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="calculate inner distance"                                                                                                
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -286,7 +280,7 @@ else
 fi
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="coverage track"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -300,7 +294,7 @@ else
 fi
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="samstat"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -315,7 +309,7 @@ else
 fi
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="verify"    
 
 BAMREADS=`head -n1 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1`
@@ -331,7 +325,7 @@ else
 fi
 
 echo "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="generate  bigwigs"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -379,6 +373,6 @@ else
     fi   
 fi
 
-###################################################################################################
+################################################################################
 echo ">>>>> readmapping with Bowtie2 - FINISHED"
 echo ">>>>> enddate "`date`

@@ -22,17 +22,12 @@ exit
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
-THREADS=1
-MEMORY=2
-FASTQNAME=
 FORCESINGLE=0
 
 #INPUTS                                                                                                           
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
-        -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use                                      
-        -m | --memory )         shift; MEMORY=$1 ;; # memory used 
         -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
         -r | --reference )      shift; FASTA=$1 ;; # reference genome                                             
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
@@ -41,7 +36,6 @@ while [ "$1" != "" ]; do
         -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL                                 
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)                             
         -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU
-        --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -54,7 +48,7 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-###################################################################################################
+################################################################################
 CHECKPOINT="programs"
 
 for MODULE in $MODULE_BOWTIE; do module load $MODULE; done  # save way to load modules that itself load other modules
@@ -78,6 +72,8 @@ echo -e "--igvtools    --\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar
 [ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
 echo -e "--PICARD      --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
+echo -e "--bedtools --\n "$(bedtools --version)
+[ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 echo -e "--convert     --\n "$(convert -version | head -n 1)
@@ -86,12 +82,12 @@ echo -e "--wigToBigWig --\n "$(wigToBigWig 2>&1 | tee | head -n 1)
 [ -z "$(which wigToBigWig)" ] && echo "[WARN] wigToBigWig not detected - no bigwigs will be generated"
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_BOWTIE*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_BOWTIE*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="parameters"
 
 # check library variables are set
@@ -119,12 +115,14 @@ else
     PAIRED="0"
 fi
 
+FASTASUFFIX=${FASTA##*.}
+    
 #is ziped ?                                                                                                       
 ZCAT="zcat"
 if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
@@ -133,28 +131,28 @@ if [ -n "$DMGET" ]; then
 fi
     
 echo -n "********* $CHECKPOINT"    
-###################################################################################################
+################################################################################
 CHECKPOINT="generating the index files"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo -n "::::::::: passed $CHECKPOINT"
 else 
 
-    FASTASUFFIX=${FASTA##*.}
     if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.ebwt ]; then echo ">>>>> make .ebwt"; bowtie-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
-    if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
+    if [ ! -e $FASTA.fai ]; then echo "[NOTE] make .fai"; samtools faidx $FASTA; fi
 
     # mark checkpoint
     [ -f ${FASTA/.${FASTASUFFIX}/}.1.ebwt ] && echo -n "********* $CHECKPOINT"
 fi 
 
-###################################################################################################
-CHECKPOINT="bowtie"
+################################################################################
+CHECKPOINT="run bowtie"
 
 if [ $PAIRED == "0" ]; then 
     READS="$f"
     let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
 else 
+
     READS="-1 $f -2 ${f/$READONE/$READTWO}"
     READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
     READ2=`$ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}' `
@@ -174,12 +172,12 @@ else
     $GZIP -t $f 2>/dev/null
     if [[ $? -eq 0 ]] && [ $PAIRED == "0" ]; then
         # pipe gzipped fastqs into bowtie
-        RUN_COMMAND="$GZIP -dc $f | bowtie $RG $BOWTIEADDPARAM --threads $THREADS --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
+        RUN_COMMAND="$GZIP -dc $f | bowtie $RG $BOWTIEADDPARAM --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
     else
         echo "[NOTE] unzip fastq files"
         $GZIP -cd $f > $f.unzipped
         $GZIP -cd ${f/$READONE/$READTWO} > ${f/$READONE/$READTWO}.unzipped
-        RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM --threads $THREADS --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $f.unzipped -2 ${f/$READONE/$READTWO}.unzipped $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
+        RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $f.unzipped -2 ${f/$READONE/$READTWO}.unzipped $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
     fi
     echo $RUN_COMMAND
     eval $RUN_COMMAND
@@ -188,7 +186,7 @@ else
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="bam conversion and sorting"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -275,7 +273,7 @@ else
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="mark duplicates"
 # create bam files for discarded reads and remove fastq files
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -300,7 +298,7 @@ else
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="statistics"                                                                                                
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -320,7 +318,7 @@ else
     [ -f $STATSOUT ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="calculate inner distance"                                                                                                
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -352,20 +350,20 @@ else
 fi
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="coverage track"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo -n "::::::::: passed $CHECKPOINT"
 else 
     
-    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/}.genome
+    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/.genome}
     
     # mark checkpoint
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="samstat"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -379,7 +377,7 @@ else
 fi
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="verify"    
     
 BAMREADS=`head -n1 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1`
@@ -395,7 +393,7 @@ else
 fi
 
 echo "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="generate  bigwigs"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -443,6 +441,6 @@ else
     fi   
 fi
 
-###################################################################################################
+################################################################################
 echo ">>>>> read mapping with bowtie 1 - FINISHED"
 echo ">>>>> enddate "`date`

@@ -39,7 +39,7 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-###################################################################################################
+################################################################################
 CHECKPOINT="programs"
 
 for MODULE in $MODULE_MEMECHIP; do module load $MODULE; done  # save way to load modules that itself load other modules
@@ -55,7 +55,7 @@ echo -e "--meme-chip         --\n "$(cat `which meme`.bin | strings | grep -A 2 
 [ -z "$(which meme-chip)" ] && echo "[ERROR] meme-chip not detected" && exit 1
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="parameters"
 
 # get basename of f
@@ -69,7 +69,7 @@ if [ -z "$CHROMSIZES" ] || [ ! -f $CHROMSIZES ]; then
 fi
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
@@ -78,7 +78,7 @@ if [ -n "$DMGET" ]; then
 fi
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="get sequence data"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -100,7 +100,7 @@ else
     [ -f $MYOUT/${n/$BED/.fasta} ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="create background model"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -116,7 +116,7 @@ else
     [ -f $MYOUT/${n/$BED/.bg} ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="run meme-chip"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -130,7 +130,7 @@ else
     [ -f $MYOUT/${n/$BED/}/combined.meme} ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="classify bound regions"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -160,13 +160,13 @@ else
     [ -f $MYOUT/${n/$BED/_motif}_${PATTERN}.direct.bed ] && [ -f $MYOUT/${n/$BED/_motif}_${PATTERN}.indirect.bed ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="cleanup"    
 
 rm -rf $MYOUT/${n/$BED/.fasta} $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/_sorted.bed} $MYOUT/${n/$BED/.bg} $MYOUT/$n
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 echo ">>>>> Motif discovery with memechip - FINISHED"
 echo ">>>>> enddate "`date`
 

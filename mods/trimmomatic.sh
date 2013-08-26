@@ -32,7 +32,7 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-###################################################################################################
+################################################################################
 CHECKPOINT="programs"
 
 for MODULE in $MODULE_TRIMMOMATIC; do module load $MODULE; done  # save way to load modules that itself load other modules
@@ -52,7 +52,7 @@ JAVAPARAMS="-Xmx"$(expr $MEMORY_TRIMMOMATIC - 1 )"G -Djava.io.tmpdir="$TMP
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="parameters"
 
 # get basename of f
@@ -83,7 +83,7 @@ if [ "$PAIRED" = "1" ]; then echo ${f/$READONE/$READTWO} "->" ${o/$READONE/$READ
 
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
@@ -91,7 +91,7 @@ if [ -n "$DMGET" ]; then
 fi
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="trim"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -110,7 +110,7 @@ else
     [ -f $o ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 echo ">>>>> readtrimming with TRIMMOMATIC - FINISHED"
 echo ">>>>> enddate "`date`
 

@@ -39,7 +39,7 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-###################################################################################################
+################################################################################
 CHECKPOINT="programs"
 for MODULE in $MODULE_HICLIB; do module load $MODULE; done  # save way to load modules that itself load other modules
 
@@ -50,7 +50,7 @@ echo -e "--Python      --\n" $(python --version)
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 echo -e "--Python libs --\n "$(yolk -l)
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="parameters"
 
 # get basename of f
@@ -85,7 +85,7 @@ else
 fi
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
@@ -94,7 +94,7 @@ if [ -n "$DMGET" ]; then
 fi
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="run hiclib"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -134,6 +134,6 @@ else
     [ -d $MYOUT ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 echo ">>>>> readmapping with hiclib (Bowtie2) - FINISHED"
 echo ">>>>> enddate "`date`

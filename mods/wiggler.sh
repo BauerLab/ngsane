@@ -44,7 +44,7 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-###################################################################################################
+################################################################################
 CHECKPOINT="programs"
 
 for MODULE in $MODULE_WIGGLER; do module load $MODULE; done  # save way to load modules that itself load other modules
@@ -58,7 +58,7 @@ echo "PATH=$PATH"
 #[ -z "$(which align2rawsignal)" ] && echo "[ERROR] wiggler not detected (align2rawsignal)" && exit 1
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="parameters"
 
 # get basename of f
@@ -80,7 +80,7 @@ fi
 mkdir -p ${MYOUT}
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="recall files from tape"
 
 for d in ${DIR[@]}; do
@@ -94,7 +94,7 @@ if [ -n "$DMGET" ]; then
 fi
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="run align2rawsignal"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -112,7 +112,7 @@ else
     [ -f ${MYOUT}/${n}.$WIGGLER_OUTPUTFORMAT ] && echo -n "********* $CHECKPOINT"
 fi 
 
-###################################################################################################
+################################################################################
 echo ">>>>> wiggler - FINISHED"
 echo ">>>>> enddate "`date`
 

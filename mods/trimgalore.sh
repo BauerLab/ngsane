@@ -32,7 +32,7 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-###################################################################################################
+################################################################################
 CHECKPOINT="programs"
 
 for MODULE in $MODULE_TRIMGALORE; do module load $MODULE; done  # save way to load modules that itself load other modules
@@ -44,7 +44,7 @@ echo -e "--trim galore --\n "$(trim_galore --version  | grep version  | tr -d ' 
 [ -z "$(which trim_galore)" ] && echo "[ERROR] no trim_galore detected" && exit 1
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="parameters"
 
 # get basename of f (samplename)
@@ -81,7 +81,7 @@ fi
 echo $CONTAM
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
@@ -89,7 +89,7 @@ if [ -n "$DMGET" ]; then
 fi
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="trim"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -111,7 +111,7 @@ else
     [ -f $FASTQDIRTRIM/$n ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="zip"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -130,7 +130,7 @@ else
     echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="count remaining reads"    
 
 echo "=== Remaining reads ===" >> $FASTQDIRTRIM/${n}_trimming_report.txt
@@ -141,7 +141,7 @@ if [ "$PAIRED" = "1" ]; then
 fi
 
 echo "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 echo ">>>>> readtrimming with TRIMGALORE - FINISHED"
 echo ">>>>> enddate "`date`
 

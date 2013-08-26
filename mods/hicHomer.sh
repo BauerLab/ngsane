@@ -38,7 +38,7 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-###################################################################################################
+################################################################################
 CHECKPOINT="programs"
 
 for MODULE in $MODULE_HOMERHIC; do module load $MODULE; done  # save way to load modules that itself load other modules
@@ -58,7 +58,7 @@ echo -e "--circos  --\n "$(circos --version)
 [ -z "$(which circos)" ] && echo "[WARN] circos not detected"
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="parameters"
 
 # get basename of f
@@ -82,7 +82,7 @@ if [ "$HOMER_HIC_INTERACTIONS" != "all" ] && [ "$HOMER_HIC_INTERACTIONS" != "cis
 fi
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
@@ -91,13 +91,13 @@ if [ -n "$DMGET" ]; then
 fi
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 
 #homer likes to write in the current directory, so change to target
 CURDIR=$(pwd)
 cd $MYOUT
 
-###################################################################################################
+################################################################################
 CHECKPOINT="create tagdirectory"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -116,7 +116,7 @@ else
     [ -d $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered}] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="create background model"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -130,7 +130,7 @@ else
     [ -f $MYOUT/${n/%$READONE.$ASD.bam/_background.txt ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="normalize matrices"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -165,7 +165,7 @@ else
     echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="PCA clustering"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -179,7 +179,7 @@ else
     [ -f $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="Significant interactions"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -210,7 +210,7 @@ else
     echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="Annotate interactions"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -224,7 +224,7 @@ else
     [ -d $MYOUT/${n/%$READONE.$ASD.bam/_annotations} ] && echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="Circos plots"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -240,11 +240,11 @@ else
     echo -n "********* $CHECKPOINT"
 fi
 
-###################################################################################################
+################################################################################
 # back to where we came from
 cd $CURDIR
 
-###################################################################################################
+################################################################################
 echo ">>>>> HiC analysis with homer - FINISHED"
 echo ">>>>> enddate "`date`
 

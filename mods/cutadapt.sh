@@ -36,7 +36,7 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-###################################################################################################
+################################################################################
 CHECKPOINT="programs"
 for MODULE in $MODULE_CUTADAPT; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_CUTADAPT:$PATH;
@@ -47,7 +47,7 @@ echo -e "--cutadapt  --\n" $(cutadapt --version 2>&1)
 [ -z "$(which cutadapt)" ] && echo "[ERROR] no cutadapt detected" && exit 1
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="parameters"
 
 # get basename of f (samplename)
@@ -79,7 +79,7 @@ CONTAM=$(cat $CONTAMINANTS | tr '\n' ' ')
 echo "[NOTE] $CONTAM"
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
@@ -87,7 +87,7 @@ if [ -n "$DMGET" ]; then
 fi
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="trim"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -110,7 +110,7 @@ else
     [ -f $o ] && echo -n "********* $CHECKPOINT"  
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="zip"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -129,7 +129,7 @@ else
     echo -n "********* $CHECKPOINT"  
 fi
 
-###################################################################################################
+################################################################################
 CHECKPOINT="count remaining reads"    
 
 echo "=== Remaining reads ===" >> $FASTQDIRTRIM/${n}.stats
@@ -140,7 +140,7 @@ if [ "$PAIRED" = "1" ]; then
 fi
 
 echo "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 echo ">>>>> readtrimming with CUTADAPT - FINISHED"
 echo ">>>>> enddate "`date`
 

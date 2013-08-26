@@ -56,6 +56,7 @@ while [ "$1" != "" ]; do
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
         -o | --outdir )         shift; OUT=$1 ;; # output dir
         -a | --annot )          shift; REFSEQGTF=$1 ;; # refseq annotation
+        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -67,9 +68,30 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-if [ -d $OUT ]; then rm -r $OUT; fi
-mkdir $OUT
+################################################################################
+CHECKPOINT="programs"
 
+for MODULE in $MODULE_CUFFDIFF; do module load $MODULE; done  # save way to load modules that itself load other modules
+export PATH=$PATH_CUFFDIFF:$PATH
+module list
+echo "PATH=$PATH"
+
+echo -e "--cuffdiff --\n "$(cuffdiff 2>&1 | head -n 1 )
+[ -z "$(which cuffdiff)" ] && echo "[ERROR] no cuffdiff detected" && exit 1
+echo -e "--cuffcompare --\n "$(cuffcompare 2>&1 | head -n 1 )
+[ -z "$(which cuffcompare)" ] && echo "[ERROR] no cuffcompare detected" && exit 1
+
+echo -n "********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="parameters"
+
+# delete old bam files unless attempting to recover
+if [ -z "$RECOVERFROM" ]; then
+    if [ -d $OUT ]; then rm -r $OUT; fi
+    mkdir $OUT
+fi
+
+# get basename of f (samplename)
 n=${fs/,/:}
 O=${OUT/$n/}
 CUFOUT=${O/$TASKCUFFDIFF/Run\/$TASKCUFF/}
@@ -84,20 +106,50 @@ for v in ${fs//,/ }; do
 done
 
 cd $OUT/
-# Which transcript reference?
-TRASCRIPTS=$REFSEQGTF
-if [ -n $TRASCRIPTS ]; then
-    echo "********* compare to oneanother"
-    $CUFFLINKSHOME/cuffcompare -o comp.txt $CUFGTFS
+GTF=$REFSEQGTF
     
-    TRASCRIPTS=$OUT/comp.combined.gtf
-    
+################################################################################
+CHECKPOINT="recall files from tape"
+
+if [ -n "$DMGET" ]; then
+    dmget -a $(dirname $TOPHATOUT)/*
 fi
 
-echo "********* run cuff diff"
-$CUFFLINKSHOME/cuffdiff -r $FASTA -p $THREADS -o $OUT $TRASCRIPTS $TOPHATBAM
+echo -n "********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="check reference GTF"
+    
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
 
+    # Which transcript reference?
+    if [ -n $GTF ]; then
+        echo "[NOTE] compare to oneanother"
+        
+        cuffcompare -o comp.txt $CUFGTFS
+        GTF=$OUT/comp.combined.gtf
+        
+        # mark checkpoint
+        [ -f $OUT/comp.combined.gtf ] && echo -n "********* $CHECKPOINT"
+
+    fi    
+fi
+
+################################################################################
+CHECKPOINT="run cuff diff"
+    
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo -n "::::::::: passed $CHECKPOINT"
+else 
+
+    cuffdiff -r $FASTA -p $CPU_CUFFDIFF -o $OUT $GTF $TOPHATBAM
+
+    # mark checkpoint
+    echo -n "********* $CHECKPOINT"
+fi 
 cd ../../
 
+################################################################################
 echo ">>>>> differential expression with cuffdiff - FINISHED"
 echo ">>>>> enddate "`date`

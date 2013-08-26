@@ -32,7 +32,7 @@ TASKDIFFEXP="diffexp"
 TASKTOPHAT="tophat"
 TASKCUFF="cufflinks"
 TASKCUFFDIFF="cuffdiff"
-TASKRRBS="rrbs"
+TASKRRBSMAP="rrbs"
 TASKMACS="macs"
 TASKANNOVAR="annovar"
 TASKBAMANN="bamann"
@@ -353,11 +353,21 @@ MODULE_RECAL=
 PATH_RECAL=
 
 ##############################################################
+# reduced representation bisulfite sequencing mapping 
+# https://code.google.com/p/bsmap/
+WALLTIME_RRBSMAP=60:00:00
+MEMORY_RRBSMAP=50
+CPU_RRBSMAP=32
+NODES_RRBSMAP="nodes=4:ppn=8"
+
+MODULE_RRBSMAP=
+PATH_RRBSMAP=
+
+##############################################################
 #VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 #SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
 #ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
 #
-#RRBSMAP="/clusterdata/hiseq_apps/bin/devel/rrbsmap-1.5/rrbsmap"
 #MACS="/clusterdata/hiseq_apps/bin/devel/MACS_git"
 #PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
 #

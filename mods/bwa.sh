@@ -31,8 +31,6 @@ required:
   -o | --outdir <path>      output dir
 
 options:
-  -t | --threads <nr>       number of CPUs to use (default: 1)
-  -m | --memory <nr>        memory available (default: 2)
   -i | --rgid <name>        read group identifier RD ID (default: exp)
   -l | --rglb <name>        read group library RD LB (default: qbi)
   -p | --rgpl <name>        read group platform RD PL (default: illumna)
@@ -41,9 +39,7 @@ options:
   -R | --region <ps>        region of specific interest, e.g. targeted reseq
                              format chr:pos-pos
   --forceSingle             run single end eventhough second read is present
-  --oldIllumina             old Illumina encoding 1.3+
   --noMapping
-  --fastqName               name of fastq file ending (fastq.gz)
 "
 exit
 }
@@ -51,19 +47,14 @@ exit
 if [ ! $# -gt 3 ]; then usage ; fi
 
 #DEFAULTS
-MYTHREADS=1
-MYMEMORY=2
 FORCESINGLE=0
 NOMAPPING=0
-FASTQNAME=""
 QUAL="" # standard Sanger
 
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
-        -t | --threads )        shift; MYTHREADS=$1 ;; # number of CPUs to use
-        -m | --memory )         shift; MYMEMORY=$1 ;; # memory used
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir
@@ -72,10 +63,8 @@ while [ "$1" != "" ]; do
         -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
         -R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
-        --fastqName )           shift; FASTQNAME=$1 ;; #(name of fastq or fastq.gz)
         --forceSingle )         FORCESINGLE=1;;
         --noMapping )           NOMAPPING=1;;
-        --oldIllumina )         QUAL="-S";;   # old illumina encoding 1.3+
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -88,7 +77,7 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-###################################################################################################
+################################################################################
 CHECKPOINT="programs"
 
 for MODULE in $MODULE_BWA; do module load $MODULE; done  # save way to load modules that itself load other modules
@@ -121,7 +110,7 @@ unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="parameters"
 
 if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
@@ -166,7 +155,7 @@ echo ">>>>> full sample ID "$FULLSAMPLEID
 FASTASUFFIX=${FASTA##*.}
 
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
@@ -175,7 +164,7 @@ if [ -n "$DMGET" ]; then
 fi
     
 echo -n "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 CHECKPOINT="generating the index files"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -191,7 +180,7 @@ else
     [ -f $FASTA.bwt ] && echo -n "********* $CHECKPOINT"
 fi 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="bwa"
 
 if [ $PAIRED == "0" ]; then 
@@ -204,8 +193,8 @@ else
 
         if [ "$NOMAPPING" = 0 ]; then
            echo "[NOTE] PAIRED READS"
-           bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
-           bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
+           bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA $f > $MYOUT/${n/$FASTQ/sai}
+           bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
            bwa sampe $FASTA $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} \
        	$BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
     	$f ${f/$READONE/$READTWO} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
@@ -219,7 +208,7 @@ else
     # Single read
     else
         echo "[NOTE] SINGLE READS"
-        bwa aln $QUAL $BWAALNADDPARAM -t $MYTHREADS $FASTA $f > $MYOUT/${n/$FASTQ/sai}
+        bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA $f > $MYOUT/${n/$FASTQ/sai}
     
         bwa samse $FASTA $MYOUT/${n/$FASTQ/sai} $BWASAMPLEADDPARAM \
     	-r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
@@ -234,7 +223,7 @@ else
 fi
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="bam conversion and sorting"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -251,7 +240,7 @@ fi
 
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="mark duplicates"
 # create bam files for discarded reads and remove fastq files
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -282,7 +271,7 @@ else
 fi
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="statistics"                                                                                                
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -303,7 +292,7 @@ else
 fi
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="calculate inner distance"                                                                                                
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -334,7 +323,7 @@ fi
 
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="coverage track"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -351,7 +340,7 @@ else
 fi
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="samstat"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -366,7 +355,7 @@ else
 fi
 
 
-###################################################################################################
+################################################################################
 CHECKPOINT="verify"    
     
 BAMREADS=$(head -n1 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1)
@@ -380,7 +369,7 @@ else
 fi
 
 echo "********* $CHECKPOINT"
-###################################################################################################
+################################################################################
 echo ">>>>> readmapping with BWA - FINISHED"
 echo ">>>>> enddate "`date`
 
