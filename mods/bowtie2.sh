@@ -174,8 +174,7 @@ CHECKPOINT="bam conversion and sorting"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-    
-        
+       
     samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} $MYOUT/${n/%$READONE.$FASTQ/.map}
     samtools view -bt $FASTA.fai $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools sort - $MYOUT/${n/%$READONE.$FASTQ/.unm}
     # merge mappend and unmapped
@@ -202,9 +201,7 @@ CHECKPOINT="mark duplicates"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-    
-    
-    
+   
     if [ ! -e $MYOUT/metrices ]; then mkdir -p $MYOUT/metrices ; fi
     THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files                                        
     mkdir -p $THISTMP
@@ -237,7 +234,7 @@ else
     fi
 
     # mark checkpoint
-    [ -f $STATSOUT ] && echo -e "\n********* $CHECKPOINT"
+    [ -e $STATSOUT ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -268,7 +265,7 @@ else
     [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT"
 fi
 
-
+exit 1
 ################################################################################
 CHECKPOINT="coverage track"    
 
