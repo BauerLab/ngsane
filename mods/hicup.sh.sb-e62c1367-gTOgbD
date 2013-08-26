@@ -118,7 +118,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="digest reference"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     FASTASUFFIX=${FASTA##*.}
@@ -152,7 +152,7 @@ fi
 CHECKPOINT="create hicup conf script"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     HICUP_CONF=$MYOUT/${n/%$READONE.$FASTQ/.conf}
@@ -189,7 +189,7 @@ fi
 CHECKPOINT="execute hicup"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     CURDIR=$(pwd)
@@ -219,7 +219,7 @@ fi
 CHECKPOINT="run fit-hi-c"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=${DIGESTGENOME} --outputDir=$MYOUT/  $MYOUT/${n/%$READONE.$FASTQ/}_uniques.bam

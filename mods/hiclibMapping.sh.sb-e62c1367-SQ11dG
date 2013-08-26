@@ -98,7 +98,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="run hiclib"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
     
     EXPERIMENT=$(echo ${HICLIB_RENZYMES}_${n/%$READONE.$FASTQ/} | sed 's/_*$//g')

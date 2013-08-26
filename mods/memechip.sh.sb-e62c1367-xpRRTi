@@ -82,7 +82,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="get sequence data"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else
 
     if [ -n "$SLOPBEDADDPARAM" ]; then
@@ -104,7 +104,7 @@ fi
 CHECKPOINT="create background model"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     # create background from bed file unless provided
@@ -120,7 +120,7 @@ fi
 CHECKPOINT="run meme-chip"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
     
     RUN_COMMAND="meme-chip $MEMECHIPADDPARAM -oc $MYOUT/${n/$BED/} -bfile $MEMEBACKGROUND -desc ${n/$BED/} -db $MEMECHIPDATABASES -meme-p $CPU_MEMECHIP $MYOUT/${n/$BED/.fasta}"
@@ -134,7 +134,7 @@ fi
 CHECKPOINT="classify bound regions"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
    
     RUN_COMMAND="fimo $FIMOADDPARAM --bgfile $MEMEBACKGROUND --oc $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/}/combined.meme $MYOUT/${n/$BED/.fasta}"

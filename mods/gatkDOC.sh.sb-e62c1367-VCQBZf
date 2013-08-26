@@ -112,7 +112,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="calculate depthOfCoverage"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
     
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar \
@@ -142,7 +142,7 @@ fi
 CHECKPOINT="on target"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     #statistics for on target proportion

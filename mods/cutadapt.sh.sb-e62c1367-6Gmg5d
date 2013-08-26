@@ -91,7 +91,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="trim"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
     RUN_COMMAND="cutadapt $CUTADAPTADDPARAM $CONTAM $f -o $o > $o.stats"
     echo $RUN_COMMAND
@@ -114,7 +114,7 @@ fi
 CHECKPOINT="zip"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     $GZIP -t $o 2>/dev/null

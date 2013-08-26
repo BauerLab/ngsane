@@ -82,7 +82,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="remove duplicate reads $(date)"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     samtools rmdup $f $MYOUT/${n/bam/drm.bam}
@@ -96,7 +96,7 @@ fi
 CHECKPOINT="call variants $(date)"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     samtools mpileup -uf $FASTA -q1 -D $MYOUT/${n/bam/drm.bam} |  bcftools view -vcg - >$MYOUT/${n/bam/vcf}
@@ -109,7 +109,7 @@ fi
 CHECKPOINT="convert bcf->vcf; index $(date)"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     vcfutils.pl varFilter -D1000 -w0 -e0 $MYOUT/${n/bam/vcf}  > $MYOUT/${n/bam/clean.vcf}
@@ -122,7 +122,7 @@ fi
 CHECKPOINT="index vcf file for viewing in IGV $(date)"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $MYOUT/${n/bam/clean.vcf}

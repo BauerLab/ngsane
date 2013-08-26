@@ -160,7 +160,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="mapping"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     if [ "$PAIRED" = "1" ]; then
@@ -183,7 +183,7 @@ fi
 CHECKPOINT="merge to single file"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     java $JAVAPARAMS -jar $PATH_PICARD/MergeBamAlignment.jar \
@@ -202,7 +202,7 @@ fi
 CHECKPOINT="add readgroup"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
     
     java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
@@ -219,7 +219,7 @@ fi
 CHECKPOINT="mark duplicates"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     if [ ! -e $OUT/metrices ]; then mkdir $OUT/metrices ; fi
@@ -242,7 +242,7 @@ fi
 CHECKPOINT="statistics"                                                                                                
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     STATSOUT=$OUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
@@ -263,7 +263,7 @@ fi
 CHECKPOINT="coverage track"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else
 
     java $JAVAPARAMS -jar $IGVTOOLS count $OUT/${n/%$READONE.$FASTQ/.$ASD.bam} \

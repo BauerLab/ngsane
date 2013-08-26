@@ -101,7 +101,7 @@ cd $MYOUT
 CHECKPOINT="create tagdirectory"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else
 
     RUN_COMMAND="makeTagDirectory $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $f,${f/$READONE/$READTWO} $HOMER_HIC_TAGDIR_ADDPARAM"
@@ -120,7 +120,7 @@ fi
 CHECKPOINT="create background model"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
     
     RUN_COMMAND="analyzeHiC $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_BACKGROUND_ADDPARAM -createModel $MYOUT/${n/%$READONE.$ASD.bam/_background.txt} active.model.txt -cpu $CPU_HOMERHIC"
@@ -134,7 +134,7 @@ fi
 CHECKPOINT="normalize matrices"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
@@ -169,7 +169,7 @@ fi
 CHECKPOINT="PCA clustering"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     RUN_COMMAND="runHiCpca.pl ${n/%$READONE.$ASD.bam/} $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_PCA_ADDPARAM -cpu $CPU_HOMERHIC "
@@ -183,7 +183,7 @@ fi
 CHECKPOINT="Significant interactions"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
     
     if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
@@ -214,7 +214,7 @@ fi
 CHECKPOINT="Annotate interactions"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     RUN_COMMAND="annotateInteractions.pl $MYOUT/${n/%$READONE.$ASD.bam/_significantInteractions.txt} $HOMER_HIC_ANNOTATE_ADDPARAM $MYOUT/${n/%$READONE.$ASD.bam/_annotations}"
@@ -228,7 +228,7 @@ fi
 CHECKPOINT="Circos plots"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
     if hash ${CIRCOS} 2>&- ; then
         echo "********* Circos plots"

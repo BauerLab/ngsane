@@ -95,7 +95,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="trim"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
     # Paired read
     if [ "$PAIRED" = "1" ]

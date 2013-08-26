@@ -98,7 +98,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="run align2rawsignal"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
+    echo "::::::::: passed $CHECKPOINT"
 else 
     INPUTS=""
     for FILE in $FILES; do

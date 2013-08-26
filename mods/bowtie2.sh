@@ -133,7 +133,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="generating the index files"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
+    echo "::::::::: passed $CHECKPOINT"
 else 
 
     
@@ -164,7 +164,7 @@ RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\
 
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
+    echo "::::::::: passed $CHECKPOINT"
 else 
     
     RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM -t -x ${FASTA/.${FASTASUFFIX}/} -p $CPU_BOWTIE2 $READS --un $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}"
@@ -180,7 +180,7 @@ fi
 CHECKPOINT="bam conversion and sorting"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
+    echo "::::::::: passed $CHECKPOINT"
 else 
     
         
@@ -208,7 +208,7 @@ fi
 CHECKPOINT="mark duplicates"
 # create bam files for discarded reads and remove fastq files
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
+    echo "::::::::: passed $CHECKPOINT"
 else 
     
     
@@ -233,7 +233,7 @@ fi
 CHECKPOINT="statistics"                                                                                                
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
+    echo "::::::::: passed $CHECKPOINT"
 else 
     
     STATSOUT=$MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
@@ -255,7 +255,7 @@ fi
 CHECKPOINT="calculate inner distance"                                                                                                
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
+    echo "::::::::: passed $CHECKPOINT"
 else 
     
 
@@ -284,7 +284,7 @@ fi
 CHECKPOINT="coverage track"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
+    echo "::::::::: passed $CHECKPOINT"
 else 
 
     
@@ -298,7 +298,7 @@ fi
 CHECKPOINT="samstat"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
+    echo "::::::::: passed $CHECKPOINT"
 else 
     
     samstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
@@ -329,7 +329,7 @@ echo "********* $CHECKPOINT"
 CHECKPOINT="generate  bigwigs"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo -n "::::::::: passed $CHECKPOINT"
+    echo "::::::::: passed $CHECKPOINT"
 else 
         
     if [ -z "$(which wigToBigWig)" ]; then

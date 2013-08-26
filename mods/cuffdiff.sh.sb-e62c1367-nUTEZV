@@ -120,7 +120,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="check reference GTF"
     
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     # Which transcript reference?
@@ -140,7 +140,7 @@ fi
 CHECKPOINT="run cuff diff"
     
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     cuffdiff -r $FASTA -p $CPU_CUFFDIFF -o $OUT $GTF $TOPHATBAM

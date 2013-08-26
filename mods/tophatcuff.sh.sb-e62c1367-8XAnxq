@@ -219,7 +219,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="run tophat"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     echo "[NOTE] tophat $(date)"
@@ -239,7 +239,7 @@ fi
 CHECKPOINT="merge mapped and unmapped"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     echo "[NOTE] samtools merge"
@@ -278,7 +278,7 @@ fi
 CHECKPOINT="flagstat"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
     echo "[NOTE] samtools flagstat"
     samtools flagstat $BAMFILE > $BAMFILE.stats
@@ -311,7 +311,7 @@ fi
 CHECKPOINT="index and calculate inner distance"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     echo "[NOTE] samtools index"
@@ -346,7 +346,7 @@ fi
 CHECKPOINT="coverage track"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     echo "[NOTE] igvtools"
@@ -361,7 +361,7 @@ fi
 CHECKPOINT="samstat"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     echo "[NOTE] samstat"
@@ -375,7 +375,7 @@ fi
 CHECKPOINT="samstat"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
 
     echo "[NOTE] extract mapped reads"
@@ -394,7 +394,7 @@ fi
 CHECKPOINT="RNA-SeQC"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
     
     if [ -n "$GENCODEGTF" ]; then 
@@ -429,7 +429,7 @@ fi
 CHECKPOINT="cufflinks"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
+    echo -n "::::::::: passed $CHECKPOINT"
 else 
     echo ">>>>> from $BAMFILE to $CUFOUT"
     echo "[NOTE] cufflinks $(date)"
@@ -468,7 +468,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
     ################################################################################
     CHECKPOINT="run htseq-count"    
     if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-        echo "::::::::: passed $CHECKPOINT"
+        echo -n "::::::::: passed $CHECKPOINT"
     else 
     	##add secondstrand
     	
@@ -509,7 +509,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
     ################################################################################
     CHECKPOINT="Create bigwigs"    
     if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-        echo "::::::::: passed $CHECKPOINT"
+        echo -n "::::::::: passed $CHECKPOINT"
     else 
     
         if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
@@ -544,7 +544,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
     ################################################################################
     CHECKPOINT="calculate RPKMs per Gencode Gene"    
     if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-        echo "::::::::: passed $CHECKPOINT"
+        echo -n "::::::::: passed $CHECKPOINT"
     else 
         echo "[NOTE] Gencode RPKM calculation"
     
