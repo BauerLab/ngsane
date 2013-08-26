@@ -38,6 +38,7 @@ while [ "$1" != "" ]; do
         -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL                                 
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)                             
         -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU
+        -R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         --forceSingle )         FORCESINGLE=1;;
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
