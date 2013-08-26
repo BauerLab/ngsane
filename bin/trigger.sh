@@ -20,8 +20,8 @@ options for TASK:
   armed      submit tasks to the queue
   direct     run task directly (e.g. on node after qrsh)
   postonly   run only the post analysis steps of a task (if available)
+  recover    pick up unfinished business (interrupted jobs)
   html       checks logfiles for errors and creates summary HTML page
-  recover    attempt to pick up job where it had been interrupted
 "
 exit
 }
