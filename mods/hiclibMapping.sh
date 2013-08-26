@@ -131,7 +131,7 @@ else
     #rm -f $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
 
     # mark checkpoint
-    [ -d $MYOUT ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -e $MYOUT/${EXPERIMENT}-mapped_reads.hdf5 ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
