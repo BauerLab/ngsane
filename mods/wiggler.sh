@@ -57,7 +57,7 @@ echo "PATH=$PATH"
 #echo -e "--wiggler  --\n "$(align2rawsignal 2>&1 | head -n 3 | tail -n 1)
 #[ -z "$(which align2rawsignal)" ] && echo "[ERROR] wiggler not detected (align2rawsignal)" && exit 1
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -79,7 +79,7 @@ fi
 
 mkdir -p ${MYOUT}
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -93,7 +93,7 @@ if [ -n "$DMGET" ]; then
 	dmls -l $FILES
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="run align2rawsignal"
 
@@ -109,7 +109,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -f ${MYOUT}/${n}.$WIGGLER_OUTPUTFORMAT ] && echo -n "********* $CHECKPOINT"
+    [ -f ${MYOUT}/${n}.$WIGGLER_OUTPUTFORMAT ] && echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################

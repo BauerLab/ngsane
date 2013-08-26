@@ -54,7 +54,7 @@ echo -e "--bedtools --\n "$(bedtools --version)
 echo -e "--meme-chip         --\n "$(cat `which meme`.bin | strings | grep -A 2 "MEME - Motif discovery tool" | tail -n 1)
 [ -z "$(which meme-chip)" ] && echo "[ERROR] meme-chip not detected" && exit 1
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -68,7 +68,7 @@ if [ -z "$CHROMSIZES" ] || [ ! -f $CHROMSIZES ]; then
     echo "[ERROR] chromosome sizes not provided" && exit 1
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -77,7 +77,7 @@ if [ -n "$DMGET" ]; then
 	dmls -l ${f}
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="get sequence data"
 
@@ -97,7 +97,7 @@ else
     echo "Peak regions: `wc -l $f | awk '{print $1}'`" > $MYOUT/${n/$BED/.summary.txt}
 
     # mark checkpoint
-    [ -f $MYOUT/${n/$BED/.fasta} ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/$BED/.fasta} ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -113,7 +113,7 @@ else
         MEMEBACKGROUND=$MYOUT/${n/$BED/.bg}
     fi
     # mark checkpoint
-    [ -f $MYOUT/${n/$BED/.bg} ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/$BED/.bg} ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -127,7 +127,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    [ -f $MYOUT/${n/$BED/}/combined.meme} ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/$BED/}/combined.meme} ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -157,7 +157,7 @@ else
     done
     
     # mark checkpoint
-    [ -f $MYOUT/${n/$BED/_motif}_${PATTERN}.direct.bed ] && [ -f $MYOUT/${n/$BED/_motif}_${PATTERN}.indirect.bed ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/$BED/_motif}_${PATTERN}.direct.bed ] && [ -f $MYOUT/${n/$BED/_motif}_${PATTERN}.indirect.bed ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -165,7 +165,7 @@ CHECKPOINT="cleanup"
 
 rm -rf $MYOUT/${n/$BED/.fasta} $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/_sorted.bed} $MYOUT/${n/$BED/.bg} $MYOUT/$n
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 echo ">>>>> Motif discovery with memechip - FINISHED"
 echo ">>>>> enddate "`date`

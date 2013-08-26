@@ -104,7 +104,7 @@ unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -146,7 +146,7 @@ fi
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 echo "[NOTE] full sample ID "$FULLSAMPLEID
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -155,7 +155,7 @@ if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 fi
     
-echo -n "********* $CHECKPOINT"    
+echo -e "\n********* $CHECKPOINT"    
 ################################################################################
 CHECKPOINT="mapping"
 
@@ -176,7 +176,7 @@ else
     fi
     
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/$ALN.bam} ] && echo -n "********* $CHECKPOINT"
+    [ -f $OUT/${n/%$READONE.$FASTQ/$ALN.bam} ] && echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################
@@ -195,7 +195,7 @@ else
         IS_BISULFITE_SEQUENCE=true 
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.ash.bam} ] && echo -n "********* $CHECKPOINT"
+    [ -f $OUT/${n/%$READONE.$FASTQ/.ash.bam} ] && echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################
@@ -212,7 +212,7 @@ else
         RGPU=$UNIT RGSM=$FULLSAMPLEID 
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.ashrg.bam} ] && echo -n "********* $CHECKPOINT"
+    [ -f $OUT/${n/%$READONE.$FASTQ/.ashrg.bam} ] && echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################
@@ -235,7 +235,7 @@ else
     $SAMTOOLS index $OUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -n "********* $CHECKPOINT"
+    [ -f $OUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################
@@ -255,7 +255,7 @@ else
     fi
 
     # mark checkpoint
-    [ -f $STATSOUT ] && echo -n "********* $CHECKPOINT"
+    [ -f $STATSOUT ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 
@@ -270,7 +270,7 @@ else
         $OUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/.genome}
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -n "********* $CHECKPOINT"
+    [ -f $OUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################

@@ -81,7 +81,7 @@ echo -e "--cuffdiff --\n "$(cuffdiff 2>&1 | head -n 1 )
 echo -e "--cuffcompare --\n "$(cuffcompare 2>&1 | head -n 1 )
 [ -z "$(which cuffcompare)" ] && echo "[ERROR] no cuffcompare detected" && exit 1
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -115,7 +115,7 @@ if [ -n "$DMGET" ]; then
     dmget -a $(dirname $TOPHATOUT)/*
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="check reference GTF"
     
@@ -131,7 +131,7 @@ else
         GTF=$OUT/comp.combined.gtf
         
         # mark checkpoint
-        [ -f $OUT/comp.combined.gtf ] && echo -n "********* $CHECKPOINT"
+        [ -f $OUT/comp.combined.gtf ] && echo -e "\n********* $CHECKPOINT"
 
     fi    
 fi
@@ -146,7 +146,7 @@ else
     cuffdiff -r $FASTA -p $CPU_CUFFDIFF -o $OUT $GTF $TOPHATBAM
 
     # mark checkpoint
-    echo -n "********* $CHECKPOINT"
+    echo -e "\n********* $CHECKPOINT"
 fi 
 cd ../../
 

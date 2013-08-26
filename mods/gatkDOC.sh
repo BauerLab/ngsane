@@ -87,7 +87,7 @@ JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_GATK*0.8)")"g -Djava.io.tmpdir="
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -107,7 +107,7 @@ fi
 #java -jar /datastore/cmis/bau04c/SeqAna/apps/prod/Picard_svn/dist/CreateSequenceDictionary.jar R=/datastore/cmis/bau04c//SeqAna/reference/prod/GRCm38/GRCm38_chr.fasta O=/datastore/cmis/bau04c//SeqAna/reference/prod/GRCm38/GRCm38_chr.dict
 # BEDtools has it's own genome index file
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="calculate depthOfCoverage"
 
@@ -135,7 +135,7 @@ else
     #    --minBaseQuality 20 \
     
     # mark checkpoint
-    [ -f $OUT/$n.doc ] && echo -n "********* $CHECKPOINT"
+    [ -f $OUT/$n.doc ] && echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################
@@ -164,7 +164,7 @@ else
     	-abam $f -b stdin -u | $SAMTOOLS flagstat - >> $OUT/$n.stats
 
         # mark checkpoint
-        [ -f $OUT/$n.stats ] && echo -n "********* $CHECKPOINT"
+        [ -f $OUT/$n.stats ] && echo -e "\n********* $CHECKPOINT"
     
     fi
 fi

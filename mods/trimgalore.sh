@@ -43,7 +43,7 @@ echo "PATH=$PATH"
 echo -e "--trim galore --\n "$(trim_galore --version  | grep version  | tr -d ' ')
 [ -z "$(which trim_galore)" ] && echo "[ERROR] no trim_galore detected" && exit 1
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -80,7 +80,7 @@ if [ "$PAIRED" = "1" ] && [ -n "$TRIMGALORE_ADAPTER2" ]; then
 fi
 echo $CONTAM
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -88,7 +88,7 @@ if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="trim"    
 
@@ -108,7 +108,7 @@ else
     fi
 
     # mark checkpoint
-    [ -f $FASTQDIRTRIM/$n ] && echo -n "********* $CHECKPOINT"
+    [ -f $FASTQDIRTRIM/$n ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -127,7 +127,7 @@ else
         fi
     fi
     # mark checkpoint
-    echo -n "********* $CHECKPOINT"
+    echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################

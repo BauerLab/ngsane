@@ -49,7 +49,7 @@ echo "PATH=$PATH"
 echo -e "--Python      --\n" $(python --version)
 echo -e "--Python libs --\n "$(yolk -l)
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -77,7 +77,7 @@ IFS=$OLDFS
 
 echo "[NOTE] Datasets: $DATASETS"
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -85,7 +85,7 @@ if [ -n "$DMGET" ]; then
 	dmget -a $MYOUT/*
 fi
     
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="call hiclib"
 
@@ -96,7 +96,7 @@ else
     python ${NGSANE_BASE}/tools/hiclibCorrelate.py ${PARAMS} --outputDir=$OUT/runStats/$TASKHICLIB --tmpDir=$TMP --verbose $DATASETS
     
     # mark checkpoint
-    echo -n "********* $CHECKPOINT"
+    echo -e "\n********* $CHECKPOINT"
 fi
 ################################################################################
 echo ">>>>> HiC correlation analysis with hiclib - FINISHED"

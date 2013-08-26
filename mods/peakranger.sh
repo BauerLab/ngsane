@@ -60,7 +60,7 @@ if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
     exit 1
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -74,7 +74,7 @@ if [ "$PEAKRANGER_PEAKS" != "broad" ] && [ "$PEAKRANGER_PEAKS" != "sharp" ]; the
     exit 1
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -83,7 +83,7 @@ if [ -n "$DMGET" ]; then
 	dmls -l ${f}
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="peakranger"
 
@@ -117,7 +117,7 @@ else
 
 
     # mark checkpoint
-    [ -f $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -125,7 +125,7 @@ CHECKPOINT="zip"
 
 $GZIP $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_details
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 echo ">>>>> ChIPseq analysis with Peakranger - FINISHED"
 echo ">>>>> enddate "`date`

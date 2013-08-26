@@ -85,7 +85,7 @@ JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_BOWTIE2*0.8)")"g -Djava.io.tmpdi
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -119,7 +119,7 @@ fi
 ZCAT="zcat"
 if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="recall files from tape"
 	
@@ -128,7 +128,7 @@ if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 fi
     
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="generating the index files"
 
@@ -142,7 +142,7 @@ else
     if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
     # mark checkpoint
-    [ -f ${FASTA/.${FASTASUFFIX}/}.1.bt2 ] && echo -n "********* $CHECKPOINT"
+    [ -f ${FASTA/.${FASTASUFFIX}/}.1.bt2 ] && echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################
@@ -172,7 +172,7 @@ else
     eval $RUN_COMMAND
     
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 
@@ -200,7 +200,7 @@ else
     fi
     
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 
@@ -226,7 +226,7 @@ else
     samtools index $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
     
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -247,7 +247,7 @@ else
     fi
 
     # mark checkpoint
-    [ -f $STATSOUT ] && echo -n "********* $CHECKPOINT"
+    [ -f $STATSOUT ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 
@@ -276,7 +276,7 @@ else
     rm -r $THISTMP
 
     # mark checkpoint
-    [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 
@@ -290,7 +290,7 @@ else
     
     java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/}.genome
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 
@@ -304,7 +304,7 @@ else
     samstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ] && echo -e "\n********* $CHECKPOINT"
     
 fi
 
@@ -368,7 +368,7 @@ else
         fi
     
         # mark checkpoint
-        [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ] && echo -n "********* $CHECKPOINT"
+        [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ] && echo -e "\n********* $CHECKPOINT"
 
     fi   
 fi

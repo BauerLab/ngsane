@@ -126,7 +126,7 @@ JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_TOPHAT*0.8)")"g -Djava.io.tmpdir
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -205,7 +205,7 @@ fi
 
 mkdir -p $OUTDIR
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -214,7 +214,7 @@ if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="run tophat"
 
@@ -232,7 +232,7 @@ else
     echo "[NOTE] tophat end $(date)"
 
     # mark checkpoint
-    [ -d $OUTDIR ] && echo -n "********* $CHECKPOINT"
+    [ -d $OUTDIR ] && echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################
@@ -271,7 +271,7 @@ else
     rm ${BAMFILE/.bam/.samtools}.bam
 
     # mark checkpoint
-    [ -f $BAMFILE ] && echo -n "********* $CHECKPOINT"
+    [ -f $BAMFILE ] && echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################
@@ -304,7 +304,7 @@ else
     fi
 
     # mark checkpoint
-    [ -f $BAMFILE.stats ] && echo -n "********* $CHECKPOINT"
+    [ -f $BAMFILE.stats ] && echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################
@@ -339,7 +339,7 @@ else
     rm -r $THISTMP
    
     # mark checkpoint
-    [ -f $OUTDIR/../metrices/$(basename $BAMFILE) ] && echo -n "********* $CHECKPOINT"
+    [ -f $OUTDIR/../metrices/$(basename $BAMFILE) ] && echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################
@@ -354,7 +354,7 @@ else
         $BAMFILE.cov.tdf ${FASTA/$FASTASUFFIX/}genome
 
     # mark checkpoint
-    [ -f $BAMFILE.cov.tdf ] && echo -n "********* $CHECKPOINT"
+    [ -f $BAMFILE.cov.tdf ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -368,7 +368,7 @@ else
     samstat $BAMFILE
   
     # mark checkpoint
-    [ -f $BAMFILE.stats ] && echo -n "********* $CHECKPOINT"    
+    [ -f $BAMFILE.stats ] && echo -e "\n********* $CHECKPOINT"    
 fi
 
 ################################################################################
@@ -387,7 +387,7 @@ else
     samtools index ${BAMFILE/.$ASD/.$ALN}
 
     # mark checkpoint
-    [ -f ${BAMFILE/.$ASD/.$ALN} ] && echo -n "********* $CHECKPOINT"    
+    [ -f ${BAMFILE/.$ASD/.$ALN} ] && echo -e "\n********* $CHECKPOINT"    
 fi
 
 ################################################################################
@@ -422,7 +422,7 @@ else
     fi
 
     # mark checkpoint
-    [ -d $RNASeQCDIR ] && echo -n "********* $CHECKPOINT"    
+    [ -d $RNASeQCDIR ] && echo -e "\n********* $CHECKPOINT"    
 fi
 
 ################################################################################
@@ -447,7 +447,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -d $CUFOUT ] && echo -n "********* $CHECKPOINT"    
+    [ -d $CUFOUT ] && echo -e "\n********* $CHECKPOINT"    
 fi
 
 echo ">>>>> alignment with TopHat - FINISHED"
@@ -503,7 +503,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
     #	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
         
         # mark checkpoint
-        [ -f $HTOUTDIR/${anno_version}.gene ] && echo -n "********* $CHECKPOINT"    
+        [ -f $HTOUTDIR/${anno_version}.gene ] && echo -e "\n********* $CHECKPOINT"    
     fi
     
     ################################################################################
@@ -538,7 +538,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
     	samtools index $OUTDIR/accepted_hits.bam
     
         # mark checkpoint
-        [ -f ${n/%$READONE.$FASTQ/}.bw ] && echo -n "********* $CHECKPOINT"    
+        [ -f ${n/%$READONE.$FASTQ/.bw} ] && echo -e "\n********* $CHECKPOINT"    
     fi
     	
     ################################################################################
@@ -588,7 +588,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
         Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits_f3.bam ${n/%$READONE.$FASTQ/}_masked $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
     
         # mark checkpoint
-        [ -f ${n/%$READONE.$FASTQ/}_masked ] && echo -n "********* $CHECKPOINT"    
+        [ -f ${n/%$READONE.$FASTQ/_masked} ] && echo -e "\n********* $CHECKPOINT"    
     fi
 
 fi

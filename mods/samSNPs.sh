@@ -62,14 +62,14 @@ JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_SAMVAR*0.8)")"g -Djava.io.tmpdir
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -77,7 +77,7 @@ if [ -n $DMGET ]; then
     dmget -a $f; 
 fi
     
-echo -n "********* $CHECKPOINT"    
+echo -e "\n********* $CHECKPOINT"    
 ################################################################################
 CHECKPOINT="remove duplicate reads $(date)"
 
@@ -89,7 +89,7 @@ else
     samtools index $MYOUT/${n/bam/drm.bam}
 
     # mark checkpoint
-    [ -f $MYOUT/${n/bam/drm.bam} ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/bam/drm.bam} ] && echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################
@@ -102,7 +102,7 @@ else
     samtools mpileup -uf $FASTA -q1 -D $MYOUT/${n/bam/drm.bam} |  bcftools view -vcg - >$MYOUT/${n/bam/vcf}
 
     # mark checkpoint
-    [ -f $MYOUT/${n/bam/vcf} ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/bam/vcf} ] && echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################
@@ -115,7 +115,7 @@ else
     vcfutils.pl varFilter -D1000 -w0 -e0 $MYOUT/${n/bam/vcf}  > $MYOUT/${n/bam/clean.vcf}
  
     # mark checkpoint
-    [ -f $MYOUT/${n/bam/clean.vcf} ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/bam/clean.vcf} ] && echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################
@@ -128,7 +128,7 @@ else
     java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $MYOUT/${n/bam/clean.vcf}
     
     # mark checkpoint
-    echo -n "********* $CHECKPOINT"
+    echo -e "\n********* $CHECKPOINT"
 fi 
 
 ################################################################################
@@ -137,7 +137,7 @@ CHECKPOINT="cleanup"
 rm $MYOUT/${n/bam/drm.bam} $MYOUT/${n/bam/drm.bam}.bai
 rm $MYOUT/${n/bam/vcf}
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 echo ">>>>> Variant calling with sam - FINISHED"
 echo ">>>>> enddate "`date`

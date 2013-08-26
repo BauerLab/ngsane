@@ -56,7 +56,7 @@ echo -e "--R       --\n "$(R --version | head -n 3)
 echo -e "--homer   --\n "$(which makeTagDirectory)
 [ -z "$(which makeTagDirectory)" ] && echo "[ERROR] homer not detected" && exit 1
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -64,7 +64,7 @@ CHECKPOINT="parameters"
 n=${f##*/}
 c=${CHIPINPUT##*/}
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -73,7 +73,7 @@ if [ -n "$DMGET" ]; then
     dmls -l $f
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="create tagdirectory"
 
@@ -101,7 +101,7 @@ else
     fi
 
     # mark checkpoint
-    [ -d $TAGDIRECTORY ] && echo -n "********* $CHECKPOINT"
+    [ -d $TAGDIRECTORY ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -127,7 +127,7 @@ else
     fi
 
     # mark checkpoint
-    [ -f $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -141,7 +141,7 @@ if [ -n "$CHIPINPUT" ]; then
     rm -rf ${TAGDIRECTORY}_input
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 echo ">>>>> ChIPseq analysis with Homer - FINISHED"
 echo ">>>>> enddate "`date`

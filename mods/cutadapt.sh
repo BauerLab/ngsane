@@ -46,7 +46,7 @@ echo "PATH=$PATH"
 echo -e "--cutadapt  --\n" $(cutadapt --version 2>&1)
 [ -z "$(which cutadapt)" ] && echo "[ERROR] no cutadapt detected" && exit 1
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -78,7 +78,7 @@ echo "[NOTE] contaminants: "$CONTAMINANTS
 CONTAM=$(cat $CONTAMINANTS | tr '\n' ' ')
 echo "[NOTE] $CONTAM"
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -86,7 +86,7 @@ if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="trim"    
 
@@ -107,7 +107,7 @@ else
     fi
     
     # mark checkpoint
-    [ -f $o ] && echo -n "********* $CHECKPOINT"  
+    [ -f $o ] && echo -e "\n********* $CHECKPOINT"  
 fi
 
 ################################################################################
@@ -126,7 +126,7 @@ else
     fi
 
     # mark checkpoint
-    echo -n "********* $CHECKPOINT"  
+    echo -e "\n********* $CHECKPOINT"  
 fi
 
 ################################################################################

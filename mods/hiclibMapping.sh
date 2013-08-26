@@ -49,7 +49,7 @@ echo "PATH=$PATH"
 echo -e "--Python      --\n" $(python --version)
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 echo -e "--Python libs --\n "$(yolk -l)
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -84,7 +84,7 @@ else
     echo "[NOTE] mapping data from scratch"
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -93,7 +93,7 @@ if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="run hiclib"
 
@@ -131,7 +131,7 @@ else
     #rm -f $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
 
     # mark checkpoint
-    [ -d $MYOUT ] && echo -n "********* $CHECKPOINT"
+    [ -d $MYOUT ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################

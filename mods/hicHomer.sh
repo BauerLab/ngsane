@@ -57,7 +57,7 @@ echo -e "--homer   --\n "$(which makeTagDirectory)
 echo -e "--circos  --\n "$(circos --version)
 [ -z "$(which circos)" ] && echo "[WARN] circos not detected"
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -81,7 +81,7 @@ if [ "$HOMER_HIC_INTERACTIONS" != "all" ] && [ "$HOMER_HIC_INTERACTIONS" != "cis
     echo "[ERROR] HiC interactions not specified (all, cis or trans) : $HOMER_HIC_INTERACTIONS"
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -90,7 +90,7 @@ if [ -n "$DMGET" ]; then
 	dmls -l ${f/$READONE/"*"}
 fi
 
-echo -n "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 
 #homer likes to write in the current directory, so change to target
@@ -113,7 +113,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -d $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered}] && echo -n "********* $CHECKPOINT"
+    [ -d $MYOUT/${n/%$READONE.$ASD.bam/_tagdir_filtered} ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -127,7 +127,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$ASD.bam/_background.txt ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/%$READONE.$ASD.bam/_background.txt} ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -162,7 +162,7 @@ else
     fi
 
     # mark checkpoint
-    echo -n "********* $CHECKPOINT"
+    echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -176,7 +176,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -f $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -207,7 +207,7 @@ else
         done
     fi
     # mark checkpoint
-    echo -n "********* $CHECKPOINT"
+    echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -221,7 +221,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -d $MYOUT/${n/%$READONE.$ASD.bam/_annotations} ] && echo -n "********* $CHECKPOINT"
+    [ -d $MYOUT/${n/%$READONE.$ASD.bam/_annotations} ] && echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
@@ -237,7 +237,7 @@ else
     fi
 
     # mark checkpoint
-    echo -n "********* $CHECKPOINT"
+    echo -e "\n********* $CHECKPOINT"
 fi
 
 ################################################################################
