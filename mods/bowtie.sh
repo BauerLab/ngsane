@@ -183,9 +183,10 @@ else
     eval $RUN_COMMAND
     
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam} ] && echo -n "********* $CHECKPOINT"
 fi
 
+exit 1
 ################################################################################
 CHECKPOINT="bam conversion and sorting"
 
@@ -346,7 +347,7 @@ else
     rm -r $THISTMP
 
     # mark checkpoint
-    [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam ] && echo -n "********* $CHECKPOINT"
+    [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -n "********* $CHECKPOINT"
 fi
 
 

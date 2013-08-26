@@ -91,7 +91,11 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
     LOGFILE=$QOUT/$TASK/$dir'_'$name'.out'
     if [ -n "$RECOVER" ] && [ -f $LOGFILE ] ; then
-        COMMAND2='$COMMAND2 --recover-from $LOGFILE"
+        # add log-file for recovery
+        COMMAND2="$COMMAND2 --recover-from $LOGFILE"
+    else
+        # remove old submission output logs
+        if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm -rf $QOUT/$TASK/$dir'_'$name.*; fi
     fi
 
     DIR=$DIR" $dir"
@@ -107,9 +111,6 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     if [ -n "$ARMED" ]; then
 
     echo $ARMED
-
-    # remove old submission output logs
-    if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm -rf $QOUT/$TASK/$dir'_'$name.*; fi
 
     # record task in log file
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
