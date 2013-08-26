@@ -35,7 +35,6 @@ required:
   -o | --outdir <path>      output dir
 
 options:
-  -t | --threads <nr>       number of CPUs to use (default: 1)
   -i | --rgid <name>        read group identifier RD ID (default: exp)
   -l | --rglb <name>        read group library RD LB (default: qbi)
   -p | --rgpl <name>        read group platform RD PL (default: illumna)
@@ -50,15 +49,12 @@ exit
 if [ ! $# -gt 3 ]; then usage ; fi
 
 #DEFAULTS
-THREADS=8
 FORCESINGLE=0
-MEMORY=2G
 
 #INPUTS
 while [ "$1" != "" ]; do
 	case $1 in
 	-k | toolkit )          shift; CONFIG=$1 ;; # ENSURE NO VARIABLE NAMES FROM CONFIG
-	-t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
 	-f | --fastq )          shift; f=$1 ;; # fastq file
 	-r | --reference )      shift; FASTA=$1 ;; # reference genome
 	-o | --outdir )         shift; OUTDIR=$1 ;; # output dir
@@ -69,8 +65,9 @@ while [ "$1" != "" ]; do
 	-s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
 	-R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
 	
-    --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
 	--forceSingle )         FORCESINGLE=1;;
+
+    --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
 	-h | --help )           usage ;;
 	* )                     echo "dont understand $1"
 	esac
@@ -227,7 +224,7 @@ else
     if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
     if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
     
-    RUN_COMMAND="tophat $TOPHATADDPARAM --keep-fasta-order --num-threads $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
+    RUN_COMMAND="tophat $TOPHATADDPARAM --keep-fasta-order --num-threads $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     echo "[NOTE] tophat end $(date)"
 
@@ -436,13 +433,13 @@ else
     #specify REFSEQ or Gencode GTF depending on analysis desired.
     ## add GTF file if present
     if [ -n "$GENCODEGTF" ]; then 
-        RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --GTF-guide $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
+        RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --GTF-guide $GENCODEGTF -p $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
     elif [ -n "$REFSEQGTF" ]; then 
-        RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --GTF-guide $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
+        RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --GTF-guide $REFSEQGTF -p $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
     else
         # non reference guided
         echo "[NOTE] non reference guided run (neither GENCODEGTF nor REFSEQGTF defined)"
-        RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
+        RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --frag-bias-correct $FASTA -p $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 

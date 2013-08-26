@@ -13,6 +13,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE 
         -h | --help )           usage ;;
+        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
         * )                     echo "don't understand "$1
     esac
     shift

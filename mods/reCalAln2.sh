@@ -40,10 +40,7 @@ exit
 if [ ! $# -gt 4 ]; then usage ; fi
 
 #DEFAULTS
-#THREADS=1
-#JAVAPARAMS="-Xmx"$MEMORY"g -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
-#module load R
-#module load jdk #/1.7.0_03
+#MYTHREADS=1
 
 #INPUTS
 while [ "$1" != "" ]; do
@@ -55,6 +52,7 @@ while [ "$1" != "" ]; do
         -d | --snpdb )          shift; DBROD=$1 ;; # snpdb
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir
         -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
+        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     usage
     esac

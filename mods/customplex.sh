@@ -47,6 +47,7 @@ while [ "$1" != "" ]; do
         -b | --barcode )        shift; BARCODR=$1 ;; # reference genome
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
         -p | --prefix )         shift; PREFIX=$1 ;; # prefix for the line
+        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
         -h | --help )           usage ;;
         * )                     usage
     esac

@@ -39,9 +39,10 @@ if [ ! $# -gt 3 ]; then usage ; fi
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
-        -f           )          shift; FILES=${1//,/ } ;; # bam files
-	-o           )          shift; MYOUT=$1 ;; # outputdir
-        -h | --help )           usage ;;
+        -f             )        shift; FILES=${1//,/ } ;; # bam files
+        -o             )        shift; MYOUT=$1 ;; # outputdir
+        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        -h | --help    )        usage ;;
         * )                     echo "don't understand "$1
     esac
     shift

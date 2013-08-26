@@ -37,6 +37,7 @@ while [ "$1" != "" ]; do
         -o | --outdir )         shift; OUT=$1 ;; # output dir
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
         -s | --downsample )     shift; READNUMBER=$1 ;; #readnumber
+        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
         -h | --help )           usage ;;
         * )                     usage
     esac
