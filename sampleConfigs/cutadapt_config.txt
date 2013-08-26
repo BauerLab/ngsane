@@ -1,7 +1,7 @@
 # author: Fabian Buske
 # date: June 2013
 
-######################################
+#####################################
 # Resources
 #####################################
 
@@ -11,8 +11,9 @@
 RUNCUTADAPT="1"    # adapter trimming with cutadapt
 
 #********************
-# PARAMETER (mandatory)
-#
+# Paths
+#********************
+
 SOURCE=$(pwd)
 
 # which files to run on (replace sample with folders within fastq firectory)
@@ -24,12 +25,16 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# read indicator
-READONE="R1"
-READTWO="R2"
+#********************
+# PARAMETER (mandatory)
+#********************
 
 # fastq file suffix
 FASTQ="fq.gz"
+
+# read indicator immediately preceeding the fastq file suffix
+READONE="_R1"
+READTWO="_R2"
 
 # Location of the file containing the contaminants.
 # Contaminants need to be specified with -a, -b or -g followed by the sequence, e.g.:
@@ -51,5 +56,5 @@ CONTAMINANTS=
 #PATH_CUTADAPT=
 
 ## location of ngsane
-#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+#NGSANE_BASE=
 

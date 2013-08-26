@@ -15,7 +15,7 @@ echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
 echo ">>>>> job_id "$JOB_ID
-echo ">>>>> trimgalore.sh $*"
+echo ">>>>> $(basename $0) $*"
 
 while [ "$1" != "" ]; do
     case $1 in
@@ -47,7 +47,7 @@ echo -e "--trim galore --\n "$(trim_galore --version  | grep version  | tr -d ' 
 n=${f##*/}
 
 #is paired ?
-if [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
     echo "[NOTE] PAIRED library"
     PAIRED="1"
 else

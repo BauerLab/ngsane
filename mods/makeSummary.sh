@@ -14,11 +14,12 @@ CONFIG=$2
 SUMMARYTMP=$HTMLOUT".tmp"
 SUMMARYFILE=$HTMLOUT".html"
 
+for MODULE in $MODULE_SUMMARY; do module load $MODULE; done  # save way to load modules that itself load other modules
 
 echo "Last modified "`date` >$SUMMARYTMP
 
 
-#if [ -n "$fastQC" ]; then
+if [ -n "$RUNFASTQC" ]; then
     echo "fastqc"
     echo "<h2>Read biases (FASTQC)</h2>">>$SUMMARYTMP
     echo ${NGSANE_BASE}/tools/makeFastQCplot.sh
@@ -45,7 +46,7 @@ echo "Last modified "`date` >$SUMMARYTMP
     echo "</td><td>">>$SUMMARYTMP
     echo "<img src=\"runStats/fastQCSummary.jpg\" alt=\"Quality scores for all reads\"/>" >>$SUMMARYTMP
     echo "</td></tr></table>">>$SUMMARYTMP
-#fi
+fi
 
 
 
@@ -60,7 +61,6 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     for dir in ${DIR[@]}; do
 	vali=$vali" $OUT/$dir/$TASKBWA/"
     done
-    echo "python summary"
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
     echo "</pre>" >>$SUMMARYTMP
@@ -93,11 +93,13 @@ if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" || -n "$RUNREALRECAL3" ]]; then
 fi
 
 
-if [[ -n "$RUNMAPPINGBOWTIE" || -n "$RUNMAPPINGBOWTIE2" ]]; then
+if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
     LINKS=$LINKS" mapping"
-    echo "<a name=\"mapping\"><h2>BOWTIE Mapping</h2>">>$SUMMARYTMP
+    echo "<a name=\"mapping\"><h2>BOWTIE v1 Mapping</h2>">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie2.sh $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
+    echo "QC"
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie.sh $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
+    echo "gather dirs"
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKBOWTIE/"
@@ -107,13 +109,28 @@ if [[ -n "$RUNMAPPINGBOWTIE" || -n "$RUNMAPPINGBOWTIE2" ]]; then
     echo "</pre>" >>$SUMMARYTMP
 fi
 
+if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
+    LINKS=$LINKS" mapping"
+    echo "<a name=\"mapping\"><h2>BOWTIE v2 Mapping</h2>">>$SUMMARYTMP
+    echo "<pre>" >>$SUMMARYTMP
+    echo "QC"
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie2.sh $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
+    echo "gather dirs"
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/$dir/$TASKBOWTIE/"
+    done
+    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
 
 if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
     vali=""
     LINKS=$LINKS" tophat"
     echo "<a name=\"tophat\"><h2>tophat Mapping</h2><br>Note, the duplication rate is not calculated by tophat and hence zero.">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT/ >>$SUMMARYTMP
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     CURDIR=$(pwd)
     for dir in ${DIR[@]}; do
@@ -288,6 +305,54 @@ if [ -n "$RUNHICUP" ];then
     echo "<table><tr>$row0</tr><tr>$row1</tr><tr>$row2</tr></table>" >> $SUMMARYTMP
 fi
 
+if [ -n "$RUNHOMERCHIPSEQ" ];then
+    LINKS=$LINKS" Homer-ChIP-seq"
+    echo "<a name=\"Homer-ChIP-seq\"><h2>Homer ChIP-seq results</h2></a><pre>">>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/chipseqHomer.sh $QOUT/$TASKHOMERCHIPSEQ >> $SUMMARYTMP
+
+    echo "</pre><h3>Homer ChIP-seq</h3><pre>">>$SUMMARYTMP
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/$dir/$TASKHOMERCHIPSEQ/"
+    done
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" homerchipseq >> $SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
+
+if [ -n "$RUNPEAKRANGER" ];then
+    LINKS=$LINKS" peakranger"
+    echo "<a name=\"peakranger\"><h2>Peakranger results</h2></a><pre>">>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/peakranger.sh $QOUT/$TASKPEAKRANGER >> $SUMMARYTMP
+
+    echo "</pre><h3>Peakranger</h3><pre>">>$SUMMARYTMP
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/$dir/$TASKPEAKRANGER/"
+    done
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" peakranger >> $SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
+
+if [ -n "$RUNMEMECHIP" ];then
+    LINKS=$LINKS" meme-chip"
+    echo "<a name=\"meme-chip\"><h2>MEME-chip results</h2></a><pre>">>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/memechip.sh $QOUT/$TASKMEMECHIP >> $SUMMARYTMP
+
+    echo "</pre><h3>MEME-chip</h3><pre>">>$SUMMARYTMP
+    vali=""
+    CURDIR=$(pwd)
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/$dir/$TASKMEMECHIP/"
+	cd $OUT/$dir/$TASKMEMECHIP
+        for d in $(find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \; ); do
+                echo "<a href=\"$dir/$TASKMEMECHIP/$d/index.html\">$dir/$d</a> " >> $CURDIR/$SUMMARYTMP
+        done
+    done
+    cd $CURDIR
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" memechip >> $SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
+
 #
 # Old code ...
 #
@@ -344,9 +409,15 @@ for i in $LINKS; do
 done
 echo "<br><br>" >>$SUMMARYFILE.tmp
 
-cat $SUMMARYFILE.tmp  $SUMMARYTMP> $SUMMARYFILE
+cat $SUMMARYFILE.tmp  $SUMMARYTMP > $SUMMARYFILE
 
 #echo "</body>" >>$SUMMARYFILE
 
 rm $SUMMARYTMP
 rm $SUMMARYFILE.tmp
+
+if [ "$(which prince)" != "" ]; then
+    # convert html to pdf
+    prince $SUMMARYFILE -o ${HTMLOUT}.pdf
+fi
+

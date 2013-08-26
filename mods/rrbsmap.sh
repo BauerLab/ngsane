@@ -12,7 +12,7 @@ echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
 echo ">>>>> job_id "$JOB_ID
-echo ">>>>> rrbsmap.sh $*"
+echo ">>>>> $(basename $0) $*"
 
 
 function usage {
@@ -88,12 +88,12 @@ n=${f##*/}
 
 
 # delete old bam file
-if [ -e $OUT/${n/'_'$READONE.$FASTQ/.rrbs.bam} ]; then rm $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi
-if [ -e $OUT/${n/'_'$READONE.$FASTQ/.rrbs.bam}.stats ]; then rm $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}.stats; fi
+if [ -e $OUT/${n/%$READONE.$FASTQ/.rrbs.bam} ]; then rm $OUT/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
+if [ -e $OUT/${n/%$READONE.$FASTQ/.rrbs.bam}.stats ]; then rm $OUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
 
 
 #is paired ?
-if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="true"
 else
     PAIRED="false"
@@ -104,7 +104,7 @@ ZCAT="zcat"
 if [[ $f != *.fastq.gz ]]; then ZCAT="cat"; fi
 
 
-FULLSAMPLEID=$SAMPLEID"${n/'_'$READONE.$FASTQ/}"
+FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 echo ">>>>> full sample ID "$FULLSAMPLEID
 
 echo "********* mapping"
@@ -181,7 +181,7 @@ fi
 echo "********* coverage track"
 GENOME=$(echo $FASTA| sed 's/.fasta/.genome/' | sed 's/.fa/.genome/' )
 java -Xmx1g -jar $IGVTOOLS count $OUT/${n/$FASTQ/rrbsd.bam} \
-    $OUT/${n/'_'$READONE.$FASTQ/.$ASD.bam.cov.tdf} $GENOME
+    $OUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} $GENOME
 
 
 echo ">>>>> readmapping with rrbsmap - FINISHED"

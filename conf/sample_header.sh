@@ -45,7 +45,9 @@ TASKFASTQ2SANGER="sanger"
 TASKWIGGLER="wiggler"
 TASKTRIMMOMATIC="trimmomatic"
 TASKHOMERHIC="homerhic"
-HTMLOUT="Summary"
+TASKHOMERCHIPSEQ="homerchipseq"
+TASKPEAKRANGER="peakranger"
+TASKMEMECHIP="memechip"
 
 ##############################################################
 # PROGRAM PATHS
@@ -54,11 +56,30 @@ QSUB=prepareJobSubmission.sh
 BINQSUB=jobsubmission.sh
 QSUBEXTRA=""            # any extra such as email notification
 
-#Additional programs not available as module
+#Additional programs not necessarily available as module
 PATH_SAMTOOLS=
 PATH_IGVTOOLS=
 PATH_PICARD=
 PATH_SAMSTAT=
+
+# Commonly used file abbreviations
+READONE="read1"
+READTWO="read2"
+FASTQ="fastq.gz"
+FASTA=            # fasta file usually from the reference genome
+FASTA_CHROMDIR=   # folder containing individual fasta files for each chromosome of the reference genome 
+UNM="unm" # unmapped
+ALN="aln" # aligned 
+MUL="mul" # non-unique aligned
+ASD="asd" # aligned sorted duplicate-removed
+ASR="asdrr" # aligned sorted duplicate-removed raligned reacalibrated
+
+##############################################################
+# Summary specifics
+# html2pdf conversion via PRINCE
+MODULE_SUMMARY=
+PATH_SUMMARY=
+HTMLOUT="Summary"
 
 ##############################################################
 # gzip alternatives, e.g.
@@ -165,6 +186,41 @@ MODULE_HOMERHIC=
 PATH_HOMERHIC=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
+# HOMER CHIPSEQ
+# http://biowhat.ucsd.edu/homer/index.html
+WALLTIME_HOMERCHIPSEQ=24:00:00
+MEMORY_HOMERCHIPSEQ=60
+CPU_HOMERCHIPSEQ=1
+NODES_HOMERCHIPSEQ="nodes=1:ppn=1"
+
+MODULE_HOMERCHIPSEQ=
+PATH_HOMERCHIPSEQ=
+
+##############################################################
+# Peakranger
+# http://ranger.sourceforge.net/
+WALLTIME_PEAKRANGER=24:00:00
+MEMORY_PEAKRANGER=60
+CPU_PEAKRANGER=1
+NODES_PEAKRANGER="nodes=1:ppn=1"
+
+MODULE_PEAKRANGER=
+PATH_PEAKRANGER=
+
+##############################################################
+# MEMECHIP
+# http://meme.nbcr.net/
+WALLTIME_MEMECHIP=48:00:00
+MEMORY_MEMECHIP=40
+CPU_MEMECHIP=8
+NODES_MEMECHIP="nodes=1:ppn=8"
+
+MODULE_MEMECHIP=
+PATH_MEMECHIP=
+
+MEMECHIPDATABASES=
+
+##############################################################
 # Trim adapter with CUTADAPT ()
 # https://code.google.com/p/cutadapt/
 WALLTIME_CUTADAPT=4:00:00
@@ -262,7 +318,6 @@ MODULE_HICUP=
 PATH_HICUP=
 HICUP_RENZYMES=
 
-
 ##############################################################
 # R (3.0.0)
 # http://www.r-project.org/
@@ -276,47 +331,36 @@ PATH_R=
 RSCRIPT=Rscript
 
 ##############################################################
-#this gzip waits for the file to migrate completly before unzipping it
-#GZIP=$DATASTORE/SeqAna/apps/prod/mygzip/
-#GATKHOME=$DATASTORE/SeqAna/apps/prod/gatk_git
-#GATKHOME=$DATASTORE/SeqAna/apps/dev/gatk_git
-#GATKJAR=$GATKHOME/dist/
-
-VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
-SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
-BEDTOOLS=$DATASTORE/SeqAna/apps/prod/bedtools/bin/
-IMGMAGCONVERT=/usr/bin/convert # imageMagick
-ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
-
-RRBSMAP="/clusterdata/hiseq_apps/bin/devel/rrbsmap-1.5/rrbsmap"
-MACS="/clusterdata/hiseq_apps/bin/devel/MACS_git"
-PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
-
-VIENNA=
-UNAFOLD=
-
-
-#Fileabb
-READONE="read1"
-READTWO="read2"
-FASTQ="fastq.gz"
-FASTA=            # fasta file usually from the reference genome
-FASTA_CHROMDIR=   # folder containing individual fasta files for each chromosome of the reference genome 
-UNM="unm" # unmapped
-ALN="aln" # aligned 
-MUL="mul" # non-unique aligned
-ASD="asd" # aligned sorted duplicate-removed
-ASR="asdrr" # aligned sorted duplicate-removed raligned reacalibrated
-
-#############
-# On Wolfpack
-#Recal
-WALLTIME_RECAL=60:00:00
-MEMORY_RECAL=50
-CPU_RECAL=8
-NODES_RECAL="nodes=1:ppn=8" 
-#ANNOTATING BAM
+# Bam Annotations
+# 
 WALLTIME_BAMANN=5:00:00
 MEMORY_BAMANN=32
 CPU_BAMANN=1
 NODES_BAMANN="nodes=1:ppn=1"
+
+MODULE_BAMANN=
+PATH_BAMANN=
+
+##############################################################
+# Read re-calibration
+# 
+WALLTIME_RECAL=60:00:00
+MEMORY_RECAL=50
+CPU_RECAL=8
+NODES_RECAL="nodes=1:ppn=8" 
+
+MODULE_RECAL=
+PATH_RECAL=
+
+##############################################################
+#VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
+#SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
+#ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
+#
+#RRBSMAP="/clusterdata/hiseq_apps/bin/devel/rrbsmap-1.5/rrbsmap"
+#MACS="/clusterdata/hiseq_apps/bin/devel/MACS_git"
+#PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
+#
+#VIENNA=
+#UNAFOLD=
+

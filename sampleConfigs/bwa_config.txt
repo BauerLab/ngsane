@@ -1,7 +1,7 @@
 # author: Fabian Buske
 # date: May 2013
 
-######################################
+#####################################
 # Resources
 #####################################
 
@@ -12,7 +12,7 @@
 RUNMAPPINGBWA2="1"     # mapping with bwa
 
 #********************
-# PARAMETER (mandatory)
+# Paths
 #********************
 
 SOURCE=$(pwd)
@@ -26,17 +26,22 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# read indicator
-READONE="R1"
-READTWO="R2"
+#********************
+# PARAMETER (mandatory)
+#********************
 
 # fastq file suffix
 FASTQ="fq.gz"
-# which files to run on (replace samples with folders within fastq firectory)
+
+# read indicator immediately preceeding the fastq file suffix
+READONE="_R1"
+READTWO="_R2"
 
 # reference genome
-FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+FASTA=
 
+# library tags
 EXPID="Celltype"
 LIBRARY="RNAseq"
 PLATFORM="Illumina"
@@ -57,6 +62,6 @@ PLATFORM="Illumina"
 #PATH_BWA=
 
 ## location of ngsane
-#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+#NGSANE_BASE=
 
 

@@ -1,0 +1,79 @@
+# author: Fabian Buske
+# date: August 2013
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNMEMECHIP="1"    # motif de novo discovery
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq firectory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# if a different peak caller than peakranger was used to get the enriched regions, e.g. homer
+#TASKPEAKRANGER=$TASKHOMERCHIPSEQ
+
+# reference genome
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+FASTA=
+
+# chromosome sizes
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
+CHROMSIZES=
+
+# bed file suffix
+BED="_summit.bed"
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# extend regions by this number of basepairs (e.g. pad the summit by x bp either side)
+SLOPBEDADDPARAM="-b 100"
+
+# location of the background file (otherwise generated from the peak file)
+MEMEBACKGROUNDFILE=
+
+# background model generation  parameter to pass to fasta-get-markov
+FASTAGETMARKOVADDPARAM=
+
+# additional  parameters to pass to meme
+MEMECHIPADDPARAM="-nmeme 1000 -meme-nmotifs 1 -dreme-m 3 -centrimo-local -centrimo-noseq -meme-mod zoops"
+
+# additional parameters to pass to fimo
+FIMOADDPARAM="--qv-thresh --thresh 0.05 --motif 1"
+
+# folder containing the memechip databases 
+# MEMECHIPDATABASES=
+
+
+#WALLTIME_MEMECHIP=24:00:00
+#MEMORY_MEMECHIP=60
+#CPU_MEMECHIP=8
+#NODES_MEMECHIP="nodes=1:ppn=8"
+#MODULE_MEMECHIP=
+#PATH_MEMECHIP=
+
+## location of ngsane
+#NGSANE_BASE=
+
+

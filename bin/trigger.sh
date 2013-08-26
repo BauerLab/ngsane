@@ -8,20 +8,19 @@ function usage {
 echo -e "usage: $(basename $0) CONFIG [TASK]
 
 Script interpreting the CONFIG file in the project directory and submitting
-tasks to the queue.
+tasks to the HPC queue.
 
 required:
-  CONFIG     config.txt file specifying what needs to be done and
-               where the resources are located
+  CONFIG     config.txt file specifying the tasks and location of the resources
 
 options for TASK:
-  empty      start dry-run: make dirs, delete old files, print what will be done
+  empty      start dry-run: creates dirs, delete old files, print what will be done
   fetchdata  get data from remote server (via smbclient)
   pushresult puts results to remote server (via smbclient)
   armed      submit tasks to the queue
   direct     run task directly (e.g. on node after qrsh)
-  postonly   run only the postanalysis step of a TASK
-  html       check the cluster logfiles for errors and and make summary HTML page
+  postonly   run only the post analysis steps of a task (if available)
+  html       checks logfiles for errors and creates summary HTML page
 "
 exit
 }
@@ -31,7 +30,14 @@ if [ ! $# -gt 0 ]; then usage ; fi
 CONFIG=$1
 ADDITIONALTASK=$2
 
-# get all the specs defined in the config  (note both configs are necessary)
+# convert possibly relative path of CONFIG to absolute path
+ABSPATH=`cd \`dirname "$CONFIG"\`; pwd`"/"`basename "$CONFIG"`
+CONFIG=$ABSPATH
+
+# check if CONFIG file exists
+[ ! -f $CONFIG ] && echo "[ERROR] config file not found." && exit 1
+
+# get all the specs defined in the config and defaults from the header (note: sourcing config twice is necessary)
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
@@ -40,27 +46,32 @@ ADDITIONALTASK=$2
 #   Verify
 ############################################
 if [ -n "$ADDITIONALTASK" ]; then
+
     if [ "$ADDITIONALTASK" = "verify" ]; then
-	echo ">>>>>>>>>> $ADDITIONALTASK"
-	if [ -n "$RUNMAPPINGBWA" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bwa.sh $QOUT/$TASKBWA; fi
-	if [ -n "$recalibrateQualScore" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA; fi
-	if [ -n "$GATKcallIndels" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkIndel.sh $QOUT/$TASKIND; fi
-	if [ -n "$GATKcallSNPS" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKSNP; fi
-	if [ -n "$RUNTOPHATCUFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT; fi
-	if [ -n "$RUNCUFFDIFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/cuffdiff.sh $QOUT/$TASKCUFFDIFF; fi
-	exit
+        echo ">>>>>>>>>> $ADDITIONALTASK"
+        if [ -n "$RUNMAPPINGBWA" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bwa.sh $QOUT/$TASKBWA; fi
+    	if [ -n "$recalibrateQualScore" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA; fi
+    	if [ -n "$GATKcallIndels" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkIndel.sh $QOUT/$TASKIND; fi
+    	if [ -n "$GATKcallSNPS" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKSNP; fi
+    	if [ -n "$RUNTOPHATCUFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT; fi
+    	if [ -n "$RUNCUFFDIFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/cuffdiff.sh $QOUT/$TASKCUFFDIFF; fi
+    	exit
+    	
 	elif [ "$ADDITIONALTASK" = "fetchdata" ]; then
 	    echo ">>>>>>>>>> $ADDITIONALTASK"
 	    ${NGSANE_BASE}/mods/fetchRawDataFromServer.sh -k $CONFIG
 	    exit
+	    
 	elif [ "$ADDITIONALTASK" = "pushresult" ]; then
 	    echo ">>>>>>>>>> $ADDITIONALTASK"
 	    ${NGSANE_BASE}/mods/pushResultToServer.sh -k $CONFIG
 	    exit
+	    
     elif [ "$ADDITIONALTASK" = "html" ]; then
-	   echo ">>>>>>>>>> $ADDITIONALTASK"
-	   ${NGSANE_BASE}/mods/makeSummary.sh ${NGSANE_BASE} $CONFIG
-	    exit
+        echo ">>>>>>>>>> $ADDITIONALTASK"
+        ${NGSANE_BASE}/mods/makeSummary.sh ${NGSANE_BASE} $CONFIG
+        exit
+	    
     elif [ "$ADDITIONALTASK" = "armed" ]; then
 	    echo ">>>>>>>>>> $ADDITIONALTASK"
 	    ARMED="--armed"
@@ -72,41 +83,60 @@ if [ -n "$ADDITIONALTASK" ]; then
             else
                 echo "... take cover!"
             fi
+
     elif [ "$ADDITIONALTASK" = "forcearmed" ]; then
-	echo ">>>>>>>>>> $ADDITIONALTASK"
-	ARMED="--armed"
+    	echo ">>>>>>>>>> $ADDITIONALTASK"
+	   ARMED="--armed"
+
     elif [ "$ADDITIONALTASK" = "keep" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--keep"
+
     elif [ "$ADDITIONALTASK" = "direct" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--direct"
+
     elif [ "$ADDITIONALTASK" = "first" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--first --armed"
+
     elif [ "$ADDITIONALTASK" = "postonly" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ARMED="--postonly"
+        
     else
-	echo -e "[ERROR] don't understand $ADDITIONALTASK"
-	exit -1
+        echo -e "[ERROR] don't understand $ADDITIONALTASK"
+        exit 1
     fi
 fi
 
+############################################
 # test if source data is defined
 echo "${DIR[@]}"
 if [[ -z "${DIR[@]}" ]]; then
-  echo "[ERROR] no input directories specified (DIR)."
-  exit 1
+    echo "[ERROR] no input directories specified (DIR)."
+    exit 1
 fi
 
-# ensure out directory is there 
+############################################
+# create output directories
 for dir in ${DIR[@]}; do
-  if [ ! -d $OUT/$dir ]; then mkdir -p $OUT/$dir; fi
+    if [ ! -d $OUT/$dir ]; then mkdir -p $OUT/$dir; fi
 done
 
 if [ ! -d $QOUT ]; then mkdir -p $QOUT; fi
 if [ ! -d $TMP ]; then mkdir -p $TMP; fi
+
+############################################
+############################################
+############################################
+#
+#  Pipeline task definitions
+#
+############################################
+############################################
+############################################
+
 
 ############################################
 #   FastQC summary of fastq files
@@ -118,7 +148,7 @@ if [ ! -d $TMP ]; then mkdir -p $TMP; fi
 if [ -n "$RUNFASTQC" ]; then
     if [ -z "$TASKFASTQC" ] || [ -z "$NODES_FASTQC" ] || [ -z "$CPU_FASTQC" ] || [ -z "$MEMORY_FASTQC" ] || [ -z "$WALLTIME_FASTQC" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -i fastq -e "_"$READONE.$FASTQ -n $NODES_FASTQC \
+    $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -i fastq -e $READONE.$FASTQ -n $NODES_FASTQC \
 	-c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
 	--postcommand "${NGSANE_BASE}/mods/fastQC.sh -k $CONFIG" 
 fi
@@ -133,7 +163,7 @@ fi
 if [ -n "$RUNCUTADAPT" ]; then
     if [ -z "$TASKCUTADAPT" ] || [ -z "$NODES_CUTADAPT" ] || [ -z "$CPU_CUTADAPT" ] || [ -z "$MEMORY_CUTADAPT" ] || [ -z "$WALLTIME_CUTADAPT" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -d -k $CONFIG -t $TASKCUTADAPT -i fastq -e "_"$READONE.$FASTQ -n $NODES_CUTADAPT \
+    $QSUB $ARMED -d -k $CONFIG -t $TASKCUTADAPT -i fastq -e $READONE.$FASTQ -n $NODES_CUTADAPT \
 	-c $CPU_CUTADAPT -m $MEMORY_CUTADAPT"G" -w $WALLTIME_CUTADAPT \
 	--command "${NGSANE_BASE}/mods/cutadapt.sh -k $CONFIG -f <FILE>" 
 fi
@@ -146,7 +176,7 @@ fi
 ############################################
 
 if [ -n "$RUNTRIMMOMATIC" ]; then
-    $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMMOMATIC -i fastq -e "_"$READONE.$FASTQ -n $NODES_TRIMMOMATIC \
+    $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMMOMATIC -i fastq -e $READONE.$FASTQ -n $NODES_TRIMMOMATIC \
         -c $CPU_TRIMMOMATIC -m $MEMORY_TRIMMOMATIC"G" -w $WALLTIME_TRIMMOMATIC \
         --command "$NGSANE_BASE/mods/trimmomatic.sh -k $CONFIG -f <FILE>"
 fi
@@ -160,7 +190,7 @@ fi
 if [ -n "$RUNTRIMGALORE" ]; then
     if [ -z "$TASKTRIMGALORE" ] || [ -z "$NODES_TRIMGALORE" ] || [ -z "$CPU_TRIMGALORE" ] || [ -z "$MEMORY_TRIMGALORE" ] || [ -z "$WALLTIME_TRIMGALORE" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMGALORE -i fastq -e "_"$READONE.$FASTQ -n $NODES_TRIMGALORE \
+    $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMGALORE -i fastq -e $READONE.$FASTQ -n $NODES_TRIMGALORE \
         -c $CPU_TRIMGALORE -m $MEMORY_TRIMGALORE"G" -w $WALLTIME_TRIMGALORE \
         --command "${NGSANE_BASE}/mods/trimgalore.sh -k $CONFIG -f <FILE>"
 fi
@@ -179,6 +209,7 @@ fi
 
 
 ############################################
+#   Variance calling
 # IN: */bwa/*.bam
 # OUT: */bwa_var/*.clean.vcf
 ############################################
@@ -194,12 +225,14 @@ fi
 
 ############################################
 #   Mapping using HiCUP
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $OUT/$dir/hicup/*.$ASD.bam
 ############################################
 
 if [ -n "$RUNHICUP" ]; then
     if [ -z "$TASKHICUP" ] || [ -z "$NODES_HICUP" ] || [ -z "$CPU_HICUP" ] || [ -z "$MEMORY_HICUP" ] || [ -z "$WALLTIME_HICUP" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -k $CONFIG -t $TASKHICUP -i fastq -e "_"$READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
+    $QSUB $ARMED -k $CONFIG -t $TASKHICUP -i fastq -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
     	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP \
         --command "${NGSANE_BASE}/mods/hicup.sh $HICUPADDPARM -k $CONFIG -t $CPU_HICUP -m $(expr $MEMORY_HICUP - 1 ) -f <FILE> -r $FASTA --digest '$HICUP_RENZYMES' -o $OUT/<DIR>/$TASKHICUP --fastqName <NAME>"
 fi
@@ -214,7 +247,7 @@ fi
 if [ -n "$RUNHICLIB" ]; then
     if [ -z "$TASKHICLIB" ] || [ -z "$NODES_HICLIB" ] || [ -z "$CPU_HICLIB" ] || [ -z "$MEMORY_HICLIB" ] || [ -z "$WALLTIME_HICLIB" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -k $CONFIG -t $TASKHICLIB -i fastq -e "_"$READONE.$FASTQ \
+    $QSUB $ARMED -k $CONFIG -t $TASKHICLIB -i fastq -e $READONE.$FASTQ \
     	-n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
     	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND \
         --command "${NGSANE_BASE}/mods/hiclibMapping.sh $HICLIBADDPARM -k $CONFIG --threads $CPU_HICLIB --fastq <FILE> --enzymes '$HICLIB_RENZYMES' --outdir $OUT/<DIR>/$TASKHICLIB --fastqName <NAME>" \
@@ -226,14 +259,14 @@ fi
 ############################################
 #   Mapping using BWA
 #
-# IN:$SOURCE/$dir/fastq/*read1.fastq
+# IN : $SOURCE/$dir/fastq/*read1.fastq
 # OUT: $OUT/$dir/bwa/*.$ASD.bam
 ############################################
 
 if [ -n "$RUNMAPPINGBWA2" ]; then
     if [ -z "$TASKBWA" ] || [ -z "$NODES_BWA" ] || [ -z "$CPU_BWA" ] || [ -z "$MEMORY_BWA" ] || [ -z "$WALLTIME_BWA" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -k $CONFIG -t $TASKBWA -i fastq -e "_"$READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA \
+    $QSUB $ARMED -k $CONFIG -t $TASKBWA -i fastq -e $READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA \
         --command "${NGSANE_BASE}/mods/bwa.sh $BWAADDPARM -k $CONFIG -t $CPU_BWA -m $(expr $MEMORY_BWA - 1 ) -f <FILE> -r $FASTA \
                 -o $OUT/<DIR>/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> \
                 --fastqName $FASTQ -R $SEQREG"
@@ -249,7 +282,7 @@ fi
 if [ -n "$RUNMAPPINGBOWTIE" ]; then
     if [ -z "$TASKBOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e "_"$READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
+    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
         --command "${NGSANE_BASE}/mods/bowtie.sh $BOWTIEADDPARM -k $CONFIG -t $CPU_BOWTIE -m $(expr $MEMORY_BOWTIE - 1 ) -f <FILE> -r $FASTA \
         -o $OUT/<DIR>/$TASKBOWTIE --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> \
         --fastqName $FASTQ -R $SEQREG"
@@ -260,7 +293,7 @@ fi
 ############################################
 #  Mapping with bowtie v2
 #
-# IN: $SOURCE/$dir/fastq/*read1.fastq
+# IN:  $SOURCE/$dir/fastq/*read1.fastq
 # OUT: $OUT/$dir/bowtie/*.bam
 ############################################
 if [ -n "$RUNMAPPINGBOWTIE2" ]; then
@@ -271,17 +304,71 @@ if [ -n "$RUNMAPPINGBOWTIE2" ]; then
         --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> --fastqName <NAME>"
 fi
 
+
 ############################################
-#  Analysis with homer
+#  Gene expression analysis with tophat + cufflinks
 #
-# IN: $SOURCE/$dir/bowtie/*.bam
+# IN : $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/tophat/*.bam/
+############################################       
+if [ -n "$RUNTOPHATCUFF2" ]; then
+    if [ -z "$TASKTOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+  $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
+        --command "${NGSANE_BASE}/mods/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -f <FILE> \
+         -t $CPU_TOPHAT -o $OUT/<DIR>/$TASKTOPHAT/<NAME> "
+fi
+
+############################################
+#  HiC analysis with homer
+#
+# IN: $SOURCE/$dir/bwa/*.bam
 # OUT: $OUT/$dir/homerhic/
 ############################################
 if [ -n "$RUNHOMERHIC" ]; then
     if [ -z "$TASKHOMERHIC" ] || [ -z "$NODES_HOMERHIC" ] || [ -z "$CPU_HOMERHIC" ] || [ -z "$MEMORY_HOMERHIC" ] || [ -z "$WALLTIME_HOMERHIC" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERHIC -i $TASKBWA -e "_"$READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
+    $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERHIC -i $TASKBWA -e $READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
 	--command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -t $CPU_HOMERHIC -f <FILE> -o $OUT/<DIR>/$TASKHOMERHIC"
+fi
+
+############################################
+#  ChIP-seq analysis with homer
+#
+# IN: $SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/homerchipseq/
+############################################
+if [ -n "$RUNHOMERCHIPSEQ" ]; then
+    if [ -z "$TASKHOMERCHIPSEQ" ] || [ -z "$NODES_HOMERCHIPSEQ" ] || [ -z "$CPU_HOMERCHIPSEQ" ] || [ -z "$MEMORY_HOMERCHIPSEQ" ] || [ -z "$WALLTIME_HOMERCHIPSEQ" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERCHIPSEQ -i $TASKBOWTIE -e .$ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ \
+	--command "${NGSANE_BASE}/mods/chipseqHomer.sh -k $CONFIG -t $CPU_HOMERCHIPSEQ -f <FILE> -o $OUT/<DIR>/$TASKHOMERCHIPSEQ"
+fi
+
+############################################
+#  ChIP-seq analysis with peakranger
+#
+# IN: $SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/peakranger/
+############################################
+if [ -n "$RUNPEAKRANGER" ]; then
+    if [ -z "$TASKPEAKRANGER" ] || [ -z "$NODES_PEAKRANGER" ] || [ -z "$CPU_PEAKRANGER" ] || [ -z "$MEMORY_PEAKRANGER" ] || [ -z "$WALLTIME_PEAKRANGER" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASKPEAKRANGER -i $TASKBOWTIE -e .$ASD.bam -n $NODES_PEAKRANGER -c $CPU_PEAKRANGER -m $MEMORY_PEAKRANGER"G" -w $WALLTIME_PEAKRANGER \
+	--command "${NGSANE_BASE}/mods/peakranger.sh -k $CONFIG -t $CPU_PEAKRANGER -f <FILE> -o $OUT/<DIR>/$TASKPEAKRANGER"
+fi
+
+############################################
+#  De-novo motif discovery with memechip
+#
+# IN: $SOURCE/$dir/peakranger/*.bed
+# OUT: $OUT/$dir/memechip/
+############################################
+if [ -n "$RUNMEMECHIP" ]; then
+    if [ -z "$TASKMEMECHIP" ] || [ -z "$NODES_MEMECHIP" ] || [ -z "$CPU_MEMECHIP" ] || [ -z "$MEMORY_MEMECHIP" ] || [ -z "$WALLTIME_MEMECHIP" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASKMEMECHIP -i $TASKPEAKRANGER -e $BED -n $NODES_MEMECHIP -c $CPU_MEMECHIP -m $MEMORY_MEMECHIP"G" -w $WALLTIME_MEMECHIP \
+	--command "${NGSANE_BASE}/mods/memechip.sh -k $CONFIG -t $CPU_MEMECHIP -f <FILE> -o $OUT/<DIR>/$TASKMEMECHIP"
 fi
 
 ############################################
@@ -327,7 +414,6 @@ if [ -n "$RUNDOWNSAMPLING" ]; then
 		  fi
       done
   done
-
 fi
 
 
@@ -345,62 +431,6 @@ if [ -n "$mergeBWAbams" ]; then
 	merge.sh ${NGSANE_BASE} $OUT/combined/mergeguide/lanes/$e $OUT/combined/bwa/ ${e/tmp/$ASD.bam} bam qout/merged/
     done
 fi
-
-
-########
-# run tophat,
-# already upgraded to take the config rather than the toolkit CAREFULL to move $OUT ->$OUTDIR 
-# already cleanup in armed only
-########
-if [ -n "$RUNTOPHATCUFF" ]; then
-    if [ -z "$TASKTOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
-        
-    echo "********* $TASKTOPHAT"
-    
-    #CPUS_TOPHAT=24
- 
-    # ensure directory is there
-    if [ ! -d $QOUT/$TASKTOPHAT ]; then mkdir -p $QOUT/$TASKTOPHAT; fi
-    for dir in ${DIR[@]}
-      do
-       
-      if [ ! -d $OUT/$dir/$TASKTOPHAT ]; then mkdir -p $OUT/$dir/$TASKTOPHAT; fi
-
-      for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
-	do
-	n=`basename $f`
-	name=${n/'_'$READONE.$FASTQ/}
-	echo $name
-	echo ">>>>>"$dir"/"$TASKTOPHAT"/"$n" ("$TASKCUFF")"
-	
-        #submit
-	if [ -n "$ARMED" ]; then
-
-            #cleanup old qouts
-	    if [ -e $QOUT/$TASKTOPHAT/$dir'_'$name.out ]; then rm $QOUT/$TASKTOPHAT/$dir'_'$name.out; fi
-
-	    $BINQSUB -j oe -o $QOUT/$TASKTOPHAT/$dir'_'$name.out -w $(pwd) -l walltime=$WALLTIME_TOPHAT \
-		-N $TASKTOPHAT"_"$dir"_"$name -l $NODES_TOPHAT -l vmem=$MEMORY_TOPHAT"G" \
-		-command "${NGSANE_BASE}/mods/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -r $FASTA -f $f \
-		-t $CPU_TOPHAT -o $OUT/$dir/$TASKTOPHAT/$name/ -a $REFSEQGTF"
-	    #exit
-	fi
-      done
-
-
-    done
-fi
-
-
-if [ -n "$RUNTOPHATCUFF2" ]; then
-  $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e "_"$READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
-        --command "${NGSANE_BASE}/mods/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -f <FILE> \
-         -t $CPU_TOPHAT -o $OUT/<DIR>/$TASKTOPHAT/<NAME> "
-
-fi
-
-
-
 
 ############################################
 #   recalibrate quality scores OLD
@@ -483,8 +513,8 @@ if [ -n "$RUNREALRECAL" ]; then
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
 	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.$ASD.bam}
-	name=${n/'_'$READONE.$FASTQ/}
+	n2=${n/%$READONE.$FASTQ/.$ASD.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n2
 
 	# wait on pipeline steps
@@ -560,8 +590,8 @@ then
 	do
 	
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.$ASR.bam}
-	name=${n/'_'$READONE.$FASTQ/}
+	n2=${n/%$READONE.$FASTQ/.$ASR.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir/$TASKRCA/$n2
 
 	if [ ! -d $OUT/$dir/$TASKDOC ]; then mkdir -p $OUT/$dir/$TASKDOC; fi
@@ -613,8 +643,8 @@ then
 	do
 	
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.$ASD.bam}
-	name=${n/'_'$READONE.$FASTQ/}
+	n2=${n/%$READONE.$FASTQ/.$ASD.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n2
 
 	if [ ! -d $OUT/$dir/$TASKDOWN ]; then mkdir -p $OUT/$dir/$TASKDOWN; fi
@@ -656,7 +686,7 @@ then
     for dir in ${DIR[@]}; do
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.ashrr.bam.dindel.VCF}
+	n2=${n/%$READONE.$FASTQ/.ashrr.bam.dindel.VCF}
 	echo "$OUT/$dir/dindelS/$n2" >> dindelVCFmerge.tmp
       done
     done
@@ -689,7 +719,7 @@ then
     for dir in ${DIR[@]}; do
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.fastq/.ashrr.bam.dindel.VCF}
+	n2=${n/%$READONE.$FASTQ/.ashrr.bam.dindel.VCF}
 	#qsub -j y -o $QOUT/$TASKDINS/reg$dir"_"$n2.out -cwd -b y -N reg$dir"_"$n2.out \
 	    python $DINDELHOME/dindel-1.01-python/convertVCFToDindel.py -i $OUT/$dir/dindelS/$n2 \
 	        -o $OUT/$dir/dindelS/$n2.reg -r $FASTA
@@ -767,8 +797,8 @@ then
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.fastq )
 	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.fastq/.$ASR.bam}
-	name=${n/'_'$READONE.fastq/}
+	n2=${n/%$READONE.$FASTQ/.$ASR.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n2
 
 	# remove old pbs output
@@ -820,7 +850,7 @@ then
     for dir in ${DIR[@]};do
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.fastq );do
 	n=`basename $f`
-	echo $OUT/$dir/$TASKRCA/${n/'_'$READONE.fastq/.$ASR.bam} >> $TASKIND"bamfiles.tmp"
+	echo $OUT/$dir/$TASKRCA/${n/%$READONE.$FASTQ/.$ASR.bam} >> $TASKIND"bamfiles.tmp"
       done
     done
 
@@ -871,7 +901,7 @@ then
             if [ -e  $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp" ]; then rm  $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp"; fi
 	    for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );do
 		n=`basename $f`
-		echo $OUT/$dir/$TASKRCA/${n/'_'$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp"
+		echo $OUT/$dir/$TASKRCA/${n/%$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp"
 	    done
 	done
     # one over all folders
@@ -883,7 +913,7 @@ then
 	for dir in ${DIR[@]};do
 	    for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );do
 		n=`basename $f`
-		echo $OUT/$dir/$TASKRCA/${n/'_'$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp"
+		echo $OUT/$dir/$TASKRCA/${n/%$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp"
 	    done
 	done
 	
@@ -1009,8 +1039,8 @@ then
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
 	do
 	n=`basename $f`
-	n2=${n/'_'$READONE.$FASTQ/.$ASR.bam}
-	name=${n/'_'$READONE.$FASTQ/}
+	n2=${n/%$READONE.$FASTQ/.$ASR.bam}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n2
 
 	# remove old pbs output
@@ -1058,7 +1088,7 @@ if [ -n "$RUNCUFFDIFF" ]; then
     for dir in ${DIR[@]}; do
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );	do
 	n=`basename $f`
-	name=$name${n/'_'$READONE.$FASTQ/}","
+	name=$name${n/%$READONE.$FASTQ/}","
       done
     done
     name=$(echo $name | sed 's/\(.*\),/\1/')
@@ -1106,7 +1136,7 @@ then
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
 	do
 	n=`basename $f`
-	name=${n/'_'$READONE.$FASTQ/}
+	name=${n/%$READONE.$FASTQ/}
 	echo ">>>>>"$dir$n
 		
 	# remove old pbs output
@@ -1124,4 +1154,124 @@ then
     done
 
 fi
+
+######################################
+##########    TRINITY beta   #########
+if [ -n "$RUNTRINITY" ]; then
+  echo "        _       _     _ _"
+  echo "       | |_ ___|_|___|_| |_ _ _"
+  echo "       |  _|  _| |   | |  _| | |"
+  echo "       |_| |_| |_|_|_|_|_| |_  |"
+  echo "   DeNovo Transcriptome    |___|  "
+  echo "   Assembly without a reference genome"
+  echo ""
+  ###################################
+  ##########   Inchworm   ###########
+  if [ -n "$RUNINCHWORM" ]; then
+    echo "[NOTE] If re-running a task, make sure /qout/TASK/runnow.tmp is deleted!!!!!!!!!"
+    echo "-----> ${TASKINCHWORM}"
+    #       VVVVVVVVVV CHANGE THIS VVVVVVVVVVV
+    if [ -e $SOURCE/$QOUT/$TASKINCHWORM.checkp ]; then  # this may need to be some other filename
+      echo "[WARNING] $TASKINCHWORM has already been performed, set $RUNINCHWORM to blank to avoid wasting resources" ;
+    elif [ -z "$NODES_INCHWORM" ] || [ -z "$NCPU_INCHWORM" ] || [ -z "$MEMORY_INCHWORM" ] || [ -z "$WALLTIME_INCHWORM" ] || [ -z "$NODETYPE_INCHWORM" ] 
+        then 
+      echo "[ERROR] Server misconfigured"; exit 1
+    else 
+      if [ ! -d $QOUT/$TASKINCHWORM ]; then mkdir -p $QOUT/$TASKINCHWORM; fi
+      # this executes "prepareJobSubmission.sh", which invokes "jobsubmission.sh"
+      if [ -n "$ARMED" ]; then
+      # -y is for to enable an array
+        $QSUB $ARMED --keep -d -k $CONFIG -t $TASKINCHWORM -i fastq -e "_"$READONE.$FASTQ -n $NODES_INCHWORM \
+          -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
+          --command "${NGSANE_BASE}/mods/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+      else
+        echo $QSUB $ARMED --keep -d -k $CONFIG -t $TASKINCHWORM -i fastq -e "_"$READONE.$FASTQ -n $NODES_INCHWORM \
+        -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
+        --command "${NGSANE_BASE}/mods/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+      fi
+    fi
+  fi
+  ###################################
+  ##########   Chrysalis  ###########
+  if [ -n "$RUNCHRYSALIS" ]; then 
+    echo "----->  ${TASKCHRYSALIS}"
+    if [ -z "$NODES_CHRYSALIS" ] || [ -z "$NCPU_CHRYSALIS" ] || [ -z "$MEMORY_CHRYSALIS" ] || [ -z "$WALLTIME_CHRYSALIS" ] || [ -z "$NODETYPE_CHRYSALIS" ] ; then 
+      echo "[ERROR] Server misconfigured"; exit 1
+    elif [ ! -d $QOUT/$TASKCHRYSALIS ]; then 
+      mkdir -p $QOUT/$TASKCHRYSALIS
+    fi
+    #ensure inchworm has completed or die     
+    if [ ! -n "$RUNINCHWORM" ]; then 
+      for dir in ${DIR[@]}; do
+        if [ ! -e $SOURCE/$dir/$TASKTRINITY/inchworm*.finished ]; then 
+         echo "[ERROR] Inchworm has not completed for sample "$dir", change RUNINCHWORM in your config"
+         exit 1
+        else 
+          echo "[NOTE] Inchworm seems to have completed for sample "$dir
+        fi
+      done
+      if [ -n "$ARMED" ]; then
+        $QSUB $ARMED --keep -d -k $CONFIG -t $TASKCHRYSALIS -i fastq -e "_"$READONE.$FASTQ -n $NODES_CHRYSALIS \
+         -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS \
+         --command "${NGSANE_BASE}/mods/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+      else
+       echo $QSUB $ARMED --keep -d -k $CONFIG -t $TASKCHRYSALIS -i fastq -e "_"$READONE.$FASTQ -n $NODES_CHRYSALIS \
+         -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS \
+         --command "${NGSANE_BASE}/mods/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+      fi      
+    else 
+      if [ -n "$ARMED" ]; then
+      # -y is for to enable an array
+        $QSUB $ARMED --keep -d -k $CONFIG -t $TASKCHRYSALIS -i fastq -e "_"$READONE.$FASTQ -n $NODES_CHRYSALIS \
+         -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS -W $TASKINCHWORM \
+         --command "${NGSANE_BASE}/mods/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+      else
+       echo $QSUB $ARMED --keep -d -k $CONFIG -t $TASKCHRYSALIS -i fastq -e "_"$READONE.$FASTQ -n $NODES_CHRYSALIS \
+         -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS -W $TASKINCHWORM \
+         --command "${NGSANE_BASE}/mods/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+      fi
+    fi
+  fi
+  ###################################
+  ##########   Butterfly  ###########
+  if [ -n "$RUNBUTTERFLY" ]; then 
+    echo "-----> ${TASKBUTTERFLY}"
+    if [ -z "$NODES_BUTTERFLY" ] || [ -z "$NCPU_BUTTERFLY" ] || [ -z "$MEMORY_BUTTERFLY" ] || [ -z "$WALLTIME_BUTTERFLY" ] || [ -z "$NODETYPE_BUTTERFLY" ] ; then 
+      echo "[ERROR] Server misconfigured"; exit 1
+    elif [ ! -d $QOUT/$TASKBUTTERFLY ]; then 
+      mkdir -p $QOUT/$TASKBUTTERFLY
+    fi
+    if [ ! -n "$RUNCHRYSALIS" ]; then 
+      for dir in ${DIR[@]}; do
+        if [ ! -e $SOURCE/$dir/$TASKTRINITY/chrysalis/chrysalis.finished ]; then 
+         echo "[ERROR] Chrysalis has not completed for sample "$dir", change RUNCHRYSALIS in your config"
+         exit 1
+        else 
+          echo "[NOTE] Chrysalis seems to have completed for sample "$dir
+        fi
+      done
+      if [ -n "$ARMED" ]; then
+        $QSUB $ARMED --keep -d -k $CONFIG -t $TASKBUTTERFLY -i fastq -e "_"$READONE.$FASTQ -n $NODES_BUTTERFLY \
+          -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY \
+          --command "${NGSANE_BASE}/mods/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+      else
+       echo $QSUB $ARMED --keep -d -k $CONFIG -t $TASKBUTTERFLY -i fastq -e "_"$READONE.$FASTQ -n $NODES_BUTTERFLY \
+         -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY \
+         --command "${NGSANE_BASE}/mods/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+      fi
+    else
+      if [ -n "$ARMED" ]; then
+      # -y is for to enable an array
+       $QSUB $ARMED --keep -d -k $CONFIG -t $TASKBUTTERFLY -i fastq -e "_"$READONE.$FASTQ -n $NODES_BUTTERFLY \
+         -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY -W $TASKCHRYSALIS \
+         --command "${NGSANE_BASE}/mods/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+      else
+       echo $QSUB $ARMED --keep -d -k $CONFIG -t $TASKBUTTERFLY -i fastq -e "_"$READONE.$FASTQ -n $NODES_BUTTERFLY \
+         -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY -W $TASKCHRYSALIS \
+         --command "${NGSANE_BASE}/mods/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+      fi
+    fi
+  fi
+fi
+
 

@@ -3,7 +3,9 @@
 echo ">>>>> HiC analysis with hiclib "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> hiclibMapping.sh $*"
+echo ">>>>> job_name "$JOB_NAME
+echo ">>>>> job_id "$JOB_ID
+echo ">>>>> $(basename $0) $*"
 
 function usage {
 echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -e ENZYMES -o OUTDIR [OPTIONS]
@@ -21,7 +23,6 @@ required:
 options:
   -t | --threads <nr>       number of CPUs to use (default: 8)
   --fastqName               name of fastq file ending (fastq.gz)
-  --oldIllumina
 "
 exit
 }
@@ -85,11 +86,8 @@ echo -e "--Python libs --\n "$(yolk -l)
 # get basename of f
 n=${f##*/}
 
-# delete old bam file                                                                       
-#if [ -e $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/'_'$READONE.$FASTQ/.$ASD.bam}; fi
-
 #is paired ?                                                                                                      
-if [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
     PAIRED="1"
 else
     echo "[ERROR] hiclib requires paired-end fastq files. Could not find ${f/$READONE/$READTWO}"

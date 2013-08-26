@@ -1,7 +1,7 @@
 # author: Fabian Buske
 # date: June 2013
 
-######################################
+#####################################
 # Resources
 #####################################
 
@@ -24,19 +24,17 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# read indicator
-READONE="R1"
-READTWO="R2"
-
-# reference by chromosomes
-FASTA=/share/ClusterShare/biodata/contrib/fabbus/encodeDCC/maleByChrom/
-
 #********************
 # PARAMETER (mandatory)
 #********************
 
+# reference by chromosomes
+# e.g. /share/ClusterShare/biodata/contrib/fabbus/encodeDCC/maleByChrom/
+FASTA_CHROMDIR=
+
 # umap directory for reference
-WIGGLER_UMAPDIR=/share/ClusterShare/biodata/contrib/fabbus/umap/hg19_male/globalmap_k20tok54/
+# e.g. /share/ClusterShare/biodata/contrib/fabbus/umap/hg19_male/globalmap_k20tok54/
+WIGGLER_UMAPDIR=
 
 # Where wiggler puts its output
 WIGGLER_OUTPUTDIR=
@@ -44,12 +42,12 @@ WIGGLER_OUTPUTDIR=
 # wiggler output format (one of bg, wig, mat)
 WIGGLER_OUTPUTFORMAT=wig
 
-# specify mod that generated the bam files (default BWA)
-#TASKBWA=TASKBOWTIE2
-
 #********************
 # PARAMETER (optional)
 #********************
+
+# specify mod that generated the bam files (default BWA)
+#TASKBWA=TASKBOWTIE2
 
 #additional wiggler parameters (smoothing etc)
 #WIGGLERADDPARAMS="-k=tukey -w=300"
@@ -60,4 +58,4 @@ WIGGLER_OUTPUTFORMAT=wig
 #NODES_WIGGLER="nodes=1:ppn=1"
 
 ## location of ngsane
-#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+#NGSANE_BASE=

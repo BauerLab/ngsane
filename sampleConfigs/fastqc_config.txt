@@ -1,7 +1,7 @@
 # author: Fabian Buske
 # date: Mai 2013
 
-######################################
+#####################################
 # Resources
 #####################################
 
@@ -24,19 +24,24 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# read indicator
-READONE="R1"
-READTWO="R2"
+#********************
+# PARAMETER (mandatory)
+#********************
 
 # fastq file suffix
 FASTQ="fq.gz"
 
+# read indicator immediately preceeding the fastq file suffix
+READONE="_R1"
+READTWO="_R2"
+
 #********************
 # PARAMETER (optional)
 #********************
+
 ## change output folder name
 #TASKFASTQC=fastQC_trim
-#
+
 #WALLTIME_FASTQC=10:00:00
 #MEMORY_FASTQC=20
 #CPU_FASTQC=16
@@ -48,4 +53,4 @@ FASTQ="fq.gz"
 #PATH_LATEX=
 
 ## location of ngsane
-#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+#NGSANE_BASE=

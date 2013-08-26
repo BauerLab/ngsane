@@ -3,7 +3,9 @@
 echo ">>>>> HiC correlation analysis with hiclib "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> hiclibCorrelate.sh $*"
+echo ">>>>> job_name "$JOB_NAME
+echo ">>>>> job_id "$JOB_ID
+echo ">>>>> $(basename $0) $*"
 
 function usage {
 echo -e "usage: $(basename $0) -k CONFIG -f FASTQ -r REFERENCE -e ENZYMES -o OUTDIR [OPTIONS]
@@ -68,7 +70,7 @@ DATASETS=""
 for f in $FILES; do
     # get basename of f
     n=${f##*/}
-    n=${n/_$READONE.$FASTQ/}
+    n=${n/%$READONE.$FASTQ/}
     # get directory
     d=$(dirname $f)
     d=${d##*/}

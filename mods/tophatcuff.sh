@@ -17,7 +17,7 @@ echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
 echo ">>>>> job_id "$JOB_ID
-echo ">>>>> tophatcuff.sh $*"
+echo ">>>>> $(basename $0) $*"
 
 
 function usage {
@@ -96,6 +96,8 @@ echo -e "--JAVA     --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--tophat2  --\n "$(tophat --version)
 [ -z "$(which tophat)" ] && echo "[ERROR] no tophat detected" && exit 1
+echo -e "--cufflinks--\n "$(cufflinks 2>&1 | head -n 2 )
+[ -z "$(which cufflinks)" ] && echo "[ERROR] no cufflinks detected" && exit 1
 echo -e "--bowtie2  --\n "$(bowtie2 --version)
 [ -z "$(which bowtie2)" ] && echo "[ERROR] no bowtie2 detected" && exit 1
 echo -e "--samtools --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
@@ -126,7 +128,7 @@ n=${f##*/}
 
 # get info about input file
 FASTASUFFIX=${FASTA##*.}
-BAMFILE=$OUTDIR/../${n/_$READONE.$FASTQ/.$ASD.bam}
+BAMFILE=$OUTDIR/../${n/%$READONE.$FASTQ/.$ASD.bam}
 
 CUFOUT=${OUTDIR/$TASKTOPHAT/$TASKCUFF}
 
@@ -141,8 +143,8 @@ if [ -n "$DMGET" ]; then
 fi
 
 echo "********* detect library"
-## is paired ?                                                                                                      
-if [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+#is paired ?
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
     f2=${f/$READONE/$READTWO}
     echo "[NOTE] Paired library detected"
@@ -175,11 +177,13 @@ fi
 if [ -n "$REFSEQGTF" ] && [ -n "$GENCODEGTF" ]; then
     echo "[WARN] GENCODE and REFSEQ GTF found. GENCODE takes preference."
 fi
-if [ -n "$DOCTOREDGTFSUFFIX" ] && [ ! -f ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX} ] ; then
-    echo "[ERROR] Doctored GTF suffix specified but gtf not found: ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX}"
-    exit 1
-else
-    echo "[NOTE] Doctored GTF: ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX}"
+if [ ! -z "$DOCTOREDGTFSUFFIX" ]; then
+    if [ ! -f ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX} ] ; then
+        echo "[ERROR] Doctored GTF suffix specified but gtf not found: ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX}"
+        exit 1
+    else 
+        echo "[NOTE] Doctored GTF: ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX}"
+    fi
 fi
 
 # check library info is set
@@ -258,6 +262,8 @@ if [ -n "$GENCODEGTF" ]; then
 elif [ -n "$REFSEQGTF" ]; then
     JUNCTGENE=$(windowBed -a $OUTDIR/junctions.bed -b $REFSEQGTF -u -w 200 | wc -l | cut -d' ' -f 1)
     echo $JUNCTGENE" junction reads NCBIM37" >> $BAMFILE.stats
+else 
+    echo "0 junction reads (no gtf given)" >> $BAMFILE.stats
 fi
 
 ##index
@@ -320,13 +326,15 @@ if [ -f ${RNASEQC_GTF}.gc ]; then RNASEQC_CG="-strat gc -gc ${RNASEQC_GTF}.gc"; 
 if [ -z "$RNASEQC_GTF" ]; then
     echo "[NOTE] no GTF file specified, skipping RNA-SeQC"
 else
-    RNASeQCDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_RNASeQC}
+    RNASeQCDIR=$OUTDIR/../${n/%$READONE.$FASTQ/_RNASeQC}
     mkdir -p $RNASeQCDIR
 
-    COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar -n 1000 -s '${n/_$READONE.$FASTQ/}|${BAMFILE/.$ASD/.$ALN}|${n/_$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
+    COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE/.$ASD/.$ALN}|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
     echo $COMMAND && eval $COMMAND
 
-    #tar czf ${n/_$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR 
+    #tar czf ${n/%$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR 
+    rm -f ${BAMFILE/.$ASD/.$ALN}
+fi
 
 ##run cufflinks
 echo "********* cufflinks"
@@ -335,25 +343,18 @@ echo "[NOTE] cufflinks $(date)"
 #specify REFSEQ or Gencode GTF depending on analysis desired.
 ## add GTF file if present
 if [ -n "$GENCODEGTF" ]; then 
-    RUN_COMMAND="cufflinks --quiet --GTF-guide $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
+    RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --GTF-guide $GENCODEGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
 elif [ -n "$REFSEQGTF" ]; then 
-    RUN_COMMAND="cufflinks --quiet --GTF-guide $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
+    RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --GTF-guide $REFSEQGTF -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
 else
     # non reference guided
     echo "[NOTE] non reference guided run (neither GENCODEGTF nor REFSEQGTF defined)"
-    RUN_COMMAND="cufflinks --quiet --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
+    RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --frag-bias-correct $FASTA -p $THREADS --library-type $RNA_SEQ_LIBRARY_TYPE -o $CUFOUT $BAMFILE"
 fi
 echo $RUN_COMMAND && eval $RUN_COMMAND
 
-
-rm ${BAMFILE/.$ASD/.$ALN}
-
 echo ">>>>> alignment with TopHat - FINISHED"
 echo "[NOTE] cufflinks end $(date)"
-
-
-fi
-
 
 # add Gencode GTF if present 
 if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then 
@@ -365,7 +366,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
 #	echo ${annoF}
 	anno_version=${annoF%.*}
 	
-	HTOUTDIR=$OUTDIR/../${n/_$READONE.$FASTQ/_htseq_count}
+	HTOUTDIR=$OUTDIR/../${n/%$READONE.$FASTQ/_htseq_count}
 #	echo ${HTOUTDIR}
 	mkdir -p $HTOUTDIR
 
@@ -421,7 +422,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
 	
 	
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits_f3.bam ${n/_$READONE.$FASTQ/} $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits_f3.bam ${n/%$READONE.$FASTQ/} $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
 	
 	# index accepted_hits.bam
 	samtools index $OUTDIR/accepted_hits.bam
@@ -432,7 +433,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
 	
     RPKMSSDIR=$OUTDIR/../
 	
-    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene $RPKMSSDIR/${n/_$READONE.$FASTQ/_gene} ${anno_version}
+    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}.gene $RPKMSSDIR/${n/%$READONE.$FASTQ/_gene} ${anno_version}
 	
     echo ">>>>> Gencode RPKM calculation - FINISHED"
 
@@ -461,7 +462,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
 
     echo "********* calculate RPKMs per Gencode Gene masked"
 
-    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}_masked.gene $RPKMSSDIR/${n/_$READONE.$FASTQ/_gene_masked} ${anno_version}
+    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $HTOUTDIR/${anno_version}_masked.gene $RPKMSSDIR/${n/%$READONE.$FASTQ/_gene_masked} ${anno_version}
     echo ">>>>> Gencode RPKM calculation masked- FINISHED"
 
     rm $OUTDIR/tophat_aligned_reads_masked_sorted.bam
@@ -471,7 +472,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
     rm $OUTDIR/accepted_hits_sorted.bam
 
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits_f3.bam ${n/_$READONE.$FASTQ/}_masked $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits_f3.bam ${n/%$READONE.$FASTQ/}_masked $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
 
 fi
 
