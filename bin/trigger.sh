@@ -273,7 +273,7 @@ if [ -n "$RUNMAPPINGBWA2" ]; then
 
     $QSUB $ARMED -k $CONFIG -t $TASKBWA -i fastq -e $READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA \
         --command "${NGSANE_BASE}/mods/bwa.sh $BWAADDPARM -k $CONFIG -f <FILE> -r $FASTA \
-            -o $OUT/<DIR>/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> -R $SEQREG"
+            -o $OUT/<DIR>/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
 fi
 
 ################################################################################
@@ -288,7 +288,7 @@ if [ -n "$RUNMAPPINGBOWTIE" ]; then
 
     $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
         --command "${NGSANE_BASE}/mods/bowtie.sh $BOWTIEADDPARM -k $CONFIG -f <FILE> -r $FASTA \
-            -o $OUT/<DIR>/$TASKBOWTIE --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> -R $SEQREG"
+            -o $OUT/<DIR>/$TASKBOWTIE --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
 fi
 
 
@@ -304,7 +304,7 @@ if [ -n "$RUNMAPPINGRRBS" ]; then
 
     $QSUB $ARMED -k $CONFIG -t $TASKRRBSMAP -i fastq -e $READONE.$FASTQ -n $NODES_RRBSMAP -c $CPU_RRBSMAP -m $MEMORY_RRBSMAP"G" -w $WALLTIME_RRBSMAP \
         --command "${NGSANE_BASE}/mods/rrbsmap.sh $RRBSMAPADDPARM -k $CONFIG -f <FILE> -r $FASTA \
-            -o $OUT/<DIR>/$TASKRRBSMAP --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR> -R $SEQREG"
+            -o $OUT/<DIR>/$TASKRRBSMAP --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
 fi
 
 

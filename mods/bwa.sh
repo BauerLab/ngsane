@@ -36,8 +36,6 @@ options:
   -p | --rgpl <name>        read group platform RD PL (default: illumna)
   -s | --rgsi <name>        read group sample RG SM prefac (default: )
   -u | --rgpu <name>        read group platform unit RG PU (default:flowcell )
-  -R | --region <ps>        region of specific interest, e.g. targeted reseq
-                             format chr:pos-pos
   --forceSingle             run single end eventhough second read is present
   --noMapping
 "
@@ -62,7 +60,6 @@ while [ "$1" != "" ]; do
         -l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB
         -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
-        -R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         --forceSingle )         FORCESINGLE=1;;
         --noMapping )           NOMAPPING=1;;
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file

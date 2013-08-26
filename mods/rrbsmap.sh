@@ -59,8 +59,7 @@ while [ "$1" != "" ]; do
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
         -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU 
         -A | --adapter )        shift; ADAPTER="-A "$1 ;; # adapter
-        -S | --restrictionSite )shift; RSITE=$1 ;;
-        -R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
+        -R | --restriction )    shift; RSITE=$1 ;;
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     usage
