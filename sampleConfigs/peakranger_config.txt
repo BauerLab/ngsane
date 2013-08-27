@@ -1,7 +1,7 @@
 # author: Fabian Buske
 # date: August 2013
 
-######################################
+#####################################
 # Resources
 #####################################
 #
@@ -12,8 +12,9 @@
 RUNPEAKRANGER="1"    # peakranger ChIP-seq
 
 #********************
-# PARAMETER (mandatory)
+# Paths
 #********************
+
 SOURCE=$(pwd)
 
 # which files to run on (replace sample with folders within fastq firectory)
@@ -25,12 +26,9 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# read indicator  immediately preceeding the file suffixes
-READONE="_R1"
-READTWO="_R2"
-
-# if bwa was used to map file then set TASKBOWTIE to TASKBWA
-#TASKBOWTIE=$TASKBWA
+#********************
+# PARAMETER (mandatory)
+#********************
 
 # ChIP-seq peak size either "broad" or "sharp"
 PEAKRANGER_PEAKS="broad"
@@ -42,7 +40,11 @@ CHIPINPUT=
 # PARAMETER (optional overwriting defaults)
 #********************
 
-PEAKRANGERADDPARAM="--FDR 0.01"
+# if bwa was used to map file then set TASKBOWTIE to TASKBWA
+#TASKBOWTIE=$TASKBWA
+
+# additional peakranger parameters, e.g. "--FDR 0.01"
+PEAKRANGERADDPARAM=
 
 #WALLTIME_PEAKRANGER=24:00:00
 #MEMORY_PEAKRANGER=60
@@ -52,6 +54,6 @@ PEAKRANGERADDPARAM="--FDR 0.01"
 #PATH_PEAKRANGER=
 
 ## location of ngsane
-#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+#NGSANE_BASE=
 
 

@@ -80,6 +80,7 @@ done
   armed      submit tasks to the queue
   direct     run task directly (e.g. on node after qrsh)
   verify     check the pbs logfiles for errors
+  recover    pick up unfinished business (interrupted jobs)
   html       check the pbs logfiles for errors and and make summary HTML page
 
 

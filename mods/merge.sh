@@ -32,7 +32,7 @@ VCFTOOLS=/clusterdata/hiseq_apps/bin/devel/vcftools_0.1.5/bin
 echo ">>>>> call merge $TASK"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> merge.sh $NGSANE $FILES $OUT $NAME $TASK $QOUT $WAIT $PRIORITY"
+echo ">>>>> $(basename $0) $NGSANE $FILES $OUT $NAME $TASK $QOUT $WAIT $PRIORITY"
 
 if [ $TASK = "bam" ]; then
     echo "merging bam "$( less $FILES )

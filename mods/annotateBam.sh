@@ -12,7 +12,7 @@ echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
 echo ">>>>> job_id "$JOB_ID
-echo ">>>>> annotateBam.sh $*"
+echo ">>>>> $(basename $0) $*"
 
 
 function usage {
@@ -26,7 +26,6 @@ required:
   -f <file>                 bam file
 
 options:
-
 "
 exit
 }
@@ -34,13 +33,12 @@ exit
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
-#DEFAULTS
-
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f           )          shift; f=$1 ;; # bam file
+        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -57,10 +55,11 @@ done
 n=${f##*/}
 
 # delete old bam file
-#if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
-#if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
-#if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
-
+#if [ -z "$RECOVERFROM" ]; then
+#    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
+#    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
+#    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
+#fi
 
 #RRNA=$DATASTORE/SeqAna/reference/prod/b37/rRNA_b37.gtf
 #TRNA=$DATASTORE/SeqAna/reference/prod/b37/tRNA_b37.gtf
@@ -150,8 +149,7 @@ for o in $f; do
     
 done
 
-
-
-echo ">>>>> Annotate BAM file"
+################################################################################
+echo ">>>>> Annotate BAM file - FINISHED"
 echo ">>>>> enddate "`date`
 

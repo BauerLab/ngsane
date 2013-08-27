@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Script to trim adapters using TRIMGALORE (tapping into CUTADAPT)
 # It takes a <Run>/*.$FASTQ[.gz] file and gets the file containing the contaminats
@@ -15,12 +15,13 @@ echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
 echo ">>>>> job_id "$JOB_ID
-echo ">>>>> trimgalore.sh $*"
+echo ">>>>> $(basename $0) $*"
 
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of NGSANE
         -f | --file )           shift; f=$1 ;; # fastq file
+        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -31,19 +32,22 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-#JAVAPARAMS="-Xmx"$(expr $MEMORY_CUTADAPT - 1 )"G"
-#echo "JAVAPARAMS "$JAVAPARAMS
+################################################################################
+CHECKPOINT="programs"
 
-echo "********** programs"
 for MODULE in $MODULE_TRIMGALORE; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_TRIMGALORE:$PATH;
 module list
 echo "PATH=$PATH"
+
 echo -e "--trim galore --\n "$(trim_galore --version  | grep version  | tr -d ' ')
 [ -z "$(which trim_galore)" ] && echo "[ERROR] no trim_galore detected" && exit 1
 
-#SAMPLENAME
-# get basename of f
+echo -e "\n********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="parameters"
+
+# get basename of f (samplename)
 n=${f##*/}
 
 #is paired ?
@@ -58,10 +62,6 @@ fi
 FASTQDIR=$(basename $(dirname $f))
 o=${f/$FASTQDIR/$FASTQDIR"_"$TASKTRIMGALORE}
 FASTQDIRTRIM=$(dirname $o)
-
-if [ -n "$DMGET" ]; then
-    dmget -a ${f/$READONE/"*"}
-fi
 
 echo $FASTQDIRTRIM
 if [ ! -d $FASTQDIRTRIM ]; then mkdir -p $FASTQDIRTRIM; fi
@@ -80,37 +80,59 @@ if [ "$PAIRED" = "1" ] && [ -n "$TRIMGALORE_ADAPTER2" ]; then
 fi
 echo $CONTAM
 
-echo "********** trim"
-# Paired read
-if [ "$PAIRED" = "1" ]
-then
-    RUN_COMMAND="trim_galore $TRIMGALOREADDPARAM $CONTAM --paired --output_dir $FASTQDIRTRIM $f ${f/$READONE/$READTWO}"
-else
-    RUN_COMMAND="trim_galore $TRIMGALOREADDPARAM $CONTAM --output_dir $FASTQDIRTRIM $f"
-fi
-echo $RUN_COMMAND
-eval $RUN_COMMAND
+echo -e "\n********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="recall files from tape"
 
-echo "********** rename files"
-if [ "$PAIRED" = "1" ]; then
-    mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READONE"_val_1".fq.gz} $FASTQDIRTRIM/$n
-    mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READTWO"_val_2".fq.gz} $FASTQDIRTRIM/${n/$READONE/$READTWO}
-else
-    mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READONE"_trimmed".fq.gz} $FASTQDIRTRIM/$n
+if [ -n "$DMGET" ]; then
+    dmget -a ${f/$READONE/"*"}
 fi
 
-echo "********** zip"
-$GZIP -t $FASTQDIRTRIM/$n 2>/dev/null
-if [[ $? -ne 0 ]]; then
-    $GZIP -f $FASTQDIRTRIM/$n
-    mv $FASTQDIRTRIM/$n.gz $FASTQDIRTRIM/$n
-    if [ "$PAIRED" = "1" ]; then
-        $GZIP -f $FASTQDIRTRIM/${n/$READONE/$READTWO}
-        mv $FASTQDIRTRIM/${n/$READONE/$READTWO}.gz $FASTQDIRTRIM/${n/$READONE/$READTWO}
+echo -e "\n********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="trim"    
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    
+    # Paired read
+    if [ "$PAIRED" = "1" ]
+    then
+        trim_galore $TRIMGALOREADDPARAM $CONTAM --paired --output_dir $FASTQDIRTRIM $f ${f/$READONE/$READTWO}
+        mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READONE"_val_1".fq.gz} $FASTQDIRTRIM/$n
+        mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READTWO"_val_2".fq.gz} $FASTQDIRTRIM/${n/$READONE/$READTWO}
+    else
+        trim_galore $TRIMGALOREADDPARAM $CONTAM --output_dir $FASTQDIRTRIM $f
+        mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READONE"_trimmed".fq.gz} $FASTQDIRTRIM/$n
     fi
+
+    # mark checkpoint
+    [ -f $FASTQDIRTRIM/$n ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
-# count remaining reads
+################################################################################
+CHECKPOINT="zip"    
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    $GZIP -t $FASTQDIRTRIM/$n 2>/dev/null
+    if [[ $? -ne 0 ]]; then
+        $GZIP -f $FASTQDIRTRIM/$n
+        mv $FASTQDIRTRIM/$n.gz $FASTQDIRTRIM/$n
+        if [ "$PAIRED" = "1" ]; then
+            $GZIP -f $FASTQDIRTRIM/${n/$READONE/$READTWO}
+            mv $FASTQDIRTRIM/${n/$READONE/$READTWO}.gz $FASTQDIRTRIM/${n/$READONE/$READTWO}
+        fi
+    fi
+    # mark checkpoint
+    echo -e "\n********* $CHECKPOINT"
+fi
+
+################################################################################
+CHECKPOINT="count remaining reads"    
+
 echo "=== Remaining reads ===" >> $FASTQDIRTRIM/${n}_trimming_report.txt
 echo "remaining reads "$(zcat $FASTQDIRTRIM/$n | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n}_trimming_report.txt
 if [ "$PAIRED" = "1" ]; then
@@ -118,6 +140,8 @@ if [ "$PAIRED" = "1" ]; then
     echo "remaining reads "$(zcat $FASTQDIRTRIM/${n/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n/$READONE/$READTWO}_trimming_report.txt
 fi
 
+echo "********* $CHECKPOINT"
+################################################################################
 echo ">>>>> readtrimming with TRIMGALORE - FINISHED"
 echo ">>>>> enddate "`date`
 

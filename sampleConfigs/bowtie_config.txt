@@ -1,7 +1,7 @@
 # author: Fabian Buske
 # date: May 2013
 
-######################################
+#####################################
 # Resources
 #####################################
 
@@ -11,7 +11,7 @@
 RUNMAPPINGBOWTIE="1"    # mapping with bowtie
 
 #********************
-# PARAMETER (mandatory)
+# Paths
 #********************
 
 SOURCE=$(pwd)
@@ -25,19 +25,26 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# fastq file suffix (which files to run on)
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# fastq file suffix
 FASTQ="fq.gz"
 
-# read indicator  immediately preceeding the file suffixes
+# read indicator immediately preceeding the fastq file suffix
 READONE="_R1"
 READTWO="_R2"
 
-# reference genome
-FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+# reference genome, 
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+FASTA=
 
 # chromosome sizes
-GENOME_CHROMSIZES=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
+GENOME_CHROMSIZES=
 
+# library tags
 EXPID="Celltype"
 LIBRARY="ChIPseq"
 PLATFORM="Illumina"
@@ -54,7 +61,7 @@ BOWTIEADDPARAM="-v 3 -m 1 --tryhard --best --strata --time"
 FRAGMENTLENGTH=0
 
 # uncomment to generate strand-specific bigwig files
-#BIGWIGSTRANDS=strandspecific
+#BIGWIGSTRANDS=strand-specific
 
 #WALLTIME_BOWTIE=10:00:00
 #MEMORY_BOWTIE=60
@@ -64,6 +71,6 @@ FRAGMENTLENGTH=0
 #PATH_BOWTIE=
 
 ## location of ngsane
-#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+#NGSANE_BASE=
 
 

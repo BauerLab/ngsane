@@ -8,7 +8,7 @@
 echo ">>>>> Transfer data from HPC cluster "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
-echo ">>>>> pushResultToServer.sh $*"
+echo ">>>>> $(basename $0) $*"
 
 function usage {
 echo -e "usage: $(basename $0) -k CONFIG

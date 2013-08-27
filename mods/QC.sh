@@ -1,6 +1,6 @@
 # author: Denis C. Bauer
 # date: Feb.2011
-# modified bu Fabian Buske, Jul 2013
+# modified by Fabian Buske, Jul 2013
 SCRIPT=$1
 QOUT=$2
 
@@ -10,7 +10,7 @@ fi
 
 echo ""
 echo "###################################################"
-echo "# ${SCRIPT/.sh/} "
+echo "# NGSANE ${SCRIPT/.sh/} "
 echo "###################################################"
 
 files=$(ls $QOUT/*.out | wc -l)
@@ -42,7 +42,7 @@ done
 
 echo ">>>>>>>>>> CheckPoints "
 
-PROGRESS=$(grep "\*\*\*\*\*\*" $SCRIPT | gawk '{ sub(/\*+/,""); gsub(/\"/,""); sub(/echo/,""); sub(/ +/,""); printf $0","}')
+PROGRESS=`grep -P '^CHECKPOINT="' $SCRIPT | awk -F'"' '{print $2}' | tr '\n' ','`
 
 for i in $PROGRESS
 do
@@ -53,5 +53,3 @@ do
     echo "QC_PASS .. $var have $i/$files"
   fi
 done
-
-#dmput $QOUT/*.out

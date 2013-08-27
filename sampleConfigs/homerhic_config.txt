@@ -1,7 +1,7 @@
 # author: Fabian Buske
 # date: June 2013
 
-######################################
+#####################################
 # Resources
 #####################################
 #
@@ -46,38 +46,52 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
+#********************
+# PARAMETER (mandatory)
+#********************
+
 # read indicator immediately preceeding the file suffixes
 READONE="_R1_P1"
 READTWO="_R2_P1"
 
 # reference genome
-FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+FASTA=
 
-#********************
-# PARAMETER (mandatory)
-#********************
+# additional parameters to pass to tagdir generation
+# e.g. "-tbp 1 -illuminaPE -genome hg19 -checkGC -restrictionSite AAGCTT -removePEbg -removeSelfLigation -removeRestrictionEnds -removeSpikes 10000 5"
+HOMER_HIC_TAGDIR_ADDPARAM=
 
-# if bowtie was used to map file then set TASKBWA to TASKBOWTIE
-#TASKBWA=$TASKBOWTIE
-
-HOMER_HIC_TAGDIR_OPTIONS="-tbp 1 -illuminaPE -genome hg19 -checkGC -restrictionSite AAGCTT -removePEbg -removeSelfLigation -removeRestrictionEnds -removeSpikes 10000 5"
-
-HOMER_HIC_BACKGROUND_OPTIONS="-bgonly -res 100000"
+# additional parameters to pass to background model generation
+# e.g. "-bgonly -res 100000"
+HOMER_HIC_BACKGROUND_ADDPARAM=
 
 # either all, trans for cis
 HOMER_HIC_INTERACTIONS="all"
 
-HOMER_HIC_NORMALIZE_OPTIONS="-res 100000 -superRes 200000"
+# additional parameters to pass to normalization process
+# e.g. "-res 100000 -superRes 200000"
+HOMER_HIC_NORMALIZE_ADDPARAM=
 
-HOMER_HIC_PCA_OPTIONS="-res 100000 -genome hg19"
+# additional parameters to pass to pca computation
+# e.g. "-res 100000 -genome hg19"
+HOMER_HIC_PCA_ADDPARAM=
 
-HOMER_HIC_INTERACTION_OPTIONS="-res 100000 -center"
+# additional parameters to pass to interaction calculation 
+# e.g. "-res 100000 -center"
+HOMER_HIC_INTERACTION_ADDPARAM=
 
-HOMER_HIC_ANNOTATE_OPTIONS="hg19"
+# additional parameter to pass to annotation process
+# e.g. "hg19"
+HOMER_HIC_ANNOTATE_ADDPARAM=
 
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
+
+## if bowtie was used to map file then set TASKBWA to TASKBOWTIE
+#TASKBWA=$TASKBOWTIE
+
 #WALLTIME_HOMERHIC=60:00:00
 #MEMORY_HOMERHIC=60
 #CPU_HOMERHIC=16
@@ -86,6 +100,6 @@ HOMER_HIC_ANNOTATE_OPTIONS="hg19"
 #PATH_HOMERHIC=
 
 ## location of ngsane
-#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+#NGSANE_BASE=
 
 

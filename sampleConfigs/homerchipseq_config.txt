@@ -1,7 +1,7 @@
 # author: Fabian Buske
 # date: July 2013
 
-######################################
+#####################################
 # Resources
 #####################################
 #
@@ -13,8 +13,9 @@
 RUNHOMERCHIPSEQ="1"    # homer ChIP-seq
 
 #********************
-# PARAMETER (mandatory)
+# Paths
 #********************
+
 SOURCE=$(pwd)
 
 # which files to run on (replace sample with folders within fastq firectory)
@@ -26,12 +27,13 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
+#********************
+# PARAMETER (mandatory)
+#********************
+
 # read indicator  immediately preceeding the file suffixes
 READONE="_R1"
 READTWO="_R2"
-
-# if bwa was used to map file then set TASKBOWTIE to TASKBWA
-#TASKBOWTIE=$TASKBWA
 
 # ChIP-seq style, any of factor|histone|groseq
 HOMER_CHIPSEQ_STYLE="factor"
@@ -40,11 +42,15 @@ HOMER_CHIPSEQ_STYLE="factor"
 # PARAMETER (optional overwriting defaults)
 #********************
 
+# if bwa was used to map file then set TASKBOWTIE to TASKBWA
+#TASKBOWTIE=$TASKBWA
+
 # location of the input (control) for the chip experiments (bam file)
 CHIPINPUT=
 
 # Parameter to pass to TAGDIR generation
-#HOMER_CHIPSEQ_TAGDIR_ADDPARAM="-unique -genome hg19"
+# e.g. "-unique -genome hg19"
+HOMER_CHIPSEQ_TAGDIR_ADDPARAM=
 
 # parameters to pass to findpeaks
 HOMER_CHIPSEQ_FINDPEAKS_ADDPARAM=
@@ -63,6 +69,6 @@ HOMER_CHIPSEQ_FOCALPEAKS_ADDPARAM=
 #PATH_HOMERCHIPSEQ=
 
 ## location of ngsane
-#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+#NGSANE_BASE=
 
 

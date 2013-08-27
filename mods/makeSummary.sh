@@ -7,13 +7,14 @@ CONFIG=$2
 
 
 #PROGRAMS
+. $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
+SUMMARYTMP=$HTMLOUT".tmp"
+SUMMARYFILE=$HTMLOUT".html"
 
-SUMMARYTMP="Summary.tmp"
-SUMMARYFILE="Summary.html"
-
+for MODULE in $MODULE_SUMMARY; do module load $MODULE; done  # save way to load modules that itself load other modules
 
 echo "Last modified "`date` >$SUMMARYTMP
 
@@ -27,6 +28,7 @@ if [ -n "$RUNFASTQC" ]; then
     fi
     echo "done"
     echo "<table><tr><td valign=top>" >>$SUMMARYTMP
+    if [[ -e runStats/ && -e runStats/$TASKFASTQC/ ]]; then
     for f in $( ls runStats/$TASKFASTQC/*.zip ); do
 	# get basename of f
 	n=${f##*/}
@@ -40,6 +42,7 @@ if [ -n "$RUNFASTQC" ]; then
 	if [ "$F" -ne "0" ]; then CHART=$CHART""$ICO"error.png\"\>"$F; fi
 	echo "<a href=\"runStats/$TASKFASTQC/"$n"_fastqc/fastqc_report.html\">$n.fastq</a>$CHART<br>" >>$SUMMARYTMP
     done
+    fi
     echo "</td><td>">>$SUMMARYTMP
     echo "<img src=\"runStats/fastQCSummary.jpg\" alt=\"Quality scores for all reads\"/>" >>$SUMMARYTMP
     echo "</td></tr></table>">>$SUMMARYTMP
@@ -111,11 +114,11 @@ if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
     echo "<a name=\"mapping\"><h2>BOWTIE v2 Mapping</h2>">>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
     echo "QC"
-    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie2.sh $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie2.sh $QOUT/$TASKBOWTIE2/ >>$SUMMARYTMP
     echo "gather dirs"
     vali=""
     for dir in ${DIR[@]}; do
-        vali=$vali" $OUT/$dir/$TASKBOWTIE/"
+        vali=$vali" $OUT/$dir/$TASKBOWTIE2/"
     done
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
@@ -406,9 +409,15 @@ for i in $LINKS; do
 done
 echo "<br><br>" >>$SUMMARYFILE.tmp
 
-cat $SUMMARYFILE.tmp  $SUMMARYTMP> $SUMMARYFILE
+cat $SUMMARYFILE.tmp  $SUMMARYTMP > $SUMMARYFILE
 
 #echo "</body>" >>$SUMMARYFILE
 
 rm $SUMMARYTMP
 rm $SUMMARYFILE.tmp
+
+if [ "$(hash prince)" != "" ]; then
+    # convert html to pdf
+    prince $SUMMARYFILE -o ${HTMLOUT}.pdf
+fi
+

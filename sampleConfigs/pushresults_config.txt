@@ -1,7 +1,7 @@
 # author: Fabian Buske
 # date: June 2013
 
-######################################
+#####################################
 # Resources
 #####################################
 
@@ -45,5 +45,5 @@ FASTQ="fq.gz"
 #********************
 
 ## location of ngsane
-#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+#NGSANE_BASE=
 

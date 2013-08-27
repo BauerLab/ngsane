@@ -1,10 +1,9 @@
 # author: Fabian Buske
 # date: August 2013
 
-######################################
+#####################################
 # Resources
 #####################################
-#
 
 #********************
 # Tasks
@@ -12,8 +11,9 @@
 RUNMEMECHIP="1"    # motif de novo discovery
 
 #********************
-# PARAMETER (mandatory)
+# Paths
 #********************
+
 SOURCE=$(pwd)
 
 # which files to run on (replace sample with folders within fastq firectory)
@@ -25,14 +25,20 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
+#********************
+# PARAMETER (mandatory)
+#********************
+
 # if a different peak caller than peakranger was used to get the enriched regions, e.g. homer
 #TASKPEAKRANGER=$TASKHOMERCHIPSEQ
 
 # reference genome
-FASTA=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+FASTA=
 
 # chromosome sizes
-CHROMSIZES=/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
+CHROMSIZES=
 
 # bed file suffix
 BED="_summit.bed"
@@ -68,6 +74,6 @@ FIMOADDPARAM="--qv-thresh --thresh 0.05 --motif 1"
 #PATH_MEMECHIP=
 
 ## location of ngsane
-#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
+#NGSANE_BASE=
 
 
