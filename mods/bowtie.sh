@@ -130,7 +130,7 @@ if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 fi
     
-echo -e "\n********* $CHECKPOINT"    
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="generating the index files"
 

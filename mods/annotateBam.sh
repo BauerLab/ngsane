@@ -26,15 +26,12 @@ required:
   -f <file>                 bam file
 
 options:
-
 "
 exit
 }
 
 
 if [ ! $# -gt 3 ]; then usage ; fi
-
-#DEFAULTS
 
 #INPUTS
 while [ "$1" != "" ]; do
@@ -58,10 +55,11 @@ done
 n=${f##*/}
 
 # delete old bam file
-#if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
-#if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
-#if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
-
+#if [ -z "$RECOVERFROM" ]; then
+#    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
+#    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
+#    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
+#fi
 
 #RRNA=$DATASTORE/SeqAna/reference/prod/b37/rRNA_b37.gtf
 #TRNA=$DATASTORE/SeqAna/reference/prod/b37/tRNA_b37.gtf
@@ -151,8 +149,7 @@ for o in $f; do
     
 done
 
-
-
-echo ">>>>> Annotate BAM file"
+################################################################################
+echo ">>>>> Annotate BAM file - FINISHED"
 echo ">>>>> enddate "`date`
 

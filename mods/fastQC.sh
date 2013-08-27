@@ -23,10 +23,9 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-JAVAPARAMS="-Xmx"$(expr $MEMORY_TOPHAT - 1 )"G -Djava.io.tmpdir="$TMP
-echo "JAVAPARAMS "$JAVAPARAMS
+################################################################################
+CHECKPOINT="programs"
 
-echo "********** programs"
 for MODULE in $MODULE_FASTQC; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_FASTQC:$PATH;
 module list
@@ -36,7 +35,15 @@ echo -e "--JAVA     --\n" $(java -version 2>&1)
 echo -e "--FASTqc   --\n" $(fastqc -version 2>&1)
 [ -z "$(which fastqc)" ] && echo "[ERROR] no fastqc detected" && exit 1
 
-echo "********** get input"
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_FASTQC*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
+
+echo -e "\n********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="get input"
+
 for d in ${DIR[@]}; do
     FILES=$FILES" "$( ls $OUT/fastq/$d/*$FASTQ )
 done
@@ -47,12 +54,14 @@ if [ -d $OUT/runStats/$TASKFASTQC ]; then rm -rf $OUT/runStats/$TASKFASTQC/; fi
 mkdir -p $OUT/runStats/$TASKFASTQC
 
 CPUS=$(echo $FILES | wc -w)
-if [ "$CPUS" -gt "$CPU_FASTQC" ]; then echo "reduce to $CPU_FASTQC CPUs"; CPUS=$CPU_FASTQC; fi
+if [ "$CPUS" -gt "$CPU_FASTQC" ]; then echo "[NOTE] reduce to $CPU_FASTQC CPUs"; CPUS=$CPU_FASTQC; fi
 
-echo "********** run fastqc"
+echo -e "\n********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="run fastqc"
+
 RUN_COMMAND="fastqc --nogroup -t $CPUS --outdir $OUT/runStats/$TASKFASTQC $FILES"
-echo $RUN_COMMAND
-eval $RUN_COMMAND
+echo $RUN_COMMAND && eval $RUN_COMMAND
 
 chmod a+rx $OUT/runStats/
 chmod a+rx $OUT/runStats/fastQC
@@ -62,6 +71,8 @@ chmod a+rx $OUT/runStats/fastQC/*fastqc
 chmod a+r $OUT/runStats/fastQC/*fastqc/*
 chmod a+r $OUT/runStats/fastQC/*fastqc/*/*
 
+echo -e "\n********* $CHECKPOINT"
+################################################################################
 echo ">>>>> fastQC - FINISHED"
 echo ">>>>> enddate "`date`
 

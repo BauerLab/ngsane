@@ -61,6 +61,7 @@ PATH_SAMTOOLS=
 PATH_IGVTOOLS=
 PATH_PICARD=
 PATH_SAMSTAT=
+PATH_FASTXTK=
 
 # Commonly used file abbreviations
 READONE="read1"
@@ -362,6 +363,30 @@ NODES_RRBSMAP="nodes=4:ppn=8"
 
 MODULE_RRBSMAP=
 PATH_RRBSMAP=
+
+
+##############################################################
+# downsample
+# 
+WALLTIME_DOWNSAMPLE=5:00:00
+MEMORY_DOWNSAMPLE=20
+CPU_DOWNSAMPLE=1
+NODES_DOWNSAMPLE="nodes=1:ppn=1"
+
+MODULE_DOWNSAMPLE=
+PATH_DOWNSAMPLE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMTOOLS
+
+
+##############################################################
+# demultiplex with Fastxtoolkit
+# http://hannonlab.cshl.edu/fastx_toolkit/
+WALLTIME_DEMULTIPLEX=5:00:00
+MEMORY_DEMULTIPLEX=20
+CPU_DEMULTIPLEX=1
+NODES_DEMULTIPLEX="nodes=1:ppn=1"
+
+MODULE_DEMULTIPLEX=
+PATH_DEMULTIPLEX=$PATH_FASTXTK
 
 ##############################################################
 #VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"

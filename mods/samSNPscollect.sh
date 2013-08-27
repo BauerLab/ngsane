@@ -22,10 +22,8 @@ Variant calling with sam
 
 required:
   -k | --toolkit <path>     config file
-  -f <files>                 bam files
+  -f <files>                bam files
   -o <dir>
-options:
-
 "
 exit
 }
@@ -54,7 +52,8 @@ done
 . $CONFIG
 
 
-echo "********** programs"
+################################################################################
+CHECKPOINT="programs"
 for MODULE in $MODULE_SAMVAR; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_SAMVAR:$PATH
 module list
@@ -63,6 +62,7 @@ echo "PATH=$PATH"
 # best common denominator)
 PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
+
 echo -e "--JAVA    --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
@@ -75,19 +75,21 @@ JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_SAMVAR*0.8)")"g -Djava.io.tmpdir
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
+echo -e "\n********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
 
 # delete old bam file
-#if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
-#if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
-#if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
-
+#if [ -z "$RECOVERFROM" ]; then
+#    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
+#    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
+#    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
+#fi
 # ensure dir is there
 if [ ! -d $MYOUT ]; then mkdir -p $MYOUT; fi
-
-if [ -n $DMGET ]; then dmget -a $FILES; fi
 
 # prep for joining
 VARIANTS=""
@@ -107,21 +109,49 @@ echo $VARIANTS
 REGION=""
 if [ -n "$REF" ]; then echo $REF; REGION="-L $REF"; fi
 
+echo -e "\n********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="recall files from tape"
 
-echo "********** join with GATK"
-java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l INFO \
-   -R $FASTA \
-   -T CombineVariants \
-   $VARIANTS \
-   -o $MYOUT/joined.vcf \
-   -genotypeMergeOptions PRIORITIZE \
-   $REGION \
-   -priority $NAMES
+if [ -n "$DMGET" ]; then
+	dmget -a $FILES
+fi
+    
+echo -e "\n********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="join with GATK"
 
-echo "********* make index for IGV"
-java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $MYOUT/joined.vcf
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
 
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l INFO \
+       -R $FASTA \
+       -T CombineVariants \
+       $VARIANTS \
+       -o $MYOUT/joined.vcf \
+       -genotypeMergeOptions PRIORITIZE \
+       $REGION \
+       -priority $NAMES
 
-echo ">>>>> Join variant after calling with sam"
+    # mark checkpoint
+    [ -f $MYOUT/joined.vcf ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+fi 
+
+################################################################################
+CHECKPOINT="index for IGV"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $MYOUT/joined.vcf
+
+    # mark checkpoint
+    echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+fi
+
+################################################################################
+echo ">>>>> Join variant after calling with sam - FINISHED"
 echo ">>>>> enddate "`date`
 
