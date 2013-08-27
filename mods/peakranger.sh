@@ -68,6 +68,9 @@ CHECKPOINT="parameters"
 n=${f##*/}
 c=${CHIPINPUT##*/}
 
+if [ -z "$RECOVERFROM" ]; then
+    rm -f $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}*
+fi
 
 if [ "$PEAKRANGER_PEAKS" != "broad" ] && [ "$PEAKRANGER_PEAKS" != "sharp" ]; then
     echo "[ERROR] PEAKRANGER_PEAKS parameter not valid: $PEAKRANGER_PEAKS"

@@ -67,7 +67,7 @@ if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
     echo "[WARN] input control not provided or invalid (CHIPINPUT)"
     unset CHIPINPUT
 else
-    CHIPINPUT="--control CHIPINPUT"
+    CHIPINPUT="--control $SOURCE/$CHIPINPUT"
 fi
 
 echo -e "\n********* $CHECKPOINT"
@@ -76,35 +76,48 @@ CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f}
-	dmls -l ${f}
+	[ -n $CHIPINPUT ] && dmget -a $CHIPINPUT
 fi
+
+cd $MYOUT
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
-CHECKPOINT="macs 2"
+CHECKPOINT="macs 2 - predict d"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
-    
-    cd $MYOUT
-    
-    echo "[NOTE] data quality"
-    macs2 predictd $MACS2_PREDICTD_ADDPARAM --ifile $f --gsize $MACS2_GENOMESIZE --rfile ${n/.$ASD.bam/}_predicted
-    Rscript ${n}_predicted_model.R
-    
-    echo "[NOTE] call peaks"
-    macs2 callpeak $MACS2_CALLPEAK_ADDPARAM --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name ${n/.$ASD.bam/}
-    Rscript ${n}_model.R
-    
-    echo "[NOTE] refine peaks"
-    macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b ${n/.$ASD.bam/}_peaks.bed -i $f $CHIPINPUT --gsize $GENOMESIZE --o-prefix ${n/.$ASD.bam/}_refined
-    echo $RUN_COMMAND && eval $RUN_COMMAND
        
-    echo "Peaks: `tail -n+2 ${n/.$ASD.bam/}_peaks.bed | wc -l | awk '{print $1}'`" >> ${n/.$ASD.bam/}.summary.txt
-    echo "Summits: `tail -n+2 ${n/.$ASD.bam/}_summits.bed | wc -l | awk '{print $1}'`" >> ${n/.$ASD.bam/}.summary.txt
+    macs2 predictd $MACS2_PREDICTD_ADDPARAM --ifile $f --gsize $MACS2_GENOMESIZE --rfile ${n/.$ASD.bam/}_predicted
+    Rscript ${n/.$ASD.bam/}_predicted_model.R
+    
+    # mark checkpoint
+    [ -f ${n/.$ASD.bam/}_predicted_model.R ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+fi
 
-    cd $SOURCE
+################################################################################
+CHECKPOINT="macs 2 - call peaks "
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else
+
+    macs2 callpeak $MACS2_CALLPEAK_ADDPARAM --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name ${n/.$ASD.bam/}
+    Rscript ${n/.$ASD.bam/}_model.r
+    
+    # mark checkpoint
+    [ -f ${n/.$ASD.bam/}_predicted_model.r ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+fi
+
+################################################################################
+CHECKPOINT="macs 2 - refine peaks "
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else
+
+    macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b ${n/.$ASD.bam/}_peaks.bed -i $f $CHIPINPUT --gsize $GENOMESIZE --o-prefix ${n/.$ASD.bam/}_refined     
     
     # mark checkpoint
     [ -f ${n/.$ASD.bam/}_peaks.bed ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
@@ -114,6 +127,10 @@ fi
 CHECKPOINT="zip"
 
 # $GZIP $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_details
+echo "Peaks: `tail -n+2 ${n/.$ASD.bam/}_peaks.bed | wc -l | awk '{print $1}'`" >> ${n/.$ASD.bam/}.summary.txt
+echo "Summits: `tail -n+2 ${n/.$ASD.bam/}_summits.bed | wc -l | awk '{print $1}'`" >> ${n/.$ASD.bam/}.summary.txt
+
+cd $SOURCE
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
