@@ -377,9 +377,22 @@ if [ -n "$RUNPEAKRANGER" ]; then
 fi
 
 ################################################################################
+#  ChIP-seq analysis with MACS2
+#
+# IN: $SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/macs2/
+################################################################################
+if [ -n "$RUNMACS2" ]; then
+    if [ -z "$TASKMACS2" ] || [ -z "$NODES_MACS2" ] || [ -z "$CPU_MACS2" ] || [ -z "$MEMORY_MACS2" ] || [ -z "$WALLTIME_MACS2" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASKMACS2 -i $TASKBOWTIE -e .$ASD.bam -n $NODES_MACS2 -c $CPU_MACS2 -m $MEMORY_MACS2"G" -w $WALLTIME_MACS2 \
+	--command "${NGSANE_BASE}/mods/macs2.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKMACS2"
+fi
+
+################################################################################
 #  De-novo motif discovery with memechip
 #
-# IN: $SOURCE/$dir/peakranger/*.bed
+# IN: $SOURCE/$dir/peakranger/*.Bedford
 # OUT: $OUT/$dir/memechip/
 ################################################################################
 if [ -n "$RUNMEMECHIP" ]; then

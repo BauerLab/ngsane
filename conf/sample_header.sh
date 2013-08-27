@@ -47,6 +47,7 @@ TASKTRIMMOMATIC="trimmomatic"
 TASKHOMERHIC="homerhic"
 TASKHOMERCHIPSEQ="homerchipseq"
 TASKPEAKRANGER="peakranger"
+TASKMACS2="macs2"
 TASKMEMECHIP="memechip"
 
 ##############################################################
@@ -189,8 +190,8 @@ PATH_HOMERHIC=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 ##############################################################
 # HOMER CHIPSEQ
 # http://biowhat.ucsd.edu/homer/index.html
-WALLTIME_HOMERCHIPSEQ=24:00:00
-MEMORY_HOMERCHIPSEQ=60
+WALLTIME_HOMERCHIPSEQ=12:00:00
+MEMORY_HOMERCHIPSEQ=20
 CPU_HOMERCHIPSEQ=1
 NODES_HOMERCHIPSEQ="nodes=1:ppn=1"
 
@@ -200,13 +201,24 @@ PATH_HOMERCHIPSEQ=
 ##############################################################
 # Peakranger
 # http://ranger.sourceforge.net/
-WALLTIME_PEAKRANGER=24:00:00
-MEMORY_PEAKRANGER=60
+WALLTIME_PEAKRANGER=12:00:00
+MEMORY_PEAKRANGER=20
 CPU_PEAKRANGER=1
 NODES_PEAKRANGER="nodes=1:ppn=1"
 
 MODULE_PEAKRANGER=
 PATH_PEAKRANGER=
+
+##############################################################
+# MACS2
+# https://github.com/taoliu/MACS/
+WALLTIME_MACS2=12:00:00
+MEMORY_MACS2=20
+CPU_MACS2=1
+NODES_MACS2="nodes=1:ppn=1"
+
+MODULE_MACS2=
+PATH_MACS2=
 
 ##############################################################
 # MEMECHIP
