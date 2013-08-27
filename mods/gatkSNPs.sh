@@ -292,12 +292,10 @@ if [ -n "$VARIANTRECAL" ]; then
             -o $MYOUT/$NAME.recalfilt.eval.txt
 
 
-    
-
 fi
 
 echo "********* make index for IGV"
-java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $MYOUT/${n/bam/fi.vcf}
+java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $MYOUT/$NAME.raw.snps.vcf
 
 echo ">>>>> call SNPs using GATK - FINISHED"
 echo ">>>>> enddate "`date`
