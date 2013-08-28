@@ -1,0 +1,48 @@
+\documentclass{article}
+%\copyrightyear{2008}
+%\pubyear{2008}
+
+\usepackage{url}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{multirow}
+
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{xspace}
+%\usepackage{adjustbox}
+\usepackage{relsize}
+\usepackage{rotating}
+
+\sloppy
+\linespread{1.5}
+
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox{gray}{\parbox{\textwidth}{#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+\lstset{language=sh,captionpos=t,tabsize=3,frame=lines,keywordstyle=\color{blue},commentstyle=\color{darkgreen},stringstyle=\color{red},numbers=left,numberstyle=\tiny,numbersep=5pt,breaklines=true,showstringspaces=false,basicstyle=\footnotesize,emph={label}}
+
+\usepackage[margin=0.75in]{geometry}
+
+\renewcommand\footnotemark{} % removes mark in front of footmark
+\renewcommand{\bibnumfmt}[1]{{#1}. } % change numbering format in reference list
+\newcommand{\natcite}[1]{\nolinebreak\citep{#1}} % nature cite to prevent superscript to appear on the next line
+\newcommand{\BIBand}{\&}
+
+\begin{document}
+%\firstpage{1}
+\pagestyle{empty}
+\section*{Supplementary material}
+
+Table
+
+\bibliographystyle{natbib}
+\bibliography{ngsane}
+
+\end{document}
+
+
+
+

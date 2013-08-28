@@ -1,0 +1,131 @@
+\documentclass{bioinfo}
+\copyrightyear{2012}
+\pubyear{2012}
+
+\usepackage{url}
+%\usepackage{subfigure}
+\usepackage{natbib}
+\newcommand{\prog}{{\sc Ngsane}}
+\newcommand{\ecoli}{{\it E.coli}}
+
+\begin{document}
+\firstpage{1}
+
+\title[NGSANE]{Lightweight pipelining }
+\author[Fabian A. Buske {\em et al.}]{Fabian A. Buske\,$^{1}$,
+Hugh French\,$^{1}$,
+Martin Smith\,$^{1}$,
+and  Denis C. Bauer\,$^{1}$\footnote{Contact: \href{Denis.Bauer@CSIRO.au}{Denis.Bauer@CSIRO,au}}}
+\address{
+          $^{1}$Epigenetics Program, Cancer Research Division, Garvan Institute of Medical Research, Kinghorn Cancer Centre, Darlinghurst City, NSW 2010, Australia,\\
+          $^{2}$Division of Computational Informatics, CSIRO, Sydney, NSW. 2113 Australia,\\
+          }
+
+\history{Received on XXXXX; revised on XXXXX; accepted on XXXXX}
+
+\editor{Associate Editor: XXXXXXX}
+
+\maketitle
+
+
+\begin{abstract}
+\section{Summary: hot-swappable components rigid }
+\section{Availability and Implementation:   
+ \url{https://github.com/allPowerde/ngsane}}
+\section{Contact:} \href{Denis.Bauer@CSIRO.au}{Denis.Bauer@CSIRO.au}
+\end{abstract}
+
+\section{Introduction}
+
+The first steps of analysing sequencing data (2GS,NGS) have entered a transitional period where analysis steps can be automated in standardised pipelines, yet due to constantly evolving technology and new application areas, maintaining these pipelines can be labour intensive. 
+To address this problem several pipelining methodologies have been published in recent years with enthusiastic statements about the ease of use, some of it commercially fuelled (see a detailed list in the Supplementary). 
+Other than reducing the overhead of setting up similar analysis tasks, pipeline tools aim to make research steps reproducible and document provenance. 
+
+Many GUI-enabled tools, like Galaxy~\cite{Goecks2010}, address both aims but are commonly tailored to cater for biologist with only small numbers of experiments. 
+With further decreasing sequencing costs and a higher demand on replicates to assess technical and biological variability~\cite{Auer2010}, study sizes will substantially increase making the capability of leveraging high performance compute clusters and parallel libraries processing paramount. 
+Catering for these demands are heavy-weight frameworks written in user-friendly languages like python~\cite{Koester2012, McCoy2013, Brouwer2012}, c++~\cite{Tsirigos2012} or Groovy~\cite{Sadedin2012}. 
+
+However, utilising an additional program language for the job submission wrapper causes the developer to be two steps removed from the actual program call. 
+Hence, being able to construct pipelines from call statements that can be tested on the command line directly without syntax alterations or wrapper-scripts provides a substantial advantage in this fast pace environment where analysis pipelines are disposable as new algorithms are developed.    
+ 
+\prog\ is a lightweight, Linux-based, HPC-enabled framework that minimizes overhead for set-up and processing of new projects yet maintains full flexibility of custom scripting when processing raw sequence data.
+Below we describe \prog's aims.
+
+\paragraph{Data security and reusability}
+The framework separates project specific data from reference-files, scripts, and software suites that are reusable in other projects. 
+This ensures consistency between projects while encapsulating project and managing permissions. 
+The transaction between projects and framework is facilitated by a project-specific config file defining reference data paths and which analysis to perform. 
+\prog\ supports system with Hierarchical storage management, specifically Data Migration Facility (DMF), by ensuring files are online before attempting program calls. 
+
+\paragraph{Hot swapping and adaptability}
+Similar to the toolshed-concept in Galaxy, individual tasks, like read mapping with a specific program, can be packaged in individual bash script modules.
+Each module receives the input file (e.g. *.fastq,*.bam) via command line and can hence be executed directly on individual files during development and testing.
+During production, \prog\ automatically submits separate module calls for each input file. 
+This allows to swap modules in and out with no disruption to the overall system (hot swapping) and hence not slow down software incorporation (needing GUI parameter definitions, customized wrappers, language-specific overhead).
+
+\paragraph{High performance compute (HPC) and parallel execution} 
+\prog\ supports Sun-Grid-Engine (SGE) and Portable-Batch-System (PBS) job scheduling and can be operated in different modes for development and production thus enabling efficient and flexible processing of NGS data. 
+Since this traditional HPC job partitioning and submission is modular from the program calls, the engine can be updated to utilize other architectures, e.g. hadoop. 
+
+\paragraph{Staging}
+Like {\sc Bpipe}~\cite{Sadedin2012}, staging is achieved by using customisable interfaces between modules for in- and output file paths. 
+The sequential execution is then governed by the HPC-queuing system.
+
+\paragraph{Reproducibility and checkpoint recovery}
+A full audit trail is generated recoding performed tasks, reference data information, timestamps, software version as well as HPC log files. 
+\prog\ gracefully recovers from unsuccessfully executed jobs be it due to failed commands, missing input, oder under-resourced HPC jobs by cleanly
+restarting from the point of failure. 
+Note, \prog\ does not utilize {\sc GNU Makefile} because {\it a)} {\sc Makefile} violate \progs\ no-syntax-alteration policy by having reserved variables making it necessary to encapsulate certain commands (e.g. awk), and {\it b)} as noted by {\it snakemaker}~\cite{Koester2012} make allows only one output file per rule.   
+
+\paragraph{Complete customisation}
+In addition to the project specific config file \prog\ has a system wide config file containing details about the submission system  
+\prog\ credo is that every parameter can be overwritten 
+Programs can be linked in via modules or provided as hard.
+
+\paragraph{Repeat calls}
+As stated by {\sc nestly}~\cite{McCoy2013} pipelines have to be rerun on the full or a subset of the data with altered parameter settings. 
+\prog\  
+
+
+\paragraph{Knowledge transfer}
+foldersturucture always the same 
+provide a unified framework (e.g. common folder structure ) for processing of raw data obtained from different experimental protocols. This helps lab members familiar with the framework to understand their colleagues work, which can be crucial when somebody is not available or has move on to new challenges outside Garvan
+
+\paragraph{Automated project summary cards creation}
+generates a high level summary html file to enable informed decisions about the experimental success
+provide an access point for new lab bioinformatics members/collaborators
+
+%\begin{methods}
+
+
+
+%\begin{figure*}[tbh]
+%    \centering
+%   \includegraphics[type=pdf,ext=.pdf,read=.pdf, scale=0.49]{images/Score}
+%    \caption{
+%      {\bf Examples of scoring the alignment for a specific read.} {\bf a)}Top, alteration to the read e.g. by error correction method, where disagreeing bases are highlighted. Bottom, Resulting alignment to the reference genome of the original, $r$, and modified read,$r`$.  {\bf b)} Workflow of \prog . } 
+%      \label{fig:score}
+%\end{figure*}
+
+
+%\end{methods}
+
+%\section{Results}
+
+\prog\ can be forked via GitHub allowing monitored contribution from collaborators. 
+It currently includes pipelines for adapter trimming, read mapping, peak calling, motif discovery, transcript assembly, variant calling and chromatin conformation analysis by utilising software tools currently considered as the standard. 
+
+
+
+\subsection*{Acknowledgement}
+The authors would like to thank the Queensland Brain Institute for initial and CSIRO's Transformational Capability Platform for ongoing funding.  
+
+\subsection*{Author contribution}
+
+\subsection*{Competing financial interests}
+None declared
+
+\bibliographystyle{natbib}
+\bibliography{ngsane}
+
+\end{document}
