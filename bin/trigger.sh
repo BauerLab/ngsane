@@ -320,7 +320,6 @@ if [ -n "$RUNMAPPINGBOWTIE2" ]; then
     $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE2 -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" -w $WALLTIME_BOWTIE2 \
 	--command "${NGSANE_BASE}/mods/bowtie2.sh $BOWTIE2ADDPARM -k $CONFIG -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE2 \
         --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
-
 fi
 
 

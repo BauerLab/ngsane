@@ -1,7 +1,11 @@
 ##############################################################
 # System info
 ##############################################################
-SUBMISSIONSYSTEM=""                               # SGE or PBS
+SUBMISSIONSYSTEM="PBS"                            # SGE or PBS
+QUEUEWAIT=" -W depend=afterok:"                   # PBS
+QUEUEWAITSEP=":"
+#QUEUEWAIT=" -hold_jid "                          # SGE
+#QUEUEWAITSEP=","       
 DMGET=""                    # or Yes when storing data on tape
 TMP=$(pwd)/tmp                                       # TMP dir
 

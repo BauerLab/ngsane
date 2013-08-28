@@ -164,7 +164,7 @@ def samstats(statsfile):
     duplPercent = float(dupl)/(float(total)+pseudocount)*100
     mapped = int(st[2].strip().split(" ")[0])
     mappedPercent = float(mapped)/(float(total)+pseudocount)*100
-    paired = int(st[3].strip().split(" ")[0])
+    paired = int(st[6].strip().split(" ")[0])
     pairedPercent = float(paired)/(float(total)+pseudocount)*100
     singletons = int(st[8].strip().split(" ")[0])
     #sys.stderr.write(",".join(st))
