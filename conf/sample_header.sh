@@ -70,11 +70,13 @@ READTWO="read2"
 FASTQ="fastq.gz"
 FASTA=            # fasta file usually from the reference genome
 FASTA_CHROMDIR=   # folder containing individual fasta files for each chromosome of the reference genome 
-UNM="unm" # unmapped
-ALN="aln" # aligned 
-MUL="mul" # non-unique aligned
-ASD="asd" # aligned sorted duplicate-removed
-ASR="asdrr" # aligned sorted duplicate-removed raligned reacalibrated
+
+# file infixes
+UNM="unm"   # unmapped
+ALN="aln"   # aligned 
+MUL="mul"   # non-unique aligned
+ASD="asd"   # aligned sorted duplicate-removed
+ASR="asdrr" # aligned sorted duplicate-removed raligned recalibrated
 
 ##############################################################
 # Summary specifics
