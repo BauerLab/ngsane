@@ -25,6 +25,10 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
+# chromosome sizes
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
+CHROMSIZES=
+
 #********************
 # PARAMETER (mandatory)
 #********************
@@ -43,13 +47,13 @@ CHIPINPUT=
 # if bwa was used to map file then set TASKBOWTIE to TASKBWA
 #TASKBOWTIE=$TASKBWA
 
-# additional MACS parameters, for predictd
-# see help or https://github.com/taoliu/MACS/ for info
-MACS2_PREDICTD_ADDPARAM=
-
 # additional MACS parameters, for callpeak
-# e.g. --broad or --call-summits
+# e.g. "--broad" or "--call-summits --bdg"
 MACS2_CALLPEAK_ADDPARAM=
+
+# additional MACS parameters, for bdgcmp (only relevant when input is specified
+# e.g. "-m logLR"
+MACS2_BDGCMP_ADDPARAM=
 
 # additional MACS parameters, for refinepeak
 MACS2_REFINEPEAK_ADDPARAM=

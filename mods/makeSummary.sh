@@ -333,6 +333,33 @@ if [ -n "$RUNPEAKRANGER" ];then
     echo "</pre>" >>$SUMMARYTMP
 fi
 
+if [ -n "$RUNMACS2" ];then
+    LINKS=$LINKS" MACS2"
+    echo "<a name=\"MACS2\"><h2>MACS2 results</h2></a><pre>">>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/macs2.sh $QOUT/$TASKMACS2 >> $SUMMARYTMP
+
+    echo "</pre><h3>MACS2</h3><pre>">>$SUMMARYTMP
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/$dir/$TASKMACS2/"
+    done
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" macs2 >> $SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+
+    row0=""
+    row1=""
+    for dir in $vali; do
+    for f in $(ls $dir/*model.png); do
+        n=${f##*/}
+            n=${n/"_model.png"/}
+            row0+="<td>$n</td>"
+            row1+="<td><a href=\"${f/.png/.pdf/}\"><img src=\"$f\" width=\"200px\"/></a></td>"
+    done
+    done
+    echo "<table><tr>$row0</tr><tr>$row1</tr></table>" >> $SUMMARYTMP
+
+fi
+
 if [ -n "$RUNMEMECHIP" ];then
     LINKS=$LINKS" meme-chip"
     echo "<a name=\"meme-chip\"><h2>MEME-chip results</h2></a><pre>">>$SUMMARYTMP
