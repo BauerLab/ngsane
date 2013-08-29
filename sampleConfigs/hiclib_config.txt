@@ -48,6 +48,8 @@ BOWTIE2_INDEX=
 
 # e.g. /share/ClusterShare/software/contrib/fabbus/hiclib/30_04_13/hiclib/hg19.gap.txt
 HICLIB_GAPFILE=
+
+# Enzymes, see http://biopython.org/DIST/docs/api/Bio.Restriction-module.html 
 # e.g. "HindIII"
 HICLIB_RENZYMES=
 HICLIB_READLENGTH=

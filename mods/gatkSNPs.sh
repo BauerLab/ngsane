@@ -58,6 +58,7 @@ while [ "$1" != "" ]; do
         -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         --maxGaussians )        shift; ADDRECAL=$ADDRECAL" --maxGaussians "$1 ;; #(additional params for recal)
         --percentBadVariants )  shift; ADDRECAL=$ADDRECAL" --percentBadVariants "$1 ;; #(additional params for recal)
+        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -292,12 +293,10 @@ if [ -n "$VARIANTRECAL" ]; then
             -o $MYOUT/$NAME.recalfilt.eval.txt
 
 
-    
-
 fi
 
 echo "********* make index for IGV"
-java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $MYOUT/${n/bam/fi.vcf}
+java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $MYOUT/$NAME.raw.snps.vcf
 
 echo ">>>>> call SNPs using GATK - FINISHED"
 echo ">>>>> enddate "`date`

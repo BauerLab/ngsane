@@ -61,7 +61,7 @@ BOWTIEADDPARAM="-v 3 -m 1 --tryhard --best --strata --time"
 FRAGMENTLENGTH=0
 
 # uncomment to generate strand-specific bigwig files
-#BIGWIGSTRANDS=strandspecific
+#BIGWIGSTRANDS=strand-specific
 
 #WALLTIME_BOWTIE=10:00:00
 #MEMORY_BOWTIE=60

@@ -1,7 +1,11 @@
 ##############################################################
 # System info
 ##############################################################
-SUBMISSIONSYSTEM=""                               # SGE or PBS
+SUBMISSIONSYSTEM="PBS"                            # SGE or PBS
+QUEUEWAIT=" -W depend=afterok:"                   # PBS
+QUEUEWAITSEP=":"
+#QUEUEWAIT=" -hold_jid "                          # SGE
+#QUEUEWAITSEP=","       
 DMGET=""                    # or Yes when storing data on tape
 TMP=$(pwd)/tmp                                       # TMP dir
 
@@ -17,6 +21,7 @@ TMP=$(pwd)/tmp                                       # TMP dir
 TASKFASTQC="fastQC"
 TASKBWA="bwa"
 TASKBOWTIE="bowtie"
+TASKBOWTIE2="bowtie2"
 TASKRCA="reCalAln"
 TASKMERGE="merged"
 TASKVAR="variant"
@@ -31,7 +36,7 @@ TASKDIFFEXP="diffexp"
 TASKTOPHAT="tophat"
 TASKCUFF="cufflinks"
 TASKCUFFDIFF="cuffdiff"
-TASKRRBS="rrbs"
+TASKRRBSMAP="rrbs"
 TASKMACS="macs"
 TASKANNOVAR="annovar"
 TASKBAMANN="bamann"
@@ -46,6 +51,7 @@ TASKTRIMMOMATIC="trimmomatic"
 TASKHOMERHIC="homerhic"
 TASKHOMERCHIPSEQ="homerchipseq"
 TASKPEAKRANGER="peakranger"
+TASKMACS2="macs2"
 TASKMEMECHIP="memechip"
 
 ##############################################################
@@ -60,6 +66,7 @@ PATH_SAMTOOLS=
 PATH_IGVTOOLS=
 PATH_PICARD=
 PATH_SAMSTAT=
+PATH_FASTXTK=
 
 # Commonly used file abbreviations
 READONE="read1"
@@ -67,11 +74,13 @@ READTWO="read2"
 FASTQ="fastq.gz"
 FASTA=            # fasta file usually from the reference genome
 FASTA_CHROMDIR=   # folder containing individual fasta files for each chromosome of the reference genome 
-UNM="unm" # unmapped
-ALN="aln" # aligned 
-MUL="mul" # non-unique aligned
-ASD="asd" # aligned sorted duplicate-removed
-ASR="asdrr" # aligned sorted duplicate-removed raligned reacalibrated
+
+# file infixes
+UNM="unm"   # unmapped
+ALN="aln"   # aligned 
+MUL="mul"   # non-unique aligned
+ASD="asd"   # aligned sorted duplicate-removed
+ASR="asdrr" # aligned sorted duplicate-removed raligned recalibrated
 
 ##############################################################
 # Summary specifics
@@ -134,20 +143,30 @@ MODULE_BWA=
 PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
-# Bowtie2 (2.1.0) or Bowtie (1.0.0)
+# Bowtie (1.0.0)
 # http://bowtie-bio.sourceforge.net/index.shtml
 WALLTIME_BOWTIE=72:00:00
 MEMORY_BOWTIE=60
 CPU_BOWTIE=8
 NODES_BOWTIE="nodes=1:ppn=8"
 
-MODULE_BOWTIETWO=
-PATH_BOWTIETWO=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
-BOWTIE2_INDEX=
-
 MODULE_BOWTIE=
 PATH_BOWTIE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 BOWTIE_INDEX=
+
+
+##############################################################
+# Bowtie2 (2.1.0) 
+# http://bowtie-bio.sourceforge.net/index.shtml
+
+WALLTIME_BOWTIE2=72:00:00
+MEMORY_BOWTIE2=60
+CPU_BOWTIE2=8
+NODES_BOWTIE2="nodes=1:ppn=8"
+
+MODULE_BOWTIE2=
+PATH_BOWTIE2=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+BOWTIE2_INDEX=
 
 ##############################################################
 # Wiggler
@@ -177,8 +196,8 @@ PATH_HOMERHIC=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 ##############################################################
 # HOMER CHIPSEQ
 # http://biowhat.ucsd.edu/homer/index.html
-WALLTIME_HOMERCHIPSEQ=24:00:00
-MEMORY_HOMERCHIPSEQ=60
+WALLTIME_HOMERCHIPSEQ=12:00:00
+MEMORY_HOMERCHIPSEQ=20
 CPU_HOMERCHIPSEQ=1
 NODES_HOMERCHIPSEQ="nodes=1:ppn=1"
 
@@ -188,13 +207,24 @@ PATH_HOMERCHIPSEQ=
 ##############################################################
 # Peakranger
 # http://ranger.sourceforge.net/
-WALLTIME_PEAKRANGER=24:00:00
-MEMORY_PEAKRANGER=60
+WALLTIME_PEAKRANGER=12:00:00
+MEMORY_PEAKRANGER=20
 CPU_PEAKRANGER=1
 NODES_PEAKRANGER="nodes=1:ppn=1"
 
 MODULE_PEAKRANGER=
 PATH_PEAKRANGER=
+
+##############################################################
+# MACS2
+# https://github.com/taoliu/MACS/
+WALLTIME_MACS2=12:00:00
+MEMORY_MACS2=20
+CPU_MACS2=1
+NODES_MACS2="nodes=1:ppn=1"
+
+MODULE_MACS2=
+PATH_MACS2=
 
 ##############################################################
 # MEMECHIP
@@ -342,11 +372,45 @@ MODULE_RECAL=
 PATH_RECAL=
 
 ##############################################################
+# reduced representation bisulfite sequencing mapping 
+# https://code.google.com/p/bsmap/
+WALLTIME_RRBSMAP=60:00:00
+MEMORY_RRBSMAP=50
+CPU_RRBSMAP=32
+NODES_RRBSMAP="nodes=4:ppn=8"
+
+MODULE_RRBSMAP=
+PATH_RRBSMAP=
+
+
+##############################################################
+# downsample
+# 
+WALLTIME_DOWNSAMPLE=5:00:00
+MEMORY_DOWNSAMPLE=20
+CPU_DOWNSAMPLE=1
+NODES_DOWNSAMPLE="nodes=1:ppn=1"
+
+MODULE_DOWNSAMPLE=
+PATH_DOWNSAMPLE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMTOOLS
+
+
+##############################################################
+# demultiplex with Fastxtoolkit
+# http://hannonlab.cshl.edu/fastx_toolkit/
+WALLTIME_DEMULTIPLEX=5:00:00
+MEMORY_DEMULTIPLEX=20
+CPU_DEMULTIPLEX=1
+NODES_DEMULTIPLEX="nodes=1:ppn=1"
+
+MODULE_DEMULTIPLEX=
+PATH_DEMULTIPLEX=$PATH_FASTXTK
+
+##############################################################
 #VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 #SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
 #ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
 #
-#RRBSMAP="/clusterdata/hiseq_apps/bin/devel/rrbsmap-1.5/rrbsmap"
 #MACS="/clusterdata/hiseq_apps/bin/devel/MACS_git"
 #PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
 #

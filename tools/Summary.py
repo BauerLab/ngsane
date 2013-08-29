@@ -164,7 +164,7 @@ def samstats(statsfile):
     duplPercent = float(dupl)/(float(total)+pseudocount)*100
     mapped = int(st[2].strip().split(" ")[0])
     mappedPercent = float(mapped)/(float(total)+pseudocount)*100
-    paired = int(st[3].strip().split(" ")[0])
+    paired = int(st[6].strip().split(" ")[0])
     pairedPercent = float(paired)/(float(total)+pseudocount)*100
     singletons = int(st[8].strip().split(" ")[0])
     #sys.stderr.write(",".join(st))
@@ -641,6 +641,44 @@ def peakrangerStats(logFile):
 
     return names, values
 
+def macs2Stats(logFile):
+    names=["Total IP tags", "IP (filtered)", "%","Control tags","Control (filtered)","%","Paired peaks","Fragment length"]
+    values=[]
+    file=open(logFile).read()
+    # populate
+    tmp=file.split("#1  total tags in treatment:")[1].strip().split()[0]
+    TT=float(tmp.strip())
+    values.append(TT)
+
+    tmp=file.split("#1  tags after filtering in treatment:")[1].strip().split()[0]
+    TF=float(tmp.strip())
+    values.append(TF)
+
+    tmp=file.split("#1  Redundant rate of treatment:")[1].strip().split()[0]
+    TR=float(tmp.strip())
+    values.append(100.-TR)
+
+    tmp=file.split("#1  total tags in control:")[1].strip().split()[0]
+    CT=float(tmp.strip())
+    values.append(CT)
+
+    tmp=file.split("#1  tags after filtering in control:")[1].strip().split()[0]
+    CF=float(tmp.strip())
+    values.append(CF)
+
+    tmp=file.split("#1  Redundant rate of control:")[1].strip().split()[0]
+    CR=float(tmp.strip())
+    values.append(100.-CR)
+
+    tmp=file.split("#2 number of paired peaks:")[1].strip().split()[0]
+    PP=float(tmp.strip())
+    values.append(PP)
+
+    tmp=file.split("#2 predicted fragment length is")[1].strip().split("bps")[0]
+    PF=float(tmp.strip())
+    values.append(PF)
+
+    return names, values
 
 def memechipStats(logFile):
     names=["Peak regions", "with strong sites","%", "w/o strong sites","%"]
@@ -848,6 +886,8 @@ for d in dir:
 		    names,values=homerchipseqStats(f)
 		if (type=="peakranger"):
 		    names,values=peakrangerStats(f)
+		if (type=="macs2"):
+		   names,values=macs2Stats(f)
 		if (type=="memechip"):
 		    names,values=memechipStats(f)
 
