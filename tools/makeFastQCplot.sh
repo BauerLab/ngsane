@@ -22,34 +22,28 @@ let size=$number*2
 echo """\documentclass{article}
 \usepackage[margin=0.3in, paperwidth=8.5in, paperheight=$size in]{geometry}
 \usepackage{graphicx}
-
-
 \begin{document}
 """ >$LATEX
-
 
 echo """\begin{figure}[!ht]
            \centering
            \begin{tabular}{|c|c|}  
            \hline""" >>$LATEX
 
-
 for i in $( ls -a $FQSOURCE/*$READONE*/Images/per_base_quality.png); do
     name=${i/$FQSOURCE\//}
     name=${name/_fastqc\/Images\/per_base_quality.png/}
     name=${name//_/"\_"}
-    if [ -e ${i/$READONE/$READTWO} ]; then
+    if [ "$i" != "${i/$READONE/$READTWO}" ] && [ -e ${i/$READONE/$READTWO} ]; then
 	echo $i
 	echo $name" & "${name/$READONE/$READTWO}"\\\\">>$LATEX
 	echo "\includegraphics[height=1.7in,width=2.3in,type=png,ext=.png,read=.png]{"${i/.png/}"}&" >>$LATEX
 	i2=${i/$READONE/$READTWO}
 	echo "\includegraphics[height=1.7in,width=2.3in,type=png,ext=.png,read=.png]{"${i2/.png/}"}\\\\" >>$LATEX
     else
-	echo $name "& \\\\" >>$LATEX
-	echo "\includegraphics[height=1.5in,width=2in,type=png,ext=.png,read=.png]{"${i/.png/}"}& \\\\" >>$LATEX
-
+	echo $name " \\\\" >>$LATEX
+	echo "\includegraphics[height=1.5in,width=2in,type=png,ext=.png,read=.png]{"${i/.png/}"} \\\\" >>$LATEX
     fi
-
 done
 
 
