@@ -460,7 +460,7 @@ rm $SUMMARYFILE.tmp
 
 ################################################################################
 # convert html to pdf
-if [ "$(hash prince)" != "" ]; then
+if [ "$(hash prince)" == "" ]; then
     prince $SUMMARYFILE -o ${HTMLOUT}.pdf
 fi
 
