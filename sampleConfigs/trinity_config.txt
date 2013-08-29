@@ -40,12 +40,6 @@
 ########################################################################
 #			NGSane specific variables    
 ########################################################################
-## Stuff that is already declared in ${NGSANE_BASE}/conf/header.sh
-#TASKTRINITY="trinity"
-# TASKINCHWORM="inchworm"
-# TASKCHRYSALIS="chrysalis"
-# TASKBUTTERFLY="butterfly"
-
 ## This must be set to 1, NGSane obliges.
 RUNTRINITY="1"
 ## Leave these for now; if declaration is removed, the selected task won't be performed.  
@@ -67,10 +61,6 @@ TMP=/temp   		# On Wolfpack, this has up to 500 GB free
 ########################################################################
 # USER should edit these accordingly:
 
-#This should also load bowtie(1.x) and java (jre 1.6.0_37)
-#The java version must be the same as above 
-MODULES_TRINITY="marsmi/trinityrnaseq/2013-02-25 gi/bowtie/1.0.0 marsmi/java/1.6.0_37"
-
 SOURCE=$(pwd)
 
 # which files to run on (replace sample with folders within fastq firectory)
@@ -83,8 +73,8 @@ OUT=$SOURCE
 QOUT=$OUT/qout
 
 # read indicator
-READONE="R1"
-READTWO="R2"
+READONE="_R1"
+READTWO="_R2"
 
 #Strand specific library type: (RF or FR) Use FR for Illumina TrueSeq; RF for dUTP method
 SS_LIBRARY_TYPE="RF"
@@ -104,11 +94,11 @@ FASTQ="fq.gz"
 # - Inchworm will not efficiently use any more than 4 CPUs and you will have to take longer for resources to be assigned
 
 #—min_kmer_cov 2 to reduce memory requirements with large read sets.
-WALLTIME_INCHWORM="4:00:00"		# optional on Wolfpack 
-MEMORY_INCHWORM="40" 			# will use it for --JM
-NCPU_INCHWORM="4" 				# Use less than half of the CPUs on a node. This algorithm is limited by cache memory
-NODES_INCHWORM="1"
-NODETYPE_INCHWORM="all.q"  		
+#WALLTIME_INCHWORM="4:00:00"		# optional on Wolfpack 
+#MEMORY_INCHWORM="40" 			# will use it for --JM
+#NCPU_INCHWORM="4" 				# Use less than half of the CPUs on a node. This algorithm is limited by cache memory
+#NODES_INCHWORM="1"
+#NODETYPE_INCHWORM="all.q"  		
 #NODETYPE_INCHWORM="intel.q" 	# Inchworm performs faster when Trinity was installed using the Intell compiler (Intell systems only
 
 
@@ -117,21 +107,25 @@ NODETYPE_INCHWORM="all.q"
 ### All CPUs presenct can be used for the Chrysalis parts. 
 #They may take a while to be provisioned, so the less request, possibly the faster the jobs turnaround.
 # For one step (the parallel sort) it needs as much memory as specified in P1. Less memory, means more I/O for sorting
-WALLTIME_CHRYSALIS="24:00:00"		# optional on Wolfpack 
-MEMORY_CHRYSALIS="40"	 			# will use it for --JM
-NCPU_CHRYSALIS="16" 				# For very large datasets, besides normalisation, maybe use 32 cores
-NODES_CHRYSALIS="1"
-NODETYPE_CHRYSALIS="all.q"  		# dont use intel.q on Wolfpack for this
+#WALLTIME_CHRYSALIS="24:00:00"		# optional on Wolfpack 
+#MEMORY_CHRYSALIS="40"	 			# will use it for --JM
+#NCPU_CHRYSALIS="16" 				# For very large datasets, besides normalisation, maybe use 32 cores
+#NODES_CHRYSALIS="1"
+#NODETYPE_CHRYSALIS="all.q"  		# dont use intel.q on Wolfpack for this
 
 
 # This stage is actually Chrysalis::readsToTranscript and Butterfly. Both should ideally be run through a SGE/PBS array 
 # The Chrysalis bit is I/O heavy, so a local memory node is used. If files take up over 500GB, this will cause problems. 
 # You may want to normalise your data and/or run Martin's optimised, standalone Trinity module
 
-WALLTIME_BUTTERFLY="72:00:00"		
-MEMORY_BUTTERFLY="40"	 			
-NCPU_BUTTERFLY="32" 				
-NODES_BUTTERFLY="1"
-NODETYPE_BUTTERFLY="all.q"  		
+#WALLTIME_BUTTERFLY="72:00:00"		
+#MEMORY_BUTTERFLY="40"	 			
+#NCPU_BUTTERFLY="32" 				
+#NODES_BUTTERFLY="1"
+#NODETYPE_BUTTERFLY="all.q"  		
+
+#This should also load bowtie(1.x) and java (jre 1.6.0_37)
+#The java version must be the same as above 
+#MODULES_TRINITY="marsmi/trinityrnaseq/2013-02-25 gi/bowtie/1.0.0 marsmi/java/1.6.0_37"
 
 

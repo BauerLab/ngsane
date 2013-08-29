@@ -53,6 +53,10 @@ TASKHOMERCHIPSEQ="homerchipseq"
 TASKPEAKRANGER="peakranger"
 TASKMACS2="macs2"
 TASKMEMECHIP="memechip"
+TASKTRINITY="trinity"
+ TASKINCHWORM="inchworm"
+ TASKCHRYSALIS="chrysalis"
+ TASKBUTTERFLY="butterfly"
 
 ##############################################################
 # PROGRAM PATHS
@@ -405,6 +409,44 @@ NODES_DEMULTIPLEX="nodes=1:ppn=1"
 
 MODULE_DEMULTIPLEX=
 PATH_DEMULTIPLEX=$PATH_FASTXTK
+
+##############################################################
+# RNA-Seq De novo Assembly Using Trinity
+# http://trinityrnaseq.sourceforge.net/
+
+### Stage P1: Time and resources required for Inchworm stage
+### Only use at maximum, half the available CPUs on a node 
+# - Inchworm will not efficiently use any more than 4 CPUs and you will have to take longer for resources to be assigned
+# —min_kmer_cov 2 to reduce memory requirements with large read sets.
+WALLTIME_INCHWORM="4:00:00"		# optional on Wolfpack 
+MEMORY_INCHWORM="40" 			# will use it for --JM
+NCPU_INCHWORM="4" 				# Use less than half of the CPUs on a node. This algorithm is limited by cache memory
+NODES_INCHWORM="1"
+NODETYPE_INCHWORM="all.q"  		
+#NODETYPE_INCHWORM="intel.q" 	# Inchworm performs faster when Trinity was installed using the Intell compiler (Intell systems only
+
+### Stage P2: Time and resources required for Chrysalis stage
+### Starts with Bowtie alignment and post-processing of alignment file
+### All CPUs presenct can be used for the Chrysalis parts. 
+#They may take a while to be provisioned, so the less request, possibly the faster the jobs turnaround.
+# For one step (the parallel sort) it needs as much memory as specified in P1. Less memory, means more I/O for sorting
+WALLTIME_CHRYSALIS="24:00:00"		# optional on Wolfpack 
+MEMORY_CHRYSALIS="40"	 			# will use it for --JM
+NCPU_CHRYSALIS="16" 				# For very large datasets, besides normalisation, maybe use 32 cores
+NODES_CHRYSALIS="1"
+NODETYPE_CHRYSALIS="all.q"  		# dont use intel.q on Wolfpack for this
+
+# This stage is actually Chrysalis::readsToTranscript and Butterfly. Both should ideally be run through a SGE/PBS array 
+# The Chrysalis bit is I/O heavy, so a local memory node is used. If files take up over 500GB, this will cause problems. 
+# You may want to normalise your data and/or run Martin's optimised, standalone Trinity module
+WALLTIME_BUTTERFLY="72:00:00"		
+MEMORY_BUTTERFLY="40"	 			
+NCPU_BUTTERFLY="32" 				
+NODES_BUTTERFLY="1"
+NODETYPE_BUTTERFLY="all.q"  		
+
+MODULES_TRINITY=
+PATH_TRINITY=
 
 ##############################################################
 #VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
