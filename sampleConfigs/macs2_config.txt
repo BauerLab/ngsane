@@ -47,6 +47,9 @@ CHIPINPUT=
 # if bwa was used to map file then set TASKBOWTIE to TASKBWA
 #TASKBOWTIE=$TASKBWA
 
+# set to 1 if bigbeds should be generated
+MACS2_MAKEBIGBED=
+
 # additional MACS parameters, for callpeak
 # e.g. "--broad"
 MACS2_CALLPEAK_ADDPARAM=

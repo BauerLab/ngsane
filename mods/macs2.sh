@@ -91,6 +91,12 @@ if [ -z "$MACS2_BDGCMP_METHOD" ]; then
     MACS2_BDGCMP_METHOD="ppois"
 fi
 
+if [ -n "$MACS2_MAKEBIGBED" ]; then
+    MACS2_MAKEBIGBED="--bdg"
+else
+    echo "[NOTE] no bigbed files will be generated"
+fi
+
 echo -e "\n********* $CHECKPOINT"
 
 ################################################################################
@@ -100,7 +106,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM --bdg --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name ${n/.$ASD.bam/} > ${n/.$ASD.bam/}.summary.txt 2>&1"
+    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name ${n/.$ASD.bam/} > ${n/.$ASD.bam/}.summary.txt 2>&1"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     Rscript ${n/.$ASD.bam/}_model.r
@@ -115,6 +121,8 @@ fi
 
 ################################################################################
 CHECKPOINT="macs 2 - convert bedgraph to bigbed"
+
+if [ -n "$MACS2_MAKEBIGBED" ]; then 
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
@@ -143,6 +151,8 @@ else
     [ -f ${n/.$ASD.bam/_treat_pileup.bb} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
+fi
+
 ################################################################################
 CHECKPOINT="macs 2 - refine peaks "
 
@@ -160,7 +170,9 @@ else
 
     RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b ${n/.$ASD.bam/}_peaks.bed -i $f --o-prefix ${n/.$ASD.bam/}  >> ${n/.$ASD.bam/}.summary.txt 2>&1"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    
+    rm -f ${n/.$ASD.bam/}_peaks.bed    
+
+ 
     # mark checkpoint
     [ -f ${n/.$ASD.bam/}_refinepeak.bed ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
