@@ -7,6 +7,7 @@
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
+    -q | --queue )          shift; QUEUE=$1 ;;     # nodetype for qsub
 	-k | --toolkit )        shift; CONFIG=$1 ;;    # location of the NGSANE repository
 	-i | --input )          shift; ORIGIN=$1 ;;    # subfile in $SOURCE
 	-e | --fileending )     shift; ENDING=$1 ;;    # select source files of a specific ending
@@ -15,6 +16,7 @@ while [ "$1" != "" ]; do
 	-c | --cpu    )         shift; CPU=$1 ;;       # CPU used
 	-m | --memory )         shift; MEMORY=$1;;     # min Memory required
 	-w | --walltime )       shift; WALLTIME=$1;;
+    -W | --waitfor )        shift; WAITFOR=$1 ;;    # wait for previous TASK to finish (asumes job names follows std. NGSane rules)
 	-p | --command )        shift; COMMAND=$1;;
 	--postcommand )         shift; POSTCOMMAND=$1;;
 	--postnodes )           shift; POSTNODES=$1;;
@@ -46,9 +48,7 @@ echo "********* $TASK $NODIR"
 
 if [ ! -d $QOUT/$TASK ]; then mkdir -p $QOUT/$TASK; fi
 
-## Select files in dir to run (since direct and keep do not delete
-# the runnow.tmp they need to be forced to overwite this file every
-# time it is called)
+## Select files in dir to run 
 if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
     echo ">>>>> setup enviroment"
     if [ -e $QOUT/$TASK/runnow.tmp ]; then rm $QOUT/$TASK/runnow.tmp; fi
@@ -118,9 +118,16 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     # record task in log file
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
 
-    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
-    	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
-    	
+    # Add previous task dependencies (need another parameter for array dependencies)
+    # .....assumes standard NGsane job name rules
+    if [ -n $WAITFOR ]; then 
+        DEPENDENCIES=${WAITFOR}"_"$dir"_"$name
+        RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME -W $DEPENDENCIES \
+            -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
+    else
+        RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+            -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
+    fi
     echo -e "Jobnumber $RECIPT"
     MYPBSIDS=$MYPBSIDS":"$RECIPT
 #    MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)

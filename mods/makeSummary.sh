@@ -397,6 +397,19 @@ if [ -n "$RUNMEMECHIP" ];then
 fi
 
 ################################################################################
+
+if [ -n "$RUNTRINITY" ];then
+    
+#    for dir in ${DIR[@]}; do
+#        vali=$vali" $OUT/$dir/$TASKTRINITY/"
+#    done
+
+#    if [ -e $SOURCE/ ]
+#    LINKS=$LINKS" trinity"
+#    echo "<a name=\"trinity\"><h2>Trinity assembly stats</h2></a><pre>">>$SUMMARYTMP
+fi
+
+#
 # Old code ...
 ################################################################################
 if [ -n "$RUNANNOTATINGBAM3" ]; then

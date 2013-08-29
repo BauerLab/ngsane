@@ -1,0 +1,137 @@
+##################################################################################################################################
+##################### _______ _____  _____ _   _ _____ _________     __   _____ ____  _   _ ______ _____ _____  ##################
+#####################|__   __|  __ \|_   _| \ | |_   _|__   __\ \   / /  / ____/ __ \| \ | |  ____|_   _/ ____| ##################
+#####################   | |  | |__) | | | |  \| | | |    | |   \ \_/ /  | |   | |  | |  \| | |__    | || |  __  ##################
+#####################   | |  |  _  /  | | | . ` | | |    | |    \   /   | |   | |  | | . ` |  __|   | || | |_ | ##################
+#####################   | |  | | \ \ _| |_| |\  |_| |_   | |     | |    | |___| |__| | |\  | |     _| || |__| | ##################
+#####################   |_|  |_|  \_\_____|_| \_|_____|  |_|     |_|     \_____\____/|_| \_|_|    |_____\_____| ##################
+##################################################################################################################################                                                                                          
+###
+### 	Author: 	Martin A. Smith, Garvan Institute, Darlinghurst NSW Australia
+###     Email: 		m.smith@garvan.org
+###
+###	NGSane configuration file for script to split the Trinity workflow into multiple stages so as to 
+###	efficiently request and use appropriate resources (walltime and number of cores) on a computer cluster / supercomputer.
+###	This should increase the speed of Trinity de-novo RNAseq assembly without a reference genome drastically
+###	Inspired by the Trinity PBS utile written by Josh Bowden, CSIRO IM&T and Alexie Papanicolaou CSIRO CES
+###
+###	User must set all the variables in this file to appropriate values 
+###	Additional NGSane analysis mods will be written soon. 
+###
+#####################################################   RUNNING TRINITY ON YOUR DATA   ########################################### 
+###
+### De novo RNAseq assembly is the ideal way to analyse transcriptomic data. However, the analysis pipeline and algorithms are
+### quite different to classical map-first, assemble second strategies. 
+###
+### Points to consider:
+###
+###	  ----> DIRECTORY STRUCTURE AND DEPENDENCIES: make sure your subdirs in /fastq/ are all named differently.
+###			If you are running simultaneous jobs from different parent (project) directories, make sure the /fastq/sample 
+###			names are different to the other parent directories or qsub will have a seizure 
+###   ---->	Merging your RNAseq data into one meta-file per experimental condition (or better yet, one file for all data sets 
+###			you wish to compare). The assembly performs best on high coverage data (paired-end, strand specific ideally).
+###   ---->	If your input data is very deep (>300B reads), consider normalising your data first (see Trinity utils)
+###   ---->	Trinity only assembled transcripts; to quantify you then have to map the reads back to the assembled transcripts. 
+###			Please read the litterature on currently supported downstream analysis pipelines (Haas BJ et al. Nature Protoc 2013)
+### 
+##################################################################################################################################
+
+
+########################################################################
+#			NGSane specific variables    
+########################################################################
+## Stuff that is already declared in ${NGSANE_BASE}/conf/header.sh
+#TASKTRINITY="trinity"
+# TASKINCHWORM="inchworm"
+# TASKCHRYSALIS="chrysalis"
+# TASKBUTTERFLY="butterfly"
+
+## This must be set to 1, NGSane obliges.
+RUNTRINITY="1"
+## Leave these for now; if declaration is removed, the selected task won't be performed.  
+ RUNINCHWORM=
+ RUNCHRYSALIS=
+ RUNBUTTERFLY="1"
+
+## Remove ALL intermediate files. Avoid this.... 
+CLEANUP="0"
+
+## For significant performance boosts, this NGSane variable should point to a local folder on the 
+## compute node as Chrysalis requires large amounts of I/O 
+## There should also be at least 250 GB available, depending on the coplexity of your data. 
+#TMP=/share/Temp 
+TMP=/temp   		# On Wolfpack, this has up to 500 GB free
+
+########################################################################
+#			Job parameters *** MANDATORY *** 
+########################################################################
+# USER should edit these accordingly:
+
+#This should also load bowtie(1.x) and java (jre 1.6.0_37)
+#The java version must be the same as above 
+MODULES_TRINITY="marsmi/trinityrnaseq/2013-02-25 gi/bowtie/1.0.0 marsmi/java/1.6.0_37"
+
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq firectory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+# read indicator
+READONE="R1"
+READTWO="R2"
+
+#Strand specific library type: (RF or FR) Use FR for Illumina TrueSeq; RF for dUTP method
+SS_LIBRARY_TYPE="RF"
+
+# fastq file suffix
+FASTQ="fq.gz"
+
+########################################################################
+#				Resources 
+########################################################################
+# This is where you specify resource limits. We provide some defaults values
+# Ultimately settings depends on your hardware architechture, data size and complexity
+# Steps that go beyond their walltime will not complete. Edit these values and resubmit
+
+### Stage P1: Time and resources required for Inchworm stage
+### Only use at maximum, half the available CPUs on a node 
+# - Inchworm will not efficiently use any more than 4 CPUs and you will have to take longer for resources to be assigned
+
+#—min_kmer_cov 2 to reduce memory requirements with large read sets.
+WALLTIME_INCHWORM="4:00:00"		# optional on Wolfpack 
+MEMORY_INCHWORM="40" 			# will use it for --JM
+NCPU_INCHWORM="4" 				# Use less than half of the CPUs on a node. This algorithm is limited by cache memory
+NODES_INCHWORM="1"
+NODETYPE_INCHWORM="all.q"  		
+#NODETYPE_INCHWORM="intel.q" 	# Inchworm performs faster when Trinity was installed using the Intell compiler (Intell systems only
+
+
+### Stage P2: Time and resources required for Chrysalis stage
+### Starts with Bowtie alignment and post-processing of alignment file
+### All CPUs presenct can be used for the Chrysalis parts. 
+#They may take a while to be provisioned, so the less request, possibly the faster the jobs turnaround.
+# For one step (the parallel sort) it needs as much memory as specified in P1. Less memory, means more I/O for sorting
+WALLTIME_CHRYSALIS="24:00:00"		# optional on Wolfpack 
+MEMORY_CHRYSALIS="40"	 			# will use it for --JM
+NCPU_CHRYSALIS="16" 				# For very large datasets, besides normalisation, maybe use 32 cores
+NODES_CHRYSALIS="1"
+NODETYPE_CHRYSALIS="all.q"  		# dont use intel.q on Wolfpack for this
+
+
+# This stage is actually Chrysalis::readsToTranscript and Butterfly. Both should ideally be run through a SGE/PBS array 
+# The Chrysalis bit is I/O heavy, so a local memory node is used. If files take up over 500GB, this will cause problems. 
+# You may want to normalise your data and/or run Martin's optimised, standalone Trinity module
+
+WALLTIME_BUTTERFLY="72:00:00"		
+MEMORY_BUTTERFLY="40"	 			
+NCPU_BUTTERFLY="32" 				
+NODES_BUTTERFLY="1"
+NODETYPE_BUTTERFLY="all.q"  		
+
+
