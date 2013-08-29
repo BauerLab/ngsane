@@ -85,6 +85,12 @@ fi
 
 cd $MYOUT
 
+# set default method to ppois unless specified
+if [ -z "$MACS2_BDGCMP_METHOD" ]; then
+    echo "[NOTE] no method provided for MACS2_BDGCMP_METHOD, defaulting to ppois"
+    MACS2_BDGCMP_METHOD="ppois"
+fi
+
 echo -e "\n********* $CHECKPOINT"
 
 ################################################################################
@@ -94,30 +100,47 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    macs2 callpeak $MACS2_CALLPEAK_ADDPARAM --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name ${n/.$ASD.bam/} > ${n/.$ASD.bam/}.summary.txt 2>&1
+    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM --bdg --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name ${n/.$ASD.bam/} > ${n/.$ASD.bam/}.summary.txt 2>&1"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
 
     Rscript ${n/.$ASD.bam/}_model.r
-    cat ${n/.$ASD.bam/}_model.r | sed 's/pdf(/png(/' | sed 's/=6/=200/g' > ${n/.$ASD.bam/}_model.png.r
-    Rscript ${n/.$ASD.bam/}_model.png.r && rm ${n/.$ASD.bam/}_model.png.r
-    if [ -n "$(which convert)" ]; then convert -size 200x200 ${n/.$ASD.bam/}_model.pdf ${n/.$ASD.bam/}_model.png; fi
-   
-    if [ -n "$CHIPINPUT" ]; then
-        macs2 bdgcmp $MACS2_BDGCMP_ADDPARAM --treatment ${n/.$ASD.bam/_treat_pileup.bdg} ${n/.$ASD.bam/_control_lambda.bdg} --output ${n/.$ASD.bam/}
-	if [ -n "$(which bedToBigBed)" ]; then 
-            bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $CHROM_SIZES ${n/.$ASD.bam/_treat_pileup.bb}
-            bedToBigBed -type=bed4 ${n/.$ASD.bam/_control_lambda.bdg} $CHROM_SIZES ${n/.$ASD.bam/_control_lambda.bdg}
-            rm ${n/.$ASD.bam/_treat_pileup.bdg} ${n/.$ASD.bam/_control_lambda.bdg}
-        fi
 
-    else
-        if [ -n "$(which bedToBigBed)" ]; then
-            bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $CHROM_SIZES ${n/.$ASD.bam/_treat_pileup.bb}
-            rm ${n/.$ASD.bam/_treat_pileup.bdg}
-        fi
+    if [ -n "$(which convert)" ]; then 
+        convert -format png ${n/.$ASD.bam/_model.pdf} ${n/.$ASD.bam/_model.png}
     fi
 
     # mark checkpoint
     [ -f ${n/.$ASD.bam/}_model.r ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+fi
+
+################################################################################
+CHECKPOINT="macs 2 - convert bedgraph to bigbed"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else
+ 
+    if [ -n "$CHIPINPUT" ]; then
+
+        RUN_COMMAND="macs2 bdgcmp $MACS2_BDGCMP_ADDPARAM --method $MACS2_BDGCMP_METHOD --tfile ${n/.$ASD.bam/_treat_pileup.bdg} --cfile ${n/.$ASD.bam/_control_lambda.bdg} --output ${n/.$ASD.bam/} >> ${n/.$ASD.bam/}.summary.txt 2>&1"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+
+	if [ -n "$(which bedToBigBed)" ]; then 
+            bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
+            bedToBigBed -type=bed4 ${n/.$ASD.bam/_control_lambda.bdg} $CHROMSIZES ${n/.$ASD.bam/_control_lambda.bb}
+            bedToBigBed -type=bed4 ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg} $CHROMSIZES ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bb}
+        fi
+
+    else
+        if [ -n "$(which bedToBigBed)" ]; then
+            bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
+        fi
+    fi
+
+    rm -f ${n/.$ASD.bam/_treat_pileup.bdg} ${n/.$ASD.bam/_control_lambda.bdg} ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg}
+
+    # mark checkpoint
+    [ -f ${n/.$ASD.bam/_treat_pileup.bb} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -135,22 +158,16 @@ else
         cat ${n/.$ASD.bam/}_peaks.narrowPeak | cut -f1-6 > ${n/.$ASD.bam/}_peaks.bed
     fi
 
-    macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b ${n/.$ASD.bam/}_peaks.bed -i $f --o-prefix ${n/.$ASD.bam/}_refined  >> ${n/.$ASD.bam/}.summary.txt 2>&1
+    RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b ${n/.$ASD.bam/}_peaks.bed -i $f --o-prefix ${n/.$ASD.bam/}  >> ${n/.$ASD.bam/}.summary.txt 2>&1"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    [ -f ${n/.$ASD.bam/}_refined_peaks.bed ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f ${n/.$ASD.bam/}_refinepeak.bed ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
-CHECKPOINT="zip"
-
-# $GZIP $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_details
-echo "Peaks: `cat ${n/.$ASD.bam/}_peaks.bed | wc -l | awk '{print $1}'`" >> ${n/.$ASD.bam/}.summary.txt
-echo "Summits: `cat ${n/.$ASD.bam/}_summits.bed | wc -l | awk '{print $1}'`" >> ${n/.$ASD.bam/}.summary.txt
-
 cd $SOURCE
 
-echo -e "\n********* $CHECKPOINT"
 ################################################################################
 echo ">>>>> ChIPseq analysis with MACS2 - FINISHED"
 echo ">>>>> enddate "`date`

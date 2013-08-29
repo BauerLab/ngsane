@@ -348,15 +348,17 @@ if [ -n "$RUNMACS2" ];then
 
     row0=""
     row1=""
+    row2=""
     for dir in $vali; do
-    for f in $(ls $dir/*model.png); do
+    for f in $(ls $dir/*model-0.png); do
         n=${f##*/}
-            n=${n/"_model.png"/}
+            n=${n/"_model-0.png"/}
             row0+="<td>$n</td>"
-            row1+="<td><a href=\"${f/.png/.pdf/}\"><img src=\"$f\" width=\"200px\"/></a></td>"
+            row1+="<td><a href=\"${f/-0.png/.pdf/}\"><img src=\"$f\" width=\"200px\"/></a></td>"
+            row2+="<td><a href=\"${f/-1.png/.pdf/}\"><img src=\"${f/model-0.png/model-1.png}\" width=\"200px\"/></a></td>"
     done
     done
-    echo "<table><tr>$row0</tr><tr>$row1</tr></table>" >> $SUMMARYTMP
+    echo "<table><tr>$row0</tr><tr>$row1</tr><tr>$row2</tr></table>" >> $SUMMARYTMP
 
 fi
 
