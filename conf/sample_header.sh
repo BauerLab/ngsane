@@ -82,6 +82,9 @@ MUL="mul"   # non-unique aligned
 ASD="asd"   # aligned sorted duplicate-removed
 ASR="asdrr" # aligned sorted duplicate-removed raligned recalibrated
 
+MODULES_DEFAULT=
+for MODULE in $MODULES_DEFAULT; do module load $MODULES_DEFAULT; done
+
 ##############################################################
 # Summary specifics
 # html2pdf conversion via PRINCE
