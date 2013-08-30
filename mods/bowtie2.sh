@@ -119,11 +119,12 @@ if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie
 if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
 if [ -n "$DMGET" ]; then
-	echo "********** recall files from tape"
-	dmget -a $(dirname $FASTA)/*
-	dmls -l $FASTA*
+	echo "********** recall files from tape $FASTA*  "${f/$READONE/"*"}
+#	dmget -a $(dirname $FASTA)/*
+#	dmls -l $FASTA*
+        dmget -a $FASTA*
 	dmget -a ${f/$READONE/"*"}
-	dmls -l ${f/$READONE/"*"}
+#	dmls -l ${f/$READONE/"*"}
 fi
 
 echo "********* bowtie"
