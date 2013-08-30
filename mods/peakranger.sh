@@ -78,7 +78,10 @@ peakranger nr --format bam --data $f --control $CHIPINPUT > $MYOUT/${n/.$ASD.bam
 echo "[NOTE] library complexity"
 peakranger lc --data $f >> $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
 
+echo "[NOTE] make wigpe"
+peakranger wigpe --data $f --output $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}
 
+ 
 if [ "$PEAKRANGER_PEAKS" == "broad" ]; then
     echo "[NOTE] calling broad peaks"
     COMMAND="peakranger ccat $PEAKRANGERADDPARAM --format bam --data  $f --control $CHIPINPUT --output $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}"
@@ -92,6 +95,7 @@ fi
 echo $COMMAND && eval $COMMAND
 
 # echo remove comments from bed files
+echo "********* remove comments from bedfiles"
 grep -v "#" $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed > $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.tmp && mv $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.tmp $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed
 
 grep -v "#" $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed > $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.tmp && mv $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.tmp $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed

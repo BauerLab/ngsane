@@ -149,8 +149,9 @@ else
 fi
 
 if [ -n "$DMGET" ]; then
-	echo "[NOTE] reacall files from tape"
-	dmget -a $(dirname $FASTA)/*
+	echo "[NOTE] reacall files from tape $FASTA*  "${f/$READONE/"*"}
+#	dmget -a $(dirname $FASTA)/*
+	dmget -a $FASTA*
 	dmget -a ${f/$READONE/"*"}
 fi
 
