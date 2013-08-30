@@ -53,6 +53,7 @@ TASKHOMERCHIPSEQ="homerchipseq"
 TASKPEAKRANGER="peakranger"
 TASKMACS2="macs2"
 TASKMEMECHIP="memechip"
+TASKFASTQSCREEN="fastqscreen"
 
 ##############################################################
 # PROGRAM PATHS
@@ -408,6 +409,18 @@ NODES_DEMULTIPLEX="nodes=1:ppn=1"
 
 MODULE_DEMULTIPLEX=
 PATH_DEMULTIPLEX=$PATH_FASTXTK
+
+##############################################################
+# Screen reads against multiple indices
+# http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/
+WALLTIME_FASTQSCREEN=48:00:00
+MEMORY_FASTQSCREEN=60
+CPU_FASTQSCREEN=8
+NODES_FASTQSCREEN="nodes=1:ppn=8"
+
+MODULE_FASTQSCREEN=
+PATH_FASTQSCREEN=
+FASTQSCREEN_DBCONF=
 
 ##############################################################
 #VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"

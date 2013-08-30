@@ -680,6 +680,18 @@ def macs2Stats(logFile):
 
     return names, values
 
+def fastqscreenStats(logFile):
+    names=["Hit no libraries"]
+    values=[]
+    file=open(logFile).read()
+    # populate
+
+    tmp=file.split("%Hit_no_libraries:")[1].strip().split()[0]
+    TT=float(tmp.strip())
+    values.append(TT)
+
+    return names, values
+
 def memechipStats(logFile):
     names=["Peak regions", "with strong sites","%", "w/o strong sites","%"]
     values=[]
@@ -890,6 +902,8 @@ for d in dir:
 		   names,values=macs2Stats(f)
 		if (type=="memechip"):
 		    names,values=memechipStats(f)
+		if (type=="fastqscreen"):
+		    names,values=fastqscreenStats(f)
 
                 result=addValues(result,values)
                 # only list file structure from current root
