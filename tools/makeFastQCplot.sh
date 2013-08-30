@@ -1,3 +1,4 @@
+#!/bin/sh -e
 # summarize all read quality plots on one page
 
 FQSOURCE=$1
@@ -20,7 +21,7 @@ number=$(ls -a $FQSOURCE/*$READONE*/Images/per_base_quality.png | wc -l)
 let size=$number*2
 
 echo """\documentclass{article}
-\usepackage[margin=0.3in, paperwidth=8.5in, paperheight=$size in]{geometry}
+\usepackage[margin=0.1in, paperwidth=5.2in, paperheight=${size}.2 in]{geometry}
 \usepackage{graphicx}
 \begin{document}
 """ >$LATEX
@@ -61,5 +62,5 @@ pdflatex ${OUTFILE/pdf/tex}
 rm ${OUTFILE/pdf/aux}
 rm ${OUTFILE/pdf/log}
 #rm ${OUTFILE/pdf/tex}
-convert -density 1000 -geometry 800x20000 $OUTFILE ${OUTFILE/pdf/jpg} 
+convert -density 1000 -depth 8 -geometry 500x10000 $OUTFILE ${OUTFILE/pdf/jpg} 
 #-scale 2500x1500

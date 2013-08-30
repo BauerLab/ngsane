@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 # author: Denis C. Bauer
 # date: Feb.2011
 
@@ -49,7 +49,8 @@ for d in ${DIR[@]}; do
 done
 echo $FILES
 
-if [ ! -d $OUT/runStats ]; then mkdir -p $OUT/runStats; fi
+mkdir -p $OUT/runStats
+
 if [ -d $OUT/runStats/$TASKFASTQC ]; then rm -rf $OUT/runStats/$TASKFASTQC/; fi
 mkdir -p $OUT/runStats/$TASKFASTQC
 

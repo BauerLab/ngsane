@@ -32,7 +32,8 @@ if [ -n "$RUNFASTQC" ]; then
 	   ${NGSANE_BASE}/tools/makeFastQCplot.sh $(pwd)/runStats/$TASKFASTQC/ $(pwd)/runStats/ fastQCSummary.pdf $CONFIG > /dev/null #2>&1
     fi
     echo "done"
-    echo "<table><tr><td valign=top>" >>$SUMMARYTMP
+    echo "<table><tr><td valign='top'><table>" >>$SUMMARYTMP
+    echo "<thead><th>Libary</th><th>Chart</th><th>Encoding</th><th>Library size</th><th>Read length</th><th>%GC</th></thead>" >>$SUMMARYTMP
     if [[ -e runStats/ && -e runStats/$TASKFASTQC/ ]]; then
         for f in $( ls runStats/$TASKFASTQC/*.zip ); do
             # get basename of f
@@ -42,13 +43,17 @@ if [ -n "$RUNFASTQC" ]; then
             P=$(grep "PASS" -c runStats/$TASKFASTQC/$n"_fastqc/summary.txt")
             W=$(grep "WARN" -c runStats/$TASKFASTQC/$n"_fastqc/summary.txt")
             F=$(grep "FAIL" -c runStats/$TASKFASTQC/$n"_fastqc/summary.txt")
-            CHART=$ICO"tick.png\" title=\"$P\"\>"
+            CHART=$ICO"tick.png\" title=\"$P\"\>$P"
             if [ "$W" -ne "0" ]; then CHART=$CHART""$ICO"warning.png\"\>"$W; fi
             if [ "$F" -ne "0" ]; then CHART=$CHART""$ICO"error.png\"\>"$F; fi
-            echo "<a href=\"runStats/$TASKFASTQC/"$n"_fastqc/fastqc_report.html\">$n.fastq</a>$CHART<br>" >>$SUMMARYTMP
+	    ENCODING=$(grep "Encoding" runStats/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+            LIBRARYSIZE=$(grep "Total Sequences" runStats/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+            READLENGTH=$(grep "Sequence length" runStats/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+            GCCONTENT=$(grep "\%GC" runStats/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+            echo "<tr><td><a href=\"runStats/$TASKFASTQC/"$n"_fastqc/fastqc_report.html\">$n.fastq</a></td><td>$CHART</td><td>$ENCODING</td><td>$LIBRARYSIZE</td><td>$READLENGTH</td><td>$GCCONTENT</td></tr><br>" >>$SUMMARYTMP
         done
     fi
-    echo "</td><td>">>$SUMMARYTMP
+    echo "</table></td><td valign='top'>">>$SUMMARYTMP
     echo "<img src=\"runStats/fastQCSummary.jpg\" alt=\"Quality scores for all reads\"/>" >>$SUMMARYTMP
     echo "</td></tr></table>">>$SUMMARYTMP
 fi
@@ -460,7 +465,7 @@ rm $SUMMARYFILE.tmp
 
 ################################################################################
 # convert html to pdf
-if [ "$(hash prince)" == "" ]; then
-    prince $SUMMARYFILE -o ${HTMLOUT}.pdf
-fi
+#if [ "$(hash prince)" == "" ]; then
+#    prince $SUMMARYFILE -o ${HTMLOUT}.pdf
+#fi
 
