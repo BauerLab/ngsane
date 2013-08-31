@@ -100,6 +100,9 @@ else
     echo "[NOTE] library complexity"
     peakranger lc --data $f >> $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
     
+    echo "[NOTE] make wigpe"
+    peakranger wigpe --data $f --output $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}
+
     if [ "$PEAKRANGER_PEAKS" == "broad" ]; then
         echo "[NOTE] calling broad peaks"
         RUN_COMMAND="peakranger ccat $PEAKRANGERADDPARAM --format bam --data  $f --control $CHIPINPUT --output $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}"
