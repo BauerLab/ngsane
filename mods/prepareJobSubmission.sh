@@ -95,7 +95,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         COMMAND2="$COMMAND2 --recover-from $LOGFILE"
         echo "################################################################################" >> $LOGFILE
         echo "[NOTE] Recover from logfile: $LOGFILE" >> $LOGFILE
-	echo "################################################################################" >> $LOGFILE
+        echo "################################################################################" >> $LOGFILE
     else
         # remove old submission output logs
         if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
@@ -146,7 +146,7 @@ if [ -n "$POSTCOMMAND" ]; then
     if [[ -n "$ARMED" ||  -n "$POSTONLY" ]]; then
 
     # remove old submission output logs
-    if [ -e $QOUT/$TASK/postcommand.out ]; then rm -rf $QOUT/$TASK/postcommand.out; fi
+    if [ -e $QOUT/$TASK/postcommand.out ]; then rm $QOUT/$TASK/postcommand.out; fi
 
     # record task in log file
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log

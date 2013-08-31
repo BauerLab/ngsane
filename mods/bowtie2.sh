@@ -103,9 +103,9 @@ fi
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl
 fi
 
 #is ziped ?
