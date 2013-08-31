@@ -27,12 +27,12 @@ echo "Last modified "`date` >$SUMMARYTMP
 if [ -n "$RUNFASTQC" ]; then
     echo "fastqc"
     echo "<h2>Read biases (FASTQC)</h2>">>$SUMMARYTMP
-    echo ${NGSANE_BASE}/tools/makeFastQCplot.sh
-    if [ -n "$RUNFASTQC" ]; then
-	   ${NGSANE_BASE}/tools/makeFastQCplot.sh $(pwd)/runStats/$TASKFASTQC/ $(pwd)/runStats/ fastQCSummary.pdf $CONFIG > /dev/null #2>&1
-    fi
-    echo "done"
-    echo "<table><tr><td valign='top'><table>" >>$SUMMARYTMP
+#    echo ${NGSANE_BASE}/tools/makeFastQCplot.sh
+#    if [ -n "$RUNFASTQC" ]; then
+#	   ${NGSANE_BASE}/tools/makeFastQCplot.sh $(pwd)/runStats/$TASKFASTQC/ $(pwd)/runStats/ fastQCSummary.pdf $CONFIG > /dev/null #2>&1
+#    fi
+#    echo "done"
+    echo "<table>" >>$SUMMARYTMP
     echo "<thead><th>Libary</th><th>Chart</th><th>Encoding</th><th>Library size</th><th>Read</th><th>Read length</th><th>%GC</th><th> Read Qualities</th><thead>" >>$SUMMARYTMP
 
     if [[ -e runStats/ && -e runStats/$TASKFASTQC/ ]]; then
@@ -71,7 +71,7 @@ if [ -n "$RUNFASTQC" ]; then
             echo "</td></tr><br>" >>$SUMMARYTMP
         done
     fi
-    echo "</table></td></tr></table>">>$SUMMARYTMP
+    echo "</table>">>$SUMMARYTMP
 fi
 
 

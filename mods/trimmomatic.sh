@@ -73,7 +73,7 @@ if [ -z "$TRIMMOMATICSTEPS" ]; then
 fi
 
 # get encoding
-FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py -n 1000000 |  tail -n 1)
+FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
 if [[ "$FASTQ_ENCODING" == *Sanger* ]]; then
     TRIMMOMATICADDPARAM="$TRIMMOMATICADDPARAM -phred33"    
 elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
