@@ -252,13 +252,13 @@ else
         fi
     fi
     # cleanup
-    rm -f $f.unzipped ${f/$READONE/$READTWO}.unzipped
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$UNM*.fq}
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$MUL*.fq}
+    rm $f.unzipped ${f/$READONE/$READTWO}.unzipped
+    rm $MYOUT/${n/%$READONE.$FASTQ/.$UNM*.fq}
+    rm $MYOUT/${n/%$READONE.$FASTQ/.$MUL*.fq}
     
     # continue for normal bam file conversion                                                                         
     samtools view -Sbt $FASTA.fai $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam} > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}
+    rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}
     
     samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} $MYOUT/${n/%$READONE.$FASTQ/.ash}
     
@@ -266,7 +266,7 @@ else
         # fix mates
         samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp
         samtools fixmate $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam - | samtools sort - $MYOUT/${n/%$READONE.$FASTQ/.ash}
-        rm -f $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam
+        rm $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam
     fi
 
     # mark checkpoint
@@ -290,7 +290,7 @@ else
         AS=true \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
-    rm -rf $THISTMP
+    [ -d $THISTMP ] && rm -r $THISTMP
     samtools index $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 
     # mark checkpoint
@@ -342,7 +342,7 @@ else
             convert $im ${im/pdf/jpg}
         done
     fi
-    rm -r $THISTMP
+    [ -e $THISTMP ] && rm -r $THISTMP
 
     # mark checkpoint
     [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
@@ -383,9 +383,9 @@ BAMREADS=`head -n1 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.ash.bam}
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam}
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.ash.bam}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
 else
     echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
     exit 1
@@ -418,7 +418,7 @@ else
             echo "[NOTE] generate bigwig for properly paired reads on the same chromosomes"
             samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp}
             samtools view -b -F 1028 -f 0x2 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
-            rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
+            [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
     	
         else
         	if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 

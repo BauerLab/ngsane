@@ -51,7 +51,7 @@ echo $FILES
 
 mkdir -p $OUT/runStats
 
-if [ -d $OUT/runStats/$TASKFASTQC ]; then rm -rf $OUT/runStats/$TASKFASTQC/; fi
+if [ -d $OUT/runStats/$TASKFASTQC ]; then rm -r $OUT/runStats/$TASKFASTQC/; fi
 mkdir -p $OUT/runStats/$TASKFASTQC
 
 CPUS=$(echo $FILES | wc -w)

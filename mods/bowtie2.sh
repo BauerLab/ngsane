@@ -211,7 +211,7 @@ else
         METRICS_FILE=$MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
-    rm -rf $THISTMP
+    [ -d $THISTMP ] && rm -r $THISTMP
     samtools index $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
     
     # mark checkpoint

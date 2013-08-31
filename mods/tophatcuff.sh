@@ -415,7 +415,7 @@ else
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
         #tar czf ${n/%$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR 
-        [ -e ${BAMFILE/.$ASD/.$ALN} ] && rm -f ${BAMFILE/.$ASD/.$ALN}
+        [ -e ${BAMFILE/.$ASD/.$ALN} ] && rm ${BAMFILE/.$ASD/.$ALN}
     fi
 
     # mark checkpoint

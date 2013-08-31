@@ -257,7 +257,7 @@ else
         METRICS_FILE=$MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
         VALIDATION_STRINGENCY=SILENT \
         TMP_DIR=$THISTMP
-    rm -rf $THISTMP
+    [ -d $THISTMP ] && rm -r $THISTMP
     samtools index $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 
     # mark checkpoint
@@ -308,7 +308,7 @@ else
     for im in $( ls $MYOUT/metrices/*.pdf ); do
         convert $im ${im/pdf/jpg}
     done
-    rm -rf $THISTMP
+    [ -d $THISTMP ] && rm -r $THISTMP
 
     # mark checkpoint
     [ -f $MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
@@ -351,7 +351,7 @@ BAMREADS=$(head -n1 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi			
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-    [ -e $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} ] && rm -f $MYOUT/${n/%$READONE.$FASTQ/.ash.bam}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.ash.bam}
 else
     echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
     exit 1 

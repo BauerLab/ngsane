@@ -79,7 +79,7 @@ OUTDIR=${n/%$READONE.$FASTQ/}
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    [ -d $MYOUT/$OUTDIR ] && rm -rf $MYOUT/$OUTDIR
+    [ -d $MYOUT/$OUTDIR ] && rm -r $MYOUT/$OUTDIR
     [ -e $MYOUT/${n/%$READONE.$FASTQ/}.spline_pass1.q05.txt ] && rm $MYOUT/${n/%$READONE.$FASTQ/}*.txt
 fi
 
