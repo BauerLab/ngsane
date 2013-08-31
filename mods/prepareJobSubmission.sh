@@ -98,7 +98,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 	echo "################################################################################" >> $LOGFILE
     else
         # remove old submission output logs
-        if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm -rf $QOUT/$TASK/$dir'_'$name.*; fi
+        if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
     fi
 
     DIR=$DIR" $dir"

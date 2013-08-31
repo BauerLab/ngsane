@@ -72,6 +72,19 @@ if [ -z "$TRIMMOMATICSTEPS" ]; then
     echo "[ERROR] no trimming steps specified: TRIMMOMATICSTEPS" && exit 1
 fi
 
+# get encoding
+FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/guess_fastq_encoding.py -n 10000 |  tail -n 1)
+if [[ "$FASTQ_ENCODING" == *Sanger* ]]; then
+    TRIMMOMATICADDPARAM="$TRIMMOMATICADDPARAM -phred33"    
+elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
+    TRIMMOMATICADDPARAM="$TRIMMOMATICADDPARAM -phred64"
+elif [[ "$FASTQ_ENCODING" == *Solexa* ]]; then
+    TRIMMOMATICADDPARAM="$TRIMMOMATICADDPARAM -phred64"
+else
+    echo "[ERROR] cannot detect/don't understand fastq format: $FASTQ_ENCODING" && exit 1
+fi
+echo "[NOTE] $FASTQ_ENCODING fastq format detected"
+
 FASTQDIR=$(basename $(dirname $f))
 o=${f/$FASTQDIR/$FASTQDIR"_"$TASKTRIMMOMATIC}
 FASTQDIRTRIM=$(dirname $o)
