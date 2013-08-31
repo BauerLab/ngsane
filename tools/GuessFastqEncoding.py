@@ -16,10 +16,11 @@ import sys
 from optparse import OptionParser
 
 RANGES = {
-    'Sanger': (33, 73),
-    'Solexa': (59, 104),
-    'Illumina 1.3': (64, 104),
-    'Illumina 1.5': (67, 104)
+    'Sanger Phred33': (33, 73),
+    'Solexa Phred64': (59, 104),
+    'Illumina 1.3 Phred64': (64, 104),
+    'Illumina 1.5 Phred64': (67, 104),
+    'Illumina 1.8 Phred33': (35, 74)
 }
 
 def get_qual_range(qual_str):
@@ -59,7 +60,7 @@ def process_lines():
 def get_encodings_in_range(rmin, rmax, ranges=RANGES):
     valid_encodings = []
     for encoding, (emin, emax) in ranges.items():
-        if rmin >= emin and rmax <= emax:
+        if (rmin >= emin and rmax <= emax):
             valid_encodings.append(encoding)
     return valid_encodings
 

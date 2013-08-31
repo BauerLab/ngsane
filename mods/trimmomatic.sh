@@ -74,11 +74,9 @@ fi
 
 # get encoding
 FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
-if [[ "$FASTQ_ENCODING" == *Sanger* ]]; then
+if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
     TRIMMOMATICADDPARAM="$TRIMMOMATICADDPARAM -phred33"    
-elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
-    TRIMMOMATICADDPARAM="$TRIMMOMATICADDPARAM -phred64"
-elif [[ "$FASTQ_ENCODING" == *Solexa* ]]; then
+elif [[ "$FASTQ_ENCODING" == *Phred64* ]]; then
     TRIMMOMATICADDPARAM="$TRIMMOMATICADDPARAM -phred64"
 else
     echo "[ERROR] cannot detect/don't understand fastq format: $FASTQ_ENCODING" && exit 1
