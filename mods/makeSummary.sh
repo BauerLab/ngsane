@@ -46,16 +46,18 @@ if [ -n "$RUNFASTQC" ]; then
             CHART=$ICO"tick.png\" title=\"$P\"\>$P"
             if [ "$W" -ne "0" ]; then CHART=$CHART""$ICO"warning.png\"\>"$W; fi
             if [ "$F" -ne "0" ]; then CHART=$CHART""$ICO"error.png\"\>"$F; fi
-	    ENCODING=$(grep "Encoding" runStats/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+	        ENCODING=$(grep "Encoding" runStats/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
             LIBRARYSIZE=$(grep "Total Sequences" runStats/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
             READLENGTH=$(grep "Sequence length" runStats/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
             GCCONTENT=$(grep "\%GC" runStats/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-            echo "<tr><td><a href=\"runStats/$TASKFASTQC/"$n"_fastqc/fastqc_report.html\">$n.fastq</a></td><td>$CHART</td><td>$ENCODING</td><td>$LIBRARYSIZE</td><td>$READLENGTH</td><td>$GCCONTENT</td></tr><br>" >>$SUMMARYTMP
+            echo "<tr><td><a href=\"runStats/$TASKFASTQC/"$n"_fastqc/fastqc_report.html\">$n.fastq</a></td><td>$CHART</td><td>$ENCODING</td><td>$LIBRARYSIZE</td><td>$READLENGTH</td><td>$GCCONTENT</td>i<td><img src=\"runStats/$TASKFASTQC/$n"_fastqc/Images/per_base_quality.png\" width=200 alt=\"Quality scores for all first reads\"/></td>" >>$SUMMARYTMP
+            if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]
+                echo "<td><img src=\"runStats/$TASKFASTQC/${n/$READONE/$READTWO}"_fastqc/Images/per_base_quality.png\" width=200 alt=\"Quality scores for all second reads\"/></td>" >>$SUMMARYTMP
+            fi
+            echo "</tr><br>" >>$SUMMARYTMP
         done
     fi
-    echo "</table></td><td valign='top'>">>$SUMMARYTMP
-    echo "<img src=\"runStats/fastQCSummary.jpg\" alt=\"Quality scores for all reads\"/>" >>$SUMMARYTMP
-    echo "</td></tr></table>">>$SUMMARYTMP
+    echo "</table></td></tr></table>">>$SUMMARYTMP
 fi
 
 
