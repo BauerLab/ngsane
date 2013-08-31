@@ -163,7 +163,9 @@ fi
 ################################################################################
 CHECKPOINT="cleanup"    
 
-rm -rf $MYOUT/${n/$BED/.fasta} $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/_sorted.bed} $MYOUT/${n/$BED/.bg} $MYOUT/$n
+if [ -e $MYOUT/$n ]; then
+    rm -rf $MYOUT/${n/$BED/.fasta} $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/_sorted.bed} $MYOUT/${n/$BED/.bg} $MYOUT/$n
+fi
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################

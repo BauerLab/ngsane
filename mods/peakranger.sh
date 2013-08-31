@@ -69,7 +69,7 @@ n=${f##*/}
 c=${CHIPINPUT##*/}
 
 if [ -z "$RECOVERFROM" ]; then
-    rm -f $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}*
+    [ -e $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed ] && rm -f $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}*
 fi
 
 if [ "$PEAKRANGER_PEAKS" != "broad" ] && [ "$PEAKRANGER_PEAKS" != "sharp" ]; then

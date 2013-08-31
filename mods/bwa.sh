@@ -199,8 +199,8 @@ else
        	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
     	       $f ${f/$READONE/$READTWO} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
     
-           rm -f $MYOUT/${n/$FASTQ/sai}
-           rm -f $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
+           [ -e $MYOUT/${n/$FASTQ/sai} ] && rm $MYOUT/${n/$FASTQ/sai}
+           [ -e $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} ] && rm $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
         fi
 
     else
@@ -211,7 +211,7 @@ else
     	-r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
     	$f | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
     
-        rm -f $MYOUT/${n/$FASTQ/sai}
+        [ -e $MYOUT/${n/$FASTQ/sai} ] && rm $MYOUT/${n/$FASTQ/sai}
     fi
     
     # mark checkpoint
@@ -227,7 +227,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
 else 
 
     samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} $MYOUT/${n/%$READONE.$FASTQ/.ash}
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
 
     # mark checkpoint
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
@@ -351,7 +351,7 @@ BAMREADS=$(head -n1 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi			
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.ash.bam}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} ] && rm -f $MYOUT/${n/%$READONE.$FASTQ/.ash.bam}
 else
     echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
     exit 1 

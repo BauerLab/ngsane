@@ -74,14 +74,13 @@ CHECKPOINT="parameters"
 # get basename of f
 n=${f##*/}
 
-
 #output for this library
 OUTDIR=${n/%$READONE.$FASTQ/}
-if [ -d $MYOUT/$OUTDIR ]; then rm -rf $MYOUT/$OUTDIR; fi
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/}*.txt
+    [ -d $MYOUT/$OUTDIR ] && rm -rf $MYOUT/$OUTDIR
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/}.spline_pass1.q05.txt ] && rm $MYOUT/${n/%$READONE.$FASTQ/}*.txt
 fi
 
 #is paired ?
