@@ -115,6 +115,20 @@ else
     PAIRED="0"
 fi
 
+# get encoding
+FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
+    FASTQ_PHRED="--phred33-quals"    
+elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
+    FASTQ_PHRED="--phred64-quals"
+elif [[ "$FASTQ_ENCODING" == *Solexa* ]]; then
+    FASTQ_PHRED="--solexa1.3-quals"
+else
+    echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default"
+fi
+echo "[NOTE] $FASTQ_ENCODING fastq format detected"
+
+
 FASTASUFFIX=${FASTA##*.}
     
 #is ziped ?                                                                                                       
@@ -172,15 +186,14 @@ else
     $GZIP -t $f 2>/dev/null
     if [[ $? -eq 0 ]] && [ $PAIRED == "0" ]; then
         # pipe gzipped fastqs into bowtie
-        RUN_COMMAND="$GZIP -dc $f | bowtie $RG $BOWTIEADDPARAM --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
+        RUN_COMMAND="$GZIP -dc $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
     else
         echo "[NOTE] unzip fastq files"
         $GZIP -cd $f > $f.unzipped
         $GZIP -cd ${f/$READONE/$READTWO} > ${f/$READONE/$READTWO}.unzipped
-        RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $f.unzipped -2 ${f/$READONE/$READTWO}.unzipped $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
+        RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $f.unzipped -2 ${f/$READONE/$READTWO}.unzipped $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
     fi
-    echo $RUN_COMMAND
-    eval $RUN_COMMAND
+    echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM

@@ -152,6 +152,20 @@ else
     let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
 fi
 
+# get encoding
+FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
+    FASTQ_PHRED=""    
+elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
+    FASTQ_PHRED="-I"
+elif [[ "$FASTQ_ENCODING" == *Solexa* ]]; then
+    FASTQ_PHRED="-I"
+else
+    echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default"
+fi
+echo "[NOTE] $FASTQ_ENCODING fastq format detected"
+
+
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 echo ">>>>> full sample ID "$FULLSAMPLEID
 FASTASUFFIX=${FASTA##*.}
@@ -193,8 +207,8 @@ else
 
         if [ "$NOMAPPING" = 0 ]; then
            echo "[NOTE] PAIRED READS"
-           bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA $f > $MYOUT/${n/$FASTQ/sai}
-           bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
+           bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $f > $MYOUT/${n/$FASTQ/sai}
+           bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
            bwa sampe $FASTA $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} \
        	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
     	       $f ${f/$READONE/$READTWO} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}

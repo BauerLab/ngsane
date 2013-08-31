@@ -125,6 +125,19 @@ else
     let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
 fi
 
+# get encoding
+FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
+    FASTQ_PHRED="--phred33"    
+elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
+    FASTQ_PHRED="--phred64"
+elif [[ "$FASTQ_ENCODING" == *Solexa* ]]; then
+    FASTQ_PHRED="--solexa-quals"
+else
+    echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default"
+fi
+echo "[NOTE] $FASTQ_ENCODING fastq format detected"
+
 #readgroup
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
@@ -161,7 +174,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM -t -x ${FASTA/.${FASTASUFFIX}/} -p $CPU_BOWTIE2 $READS --un $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}"
+    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM $FASTQ_PHRED -t -x ${FASTA/.${FASTASUFFIX}/} -p $CPU_BOWTIE2 $READS --un $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint

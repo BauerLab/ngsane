@@ -75,9 +75,9 @@ fi
 # get encoding
 FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
 if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
-    TRIMMOMATICADDPARAM="$TRIMMOMATICADDPARAM -phred33"    
+    FASTQ_PHRED=" -phred33"    
 elif [[ "$FASTQ_ENCODING" == *Phred64* ]]; then
-    TRIMMOMATICADDPARAM="$TRIMMOMATICADDPARAM -phred64"
+    FASTQ_PHRED=" -phred64"
 else
     echo "[ERROR] cannot detect/don't understand fastq format: $FASTQ_ENCODING" && exit 1
 fi
@@ -111,9 +111,9 @@ else
     # Paired read
     if [ "$PAIRED" = "1" ]
     then
-        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $TRIMMOMATICADDPARAM -threads $CPU_TRIMMOMATIC $f ${f/$READONE/$READTWO} $o ${o/$READONE/${READONE}_unpaired} ${o/$READONE/$READTWO} ${o/$READONE/${READTWO}_unpaired} $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
+        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED $TRIMMOMATICADDPARAM -threads $CPU_TRIMMOMATIC $f ${f/$READONE/$READTWO} $o ${o/$READONE/${READONE}_unpaired} ${o/$READONE/$READTWO} ${o/$READONE/${READTWO}_unpaired} $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
     else
-        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $TRIMMOMATICADDPARAM -threads $CPU_TRIMMOMATIC $f $o $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
+        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $FASTQ_PHRED $TRIMMOMATICADDPARAM -threads $CPU_TRIMMOMATIC $f $o $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
