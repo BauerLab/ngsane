@@ -90,17 +90,6 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     COMMAND2=${COMMAND2//<NAME>/$name} # insert ??
 
     LOGFILE=$QOUT/$TASK/$dir'_'$name'.out'
-    if [ -n "$RECOVER" ] && [ -f $LOGFILE ] ; then
-        # add log-file for recovery
-        COMMAND2="$COMMAND2 --recover-from $LOGFILE"
-        echo "################################################################################" >> $LOGFILE
-        echo "[NOTE] Recover from logfile: $LOGFILE" >> $LOGFILE
-        echo "################################################################################" >> $LOGFILE
-    else
-        # remove old submission output logs
-        if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
-    fi
-
     DIR=$DIR" $dir"
     FILES=$FILES" $i"
 
@@ -115,8 +104,20 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
     echo $ARMED
 
+    if [ -n "$RECOVER" ] && [ -f $LOGFILE ] ; then
+        # add log-file for recovery
+        COMMAND2="$COMMAND2 --recover-from $LOGFILE"
+        echo "################################################################################" >> $LOGFILE
+        echo "[NOTE] Recover from logfile: $LOGFILE" >> $LOGFILE
+        echo "################################################################################" >> $LOGFILE
+    else
+        # remove old submission output logs
+        if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
+    fi
+
     # record task in log file
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
+    echo "[NOTE] Jobfile: "$QOUT/$TASK/job.$(date "+%Y%m%d").log >> $LOGFILE
 
     RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
     	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
