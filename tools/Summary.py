@@ -681,15 +681,20 @@ def macs2Stats(logFile):
     return names, values
 
 def fastqscreenStats(logFile):
-    names=["Hit no libraries"]
-    values=[]
     file=open(logFile).read()
+
+    species=file.split("\n")[2:-3]
+    names=[ s.split()[0] for s in species ]+ ["Hit no libraries"]
+    values=[]
+
     # populate
+    for s in species:
+	values.append(float(s.split()[2]))
 
     tmp=file.split("%Hit_no_libraries:")[1].strip().split()[0]
     TT=float(tmp.strip())
     values.append(TT)
-
+    
     return names, values
 
 def memechipStats(logFile):
