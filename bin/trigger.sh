@@ -159,6 +159,19 @@ if [ -n "$RUNFASTQC" ]; then
 fi
 
 ################################################################################
+#   FASTQSCREEN 
+#
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $OUT/$dir/fastqscreen/*.
+################################################################################
+
+if [ -n "$RUNFASTQSCREEN" ]; then
+    $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQSCREEN -i fastq -e $READONE.$FASTQ -n $NODES_FASTQSCREEN \
+        -c $CPU_FASTQSCREEN -m $MEMORY_FASTQSCREEN"G" -w $WALLTIME_FASTQSCREEN \
+        --command "$NGSANE_BASE/mods/fastqscreen.sh -k $CONFIG -f <FILE>  -o $OUT/<DIR>/$TASKFASTQSCREEN"
+fi
+
+################################################################################
 #   CUTADAPT remove contaminants
 #
 # IN : $SOURCE/fastq/$dir/*read1.fastq

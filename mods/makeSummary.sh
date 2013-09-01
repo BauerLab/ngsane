@@ -135,6 +135,37 @@ if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
 fi
 
 ################################################################################
+if [[ -n "$RUNFASTQSCREEN" ]]; then
+    LINKS=$LINKS" screening"
+    echo "<a name=\"screening\"><h2>Fastq screen</h2>">>$SUMMARYTMP
+    echo "<pre>" >>$SUMMARYTMP
+    echo "QC"
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/fastqscreen.sh $QOUT/$TASKFASTQSCREEN/ >>$SUMMARYTMP
+    echo "gather dirs"
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/$dir/$TASKFASTQSCREEN/"
+    done
+    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" _screen.txt fastqscreen --noSummary --noOverallSummary >>$SUMMARYTMP
+
+    row0=""
+    row1=""
+    for dir in $vali; do
+        for f in $(ls $dir/*_screen.png); do
+            n=${f##*/}
+            n=${n/"_screen.png"/}
+
+            row0+="<td>$n</td>"
+            row1+="<td><a href=\"$dir/"$n"_screen.png\"><img src=\"$dir/"$n"_screen.png\" width=\"300px\"/></a></td>"
+        done
+    done
+    echo "<table><tr>$row0</tr><tr>$row1</tr></table>" >> $SUMMARYTMP
+
+    echo "</pre>" >>$SUMMARYTMP
+fi
+
+################################################################################
 if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
     LINKS=$LINKS" mapping"
     echo "<a name=\"mapping\"><h2>BOWTIE v2 Mapping</h2>">>$SUMMARYTMP
