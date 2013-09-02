@@ -22,6 +22,7 @@ SUMMARYFILE=$HTMLOUT".html"
 
 echo "Last modified "`date` >$SUMMARYTMP
 
+
 ################################################################################
 if [ -n "$RUNFASTQC" ]; then
     PIPELINE="FASTQC"
