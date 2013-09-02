@@ -89,7 +89,7 @@ def printStats(arrV, arrN, arrS, noSummary):
     out=[[],[],[],[],[],[]]
     string=[]
     for c in range(0,len(arrV)):
-        string+=["%17s " % arrN[c]]
+        string+=["<pre>%17s</pre>" % arrN[c]]
         formatString="%17.2f"
         if(min(arrV[c])<0.009):
             formatString="%17.2e"
@@ -930,8 +930,9 @@ for d in dir:
                 sys.stderr.write("error with "+f+"\n")
                 traceback.print_exc()
                 #sys.exit()
-    print "<h4>"+"/".join(d.split("/")[-4::])+"</h4>" # only list file structure from current root
+    print "<h4>"+"/".join(d.split("/")[-4::])+"</h4><div class='library'>" # only list file structure from current root
     printStats(result,names,psresult,noSummary)
+    print "</div> <!-- library -->"
 
 if (not noOverallSummary and overAll):
     print "<h4>over all</h4>"

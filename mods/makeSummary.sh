@@ -80,8 +80,8 @@ if [[ -n "$RUNFASTQSCREEN" ]]; then
     
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
     echo "QC"
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/fastqscreen.sh $QOUT/$TASKFASTQSCREEN/ >>$SUMMARYTMP
     echo "gather dirs"
@@ -89,7 +89,7 @@ if [[ -n "$RUNFASTQSCREEN" ]]; then
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKFASTQSCREEN/"
     done
-    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
+    echo "<h3>Result</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" _screen.txt fastqscreen --noSummary --noOverallSummary >>$SUMMARYTMP
 
     row0=""
@@ -105,7 +105,7 @@ if [[ -n "$RUNFASTQSCREEN" ]]; then
     done
     echo "<table><tr>$row0</tr><tr>$row1</tr></table>" >> $SUMMARYTMP
 
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
 fi
 
 
@@ -117,25 +117,25 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     echo "QC"
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bwa.sh $QOUT/$TASKBWA >>$SUMMARYTMP
     echo "gather dirs"
     for dir in ${DIR[@]}; do
 	   vali=$vali" $OUT/$dir/$TASKBWA/"
     done
-    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
+    echo "<h3>Result</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+
     if [ -n "$RUNANNOTATINGBAM" ]; then
-	echo "anno"
-	echo "</pre><h3>Anno</h3><pre>">>$SUMMARYTMP
-	python ${NGSANE_BASE}/tools/Summary.py "$vali" merg.anno.stats annostats >>$SUMMARYTMP
-	echo "</pre>" >>$SUMMARYTMP
-	ROUTH=runStats/$(echo ${DIR[@]}|sed 's/ /_/g')
-	if [ ! -e $ROUTH ]; then mkdir $ROUTH; fi
-	python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
+    	echo "<h3>Annotation</h3>" >>$SUMMARYTMP
+    	python ${NGSANE_BASE}/tools/Summary.py "$vali" merg.anno.stats annostats >>$SUMMARYTMP
+    	ROUTH=runStats/$(echo ${DIR[@]}|sed 's/ /_/g')
+    	if [ ! -e $ROUTH ]; then mkdir $ROUTH; fi
+	   python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
     fi
+    
+    echo "</div>" >>$SUMMARYTMP
 fi
 
 
@@ -147,15 +147,15 @@ if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" || -n "$RUNREALRECAL3" ]]; then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE Mapping</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA >>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
 	   vali=$vali" $OUT/$dir/$TASKRCA/"
     done
-    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
+    echo "<h3>Result</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -166,7 +166,7 @@ if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     echo "QC"
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie.sh $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
     echo "gather dirs"
@@ -174,9 +174,9 @@ if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKBOWTIE/"
     done
-    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
+    echo "<h3>Result</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -187,7 +187,7 @@ if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     echo "QC"
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie2.sh $QOUT/$TASKBOWTIE2/ >>$SUMMARYTMP
     echo "gather dirs"
@@ -195,9 +195,9 @@ if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKBOWTIE2/"
     done
-    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
+    echo "<h3>Result</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -209,9 +209,9 @@ if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
     echo "<br>Note, the duplication rate is not calculated by tophat and hence zero." >>$SUMMARYTMP
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT/ >>$SUMMARYTMP
-    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
+    echo "<h3>Result</h3>">>$SUMMARYTMP
     CURDIR=$(pwd)
     for dir in ${DIR[@]}; do
     	vali=$vali" $OUT/$dir/$TASKTOPHAT/"
@@ -223,7 +223,7 @@ if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
     done
     cd $CURDIR
     python ${NGSANE_BASE}/tools/Summary.py "$vali" bam.stats tophat >>$SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
 fi
 
 
@@ -235,21 +235,21 @@ if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKVAR >> $SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
 	   vali=$vali" $OUT/$dir/$TASKDOC/"
     done
-    echo "<h3>Average coverage</h3><pre>">>$SUMMARYTMP
+    echo "<h3>Average coverage</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.doc.sample_summary" coverage >>$SUMMARYTMP
-    echo "</pre><h3>Base pair coverage over all intervals</h3><pre>" >>$SUMMARYTMP
+    echo "<h3>Base pair coverage over all intervals</h3>" >>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.doc.sample_cumulative_coverage_counts" coverage --p >>$SUMMARYTMP
-    echo "</pre><h3>Intervals covered</h3><pre>" >>$SUMMARYTMP
+    echo "<h3>Intervals covered</h3>" >>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.doc.sample_interval_statistics" coverage --p >>$SUMMARYTMP
-    echo "</pre><h3>On Target</h3><pre>" >>$SUMMARYTMP
+    echo "<h3>On Target</h3>" >>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.stats" target >>$SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
     
 fi
 
@@ -261,19 +261,19 @@ if [ -n "$RUNVARCALLS" ]; then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKVAR >> $SUMMARYTMP
 
     vali=""
     for dir in ${DIR[@]}; do
 	   vali=$vali" $OUT/$TASKVAR/$dir/"
     done
-    echo "</pre><h3>SNPs</h3><pre>">>$SUMMARYTMP
+    echo "<h3>SNPs</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "filter.snps.eval.txt" variant --n --l>>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "recalfilt.snps.eval.txt" variant --n --l>>$SUMMARYTMP
-    echo "</pre><h3>INDELs</h3><pre>" >>$SUMMARYTMP
+    echo "<h3>INDELs</h3>" >>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l>>$SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -284,14 +284,14 @@ if [ -n "$RUNANNOTATION" ]; then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/annovar.sh $QOUT/$TASKANNOVAR >> $SUMMARYTMP
     
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" "$( ls $OUT/$TASKANNOVAR/$dir/*.csv)
     done
-    echo "</pre><h3>Annotation Files</h3>">>$SUMMARYTMP
+    echo "<h3>Annotation Files</h3>">>$SUMMARYTMP
     echo "Please right click the link and choose \"Save as...\" to download.<br><br>">> $SUMMARYTMP
     for v in $vali; do
         name=`basename $v`
@@ -300,7 +300,7 @@ if [ -n "$RUNANNOTATION" ]; then
     done
     echo "<br>More information about the columns can be found on the <a target=new href=\"http://redmine.qbi.uq.edu.au/knowledgebase/articles/12\">Project Server</a> (uqlogin). and the description of the <a href=\"http://www.broadinstitute.org/gsa/wiki/index.php/Understanding_the_Unified_Genotyper%27s_VCF_files\">vcf file</a>">> $SUMMARYTMP
     
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -311,16 +311,16 @@ if [ -n "$RUNTRIMGALORE" ];then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/trimgalore.sh $QOUT/$TASKTRIMGALORE >> $SUMMARYTMP
 
-    echo "</pre><h3>trimgalore</h3><pre>">>$SUMMARYTMP
+    echo "<h3>trimgalore</h3>">>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/fastq/${dir/_$TASKTRIMGALORE/}_$TASKTRIMGALORE/"
     done
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "_trimming_report.txt" trimgalore --noSummary >> $SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -331,16 +331,16 @@ if [ -n "$RUNTRIMMOMATIC" ];then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/trimmomatic.sh $QOUT/$TASKTRIMMOMATIC >> $SUMMARYTMP
 
-    echo "</pre><h3>trimmomatic</h3><pre>">>$SUMMARYTMP
+    echo "<h3>trimmomatic</h3>">>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/fastq/${dir/_$TASKTRIMMOMATIC/}_$TASKTRIMMOMATIC/"
     done
     python ${NGSANE_BASE}/tools/Summary.py "$vali" ".log" trimmomatic --noSummary >> $SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -351,16 +351,16 @@ if [ -n "$RUNCUTADAPT" ];then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/cutadapt.sh $QOUT/$TASKCUTADAPT >> $SUMMARYTMP
 
-    echo "</pre><h3>cutadapt</h3><pre>">>$SUMMARYTMP
+    echo "<h3>cutadapt</h3>">>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/fastq/${dir/_$TASKCUTADAPT/}_$TASKCUTADAPT/"
     done
     python ${NGSANE_BASE}/tools/Summary.py "$vali" ".stats" cutadapt --noSummary >> $SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -371,16 +371,15 @@ if [ -n "$RUNHICLIB" ];then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/hiclibMapping.sh $QOUT/$TASKHICLIB >> $SUMMARYTMP
 
-    echo "</pre><h3>hiclib</h3><pre>">>$SUMMARYTMP
+    echo "<h3>hiclib</h3>">>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKHICLIB/"
     done
     python ${NGSANE_BASE}/tools/Summary.py "$vali" ".log" hiclibMapping >> $SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
     for dir in $vali; do
         for pdf in $(ls -f $dir/*.pdf 2>/dev/null ); do
             echo "<a href='$pdf'>${pdf##*/}</a> " >> $SUMMARYTMP
@@ -396,7 +395,7 @@ if [ -n "$RUNHICUP" ];then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/hicup.sh $QOUT/$TASKHICUP >> $SUMMARYTMP
 
     vali=""
@@ -404,16 +403,16 @@ if [ -n "$RUNHICUP" ];then
 	   vali=$vali" $OUT/$dir/$TASKHICUP/"
     done
     
-    echo "</pre><h3>hicup</h3>">>$SUMMARYTMP
-    echo "<h4>truncater</h4><pre>">>$SUMMARYTMP
+    echo "<h3>hicup</h3>">>$SUMMARYTMP
+    echo "<h4>truncater</h4>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_truncater_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
-    echo "</pre><h4>mapper</h4><pre>">>$SUMMARYTMP
+    echo "<h4>mapper</h4>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_mapper_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
-    echo "</pre><h4>filter</h4><pre>">>$SUMMARYTMP
+    echo "<h4>filter</h4>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_filter_summary_results.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
-    echo "</pre><h4>deduplicator</h4><pre>">>$SUMMARYTMP
+    echo "<h4>deduplicator</h4>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_deduplicater_summary_results.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
     
     row0=""
     row1=""
@@ -438,16 +437,16 @@ if [ -n "$RUNHOMERCHIPSEQ" ];then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/chipseqHomer.sh $QOUT/$TASKHOMERCHIPSEQ >> $SUMMARYTMP
 
-    echo "</pre><h3>Homer ChIP-seq</h3><pre>">>$SUMMARYTMP
+    echo "<h3>Homer ChIP-seq</h3>">>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKHOMERCHIPSEQ/"
     done
     python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" homerchipseq >> $SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -458,16 +457,16 @@ if [ -n "$RUNPEAKRANGER" ];then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/peakranger.sh $QOUT/$TASKPEAKRANGER >> $SUMMARYTMP
 
-    echo "</pre><h3>Peakranger</h3><pre>">>$SUMMARYTMP
+    echo "<h3>Peakranger</h3>">>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKPEAKRANGER/"
     done
     python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" peakranger >> $SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -478,16 +477,15 @@ if [ -n "$RUNMACS2" ];then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP 
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/macs2.sh $QOUT/$TASKMACS2 >> $SUMMARYTMP
 
-    echo "</pre><h3>MACS2</h3><pre>">>$SUMMARYTMP
+    echo "<h3>MACS2</h3>">>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKMACS2/"
     done
     python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" macs2 >> $SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
 
     row0=""
     row1=""
@@ -502,7 +500,7 @@ if [ -n "$RUNMACS2" ];then
     done
     done
     echo "<table><tr>$row0</tr><tr>$row1</tr><tr>$row2</tr></table>" >> $SUMMARYTMP
-
+    echo "</div>" >> $SUMMARYTMP
 fi
 
 ################################################################################
@@ -513,10 +511,10 @@ if [ -n "$RUNMEMECHIP" ];then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<pre>" >>$SUMMARYTMP
+    echo "<div class='results'>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/memechip.sh $QOUT/$TASKMEMECHIP >> $SUMMARYTMP
 
-    echo "</pre><h3>MEME-chip</h3><pre>">>$SUMMARYTMP
+    echo "<h3>MEME-chip</h3>">>$SUMMARYTMP
     vali=""
     CURDIR=$(pwd)
     for dir in ${DIR[@]}; do
@@ -528,7 +526,7 @@ if [ -n "$RUNMEMECHIP" ];then
     done
     cd $CURDIR
     python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" memechip >> $SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</div>" >>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -560,7 +558,7 @@ if [ -n "$RUNANNOTATINGBAM3" ]; then
 
 	Rscript --vanilla $RSCRIPT
 	convert $IMAGE ${IMAGE/pdf/jpg}
-	echo "</pre><h3>Annotation of mapped reads</h3><pre>">>$SUMMARYTMP
+	echo "<h3>Annotation of mapped reads</h3>">>$SUMMARYTMP
 	echo "<table><tr><td><a href=$IMAGE><img src=\""${IMAGE/.pdf/}"-0.jpg\"></a></td>">>$SUMMARYTMP
 	echo "<td><a href=$IMAGE><img src=\""${IMAGE/.pdf/}"-1.jpg""\"></a></td></tr></table>">>$SUMMARYTMP
 
