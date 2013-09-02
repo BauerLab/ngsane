@@ -85,7 +85,7 @@ def per(max,arr):
 
 
 def printStats(arrV, arrN, arrS, noSummary):
-    print "<table class='data'>"
+
     out=[[],[],[],[],[],[]]
     string=[]
     for c in range(0,len(arrV)):
@@ -101,10 +101,9 @@ def printStats(arrV, arrN, arrS, noSummary):
         if (percent):
             out[4].append(formatString % (per(arrV[0],arrV[c])))
         out[5].append(formatString % (sum(arrV[c])))
-        
+
+    print "<table class='data'><thead><tr><th></th><th>"+"</th><th>".join(string)+"</th><th class='left'>File</th></tr></thead>"
     if(printing and arrS!=0 ):
-        print "<thead><tr><th></th><th>"+"</th><th>".join(string)+"</th><th class='left'>File</th></tr></thead>"
-#        print string
         print "<tbody>"
         for l in arrS:
             resultPerS=[]
@@ -121,8 +120,8 @@ def printStats(arrV, arrN, arrS, noSummary):
         return
         
     elif(arrS==0 or len(arrS)>1):
+            
         print "<tfoot>"
-#        print string
         print "<tr><td class='left'>sum </td><td>"+"</td><td>".join(out[5])+"</td></tr>"
         print "<tr><td class='left'>min </td><td>"+"</td><td>".join(out[0])+"</td></tr>"
         print "<tr><td class='left'>max </td><td>"+"</td><td>".join(out[1])+"</td></tr>"
