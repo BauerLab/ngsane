@@ -195,6 +195,10 @@ else
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
+    # cleanup
+    [ -e $f.unzipped ] && rm $f.unzipped
+    [ -e ${f/$READONE/$READTWO}.unzipped ] && ${f/$READONE/$READTWO}.unzipped
+
     # mark checkpoint
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
@@ -265,13 +269,12 @@ else
         fi
     fi
     # cleanup
-    rm $f.unzipped ${f/$READONE/$READTWO}.unzipped
-    rm $MYOUT/${n/%$READONE.$FASTQ/.$UNM*.fq}
-    rm $MYOUT/${n/%$READONE.$FASTQ/.$MUL*.fq}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq}
     
     # continue for normal bam file conversion                                                                         
     samtools view -Sbt $FASTA.fai $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam} > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
-    rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}
     
     samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} $MYOUT/${n/%$READONE.$FASTQ/.ash}
     
@@ -279,7 +282,7 @@ else
         # fix mates
         samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp
         samtools fixmate $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam - | samtools sort - $MYOUT/${n/%$READONE.$FASTQ/.ash}
-        rm $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam
+        [ -e $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam ] && rm $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam
     fi
 
     # mark checkpoint
