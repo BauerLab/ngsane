@@ -776,7 +776,7 @@ table.data th div{
 
 table.data td {
 	color: #669;
-	padding: 5px 5px;
+	padding: 3px 5px;
 	text-align:right;
 	white-space: nowrap;
 }
