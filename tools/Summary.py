@@ -103,20 +103,18 @@ def printStats(arrV, arrN, arrS, noSummary):
         out[5].append(formatString % (sum(arrV[c])))
         
     if(printing and arrS!=0 ):
-        print "<thead><tr><th></th><th>"+"</th><th>".join(string)+"</th></tr></thead>"
+        print "<thead><tr><th></th><th>"+"</th><th>".join(string)+"</th><th class='left'>File</th></tr></thead>"
 #        print string
         print "<tbody>"
         for l in arrS:
-            print "<tr>"
             resultPerS=[]
             for e in l[0]:
                 formatString="%17.2f "
                 if(e<0.009):
                     formatString="%17.2e "
                 resultPerS+=[formatString % e]
-            resultPerS+=[l[1]]
             
-            print "<tr><td>"+"</td><td>".join(resultPerS)+"</td></tr>"
+            print "<tr><td></td><td>"+"</td><td>".join(resultPerS)+"</td><td class='left'>"+l[1]+"+</td></tr>"
         print "</tbody>"
             
     if(noSummary):
@@ -125,11 +123,11 @@ def printStats(arrV, arrN, arrS, noSummary):
     elif(arrS==0 or len(arrS)>1):
         print "<tfoot>"
 #        print string
-        print "<tr><td>sum </td><td>"+"</td><td>".join(out[5])+"</td></tr>"
-        print "<tr><td>min </td><td>"+"</td><td>".join(out[0])+"</td></tr>"
-        print "<tr><td>max </td><td>"+"</td><td>".join(out[1])+"</td></tr>"
-        print "<tr><td>av </td><td>"+"</td><td>".join(out[2])+"</td></tr>"
-        print "<tr><td>ste </td><td>"+"</td><td>".join(out[3])+"</td></tr>"
+        print "<tr><td class='left'>sum </td><td>"+"</td><td>".join(out[5])+"</td></tr>"
+        print "<tr><td class='left'>min </td><td>"+"</td><td>".join(out[0])+"</td></tr>"
+        print "<tr><td class='left'>max </td><td>"+"</td><td>".join(out[1])+"</td></tr>"
+        print "<tr><td class='left'>av </td><td>"+"</td><td>".join(out[2])+"</td></tr>"
+        print "<tr><td class='left'>ste </td><td>"+"</td><td>".join(out[3])+"</td></tr>"
         if (percent):
             print "<tr><td>av% </td><td>"+"</td><td>".join(out[4])+"</td></tr>"
         print "</tfoot>"

@@ -733,16 +733,22 @@ table,caption,tbody,tfoot,thead,tr,th,td {
 }
 
 table.data th {
-	font-weight: normal;
-	font-size: 14px;
+	font-weight: bold;
+	font-size: 12px;
 	color: #039;
 	border-bottom: 1px dashed #69c;
 	padding: 12px 17px;
+	text-align:right;
 }
 
 table.data td {
 	color: #669;
 	padding: 7px 17px;
+	text-align:right;
+}
+
+table.data td.left, table.data  th.left{
+	text-align:left;
 }
 
 table.data tfoot {
