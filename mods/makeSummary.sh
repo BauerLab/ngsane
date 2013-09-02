@@ -71,6 +71,8 @@ if [ -n "$RUNFASTQC" ]; then
         done
     fi
     echo "</tbody></table>">>$SUMMARYTMP
+
+    echo "</div></div>">>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -80,10 +82,10 @@ if [[ -n "$RUNFASTQSCREEN" ]]; then
     
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
-    echo "<div class='results'>" >>$SUMMARYTMP
+    echo "<div class='wrapper'><div class='results'>" >>$SUMMARYTMP
 
     echo "QC"
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/fastqscreen.sh $QOUT/$TASKFASTQSCREEN/ >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/fastqscreen.sh -l $QOUT/$TASKFASTQSCREEN/ >>$SUMMARYTMP
     echo "gather dirs"
     vali=""
     for dir in ${DIR[@]}; do
@@ -105,7 +107,7 @@ if [[ -n "$RUNFASTQSCREEN" ]]; then
     done
     echo "<table><tr>$row0</tr><tr>$row1</tr></table>" >> $SUMMARYTMP
 
-    echo "</div>" >>$SUMMARYTMP
+    echo "</div></div>" >>$SUMMARYTMP
 fi
 
 
@@ -117,9 +119,9 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<div class='results'>" >>$SUMMARYTMP
+    echo "<div class='wrapper'><div class='results'>" >>$SUMMARYTMP
     echo "QC"
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/bwa.sh $QOUT/$TASKBWA >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/bwa.sh -l $QOUT/$TASKBWA >>$SUMMARYTMP
     echo "gather dirs"
     for dir in ${DIR[@]}; do
 	   vali=$vali" $OUT/$dir/$TASKBWA/"
@@ -135,7 +137,7 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
 	   python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
     fi
     
-    echo "</div>" >>$SUMMARYTMP
+    echo "</div></div>" >>$SUMMARYTMP
 fi
 
 
@@ -147,15 +149,15 @@ if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" || -n "$RUNREALRECAL3" ]]; then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE Mapping</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<div class='results'>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA >>$SUMMARYTMP
+    echo "<div class='wrapper'><div class='results'>" >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/reCalAln.sh -l $QOUT/$TASKRCA >>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
 	   vali=$vali" $OUT/$dir/$TASKRCA/"
     done
     echo "<h3>Result</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
-    echo "</div>" >>$SUMMARYTMP
+    echo "</div></div>" >>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -166,9 +168,9 @@ if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<div class='results'>" >>$SUMMARYTMP
+    echo "<div class='wrapper'><div class='results'>" >>$SUMMARYTMP
     echo "QC"
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/bowtie.sh $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/bowtie.sh -l $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
     echo "gather dirs"
     vali=""
     for dir in ${DIR[@]}; do
@@ -176,7 +178,7 @@ if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
     done
     echo "<h3>Result</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
-    echo "</div>" >>$SUMMARYTMP
+    echo "</div></div></div>" >>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -189,7 +191,7 @@ if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
 
     echo "<div class='results'>" >>$SUMMARYTMP
     echo "QC"
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/bowtie2.sh $QOUT/$TASKBOWTIE2/ >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/bowtie2.sh -l $QOUT/$TASKBOWTIE2/ >>$SUMMARYTMP
     echo "gather dirs"
     vali=""
     for dir in ${DIR[@]}; do
@@ -210,7 +212,7 @@ if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
 
     echo "<br>Note, the duplication rate is not calculated by tophat and hence zero." >>$SUMMARYTMP
     echo "<div class='results'>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT/ >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/tophatcuff.sh -l $QOUT/$TASKTOPHAT/ >>$SUMMARYTMP
     echo "<h3>Result</h3>">>$SUMMARYTMP
     CURDIR=$(pwd)
     for dir in ${DIR[@]}; do
@@ -236,7 +238,7 @@ if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
     echo "<div class='results'>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKVAR >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/gatkSNPs.sh -l $QOUT/$TASKVAR >> $SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
 	   vali=$vali" $OUT/$dir/$TASKDOC/"
@@ -262,7 +264,7 @@ if [ -n "$RUNVARCALLS" ]; then
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
     echo "<div class='results'>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKVAR >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -l ${NGSANE_BASE}/mods/gatkSNPs.sh -m $QOUT/$TASKVAR >> $SUMMARYTMP
 
     vali=""
     for dir in ${DIR[@]}; do
@@ -285,7 +287,7 @@ if [ -n "$RUNANNOTATION" ]; then
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
     echo "<div class='results'>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/annovar.sh $QOUT/$TASKANNOVAR >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/annovar.sh -l $QOUT/$TASKANNOVAR >> $SUMMARYTMP
     
     vali=""
     for dir in ${DIR[@]}; do
@@ -312,7 +314,7 @@ if [ -n "$RUNTRIMGALORE" ];then
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
     echo "<div class='results'>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/trimgalore.sh $QOUT/$TASKTRIMGALORE >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/trimgalore.sh -l $QOUT/$TASKTRIMGALORE >> $SUMMARYTMP
 
     echo "<h3>trimgalore</h3>">>$SUMMARYTMP
     vali=""
@@ -332,7 +334,7 @@ if [ -n "$RUNTRIMMOMATIC" ];then
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
     echo "<div class='results'>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/trimmomatic.sh $QOUT/$TASKTRIMMOMATIC >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/trimmomatic.sh -l $QOUT/$TASKTRIMMOMATIC >> $SUMMARYTMP
 
     echo "<h3>trimmomatic</h3>">>$SUMMARYTMP
     vali=""
@@ -352,7 +354,7 @@ if [ -n "$RUNCUTADAPT" ];then
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
     echo "<div class='results'>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/cutadapt.sh $QOUT/$TASKCUTADAPT >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/cutadapt.sh -l $QOUT/$TASKCUTADAPT >> $SUMMARYTMP
 
     echo "<h3>cutadapt</h3>">>$SUMMARYTMP
     vali=""
@@ -372,7 +374,7 @@ if [ -n "$RUNHICLIB" ];then
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
     echo "<div class='results'>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/hiclibMapping.sh $QOUT/$TASKHICLIB >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -l ${NGSANE_BASE}/mods/hiclibMapping.sh -m $QOUT/$TASKHICLIB >> $SUMMARYTMP
 
     echo "<h3>hiclib</h3>">>$SUMMARYTMP
     vali=""
@@ -396,7 +398,7 @@ if [ -n "$RUNHICUP" ];then
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
     echo "<div class='results'>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/hicup.sh $QOUT/$TASKHICUP >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -l ${NGSANE_BASE}/mods/hicup.sh -m $QOUT/$TASKHICUP >> $SUMMARYTMP
 
     vali=""
     for dir in ${DIR[@]}; do
@@ -438,7 +440,7 @@ if [ -n "$RUNHOMERCHIPSEQ" ];then
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
     echo "<div class='results'>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/chipseqHomer.sh $QOUT/$TASKHOMERCHIPSEQ >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/chipseqHomer.sh -l $QOUT/$TASKHOMERCHIPSEQ >> $SUMMARYTMP
 
     echo "<h3>Homer ChIP-seq</h3>">>$SUMMARYTMP
     vali=""
@@ -457,8 +459,8 @@ if [ -n "$RUNPEAKRANGER" ];then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
-    echo "<div class='results'>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/peakranger.sh $QOUT/$TASKPEAKRANGER >> $SUMMARYTMP
+    echo "<div class='wrapper'><div class='results'>" >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/peakranger.sh -l $QOUT/$TASKPEAKRANGER >> $SUMMARYTMP
 
     echo "<h3>Peakranger</h3>">>$SUMMARYTMP
     vali=""
@@ -478,7 +480,7 @@ if [ -n "$RUNMACS2" ];then
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
     echo "<div class='results'>" >>$SUMMARYTMP 
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/macs2.sh $QOUT/$TASKMACS2 >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/macs2.sh -l $QOUT/$TASKMACS2 >> $SUMMARYTMP
 
     echo "<h3>MACS2</h3>">>$SUMMARYTMP
     vali=""
@@ -500,7 +502,7 @@ if [ -n "$RUNMACS2" ];then
     done
     done
     echo "<table><tr>$row0</tr><tr>$row1</tr><tr>$row2</tr></table>" >> $SUMMARYTMP
-    echo "</div>" >> $SUMMARYTMP
+    echo "</div>i</div></div>" >> $SUMMARYTMP
 fi
 
 ################################################################################
@@ -512,7 +514,7 @@ if [ -n "$RUNMEMECHIP" ];then
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
     echo "<div class='results'>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh --output-html ${NGSANE_BASE}/mods/memechip.sh $QOUT/$TASKMEMECHIP >> $SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh -o -m ${NGSANE_BASE}/mods/memechip.sh -l $QOUT/$TASKMEMECHIP >> $SUMMARYTMP
 
     echo "<h3>MEME-chip</h3>">>$SUMMARYTMP
     vali=""
@@ -656,6 +658,7 @@ div.panel {
 	border: 1px solid #999;
 	border-radius: 12px;
 	padding: 2px;
+	margin-bottom: 25px;
 }
 
 #controls div,#gallery div {
@@ -697,9 +700,16 @@ div.panel h2.sub {
 	width: 400px;
 }
 
-div.results {
+div.wrapper {
+	margin: auto; 
 	width: 100%;
-	overflow-y: scroll;
+	padding-top: 5px;
+}
+
+div.results {
+	overflow-x: scroll;
+	overflow-y: hidden;
+	margin-bottom: 10px;
 }
 
 p {
@@ -712,8 +722,8 @@ table {
 }
 
 table.data {
+        table-layout: fixed;
 	font-size: 12px;
-	width: 480px;
 	text-align: left;
 	border-collapse: collapse;
 	border: 1px solid #69c;
@@ -739,14 +749,20 @@ table.data th {
 	text-align:right;
 }
 
+table.data th div{
+	width: 100px;
+}
+
 table.data td {
 	color: #669;
 	padding: 5px 5px;
 	text-align:right;
+	white-space: nowrap;
 }
 
 table.data td.left, table.data  th.left{
 	text-align:left;
+	width: auto;
 }
 
 table.data tfoot {
@@ -759,6 +775,7 @@ div.library {
 	padding: 5px;
 	border-radius: 10px;
 	border: 1px solid #666;
+	max-width: 1200px;
 }
 
 hr {

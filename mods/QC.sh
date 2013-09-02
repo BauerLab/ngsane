@@ -1,39 +1,35 @@
+#!/bin/sh
+
 # author: Denis C. Bauer
 # date: Feb.2011
 # modified by Fabian Buske, Aug 2013
 
-USAGEMSG="usage: $(basename $0) [OPTIONS] SCRIPT QOUT
+function usage {
+echo -e "usage: $(basename $0) [OPTIONS] -m MOD.SCRIPT - l LOG.QOUT"
+exit
+}
 
-* SCRIPT        - pipeline script (task)
-* QOUT          - Location of the log files
-* --output-html - output with html tags
+if [ ! $# -gt 2 ]; then usage ; fi
 
-"
-
-[ $# -lt 2 ] && echo "$USAGEMSG" >&2 && exit 1
-
-HTMLOUTPUT='FALSE'                                                                                        
-while getopts "oh" opt;
-do
-	case ${opt} in
-        o) HTMLOUTPUT='TRUE';; # location of the NGSANE repository                       
-        h) usage ;;
-        \?) print >&2 "$0: error - unrecognized option $1"
-        exit 1;;
+while [ "$1" != "" ]; do
+    case $1 in
+        -m | --mod )            shift; SCRIPT=$1 ;; # location of mod script                       
+        -l | --log )            shift; QOUT=$1 ;;   # location of log output
+        -o | --output-html )    HTMLOUTPUT='TRUE';; # flag                                                     
+        -h | --help )           usage ;;
+        * )                     echo "don't understand "$1
     esac
     shift
 done
 
-shift $(($OPTIND-1))
-SCRIPT=$1
-QOUT=$2
+################################################################################
 
 if [ -n "$DMGET" ]; then
     dmget $QOUT/*.out
 fi
 
 
-if [ '$HTMLOUTPUT' = 'TRUE' ]; then
+if [ "$HTMLOUTPUT" == 'TRUE' ]; then
     echo "<pre>"
 fi
 
@@ -42,7 +38,6 @@ echo "# NGSANE ${SCRIPT/.sh/} "
 echo "###################################################"
 
 files=$(ls $QOUT/*.out | wc -l)
-
 
 # FINISHED ?
 finished=$(grep "FINISHED" $QOUT/*.out | cut -d ":" -f 1 | sort -u | wc -l)
@@ -57,7 +52,7 @@ IFS=','
 echo ">>>>>>>>>> Errors"
 
 # Errors
-ERROR=$(grep QCVARIABLES $1)
+ERROR=$(grep QCVARIABLES $SCRIPT)
 ERROR=${ERROR/"# QCVARIABLES,"/}
 for i in $ERROR
 do
@@ -83,6 +78,9 @@ do
   fi
 done
 
-if [ '$HTMLOUTPUT' = 'TRUE' ]; then
+if [ "$HTMLOUTPUT" = 'TRUE' ]; then
     echo "</pre>"
 fi
+
+################################################################################
+
