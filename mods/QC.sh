@@ -16,8 +16,8 @@ HTMLOUTPUT='FALSE'
 while getopts "oh" opt;
 do
 	case ${opt} in
-        -o | --output-html )    HTMLOUTPUT="TRUE";; # location of the NGSANE repository                       
-        -h | --help )           usage ;;
+        o) HTMLOUTPUT='TRUE';; # location of the NGSANE repository                       
+        h) usage ;;
         \?) print >&2 "$0: error - unrecognized option $1"
         exit 1;;
     esac
