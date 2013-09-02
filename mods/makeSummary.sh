@@ -599,7 +599,7 @@ h2 {
 h4 {
 	display: block;
 	-webkit-margin-before: 1em;
-	-webkit-margin-after: 1em;
+    -webkit-margin-after: 0em;
 	-webkit-margin-start: 0px;
 	-webkit-margin-end: 0px;
 }
@@ -614,10 +614,6 @@ h4 {
 	text-transform: uppercase;
 	padding: 2px 10px;
 	margin: 0px;
-}
-
-h4 {
-    -webkit-margin-after: 0em;
 }
 
 .panel h3 {
