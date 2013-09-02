@@ -85,10 +85,11 @@ def per(max,arr):
 
 
 def printStats(arrV, arrN, arrS, noSummary):
+    print "<table class='data'>"
     out=[[],[],[],[],[],[]]
-    string="    "
+    string=[]
     for c in range(0,len(arrV)):
-        string+="%17s " % arrN[c]
+        string+=["%17s " % arrN[c]]
         formatString="%17.2f"
         if(min(arrV[c])<0.009):
             formatString="%17.2e"
@@ -100,29 +101,39 @@ def printStats(arrV, arrN, arrS, noSummary):
         if (percent):
             out[4].append(formatString % (per(arrV[0],arrV[c])))
         out[5].append(formatString % (sum(arrV[c])))
+        
     if(printing and arrS!=0 ):
-        print string
+        print "<thead><tr><th></th><th>"+"</th><th>".join(string)+"</th></tr></thead>"
+#        print string
+        print "<tbody>"
         for l in arrS:
-            resultPerS="    "
+            print "<tr>"
+            resultPerS=[]
             for e in l[0]:
                 formatString="%17.2f "
                 if(e<0.009):
                     formatString="%17.2e "
-                resultPerS+= formatString % e
-            resultPerS+=" "+l[1]
-            print resultPerS
+                resultPerS+=[formatString % e]
+            resultPerS+=[l[1]]
+            
+            print "<tr><td>"+"</td><td>".join(resultPerS)+"</td></tr>"
+        print "</tbody>"
+            
     if(noSummary):
         return
+        
     elif(arrS==0 or len(arrS)>1):
-        print "-----------------------------"
-        print string
-        print "sum "+" ".join(out[5])
-        print "min "+" ".join(out[0])
-        print "max "+" ".join(out[1])
-        print " av "+" ".join(out[2])
-        print "ste "+" ".join(out[3])
+        print "<tfoot>"
+#        print string
+        print "<tr><td>sum </td><td>"+"</td><td>".join(out[5])+"</td></tr>"
+        print "<tr><td>min </td><td>"+"</td><td>".join(out[0])+"</td></tr>"
+        print "<tr><td>max </td><td>"+"</td><td>".join(out[1])+"</td></tr>"
+        print "<tr><td>av </td><td>"+"</td><td>".join(out[2])+"</td></tr>"
+        print "<tr><td>ste </td><td>"+"</td><td>".join(out[3])+"</td></tr>"
         if (percent):
-            print "av% "+" ".join(out[4])
+            print "<tr><td>av% </td><td>"+"</td><td>".join(out[4])+"</td></tr>"
+        print "</tfoot>"
+    print "</table>"
             
 # sam statiscis for initial aligment
 def samstats_old(statsfile):
@@ -922,11 +933,11 @@ for d in dir:
                 sys.stderr.write("error with "+f+"\n")
                 traceback.print_exc()
                 #sys.exit()
-    print "\n#### "+"/".join(d.split("/")[-4::]) # only list file structure from current root
+    print "<h4>"+"/".join(d.split("/")[-4::])+"</h4>" # only list file structure from current root
     printStats(result,names,psresult,noSummary)
 
 if (not noOverallSummary and overAll):
-    print "\n#### over all"
-    print "-----------------------------"
+    print "<h4>over all</h4>"
+
     printStats(oaresult,names,0,noOverallSummary)
-print "<hr style='border: 0; border-top: 1px solid #ccc;'/>"
+print "<hr/>"
