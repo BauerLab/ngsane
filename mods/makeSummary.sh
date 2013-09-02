@@ -20,20 +20,18 @@ for MODULE in $MODULE_R; do module load $MODULE; done  # save way to load module
 SUMMARYTMP=$HTMLOUT".tmp"
 SUMMARYFILE=$HTMLOUT".html"
 
-
 echo "Last modified "`date` >$SUMMARYTMP
 
 ################################################################################
 if [ -n "$RUNFASTQC" ]; then
-    echo "fastqc"
-    echo "<h2>Read biases (FASTQC)</h2>">>$SUMMARYTMP
-#    echo ${NGSANE_BASE}/tools/makeFastQCplot.sh
-#    if [ -n "$RUNFASTQC" ]; then
-#	   ${NGSANE_BASE}/tools/makeFastQCplot.sh $(pwd)/runStats/$TASKFASTQC/ $(pwd)/runStats/ fastQCSummary.pdf $CONFIG > /dev/null #2>&1
-#    fi
-#    echo "done"
-    echo "<table>" >>$SUMMARYTMP
-    echo "<thead><th>Libary</th><th>Chart</th><th>Encoding</th><th>Library size</th><th>Read</th><th>Read length</th><th>%GC</th><th> Read Qualities</th><thead>" >>$SUMMARYTMP
+    PIPELINE="FASTQC"
+    PIPELINK="fastqc"
+    
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>Read biases (FASTQC) </h2></a></div>" >>$SUMMARYTMP
+
+    echo "<table class="data">" >>$SUMMARYTMP
+    echo "<thead><tr><th>Libary</th><th>Chart</th><th>Encoding</th><th>Library size</th><th>Read</th><th>Read length</th><th>%GC</th><th> Read Qualities</th></tr><thead><tbody>" >>$SUMMARYTMP
 
     if [[ -e runStats/ && -e runStats/$TASKFASTQC/ ]]; then
         for f in $( ls runStats/$TASKFASTQC/*.zip ); do
@@ -71,73 +69,17 @@ if [ -n "$RUNFASTQC" ]; then
             echo "</td></tr><br>" >>$SUMMARYTMP
         done
     fi
-    echo "</table>">>$SUMMARYTMP
-fi
-
-
-################################################################################
-if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
-    echo "bwa"
-    LINKS=$LINKS" mapping"
-    echo "<a name=\"mapping\"><h2>BWA Mapping</h2>">>$SUMMARYTMP
-    echo "<pre>" >>$SUMMARYTMP
-    echo "QC"
-    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bwa.sh $QOUT/$TASKBWA >>$SUMMARYTMP
-    echo "gather dirs"
-    for dir in ${DIR[@]}; do
-	   vali=$vali" $OUT/$dir/$TASKBWA/"
-    done
-    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
-    if [ -n "$RUNANNOTATINGBAM" ]; then
-	echo "anno"
-	echo "</pre><h3>Anno</h3><pre>">>$SUMMARYTMP
-	python ${NGSANE_BASE}/tools/Summary.py "$vali" merg.anno.stats annostats >>$SUMMARYTMP
-	echo "</pre>" >>$SUMMARYTMP
-	ROUTH=runStats/$(echo ${DIR[@]}|sed 's/ /_/g')
-	if [ ! -e $ROUTH ]; then mkdir $ROUTH; fi
-	python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
-    fi
-fi
-
-
-################################################################################
-if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" || -n "$RUNREALRECAL3" ]]; then 
-    LINKS=$LINKS" recal"
-    echo "<a name=\"recal\"><h2>RECAL Mapping</h2>">>$SUMMARYTMP
-    echo "<pre>" >>$SUMMARYTMP
-    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA >>$SUMMARYTMP
-    vali=""
-    for dir in ${DIR[@]}; do
-	   vali=$vali" $OUT/$dir/$TASKRCA/"
-    done
-    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
-fi
-
-################################################################################
-if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
-    LINKS=$LINKS" mapping"
-    echo "<a name=\"mapping\"><h2>BOWTIE v1 Mapping</h2>">>$SUMMARYTMP
-    echo "<pre>" >>$SUMMARYTMP
-    echo "QC"
-    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie.sh $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
-    echo "gather dirs"
-    vali=""
-    for dir in ${DIR[@]}; do
-        vali=$vali" $OUT/$dir/$TASKBOWTIE/"
-    done
-    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
-    echo "</pre>" >>$SUMMARYTMP
+    echo "</tbody></table>">>$SUMMARYTMP
 fi
 
 ################################################################################
 if [[ -n "$RUNFASTQSCREEN" ]]; then
-    LINKS=$LINKS" screening"
-    echo "<a name=\"screening\"><h2>Fastq screen</h2>">>$SUMMARYTMP
+    PIPELINE="FASTQ screen"
+    PIPELINK="fastqscreen"
+    
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
     echo "<pre>" >>$SUMMARYTMP
     echo "QC"
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/fastqscreen.sh $QOUT/$TASKFASTQSCREEN/ >>$SUMMARYTMP
@@ -165,10 +107,85 @@ if [[ -n "$RUNFASTQSCREEN" ]]; then
     echo "</pre>" >>$SUMMARYTMP
 fi
 
+
+################################################################################
+if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
+    PIPELINE="BWA mapping"
+    PIPELINK="bwa"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
+    echo "QC"
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bwa.sh $QOUT/$TASKBWA >>$SUMMARYTMP
+    echo "gather dirs"
+    for dir in ${DIR[@]}; do
+	   vali=$vali" $OUT/$dir/$TASKBWA/"
+    done
+    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+    if [ -n "$RUNANNOTATINGBAM" ]; then
+	echo "anno"
+	echo "</pre><h3>Anno</h3><pre>">>$SUMMARYTMP
+	python ${NGSANE_BASE}/tools/Summary.py "$vali" merg.anno.stats annostats >>$SUMMARYTMP
+	echo "</pre>" >>$SUMMARYTMP
+	ROUTH=runStats/$(echo ${DIR[@]}|sed 's/ /_/g')
+	if [ ! -e $ROUTH ]; then mkdir $ROUTH; fi
+	python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
+    fi
+fi
+
+
+################################################################################
+if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" || -n "$RUNREALRECAL3" ]]; then 
+    PIPELINE="RECAL mapping"
+    PIPELINK="recal"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE Mapping</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA >>$SUMMARYTMP
+    vali=""
+    for dir in ${DIR[@]}; do
+	   vali=$vali" $OUT/$dir/$TASKRCA/"
+    done
+    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
+
+################################################################################
+if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
+    PIPELINE="BOWTIE v1 mapping"
+    PIPELINK="bowtie"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
+    echo "QC"
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie.sh $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
+    echo "gather dirs"
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/$dir/$TASKBOWTIE/"
+    done
+    echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    echo "</pre>" >>$SUMMARYTMP
+fi
+
 ################################################################################
 if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
-    LINKS=$LINKS" mapping"
-    echo "<a name=\"mapping\"><h2>BOWTIE v2 Mapping</h2>">>$SUMMARYTMP
+    PIPELINE="BOWTIE v2 mapping"
+    PIPELINK="bowtie"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
     echo "<pre>" >>$SUMMARYTMP
     echo "QC"
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bowtie2.sh $QOUT/$TASKBOWTIE2/ >>$SUMMARYTMP
@@ -184,9 +201,13 @@ fi
 
 ################################################################################
 if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
-    vali=""
-    LINKS=$LINKS" tophat"
-    echo "<a name=\"tophat\"><h2>tophat Mapping</h2><br>Note, the duplication rate is not calculated by tophat and hence zero.">>$SUMMARYTMP
+    PIPELINE="TOPHAT + Cufflinks"
+    PIPELINK="tophat"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<br>Note, the duplication rate is not calculated by tophat and hence zero." >>$SUMMARYTMP
     echo "<pre>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT/ >>$SUMMARYTMP
     echo "</pre><h3>Result</h3><pre>">>$SUMMARYTMP
@@ -207,8 +228,14 @@ fi
 
 ################################################################################
 if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
-    LINKS=$LINKS" coverage"
-    echo "<a name=\"coverage\"><h2>Coverage</h2>">>$SUMMARYTMP
+    PIPELINE="COVERAGE"
+    PIPELINK="coverage"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
+    ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKVAR >> $SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
 	   vali=$vali" $OUT/$dir/$TASKDOC/"
@@ -227,8 +254,13 @@ fi
 
 ################################################################################
 if [ -n "$RUNVARCALLS" ]; then 
-    LINKS=$LINKS" varcalls"
-    echo "<a name=\"varcalls\"><h2>Variant calling</h2><pre>">>$SUMMARYTMP
+    PIPELINE="Variant calling"
+    PIPELINK="varcall"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKVAR >> $SUMMARYTMP
 
     vali=""
@@ -245,8 +277,13 @@ fi
 
 ################################################################################
 if [ -n "$RUNANNOTATION" ]; then
-    LINKS=$LINKS" annotation"
-    echo "<a name=\"annotation\"><h2>Variant annotation</h2></a><pre>">>$SUMMARYTMP
+    PIPELINE="Variant annotation"
+    PIPELINK="varanno"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/annovar.sh $QOUT/$TASKANNOVAR >> $SUMMARYTMP
     
     vali=""
@@ -267,8 +304,13 @@ fi
 
 ################################################################################
 if [ -n "$RUNTRIMGALORE" ];then
-    LINKS=$LINKS" trimgalore"
-    echo "<a name=\"trimgalore\"><h2>Trim-Galore results</h2></a><pre>">>$SUMMARYTMP
+    PIPELINE="Trimgalore trimming"
+    PIPELINK="trimgalore"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/trimgalore.sh $QOUT/$TASKTRIMGALORE >> $SUMMARYTMP
 
     echo "</pre><h3>trimgalore</h3><pre>">>$SUMMARYTMP
@@ -282,8 +324,13 @@ fi
 
 ################################################################################
 if [ -n "$RUNTRIMMOMATIC" ];then
-    LINKS=$LINKS" trimmomatic"
-    echo "<a name=\"trimmomatic\"><h2>Trimmomatic results</h2></a><pre>">>$SUMMARYTMP
+    PIPELINE="Trimmomatic trimming"
+    PIPELINK="trimmomatic"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/trimmomatic.sh $QOUT/$TASKTRIMMOMATIC >> $SUMMARYTMP
 
     echo "</pre><h3>trimmomatic</h3><pre>">>$SUMMARYTMP
@@ -297,8 +344,13 @@ fi
 
 ################################################################################
 if [ -n "$RUNCUTADAPT" ];then
-    LINKS=$LINKS" cutadapt"
-    echo "<a name=\"cutadapt\"><h2>Cutadapt results</h2></a><pre>">>$SUMMARYTMP
+    PIPELINE="Cutadapt trimming"
+    PIPELINK="cutadapt"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/cutadapt.sh $QOUT/$TASKCUTADAPT >> $SUMMARYTMP
 
     echo "</pre><h3>cutadapt</h3><pre>">>$SUMMARYTMP
@@ -312,8 +364,13 @@ fi
 
 ################################################################################
 if [ -n "$RUNHICLIB" ];then
-    LINKS=$LINKS" hiclib"
-    echo "<a name=\"hiclib\"><h2>HiC results</h2></a><pre>">>$SUMMARYTMP
+    PIPELINE="HiClib"
+    PIPELINK="hiclib"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/hiclibMapping.sh $QOUT/$TASKHICLIB >> $SUMMARYTMP
 
     echo "</pre><h3>hiclib</h3><pre>">>$SUMMARYTMP
@@ -332,8 +389,13 @@ fi
 
 ################################################################################
 if [ -n "$RUNHICUP" ];then
-    LINKS=$LINKS" hicup"
-    echo "<a name=\"hicup\"><h2>HiC results</h2></a><pre>">>$SUMMARYTMP
+    PIPELINE="HiCUP + fit-hi-C"
+    PIPELINK="hicup"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/hicup.sh $QOUT/$TASKHICUP >> $SUMMARYTMP
 
     vali=""
@@ -369,8 +431,13 @@ fi
 
 ################################################################################
 if [ -n "$RUNHOMERCHIPSEQ" ];then
-    LINKS=$LINKS" Homer-ChIP-seq"
-    echo "<a name=\"Homer-ChIP-seq\"><h2>Homer ChIP-seq results</h2></a><pre>">>$SUMMARYTMP
+    PIPELINE="Homer ChIP-Seq"
+    PIPELINK="homerchipseq"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/chipseqHomer.sh $QOUT/$TASKHOMERCHIPSEQ >> $SUMMARYTMP
 
     echo "</pre><h3>Homer ChIP-seq</h3><pre>">>$SUMMARYTMP
@@ -384,8 +451,13 @@ fi
 
 ################################################################################
 if [ -n "$RUNPEAKRANGER" ];then
-    LINKS=$LINKS" peakranger"
-    echo "<a name=\"peakranger\"><h2>Peakranger results</h2></a><pre>">>$SUMMARYTMP
+    PIPELINE="Peakranger"
+    PIPELINK="peakranger"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/peakranger.sh $QOUT/$TASKPEAKRANGER >> $SUMMARYTMP
 
     echo "</pre><h3>Peakranger</h3><pre>">>$SUMMARYTMP
@@ -399,8 +471,13 @@ fi
 
 ################################################################################
 if [ -n "$RUNMACS2" ];then
-    LINKS=$LINKS" MACS2"
-    echo "<a name=\"MACS2\"><h2>MACS2 results</h2></a><pre>">>$SUMMARYTMP
+    PIPELINE="MACS2"
+    PIPELINK="mac2"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/macs2.sh $QOUT/$TASKMACS2 >> $SUMMARYTMP
 
     echo "</pre><h3>MACS2</h3><pre>">>$SUMMARYTMP
@@ -429,8 +506,13 @@ fi
 
 ################################################################################
 if [ -n "$RUNMEMECHIP" ];then
-    LINKS=$LINKS" meme-chip"
-    echo "<a name=\"meme-chip\"><h2>MEME-chip results</h2></a><pre>">>$SUMMARYTMP
+    PIPELINE="MEME-chip Motif discovery"
+    PIPELINK="meme"
+   
+    LINKS=$LINKS" $PIPELINK"
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+    echo "<pre>" >>$SUMMARYTMP
     ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/memechip.sh $QOUT/$TASKMEMECHIP >> $SUMMARYTMP
 
     echo "</pre><h3>MEME-chip</h3><pre>">>$SUMMARYTMP
@@ -497,15 +579,202 @@ fi
 
 
 ################################################################################
-echo "<h3>Quicklink</h3>" >$SUMMARYFILE.tmp
+echo '''
+<html>
+<head>
+<style type="text/css">
+body {
+	font: 12px/19px "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode",
+		Verdana, sans-serif;
+}
+
+h2 {
+	display: block;
+	font-size: 1.17em;
+	-webkit-margin-before: 1em;
+	-webkit-margin-after: 1em;
+	-webkit-margin-start: 0px;
+	-webkit-margin-end: 0px;
+	font-weight: bold;
+}
+
+.panel h2 {
+	background-color: #999;
+	border-radius: 10px;
+	color: white;
+	font-size: 100%;
+	font-weight: normal;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	padding: 2px 10px;
+	margin: 0px;
+}
+
+.panel h3 {
+	background-color: #69c;
+	color: white;
+	font-size: 100%;
+	font-weight: normal;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	padding: 2px 10px;
+	margin: 0px;
+}
+
+div.panel h2,div.panel h2.sub.inactive {
+	background: #888;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#69c),
+		to(#669));
+	background-image: -webkit-linear-gradient(top, #69c, #669);
+	background-image: -moz-linear-gradient(top, #69c, #669);
+	background-image: -ms-linear-gradient(top, #69c, #669);
+	background-image: -o-linear-gradient(top, #69c, #669);
+	background-image: linear-gradient(top, #69c, #669);
+}
+
+div.panel h2.sub.inactive {
+	color: #dedede;
+	cursor: pointer;
+	border-top-color: #ccc;
+	border-left-color: #aaa;
+}
+
+div.headbagb {
+	width: 100%;
+	border-radius: 10px 10px 0 0;
+	background: #555;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#69c),
+		to(#669));
+	background-image: -webkit-linear-gradient(top, #69c, #669);
+	background-image: -moz-linear-gradient(top, #69c, #669);
+	background-image: -ms-linear-gradient(top, #69c, #669);
+	background-image: -o-linear-gradient(top, #69c, #669);
+	background-image: linear-gradient(top, #69c, #669);
+}
+
+div.panel {
+	background: #fafaff;
+	border: 1px solid #999;
+	border-radius: 12px;
+	padding: 2px;
+}
+
+#controls div,#gallery div {
+	margin: 2px 0;
+	width: 240px;
+}
+
+#quicklinks a {
+	display: inline-block;
+	padding: 2px;
+	margin: 2px;
+	outline: 0;
+	color: #333;
+	transition-duration: 0.25s;
+	transition-property: transform;
+	transform: scale(1) rotate(0);
+}
+
+#quicklinks a:hover {
+	background: #aaa;
+	text-decoration: none;
+	color: #000;
+	border-radius: 10px;
+	transform: scale(1.05) rotate(-1deg);
+}
+
+div.panel h2.sub {
+	margin-left: 2px;
+	margin-top: 2px;
+	background: #fafaff;
+	border-radius: 10px 10px 0 0;
+	border: 1px solid #666;
+	border-top-color: #EEE;
+	border-left-color: #DDD;
+	color: #444;
+	border-bottom: none;
+	display: inline-block;
+	vertical-align: top;
+	width: 400px;
+}
+
+div.results {
+	width: 100%;
+	overflow-y: scroll;
+}
+
+p {
+	color: blue;
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+table.data {
+	font-size: 12px;
+	width: 480px;
+	text-align: left;
+	border-collapse: collapse;
+	border: 1px solid #69c;
+	margin: 20px 5px 20px 5px;
+}
+
+table,caption,tbody,tfoot,thead,tr,th,td {
+	font-size: 100%;
+	vertical-align: baseline;
+	margin: 0;
+	padding: 0;
+	outline: 0;
+	border: 0;
+	background: transparent;
+}
+
+table.data th {
+	font-weight: normal;
+	font-size: 14px;
+	color: #039;
+	border-bottom: 1px dashed #69c;
+	padding: 12px 17px;
+}
+
+table.data td {
+	color: #669;
+	padding: 7px 17px;
+}
+
+table.data tfoot {
+	border-top: 1px dashed #69c;
+}
+
+div.library {
+	background: #fff;
+	margin: 5px;
+	padding: 5px;
+	border-radius: 10px;
+	border: 1px solid #666;
+}
+
+hr {
+	border: 0;
+	border-top: 1px solid #ccc;
+}
+</style>
+</head>
+<body>
+
+<div id="center">
+''' > $SUMMARYFILE.tmp
+echo "<div class='panel' id='quicklinks'><h2>Quicklink</h2><div>" >> $SUMMARYFILE.tmp
 for i in $LINKS; do
     echo "<a href=#$i>$i</a> | ">>$SUMMARYFILE.tmp
 done
-echo "<br><br>" >>$SUMMARYFILE.tmp
+echo "</div></div>" >>$SUMMARYFILE.tmp
 
 cat $SUMMARYFILE.tmp  $SUMMARYTMP > $SUMMARYFILE
 
-#echo "</body>" >>$SUMMARYFILE
+echo "</div><!-- center --></body></html>" >>$SUMMARYFILE
 
 rm $SUMMARYTMP
 rm $SUMMARYFILE.tmp
