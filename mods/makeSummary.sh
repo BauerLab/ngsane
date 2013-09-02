@@ -596,6 +596,14 @@ h2 {
 	font-weight: bold;
 }
 
+h4 {
+	display: block;
+	-webkit-margin-before: 1em;
+	-webkit-margin-after: 1em;
+	-webkit-margin-start: 0px;
+	-webkit-margin-end: 0px;
+}
+
 .panel h2 {
 	background-color: #999;
 	border-radius: 10px;
@@ -608,8 +616,12 @@ h2 {
 	margin: 0px;
 }
 
+h4 {
+    -webkit-margin-after: 0em;
+}
+
 .panel h3 {
-	background-color: #69c;
+	background-color: #8b5;
 	color: white;
 	font-size: 100%;
 	font-weight: normal;
@@ -628,6 +640,22 @@ div.panel h2,div.panel h2.sub.inactive {
 	background-image: -ms-linear-gradient(top, #69c, #669);
 	background-image: -o-linear-gradient(top, #69c, #669);
 	background-image: linear-gradient(top, #69c, #669);
+}
+
+.panel#quicklinks h3{
+	background-color: #8b5;
+	color: white;
+}
+
+div.panel#quicklinks h2{
+	background: #888;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#69c),
+		to(#966));
+	background-image: -webkit-linear-gradient(top, #c69, #966);
+	background-image: -moz-linear-gradient(top, #c69, #966);
+	background-image: -ms-linear-gradient(top, #c69, #966);
+	background-image: -o-linear-gradient(top, #c69, #966);
+	background-image: linear-gradient(top, #c69, #966);
 }
 
 div.panel h2.sub.inactive {
@@ -719,12 +747,12 @@ table {
 }
 
 table.data {
-        table-layout: fixed;
+    table-layout: fixed;
 	font-size: 12px;
 	text-align: left;
 	border-collapse: collapse;
 	border: 1px solid #69c;
-	margin: 20px 5px 20px 5px;
+	margin: 10px 0 20px 0;
 }
 
 table,caption,tbody,tfoot,thead,tr,th,td {
@@ -768,11 +796,12 @@ table.data tfoot {
 
 div.library {
 	background: #fff;
-	margin: 5px;
-	padding: 5px;
-	border-radius: 10px;
-	border: 1px solid #666;
+	padding: 10px;
 	max-width: 1200px;
+}
+
+pre {
+    padding: 0 10px 0 10px;
 }
 
 hr {
