@@ -112,7 +112,7 @@ def printStats(arrV, arrN, arrS, noSummary):
                     formatString="%17.2e"
                 resultPerS+=[ formatString % e ]
             
-            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+l[1]+"+</td></tr>"
+            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+l[1]+"</td></tr>"
         print "</tbody>"
             
     if(noSummary):
@@ -663,18 +663,23 @@ def macs2Stats(logFile):
     tmp=file.split("#1  Redundant rate of treatment:")[1].strip().split()[0]
     TR=float(tmp.strip())
     values.append(100.-TR)
+    
+    try:
+        tmp=file.split("#1  total tags in control:")[1].strip().split()[0]
+        CT=float(tmp.strip())
+        values.append(CT)
 
-    tmp=file.split("#1  total tags in control:")[1].strip().split()[0]
-    CT=float(tmp.strip())
-    values.append(CT)
+        tmp=file.split("#1  tags after filtering in control:")[1].strip().split()[0]
+        CF=float(tmp.strip())
+        values.append(CF)
 
-    tmp=file.split("#1  tags after filtering in control:")[1].strip().split()[0]
-    CF=float(tmp.strip())
-    values.append(CF)
-
-    tmp=file.split("#1  Redundant rate of control:")[1].strip().split()[0]
-    CR=float(tmp.strip())
-    values.append(100.-CR)
+        tmp=file.split("#1  Redundant rate of control:")[1].strip().split()[0]
+        CR=float(tmp.strip())
+        values.append(100.-CR)
+    except:
+        values.append(0)
+        values.append(0)
+        values.append(0)
 
     tmp=file.split("#2 number of paired peaks:")[1].strip().split()[0]
     PP=float(tmp.strip())
