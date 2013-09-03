@@ -73,6 +73,8 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
   done
 fi
 
+if [ -n "$KEEP" ]; then exit ; fi
+
 MYPBSIDS="" # collect job IDs for postcommand
 DIR=""
 FILES=""
@@ -102,32 +104,32 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
     if [ -n "$ARMED" ]; then
 
-    echo $ARMED
-
-    if [ -n "$RECOVER" ] && [ -f $LOGFILE ] ; then
-        # add log-file for recovery
-        COMMAND2="$COMMAND2 --recover-from $LOGFILE"
-        echo "################################################################################" >> $LOGFILE
-        echo "[NOTE] Recover from logfile: $LOGFILE" >> $LOGFILE
-        echo "################################################################################" >> $LOGFILE
-    else
-        # remove old submission output logs
-        if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
-    fi
-
-    # record task in log file
-    cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
-    echo "[NOTE] Jobfile: "$QOUT/$TASK/job.$(date "+%Y%m%d").log >> $LOGFILE
-
-    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
-    	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
-    	
-    echo -e "Jobnumber $RECIPT"
-    MYPBSIDS=$MYPBSIDS":"$RECIPT
-#    MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
-
-    # if only the first task should be submitted as test
-    if [ -n "$FIRST" ]; then exit; fi
+        echo $ARMED
+    
+        if [ -n "$RECOVER" ] && [ -f $LOGFILE ] ; then
+            # add log-file for recovery
+            COMMAND2="$COMMAND2 --recover-from $LOGFILE"
+            echo "################################################################################" >> $LOGFILE
+            echo "[NOTE] Recover from logfile: $LOGFILE" >> $LOGFILE
+            echo "################################################################################" >> $LOGFILE
+        else
+            # remove old submission output logs
+            if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
+        fi
+    
+        # record task in log file
+        cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
+        echo "[NOTE] Jobfile: "$QOUT/$TASK/job.$(date "+%Y%m%d").log >> $LOGFILE
+    
+        RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+        	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
+        	
+        echo -e "Jobnumber $RECIPT"
+        MYPBSIDS=$MYPBSIDS":"$RECIPT
+    #    MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
+    
+        # if only the first task should be submitted as test
+        if [ -n "$FIRST" ]; then exit; fi
     
     fi
 done
