@@ -41,6 +41,13 @@ CONFIG=$ABSPATH
 
 # get all the specs defined in the config and defaults from the header (note: sourcing config twice is necessary)
 . $CONFIG
+# check environment variable
+if [ -z ${NGSANE_BASE} ]; then 
+    echo "[NOTE] NGSANE_BASE environment variable not set. Infering from trigger.sh location";
+    TRIGGERDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    export NGSANE_BASE=${TRIGGERDIR%/bin}
+    echo "[NOTE] NGSANE_BASE set to $NGSANE_BASE"
+fi
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
@@ -299,6 +306,9 @@ fi
 
 if [ -n "$RUNMAPPINGBOWTIE" ]; then
     if [ -z "$TASKBOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+echo $(pwd)
+echo $QSUB
 
     $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
         --command "${NGSANE_BASE}/mods/bowtie.sh $BOWTIEADDPARM -k $CONFIG -f <FILE> -r $FASTA \
