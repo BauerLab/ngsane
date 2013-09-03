@@ -1,14 +1,38 @@
+#!/bin/sh
+
 # author: Denis C. Bauer
 # date: Feb.2011
-# modified by Fabian Buske, Jul 2013
-SCRIPT=$1
-QOUT=$2
+# modified by Fabian Buske, Aug 2013
+
+function usage {
+echo -e "usage: $(basename $0) [OPTIONS] -m MOD.SCRIPT - l LOG.QOUT"
+exit
+}
+
+if [ ! $# -gt 2 ]; then usage ; fi
+
+while [ "$1" != "" ]; do
+    case $1 in
+        -m | --mod )            shift; SCRIPT=$1 ;; # location of mod script                       
+        -l | --log )            shift; QOUT=$1 ;;   # location of log output
+        -o | --output-html )    HTMLOUTPUT='TRUE';; # flag                                                     
+        -h | --help )           usage ;;
+        * )                     echo "don't understand "$1
+    esac
+    shift
+done
+
+################################################################################
 
 if [ -n "$DMGET" ]; then
     dmget $QOUT/*.out
 fi
 
-echo ""
+
+if [ "$HTMLOUTPUT" == 'TRUE' ]; then
+    echo "<pre>"
+fi
+
 echo "###################################################"
 echo "# NGSANE ${SCRIPT/.sh/} "
 echo "###################################################"
@@ -28,7 +52,7 @@ IFS=','
 echo ">>>>>>>>>> Errors"
 
 # Errors
-ERROR=$(grep QCVARIABLES $1)
+ERROR=$(grep QCVARIABLES $SCRIPT)
 ERROR=${ERROR/"# QCVARIABLES,"/}
 for i in $ERROR
 do
@@ -53,3 +77,10 @@ do
     echo "QC_PASS .. $var have $i/$files"
   fi
 done
+
+if [ "$HTMLOUTPUT" = 'TRUE' ]; then
+    echo "</pre>"
+fi
+
+################################################################################
+

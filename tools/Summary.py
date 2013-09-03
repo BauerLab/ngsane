@@ -54,7 +54,7 @@ if (dir == ["all"]):
 names=[]
 
 def average(arr):
-    sum=0
+    sum=0.
     for a in arr:
         sum+=float(a)
     sum/=len(arr)
@@ -63,7 +63,7 @@ def average(arr):
 # EXCEL comparable is =STDEV.P()
 # because this is the population std
 def std(arr,av):
-    sum=0
+    sum=0.
     for a in arr:
         sum+=(float(a)-float(av))*(float(a)-float(av))
     sum=math.sqrt(sum/(len(arr)))
@@ -74,8 +74,8 @@ def ste(arr):
     return(std(arr,av)/math.sqrt(len(arr)))
 
 def per(max,arr):
-    sum=0
-    for a in range(0,len(arr)):
+    sum=0.
+    for a in xrange(len(arr)):
         if (float(arr[a])!=0.0):
             sum+=float(arr[a])/(float(max[a])+pseudocount)*100
     if (sum==0.0):
@@ -85,14 +85,14 @@ def per(max,arr):
 
 
 def printStats(arrV, arrN, arrS, noSummary):
+
     out=[[],[],[],[],[],[]]
-    string="    "
-    for c in range(0,len(arrV)):
-        string+="%17s " % arrN[c]
+    string=[]
+    for c in xrange(len(arrV)):
+        string+=["<div>%17s</div>" % arrN[c]]
         formatString="%17.2f"
-        if(min(arrV[c])<0.009):
+        if (min(arrV[c]) > 0.0 and min(arrV[c])<0.009):
             formatString="%17.2e"
-            #formatString="%17.2f"
         out[0].append(formatString % (min(arrV[c])))
         out[1].append(formatString % (max(arrV[c])))
         out[2].append(formatString % (average(arrV[c])))
@@ -100,29 +100,35 @@ def printStats(arrV, arrN, arrS, noSummary):
         if (percent):
             out[4].append(formatString % (per(arrV[0],arrV[c])))
         out[5].append(formatString % (sum(arrV[c])))
+
+    print "<table class='data'><thead><tr><th><div style='width:40px'><div></th><th>"+("</th><th>").join(string)+"</th><th class='left'>File</th></tr></thead>"
     if(printing and arrS!=0 ):
-        print string
+        print "<tbody>"
         for l in arrS:
-            resultPerS="    "
+            resultPerS=[]
             for e in l[0]:
-                formatString="%17.2f "
-                if(e<0.009):
-                    formatString="%17.2e "
-                resultPerS+= formatString % e
-            resultPerS+=" "+l[1]
-            print resultPerS
+                formatString="%17.2f"
+                if (e > 0.0 and e<0.009):
+                    formatString="%17.2e"
+                resultPerS+=[ formatString % e ]
+            
+            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+l[1]+"+</td></tr>"
+        print "</tbody>"
+            
     if(noSummary):
         return
-    elif(arrS==0 or len(arrS)>1):
-        print "-----------------------------"
-        print string
-        print "sum "+" ".join(out[5])
-        print "min "+" ".join(out[0])
-        print "max "+" ".join(out[1])
-        print " av "+" ".join(out[2])
-        print "ste "+" ".join(out[3])
+        
+    elif(arrS==0 or len(arrS)>1):          
+        print "<tfoot>"
+        print "<tr><td class='left'>sum</td><td>"+("</td><td>").join(out[5])+"</td></tr>"
+        print "<tr><td class='left'>min</td><td>"+("</td><td>").join(out[0])+"</td></tr>"
+        print "<tr><td class='left'>max</td><td>"+("</td><td>").join(out[1])+"</td></tr>"
+        print "<tr><td class='left'>av</td><td>"+("</td><td>").join(out[2])+"</td></tr>"
+        print "<tr><td class='left'>ste</td><td>"+("</td><td>").join(out[3])+"</td></tr>"
         if (percent):
-            print "av% "+" ".join(out[4])
+            print "<tr><td>av%</td><td>"+"</td><td>".join(out[4])+"</td></tr>"
+        print "</tfoot>"
+    print "</table>"
             
 # sam statiscis for initial aligment
 def samstats_old(statsfile):
@@ -922,11 +928,12 @@ for d in dir:
                 sys.stderr.write("error with "+f+"\n")
                 traceback.print_exc()
                 #sys.exit()
-    print "\n#### "+"/".join(d.split("/")[-4::]) # only list file structure from current root
+    print "<h4>"+"/".join(d.split("/")[-4::])+"</h4>" # only list file structure from current root
     printStats(result,names,psresult,noSummary)
 
+
 if (not noOverallSummary and overAll):
-    print "\n#### over all"
-    print "-----------------------------"
+    print "<h3 class='overall'>over all</h3>"
+
     printStats(oaresult,names,0,noOverallSummary)
-print "<hr style='border: 0; border-top: 1px solid #ccc;'/>"
+print "<hr/>"
