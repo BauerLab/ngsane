@@ -22,6 +22,7 @@ options for TASK:
   postonly   run only the post analysis steps of a task (if available)
   recover    pick up unfinished business (interrupted jobs)
   html       checks logfiles for errors and creates summary HTML page
+  report     alias for html
 "
 exit
 }
@@ -40,6 +41,13 @@ CONFIG=$ABSPATH
 
 # get all the specs defined in the config and defaults from the header (note: sourcing config twice is necessary)
 . $CONFIG
+# check environment variable
+if [ -z ${NGSANE_BASE} ]; then 
+    echo "[NOTE] NGSANE_BASE environment variable not set. Infering from trigger.sh location";
+    TRIGGERDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    export NGSANE_BASE=${TRIGGERDIR%/bin}
+    echo "[NOTE] NGSANE_BASE set to $NGSANE_BASE"
+fi
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
@@ -50,27 +58,27 @@ if [ -n "$ADDITIONALTASK" ]; then
 
     if [ "$ADDITIONALTASK" = "verify" ]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
-        if [ -n "$RUNMAPPINGBWA" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/bwa.sh $QOUT/$TASKBWA; fi
-        if [ -n "$recalibrateQualScore" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA; fi
-        if [ -n "$GATKcallIndels" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkIndel.sh $QOUT/$TASKIND; fi
-        if [ -n "$GATKcallSNPS" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKSNP; fi
-        if [ -n "$RUNTOPHATCUFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT; fi
-        if [ -n "$RUNCUFFDIFF" ]; then ${NGSANE_BASE}/mods/QC.sh ${NGSANE_BASE}/mods/cuffdiff.sh $QOUT/$TASKCUFFDIFF; fi
+        if [ -n "$RUNMAPPINGBWA" ]; then ${NGSANE_BASE}/core/QC.sh ${NGSANE_BASE}/mods/bwa.sh $QOUT/$TASKBWA; fi
+        if [ -n "$recalibrateQualScore" ]; then ${NGSANE_BASE}/core/QC.sh ${NGSANE_BASE}/mods/reCalAln.sh $QOUT/$TASKRCA; fi
+        if [ -n "$GATKcallIndels" ]; then ${NGSANE_BASE}/core/QC.sh ${NGSANE_BASE}/mods/gatkIndel.sh $QOUT/$TASKIND; fi
+        if [ -n "$GATKcallSNPS" ]; then ${NGSANE_BASE}/core/QC.sh ${NGSANE_BASE}/mods/gatkSNPs.sh $QOUT/$TASKSNP; fi
+        if [ -n "$RUNTOPHATCUFF" ]; then ${NGSANE_BASE}/core/QC.sh ${NGSANE_BASE}/mods/tophatcuff.sh $QOUT/$TASKTOPHAT; fi
+        if [ -n "$RUNCUFFDIFF" ]; then ${NGSANE_BASE}/core/QC.sh ${NGSANE_BASE}/mods/cuffdiff.sh $QOUT/$TASKCUFFDIFF; fi
     	exit
     	
 	elif [ "$ADDITIONALTASK" = "fetchdata" ]; then
 	    echo ">>>>>>>>>> $ADDITIONALTASK"
-	    ${NGSANE_BASE}/mods/fetchRawDataFromServer.sh -k $CONFIG
+	    ${NGSANE_BASE}/core/fetchRawDataFromServer.sh -k $CONFIG
 	    exit
 	    
 	elif [ "$ADDITIONALTASK" = "pushresult" ]; then
 	    echo ">>>>>>>>>> $ADDITIONALTASK"
-	    ${NGSANE_BASE}/mods/pushResultToServer.sh -k $CONFIG
+	    ${NGSANE_BASE}/core/pushResultToServer.sh -k $CONFIG
 	    exit
 	    
-    elif [ "$ADDITIONALTASK" = "html" ]; then
+    elif [[ "$ADDITIONALTASK" = "html" || "$ADDITIONALTASK" = "report" ]]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
-        ${NGSANE_BASE}/mods/makeSummary.sh ${NGSANE_BASE} $CONFIG
+        ${NGSANE_BASE}/core/makeSummary.sh -k $CONFIG
         exit
 	    
     elif [ "$ADDITIONALTASK" = "armed" ]; then
@@ -182,8 +190,8 @@ if [ -n "$RUNCUTADAPT" ]; then
     if [ -z "$TASKCUTADAPT" ] || [ -z "$NODES_CUTADAPT" ] || [ -z "$CPU_CUTADAPT" ] || [ -z "$MEMORY_CUTADAPT" ] || [ -z "$WALLTIME_CUTADAPT" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
     $QSUB $ARMED -d -k $CONFIG -t $TASKCUTADAPT -i fastq -e $READONE.$FASTQ -n $NODES_CUTADAPT \
-	-c $CPU_CUTADAPT -m $MEMORY_CUTADAPT"G" -w $WALLTIME_CUTADAPT \
-	--command "${NGSANE_BASE}/mods/cutadapt.sh -k $CONFIG -f <FILE>" 
+	   -c $CPU_CUTADAPT -m $MEMORY_CUTADAPT"G" -w $WALLTIME_CUTADAPT \
+	   --command "${NGSANE_BASE}/mods/cutadapt.sh -k $CONFIG -f <FILE>" 
 fi
 
 ################################################################################
@@ -194,6 +202,8 @@ fi
 ################################################################################
 
 if [ -n "$RUNTRIMMOMATIC" ]; then
+    if [ -z "$TASKTRIMMOMATIC" ] || [ -z "$NODES_TRIMMOMATIC" ] || [ -z "$CPU_TRIMMOMATIC" ] || [ -z "$MEMORY_TRIMMOMATIC" ] || [ -z "$WALLTIME_TRIMMOMATIC" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    
     $QSUB $ARMED -d -k $CONFIG -t $TASKTRIMMOMATIC -i fastq -e $READONE.$FASTQ -n $NODES_TRIMMOMATIC \
         -c $CPU_TRIMMOMATIC -m $MEMORY_TRIMMOMATIC"G" -w $WALLTIME_TRIMMOMATIC \
         --command "$NGSANE_BASE/mods/trimmomatic.sh -k $CONFIG -f <FILE>"
@@ -270,9 +280,7 @@ if [ -n "$RUNHICLIB" ]; then
     	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND \
         --command "${NGSANE_BASE}/mods/hiclibMapping.sh $HICLIBADDPARM -k $CONFIG --fastq <FILE> --outdir $OUT/<DIR>/$TASKHICLIB --fastqName <NAME>" \
         --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh $HICLIBADDPARM -f <FILE> -k $CONFIG --outdir $OUT/hiclib/$TASKHICLIB-<DIR>"
-
 fi
-
 
 ################################################################################
 #   Mapping using BWA
@@ -298,6 +306,9 @@ fi
 
 if [ -n "$RUNMAPPINGBOWTIE" ]; then
     if [ -z "$TASKBOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+echo $(pwd)
+echo $QSUB
 
     $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
         --command "${NGSANE_BASE}/mods/bowtie.sh $BOWTIEADDPARM -k $CONFIG -f <FILE> -r $FASTA \
@@ -359,7 +370,7 @@ if [ -n "$RUNHOMERHIC" ]; then
     if [ -z "$TASKHOMERHIC" ] || [ -z "$NODES_HOMERHIC" ] || [ -z "$CPU_HOMERHIC" ] || [ -z "$MEMORY_HOMERHIC" ] || [ -z "$WALLTIME_HOMERHIC" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
     $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERHIC -i $TASKBWA -e $READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
-	--command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHOMERHIC"
+	   --command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHOMERHIC"
 fi
 
 ################################################################################
@@ -372,7 +383,7 @@ if [ -n "$RUNHOMERCHIPSEQ" ]; then
     if [ -z "$TASKHOMERCHIPSEQ" ] || [ -z "$NODES_HOMERCHIPSEQ" ] || [ -z "$CPU_HOMERCHIPSEQ" ] || [ -z "$MEMORY_HOMERCHIPSEQ" ] || [ -z "$WALLTIME_HOMERCHIPSEQ" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
     $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERCHIPSEQ -i $TASKBOWTIE -e .$ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ \
-	--command "${NGSANE_BASE}/mods/chipseqHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHOMERCHIPSEQ"
+	   --command "${NGSANE_BASE}/mods/chipseqHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHOMERCHIPSEQ"
 fi
 
 ################################################################################
@@ -385,7 +396,7 @@ if [ -n "$RUNPEAKRANGER" ]; then
     if [ -z "$TASKPEAKRANGER" ] || [ -z "$NODES_PEAKRANGER" ] || [ -z "$CPU_PEAKRANGER" ] || [ -z "$MEMORY_PEAKRANGER" ] || [ -z "$WALLTIME_PEAKRANGER" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKPEAKRANGER -i $TASKBOWTIE -e .$ASD.bam -n $NODES_PEAKRANGER -c $CPU_PEAKRANGER -m $MEMORY_PEAKRANGER"G" -w $WALLTIME_PEAKRANGER \
-	--command "${NGSANE_BASE}/mods/peakranger.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKPEAKRANGER"
+	   --command "${NGSANE_BASE}/mods/peakranger.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKPEAKRANGER"
 fi
 
 ################################################################################
@@ -398,7 +409,7 @@ if [ -n "$RUNMACS2" ]; then
     if [ -z "$TASKMACS2" ] || [ -z "$NODES_MACS2" ] || [ -z "$CPU_MACS2" ] || [ -z "$MEMORY_MACS2" ] || [ -z "$WALLTIME_MACS2" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKMACS2 -i $TASKBOWTIE -e .$ASD.bam -n $NODES_MACS2 -c $CPU_MACS2 -m $MEMORY_MACS2"G" -w $WALLTIME_MACS2 \
-	--command "${NGSANE_BASE}/mods/macs2.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKMACS2"
+	   --command "${NGSANE_BASE}/mods/macs2.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKMACS2"
 fi
 
 ################################################################################
@@ -411,7 +422,7 @@ if [ -n "$RUNMEMECHIP" ]; then
     if [ -z "$TASKMEMECHIP" ] || [ -z "$NODES_MEMECHIP" ] || [ -z "$CPU_MEMECHIP" ] || [ -z "$MEMORY_MEMECHIP" ] || [ -z "$WALLTIME_MEMECHIP" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKMEMECHIP -i $TASKPEAKRANGER -e $BED -n $NODES_MEMECHIP -c $CPU_MEMECHIP -m $MEMORY_MEMECHIP"G" -w $WALLTIME_MEMECHIP \
-	--command "${NGSANE_BASE}/mods/memechip.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKMEMECHIP"
+	   --command "${NGSANE_BASE}/mods/memechip.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKMEMECHIP"
 fi
 
 ################################################################################

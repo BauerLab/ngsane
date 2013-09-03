@@ -16,7 +16,7 @@ RUNHICUP="1"        # map HiC data with hicup
 
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq firectory)
+# which files to run on (replace sample with folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # where to write the output
@@ -32,7 +32,7 @@ QOUT=$OUT/qout
 # fastq file suffix
 FASTQ="fq.gz"
 
-# read indicator immediately preceeding the fastq file suffix
+# read indicator immediately preceding the fastq file suffix
 READONE="_R1"
 READTWO="_R2"
 
@@ -50,8 +50,8 @@ LIBRARY="HiC"
 PLATFORM="Illumina"
 
 # restriction enzymes
-HICLIB_RENZYMES="BglII"
-HICUP_RENZYMES=A^GATCT,BglII
+# e.g."A^GATCT,BglII"
+HICUP_RENZYMES=
 
 #********************
 # PARAMETER (optional overwriting defaults)
