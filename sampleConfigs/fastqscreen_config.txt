@@ -1,0 +1,73 @@
+# author: Fabian Buske
+# date: May 2013
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNFASTQSCREEN="1"    # 
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq firectory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# fastq file suffix
+FASTQ="fq.gz"
+
+# read indicator immediately preceeding the fastq file suffix
+READONE="_R1"
+READTWO="_R2"
+
+# reference genome, 
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+FASTA=
+
+# chromosome sizes
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
+GENOME_CHROMSIZES=
+
+# location of the bowtie indices database (--conf parameter in fastqscreen)
+FASTQSCREEN_DBCONF=
+
+# library tags
+EXPID="Celltype"
+LIBRARY="ChIPseq"
+PLATFORM="Illumina"
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+## additional fastqscreen parameters
+# e.g. --bowtie
+FASTQSCREENADDPARAM=
+
+#WALLTIME_FASTQSCREEN=10:00:00
+#MEMORY_FASTQSCREEN=60
+#CPU_FASTQSCREEN=8
+#NODES_FASTQSCREEN="nodes=1:ppn=8"
+#MODULE_FASTQSCREEN=
+#PATH_FASTQSCREEN=
+
+## location of ngsane
+#NGSANE_BASE=
+
+

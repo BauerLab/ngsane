@@ -68,6 +68,9 @@ CHECKPOINT="parameters"
 n=${f##*/}
 c=${CHIPINPUT##*/}
 
+if [ -z "$RECOVERFROM" ]; then
+    [ -e $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed ] && rm $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}*
+fi
 
 if [ "$PEAKRANGER_PEAKS" != "broad" ] && [ "$PEAKRANGER_PEAKS" != "sharp" ]; then
     echo "[ERROR] PEAKRANGER_PEAKS parameter not valid: $PEAKRANGER_PEAKS"
@@ -97,6 +100,9 @@ else
     echo "[NOTE] library complexity"
     peakranger lc --data $f >> $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
     
+    echo "[NOTE] make wigpe"
+    peakranger wigpe --data $f --output $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}
+
     if [ "$PEAKRANGER_PEAKS" == "broad" ]; then
         echo "[NOTE] calling broad peaks"
         RUN_COMMAND="peakranger ccat $PEAKRANGERADDPARAM --format bam --data  $f --control $CHIPINPUT --output $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}"

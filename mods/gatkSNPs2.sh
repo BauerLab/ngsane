@@ -104,9 +104,9 @@ if [ ! -d $MYOUT ]; then mkdir -p $MYOUT; fi
 
 # delete old snp files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    rm -f $MYOUT/$NAME.fi.vcf}
-    rm -f $MYOUT/$NAME.fi.vcf.idx
-    rm -f $MYOUT/gatkSNPcall.tmp
+    [ -e $MYOUT/$NAME.fi.vcf ] && rm $MYOUT/$NAME.fi.vcf
+    [ -e $MYOUT/$NAME.fi.vcf.idx ] && rm $MYOUT/$NAME.fi.vcf.idx
+    [ -e $MYOUT/gatkSNPcall.tmp ] && rm $MYOUT/gatkSNPcall.tmp
 fi
         
 if [ -n "$SEQREG" ]; then REGION="-L $SEQREG"; fi

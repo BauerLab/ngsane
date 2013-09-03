@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Script running downsample
 # QC:
@@ -158,7 +158,7 @@ fi
 ################################################################################
 CHECKPOINT="cleanup"
 
-rm -f $OUT/${n/bam/pn.bam}
+[ -e $OUT/${n/bam/pn.bam} ] && rm $OUT/${n/bam/pn.bam}
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################

@@ -1,7 +1,11 @@
 ##############################################################
 # System info
 ##############################################################
-SUBMISSIONSYSTEM=""                               # SGE or PBS
+SUBMISSIONSYSTEM="PBS"                            # SGE or PBS
+QUEUEWAIT=" -W depend=afterok:"                   # PBS
+QUEUEWAITSEP=":"
+#QUEUEWAIT=" -hold_jid "                          # SGE
+#QUEUEWAITSEP=","       
 DMGET=""                    # or Yes when storing data on tape
 TMP=$(pwd)/tmp                                       # TMP dir
 
@@ -47,7 +51,9 @@ TASKTRIMMOMATIC="trimmomatic"
 TASKHOMERHIC="homerhic"
 TASKHOMERCHIPSEQ="homerchipseq"
 TASKPEAKRANGER="peakranger"
+TASKMACS2="macs2"
 TASKMEMECHIP="memechip"
+TASKFASTQSCREEN="fastqscreen"
 
 ##############################################################
 # PROGRAM PATHS
@@ -69,11 +75,16 @@ READTWO="read2"
 FASTQ="fastq.gz"
 FASTA=            # fasta file usually from the reference genome
 FASTA_CHROMDIR=   # folder containing individual fasta files for each chromosome of the reference genome 
-UNM="unm" # unmapped
-ALN="aln" # aligned 
-MUL="mul" # non-unique aligned
-ASD="asd" # aligned sorted duplicate-removed
-ASR="asdrr" # aligned sorted duplicate-removed raligned reacalibrated
+
+# file infixes
+UNM="unm"   # unmapped
+ALN="aln"   # aligned 
+MUL="mul"   # non-unique aligned
+ASD="asd"   # aligned sorted duplicate-removed
+ASR="asdrr" # aligned sorted duplicate-removed raligned recalibrated
+
+MODULES_DEFAULT=
+for MODULE in $MODULES_DEFAULT; do module load $MODULES_DEFAULT; done
 
 ##############################################################
 # Summary specifics
@@ -189,8 +200,8 @@ PATH_HOMERHIC=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 ##############################################################
 # HOMER CHIPSEQ
 # http://biowhat.ucsd.edu/homer/index.html
-WALLTIME_HOMERCHIPSEQ=24:00:00
-MEMORY_HOMERCHIPSEQ=60
+WALLTIME_HOMERCHIPSEQ=12:00:00
+MEMORY_HOMERCHIPSEQ=20
 CPU_HOMERCHIPSEQ=1
 NODES_HOMERCHIPSEQ="nodes=1:ppn=1"
 
@@ -200,13 +211,24 @@ PATH_HOMERCHIPSEQ=
 ##############################################################
 # Peakranger
 # http://ranger.sourceforge.net/
-WALLTIME_PEAKRANGER=24:00:00
-MEMORY_PEAKRANGER=60
+WALLTIME_PEAKRANGER=12:00:00
+MEMORY_PEAKRANGER=20
 CPU_PEAKRANGER=1
 NODES_PEAKRANGER="nodes=1:ppn=1"
 
 MODULE_PEAKRANGER=
 PATH_PEAKRANGER=
+
+##############################################################
+# MACS2
+# https://github.com/taoliu/MACS/
+WALLTIME_MACS2=12:00:00
+MEMORY_MACS2=20
+CPU_MACS2=1
+NODES_MACS2="nodes=1:ppn=1"
+
+MODULE_MACS2=
+PATH_MACS2=
 
 ##############################################################
 # MEMECHIP
@@ -387,6 +409,18 @@ NODES_DEMULTIPLEX="nodes=1:ppn=1"
 
 MODULE_DEMULTIPLEX=
 PATH_DEMULTIPLEX=$PATH_FASTXTK
+
+##############################################################
+# Screen reads against multiple indices
+# http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/
+WALLTIME_FASTQSCREEN=48:00:00
+MEMORY_FASTQSCREEN=60
+CPU_FASTQSCREEN=8
+NODES_FASTQSCREEN="nodes=1:ppn=8"
+
+MODULE_FASTQSCREEN=
+PATH_FASTQSCREEN=
+FASTQSCREEN_DBCONF=
 
 ##############################################################
 #VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"

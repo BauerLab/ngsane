@@ -137,8 +137,8 @@ if [ -z "$HOMER_KEEPTAGDIRECTORY" ]; then
    rm $TAGDIRECTORY/*.tags.tsv
 fi
 
-if [ -n "$CHIPINPUT" ]; then
-    rm -rf ${TAGDIRECTORY}_input
+if [ -n "$CHIPINPUT" ] && [ -d ${TAGDIRECTORY}_input ]; then
+    rm -r ${TAGDIRECTORY}_input
 fi
 
 echo -e "\n********* $CHECKPOINT"

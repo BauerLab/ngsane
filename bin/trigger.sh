@@ -159,6 +159,19 @@ if [ -n "$RUNFASTQC" ]; then
 fi
 
 ################################################################################
+#   FASTQSCREEN 
+#
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $OUT/$dir/fastqscreen/*.
+################################################################################
+
+if [ -n "$RUNFASTQSCREEN" ]; then
+    $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQSCREEN -i fastq -e $READONE.$FASTQ -n $NODES_FASTQSCREEN \
+        -c $CPU_FASTQSCREEN -m $MEMORY_FASTQSCREEN"G" -w $WALLTIME_FASTQSCREEN \
+        --command "$NGSANE_BASE/mods/fastqscreen.sh -k $CONFIG -f <FILE>  -o $OUT/<DIR>/$TASKFASTQSCREEN"
+fi
+
+################################################################################
 #   CUTADAPT remove contaminants
 #
 # IN : $SOURCE/fastq/$dir/*read1.fastq
@@ -320,7 +333,6 @@ if [ -n "$RUNMAPPINGBOWTIE2" ]; then
     $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE2 -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" -w $WALLTIME_BOWTIE2 \
 	--command "${NGSANE_BASE}/mods/bowtie2.sh $BOWTIE2ADDPARM -k $CONFIG -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE2 \
         --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
-
 fi
 
 
@@ -377,9 +389,22 @@ if [ -n "$RUNPEAKRANGER" ]; then
 fi
 
 ################################################################################
+#  ChIP-seq analysis with MACS2
+#
+# IN: $SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/macs2/
+################################################################################
+if [ -n "$RUNMACS2" ]; then
+    if [ -z "$TASKMACS2" ] || [ -z "$NODES_MACS2" ] || [ -z "$CPU_MACS2" ] || [ -z "$MEMORY_MACS2" ] || [ -z "$WALLTIME_MACS2" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASKMACS2 -i $TASKBOWTIE -e .$ASD.bam -n $NODES_MACS2 -c $CPU_MACS2 -m $MEMORY_MACS2"G" -w $WALLTIME_MACS2 \
+	--command "${NGSANE_BASE}/mods/macs2.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKMACS2"
+fi
+
+################################################################################
 #  De-novo motif discovery with memechip
 #
-# IN: $SOURCE/$dir/peakranger/*.bed
+# IN: $SOURCE/$dir/peakranger/*.Bedford
 # OUT: $OUT/$dir/memechip/
 ################################################################################
 if [ -n "$RUNMEMECHIP" ]; then
