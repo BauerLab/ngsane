@@ -42,8 +42,8 @@ for MODULE in $MODULE_R; do module load $MODULE; done  # save way to load module
 
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
-echo -e "--Python      --\n "$(python --version | head -n 1)
-[ -z "$(which Python)" ] && echo "[ERROR] no Python detected" && exit 1
+echo -e "--Python      --\n "$(python --version 2>&1 | tee | head -n 1)
+[ -z "$(which python)" ] && echo "[ERROR] no Python detected" && exit 1
 
 ################################################################################
 

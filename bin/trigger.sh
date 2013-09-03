@@ -76,7 +76,7 @@ if [ -n "$ADDITIONALTASK" ]; then
 	    ${NGSANE_BASE}/core/pushResultToServer.sh -k $CONFIG
 	    exit
 	    
-    elif [ "$ADDITIONALTASK" = "html" || "$ADDITIONALTASK" = "report" ]; then
+    elif [[ "$ADDITIONALTASK" = "html" || "$ADDITIONALTASK" = "report" ]]; then
         echo ">>>>>>>>>> $ADDITIONALTASK"
         ${NGSANE_BASE}/core/makeSummary.sh -k $CONFIG
         exit
