@@ -16,7 +16,7 @@ RUNMACS2="1"    # MACS2 ChIP-seq
 
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq firectory)
+# which files to run on (replace sample with folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # where to write the output
