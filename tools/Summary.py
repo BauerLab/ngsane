@@ -1,3 +1,5 @@
+#!/bin/python
+
 import sys,os,math,re,traceback,datetime
 import glob
 
@@ -879,66 +881,65 @@ for d in dir:
     name=glob.glob(d+'*'+ext)
     name.sort()
     for f in name:
-            try:
-                if (type=="samstats"):
-                    names,values=samstats(f)
-                if (type=="samstatsrecal"):
-                    names,values=samstatsrecal(f)
-                if (type=="bamdistMapped"):
-                    names,values=bamDist(f, 5)
-                if (type=="coverage"):
-                    names,values=coverage(f)                    
-                if (type=="variant"):
-                    names,values=variant(f)
-                if (type=="tophat"):
-                    names,values=tophat(f)
-                if (type=="times"):
-                    names,values=time(f)
-                if (type=="target"):
-                    names,values=onTarget(f)
-                if (type=="intersection"):
-                    names,values=intersection(f)     
-                if (type=="annostats"):
-                    names,values=annoStats(f)
-                if (type=="trimgalore"):
-                    names,values=trimgaloreStats(f)
-		if (type=="trimmomatic"):
-		    names,values=trimmomaticStats(f)
-                if (type=="cutadapt"):
-                    names,values=cutadaptStats(f)
-                if (type=="hiclibMapping"):
-                    names,values=hiclibStats(f)
-                if (type=="hicup"):
-                    names,values=hicupStats(f)
-		if (type=="homerchipseq"):
-		    names,values=homerchipseqStats(f)
-		if (type=="peakranger"):
-		    names,values=peakrangerStats(f)
-		if (type=="macs2"):
-		   names,values=macs2Stats(f)
-		if (type=="memechip"):
-		    names,values=memechipStats(f)
-		if (type=="fastqscreen"):
-		    names,values=fastqscreenStats(f)
+        try:
+            if (type=="samstats"):
+                names,values=samstats(f)
+            if (type=="samstatsrecal"):
+                names,values=samstatsrecal(f)
+            if (type=="bamdistMapped"):
+                names,values=bamDist(f, 5)
+            if (type=="coverage"):
+                names,values=coverage(f)                    
+            if (type=="variant"):
+                names,values=variant(f)
+            if (type=="tophat"):
+                names,values=tophat(f)
+            if (type=="times"):
+                names,values=time(f)
+            if (type=="target"):
+                names,values=onTarget(f)
+            if (type=="intersection"):
+                names,values=intersection(f)     
+            if (type=="annostats"):
+                names,values=annoStats(f)
+            if (type=="trimgalore"):
+                names,values=trimgaloreStats(f)
+            if (type=="trimmomatic"):
+                names,values=trimmomaticStats(f)
+            if (type=="cutadapt"):
+                names,values=cutadaptStats(f)
+            if (type=="hiclibMapping"):
+                names,values=hiclibStats(f)
+            if (type=="hicup"):
+                names,values=hicupStats(f)
+            if (type=="homerchipseq"):
+                names,values=homerchipseqStats(f)
+            if (type=="peakranger"):
+                names,values=peakrangerStats(f)
+            if (type=="macs2"):
+                names,values=macs2Stats(f)
+            if (type=="memechip"):
+                names,values=memechipStats(f)
+            if (type=="fastqscreen"):
+                names,values=fastqscreenStats(f)
 
-                result=addValues(result,values)
-                # only list file structure from current root
-                filename="/".join(f.split("/")[-4::])
-                if (link):
-                    filename="<a href=\""+d.replace("illumina/","")+"/"+f+"\">"+f+"</a>"
-                psresult.append([values,filename])
-                oaresult=addValues(oaresult,values)
-                    
-            except :
-                sys.stderr.write("error with "+f+"\n")
-                traceback.print_exc()
-                #sys.exit()
+            result=addValues(result,values)
+
+            # only list file structure from current root
+            filename="/".join(f.split("/")[-4::])
+            if (link):
+                filename="<a href=\""+d.replace("illumina/","")+"/"+f+"\">"+f+"</a>"
+            psresult.append([values,filename])
+            oaresult=addValues(oaresult,values)
+                
+        except :
+            sys.stderr.write("error with "+f+"\n")
+            traceback.print_exc()
+            #sys.exit()
+
     print "<h4>"+"/".join(d.split("/")[-4::])+"</h4>" # only list file structure from current root
     printStats(result,names,psresult,noSummary)
 
-
 if (not noOverallSummary and overAll):
     print "<h3 class='overall'>over all</h3>"
-
     printStats(oaresult,names,0,noOverallSummary)
-print "<hr/>"

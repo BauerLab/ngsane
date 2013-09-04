@@ -37,6 +37,24 @@ done
 . $CONFIG
 
 ################################################################################
+# define function for generating summary table
+# it takes x parameters
+# $1=PIPELINE name
+# $2=PIPELINE link (one continuous string)
+# $3=pipeline mod script (e.g. ${NGSANE_BASE}/mods/bwa.sh)
+# $4=TASK (e.g. $TASKBWA)
+function summaryHeader {
+    LINKS=$LINKS" $2"
+    echo "<div class='panel'><div class='headbagb'><a name='$2'><h2 class='sub'>$1</h2></a></div><div class='wrapper'><div class='results'>" >> $SUMMARYTMP
+
+    echo "QC"
+    ${NGSANE_BASE}/core/QC.sh -o -m $3 -l $QOUT/$4 >>$SUMMARYTMP
+} 
+
+function summaryFooter {
+    echo "</div></div></div>" >>$SUMMARYTMP
+}
+################################################################################
 for MODULE in $MODULE_SUMMARY; do module load $MODULE; done  # save way to load modules that itself load other modules
 for MODULE in $MODULE_R; do module load $MODULE; done  # save way to load modules that itself load other modules
 
@@ -145,7 +163,7 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     PIPELINK="bwa"
    
     LINKS=$LINKS" $PIPELINK"
-    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div><div class='wrapper'><div class='results'>" >>$SUMMARYTMP
+    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div><div class='wrapper'><div class='results'>" >> $SUMMARYTMP
 
     echo "QC"
     ${NGSANE_BASE}/core/QC.sh -o -m ${NGSANE_BASE}/mods/bwa.sh -l $QOUT/$TASKBWA >>$SUMMARYTMP
@@ -191,13 +209,14 @@ fi
 if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
     PIPELINE="BOWTIE v1 mapping"
     PIPELINK="bowtie"
-   
-    LINKS=$LINKS" $PIPELINK"
-    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div><div class='wrapper'><div class='results'>" >>$SUMMARYTMP
 
-    echo "QC"
-    ${NGSANE_BASE}/core/QC.sh -o -m ${NGSANE_BASE}/mods/bowtie.sh -l $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
-    echo "gather dirs"
+    summaryHeader $PIPELINE $PIPELINK ${NGSANE_BASE}/mods/bowtie.sh $TASKBOWTIE
+#    LINKS=$LINKS" $PIPELINK"
+#    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div><div class='wrapper'><div class='results'>" >>$SUMMARYTMP
+#
+#    echo "QC"
+#    ${NGSANE_BASE}/core/QC.sh -o -m ${NGSANE_BASE}/mods/bowtie.sh -l $QOUT/$TASKBOWTIE/ >>$SUMMARYTMP
+#    echo "gather dirs"
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKBOWTIE/"
@@ -205,7 +224,8 @@ if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
     echo "<h3>Result</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
 
-    echo "</div></div></div>" >>$SUMMARYTMP
+    summaryFooter
+#    echo "</div></div></div>" >>$SUMMARYTMP
 fi
 
 ################################################################################
@@ -606,239 +626,16 @@ fi
 
 
 ################################################################################
-echo '''
-<html>
-<head>
-<style type="text/css">
-body {
-	font: 12px/19px "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode",
-		Verdana, sans-serif;
-}
+echo '''<html><head>''' > $SUMMARYFILE.tmp
+cat ${NGSANE_BASE}/core/Summary.css >> SUMMARYFILE.tmp
 
-h2 {
-	display: block;
-	font-size: 1.17em;
-	-webkit-margin-before: 1em;
-	-webkit-margin-after: 1em;
-	-webkit-margin-start: 0px;
-	-webkit-margin-end: 0px;
-	font-weight: bold;
-}
-
-h4 {
-	display: block;
-	-webkit-margin-before: 1em;
-    -webkit-margin-after: 0em;
-	-webkit-margin-start: 0px;
-	-webkit-margin-end: 0px;
-}
-
-.panel h2 {
-	background-color: #999;
-	border-radius: 10px;
-	color: white;
-	font-size: 100%;
-	font-weight: normal;
-	letter-spacing: 0.2em;
-	text-transform: uppercase;
-	padding: 2px 10px;
-	margin: 0px;
-}
-
-.panel h3 {
-	background-color: #8b5;
-	color: white;
-	font-size: 100%;
-	font-weight: normal;
-	letter-spacing: 0.2em;
-	text-transform: uppercase;
-	padding: 2px 10px;
-	margin: 0px;
-}
-
-div.panel h2,div.panel h2.sub.inactive {
-	background: #888;
-	background-image: -webkit-gradient(linear, left top, left bottom, from(#69c),
-		to(#669));
-	background-image: -webkit-linear-gradient(top, #69c, #669);
-	background-image: -moz-linear-gradient(top, #69c, #669);
-	background-image: -ms-linear-gradient(top, #69c, #669);
-	background-image: -o-linear-gradient(top, #69c, #669);
-	background-image: linear-gradient(top, #69c, #669);
-}
-
-.panel#quicklinks h3{
-	background-color: #8b5;
-	color: white;
-}
-
-div.panel#quicklinks h2{
-	background: #888;
-	background-image: -webkit-gradient(linear, left top, left bottom, from(#69c),
-		to(#966));
-	background-image: -webkit-linear-gradient(top, #c69, #966);
-	background-image: -moz-linear-gradient(top, #c69, #966);
-	background-image: -ms-linear-gradient(top, #c69, #966);
-	background-image: -o-linear-gradient(top, #c69, #966);
-	background-image: linear-gradient(top, #c69, #966);
-}
-
-div.panel h2.sub.inactive {
-	color: #dedede;
-	cursor: pointer;
-	border-top-color: #ccc;
-	border-left-color: #aaa;
-}
-
-div.headbagb {
-	width: 100%;
-	border-radius: 10px 10px 0 0;
-	background: #555;
-	background-image: -webkit-gradient(linear, left top, left bottom, from(#69c),
-		to(#669));
-	background-image: -webkit-linear-gradient(top, #69c, #669);
-	background-image: -moz-linear-gradient(top, #69c, #669);
-	background-image: -ms-linear-gradient(top, #69c, #669);
-	background-image: -o-linear-gradient(top, #69c, #669);
-	background-image: linear-gradient(top, #69c, #669);
-}
-
-div.panel {
-	background: #fafaff;
-	border: 1px solid #999;
-	border-radius: 12px;
-	padding: 2px;
-	margin-bottom: 25px;
-}
-
-#controls div,#gallery div {
-	margin: 2px 0;
-	width: 240px;
-}
-
-#quicklinks a {
-	display: inline-block;
-	padding: 2px;
-	margin: 2px;
-	outline: 0;
-	color: #333;
-	transition-duration: 0.25s;
-	transition-property: transform;
-	transform: scale(1) rotate(0);
-}
-
-#quicklinks a:hover {
-	background: #aaa;
-	text-decoration: none;
-	color: #000;
-	border-radius: 10px;
-	transform: scale(1.05) rotate(-1deg);
-}
-
-div.panel h2.sub {
-	margin-left: 2px;
-	margin-top: 2px;
-	background: #fafaff;
-	border-radius: 10px 10px 0 0;
-	border: 1px solid #666;
-	border-top-color: #EEE;
-	border-left-color: #DDD;
-	color: #444;
-	border-bottom: none;
-	display: inline-block;
-	vertical-align: top;
-	width: 400px;
-}
-
-div.wrapper {
-	margin: auto; 
-	width: 100%;
-	padding-top: 5px;
-}
-
-div.results {
-	overflow-x: scroll;
-	overflow-y: hidden;
-	margin-bottom: 10px;
-}
-
-p {
-	color: blue;
-}
-
-table {
-	border-collapse: collapse;
-	border-spacing: 0;
-}
-
-table.data {
-    table-layout: fixed;
-	font-size: 12px;
-	text-align: left;
-	border-collapse: collapse;
-	border: 1px solid #69c;
-	margin: 10px 0 20px 0;
-}
-
-table,caption,tbody,tfoot,thead,tr,th,td {
-	font-size: 100%;
-	vertical-align: baseline;
-	margin: 0;
-	padding: 0;
-	outline: 0;
-	border: 0;
-	background: transparent;
-}
-
-table.data th {
-	font-weight: bold;
-	font-size: 12px;
-	color: #039;
-	border-bottom: 1px dashed #69c;
-	padding: 12px 5px;
-	text-align:right;
-}
-
-table.data th div{
-	width: 100px;
-}
-
-table.data td {
-	color: #669;
-	padding: 3px 5px;
-	text-align:right;
-	white-space: nowrap;
-}
-
-table.data td.left, table.data  th.left{
-	text-align:left;
-	width: auto;
-}
-
-table.data tfoot {
-	border-top: 1px dashed #69c;
-}
-
-div.library {
-	background: #fff;
-	padding: 10px;
-	max-width: 1200px;
-}
-
-pre {
-    padding: 0 10px 0 10px;
-}
-
-hr {
-	border: 0;
-	border-top: 1px solid #ccc;
-}
-</style>
-</head>
-<body>
+echo '<script type="javascript">' >> SUMMARYFILE.tmp
+cat ${NGSAME_BASE}/core/jquery-1.9.1.min.js >> SUMMARYFILE.tmp
+cat ${NGSAME_BASE}/core/Summary.js >> SUMMARYFILE.tmp
+echo '''</script></head><body>
 
 <div id="center">
-''' > $SUMMARYFILE.tmp
+''' >> $SUMMARYFILE.tmp
 echo "<div class='panel' id='quicklinks'><h2>Quicklink</h2><div>" >> $SUMMARYFILE.tmp
 for i in $LINKS; do
     echo "<a href=#$i>$i</a> | ">>$SUMMARYFILE.tmp
