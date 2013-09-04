@@ -120,13 +120,13 @@ def printStats(arrV, arrN, arrS, noSummary):
         
     elif(arrS==0 or len(arrS)>1):          
         print "<tfoot>"
-        print "<tr><td class='left'>sum</td><td>"+("</td><td>").join(out[5])+"</td></tr>"
-        print "<tr><td class='left'>min</td><td>"+("</td><td>").join(out[0])+"</td></tr>"
-        print "<tr><td class='left'>max</td><td>"+("</td><td>").join(out[1])+"</td></tr>"
-        print "<tr><td class='left'>av</td><td>"+("</td><td>").join(out[2])+"</td></tr>"
-        print "<tr><td class='left'>ste</td><td>"+("</td><td>").join(out[3])+"</td></tr>"
+        print "<tr><td class='left'>sum</td><td>"+("</td><td>").join(out[5])+"</td><td></td></tr>"
+        print "<tr><td class='left'>min</td><td>"+("</td><td>").join(out[0])+"</td><td></td></tr>"
+        print "<tr><td class='left'>max</td><td>"+("</td><td>").join(out[1])+"</td><td></td></tr>"
+        print "<tr><td class='left'>av</td><td>"+("</td><td>").join(out[2])+"</td><td></td></tr>"
+        print "<tr><td class='left'>ste</td><td>"+("</td><td>").join(out[3])+"</td><td></td></tr>"
         if (percent):
-            print "<tr><td>av%</td><td>"+"</td><td>".join(out[4])+"</td></tr>"
+            print "<tr><td>av%</td><td>"+"</td><td>".join(out[4])+"</td><td></td></tr>"
         print "</tfoot>"
     print "</table>"
             
