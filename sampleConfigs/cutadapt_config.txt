@@ -16,7 +16,7 @@ RUNCUTADAPT="1"    # adapter trimming with cutadapt
 
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq firectory)
+# which files to run on (replace sample with folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # where to write the output
@@ -32,21 +32,21 @@ QOUT=$OUT/qout
 # fastq file suffix
 FASTQ="fq.gz"
 
-# read indicator immediately preceeding the fastq file suffix
+# read indicator immediately preceding the fastq file suffix
 READONE="_R1"
 READTWO="_R2"
 
 # Location of the file containing the contaminants.
-# Contaminants need to be specified with -a, -b or -g followed by the sequence, e.g.:
-# -a AAGGAEE
+# Contaminants need to be specified with -a, -b or -g followed by the sequence
+# e.g.: -a AAGGAEE
 CONTAMINANTS=
 
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
 
-## additional options to be passed to cutadapt
-#CUTADAPTADDPARAM=
+# additional options to be passed to cutadapt
+CUTADAPTADDPARAM=
 
 #WALLTIME_CUTADAPT=4:00:00
 #MEMORY_CUTADAPT=40

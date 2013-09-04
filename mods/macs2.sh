@@ -166,7 +166,7 @@ else
         echo "[NOTE] convert broadpeaks to 6 bed file for refining"
         cat ${n/.$ASD.bam/}_peaks.broadPeak | cut -f1-6  > ${n/.$ASD.bam/}_peaks.bed
     else
-        echo "[NOTE] convert narrowpeaks to 6 bed filei for refining"
+        echo "[NOTE] convert narrowpeaks to 6 bed file for refining"
         cat ${n/.$ASD.bam/}_peaks.narrowPeak | cut -f1-6 > ${n/.$ASD.bam/}_peaks.bed
     fi
 

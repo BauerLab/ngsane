@@ -37,7 +37,7 @@ RUNHOMERHIC="1"    # homer HIC
 #********************
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq firectory)
+# which files to run on (replace sample with folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # where to write the output
@@ -50,7 +50,7 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
-# read indicator immediately preceeding the file suffixes
+# read indicator immediately preceding the file suffixes
 READONE="_R1_P1"
 READTWO="_R2_P1"
 

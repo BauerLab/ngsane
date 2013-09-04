@@ -58,8 +58,8 @@ TASKFASTQSCREEN="fastqscreen"
 ##############################################################
 # PROGRAM PATHS
 ##############################################################
-QSUB=prepareJobSubmission.sh
-BINQSUB=jobsubmission.sh
+QSUB=${NGSANE_BASE}/core/prepareJobSubmission.sh
+BINQSUB=${NGSANE_BASE}/core/jobSubmission.sh
 QSUBEXTRA=""            # any extra such as email notification
 
 #Additional programs not necessarily available as module
