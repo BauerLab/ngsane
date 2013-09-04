@@ -105,7 +105,7 @@ else
 
     if [ "$PEAKRANGER_PEAKS" == "broad" ]; then
         echo "[NOTE] calling broad peaks"
-        RUN_COMMAND="peakranger ccat $PEAKRANGERADDPARAM --format bam --data  $f --control $CHIPINPUT --output $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}"
+        RUN_COMMAND="peakranger ccat $PEAKRANGERADDPARAM --format bam --data  $f --control $CHIPINPUT --output $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/} -t $CPU_PEAKRANGER"
 
     elif [ "$PEAKRANGER_PEAKS" == "sharp" ]; then
         echo "[NOTE] calling tight peaks"
@@ -129,7 +129,7 @@ fi
 ################################################################################
 CHECKPOINT="zip"
 
-$GZIP $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_details
+$GZIP -f $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_details
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
