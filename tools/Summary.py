@@ -937,7 +937,7 @@ for d in dir:
             traceback.print_exc()
             #sys.exit()
 
-    print "<h4>"+"/".join(d.split("/")[-4::])+"</h4>" # only list file structure from current root
+    print "<h3>"+"/".join(d.split("/")[-4::])+"</h3>" # only list file structure from current root
     printStats(result,names,psresult,noSummary)
 
 if (not noOverallSummary and overAll):
