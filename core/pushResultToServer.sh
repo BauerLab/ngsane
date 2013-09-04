@@ -39,10 +39,17 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
+################################################################################
+CHECKPOINT="programs"
+
 if ! hash smbclient; then
   echo "[ERROR] Could not find smbclient"
   exit 1
 fi
+
+echo -e "\n********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="parameters"
 
 if [ ! -f ~/.smbclient ]; then
   echo "[WARN] ~/.smbclient not configured"
@@ -60,7 +67,9 @@ if [ -z "$TARGET_LOCATION" ]; then
   exit 1
 fi
 
-echo "********* write results to REMOTE server"
+echo -e "\n********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="write results to REMOTE server"
 
 for f in $(ls $SOURCE); do
 	fn="${f##*/}" # basename
@@ -75,4 +84,7 @@ for f in $(ls $SOURCE); do
 	fi
 done
 
+################################################################################
+echo ">>>>> Transfer data from HPC cluster - FINISHED"
 echo ">>>>> enddate "`date`
+
