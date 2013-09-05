@@ -104,7 +104,7 @@ echo "Peaks: `wc -l $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed | awk '{pr
 echo "Summits: `wc -l $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed | awk '{print $1}'`" >> $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
 
 echo "********* zip"
-$GZIP $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_details
+$GZIP -f $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_details
 
 echo ">>>>> ChIPseq analysis with Peakranger - FINISHED"
 echo ">>>>> enddate "`date`
