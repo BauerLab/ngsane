@@ -108,7 +108,7 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure):
         out[5].append(formatString % (sum(arrV[c])))
 
     print "<table class='data'><thead><tr><th><div style='width:25px'><div></th><th>"+("</th><th>").join(string)+"</th><th class='left'>File</th></tr></thead>"
-    if(printing and arrS!=0 ):
+    if(printing and arrS!=0 ):       
         print "<tbody>"
         for l in arrS:
             resultPerS=[]
@@ -124,9 +124,10 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure):
     if(noSummary):
         return
         
-    elif(arrS==0 or len(arrS)>1):          
+    elif(arrS==0 or len(arrS)>1):
+
         print "<tfoot>"
-        print "<tr><td class='left'>sum</td><td>"+("</td><td>").join(out[5])+"</td><td></td></tr>"
+        print "<tr><td class='left'>sum</td><td>"+("</td><td>").join(out[5])+"</td><td class='left'><i>aggregation</i></td></tr>"
         print "<tr><td class='left'>min</td><td>"+("</td><td>").join(out[0])+"</td><td></td></tr>"
         print "<tr><td class='left'>max</td><td>"+("</td><td>").join(out[1])+"</td><td></td></tr>"
         print "<tr><td class='left'>av</td><td>"+("</td><td>").join(out[2])+"</td><td></td></tr>"
@@ -167,7 +168,7 @@ def samstats_old(statsfile):
 
 # sam statiscis for initial aligment
 def samstats(statsfile):
-    names=["total","QCfail","dupl","dupl%","mapped","mapped%","paired", "paired%", "singletons", "regmapped", "regmapped%", "regpaired", "regpaired%"]
+    names=["Total reads","QCfail","Duplicates","Duplicates %","Mapped","Mapped %","Paired", "Paired %", "Singletons"]
     values=[]
     st=re.split("[\n]+",open(statsfile).read())
     total= int(st[0].strip().split(" ")[0])
@@ -192,6 +193,7 @@ def samstats(statsfile):
     values = [total, QCfail, dupl, duplPercent, mapped, mappedPercent, paired, pairedPercent, singletons ]
     customRegion = open(statsfile).read().split("#custom region")
     if (len(customRegion) > 0):
+        names += ["Region mapped", "Region mapped %", "Region paired", "Region paired %"]
         st = customRegion[1].split("\n")
         regmapped = int(st[1].strip().split(" ")[0])
         regmappedPercent = float(regmapped)/(float(total)+pseudocount)*100
@@ -212,7 +214,7 @@ def samstats(statsfile):
 
 # sam statiscis for initial aligment
 def tophat(statsfile):
-    names=["total","accepted","QCfail","dupl","dupl%","mapped","mapped%","paired", "paired%", "singletons"]
+    names=["Total reads","Accepted","QCfail","Duplicates","Duplicates %","Mapped","Mapped %","Paired", "Paired %", "Singletons"]
     values=[]
     st=re.split("[ \n]+",open(statsfile).read())
     values.append(int(st[73])) # total
@@ -226,10 +228,10 @@ def tophat(statsfile):
     values.append(float(values[-1])/float(values[0])*100) # paired %
     values.append(int(st[47]))
     if (len(st)>76):
-        names.append("junction")
-        names.append("junction %")
-        names.append("jnct over ncbi")
-        names.append("jnct over ncbi %")
+        names.append("Junction")
+        names.append("Junction %")
+        names.append("Jnct over ncbi")
+        names.append("Jnct over ncbi %")
         values.append(int(st[76])) # junction reads
         #values.append(float(values[-1])/float(values[5])) # junction %
         values.append(float(values[-1])/float(values[0])*100) # junction %
@@ -240,7 +242,7 @@ def tophat(statsfile):
 
 
 def onTarget(statsfile):
-    names=["total", "paired total", "paired total(%)" ,"onTargt 100","(%)", "paired oT 100","(%)"]
+    names=["Total reads", "Total paired", "Total  Paired(%)" ,"OnTarget 100","(%)", "Paired on Target 100","(%)"]
     values=[]
     f=open(statsfile).read()
 #    print f
@@ -269,7 +271,7 @@ def onTarget(statsfile):
 
 # picard RNAseq annotation
 def annoStatsPicard(statsfile):
-    names=["total bases", "aligned bases","(%)", "ribosomal bases", "(%)" ,"coding","(%)", "UTR","(%)","intronic","(%)", "intergenic", "(%)", "MEDIAN_CV_COVERAGE","MEDIAN_5PRIME_BIAS","MEDIAN_3PRIME_BIAS"]
+    names=["Total bases", "Aligned bases","(%)", "Ribosomal bases", "(%)" ,"Coding","(%)", "UTR","(%)","Intronic","(%)", "Intergenic", "(%)", "MEDIAN_CV_COVERAGE","MEDIAN_5PRIME_BIAS","MEDIAN_3PRIME_BIAS"]
     values=[]
     f=open(statsfile).read().split("\n")[7]
 #    print f

@@ -100,7 +100,7 @@ if [ -n "$RUNFASTQC" ]; then
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>Read biases (FASTQC) </h2></a></div>" >>$SUMMARYTMP
 
     echo "<table class='data'>" >>$SUMMARYTMP
-    echo "<thead><tr><th>Libary</th><th>Chart</th><th>Encoding</th><th>Library size</th><th>Read</th><th>Read length</th><th>%GC</th><th> Read Qualities</th></tr><thead><tbody>" >>$SUMMARYTMP
+    echo "<thead><tr><th class='left'>Libary</th><th><div style='width:120px'>Chart</div></th><th><div style='width:120px'>Encoding</div></th><th><div style='width:120px'>Library size</div></th><th><div style='width:120px'>Read</div></th><th><div style='width:120px'>Read length</div></th><th><div style='width:120px'>%GC</div></th><th><div style='width:120px'>Read Qualities</th></tr><thead><tbody>" >>$SUMMARYTMP
 
     if [[ -e runStats/ && -e runStats/$TASKFASTQC/ ]]; then
         for f in $( ls runStats/$TASKFASTQC/*.zip ); do
@@ -123,10 +123,10 @@ if [ -n "$RUNFASTQC" ]; then
             else
                 READ=1
             fi
-            echo "<tr><td><a href=\"runStats/$TASKFASTQC/"$n"_fastqc/fastqc_report.html\">$n.fastq</a></td><td>$CHART</td><td>$ENCODING</td><td>$LIBRARYSIZE</td><td>$READ</td><td>$READLENGTH</td><td>$GCCONTENT</td><td>" >>$SUMMARYTMP
+            echo "<tr style='vertical-align: middle;'><td class='left'><a href=\"runStats/$TASKFASTQC/"$n"_fastqc/fastqc_report.html\">$n.fastq</a></td><td>$CHART</td><td>$ENCODING</td><td>$LIBRARYSIZE</td><td>$READ</td><td>$READLENGTH</td><td>$GCCONTENT</td><td>" >>$SUMMARYTMP
 
             if [[ "$f" == *$READONE* ]]; then
-                echo "<a href=\"runStats/$TASKFASTQC/${n}_fastqc/fastqc_report.html\"><img src=\"runStats/$TASKFASTQC/${n}_fastqc/Images/per_base_quality.png\" width=200 alt=\"Quality scores for all first reads\"/></a>" >>$SUMMARYTMP
+                echo "<a href=\"runStats/$TASKFASTQC/${n}_fastqc/fastqc_report.html\"><img src=\"runStats/$TASKFASTQC/${n}_fastqc/Images/per_base_quality.png\" height=100 alt=\"Quality scores for all first reads\"/></a>" >>$SUMMARYTMP
                 if [ -e ${f/$READONE/$READTWO} ] && [ "$f" != "${f/$READONE/$READTWO}" ]; then
                      echo "<a href=\"runStats/$TASKFASTQC/${n/$READONE/$READTWO}_fastqc/fastqc_report.html\"><img src=\"runStats/$TASKFASTQC/${n/$READONE/$READTWO}_fastqc/Images/per_base_quality.png\" width=200 alt=\"Quality scores for all second reads\"/></a>" >>$SUMMARYTMP
                 fi
@@ -135,7 +135,7 @@ if [ -n "$RUNFASTQC" ]; then
                 echo "<a href=\"runStats/$TASKFASTQC/${n/$READTWO/$READONE}_fastqc/fastqc_report.html\"><img src=\"runStats/$TASKFASTQC/${n/$READTWO/$READONE}_fastqc/Images/per_base_quality.png\" width=200 alt=\"Quality scores for all first reads\"/></a>" >>$SUMMARYTMP
                 echo "<a href=\"runStats/$TASKFASTQC/${n}_fastqc/fastqc_report.html\"><img src=\"runStats/$TASKFASTQC/${n}_fastqc/Images/per_base_quality.png\" width=200 alt=\"Quality scores for all second reads\"/></a>" >>$SUMMARYTMP
             fi
-            echo "</td></tr><br>" >>$SUMMARYTMP
+            echo "</td></tr>" >>$SUMMARYTMP
         done
     fi
     echo "</tbody></table>">>$SUMMARYTMP
