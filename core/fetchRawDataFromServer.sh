@@ -4,12 +4,10 @@
 # author: Fabian Buske
 # date: May.2013
 
-
 echo ">>>>> Transfer data to HPC cluster "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> $(basename $0) $*"
-
 
 function usage {
 echo -e "usage: $(basename $0) -k CONFIG
@@ -40,10 +38,17 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
+################################################################################
+CHECKPOINT="programs"
+
 if ! hash smbclient; then
   echo "[ERROR] Could not find smbclient"
   exit 1
 fi
+
+echo -e "\n********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="parameters"
 
 if [ ! -f ~/.smbclient ]; then
   echo "[WARN] ~/.smbclient not configured"
@@ -82,11 +87,13 @@ done
 
 if [ ! -d $QOUT ]; then mkdir -p $QOUT; fi
 
-
 CURDIR=$(pwd)
 cd $SOURCE/fastq/${DIR[0]}
 
-echo "********* get raw data from REMOTE server"
+echo -e "\n********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="recall files from tape"
+
 for sourcefile in ${SOURCE_FILES[@]}; do
 	fn="${sourcefile##*/}" # filename
 	dn="${sourcefile%/*}"  # dirname
@@ -107,4 +114,7 @@ for sourcefile in ${SOURCE_FILES[@]}; do
 		fi
 	fi	
 done
+
+################################################################################
+echo ">>>>> Transfer data to HPC cluster - FINISHED"
 echo ">>>>> enddate "`date`
