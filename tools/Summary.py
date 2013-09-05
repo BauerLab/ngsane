@@ -1,6 +1,12 @@
+#!/bin/python
+
 import sys,os,math,re,traceback,datetime
 import glob
 
+def removePrefix(text, prefix):
+### remove prefix from a string ###
+    return text[len(prefix):] if text.startswith(prefix) else text
+    
 if (len(sys.argv)==1 or sys.argv[0].find("help")>-1):
     print "python2 times"
     die
@@ -84,7 +90,7 @@ def per(max,arr):
     return sum
 
 
-def printStats(arrV, arrN, arrS, noSummary):
+def printStats(arrV, arrN, arrS, noSummary, filestructure):
 
     out=[[],[],[],[],[],[]]
     string=[]
@@ -101,7 +107,7 @@ def printStats(arrV, arrN, arrS, noSummary):
             out[4].append(formatString % (per(arrV[0],arrV[c])))
         out[5].append(formatString % (sum(arrV[c])))
 
-    print "<table class='data'><thead><tr><th><div style='width:40px'><div></th><th>"+("</th><th>").join(string)+"</th><th class='left'>File</th></tr></thead>"
+    print "<table class='data'><thead><tr><th><div style='width:25px'><div></th><th>"+("</th><th>").join(string)+"</th><th class='left'>File</th></tr></thead>"
     if(printing and arrS!=0 ):
         print "<tbody>"
         for l in arrS:
@@ -112,7 +118,7 @@ def printStats(arrV, arrN, arrS, noSummary):
                     formatString="%17.2e"
                 resultPerS+=[ formatString % e ]
             
-            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+l[1]+"</td></tr>"
+            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+ removePrefix(l[1], filestructure)+"</td></tr>"
         print "</tbody>"
             
     if(noSummary):
@@ -120,13 +126,13 @@ def printStats(arrV, arrN, arrS, noSummary):
         
     elif(arrS==0 or len(arrS)>1):          
         print "<tfoot>"
-        print "<tr><td class='left'>sum</td><td>"+("</td><td>").join(out[5])+"</td></tr>"
-        print "<tr><td class='left'>min</td><td>"+("</td><td>").join(out[0])+"</td></tr>"
-        print "<tr><td class='left'>max</td><td>"+("</td><td>").join(out[1])+"</td></tr>"
-        print "<tr><td class='left'>av</td><td>"+("</td><td>").join(out[2])+"</td></tr>"
-        print "<tr><td class='left'>ste</td><td>"+("</td><td>").join(out[3])+"</td></tr>"
+        print "<tr><td class='left'>sum</td><td>"+("</td><td>").join(out[5])+"</td><td></td></tr>"
+        print "<tr><td class='left'>min</td><td>"+("</td><td>").join(out[0])+"</td><td></td></tr>"
+        print "<tr><td class='left'>max</td><td>"+("</td><td>").join(out[1])+"</td><td></td></tr>"
+        print "<tr><td class='left'>av</td><td>"+("</td><td>").join(out[2])+"</td><td></td></tr>"
+        print "<tr><td class='left'>ste</td><td>"+("</td><td>").join(out[3])+"</td><td></td></tr>"
         if (percent):
-            print "<tr><td>av%</td><td>"+"</td><td>".join(out[4])+"</td></tr>"
+            print "<tr><td>av%</td><td>"+"</td><td>".join(out[4])+"</td><td></td></tr>"
         print "</tfoot>"
     print "</table>"
             
@@ -879,66 +885,66 @@ for d in dir:
     name=glob.glob(d+'*'+ext)
     name.sort()
     for f in name:
-            try:
-                if (type=="samstats"):
-                    names,values=samstats(f)
-                if (type=="samstatsrecal"):
-                    names,values=samstatsrecal(f)
-                if (type=="bamdistMapped"):
-                    names,values=bamDist(f, 5)
-                if (type=="coverage"):
-                    names,values=coverage(f)                    
-                if (type=="variant"):
-                    names,values=variant(f)
-                if (type=="tophat"):
-                    names,values=tophat(f)
-                if (type=="times"):
-                    names,values=time(f)
-                if (type=="target"):
-                    names,values=onTarget(f)
-                if (type=="intersection"):
-                    names,values=intersection(f)     
-                if (type=="annostats"):
-                    names,values=annoStats(f)
-                if (type=="trimgalore"):
-                    names,values=trimgaloreStats(f)
-		if (type=="trimmomatic"):
-		    names,values=trimmomaticStats(f)
-                if (type=="cutadapt"):
-                    names,values=cutadaptStats(f)
-                if (type=="hiclibMapping"):
-                    names,values=hiclibStats(f)
-                if (type=="hicup"):
-                    names,values=hicupStats(f)
-		if (type=="homerchipseq"):
-		    names,values=homerchipseqStats(f)
-		if (type=="peakranger"):
-		    names,values=peakrangerStats(f)
-		if (type=="macs2"):
-		   names,values=macs2Stats(f)
-		if (type=="memechip"):
-		    names,values=memechipStats(f)
-		if (type=="fastqscreen"):
-		    names,values=fastqscreenStats(f)
+        try:
+            if (type=="samstats"):
+                names,values=samstats(f)
+            if (type=="samstatsrecal"):
+                names,values=samstatsrecal(f)
+            if (type=="bamdistMapped"):
+                names,values=bamDist(f, 5)
+            if (type=="coverage"):
+                names,values=coverage(f)                    
+            if (type=="variant"):
+                names,values=variant(f)
+            if (type=="tophat"):
+                names,values=tophat(f)
+            if (type=="times"):
+                names,values=time(f)
+            if (type=="target"):
+                names,values=onTarget(f)
+            if (type=="intersection"):
+                names,values=intersection(f)     
+            if (type=="annostats"):
+                names,values=annoStats(f)
+            if (type=="trimgalore"):
+                names,values=trimgaloreStats(f)
+            if (type=="trimmomatic"):
+                names,values=trimmomaticStats(f)
+            if (type=="cutadapt"):
+                names,values=cutadaptStats(f)
+            if (type=="hiclibMapping"):
+                names,values=hiclibStats(f)
+            if (type=="hicup"):
+                names,values=hicupStats(f)
+            if (type=="homerchipseq"):
+                names,values=homerchipseqStats(f)
+            if (type=="peakranger"):
+                names,values=peakrangerStats(f)
+            if (type=="macs2"):
+                names,values=macs2Stats(f)
+            if (type=="memechip"):
+                names,values=memechipStats(f)
+            if (type=="fastqscreen"):
+                names,values=fastqscreenStats(f)
 
-                result=addValues(result,values)
-                # only list file structure from current root
-                filename="/".join(f.split("/")[-4::])
-                if (link):
-                    filename="<a href=\""+d.replace("illumina/","")+"/"+f+"\">"+f+"</a>"
-                psresult.append([values,filename])
-                oaresult=addValues(oaresult,values)
-                    
-            except :
-                sys.stderr.write("error with "+f+"\n")
-                traceback.print_exc()
-                #sys.exit()
-    print "<h4>"+"/".join(d.split("/")[-4::])+"</h4>" # only list file structure from current root
-    printStats(result,names,psresult,noSummary)
+            result=addValues(result,values)
 
+            # only list file structure from current root
+            filename="/".join(f.split("/")[-4::])
+            if (link):
+                filename="<a href=\""+d.replace("illumina/","")+"/"+f+"\">"+f+"</a>"
+            psresult.append([values,filename])
+            oaresult=addValues(oaresult,values)
+                
+        except :
+            sys.stderr.write("error with "+f+"\n")
+            traceback.print_exc()
+            #sys.exit()
+
+    filestructure="/".join(d.split("/")[-4::]) # only list file structure from current root
+    print "<h3>"+ filestructure +"</h3>" 
+    printStats(result,names,psresult,noSummary,filestructure)
 
 if (not noOverallSummary and overAll):
     print "<h3 class='overall'>over all</h3>"
-
-    printStats(oaresult,names,0,noOverallSummary)
-print "<hr/>"
+    printStats(oaresult,names,0,noOverallSummary,"")
