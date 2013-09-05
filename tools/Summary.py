@@ -3,6 +3,10 @@
 import sys,os,math,re,traceback,datetime
 import glob
 
+def removePrefix(text, prefix):
+### remove prefix from a string ###
+    return text[len(prefix):] if text.startswith(prefix) else text
+    
 if (len(sys.argv)==1 or sys.argv[0].find("help")>-1):
     print "python2 times"
     die
@@ -86,7 +90,7 @@ def per(max,arr):
     return sum
 
 
-def printStats(arrV, arrN, arrS, noSummary):
+def printStats(arrV, arrN, arrS, noSummary, filestructure):
 
     out=[[],[],[],[],[],[]]
     string=[]
@@ -103,7 +107,7 @@ def printStats(arrV, arrN, arrS, noSummary):
             out[4].append(formatString % (per(arrV[0],arrV[c])))
         out[5].append(formatString % (sum(arrV[c])))
 
-    print "<table class='data'><thead><tr><th><div style='width:40px'><div></th><th>"+("</th><th>").join(string)+"</th><th class='left'>File</th></tr></thead>"
+    print "<table class='data'><thead><tr><th><div style='width:25px'><div></th><th>"+("</th><th>").join(string)+"</th><th class='left'>File</th></tr></thead>"
     if(printing and arrS!=0 ):
         print "<tbody>"
         for l in arrS:
@@ -114,7 +118,7 @@ def printStats(arrV, arrN, arrS, noSummary):
                     formatString="%17.2e"
                 resultPerS+=[ formatString % e ]
             
-            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+l[1]+"</td></tr>"
+            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+ removePrefix(l[1], filestructure)+"</td></tr>"
         print "</tbody>"
             
     if(noSummary):
@@ -937,9 +941,10 @@ for d in dir:
             traceback.print_exc()
             #sys.exit()
 
-    print "<h3>"+"/".join(d.split("/")[-4::])+"</h3>" # only list file structure from current root
-    printStats(result,names,psresult,noSummary)
+    filestructure="/".join(d.split("/")[-4::]) # only list file structure from current root
+    print "<h3>"+ filestructure +"</h3>" 
+    printStats(result,names,psresult,noSummary,filestructure)
 
 if (not noOverallSummary and overAll):
     print "<h3 class='overall'>over all</h3>"
-    printStats(oaresult,names,0,noOverallSummary)
+    printStats(oaresult,names,0,noOverallSummary,"")

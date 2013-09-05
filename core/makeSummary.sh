@@ -62,7 +62,7 @@ echo "Last modified "`date` >$SUMMARYTMP
 # $4=output file ($SUMMARYTMP)
 function summaryHeader {
     LINKS=$LINKS" $2"
-    echo "<div class='panel'><div class='headbagb'><a name='$2'><h2 class='sub'>$1</h2></a></div><div class='wrapper'><div class='results'>" >> $4
+    echo "<div class='panel'><div class='headbagb'><a name='$2' /><h2 class='sub'>$1</h2><h2 id='h_checklist' class='sub inactive' rel='checklist'>Checklist</h2><h2 id='h_notes' class='sub inactive' rel='notes'>Notes () Errors ()</h2><h2 id='h_logs' class='sub inactive' rel='errors'>Logfiles</h2></div><div class='wrapper'><div class='results'>" >> $4
     echo "QC"
     ${NGSANE_BASE}/core/QC.sh -o -m ${NGSANE_BASE}/mods/$3 -l $QOUT/$2 >> $4
 } 
@@ -72,6 +72,7 @@ function summaryHeader {
 function summaryFooter {
     echo "</div></div></div>" >> $1
 }
+
 ################################################################################
 if [ -n "$RUNFASTQC" ]; then
     PIPELINE="FASTQC"
@@ -301,7 +302,6 @@ fi
 if [ -n "$RUNTRIMGALORE" ];then
     summaryHeader "Trimgalore trimming" "$TASKTRIMGALORE" "trimgalore.sh" "$SUMMARYTMP"
 
-
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/fastq/${dir/_$TASKTRIMGALORE/}_$TASKTRIMGALORE/"
@@ -315,7 +315,6 @@ fi
 if [ -n "$RUNTRIMMOMATIC" ];then
     summaryHeader "Trimmomatic trimming" "$TASKTRIMMOMATIC" "trimmomatic.sh" "$SUMMARYTMP"
 
-    echo "<h3>trimmomatic</h3>">>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/fastq/${dir/_$TASKTRIMMOMATIC/}_$TASKTRIMMOMATIC/"
@@ -329,7 +328,6 @@ fi
 if [ -n "$RUNCUTADAPT" ];then
     summaryHeader "Cutadapt trimming" "$TASKCUTADAPT" "cutadapt.sh" "$SUMMARYTMP"
 
-    echo "<h3>cutadapt</h3>">>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/fastq/${dir/_$TASKCUTADAPT/}_$TASKCUTADAPT/"
@@ -343,7 +341,6 @@ fi
 if [ -n "$RUNHICLIB" ];then
     summaryHeader "HiClib" "$TASKHICLIB" "hiclibMapping.sh" "$SUMMARYTMP"
 
-    echo "<h3>hiclib</h3>">>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKHICLIB/"
@@ -367,7 +364,6 @@ if [ -n "$RUNHICUP" ];then
 	   vali=$vali" $OUT/$dir/$TASKHICUP/"
     done
     
-    echo "<h3>hicup</h3>">>$SUMMARYTMP
     echo "<h4>truncater</h4>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_truncater_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     echo "<h4>mapper</h4>">>$SUMMARYTMP
@@ -398,7 +394,6 @@ fi
 if [ -n "$RUNHOMERCHIPSEQ" ];then
     summaryHeader "Homer ChIP-Seq" "$TASKHOMERCHIPSEQ" "chipseqHomer.sh" "$SUMMARYTMP"
 
-    echo "<h3>Homer ChIP-seq</h3>">>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKHOMERCHIPSEQ/"
@@ -412,7 +407,6 @@ fi
 if [ -n "$RUNPEAKRANGER" ];then
     summaryHeader "Peakranger" "$TASKPEAKRANGER" "peakranger.sh" "$SUMMARYTMP"
 
-    echo "<h3>Peakranger</h3>">>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKPEAKRANGER/"
@@ -425,7 +419,6 @@ fi
 if [ -n "$RUNMACS2" ];then
     summaryHeader "MACS2" "$TASKMACS2" "macs2.sh" "$SUMMARYTMP"
 
-    echo "<h3>MACS2</h3>">>$SUMMARYTMP
     vali=""
     for dir in ${DIR[@]}; do
         vali=$vali" $OUT/$dir/$TASKMACS2/"
@@ -453,7 +446,6 @@ fi
 if [ -n "$RUNMEMECHIP" ];then
     summaryHeader "MEME-chip Motif discovery" "$TASKMEMECHIP" "memechip.sh" "$SUMMARYTMP"
 
-    echo "<h3>MEME-chip</h3>">>$SUMMARYTMP
     vali=""
     CURDIR=$(pwd)
     for dir in ${DIR[@]}; do
@@ -528,7 +520,7 @@ echo '''</script></head><body>
 
 <div id="center">
 ''' >> $SUMMARYFILE.tmp
-echo "<div class='panel' id='quicklinks'><h2>Quicklink</h2><div>" >> $SUMMARYFILE.tmp
+echo "<div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>" >> $SUMMARYFILE.tmp
 for i in $LINKS; do
     echo "<a href=#$i>$i</a> | ">>$SUMMARYFILE.tmp
 done

@@ -103,6 +103,7 @@ div.panel {
 	border-radius: 12px;
 	padding: 2px;
 	margin-bottom: 25px;
+	min-width:1000px;
 }
 
 #controls div,#gallery div {
@@ -122,9 +123,9 @@ div.panel {
 }
 
 #quicklinks a:hover {
-	background: #aaa;
+	background: #69c;
 	text-decoration: none;
-	color: #000;
+	color: #fff;
 	border-radius: 10px;
 	transform: scale(1.05) rotate(-1deg);
 }
@@ -141,7 +142,7 @@ div.panel h2.sub {
 	border-bottom: none;
 	display: inline-block;
 	vertical-align: top;
-	width: 400px;
+	width: 220px;
 }
 
 div.wrapper {
