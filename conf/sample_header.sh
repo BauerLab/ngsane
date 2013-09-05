@@ -36,7 +36,7 @@ TASKDIFFEXP="diffexp"
 TASKTOPHAT="tophat"
 TASKCUFF="cufflinks"
 TASKCUFFDIFF="cuffdiff"
-TASKRRBS="rrbs"
+TASKRRBSMAP="rrbs"
 TASKMACS="macs"
 TASKANNOVAR="annovar"
 TASKBAMANN="bamann"
@@ -51,13 +51,15 @@ TASKTRIMMOMATIC="trimmomatic"
 TASKHOMERHIC="homerhic"
 TASKHOMERCHIPSEQ="homerchipseq"
 TASKPEAKRANGER="peakranger"
+TASKMACS2="macs2"
 TASKMEMECHIP="memechip"
+TASKFASTQSCREEN="fastqscreen"
 
 ##############################################################
 # PROGRAM PATHS
 ##############################################################
-QSUB=prepareJobSubmission.sh
-BINQSUB=jobsubmission.sh
+QSUB=${NGSANE_BASE}/core/prepareJobSubmission.sh
+BINQSUB=${NGSANE_BASE}/core/jobSubmission.sh
 QSUBEXTRA=""            # any extra such as email notification
 
 #Additional programs not necessarily available as module
@@ -65,6 +67,7 @@ PATH_SAMTOOLS=
 PATH_IGVTOOLS=
 PATH_PICARD=
 PATH_SAMSTAT=
+PATH_FASTXTK=
 
 # Commonly used file abbreviations
 READONE="read1"
@@ -72,11 +75,16 @@ READTWO="read2"
 FASTQ="fastq.gz"
 FASTA=            # fasta file usually from the reference genome
 FASTA_CHROMDIR=   # folder containing individual fasta files for each chromosome of the reference genome 
-UNM="unm" # unmapped
-ALN="aln" # aligned 
-MUL="mul" # non-unique aligned
-ASD="asd" # aligned sorted duplicate-removed
-ASR="asdrr" # aligned sorted duplicate-removed raligned reacalibrated
+
+# file infixes
+UNM="unm"   # unmapped
+ALN="aln"   # aligned 
+MUL="mul"   # non-unique aligned
+ASD="asd"   # aligned sorted duplicate-removed
+ASR="asdrr" # aligned sorted duplicate-removed raligned recalibrated
+
+MODULES_DEFAULT=
+for MODULE in $MODULES_DEFAULT; do module load $MODULES_DEFAULT; done
 
 ##############################################################
 # Summary specifics
@@ -192,8 +200,8 @@ PATH_HOMERHIC=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 ##############################################################
 # HOMER CHIPSEQ
 # http://biowhat.ucsd.edu/homer/index.html
-WALLTIME_HOMERCHIPSEQ=24:00:00
-MEMORY_HOMERCHIPSEQ=60
+WALLTIME_HOMERCHIPSEQ=12:00:00
+MEMORY_HOMERCHIPSEQ=20
 CPU_HOMERCHIPSEQ=1
 NODES_HOMERCHIPSEQ="nodes=1:ppn=1"
 
@@ -203,13 +211,24 @@ PATH_HOMERCHIPSEQ=
 ##############################################################
 # Peakranger
 # http://ranger.sourceforge.net/
-WALLTIME_PEAKRANGER=24:00:00
-MEMORY_PEAKRANGER=60
+WALLTIME_PEAKRANGER=12:00:00
+MEMORY_PEAKRANGER=20
 CPU_PEAKRANGER=1
 NODES_PEAKRANGER="nodes=1:ppn=1"
 
 MODULE_PEAKRANGER=
 PATH_PEAKRANGER=
+
+##############################################################
+# MACS2
+# https://github.com/taoliu/MACS/
+WALLTIME_MACS2=12:00:00
+MEMORY_MACS2=20
+CPU_MACS2=1
+NODES_MACS2="nodes=1:ppn=1"
+
+MODULE_MACS2=
+PATH_MACS2=
 
 ##############################################################
 # MEMECHIP
@@ -357,11 +376,57 @@ MODULE_RECAL=
 PATH_RECAL=
 
 ##############################################################
+# reduced representation bisulfite sequencing mapping 
+# https://code.google.com/p/bsmap/
+WALLTIME_RRBSMAP=60:00:00
+MEMORY_RRBSMAP=50
+CPU_RRBSMAP=32
+NODES_RRBSMAP="nodes=4:ppn=8"
+
+MODULE_RRBSMAP=
+PATH_RRBSMAP=
+
+
+##############################################################
+# downsample
+# 
+WALLTIME_DOWNSAMPLE=5:00:00
+MEMORY_DOWNSAMPLE=20
+CPU_DOWNSAMPLE=1
+NODES_DOWNSAMPLE="nodes=1:ppn=1"
+
+MODULE_DOWNSAMPLE=
+PATH_DOWNSAMPLE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMTOOLS
+
+
+##############################################################
+# demultiplex with Fastxtoolkit
+# http://hannonlab.cshl.edu/fastx_toolkit/
+WALLTIME_DEMULTIPLEX=5:00:00
+MEMORY_DEMULTIPLEX=20
+CPU_DEMULTIPLEX=1
+NODES_DEMULTIPLEX="nodes=1:ppn=1"
+
+MODULE_DEMULTIPLEX=
+PATH_DEMULTIPLEX=$PATH_FASTXTK
+
+##############################################################
+# Screen reads against multiple indices
+# http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/
+WALLTIME_FASTQSCREEN=48:00:00
+MEMORY_FASTQSCREEN=60
+CPU_FASTQSCREEN=8
+NODES_FASTQSCREEN="nodes=1:ppn=8"
+
+MODULE_FASTQSCREEN=
+PATH_FASTQSCREEN=
+FASTQSCREEN_DBCONF=
+
+##############################################################
 #VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
 #SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
 #ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
 #
-#RRBSMAP="/clusterdata/hiseq_apps/bin/devel/rrbsmap-1.5/rrbsmap"
 #MACS="/clusterdata/hiseq_apps/bin/devel/MACS_git"
 #PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
 #

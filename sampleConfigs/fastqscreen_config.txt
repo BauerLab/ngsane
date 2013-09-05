@@ -8,8 +8,7 @@
 #********************
 # Tasks
 #********************
-
-RUNMAPPINGBWA2="1"     # mapping with bwa
+RUNFASTQSCREEN="1"    # 
 
 #********************
 # Paths
@@ -37,29 +36,36 @@ FASTQ="fq.gz"
 READONE="_R1"
 READTWO="_R2"
 
-# reference genome
-# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+# reference genome, 
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
 FASTA=
+
+# chromosome sizes
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
+GENOME_CHROMSIZES=
+
+# location of the bowtie indices database (--conf parameter in fastqscreen)
+FASTQSCREEN_DBCONF=
 
 # library tags
 EXPID="Celltype"
-LIBRARY="RNAseq"
+LIBRARY="ChIPseq"
 PLATFORM="Illumina"
 
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
 
-## additional bwa parameters
-#BWAALNADDPARAM=
-#BWASAMPLEADDPARAM=
+## additional fastqscreen parameters
+# e.g. --bowtie
+FASTQSCREENADDPARAM=
 
-#WALLTIME_BWA=50:00:00
-#MEMORY_BWA=50
-#CPU_BWA=32
-#NODES_BWA="nodes=4:ppn=8"
-#MODULE_BWA=
-#PATH_BWA=
+#WALLTIME_FASTQSCREEN=10:00:00
+#MEMORY_FASTQSCREEN=60
+#CPU_FASTQSCREEN=8
+#NODES_FASTQSCREEN="nodes=1:ppn=8"
+#MODULE_FASTQSCREEN=
+#PATH_FASTQSCREEN=
 
 ## location of ngsane
 #NGSANE_BASE=

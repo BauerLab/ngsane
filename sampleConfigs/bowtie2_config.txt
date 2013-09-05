@@ -32,7 +32,7 @@ QOUT=$OUT/qout
 # fastq file suffix
 FASTQ="fq.gz"
 
-# read indicator immediately preceeding the fastq file suffix
+# read indicator immediately preceding the fastq file suffix
 READONE="_R1"
 READTWO="_R2"
 
@@ -49,6 +49,17 @@ PLATFORM="Illumina"
 # PARAMETER (optional overwriting defaults)
 #********************
 
+# additional parameters passed to Bowtie2 
+# e.g. --phred64 (illumina 1.5) or --phred33 (sanger)
+BOWTIE2ADDPARAM=
+
+# Fragment length to extend reads downstream  - only relevant for single-end libraries during bigwig generation
+# Fragment length of -1 will use the genomic fragment covered by the read-mates if the input is a paired read library
+FRAGMENTLENGTH=0
+
+# uncomment to generate strand-specific bigwig files
+#BIGWIGSTRANDS=strand-specific
+
 #WALLTIME_BOWTIE2=10:00:00
 #MEMORY_BOWTIE2=60
 #CPU_BOWTIE2=8
@@ -56,8 +67,6 @@ PLATFORM="Illumina"
 #MODULE_BOWTIE2=
 #PATH_BOWTIE2=
 
-# additional parameters passed to Bowite2 e.g. --phred64 (illumina 1.5) or --phred33 (sanger)
-ADDBOWTIE2PARAMS=
 
 ## location of ngsane
 #NGSANE_BASE=
