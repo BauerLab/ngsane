@@ -1,6 +1,12 @@
+#!/bin/python
+
 import sys,os,math,re,traceback,datetime
 import glob
 
+def removePrefix(text, prefix):
+### remove prefix from a string ###
+    return text[len(prefix):] if text.startswith(prefix) else text
+    
 if (len(sys.argv)==1 or sys.argv[0].find("help")>-1):
     print "python2 times"
     die
@@ -84,7 +90,7 @@ def per(max,arr):
     return sum
 
 
-def printStats(arrV, arrN, arrS, noSummary):
+def printStats(arrV, arrN, arrS, noSummary, filestructure):
 
     out=[[],[],[],[],[],[]]
     string=[]
@@ -101,8 +107,8 @@ def printStats(arrV, arrN, arrS, noSummary):
             out[4].append(formatString % (per(arrV[0],arrV[c])))
         out[5].append(formatString % (sum(arrV[c])))
 
-    print "<table class='data'><thead><tr><th><div style='width:40px'><div></th><th>"+("</th><th>").join(string)+"</th><th class='left'>File</th></tr></thead>"
-    if(printing and arrS!=0 ):
+    print "<table class='data'><thead><tr><th><div style='width:25px'><div></th><th>"+("</th><th>").join(string)+"</th><th class='left'>File</th></tr></thead>"
+    if(printing and arrS!=0 ):       
         print "<tbody>"
         for l in arrS:
             resultPerS=[]
@@ -112,21 +118,22 @@ def printStats(arrV, arrN, arrS, noSummary):
                     formatString="%17.2e"
                 resultPerS+=[ formatString % e ]
             
-            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+l[1]+"</td></tr>"
+            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+ removePrefix(l[1], filestructure)+"</td></tr>"
         print "</tbody>"
             
     if(noSummary):
         return
         
-    elif(arrS==0 or len(arrS)>1):          
+    elif(arrS==0 or len(arrS)>1):
+
         print "<tfoot>"
-        print "<tr><td class='left'>sum</td><td>"+("</td><td>").join(out[5])+"</td></tr>"
-        print "<tr><td class='left'>min</td><td>"+("</td><td>").join(out[0])+"</td></tr>"
-        print "<tr><td class='left'>max</td><td>"+("</td><td>").join(out[1])+"</td></tr>"
-        print "<tr><td class='left'>av</td><td>"+("</td><td>").join(out[2])+"</td></tr>"
-        print "<tr><td class='left'>ste</td><td>"+("</td><td>").join(out[3])+"</td></tr>"
+        print "<tr><td class='left'>sum</td><td>"+("</td><td>").join(out[5])+"</td><td class='left'><i>aggregation</i></td></tr>"
+        print "<tr><td class='left'>min</td><td>"+("</td><td>").join(out[0])+"</td><td></td></tr>"
+        print "<tr><td class='left'>max</td><td>"+("</td><td>").join(out[1])+"</td><td></td></tr>"
+        print "<tr><td class='left'>av</td><td>"+("</td><td>").join(out[2])+"</td><td></td></tr>"
+        print "<tr><td class='left'>ste</td><td>"+("</td><td>").join(out[3])+"</td><td></td></tr>"
         if (percent):
-            print "<tr><td>av%</td><td>"+"</td><td>".join(out[4])+"</td></tr>"
+            print "<tr><td>av%</td><td>"+"</td><td>".join(out[4])+"</td><td></td></tr>"
         print "</tfoot>"
     print "</table>"
             
@@ -161,7 +168,7 @@ def samstats_old(statsfile):
 
 # sam statiscis for initial aligment
 def samstats(statsfile):
-    names=["total","QCfail","dupl","dupl%","mapped","mapped%","paired", "paired%", "singletons", "regmapped", "regmapped%", "regpaired", "regpaired%"]
+    names=["Total reads","QCfail","Duplicates","Duplicates %","Mapped","Mapped %","Paired", "Paired %", "Singletons"]
     values=[]
     st=re.split("[\n]+",open(statsfile).read())
     total= int(st[0].strip().split(" ")[0])
@@ -186,6 +193,7 @@ def samstats(statsfile):
     values = [total, QCfail, dupl, duplPercent, mapped, mappedPercent, paired, pairedPercent, singletons ]
     customRegion = open(statsfile).read().split("#custom region")
     if (len(customRegion) > 0):
+        names += ["Region mapped", "Region mapped %", "Region paired", "Region paired %"]
         st = customRegion[1].split("\n")
         regmapped = int(st[1].strip().split(" ")[0])
         regmappedPercent = float(regmapped)/(float(total)+pseudocount)*100
@@ -206,7 +214,7 @@ def samstats(statsfile):
 
 # sam statiscis for initial aligment
 def tophat(statsfile):
-    names=["total","accepted","QCfail","dupl","dupl%","mapped","mapped%","paired", "paired%", "singletons"]
+    names=["Total reads","Accepted","QCfail","Duplicates","Duplicates %","Mapped","Mapped %","Paired", "Paired %", "Singletons"]
     values=[]
     st=re.split("[ \n]+",open(statsfile).read())
     values.append(int(st[73])) # total
@@ -220,10 +228,10 @@ def tophat(statsfile):
     values.append(float(values[-1])/float(values[0])*100) # paired %
     values.append(int(st[47]))
     if (len(st)>76):
-        names.append("junction")
-        names.append("junction %")
-        names.append("jnct over ncbi")
-        names.append("jnct over ncbi %")
+        names.append("Junction")
+        names.append("Junction %")
+        names.append("Jnct over ncbi")
+        names.append("Jnct over ncbi %")
         values.append(int(st[76])) # junction reads
         #values.append(float(values[-1])/float(values[5])) # junction %
         values.append(float(values[-1])/float(values[0])*100) # junction %
@@ -234,7 +242,7 @@ def tophat(statsfile):
 
 
 def onTarget(statsfile):
-    names=["total", "paired total", "paired total(%)" ,"onTargt 100","(%)", "paired oT 100","(%)"]
+    names=["Total reads", "Total paired", "Total  Paired(%)" ,"OnTarget 100","(%)", "Paired on Target 100","(%)"]
     values=[]
     f=open(statsfile).read()
 #    print f
@@ -263,7 +271,7 @@ def onTarget(statsfile):
 
 # picard RNAseq annotation
 def annoStatsPicard(statsfile):
-    names=["total bases", "aligned bases","(%)", "ribosomal bases", "(%)" ,"coding","(%)", "UTR","(%)","intronic","(%)", "intergenic", "(%)", "MEDIAN_CV_COVERAGE","MEDIAN_5PRIME_BIAS","MEDIAN_3PRIME_BIAS"]
+    names=["Total bases", "Aligned bases","(%)", "Ribosomal bases", "(%)" ,"Coding","(%)", "UTR","(%)","Intronic","(%)", "Intergenic", "(%)", "MEDIAN_CV_COVERAGE","MEDIAN_5PRIME_BIAS","MEDIAN_3PRIME_BIAS"]
     values=[]
     f=open(statsfile).read().split("\n")[7]
 #    print f
@@ -879,66 +887,66 @@ for d in dir:
     name=glob.glob(d+'*'+ext)
     name.sort()
     for f in name:
-            try:
-                if (type=="samstats"):
-                    names,values=samstats(f)
-                if (type=="samstatsrecal"):
-                    names,values=samstatsrecal(f)
-                if (type=="bamdistMapped"):
-                    names,values=bamDist(f, 5)
-                if (type=="coverage"):
-                    names,values=coverage(f)                    
-                if (type=="variant"):
-                    names,values=variant(f)
-                if (type=="tophat"):
-                    names,values=tophat(f)
-                if (type=="times"):
-                    names,values=time(f)
-                if (type=="target"):
-                    names,values=onTarget(f)
-                if (type=="intersection"):
-                    names,values=intersection(f)     
-                if (type=="annostats"):
-                    names,values=annoStats(f)
-                if (type=="trimgalore"):
-                    names,values=trimgaloreStats(f)
-		if (type=="trimmomatic"):
-		    names,values=trimmomaticStats(f)
-                if (type=="cutadapt"):
-                    names,values=cutadaptStats(f)
-                if (type=="hiclibMapping"):
-                    names,values=hiclibStats(f)
-                if (type=="hicup"):
-                    names,values=hicupStats(f)
-		if (type=="homerchipseq"):
-		    names,values=homerchipseqStats(f)
-		if (type=="peakranger"):
-		    names,values=peakrangerStats(f)
-		if (type=="macs2"):
-		   names,values=macs2Stats(f)
-		if (type=="memechip"):
-		    names,values=memechipStats(f)
-		if (type=="fastqscreen"):
-		    names,values=fastqscreenStats(f)
+        try:
+            if (type=="samstats"):
+                names,values=samstats(f)
+            if (type=="samstatsrecal"):
+                names,values=samstatsrecal(f)
+            if (type=="bamdistMapped"):
+                names,values=bamDist(f, 5)
+            if (type=="coverage"):
+                names,values=coverage(f)                    
+            if (type=="variant"):
+                names,values=variant(f)
+            if (type=="tophat"):
+                names,values=tophat(f)
+            if (type=="times"):
+                names,values=time(f)
+            if (type=="target"):
+                names,values=onTarget(f)
+            if (type=="intersection"):
+                names,values=intersection(f)     
+            if (type=="annostats"):
+                names,values=annoStats(f)
+            if (type=="trimgalore"):
+                names,values=trimgaloreStats(f)
+            if (type=="trimmomatic"):
+                names,values=trimmomaticStats(f)
+            if (type=="cutadapt"):
+                names,values=cutadaptStats(f)
+            if (type=="hiclibMapping"):
+                names,values=hiclibStats(f)
+            if (type=="hicup"):
+                names,values=hicupStats(f)
+            if (type=="homerchipseq"):
+                names,values=homerchipseqStats(f)
+            if (type=="peakranger"):
+                names,values=peakrangerStats(f)
+            if (type=="macs2"):
+                names,values=macs2Stats(f)
+            if (type=="memechip"):
+                names,values=memechipStats(f)
+            if (type=="fastqscreen"):
+                names,values=fastqscreenStats(f)
 
-                result=addValues(result,values)
-                # only list file structure from current root
-                filename="/".join(f.split("/")[-4::])
-                if (link):
-                    filename="<a href=\""+d.replace("illumina/","")+"/"+f+"\">"+f+"</a>"
-                psresult.append([values,filename])
-                oaresult=addValues(oaresult,values)
-                    
-            except :
-                sys.stderr.write("error with "+f+"\n")
-                traceback.print_exc()
-                #sys.exit()
-    print "<h4>"+"/".join(d.split("/")[-4::])+"</h4>" # only list file structure from current root
-    printStats(result,names,psresult,noSummary)
+            result=addValues(result,values)
 
+            # only list file structure from current root
+            filename="/".join(f.split("/")[-4::])
+            if (link):
+                filename="<a href=\""+d.replace("illumina/","")+"/"+f+"\">"+f+"</a>"
+            psresult.append([values,filename])
+            oaresult=addValues(oaresult,values)
+                
+        except :
+            sys.stderr.write("error with "+f+"\n")
+            traceback.print_exc()
+            #sys.exit()
+
+    filestructure="/".join(d.split("/")[-4::]) # only list file structure from current root
+    print "<h3>"+ filestructure +"</h3>" 
+    printStats(result,names,psresult,noSummary,filestructure)
 
 if (not noOverallSummary and overAll):
     print "<h3 class='overall'>over all</h3>"
-
-    printStats(oaresult,names,0,noOverallSummary)
-print "<hr/>"
+    printStats(oaresult,names,0,noOverallSummary,"")
