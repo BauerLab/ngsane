@@ -35,8 +35,8 @@ h4 {
 }
 
 .panel h3 {
-	background-color: #8b5;
-	color: white;
+	background-color: #ddd;
+	color: #333;
 	font-size: 100%;
 	font-weight: normal;
 	letter-spacing: 0.2em;
@@ -45,7 +45,7 @@ h4 {
 }
 
 .panel h3.overall {
-	background-color: #b58;
+	background-color: #aaa;
 	text-transform: uppercase;
 }
 
@@ -95,6 +95,10 @@ div.headbagb {
 	background-image: -ms-linear-gradient(top, #69c, #669);
 	background-image: -o-linear-gradient(top, #69c, #669);
 	background-image: linear-gradient(top, #69c, #669);
+}
+
+.box{
+    padding: 5px;
 }
 
 div.panel {
@@ -164,6 +168,7 @@ div.panel span.counter span.passed{
     color:#060;
     border: 1px solid #0a0;
 }
+
 div.panel span.counter span.failed{
     background: none repeat scroll 0 0 #866;
     border-radius: 0px 7px 7px 0px;
@@ -171,6 +176,7 @@ div.panel span.counter span.failed{
     color:#eee;
     border: 1px solid #a00
 }
+
 div.panel span.counter span.nofailed{
     background: none repeat scroll 0 0 #ddd;
     border-radius: 0px 7px 7px 0px;
@@ -178,6 +184,7 @@ div.panel span.counter span.nofailed{
     color:#666;
     border: 1px solid #444
 }
+
 div.panel span.counter span.errors{
     background: none repeat scroll 0 0 #866;
     border-radius: 7px 7px 7px 7px;
@@ -185,6 +192,7 @@ div.panel span.counter span.errors{
     color:#eee;
     border: 1px solid #a00;
 }
+
 div.panel span.counter span.neutral{
     background: none repeat scroll 0 0 #ddd;
     border-radius: 7px 7px 7px 7px;
@@ -192,16 +200,21 @@ div.panel span.counter span.neutral{
     color:#666;
     border: 1px solid #444;
 }
+
 div.wrapper {
 	margin: auto; 
 	width: 100%;
 	padding-top: 5px;
 }
 
-div.results {
+div.display {
 	overflow-x: scroll;
 	overflow-y: hidden;
 	margin-bottom: 10px;
+}
+
+div.hidden {
+    display:none;
 }
 
 p {

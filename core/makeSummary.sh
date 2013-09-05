@@ -62,15 +62,33 @@ echo "Last modified "`date` >$SUMMARYTMP
 # $4=output file ($SUMMARYTMP)
 function summaryHeader {
     LINKS=$LINKS" $2"
-    echo "<div class='panel' id='$2_panel'><div class='headbagb'><a name='$2' /><h2 class='sub'>$1</h2><h2 id='h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='$2_counter_checkpoints_passed'></span><span class='failed' id='$2_counter_checkpoints_failed'></span></span></h2><h2 id='h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='$2_counter_notes'></span></span></span></h2><h2 id='h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='$2_counter_errors'></span></span></h2><h2 id='h_logs' class='sub inactive' rel='errors'>Logfiles</h2></div><div class='wrapper'><div class='results'>" >> $4
+    echo "<div class='panel' id='$2_panel'>
+        <div class='headbagb' id='$2_panelback'><a name='$2'></a>
+            <h2 id='$2_h_results' class='sub'>$1</h2>
+            <h2 id='$2_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='$2_counter_checkpoints_passed'></span><span class='failed' id='$2_counter_checkpoints_failed'></span></span></h2>
+            <h2 id='$2_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='$2_counter_notes'></span></span></span></h2>
+            <h2 id='$2_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='$2_counter_errors'></span></span></h2>
+            <h2 id='$2_h_logfiles' class='sub inactive' rel='errors'>Logfiles</h2>
+        </div>
+        <div class='wrapper'><div class='hidden'>" >> $4
     echo "QC"
     ${NGSANE_BASE}/core/QC.sh -o -m ${NGSANE_BASE}/mods/$3 -l $QOUT -t $2 >> $4
+    echo "<div id='$2_results'>" >> $4
 } 
 
 # summaryFooter takes 1 parameter
-# $1=output file ($SUMMARYTMP)
+# $1=TASK (e.g. $TASKBWA)
+# $2=output file ($SUMMARYTMP)
 function summaryFooter {
-    echo "</div></div></div>" >> $1
+    echo "</div></div><div class='display'></div></div></div>" >> $2
+    echo "<script type='text/javascript'> 
+        if (typeof jQuery === 'undefined') {
+            console.log('jquery not loaded');
+        } else {
+            \$('#$1_panel div.wrapper div.display').html(\$('#$1_results').html());
+        }
+        </script>" >> $2
+    
 }
 
 ################################################################################
@@ -81,7 +99,7 @@ if [ -n "$RUNFASTQC" ]; then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>Read biases (FASTQC) </h2></a></div>" >>$SUMMARYTMP
 
-    echo "<table class="data">" >>$SUMMARYTMP
+    echo "<table class='data'>" >>$SUMMARYTMP
     echo "<thead><tr><th>Libary</th><th>Chart</th><th>Encoding</th><th>Library size</th><th>Read</th><th>Read length</th><th>%GC</th><th> Read Qualities</th></tr><thead><tbody>" >>$SUMMARYTMP
 
     if [[ -e runStats/ && -e runStats/$TASKFASTQC/ ]]; then
@@ -127,7 +145,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNFASTQSCREEN" ]]; then
-    summaryHeader "FASTQ screen" "TASKFASTQSCREEN" "fastqscreen.sh" "$SUMMARYTMP"
+    summaryHeader "FASTQ screen" "$TASKFASTQSCREEN" "fastqscreen.sh" "$SUMMARYTMP"
 
     echo "gather dirs"
     vali=""
@@ -149,7 +167,7 @@ if [[ -n "$RUNFASTQSCREEN" ]]; then
     done
     echo "<table><tr>$row0</tr><tr>$row1</tr></table>" >> $SUMMARYTMP
 
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKFASTQSCREEN" "$SUMMARYTMP"
 fi
 
 
@@ -171,7 +189,7 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
 	   python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
     fi
     
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKBWA" "$SUMMARYTMP"
 fi
 
 
@@ -186,7 +204,7 @@ if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" || -n "$RUNREALRECAL3" ]]; then
 
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
 
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKRCA" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -200,7 +218,7 @@ if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
 
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
 
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKBOWTIE" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -215,7 +233,7 @@ if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
 
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
 
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKBOWTIE2" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -236,7 +254,7 @@ if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
     cd $CURDIR
     python ${NGSANE_BASE}/tools/Summary.py "$vali" bam.stats tophat >>$SUMMARYTMP
 
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKTOPHAT" "$SUMMARYTMP"
 fi
 
 
@@ -257,7 +275,7 @@ if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
     echo "<h3>On Target</h3>" >>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.stats" target >>$SUMMARYTMP
 
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKVAR" "$SUMMARYTMP"
     
 fi
 
@@ -275,7 +293,7 @@ if [ -n "$RUNVARCALLS" ]; then
     echo "<h3>INDELs</h3>" >>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l>>$SUMMARYTMP
 
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKVAR" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -295,7 +313,7 @@ if [ -n "$RUNANNOTATION" ]; then
     done
     echo "<br>More information about the columns can be found on the <a target=new href=\"http://redmine.qbi.uq.edu.au/knowledgebase/articles/12\">Project Server</a> (uqlogin). and the description of the <a href=\"http://www.broadinstitute.org/gsa/wiki/index.php/Understanding_the_Unified_Genotyper%27s_VCF_files\">vcf file</a>">> $SUMMARYTMP
     
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKANNOVAR" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -308,7 +326,7 @@ if [ -n "$RUNTRIMGALORE" ];then
     done
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "_trimming_report.txt" trimgalore --noSummary >> $SUMMARYTMP
 
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKTRIMGALORE" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -321,7 +339,7 @@ if [ -n "$RUNTRIMMOMATIC" ];then
     done
     python ${NGSANE_BASE}/tools/Summary.py "$vali" ".log" trimmomatic --noSummary >> $SUMMARYTMP
 
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKTRIMMOMATIC" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -334,7 +352,7 @@ if [ -n "$RUNCUTADAPT" ];then
     done
     python ${NGSANE_BASE}/tools/Summary.py "$vali" ".stats" cutadapt --noSummary >> $SUMMARYTMP
 
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKCUTADAPT" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -352,7 +370,7 @@ if [ -n "$RUNHICLIB" ];then
         done
     done
 
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKHICLIB" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -387,7 +405,7 @@ if [ -n "$RUNHICUP" ];then
     done
     echo "<table><tr>$row0</tr><tr>$row1</tr><tr>$row2</tr></table>" >> $SUMMARYTMP
     
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKHICUP" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -400,7 +418,7 @@ if [ -n "$RUNHOMERCHIPSEQ" ];then
     done
     python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" homerchipseq >> $SUMMARYTMP
 
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKHOMERCHIPSEQ" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -412,7 +430,8 @@ if [ -n "$RUNPEAKRANGER" ];then
         vali=$vali" $OUT/$dir/$TASKPEAKRANGER/"
     done
     python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" peakranger >> $SUMMARYTMP
-    echo "</div>" >>$SUMMARYTMP
+
+    summaryFooter "$TASKPEAKRANGER" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -439,7 +458,7 @@ if [ -n "$RUNMACS2" ];then
     done
     echo "<table><tr>$row0</tr><tr>$row1</tr><tr>$row2</tr></table>" >> $SUMMARYTMP
 
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKMACS2" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -458,7 +477,7 @@ if [ -n "$RUNMEMECHIP" ];then
     cd $CURDIR
     python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" memechip >> $SUMMARYTMP
 
-    summaryFooter "$SUMMARYTMP"
+    summaryFooter "$TASKMEMECHIP" "$SUMMARYTMP"
 fi
 
 ################################################################################

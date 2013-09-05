@@ -86,36 +86,69 @@ done
 if [ "$HTMLOUTPUT" = 'TRUE' ]; then
     echo "</pre></div>"
     echo "<div id='${TASK}_notes'><pre>"
+else
+    echo ">>>>>>>>>> Notes"
 fi
 
-echo ">>>>>>>>>> Notes"
 SUMNOTES=0
 for i in $QOUT/$TASK/*.out;do
-    echo ${i/$LOGFOLDER\//}
+    echo -e "\n${i/$LOGFOLDER\//}"
     NOTELIST=$(grep -P "^\[NOTE\]" $i)
     echo $NOTELIST
     SUMNOTES=`expr $SUMNOTES + $(echo $NOTELIST | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' )`
 done
 
-echo ">>>>>>>>>> Errors"
+if [ "$HTMLOUTPUT" = 'TRUE' ]; then
+    echo "</pre></div>"
+    echo "<div id='${TASK}_errors'><pre>"
+else
+    echo ">>>>>>>>>> Errors"
+fi
+
 SUMERRORS=0
 for i in $QOUT/$TASK/*.out;do
-    echo ${i/$LOGFOLDER\//}
+    echo -e "\n${i/$LOGFOLDER\//}"
     ERRORLIST=$(grep -P "^\[ERROR\]" $i)
-    echo $ERRORLIST
+    if [ -n "$ERRORLIST" ]; then 
+        echo $ERRORLIST
+    else
+        echo "-- all good, no errors"
+    fi
     SUMERRORS=`expr $SUMERRORS + $(echo $ERRORLIST | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' )`
 done
 
 if [ "$HTMLOUTPUT" = 'TRUE' ]; then
     echo "</pre></div>"
-    echo "<script type='text/javascript'> if (typeof jQuery === 'undefined') {console.log('jquery not loaded');} else {\$(\"#${TASK}_counter_notes\").text('$SUMNOTES');\$('#${TASK}_counter_errors').text('$SUMERRORS');\$('#${TASK}_counter_checkpoints_passed').text('$CHECKPOINTS_PASSED');\$('#${TASK}_counter_checkpoints_failed').text('$CHECKPOINTS_FAILED'); if ($SUMERRORS==0){\$('#${TASK}_counter_errors').toggleClass('errors neutral');}; if($CHECKPOINTS_FAILED==0){\$('#${TASK}_counter_checkpoints_failed').toggleClass('failed nofailed');};}</script>"
-    
-    echo "<div id='${TASK}_logfiles'>"
+    echo "<div id='${TASK}_logfiles'><div class='box'>"
     for i in $QOUT/$TASK/*.out ;do
         FN=${i/$LOGFOLDER\//}
         echo "<a href='$FN'>${i/$QOUT\/$TASK\//}</a><br/>"
     done
-    echo "</div>"
+    echo "</div></div>"
+    echo "<script type='text/javascript'> 
+        if (typeof jQuery === 'undefined') {
+            console.log('jquery not loaded');
+        } else {
+            \$('#${TASK}_counter_notes').text('$SUMNOTES');
+            \$('#${TASK}_counter_errors').text('$SUMERRORS');
+            \$('#${TASK}_counter_checkpoints_passed').text('$CHECKPOINTS_PASSED');
+            \$('#${TASK}_counter_checkpoints_failed').text('$CHECKPOINTS_FAILED'); 
+            if ($SUMERRORS==0){
+                \$('#${TASK}_counter_errors').toggleClass('errors neutral');
+            }; 
+            if($CHECKPOINTS_FAILED==0){
+                \$('#${TASK}_counter_checkpoints_failed').toggleClass('failed nofailed');
+            };
+
+            \$('#${TASK}_panelback h2').click(function() {
+                \$(this).parent().children().addClass('inactive');
+                \$(this).removeClass('inactive');
+                console.log();
+                var panel=\$(this).attr('id').replace('_h_','_');
+                \$('#${TASK}_panel div.wrapper div.display').html(\$('#'+ panel).html());
+            });
+        }
+    </script>"    
 fi
 
 
