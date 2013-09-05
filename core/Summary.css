@@ -235,7 +235,7 @@ table.data {
 	margin: 10px 0 20px 0;
 }
 
-table,caption,tbody,tfoot,thead,tr,th,td {
+table,caption,tbody,tfoot,thead,tr,th {
 	font-size: 100%;
 	vertical-align: baseline;
 	margin: 0;
@@ -243,6 +243,10 @@ table,caption,tbody,tfoot,thead,tr,th,td {
 	outline: 0;
 	border: 0;
 	background: transparent;
+}
+
+table.data tbody{
+    background: #dfd;
 }
 
 table.data th {
