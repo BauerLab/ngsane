@@ -103,7 +103,7 @@ div.panel {
 	border-radius: 12px;
 	padding: 2px;
 	margin-bottom: 25px;
-	min-width:1000px;
+	min-width:1050px;
 }
 
 #controls div,#gallery div {
@@ -142,9 +142,56 @@ div.panel h2.sub {
 	border-bottom: none;
 	display: inline-block;
 	vertical-align: top;
-	width: 220px;
+	width: 180px;
 }
 
+div.panel span.counter {
+    background: none repeat scroll 0 0 #444;
+    border-radius: 7px 7px 7px 7px;
+    color: #333;
+    display: inline;
+    font-size: 90%;
+    font-weight:bold;
+    letter-spacing: 0;
+    margin-left: 6px;
+    text-transform: none;
+}
+
+div.panel span.counter span.passed{
+    background: none repeat scroll 0 0 #dfd;
+    border-radius: 7px 0px 0px 7px;
+    padding: 0px 5px;
+    color:#060;
+    border: 1px solid #0a0;
+}
+div.panel span.counter span.failed{
+    background: none repeat scroll 0 0 #866;
+    border-radius: 0px 7px 7px 0px;
+    padding: 0px 5px;
+    color:#eee;
+    border: 1px solid #a00
+}
+div.panel span.counter span.nofailed{
+    background: none repeat scroll 0 0 #ddd;
+    border-radius: 0px 7px 7px 0px;
+    padding: 0px 5px;
+    color:#666;
+    border: 1px solid #444
+}
+div.panel span.counter span.errors{
+    background: none repeat scroll 0 0 #866;
+    border-radius: 7px 7px 7px 7px;
+    padding: 0px 5px;
+    color:#eee;
+    border: 1px solid #a00;
+}
+div.panel span.counter span.neutral{
+    background: none repeat scroll 0 0 #ddd;
+    border-radius: 7px 7px 7px 7px;
+    padding: 0px 5px;
+    color:#666;
+    border: 1px solid #444;
+}
 div.wrapper {
 	margin: auto; 
 	width: 100%;

@@ -62,9 +62,9 @@ echo "Last modified "`date` >$SUMMARYTMP
 # $4=output file ($SUMMARYTMP)
 function summaryHeader {
     LINKS=$LINKS" $2"
-    echo "<div class='panel'><div class='headbagb'><a name='$2' /><h2 class='sub'>$1</h2><h2 id='h_checklist' class='sub inactive' rel='checklist'>Checklist</h2><h2 id='h_notes' class='sub inactive' rel='notes'>Notes () Errors ()</h2><h2 id='h_logs' class='sub inactive' rel='errors'>Logfiles</h2></div><div class='wrapper'><div class='results'>" >> $4
+    echo "<div class='panel' id='$2_panel'><div class='headbagb'><a name='$2' /><h2 class='sub'>$1</h2><h2 id='h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='$2_counter_checkpoints_passed'></span><span class='failed' id='$2_counter_checkpoints_failed'></span></span></h2><h2 id='h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='$2_counter_notes'></span></span></span></h2><h2 id='h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='$2_counter_errors'></span></span></h2><h2 id='h_logs' class='sub inactive' rel='errors'>Logfiles</h2></div><div class='wrapper'><div class='results'>" >> $4
     echo "QC"
-    ${NGSANE_BASE}/core/QC.sh -o -m ${NGSANE_BASE}/mods/$3 -l $QOUT/$2 >> $4
+    ${NGSANE_BASE}/core/QC.sh -o -m ${NGSANE_BASE}/mods/$3 -l $QOUT -t $2 >> $4
 } 
 
 # summaryFooter takes 1 parameter
@@ -513,7 +513,7 @@ fi
 echo '''<html><head>''' > $SUMMARYFILE.tmp
 cat ${NGSANE_BASE}/core/Summary.css >> $SUMMARYFILE.tmp
 
-echo '<script type="javascript">' >> $SUMMARYFILE.tmp
+echo "<script type='text/javascript'>" >> $SUMMARYFILE.tmp
 cat ${NGSANE_BASE}/core/jquery-1.9.1.min.js >> $SUMMARYFILE.tmp
 cat ${NGSANE_BASE}/core/Summary.js >> $SUMMARYFILE.tmp
 echo '''</script></head><body>
