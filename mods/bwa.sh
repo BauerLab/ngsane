@@ -206,20 +206,29 @@ else
     if [ "$PAIRED" = 1 ]; then
 
         if [ "$NOMAPPING" = 0 ]; then
-           echo "[NOTE] PAIRED READS"
-           bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $f > $MYOUT/${n/$FASTQ/sai}
-           bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
-           bwa sampe $FASTA $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} \
+            echo "[NOTE] PAIRED READS"
+            # clever use of named pipes to avoid IO
+            [ -e $MYOUT/${n/$FASTQ/sai} ] && rm $MYOUT/${n/$FASTQ/sai}
+            [ -e $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} ] && rm $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} 
+            mkfifo $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
+        
+            bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $f > $MYOUT/${n/$FASTQ/sai} &
+            bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} &
+            bwa sampe $FASTA $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} \
        	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
     	       $f ${f/$READONE/$READTWO} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
     
-           [ -e $MYOUT/${n/$FASTQ/sai} ] && rm $MYOUT/${n/$FASTQ/sai}
-           [ -e $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} ] && rm $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
+            [ -e $MYOUT/${n/$FASTQ/sai} ] && rm $MYOUT/${n/$FASTQ/sai}
+            [ -e $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} ] && rm $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
         fi
 
     else
         echo "[NOTE] SINGLE READS"
-        bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA $f > $MYOUT/${n/$FASTQ/sai}
+        # clever use of named pipes to avoid IO
+        [ -e $MYOUT/${n/$FASTQ/sai} ] && rm $MYOUT/${n/$FASTQ/sai}
+        mkfifo $MYOUT/${n/$FASTQ/sai}
+        
+        bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA $f > $MYOUT/${n/$FASTQ/sai} &
     
         bwa samse $FASTA $MYOUT/${n/$FASTQ/sai} $BWASAMPLEADDPARAM \
     	-r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \

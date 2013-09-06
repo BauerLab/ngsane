@@ -322,12 +322,13 @@ fi
 
 echo "********* $CHECKPOINT"
 ################################################################################
-CHECKPOINT="generate  bigwigs"    
+CHECKPOINT="generate bigwigs"    
 
 FRAGMENTLENGTH=0
 GENOME_CHROMSIZES=$FASTA.chrom.size
 . $CONFIG # overwrite defaults
 
+echo "$FASTQ $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
@@ -335,13 +336,13 @@ else
         
     if [ -z "$(which wigToBigWig)" ]; then
         echo "[NOTE] Skip bigwig generation due to missing software: wigToBigWig"
-                
+        
     else
-        NC=1000000
-        N=$(samtools view -c -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})
-        SCALEFACTOR=`echo "scale=3; $NC/$N" | bc`
+        NORMALIZETO=1000000
+        NUMBEROFREADS=$(samtools view -c -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})
+        SCALEFACTOR=`echo "scale=3; $NORMALIZETO/$NUMBEROFREADS" | bc`
       
-        echo "[NOTE] library size (mapped reads): $N" 
+        echo "[NOTE] library size (mapped reads): $NORMALIZETO" 
         echo "[NOTE] scale factor: $SCALEFACTOR"
         echo "[NOTE] fragment length: $FRAGMENTLENGTH"
     
@@ -352,23 +353,23 @@ else
             [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
     	
         else
+            
+            if [[ $FRAGMENTLENGTH -ge 0 ]]; then
+            	echo "[NOTE] Skip bigwig generation due to invalid value for parameter: FRAGMENTLENGTH"
 
-	       if [[ $FRAGMENTLENGTH -le 0 ]]; then
-			   	echo "[NOTE] Skip bigwig generation due to missing parameter: FRAGMENTLENGTH"
-				continue
-	       fi
-
-
-        	if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
-                echo "[NOTE] generate strand-specific bigwigs considering single reads"
-                samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
-                
-                samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.-.bw}
-    
             else
-                echo "[NOTE] generate bigwig considering single reads"
-                samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
-                
+
+                if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
+                    echo "[NOTE] generate strand-specific bigwigs considering single reads"
+                    samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
+                    
+                    samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.-.bw}
+        
+                else
+                    echo "[NOTE] generate bigwig considering single reads"
+                    samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
+                    
+            	fi
         	fi
         fi
     

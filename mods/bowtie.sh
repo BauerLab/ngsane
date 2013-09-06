@@ -111,6 +111,7 @@ fi
 #is paired ?                                                                                                      
 if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
+    echo 
 else
     PAIRED="0"
 fi
@@ -184,38 +185,31 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    # check if fastq are compressed
-    if [[ "$ZCAT" == "zcat" ]]; then 
-	    echo "[NOTE] unzip fastq files"
-        $GZIP -cd $f > $f.unzipped
-        $GZIP -cd ${f/$READONE/$READTWO} > ${f/$READONE/$READTWO}.unzipped
-		BOWTIEF=${f/$READONE/$READTWO}.unzipped
-	else
-		BOWTIEF=$f
-	fi
-
 	# Unpaired
 	if [ $PAIRED == "0" ]; then
-        # pipe gzipped or unzipped fastqs into bowtie
+        echo "[NOTE] SINGLE READS"
+
         RUN_COMMAND="$ZCAT $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
 
 	#Paired
     else
-		BOWTIEF=$f
-		if [[ "$ZCAT" == "zcat" ]]; then 
-	    	echo "[NOTE] unzip fastq files"
-        	$GZIP -cd $f > $f.unzipped
-        	$GZIP -cd ${f/$READONE/$READTWO} > ${f/$READONE/$READTWO}.unzipped
-			BOWTIEF=${f/$READONE/$READTWO}.unzipped
-		fi
-	
-		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $BOWTIEF -2 ${BOWTIEF/$READONE/$READTWO} $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
+        echo "[NOTE] PAIRED READS"
+        # clever use of named pipes to avoid fastq unzipping
+        [ -e ${f}_pipe ] && rm ${f}_pipe 
+        [ -e ${f/$READONE/$READTWO}_pipe ] && rm ${f/$READONE/$READTWO}_pipe 
+        mkfifo ${f}_pipe ${f/$READONE/$READTWO}_pipe
+        
+        $ZCAT $f > ${f}_pipe &
+        $ZCAT ${f/$READONE/$READTWO} > ${f/$READONE/$READTWO}_pipe &
+        
+		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 ${f}_pipe -2 ${f/$READONE/$READTWO}_pipe $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
+
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # cleanup
-    [ -e $f.unzipped ] && rm $f.unzipped
-    [ -e ${f/$READONE/$READTWO}.unzipped ] && ${f/$READONE/$READTWO}.unzipped
+    [ -e ${f}_pipe ] && rm ${f}_pipe
+    [ -e ${f/$READONE/$READTWO}_pipe ] && rm ${f/$READONE/$READTWO}_pipe
 
     # mark checkpoint
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
@@ -231,17 +225,17 @@ else
     # create bam files for discarded reads and remove fastq files    
     if [ $PAIRED == "1" ]; then
         if [ -e $MYOUT/${n/%$READONE.$FASTQ/.${UNM}_1.fq} ]; then
-         java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
-             FASTQ=$MYOUT/${n/%$READONE.$FASTQ/.${UNM}_1.fq} \
-             FASTQ2=$MYOUT/${n/%$READONE.$FASTQ/.${UNM}_2.fq} \
-             OUTPUT=$MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam} \
-             QUALITY_FORMAT=Standard \
-             SAMPLE_NAME=${n/%$READONE.$FASTQ/} \
-             READ_GROUP_NAME=null \
-             QUIET=TRUE \
-             VERBOSITY=ERROR
-         samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam} $MYOUT/${n/%$READONE.$FASTQ/.$UNM.tmp}
-         mv $MYOUT/${n/%$READONE.$FASTQ/.$UNM.tmp.bam} $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam}
+            java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
+                FASTQ=$MYOUT/${n/%$READONE.$FASTQ/.${UNM}_1.fq} \
+                FASTQ2=$MYOUT/${n/%$READONE.$FASTQ/.${UNM}_2.fq} \
+                OUTPUT=$MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam} \
+                QUALITY_FORMAT=Standard \
+                SAMPLE_NAME=${n/%$READONE.$FASTQ/} \
+                READ_GROUP_NAME=null \
+                QUIET=TRUE \
+                VERBOSITY=ERROR
+            samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam} $MYOUT/${n/%$READONE.$FASTQ/.$UNM.tmp}
+            mv $MYOUT/${n/%$READONE.$FASTQ/.$UNM.tmp.bam} $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam}
         fi
     
         if [ -e $MYOUT/${n/%$READONE.$FASTQ/.${MUL}_1.fq} ]; then
@@ -260,16 +254,16 @@ else
         fi
     else
         if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} ]; then
-         java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
-             FASTQ=$MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} \
-             OUTPUT=$MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam} \
-             QUALITY_FORMAT=Standard \
-             SAMPLE_NAME=${n/%$READONE.$FASTQ/} \
-             READ_GROUP_NAME=null \
-             QUIET=TRUE \
-             VERBOSITY=ERROR
-         samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam} $MYOUT/${n/%$READONE.$FASTQ/.$UNM.tmp}
-         mv $MYOUT/${n/%$READONE.$FASTQ/.$UNM.tmp.bam} $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam}
+            java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
+                FASTQ=$MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} \
+                OUTPUT=$MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam} \
+                QUALITY_FORMAT=Standard \
+                SAMPLE_NAME=${n/%$READONE.$FASTQ/} \
+                READ_GROUP_NAME=null \
+                QUIET=TRUE \
+                VERBOSITY=ERROR
+            samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam} $MYOUT/${n/%$READONE.$FASTQ/.$UNM.tmp}
+            mv $MYOUT/${n/%$READONE.$FASTQ/.$UNM.tmp.bam} $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam}
         fi
     
         if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} ]; then
@@ -427,11 +421,13 @@ fi
 
 echo "********* $CHECKPOINT"
 ################################################################################
-CHECKPOINT="generate  bigwigs"    
+CHECKPOINT="generate bigwigs"    
 
 FRAGMENTLENGTH=0
 GENOME_CHROMSIZES=$FASTA.chrom.size
 . $CONFIG # overwrite defaults
+
+echo "$FASTQ $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
@@ -441,11 +437,11 @@ else
         echo "[NOTE] Skip bigwig generation due to missing software: wigToBigWig"
         
     else
-        NC=1000000
-        N=$(samtools view -c -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})
-        SCALEFACTOR=`echo "scale=3; $NC/$N" | bc`
+        NORMALIZETO=1000000
+        NUMBEROFREADS=$(samtools view -c -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})
+        SCALEFACTOR=`echo "scale=3; $NORMALIZETO/$NUMBEROFREADS" | bc`
       
-        echo "[NOTE] library size (mapped reads): $N" 
+        echo "[NOTE] library size (mapped reads): $NORMALIZETO" 
         echo "[NOTE] scale factor: $SCALEFACTOR"
         echo "[NOTE] fragment length: $FRAGMENTLENGTH"
     
@@ -456,22 +452,23 @@ else
             [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
     	
         else
+            
+            if [[ $FRAGMENTLENGTH -ge 0 ]]; then
+            	echo "[NOTE] Skip bigwig generation due to invalid value for parameter: FRAGMENTLENGTH"
 
-	       if [[ $FRAGMENTLENGTH -le 0 ]]; then
-		   		echo "[NOTE] Skip bigwig generation due to missing parameter: FRAGMENTLENGTH"
-				continue
-	       fi
-
-               if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
-                echo "[NOTE] generate strand-specific bigwigs considering single reads"
-                samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
-                
-                samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.-.bw}
-    
             else
-                echo "[NOTE] generate bigwig considering single reads"
-                samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
-                
+
+                if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
+                    echo "[NOTE] generate strand-specific bigwigs considering single reads"
+                    samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
+                    
+                    samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.-.bw}
+        
+                else
+                    echo "[NOTE] generate bigwig considering single reads"
+                    samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
+                    
+            	fi
         	fi
         fi
     
