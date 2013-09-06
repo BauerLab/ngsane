@@ -411,15 +411,16 @@ echo "********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="generate  bigwigs"    
 
+FRAGMENTLENGTH=0
+GENOME_CHROMSIZES=$FASTA.chrom.size
+. $CONFIG # overwrite defaults
+
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
         
     if [ -z "$(which wigToBigWig)" ]; then
         echo "[NOTE] Skip bigwig generation due to missing software: wigToBigWig"
-        
-    elif [ -z "$FRAGMENTLENGTH" ]; then 
-        echo "[NOTE] Skip bigwig generation due to missing parameter: FRAGMENTLENGTH"
         
     else
         NC=1000000
@@ -437,7 +438,13 @@ else
             [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
     	
         else
-        	if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
+
+	       if [[ $FRAGMENTLENGTH -le 0 ]]; then
+		   		echo "[NOTE] Skip bigwig generation due to missing parameter: FRAGMENTLENGTH"
+				continue
+	       fi
+
+               if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
                 echo "[NOTE] generate strand-specific bigwigs considering single reads"
                 samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
                 
