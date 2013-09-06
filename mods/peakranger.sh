@@ -129,6 +129,7 @@ fi
 ################################################################################
 CHECKPOINT="zip"
 
+echo "********* zip"
 $GZIP -f $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_details
 
 echo -e "\n********* $CHECKPOINT"
