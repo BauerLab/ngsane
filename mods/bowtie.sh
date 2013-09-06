@@ -195,21 +195,21 @@ else
     else
         echo "[NOTE] PAIRED READS"
         # clever use of named pipes to avoid fastq unzipping
-        [ -e ${f}_pipe ] && rm ${f}_pipe 
-        [ -e ${f/$READONE/$READTWO}_pipe ] && rm ${f/$READONE/$READTWO}_pipe 
-        mkfifo ${f}_pipe ${f/$READONE/$READTWO}_pipe
+        [ -e $MYOUT/${n}_pipe ] && rm $MYOUT/${n}_pipe
+        [ -e $MYOUT/${n/$READONE/$READTWO}_pipe ] && rm $MYOUT/${n/$READONE/$READTWO}_pipe
+        mkfifo $MYOUT/${n}_pipe $MYOUT/${n/$READONE/$READTWO}_pipe
         
-        $ZCAT $f > ${f}_pipe &
-        $ZCAT ${f/$READONE/$READTWO} > ${f/$READONE/$READTWO}_pipe &
+        $ZCAT $f > $MYOUT/${n}_pipe &
+        $ZCAT ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE/$READTWO}_pipe &
         
-		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 ${f}_pipe -2 ${f/$READONE/$READTWO}_pipe $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
+		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $MYOUT/${n}_pipe -2 $MYOUT/${n/$READONE/$READTWO}_pipe $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
 
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # cleanup
-    [ -e ${f}_pipe ] && rm ${f}_pipe
-    [ -e ${f/$READONE/$READTWO}_pipe ] && rm ${f/$READONE/$READTWO}_pipe
+    [ -e $MYOUT/${n}_pipe ] && rm $MYOUT/${n}_pipe
+    [ -e $MYOUT/${n/$READONE/$READTWO}_pipe ] && rm $MYOUT/${n/$READONE/$READTWO}_pipe
 
     # mark checkpoint
     [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
