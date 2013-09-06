@@ -5,7 +5,7 @@ echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
 echo ">>>>> job_id "$JOB_ID
-echo ">>>>> $(basename $0) $*""
+echo ">>>>> $(basename $0) $*"
 
 function usage {
 echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
@@ -163,7 +163,10 @@ fi
 ################################################################################
 CHECKPOINT="cleanup"    
 
-rm -rf $MYOUT/${n/$BED/.fasta} $MYOUT/${n/$BED/_fimo} $MYOUT/${n/$BED/_sorted.bed} $MYOUT/${n/$BED/.bg} $MYOUT/$n
+[ -e $MYOUT/${n/$BED/.fasta} ] && rm $MYOUT/${n/$BED/.fasta}
+[ -d $MYOUT/${n/$BED/_fimo} ] && rm -r $MYOUT/${n/$BED/_fimo}
+[ -e $MYOUT/${n/$BED/_sorted.bed} ] && rm $MYOUT/${n/$BED/_sorted.bed}
+[ -e $MYOUT/${n/$BED/.bg} ] && rm $MYOUT/${n/$BED/.bg} 
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################

@@ -88,7 +88,7 @@ CHECKPOINT="parameters"
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
     if [ -d $OUT ]; then rm -r $OUT; fi
-    mkdir $OUT
+    mkdir -p $OUT
 fi
 
 # get basename of f (samplename)

@@ -53,11 +53,14 @@ TASKHOMERCHIPSEQ="homerchipseq"
 TASKPEAKRANGER="peakranger"
 TASKMACS2="macs2"
 TASKMEMECHIP="memechip"
+<<<<<<< HEAD
 TASKTRINITY="trinity"
  TASKINCHWORM="inchworm"
  TASKCHRYSALIS="chrysalis"
  TASKBUTTERFLY="butterfly"
+=======
 TASKFASTQSCREEN="fastqscreen"
+>>>>>>> master
 
 ##############################################################
 # PROGRAM PATHS
@@ -415,6 +418,7 @@ MODULE_DEMULTIPLEX=
 PATH_DEMULTIPLEX=$PATH_FASTXTK
 
 ##############################################################
+<<<<<<< HEAD
 # RNA-Seq De novo Assembly Using Trinity
 # http://trinityrnaseq.sourceforge.net/
 
@@ -451,8 +455,7 @@ NODETYPE_BUTTERFLY="all.q"
 
 MODULES_TRINITY=
 PATH_TRINITY=
-
-##############################################################
+=======
 # Screen reads against multiple indices
 # http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/
 WALLTIME_FASTQSCREEN=48:00:00
@@ -463,6 +466,7 @@ NODES_FASTQSCREEN="nodes=1:ppn=8"
 MODULE_FASTQSCREEN=
 PATH_FASTQSCREEN=
 FASTQSCREEN_DBCONF=
+>>>>>>> master
 
 ##############################################################
 #VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"

@@ -15,7 +15,7 @@ RUNTOPHATCUFF2="1"    # mapping with tophat (RNAseq)
 #********************
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq firectory)
+# which files to run on (replace sample with folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # where to write the output
@@ -31,7 +31,7 @@ QOUT=$OUT/qout
 # fastq file suffix
 FASTQ="fq.gz"
 
-# read indicator immediately preceeding the fastq file suffix
+# read indicator immediately preceding the fastq file suffix
 READONE="_R1"
 READTWO="_R2"
 

@@ -128,7 +128,7 @@ else
     mv -f $MYOUT/$EXPERIMENT*.pdf $RUNSTATS
     mv -f $MYOUT/$EXPERIMENT.hiclib.log $RUNSTATS
 
-    #rm -f $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
+    #rm $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
 
     # mark checkpoint
     [ -e $MYOUT/${EXPERIMENT}-mapped_reads.hdf5 ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM

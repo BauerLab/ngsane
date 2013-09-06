@@ -18,7 +18,7 @@ RUNHOMERCHIPSEQ="1"    # homer ChIP-seq
 
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq firectory)
+# which files to run on (replace sample with folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # where to write the output
@@ -31,11 +31,11 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
-# read indicator  immediately preceeding the file suffixes
+# read indicator  immediately preceding the file suffixes
 READONE="_R1"
 READTWO="_R2"
 
-# ChIP-seq style, any of factor|histone|groseq
+# ChIP-seq style, any of factor|histone|groseq (groseq not tested yet)
 HOMER_CHIPSEQ_STYLE="factor"
 
 #********************

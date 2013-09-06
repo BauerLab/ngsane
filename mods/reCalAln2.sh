@@ -116,8 +116,8 @@ fi
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    rm -f $MYOUT/${n/$ASD/$ASR}
-    rm -f $MYOUT/${n/$ASD/$ASR}.stats
+    [ -e $MYOUT/${n/$ASD/$ASR}] && rm $MYOUT/${n/$ASD/$ASR}
+    [ -e $MYOUT/${n/$ASD/$ASR}.stats ] && rm $MYOUT/${n/$ASD/$ASR}.stats
 fi
 
 # bwa/name.$ASD.bam -> /reCalAln/name.$ASD.bam

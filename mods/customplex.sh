@@ -208,16 +208,15 @@ fi
 ################################################################################
 CHECKPOINT="cleanup"
 
-rm -f $OUTDIR/$PREFIX$READONE"_unmatched_seq.fastq"
-rm -f $OUTDIR/$PREFIX$READTWO"_unmatched_seq.fastq"
-rm -f $OUTDIR/${n/$READONE/"sidebyside$READONE"}
-rm -f $OUTDIR/${n/$READONE/"sidebyside$READTWO"}
+[ -e $OUTDIR/$PREFIX$READONE"_unmatched_seq.fastq" ] && rm $OUTDIR/$PREFIX$READONE"_unmatched_seq.fastq"
+[ -e $OUTDIR/$PREFIX$READTWO"_unmatched_seq.fastq" ] && rm $OUTDIR/$PREFIX$READTWO"_unmatched_seq.fastq"
+[ -e $OUTDIR/${n/$READONE/"sidebyside$READONE"} ] && rm $OUTDIR/${n/$READONE/"sidebyside$READONE"}
+[ -e $OUTDIR/${n/$READONE/"sidebyside$READTWO"} ] && rm $OUTDIR/${n/$READONE/"sidebyside$READTWO"}
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
 echo ">>>>> customplex with fastXtoolkit - FINISHED"
 echo ">>>>> enddate "`date`
-
 
 exit
 

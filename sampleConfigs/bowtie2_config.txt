@@ -32,7 +32,7 @@ QOUT=$OUT/qout
 # fastq file suffix
 FASTQ="fq.gz"
 
-# read indicator immediately preceeding the fastq file suffix
+# read indicator immediately preceding the fastq file suffix
 READONE="_R1"
 READTWO="_R2"
 
@@ -49,7 +49,8 @@ PLATFORM="Illumina"
 # PARAMETER (optional overwriting defaults)
 #********************
 
-# additional parameters passed to Bowite2 e.g. --phred64 (illumina 1.5) or --phred33 (sanger)
+# additional parameters passed to Bowtie2 
+# e.g. --phred64 (illumina 1.5) or --phred33 (sanger)
 BOWTIE2ADDPARAM=
 
 # Fragment length to extend reads downstream  - only relevant for single-end libraries during bigwig generation

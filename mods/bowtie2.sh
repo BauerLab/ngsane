@@ -103,9 +103,9 @@ fi
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl
 fi
 
 #is ziped ?
@@ -125,6 +125,19 @@ else
     let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
 fi
 
+# get encoding
+FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
+    FASTQ_PHRED="--phred33"    
+elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
+    FASTQ_PHRED="--phred64"
+elif [[ "$FASTQ_ENCODING" == *Solexa* ]]; then
+    FASTQ_PHRED="--solexa-quals"
+else
+    echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default"
+fi
+echo "[NOTE] $FASTQ_ENCODING fastq format detected"
+
 #readgroup
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
@@ -135,7 +148,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="recall files from tape"
 	
 if [ -n "$DMGET" ]; then
-	dmget -a $(dirname $FASTA)/*
+    dmget -a $FASTA*
 	dmget -a ${f/$READONE/"*"}
 fi
     
@@ -161,7 +174,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM -t -x ${FASTA/.${FASTASUFFIX}/} -p $CPU_BOWTIE2 $READS --un $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}"
+    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM $FASTQ_PHRED -t -x ${FASTA/.${FASTASUFFIX}/} -p $CPU_BOWTIE2 $READS --un $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
@@ -180,14 +193,14 @@ else
     # merge mappend and unmapped
     samtools merge -f $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam $MYOUT/${n/%$READONE.$FASTQ/.map}.bam $MYOUT/${n/%$READONE.$FASTQ/.unm}.bam 
     # remove sam files 
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam}
     
     if [ "$PAIRED" = "1" ]; then
         # fix mates
         samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp
         samtools fixmate $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam - | samtools sort - $MYOUT/${n/%$READONE.$FASTQ/.ash}
-        rm -f $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam
+        [ -e $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam ] && rm $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam.tmp.bam
     fi
     
     # mark checkpoint
@@ -211,7 +224,7 @@ else
         METRICS_FILE=$MYOUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
-    rm -rf $THISTMP
+    [ -d $THISTMP ] && rm -r $THISTMP
     samtools index $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}
     
     # mark checkpoint
@@ -299,9 +312,9 @@ BAMREADS=`head -n1 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.ash.bam}
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.unm}.bam
-    rm -f $MYOUT/${n/%$READONE.$FASTQ/.map}.bam
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.ash.bam}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.unm}.bam ] && rm $MYOUT/${n/%$READONE.$FASTQ/.unm}.bam
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.map}.bam ] && rm $MYOUT/${n/%$READONE.$FASTQ/.map}.bam
 else
     echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
     exit 1
@@ -334,7 +347,7 @@ else
             echo "[NOTE] generate bigwig for properly paired reads on the same chromosomes"
             samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp}
             samtools view -b -F 1028 -f 0x2 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
-            rm -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
+            [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
     	
         else
         	if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 

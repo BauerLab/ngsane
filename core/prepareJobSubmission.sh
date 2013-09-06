@@ -73,6 +73,8 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
   done
 fi
 
+if [ -n "$KEEP" ]; then exit ; fi
+
 MYPBSIDS="" # collect job IDs for postcommand
 DIR=""
 FILES=""
@@ -90,17 +92,6 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     COMMAND2=${COMMAND2//<NAME>/$name} # insert ??
 
     LOGFILE=$QOUT/$TASK/$dir'_'$name'.out'
-    if [ -n "$RECOVER" ] && [ -f $LOGFILE ] ; then
-        # add log-file for recovery
-        COMMAND2="$COMMAND2 --recover-from $LOGFILE"
-        echo "################################################################################" >> $LOGFILE
-        echo "[NOTE] Recover from logfile: $LOGFILE" >> $LOGFILE
-	echo "################################################################################" >> $LOGFILE
-    else
-        # remove old submission output logs
-        if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm -rf $QOUT/$TASK/$dir'_'$name.*; fi
-    fi
-
     DIR=$DIR" $dir"
     FILES=$FILES" $i"
 
@@ -113,10 +104,23 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
     if [ -n "$ARMED" ]; then
 
-    echo $ARMED
-
-    # record task in log file
-    cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
+        echo $ARMED
+    
+        if [ -n "$RECOVER" ] && [ -f $LOGFILE ] ; then
+            # add log-file for recovery
+            COMMAND2="$COMMAND2 --recover-from $LOGFILE"
+            echo "################################################################################" >> $LOGFILE
+            echo "[NOTE] Recover from logfile: $LOGFILE" >> $LOGFILE
+            echo "################################################################################" >> $LOGFILE
+        else
+            # remove old submission output logs
+            if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
+        fi
+    
+        # record task in log file
+        cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
+        echo "[NOTE] Jobfile: "$QOUT/$TASK/job.$(date "+%Y%m%d").log >> $LOGFILE
+    
 
     # Add previous task dependencies (need another parameter for array dependencies)
     # .....assumes standard NGsane job name rules
@@ -134,6 +138,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
     # if only the first task should be submitted as test
     if [ -n "$FIRST" ]; then exit; fi
+
     
     fi
 done
@@ -153,7 +158,7 @@ if [ -n "$POSTCOMMAND" ]; then
     if [[ -n "$ARMED" ||  -n "$POSTONLY" ]]; then
 
     # remove old submission output logs
-    if [ -e $QOUT/$TASK/postcommand.out ]; then rm -rf $QOUT/$TASK/postcommand.out; fi
+    if [ -e $QOUT/$TASK/postcommand.out ]; then rm $QOUT/$TASK/postcommand.out; fi
 
     # record task in log file
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
@@ -172,4 +177,4 @@ if [ -n "$POSTCOMMAND" ]; then
     fi
 fi
 
-if [ ! -n "$KEEP" ]; then  rm -f $QOUT/$TASK/runnow.tmp ; fi
+if [ ! -n "$KEEP" ] && [ -e $QOUT/$TASK/runnow.tmp ]; then  rm $QOUT/$TASK/runnow.tmp ; fi
