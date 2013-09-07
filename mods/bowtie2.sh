@@ -1,5 +1,14 @@
 #!/bin/bash -e
-#!/bin/bash
+
+# Script to run bowtie program.
+# It takes comma-seprated list of files containing short sequence reads in fasta or fastq format and bowtie index files as input.
+# It produces output files: read alignments in .bam format and other files.
+# author: Denis Bauer
+# date: June 2012
+# modified: August 2013 Fabian Buske
+
+# QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <SAMPLE>.$ASD.bam
 
 echo ">>>>> readmapping with Bowtie2 "
 echo ">>>>> startdate "`date`
@@ -12,15 +21,6 @@ function usage {
 echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
 exit
 }
-
-# Script to run bowtie program.
-# It takes comma-seprated list of files containing short sequence reads in fasta or fastq format and bowtie index files as input.
-# It produces output files: read alignments in .bam format and other files.
-# author: Denis Bauer
-# date: June 2012
-# modified: August 2013 Fabian Buske
-
-# QCVARIABLES,Resource temporarily unavailable
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
@@ -126,7 +126,7 @@ else
 fi
 
 # get encoding
-FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
 if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
     FASTQ_PHRED="--phred33"    
 elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
@@ -380,5 +380,6 @@ else
 fi
 
 ################################################################################
+[ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
 echo ">>>>> readmapping with Bowtie2 - FINISHED"
 echo ">>>>> enddate "`date`

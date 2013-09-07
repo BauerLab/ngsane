@@ -6,6 +6,9 @@
 # author: Fabian Buske
 # date: August 2013
 
+# QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <SAMPLE>-${CHIPINPUT##*/} | sed "s/.$ASD.bam/_region.bed/"
+
 echo ">>>>> ChIPseq analysis with Peakranger"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
@@ -18,7 +21,6 @@ echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTION
 exit
 }
 
-# QCVARIABLES,Resource temporarily unavailable
 if [ ! $# -gt 3 ]; then usage ; fi
 
 #INPUTS                                                                                                           
@@ -65,6 +67,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="parameters"
 
 # get basename of f
+f=${f/%.dummy/} #if input came from pip
 n=${f##*/}
 c=${CHIPINPUT##*/}
 
@@ -134,6 +137,7 @@ $GZIP -f $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_details
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
+[ -e $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed.dummy ] && rm $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed.dummy
 echo ">>>>> ChIPseq analysis with Peakranger - FINISHED"
 echo ">>>>> enddate "`date`
 

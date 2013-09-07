@@ -6,7 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,We are loosing reads,for unmapped read,no such file,file not found,reCalAln.sh: line
-
+# RESULTFILENAME <SAMPLE>.$ASR.bam
 
 echo ">>>>> recalibration and realignment using GATK"
 echo ">>>>> startdate "`date`
@@ -98,6 +98,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="parameters"
 
 # get basename of f
+f=${f/%.dummy/} #if input came from pipe
 n=${f##*/}
 
 BAMREADS=`head -n1 $f.stats | cut -d " " -f 1`
@@ -364,5 +365,6 @@ else
 fi
 
 ################################################################################
+[ -e $MYOUT/${n/$ASD/$ASR}.dummy ] && rm $MYOUT/${n/$ASD/$ASR}.dummy
 echo ">>>>> recalibration and realignment using GATK - FINISHED"
 echo ">>>>> enddate "`date`

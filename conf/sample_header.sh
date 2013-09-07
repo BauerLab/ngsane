@@ -70,8 +70,8 @@ PATH_SAMSTAT=
 PATH_FASTXTK=
 
 # Commonly used file abbreviations
-READONE="read1"
-READTWO="read2"
+READONE="_read1"
+READTWO="_read2"
 FASTQ="fastq.gz"
 FASTA=            # fasta file usually from the reference genome
 FASTA_CHROMDIR=   # folder containing individual fasta files for each chromosome of the reference genome 

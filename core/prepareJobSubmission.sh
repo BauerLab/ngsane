@@ -60,13 +60,14 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
       fi
 
       # generate the runnow.tmp
+	  # search for real files and dummy files, in case both exist only keep real one
       if [ -n "$REV" ]; then
-        for f in $( ls $SOURCE/$dir/$ORIGIN/*$ENDING); do
+        for f in $( ls $SOURCE/$dir/$ORIGIN/*$ENDING* | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
             echo $f >> $QOUT/$TASK/runnow.tmp
         done
 
       else
-        for f in $( ls $SOURCE/$ORIGIN/$dir/*$ENDING); do
+        for f in $( ls $SOURCE/$ORIGIN/$dir/*$ENDING | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
             echo $f >> $QOUT/$TASK/runnow.tmp
         done
       fi
@@ -105,6 +106,17 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     if [ -n "$ARMED" ]; then
 
         echo $ARMED
+
+		# create dummy files for the pipe
+		COMMANDARR=(${COMMAND// / })
+		DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/")
+		D=$(eval $DUMMY)
+		echo $dir/$TASK/$D.dummy
+		touch $dir/$TASK/$D.dummy
+		#eval DUMMY=$DUMMY
+		#eval touch $dir/$TASK/$DUMMY.dummy
+		#echo $DUMMY
+		#echo eval touch $(echo $dir/$TASK/$DUMMY).dummy 
     
         if [ -n "$RECOVER" ] && [ -f $LOGFILE ] ; then
             # add log-file for recovery

@@ -7,6 +7,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,We are loosing reads,MAPQ should be 0 for unmapped read,no such file,file not found,bwa.sh: line,Resource temporarily unavailable
+# RESULTFILENAME <SAMPLE>.$ASD.bam
 
 echo ">>>>> readmapping with BWA "
 echo ">>>>> startdate "`date`
@@ -153,7 +154,7 @@ else
 fi
 
 # get encoding
-FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
 if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
     FASTQ_PHRED=""    
 elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
@@ -382,6 +383,7 @@ fi
 
 echo "********* $CHECKPOINT"
 ################################################################################
+[ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
 echo ">>>>> readmapping with BWA - FINISHED"
 echo ">>>>> enddate "`date`
 

@@ -1,5 +1,15 @@
 #!/bin/bash -e
 
+# Script to run bowtie v1 program.
+# It takes comma-seprated list of files containing short sequence reads in fasta or fastq format and bowtie index files as input.
+# It produces output files: read alignments in .bam format and other files.
+# author: Fabian Buske
+# date: August 2013
+
+# QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <SAMPLE>.$ASD.bam
+
+
 echo ">>>>> read mapping with bowtie 1"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
@@ -12,13 +22,6 @@ echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTION
 exit
 }
 
-# Script to run bowtie v1 program.
-# It takes comma-seprated list of files containing short sequence reads in fasta or fastq format and bowtie index files as input.
-# It produces output files: read alignments in .bam format and other files.
-# author: Fabian Buske
-# date: August 2013
-
-# QCVARIABLES,Resource temporarily unavailable
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
@@ -479,5 +482,6 @@ else
 fi
 
 ################################################################################
+[ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
 echo ">>>>> read mapping with bowtie 1 - FINISHED"
 echo ">>>>> enddate "`date`
