@@ -93,29 +93,30 @@ PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 PATH_RNASEQC=$(dirname $(which RNA-SeQC.jar))
 
-echo -e "--JAVA     --\n" $(java -version 2>&1)
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--JAVA        --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
-echo -e "--tophat2  --\n "$(tophat --version)
+echo -e "--tophat2     --\n "$(tophat --version)
 [ -z "$(which tophat)" ] && echo "[ERROR] no tophat detected" && exit 1
-echo -e "--cufflinks--\n "$(cufflinks 2>&1 | head -n 2 )
+echo -e "--cufflinks   --\n "$(cufflinks 2>&1 | head -n 2 )
 [ -z "$(which cufflinks)" ] && echo "[ERROR] no cufflinks detected" && exit 1
-echo -e "--bowtie2  --\n "$(bowtie2 --version)
+echo -e "--bowtie2     --\n "$(bowtie2 --version)
 [ -z "$(which bowtie2)" ] && echo "[ERROR] no bowtie2 detected" && exit 1
-echo -e "--samtools --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
-echo -e "--R        --\n "$(R --version | head -n 3)
+echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
-echo -e "--igvtools --\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
+echo -e "--igvtools    --\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
 [ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
-echo -e "--picard   --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+echo -e "--picard      --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
-echo -e "--samstat  --\n "$(samstat -h | head -n 2 | tail -n1)
+echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
-echo -e "--bedtools --\n "$(bedtools --version)
+echo -e "--bedtools    --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
-echo -e "--htSeq    --\n "$(htseq-count | tail -n 1)
+echo -e "--htSeq       --\n "$(htseq-count | tail -n 1)
 [ -z "$(which htseq-count)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no htseq-count or GENCODEGTF detected" && exit 1
-echo -e "--RNA-SeQC --\n "$(java -jar $JAVAPARAMS ${PATH_RNASEQC}/RNA-SeQC.jar --version  2>&1 | head -n 1 )
+echo -e "--RNA-SeQC    --\n "$(java -jar $JAVAPARAMS ${PATH_RNASEQC}/RNA-SeQC.jar --version  2>&1 | head -n 1 )
 [ -z "$(which RNA-SeQC.jar)" ] && echo "[ERROR] no RNA_SeQC.jar detected" && exit 1
 
 echo "[NOTE] set java parameters"

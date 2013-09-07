@@ -54,6 +54,8 @@ module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
+
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 #echo -e "--wiggler  --\n "$(align2rawsignal 2>&1 | head -n 3 | tail -n 1)
 #[ -z "$(which align2rawsignal)" ] && echo "[ERROR] wiggler not detected (align2rawsignal)" && exit 1
 

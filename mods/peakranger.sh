@@ -52,6 +52,7 @@ echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--R          --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--peakranger --\n "$(peakranger | head -n 3 | tail -n 1)

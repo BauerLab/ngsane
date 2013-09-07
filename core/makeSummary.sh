@@ -50,7 +50,7 @@ echo -e "--Python      --\n "$(python --version 2>&1 | tee | head -n 1)
 SUMMARYTMP=$HTMLOUT".tmp"
 SUMMARYFILE=$HTMLOUT".html"
 
-echo "Last modified "`date` >$SUMMARYTMP
+cat /dev/null > $SUMMARYTMP # purge existing content
 
 ################################################################################
 # define functions for generating summary scaffold
@@ -542,14 +542,18 @@ echo '''</script></head><body>
 <div id="center">
 ''' >> $SUMMARYFILE.tmp
 echo "<div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>" >> $SUMMARYFILE.tmp
+declare -a LINKSET=( )
 for i in $LINKS; do
-    echo "<a href=#$i>$i</a> | ">>$SUMMARYFILE.tmp
+    LINKSET=("${LINKSET[@]}" "<a href='#$i'>$i</a>")
 done
-echo "</div></div>" >>$SUMMARYFILE.tmp
+echo $(IFS=' | ' ; echo "${LINKSET[*]}") >> $SUMMARYFILE.tmp
 
-cat $SUMMARYFILE.tmp  $SUMMARYTMP > $SUMMARYFILE
+echo "</div><!-- Links --></div><!-- panel -->" >>$SUMMARYFILE.tmp
 
-echo "</div><!-- center --></body></html>" >>$SUMMARYFILE
+echo "<hr><span>Report generated with "`trigger.sh -v`"</span><span style='float:right;'>Last modified: "`date`"</span>" >> $SUMMARYTMP
+echo "</div><!-- center --></body></html>" >> $SUMMARYTMP
+################################################################################
+cat $SUMMARYFILE.tmp $SUMMARYTMP > $SUMMARYFILE
 
 rm $SUMMARYTMP
 rm $SUMMARYFILE.tmp

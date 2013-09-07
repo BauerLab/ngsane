@@ -61,6 +61,7 @@ echo $PATH
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--igvtools    --\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)

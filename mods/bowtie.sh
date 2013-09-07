@@ -63,6 +63,7 @@ echo "PATH=$PATH"
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--JAVA        --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--bowtie      --\n "$(bowtie --version)

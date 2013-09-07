@@ -76,7 +76,8 @@ export PATH=$PATH_CUFFDIFF:$PATH
 module list
 echo "PATH=$PATH"
 
-echo -e "--cuffdiff --\n "$(cuffdiff 2>&1 | head -n 1 )
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--cuffdiff    --\n "$(cuffdiff 2>&1 | head -n 1 )
 [ -z "$(which cuffdiff)" ] && echo "[ERROR] no cuffdiff detected" && exit 1
 echo -e "--cuffcompare --\n "$(cuffcompare 2>&1 | head -n 1 )
 [ -z "$(which cuffcompare)" ] && echo "[ERROR] no cuffcompare detected" && exit 1
