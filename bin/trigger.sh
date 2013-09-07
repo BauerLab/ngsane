@@ -63,7 +63,7 @@ ABSPATH=`cd \`dirname "$CONFIG"\`; pwd`"/"`basename "$CONFIG"`
 CONFIG=$ABSPATH
 
 # check if CONFIG file exists
-[ ! -f $CONFIG ] && echo "[ERROR] config file not found." && exit 1
+[ ! -f $CONFIG ] && echo "[ERROR] config file ($CONFIG) not found." && exit 1
 
 # get all the specs defined in the config and defaults from the header (note: sourcing config twice is necessary)
 . $CONFIG

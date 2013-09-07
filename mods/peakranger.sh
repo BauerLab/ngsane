@@ -59,7 +59,7 @@ echo -e "--peakranger --\n "$(peakranger | head -n 3 | tail -n 1)
 [ -z "$(which peakranger)" ] && echo "[ERROR] peakranger not detected" && exit 1
 
 if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
-    echo "[ERROR] input control not provided or invalid (CHIPINPUT)"
+    echo "[ERROR] input control not provided or invalid (CHIPINPUT=\"$CHIPINPUT\")"
     exit 1
 fi
 
