@@ -115,8 +115,13 @@ else
     PAIRED="0"
 fi
 
+#is ziped ?                                                                                                       
+ZCAT="zcat"
+if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
+
+
 # get encoding
-FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
 if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
     FASTQ_PHRED="--phred33-quals"    
 elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
@@ -131,9 +136,6 @@ echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 
 FASTASUFFIX=${FASTA##*.}
     
-#is ziped ?                                                                                                       
-ZCAT="zcat"
-if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
@@ -183,15 +185,31 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
 else 
 
     # check if fastq are compressed
-    $GZIP -t $f 2>/dev/null
-    if [[ $? -eq 0 ]] && [ $PAIRED == "0" ]; then
-        # pipe gzipped fastqs into bowtie
-        RUN_COMMAND="$GZIP -dc $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
-    else
-        echo "[NOTE] unzip fastq files"
+    if [[ "$ZCAT" == "zcat" ]]; then 
+	    echo "[NOTE] unzip fastq files"
         $GZIP -cd $f > $f.unzipped
         $GZIP -cd ${f/$READONE/$READTWO} > ${f/$READONE/$READTWO}.unzipped
-        RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $f.unzipped -2 ${f/$READONE/$READTWO}.unzipped $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
+		BOWTIEF=${f/$READONE/$READTWO}.unzipped
+	else
+		BOWTIEF=$f
+	fi
+
+	# Unpaired
+	if [ $PAIRED == "0" ]; then
+        # pipe gzipped or unzipped fastqs into bowtie
+        RUN_COMMAND="$ZCAT $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
+
+	#Paired
+    else
+		BOWTIEF=$f
+		if [[ "$ZCAT" == "zcat" ]]; then 
+	    	echo "[NOTE] unzip fastq files"
+        	$GZIP -cd $f > $f.unzipped
+        	$GZIP -cd ${f/$READONE/$READTWO} > ${f/$READONE/$READTWO}.unzipped
+			BOWTIEF=${f/$READONE/$READTWO}.unzipped
+		fi
+	
+		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} --max $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $BOWTIEF -2 ${BOWTIEF/$READONE/$READTWO} $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
@@ -411,15 +429,16 @@ echo "********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="generate  bigwigs"    
 
+FRAGMENTLENGTH=0
+GENOME_CHROMSIZES=$FASTA.chrom.size
+. $CONFIG # overwrite defaults
+
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
         
     if [ -z "$(which wigToBigWig)" ]; then
         echo "[NOTE] Skip bigwig generation due to missing software: wigToBigWig"
-        
-    elif [ -z "$FRAGMENTLENGTH" ]; then 
-        echo "[NOTE] Skip bigwig generation due to missing parameter: FRAGMENTLENGTH"
         
     else
         NC=1000000
@@ -437,7 +456,13 @@ else
             [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
     	
         else
-        	if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
+
+	       if [[ $FRAGMENTLENGTH -le 0 ]]; then
+		   		echo "[NOTE] Skip bigwig generation due to missing parameter: FRAGMENTLENGTH"
+				continue
+	       fi
+
+               if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
                 echo "[NOTE] generate strand-specific bigwigs considering single reads"
                 samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
                 
