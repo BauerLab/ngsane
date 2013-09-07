@@ -43,7 +43,8 @@ export PATH=$PATH_CUTADAPT:$PATH;
 module list
 echo "PATH=$PATH"
 
-echo -e "--cutadapt  --\n" $(cutadapt --version 2>&1)
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--cutadapt    --\n" $(cutadapt --version 2>&1)
 [ -z "$(which cutadapt)" ] && echo "[ERROR] no cutadapt detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT"

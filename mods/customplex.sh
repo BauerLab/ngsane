@@ -65,6 +65,7 @@ echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 
+echo -e "--NGSANE                     --\n" $(trigger.sh -v 2>&1)
 echo -e "--perl                       --\n "$(perl -v  | head -n 2 | tail -n 1)
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
 echo -e "--fastx_barcode_splitter.pl  --\n "$(fastx_barcode_splitter.pl | head -n 1)
