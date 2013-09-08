@@ -1,0 +1,65 @@
+
+# author: Denis C. Bauer
+# date: July 2012
+
+######################################
+# Resources
+#####################################
+
+WALLTIME_BOWTIE=00:30:00
+MEMORY_BOWTIE=8
+CPU_BOWTIE=8
+NODES_BOWTIE="nodes=1:ppn=8"
+
+
+#********************
+# Tasks
+#********************
+RUNMAPPINGBOWTIE2=""  # mapping with bowtie1
+RUNPEAKRANGER=""     # Peakranger
+
+TASKBOWTIE=$TASKBOWTIE2
+
+MODULE_PEAKRANGER="boost/1.49.0 R/2.15.1"
+PATH_PEAKRANGER=/datastore/asc/cam258/
+PEAKRANGER_PEAKS="broad"
+CHIPINPUT="ChIPseq_input/$TASKBOWTIE/Input_chr16.asd.bam"
+
+HTMLOUT="Summary"
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+declare -a DIR; DIR=( Transcript ) 
+OUT=$SOURCE
+QOUT=$OUT/qout
+
+READONE="_R1"
+READTWO="_R2"
+FASTQ=fq.gz
+
+
+FASTA=referenceData/chr16.fasta
+DBROD=referenceData/dbsnp_135.chr16.vcf
+HAPMAPVCF=referenceData/hapmap_3.3.chr16.vcf
+ONEKGVCF=referenceData/1000G_omni2.5.chr16.vcf
+REFSEQGTF=referenceData/UCSC_GencodeV12.gtf
+CONTAMINANTS=adapters.txt
+GENCODEGTF=referenceData/gencode.v14.annotation.chr16.doctored.gtf
+
+#REF=16:
+#RECALADDPARAM="-L $REF"
+#DOCADDPARAM="-L $REF"
+#VARADDPARAM="-L $REF"
+# --maxGaussians 3 --percentBadVariants 0.05"
+
+#********************
+# PARAMETER
+#********************
+EXPID="OmicsRNA"
+LIBRARY="AGRF"
+PLATFORM="Illumina"
+
+
