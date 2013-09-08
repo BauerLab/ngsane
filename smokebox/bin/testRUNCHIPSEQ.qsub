@@ -63,7 +63,8 @@ sed 's/NAME/CHIPSEQ/g' bin/tmpl/HPCheader.txt > tmp/testCHIPSEQ.qsub
 echo "trigger.sh tmp/configCHIPSEQ.txt html" >> tmp/testCHIPSEQ.qsub
 echo "diff result/SummaryCHIPSEQ.html result/expected/SummaryCHIPSEQ.html | \
       grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
-      grep -v \"[0-9]c[0-9]\" > result/diffVARCALLS.txt" >> tmp/testCHIPSEQ.qsub
+      grep -v \"[NOTE]\" | \
+      grep -v \"[0-9]c[0-9]\" > result/diffCHIPSEQ.txt" >> tmp/testCHIPSEQ.qsub
 
 #submit evaluation script
 echo "[NOTE] submit evaluation script"
