@@ -132,7 +132,7 @@ if [ -n "$RUNFASTQC" ]; then
             # get basename of f
             n=${f##*/}
             n=${n/"_fastqc.zip"/}
-            ICO="<img height='15px' class='noborder' src='$PROJECT_RELPATH/runStats/$TASKFASTQC/"$n"_fastqc/Icons/"
+            ICO=" <img height='15px' class='noborder' style='vertical-align:middle' src='$PROJECT_RELPATH/runStats/$TASKFASTQC/"$n"_fastqc/Icons/"
             P=$(grep "PASS" -c runStats/$TASKFASTQC/$n"_fastqc/summary.txt")
             W=$(grep "WARN" -c runStats/$TASKFASTQC/$n"_fastqc/summary.txt")
             F=$(grep "FAIL" -c runStats/$TASKFASTQC/$n"_fastqc/summary.txt")
