@@ -52,19 +52,20 @@ echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 
+echo -e "--NGSANE     --\n" $(trigger.sh -v 2>&1)
 echo -e "--R          --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--peakranger --\n "$(peakranger | head -n 3 | tail -n 1)
 [ -z "$(which peakranger)" ] && echo "[ERROR] peakranger not detected" && exit 1
 
-if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
-    echo "[ERROR] input control not provided or invalid (CHIPINPUT)"
-    exit 1
-fi
-
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
+
+if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
+    echo "[ERROR] input control not provided or invalid (CHIPINPUT=\"$CHIPINPUT\")"
+    exit 1
+fi
 
 # get basename of f
 f=${f/%.dummy/} #if input came from pip

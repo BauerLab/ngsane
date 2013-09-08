@@ -7,7 +7,7 @@
 function usage {
 echo -e "usage: $(basename $0) CONFIG [TASK]
 
-Script interpreting the CONFIG file in the project directory and submitting
+Main script that interprets the CONFIG file in the project directory and submits
 tasks to the HPC queue.
 
 required:
@@ -23,11 +23,37 @@ options for TASK:
   recover    pick up unfinished business (interrupted jobs)
   html       checks logfiles for errors and creates summary HTML page
   report     alias for html
+
+other options:
+  -h         print this help message.
+  -v         print version number of ngsane
 "
 exit
 }
 
+function version {
+    [ -z $(hash git) ] && NGSANE_VERSION=`which trigger.sh` && cd ${NGSANE_VERSION/bin\/trigger.sh/} && NGSANE_VERSION=`git rev-parse HEAD`
+    if [ -z "$NGSANE_VERSION" ] || [[ "$NGSANE_VERSION" == *"fatal: Not a git repository"* ]]; then
+        NGSANE_VERSION="release v0.1.0.1"
+    else
+        NGSANE_VERSION="$NGSANE_VERSION (git hash)"
+    fi
+    echo -e "NGSANE version: $NGSANE_VERSION"
+    exit
+}
+
+
 if [ ! $# -gt 0 ]; then usage ; fi
+
+while getopts "hv" opt;
+do
+	case ${opt} in
+	h) usage;;
+	v) version;;
+	\?) print >&2 "$0: error - unrecognized option $1" 
+		exit 1;;
+	esac
+done
 
 CONFIG=$1
 ADDITIONALTASK=$2
@@ -37,7 +63,7 @@ ABSPATH=`cd \`dirname "$CONFIG"\`; pwd`"/"`basename "$CONFIG"`
 CONFIG=$ABSPATH
 
 # check if CONFIG file exists
-[ ! -f $CONFIG ] && echo "[ERROR] config file not found." && exit 1
+[ ! -f $CONFIG ] && echo "[ERROR] config file ($CONFIG) not found." && exit 1
 
 # get all the specs defined in the config and defaults from the header (note: sourcing config twice is necessary)
 . $CONFIG

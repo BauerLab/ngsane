@@ -50,9 +50,10 @@ echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 
-echo -e "--macs2      --\n "$(macs2 --version 2>&1)
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--macs2       --\n "$(macs2 --version 2>&1)
 [ -z "$(which macs2)" ] && echo "[ERROR] macs2 not detected" && exit 1
-echo -e "--R          --\n "$(R --version | head -n 3)
+echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--convert     --\n "$(convert -version | head -n 1)
 [ -z "$(which convert)" ] && echo "[WARN] imagemagick convert not detected"

@@ -40,8 +40,11 @@ export PATH=$PATH_TRIMGALORE:$PATH;
 module list
 echo "PATH=$PATH"
 
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--trim galore --\n "$(trim_galore --version  | grep version  | tr -d ' ')
 [ -z "$(which trim_galore)" ] && echo "[ERROR] no trim_galore detected" && exit 1
+echo -e "--cutadapt    --\n" $(cutadapt --version 2>&1)
+[ -z "$(which cutadapt)" ] && echo "[ERROR] no cutadapt detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################

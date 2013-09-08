@@ -51,15 +51,16 @@ echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 
-echo -e "--JAVA    --\n" $(java -version 2>&1)
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--JAVA        --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
-echo -e "--bowtie  --\n "$(bowtie --version | head -n 1 )
+echo -e "--bowtie      --\n "$(bowtie --version | head -n 1 )
 [ -z "$(which bowtie)" ] && echo "[ERROR] no bowtie detected" && exit 1
-echo -e "--perl    --\n "$(perl -v | grep "version" )
+echo -e "--perl        --\n "$(perl -v | grep "version" )
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
-echo -e "--HiCUP   --\n "$(hicup --version )
+echo -e "--HiCUP       --\n "$(hicup --version )
 [ -z "$(which hicup)" ] && echo "[ERROR] no hicup detected" && exit 1
-echo -e "--fit-hi-c--\n "$(fit-hi-c.py --version)
+echo -e "--fit-hi-c    --\n "$(fit-hi-c.py --version)
 [ -z "$(which fit-hi-c.py)" ] && echo "[ERROR] no fit-hi-c detected" && exit 1
 
 echo "[NOTE] set java parameters"
