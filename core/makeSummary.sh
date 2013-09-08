@@ -76,7 +76,7 @@ function summaryHeader {
     echo "<div id='$2_results'>" >> $4
 } 
 
-# summaryFooter takes 1 parameter
+# summaryFooter takes 2 parameters
 # $1=TASK (e.g. $TASKBWA)
 # $2=output file ($SUMMARYTMP)
 function summaryFooter {
@@ -89,6 +89,17 @@ function summaryFooter {
         }
         </script>" >> $2
     
+}
+
+# summaryFooter takes 1 parameter
+# $1=TASK (e.g. $TASKBWA)
+function gatherDirs {
+    vali=""
+    for dir in ${DIR[@]}; do
+        [ -d $OUT/$dir/$1/ ] && vali=$vali" $OUT/$dir/$1/"
+    done
+	echo $vali
+
 }
 
 ################################################################################
@@ -150,12 +161,7 @@ fi
 if [[ -n "$RUNFASTQSCREEN" ]]; then
     summaryHeader "FASTQ screen" "$TASKFASTQSCREEN" "fastqscreen.sh" "$SUMMARYTMP"
 
-    echo "gather dirs"
-    vali=""
-    for dir in ${DIR[@]}; do
-        vali=$vali" $OUT/$dir/$TASKFASTQSCREEN/"
-    done
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" _screen.txt fastqscreen --noSummary --noOverallSummary >>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$(gatherDirs $TASKFASTQSCREEN)" _screen.txt fastqscreen --noSummary --noOverallSummary >>$SUMMARYTMP
 
     row0=""
     row1=""
@@ -178,11 +184,7 @@ fi
 if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     summaryHeader "BWA mapping" "$TASKBWA" "bwa.sh" "$SUMMARYTMP"
 
-    echo "gather dirs"
-    for dir in ${DIR[@]}; do
-	   vali=$vali" $OUT/$dir/$TASKBWA/"
-    done
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$(gatherDirs $TASKBWA)" $ASD.bam.stats samstats >>$SUMMARYTMP
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
     	echo "<h3>Annotation</h3>" >>$SUMMARYTMP
@@ -200,12 +202,7 @@ fi
 if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" || -n "$RUNREALRECAL3" ]]; then 
     summaryHeader "RECAL mapping" "$TASKRCA" "reCalAln.sh" "$SUMMARYTMP"
 
-    vali=""
-    for dir in ${DIR[@]}; do
-	   vali=$vali" $OUT/$dir/$TASKRCA/"
-    done
-
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$(gatherDirs $TASKRCA)" $ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
 
     summaryFooter "$TASKRCA" "$SUMMARYTMP"
 fi
@@ -214,12 +211,7 @@ fi
 if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
     summaryHeader "BOWTIE v1 mapping" "$TASKBOWTIE" "bowtie.sh" "$SUMMARYTMP"
 
-    vali=""
-    for dir in ${DIR[@]}; do
-        vali=$vali" $OUT/$dir/$TASKBOWTIE/"
-    done
-
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$(gatherDirs $TASKBOWTIE)" $ASD.bam.stats samstats >>$SUMMARYTMP
 
     summaryFooter "$TASKBOWTIE" "$SUMMARYTMP"
 fi
@@ -228,13 +220,7 @@ fi
 if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
     summaryHeader "BOWTIE v2 mapping" "$TASKBOWTIE2" "bowtie2.sh" "$SUMMARYTMP"
 
-    echo "gather dirs"
-    vali=""
-    for dir in ${DIR[@]}; do
-        vali=$vali" $OUT/$dir/$TASKBOWTIE2/"
-    done
-
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$(gatherDirs $TASKBOWTIE2)" $ASD.bam.stats samstats >>$SUMMARYTMP
 
     summaryFooter "$TASKBOWTIE2" "$SUMMARYTMP"
 fi
@@ -265,10 +251,7 @@ fi
 if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
     summaryHeader "COVERAGE" "$TASKVAR" "gatkSNPs.sh" "$SUMMARYTMP"
 
-    vali=""
-    for dir in ${DIR[@]}; do
-	   vali=$vali" $OUT/$dir/$TASKDOC/"
-    done
+    vali=$(gatherDirs $TASKDOC)
     echo "<h3>Average coverage</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" $ASR".bam.doc.sample_summary" coverage >>$SUMMARYTMP
     echo "<h3>Base pair coverage over all intervals</h3>" >>$SUMMARYTMP
@@ -285,7 +268,7 @@ fi
 if [ -n "$RUNVARCALLS" ]; then 
     summaryHeader "Variant calling" "$TASKVAR" "gatkSNPs.sh" "$SUMMARYTMP"
 
-    vali=""
+	vali=""
     for dir in ${DIR[@]}; do
 	   vali=$vali" $OUT/$TASKVAR/$dir/"
     done
@@ -310,7 +293,7 @@ if [ -n "$RUNANNOTATION" ]; then
     echo "Please right click the link and choose \"Save as...\" to download.<br><br>">> $SUMMARYTMP
     for v in $vali; do
         name=`basename $v`
-        address=${v/\/illumina/http:\/\/cluster-vm.qbi.uq.edu.au}
+        address=${v/\/illumina/http:\/\/hpsc.csiro.au}
         echo "<a href=\"$address\">$name</a><br>" >> $SUMMARYTMP
     done
     echo "<br>More information about the columns can be found on the <a target=new href=\"http://redmine.qbi.uq.edu.au/knowledgebase/articles/12\">Project Server</a> (uqlogin). and the description of the <a href=\"http://www.broadinstitute.org/gsa/wiki/index.php/Understanding_the_Unified_Genotyper%27s_VCF_files\">vcf file</a>">> $SUMMARYTMP
@@ -361,10 +344,7 @@ fi
 if [ -n "$RUNHICLIB" ];then
     summaryHeader "HiClib" "$TASKHICLIB" "hiclibMapping.sh" "$SUMMARYTMP"
 
-    vali=""
-    for dir in ${DIR[@]}; do
-        vali=$vali" $OUT/$dir/$TASKHICLIB/"
-    done
+    vali=$(gatherDirs $TASKHICLIB)
     python ${NGSANE_BASE}/tools/Summary.py "$vali" ".log" hiclibMapping >> $SUMMARYTMP
     for dir in $vali; do
         for pdf in $(ls -f $dir/*.pdf 2>/dev/null ); do
@@ -379,10 +359,7 @@ fi
 if [ -n "$RUNHICUP" ];then
     summaryHeader "HiCUP + fit-hi-C" "$TASKHICUP" "hicup.sh" "$SUMMARYTMP"
 
-    vali=""
-    for dir in ${DIR[@]}; do
-	   vali=$vali" $OUT/$dir/$TASKHICUP/"
-    done
+    vali=$(gatherDirs $TASKHICUP)
     
     echo "<h4>truncater</h4>">>$SUMMARYTMP
     python ${NGSANE_BASE}/tools/Summary.py "$vali" "hicup_truncater_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
@@ -414,11 +391,7 @@ fi
 if [ -n "$RUNHOMERCHIPSEQ" ];then
     summaryHeader "Homer ChIP-Seq" "$TASKHOMERCHIPSEQ" "chipseqHomer.sh" "$SUMMARYTMP"
 
-    vali=""
-    for dir in ${DIR[@]}; do
-        vali=$vali" $OUT/$dir/$TASKHOMERCHIPSEQ/"
-    done
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" homerchipseq >> $SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$(gatherDirs $TASKHOMERCHIPSEQ)" ".summary.txt" homerchipseq >> $SUMMARYTMP
 
     summaryFooter "$TASKHOMERCHIPSEQ" "$SUMMARYTMP"
 fi
@@ -427,11 +400,7 @@ fi
 if [ -n "$RUNPEAKRANGER" ];then
     summaryHeader "Peakranger" "$TASKPEAKRANGER" "peakranger.sh" "$SUMMARYTMP"
 
-    vali=""
-    for dir in ${DIR[@]}; do
-        vali=$vali" $OUT/$dir/$TASKPEAKRANGER/"
-    done
-    python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" peakranger >> $SUMMARYTMP
+    python ${NGSANE_BASE}/tools/Summary.py "$(gatherDirs $TASKPEAKRANGER)" ".summary.txt" peakranger >> $SUMMARYTMP
 
     summaryFooter "$TASKPEAKRANGER" "$SUMMARYTMP"
 fi
@@ -440,10 +409,7 @@ fi
 if [ -n "$RUNMACS2" ];then
     summaryHeader "MACS2" "$TASKMACS2" "macs2.sh" "$SUMMARYTMP"
 
-    vali=""
-    for dir in ${DIR[@]}; do
-        vali=$vali" $OUT/$dir/$TASKMACS2/"
-    done
+    vali=$(gatherDirs $TASKMACS2)
     python ${NGSANE_BASE}/tools/Summary.py "$vali" ".summary.txt" macs2 >> $SUMMARYTMP
 
     row0=""
@@ -524,11 +490,6 @@ fi
 
 #TODO add IGV
 
-#echo "<h2>Illumina Stuff</h2>">>$SUMMARYTMP
-#for f in BustardSummary.xml  RunInfo.xml  runParameters.xml  Summary.xml; do
-#echo "<a href=\"runStats/"$f"\">"$f"</a><br>" >>$SUMMARYTMP
-#done
-
 
 ################################################################################
 echo '''<html><head>''' > $SUMMARYFILE.tmp
@@ -536,7 +497,6 @@ cat ${NGSANE_BASE}/core/Summary.css >> $SUMMARYFILE.tmp
 
 echo "<script type='text/javascript'>" >> $SUMMARYFILE.tmp
 cat ${NGSANE_BASE}/core/jquery-1.9.1.min.js >> $SUMMARYFILE.tmp
-cat ${NGSANE_BASE}/core/Summary.js >> $SUMMARYFILE.tmp
 echo '''</script></head><body>
 
 <div id="center">
@@ -546,7 +506,7 @@ declare -a LINKSET=( )
 for i in $LINKS; do
     LINKSET=("${LINKSET[@]}" "<a href='#$i'>$i</a>")
 done
-echo $(IFS=' | ' ; echo "${LINKSET[*]}") >> $SUMMARYFILE.tmp
+echo $(IFS='|' ; echo "${LINKSET[*]}") >> $SUMMARYFILE.tmp
 
 echo "</div><!-- Links --></div><!-- panel -->" >>$SUMMARYFILE.tmp
 
