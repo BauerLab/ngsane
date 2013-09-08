@@ -6,6 +6,9 @@
 # author: Fabian Buske
 # date: August 2013
 
+# QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <SAMPLE>-${CHIPINPUT##*/} | sed "s/.$ASD.bam/_region.bed/"
+
 echo ">>>>> ChIPseq analysis with Peakranger"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
@@ -18,7 +21,6 @@ echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTION
 exit
 }
 
-# QCVARIABLES,Resource temporarily unavailable
 if [ ! $# -gt 3 ]; then usage ; fi
 
 #INPUTS                                                                                                           
@@ -50,21 +52,23 @@ echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 
+echo -e "--NGSANE     --\n" $(trigger.sh -v 2>&1)
 echo -e "--R          --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--peakranger --\n "$(peakranger | head -n 3 | tail -n 1)
 [ -z "$(which peakranger)" ] && echo "[ERROR] peakranger not detected" && exit 1
 
-if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
-    echo "[ERROR] input control not provided or invalid (CHIPINPUT)"
-    exit 1
-fi
-
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
+if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
+    echo "[ERROR] input control not provided or invalid (CHIPINPUT=\"$CHIPINPUT\")"
+    exit 1
+fi
+
 # get basename of f
+f=${f/%.dummy/} #if input came from pip
 n=${f##*/}
 c=${CHIPINPUT##*/}
 
@@ -129,10 +133,12 @@ fi
 ################################################################################
 CHECKPOINT="zip"
 
+echo "********* zip"
 $GZIP -f $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_details
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
+[ -e $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed.dummy ] && rm $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed.dummy
 echo ">>>>> ChIPseq analysis with Peakranger - FINISHED"
 echo ">>>>> enddate "`date`
 

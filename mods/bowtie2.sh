@@ -1,5 +1,14 @@
 #!/bin/bash -e
-#!/bin/bash
+
+# Script to run bowtie program.
+# It takes comma-seprated list of files containing short sequence reads in fasta or fastq format and bowtie index files as input.
+# It produces output files: read alignments in .bam format and other files.
+# author: Denis Bauer
+# date: June 2012
+# modified: August 2013 Fabian Buske
+
+# QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <SAMPLE>.$ASD.bam
 
 echo ">>>>> readmapping with Bowtie2 "
 echo ">>>>> startdate "`date`
@@ -12,15 +21,6 @@ function usage {
 echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
 exit
 }
-
-# Script to run bowtie program.
-# It takes comma-seprated list of files containing short sequence reads in fasta or fastq format and bowtie index files as input.
-# It produces output files: read alignments in .bam format and other files.
-# author: Denis Bauer
-# date: June 2012
-# modified: August 2013 Fabian Buske
-
-# QCVARIABLES,Resource temporarily unavailable
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
@@ -61,21 +61,22 @@ echo "PATH=$PATH"
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 
-echo -e "--JAVA    --\n" $(java -version 2>&1)
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--JAVA        --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
-echo -e "--bowtie2 --\n "$(bowtie2 --version)
+echo -e "--bowtie2     --\n "$(bowtie2 --version)
 [ -z "$(which bowtie2)" ] && echo "[ERROR] no bowtie2 detected" && exit 1
-echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
-echo -e "--R       --\n "$(R --version | head -n 3)
+echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
-echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
+echo -e "--igvtools    --\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
 [ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
-echo -e "--PICARD  --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+echo -e "--PICARD      --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
-echo -e "--samstat --\n "$(samstat -h | head -n 2 | tail -n1)
+echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
-echo -e "--convert  --\n "$(convert -version | head -n 1)
+echo -e "--convert     --\n "$(convert -version | head -n 1)
 [ -z "$(which convert)" ] && echo "[WARN] imagemagick convert not detected" && exit 1
 echo -e "--wigToBigWig --\n "$(wigToBigWig 2>&1 | tee | head -n 1)
 [ -z "$(which wigToBigWig)" ] && echo "[WARN] wigToBigWig not detected - no bigwigs will be generated"
@@ -126,7 +127,7 @@ else
 fi
 
 # get encoding
-FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
 if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
     FASTQ_PHRED="--phred33"    
 elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
@@ -322,7 +323,13 @@ fi
 
 echo "********* $CHECKPOINT"
 ################################################################################
-CHECKPOINT="generate  bigwigs"    
+CHECKPOINT="generate bigwigs"    
+
+FRAGMENTLENGTH=0
+GENOME_CHROMSIZES=$FASTA.chrom.size
+. $CONFIG # overwrite defaults
+
+echo "$FASTQ $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
@@ -331,15 +338,12 @@ else
     if [ -z "$(which wigToBigWig)" ]; then
         echo "[NOTE] Skip bigwig generation due to missing software: wigToBigWig"
         
-    elif [ -z "$FRAGMENTLENGTH" ]; then 
-        echo "[NOTE] Skip bigwig generation due to missing parameter: FRAGMENTLENGTH"
-        
     else
-        NC=1000000
-        N=$(samtools view -c -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})
-        SCALEFACTOR=`echo "scale=3; $NC/$N" | bc`
+        NORMALIZETO=1000000
+        NUMBEROFREADS=$(samtools view -c -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})
+        SCALEFACTOR=`echo "scale=3; $NORMALIZETO/$NUMBEROFREADS" | bc`
       
-        echo "[NOTE] library size (mapped reads): $N" 
+        echo "[NOTE] library size (mapped reads): $NORMALIZETO" 
         echo "[NOTE] scale factor: $SCALEFACTOR"
         echo "[NOTE] fragment length: $FRAGMENTLENGTH"
     
@@ -350,16 +354,23 @@ else
             [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
     	
         else
-        	if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
-                echo "[NOTE] generate strand-specific bigwigs considering single reads"
-                samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
-                
-                samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.-.bw}
-    
+            
+            if [[ $FRAGMENTLENGTH -ge 0 ]]; then
+            	echo "[NOTE] Skip bigwig generation due to invalid value for parameter: FRAGMENTLENGTH"
+
             else
-                echo "[NOTE] generate bigwig considering single reads"
-                samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
-                
+
+                if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
+                    echo "[NOTE] generate strand-specific bigwigs considering single reads"
+                    samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
+                    
+                    samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.-.bw}
+        
+                else
+                    echo "[NOTE] generate bigwig considering single reads"
+                    samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
+                    
+            	fi
         	fi
         fi
     
@@ -370,5 +381,6 @@ else
 fi
 
 ################################################################################
+[ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
 echo ">>>>> readmapping with Bowtie2 - FINISHED"
 echo ">>>>> enddate "`date`

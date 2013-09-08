@@ -49,9 +49,11 @@ module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-echo -e "--bedtools --\n "$(bedtools --version)
+
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--bedtools    --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
-echo -e "--meme-chip         --\n "$(cat `which meme`.bin | strings | grep -A 2 "MEME - Motif discovery tool" | tail -n 1)
+echo -e "--meme-chip   --\n "$(cat `which meme`.bin | strings | grep -A 2 "MEME - Motif discovery tool" | tail -n 1)
 [ -z "$(which meme-chip)" ] && echo "[ERROR] meme-chip not detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT"

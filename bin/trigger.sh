@@ -7,7 +7,7 @@
 function usage {
 echo -e "usage: $(basename $0) CONFIG [TASK]
 
-Script interpreting the CONFIG file in the project directory and submitting
+Main script that interprets the CONFIG file in the project directory and submits
 tasks to the HPC queue.
 
 required:
@@ -23,11 +23,37 @@ options for TASK:
   recover    pick up unfinished business (interrupted jobs)
   html       checks logfiles for errors and creates summary HTML page
   report     alias for html
+
+other options:
+  -h         print this help message.
+  -v         print version number of ngsane
 "
 exit
 }
 
+function version {
+    [ -z $(hash git) ] && NGSANE_VERSION=`which trigger.sh` && cd ${NGSANE_VERSION/bin\/trigger.sh/} && NGSANE_VERSION=`git rev-parse HEAD`
+    if [ -z "$NGSANE_VERSION" ] || [[ "$NGSANE_VERSION" == *"fatal: Not a git repository"* ]]; then
+        NGSANE_VERSION="release v0.1.0.1"
+    else
+        NGSANE_VERSION="$NGSANE_VERSION (git hash)"
+    fi
+    echo -e "NGSANE version: $NGSANE_VERSION"
+    exit
+}
+
+
 if [ ! $# -gt 0 ]; then usage ; fi
+
+while getopts "hv" opt;
+do
+	case ${opt} in
+	h) usage;;
+	v) version;;
+	\?) print >&2 "$0: error - unrecognized option $1" 
+		exit 1;;
+	esac
+done
 
 CONFIG=$1
 ADDITIONALTASK=$2
@@ -37,7 +63,7 @@ ABSPATH=`cd \`dirname "$CONFIG"\`; pwd`"/"`basename "$CONFIG"`
 CONFIG=$ABSPATH
 
 # check if CONFIG file exists
-[ ! -f $CONFIG ] && echo "[ERROR] config file not found." && exit 1
+[ ! -f $CONFIG ] && echo "[ERROR] config file ($CONFIG) not found." && exit 1
 
 # get all the specs defined in the config and defaults from the header (note: sourcing config twice is necessary)
 . $CONFIG
@@ -262,7 +288,7 @@ if [ -n "$RUNHICUP" ]; then
     
     $QSUB $ARMED -k $CONFIG -t $TASKHICUP -i fastq -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
     	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP \
-        --command "${NGSANE_BASE}/mods/hicup.sh $HICUPADDPARM -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHICUP"
+        --command "${NGSANE_BASE}/mods/hicup.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHICUP"
 fi
 
 ################################################################################
@@ -278,8 +304,8 @@ if [ -n "$RUNHICLIB" ]; then
     $QSUB $ARMED -k $CONFIG -t $TASKHICLIB -i fastq -e $READONE.$FASTQ \
     	-n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
     	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND \
-        --command "${NGSANE_BASE}/mods/hiclibMapping.sh $HICLIBADDPARM -k $CONFIG --fastq <FILE> --outdir $OUT/<DIR>/$TASKHICLIB --fastqName <NAME>" \
-        --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh $HICLIBADDPARM -f <FILE> -k $CONFIG --outdir $OUT/hiclib/$TASKHICLIB-<DIR>"
+        --command "${NGSANE_BASE}/mods/hiclibMapping.sh -k $CONFIG --fastq <FILE> --outdir $OUT/<DIR>/$TASKHICLIB --fastqName <NAME>" \
+        --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh -f <FILE> -k $CONFIG --outdir $OUT/hiclib/$TASKHICLIB-<DIR>"
 fi
 
 ################################################################################
@@ -293,7 +319,7 @@ if [ -n "$RUNMAPPINGBWA2" ]; then
     if [ -z "$TASKBWA" ] || [ -z "$NODES_BWA" ] || [ -z "$CPU_BWA" ] || [ -z "$MEMORY_BWA" ] || [ -z "$WALLTIME_BWA" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -k $CONFIG -t $TASKBWA -i fastq -e $READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA \
-        --command "${NGSANE_BASE}/mods/bwa.sh $BWAADDPARM -k $CONFIG -f <FILE> -r $FASTA \
+        --command "${NGSANE_BASE}/mods/bwa.sh -k $CONFIG -f <FILE> -r $FASTA \
             -o $OUT/<DIR>/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
 fi
 
@@ -311,7 +337,7 @@ echo $(pwd)
 echo $QSUB
 
     $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
-        --command "${NGSANE_BASE}/mods/bowtie.sh $BOWTIEADDPARM -k $CONFIG -f <FILE> -r $FASTA \
+        --command "${NGSANE_BASE}/mods/bowtie.sh -k $CONFIG -f <FILE> -r $FASTA \
             -o $OUT/<DIR>/$TASKBOWTIE --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
 fi
 
@@ -327,7 +353,7 @@ if [ -n "$RUNMAPPINGRRBS" ]; then
     if [ -z "$TASKRRBSMAP" ] || [ -z "$NODES_RRBSMAP" ] || [ -z "$CPU_RRBSMAP" ] || [ -z "$MEMORY_RRBSMAP" ] || [ -z "$WALLTIME_RRBSMAP" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -k $CONFIG -t $TASKRRBSMAP -i fastq -e $READONE.$FASTQ -n $NODES_RRBSMAP -c $CPU_RRBSMAP -m $MEMORY_RRBSMAP"G" -w $WALLTIME_RRBSMAP \
-        --command "${NGSANE_BASE}/mods/rrbsmap.sh $RRBSMAPADDPARM -k $CONFIG -f <FILE> -r $FASTA \
+        --command "${NGSANE_BASE}/mods/rrbsmap.sh -k $CONFIG -f <FILE> -r $FASTA \
             -o $OUT/<DIR>/$TASKRRBSMAP --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
 fi
 
@@ -342,7 +368,7 @@ if [ -n "$RUNMAPPINGBOWTIE2" ]; then
     if [ -z "$TASKBOWTIE2" ] || [ -z "$NODES_BOWTIE2" ] || [ -z "$CPU_BOWTIE2" ] || [ -z "$MEMORY_BOWTIE2" ] || [ -z "$WALLTIME_BOWTIE2" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
     $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE2 -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" -w $WALLTIME_BOWTIE2 \
-	--command "${NGSANE_BASE}/mods/bowtie2.sh $BOWTIE2ADDPARM -k $CONFIG -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE2 \
+	--command "${NGSANE_BASE}/mods/bowtie2.sh -k $CONFIG -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE2 \
         --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
 fi
 
@@ -357,7 +383,7 @@ if [ -n "$RUNTOPHATCUFF2" ]; then
     if [ -z "$TASKTOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
-        --command "${NGSANE_BASE}/mods/tophatcuff.sh $TOPHATADDPARM -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTOPHAT/<NAME>"
+        --command "${NGSANE_BASE}/mods/tophatcuff.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTOPHAT/<NAME>"
 fi
 
 ################################################################################
@@ -581,7 +607,7 @@ if [ -n "$RUNREALRECAL" ]; then
 	    $BINQSUB -j oe -o $QOUT/$TASKRCA/$dir'_'$name'.out' -w $(pwd) -l $NODES_RECAL \
 		-l vmem=$MEMORY_RECAL'G' -N $TASKRCA'_'$dir'_'$name -l walltime=$WALLTIME_RECAL \
 		-command "${NGSANE_BASE}/mods/reCalAln.sh -k ${NGSANE_BASE} -f $OUT/$dir/$TASKBWA/$n2 -r $FASTA -d $DBROD \
-		-o $OUT/$dir/$TASKRCA -t $CPU_RECAL $RECALADDPARAM"
+		-o $OUT/$dir/$TASKRCA -t $CPU_RECAL"
 	fi
 	
       done
@@ -594,7 +620,7 @@ if [ -n "$RUNREALRECAL2" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKRCA -i $TASKBWA/ -e .$ASD.bam \
         -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
-        --command "${NGSANE_BASE}/mods/reCalAln.sh $RECALADDPARAM -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA -t $CPU_RECAL"
+        --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA -t $CPU_RECAL"
 
 fi
 
@@ -602,7 +628,7 @@ if [ -n "$RUNREALRECAL3" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKRCA -i $TASKBWA/ -e .$ASD.bam \
         -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
-        --command "${NGSANE_BASE}/mods/reCalAln2.sh $RECALADDPARAM -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA -t $CPU_RECAL"
+        --command "${NGSANE_BASE}/mods/reCalAln2.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA -t $CPU_RECAL"
 
 fi
 
@@ -661,7 +687,7 @@ then
 	    qsub $PRIORITY -j y -o $QOUT/$TASKDOC/$dir'_'$name'.out' -cwd -b y -pe mpich $CPUS \
 		-l mem_free=11G -l h_vmem=11G -l vf=500K -N $TASKDOC'_'$dir'_'$name $HOLD\
 		${NGSANE_BASE}/mods/gatkDOC.sh -k ${NGSANE_BASE} -f $OUT/$dir/$TASKRCA/$n2 -r $FASTA \
-		-o $OUT/$dir/$TASKDOC -t $CPUS $DOCADDPARAM
+		-o $OUT/$dir/$TASKDOC -t $CPUS
 	fi
 
       done
@@ -673,7 +699,7 @@ if [ -n "$DEPTHOFCOVERAGE2" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKDOC -i $TASKRCA/ -e .$ASR.bam \
 	-n $NODES_GATKDOC -c $CPU_GATKDOC -m $MEMORY_GATKDOC"G" -w $WALLTIME_GATKDOC \
-	--command "${NGSANE_BASE}/mods/gatkDOC.sh $DOCADDPARAM -k ${NGSANE_BASE} -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKDOC -t $CPU_GATKDOC"
+	--command "${NGSANE_BASE}/mods/gatkDOC.sh -k ${NGSANE_BASE} -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKDOC -t $CPU_GATKDOC"
 
 fi
 
@@ -992,14 +1018,14 @@ then
 	    #$BINQSUB -j oe -o $QOUT/$TASKVAR/$NAME.out -w $(pwd) -l $NODES_VAR $HOLD \
 		#-l vmem=$MEMORY_VAR"G" -N $TASKVAR'_'$NAME -l walltime=$WALLTIME_VAR \
 		#-command "${NGSANE_BASE}/mods/gatkSNPs.sh -k $CONFIG -i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
-		#-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME -H $HAPMAPVCF -K $ONEKGVCF $VARADDPARAM"
+		#-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME -H $HAPMAPVCF -K $ONEKGVCF"
     	    
 	    $BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY_VAR"G" -n $NODES_VAR -w $WALLTIME_VAR \
 	    	-j $TASKVAR'_'$NAME -o $QOUT/$TASKVAR/$NAME.out \
 			--command "${NGSANE_BASE}/mods/gatkSNPs.sh -k $CONFIG \
 			-i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
 			-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME \
-			-H $HAPMAPVCF -K $ONEKGVCF $VARADDPARAM"
+			-H $HAPMAPVCF -K $ONEKGVCF"
 
 
 	fi
@@ -1015,7 +1041,7 @@ if [ -n "$RUNVARCALLS3" ]; then
         --postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
                         -i <FILE> -t $CPU_VAR \
                         -r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME \
-                        -H $HAPMAPVCF -K $ONEKGVCF $VARADDPARAM"
+                        -H $HAPMAPVCF -K $ONEKGVCF"
 fi
 
 

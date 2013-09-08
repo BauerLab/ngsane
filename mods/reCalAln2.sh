@@ -6,7 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,We are loosing reads,for unmapped read,no such file,file not found,reCalAln.sh: line
-
+# RESULTFILENAME <SAMPLE>.$ASR.bam
 
 echo ">>>>> recalibration and realignment using GATK"
 echo ">>>>> startdate "`date`
@@ -77,6 +77,7 @@ echo $PATH
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--JAVA        --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
@@ -98,6 +99,7 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="parameters"
 
 # get basename of f
+f=${f/%.dummy/} #if input came from pipe
 n=${f##*/}
 
 BAMREADS=`head -n1 $f.stats | cut -d " " -f 1`
@@ -364,5 +366,6 @@ else
 fi
 
 ################################################################################
+[ -e $MYOUT/${n/$ASD/$ASR}.dummy ] && rm $MYOUT/${n/$ASD/$ASR}.dummy
 echo ">>>>> recalibration and realignment using GATK - FINISHED"
 echo ">>>>> enddate "`date`

@@ -82,6 +82,7 @@ echo $PATH
 PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--JAVA        --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--R           --\n "$(R --version | head -n 3)

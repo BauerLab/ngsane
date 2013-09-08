@@ -7,6 +7,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,We are loosing reads,MAPQ should be 0 for unmapped read,no such file,file not found,bwa.sh: line,Resource temporarily unavailable
+# RESULTFILENAME <SAMPLE>.$ASD.bam
 
 echo ">>>>> readmapping with BWA "
 echo ">>>>> startdate "`date`
@@ -86,19 +87,20 @@ echo "PATH=$PATH"
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 
-echo -e "--JAVA    --\n" $(java -version 2>&1)
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--JAVA        --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
-echo -e "--bwa     --\n "$(bwa 2>&1 | head -n 3 | tail -n-2)
+echo -e "--bwa         --\n "$(bwa 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which bwa)" ] && echo "[ERROR] no bwa detected" && exit 1
-echo -e "--samtools--\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
-echo -e "--R       --\n "$(R --version | head -n 3)
+echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
-echo -e "--igvtools--\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
+echo -e "--igvtools    --\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
 [ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
-echo -e "--PICARD  --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+echo -e "--PICARD      --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
-echo -e "--samstat --\n "$(samstat -h | head -n 2 | tail -n 1 )
+echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n 1 )
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 
 echo "[NOTE] set java parameters"
@@ -153,7 +155,7 @@ else
 fi
 
 # get encoding
-FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
 if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
     FASTQ_PHRED=""    
 elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
@@ -206,20 +208,29 @@ else
     if [ "$PAIRED" = 1 ]; then
 
         if [ "$NOMAPPING" = 0 ]; then
-           echo "[NOTE] PAIRED READS"
-           bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $f > $MYOUT/${n/$FASTQ/sai}
-           bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
-           bwa sampe $FASTA $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} \
+            echo "[NOTE] PAIRED READS"
+            # clever use of named pipes to avoid IO
+            [ -e $MYOUT/${n/$FASTQ/sai} ] && rm $MYOUT/${n/$FASTQ/sai}
+            [ -e $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} ] && rm $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} 
+            mkfifo $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
+        
+            bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $f > $MYOUT/${n/$FASTQ/sai} &
+            bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA ${f/$READONE/$READTWO} > $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} &
+            bwa sampe $FASTA $MYOUT/${n/$FASTQ/sai} $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} \
        	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
     	       $f ${f/$READONE/$READTWO} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
     
-           [ -e $MYOUT/${n/$FASTQ/sai} ] && rm $MYOUT/${n/$FASTQ/sai}
-           [ -e $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} ] && rm $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
+            [ -e $MYOUT/${n/$FASTQ/sai} ] && rm $MYOUT/${n/$FASTQ/sai}
+            [ -e $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai} ] && rm $MYOUT/${n/$READONE.$FASTQ/$READTWO.sai}
         fi
 
     else
         echo "[NOTE] SINGLE READS"
-        bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA $f > $MYOUT/${n/$FASTQ/sai}
+        # clever use of named pipes to avoid IO
+        [ -e $MYOUT/${n/$FASTQ/sai} ] && rm $MYOUT/${n/$FASTQ/sai}
+        mkfifo $MYOUT/${n/$FASTQ/sai}
+        
+        bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA $f > $MYOUT/${n/$FASTQ/sai} &
     
         bwa samse $FASTA $MYOUT/${n/$FASTQ/sai} $BWASAMPLEADDPARAM \
     	-r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
@@ -373,6 +384,7 @@ fi
 
 echo "********* $CHECKPOINT"
 ################################################################################
+[ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
 echo ">>>>> readmapping with BWA - FINISHED"
 echo ">>>>> enddate "`date`
 
