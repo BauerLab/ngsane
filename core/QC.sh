@@ -11,14 +11,16 @@ exit
 
 if [ ! $# -gt 2 ]; then usage ; fi
 
+HTMLOUTPUT=""
+
 while [ "$1" != "" ]; do
     case $1 in
-        -m | --mod )            shift; SCRIPT=$1 ;; # location of mod script                       
-        -l | --log )            shift; QOUT=$1 ;;   # location of log output
-        -t | --task )           shift; TASK=$1 ;;   # location of log output
-        -o | --output-html )    HTMLOUTPUT='TRUE';; # flag                                                     
-        -h | --help )           usage ;;
-        * )                     echo "don't understand "$1
+        -m | --mod )             shift; SCRIPT=$1 ;; # location of mod script                       
+        -l | --log )             shift; QOUT=$1 ;;   # location of log output
+        -t | --task )            shift; TASK=$1 ;;   # location of log output
+        -o | --html-file )       shift; HTMLOUTPUT=$1;; # where the output will be place in the end
+        -h | --help )            usage ;;
+        * )                      echo "don't understand "$1
     esac
     shift
 done
@@ -31,7 +33,7 @@ fi
 
 LOGFOLDER=$(dirname $QOUT)
 
-if [ "$HTMLOUTPUT" == 'TRUE' ]; then
+if [ -n "$HTMLOUTPUT" ]; then
     echo "<div id='${TASK}_checklist'><pre>"
 fi
 
@@ -83,7 +85,7 @@ for i in $PROGRESS; do
   fi
 done
 
-if [ "$HTMLOUTPUT" = 'TRUE' ]; then
+if [ -n "$HTMLOUTPUT" ]; then
     echo "</pre></div>"
     echo "<div id='${TASK}_notes'><pre>"
 else
@@ -98,7 +100,7 @@ for i in $QOUT/$TASK/*.out;do
     SUMNOTES=`expr $SUMNOTES + $(echo $NOTELIST | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' )`
 done
 
-if [ "$HTMLOUTPUT" = 'TRUE' ]; then
+if [ -n "$HTMLOUTPUT" ]; then
     echo "</pre></div>"
     echo "<div id='${TASK}_errors'><pre>"
 else
@@ -117,11 +119,12 @@ for i in $QOUT/$TASK/*.out;do
     SUMERRORS=`expr $SUMERRORS + $(echo $ERRORLIST | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' )`
 done
 
-if [ "$HTMLOUTPUT" = 'TRUE' ]; then
+if [ -n "$HTMLOUTPUT" ]; then
+
     echo "</pre></div>"
     echo "<div id='${TASK}_logfiles'><div class='box'>"
     for i in $QOUT/$TASK/*.out ;do
-        FN=${i/$LOGFOLDER\//}
+        FN=$(python -c "import os.path; print os.path.relpath(os.path.abspath('$i'),os.path.abspath('$(dirname $HTMLOUTPUT)'))")
         echo "<a href='$FN'>${i/$QOUT\/$TASK\//}</a><br/>"
     done
     echo "</div></div>"
