@@ -948,5 +948,5 @@ for d in dir:
     printStats(result,names,psresult,noSummary,filestructure)
 
 if (not noOverallSummary and overAll):
-    print "<h3 class='overall'>over all</h3>"
+    print "<h3 class='overall'>Aggregation over all libraries</h3>"
     printStats(oaresult,names,0,noOverallSummary,"")
