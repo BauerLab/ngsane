@@ -14,7 +14,7 @@ required:
   CONFIG     config.txt file specifying the tasks and location of the resources
 
 options for TASK:
-  empty      start dry-run: creates dirs, delete old files, print what will be done
+  [empty]    start dry-run: creates dirs, delete old files, print what will be done
   fetchdata  get data from remote server (via smbclient)
   pushresult puts results to remote server (via smbclient)
   armed      submit tasks to the queue
@@ -76,6 +76,19 @@ if [ -z ${NGSANE_BASE} ]; then
 fi
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
+
+################################################################################
+# define functions 
+#
+# getJobIds takes 1 parameter
+# $1=QSUB output
+function waitForJobIds {
+    JOBIDS=$(echo "$1" | grep "Jobnumber")
+    if [ -n "$JOBIDS" ]; then 
+        JOBIDS=$(echo $JOBIDS | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+    fi
+    echo $JOBIDS
+} 
 
 ################################################################################
 #   Verify
@@ -333,12 +346,38 @@ fi
 if [ -n "$RUNMAPPINGBOWTIE" ]; then
     if [ -z "$TASKBOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
-echo $(pwd)
-echo $QSUB
+    JOBIDS=$(
+        $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
+            --command "${NGSANE_BASE}/mods/bowtie.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE --rgsi <DIR>"
+    ) && echo "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
+     
+    if [ -z "$TASKBIGWIG" ] || [ -z "$NODES_BIGWIG" ] || [ -z "$CPU_BIGWIG" ] || [ -z "$MEMORY_BIGWIG" ] || [ -z "$WALLTIME_BIGWIG" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED --nodir -r -k $CONFIG -t $TASKBIGWIG -i $TASKBOWTIE -e .$ASD.bam -n $NODES_BIGWIG -c $CPU_BIGWIG -m $MEMORY_BIGWIG"G" -w $WALLTIME_BIGWIG -W "$JOBIDS"  \
+            --command "${NGSANE_BASE}/mods/bigwig.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE"
+            
+fi
 
-    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
-        --command "${NGSANE_BASE}/mods/bowtie.sh -k $CONFIG -f <FILE> -r $FASTA \
-            -o $OUT/<DIR>/$TASKBOWTIE --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
+
+################################################################################
+#  Mapping with bowtie v2
+#
+# IN:  $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/bowtie/*.bam
+################################################################################
+if [ -n "$RUNMAPPINGBOWTIE2" ]; then
+    if [ -z "$TASKBOWTIE2" ] || [ -z "$NODES_BOWTIE2" ] || [ -z "$CPU_BOWTIE2" ] || [ -z "$MEMORY_BOWTIE2" ] || [ -z "$WALLTIME_BOWTIE2" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    
+    JOBIDS=$(
+        $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE2 -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" -w $WALLTIME_BOWTIE2 \
+	       --command "${NGSANE_BASE}/mods/bowtie2.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE2 --rgsi <DIR>"
+    ) && echo "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
+      
+    if [ -z "$TASKBIGWIG" ] || [ -z "$NODES_BIGWIG" ] || [ -z "$CPU_BIGWIG" ] || [ -z "$MEMORY_BIGWIG" ] || [ -z "$WALLTIME_BIGWIG" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED --nodir -r -k $CONFIG -t $TASKBIGWIG -i $TASKBOWTIE2 -e .$ASD.bam -n $NODES_BIGWIG -c $CPU_BIGWIG -m $MEMORY_BIGWIG"G" -w $WALLTIME_BIGWIG -W "$JOBIDS"  \
+            --command "${NGSANE_BASE}/mods/bigwig.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE2"
+       
 fi
 
 
@@ -359,31 +398,27 @@ fi
 
 
 ################################################################################
-#  Mapping with bowtie v2
-#
-# IN:  $SOURCE/$dir/fastq/*read1.fastq
-# OUT: $OUT/$dir/bowtie/*.bam
-################################################################################
-if [ -n "$RUNMAPPINGBOWTIE2" ]; then
-    if [ -z "$TASKBOWTIE2" ] || [ -z "$NODES_BOWTIE2" ] || [ -z "$CPU_BOWTIE2" ] || [ -z "$MEMORY_BOWTIE2" ] || [ -z "$WALLTIME_BOWTIE2" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
-    
-    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE2 -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" -w $WALLTIME_BOWTIE2 \
-	--command "${NGSANE_BASE}/mods/bowtie2.sh -k $CONFIG -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE2 \
-        --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
-fi
-
-
-################################################################################
-#  Gene expression analysis with tophat + cufflinks
+#  Gene expression analysis with tophat + cufflinks + htseqcount
 #
 # IN : $SOURCE/$dir/fastq/*read1.fastq
 # OUT: $OUT/$dir/tophat/*.bam/
 ################################################################################       
-if [ -n "$RUNTOPHATCUFF2" ]; then
+
+if [ -n "$RUNTOPHATCUFF" ]; then
     if [ -z "$TASKTOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
-        --command "${NGSANE_BASE}/mods/tophatcuff.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTOPHAT/<NAME>"
+    JOBIDS=$(
+        $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
+            --command "${NGSANE_BASE}/mods/tophat.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTOPHAT/<NAME>"
+    ) && echo "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
+
+    # instruct to wait for TOPHATJOBIDS to finish
+    $QSUB $ARMED -r -k $CONFIG -t $TASKCUFFLINKS -i $TASKTOPHAT -e .$ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS -W "$JOBIDS" \
+        --command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKCUFFLINKS/<NAME>"
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASKHTSEQCOUNT -i $TASKTOPHAT -e .$ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT -W "$JOBIDS" \
+        --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHTSEQCOUNT/<NAME>"
+
 fi
 
 ################################################################################

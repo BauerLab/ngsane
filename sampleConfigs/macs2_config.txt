@@ -70,8 +70,3 @@ MACS2_REFINEPEAK_ADDPARAM=
 #NODES_MACS2="nodes=1:ppn=1"
 #MODULE_MACS2=
 #PATH_MACS2=
-
-## location of ngsane
-#NGSANE_BASE=
-
-

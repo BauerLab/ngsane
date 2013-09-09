@@ -70,7 +70,3 @@ FRAGMENTLENGTH=0
 #MODULE_BOWTIE=
 #PATH_BOWTIE=
 
-## location of ngsane
-#NGSANE_BASE=
-
-

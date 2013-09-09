@@ -83,8 +83,3 @@ VARADDPARAM="-L $REF"
 EXPID="OmicsRNA"
 LIBRARY="AGRF"
 PLATFORM="Illumina"
-
-
-## location of ngsane
-#NGSANE_BASE=/share/ClusterShare/software/contrib/gi/ngsane/0.0.1
-

@@ -66,9 +66,3 @@ FRAGMENTLENGTH=0
 #NODES_BOWTIE2="nodes=1:ppn=8"
 #MODULE_BOWTIE2=
 #PATH_BOWTIE2=
-
-
-## location of ngsane
-#NGSANE_BASE=
-
-

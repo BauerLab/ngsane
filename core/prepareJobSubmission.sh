@@ -24,6 +24,7 @@ while [ "$1" != "" ]; do
 	-r | --reverse )        REV="1";;
 	-d | --nodir )          NODIR="nodir";;
 	-a | --armed )          ARMED="armed";;
+    -W | --wait )           shift; JOBIDS=$1 ;; # jobids to wait for
 	--keep )                KEEP="keep";;
 	--recover )             RECOVER="recover";;
 	--direct )              DIRECT="direct";;
@@ -52,26 +53,27 @@ if [ ! -d $QOUT/$TASK ]; then mkdir -p $QOUT/$TASK; fi
 if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
     echo ">>>>> setup enviroment"
     if [ -e $QOUT/$TASK/runnow.tmp ]; then rm $QOUT/$TASK/runnow.tmp; fi
+    
     for dir in ${DIR[@]}; do
-
-      #ensure dirs are there
-      if [ ! -n "$NODIR" ]; then
-        if [ ! -d $OUT/$dir/$TASK ]; then mkdir -p $OUT/$dir/$TASK; fi
-      fi
-
-      # generate the runnow.tmp
-	  # search for real files and dummy files, in case both exist only keep real one
-      if [ -n "$REV" ]; then
-        for f in $( ls $SOURCE/$dir/$ORIGIN/*$ENDING* | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
-            echo $f >> $QOUT/$TASK/runnow.tmp
-        done
-
-      else
-        for f in $( ls $SOURCE/$ORIGIN/$dir/*$ENDING | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
-            echo $f >> $QOUT/$TASK/runnow.tmp
-        done
-      fi
-  done
+        
+        #ensure dirs are there
+        if [ -z "$NODIR" ]; then
+            if [ ! -d $OUT/$dir/$TASK ]; then mkdir -p $OUT/$dir/$TASK; fi
+        fi
+        
+        # generate the runnow.tmp
+        # search for real files and dummy files, in case both exist only keep real one
+        if [ -n "$REV" ]; then
+            for f in $( ls $SOURCE/$dir/$ORIGIN/*$ENDING* | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
+                echo $f >> $QOUT/$TASK/runnow.tmp
+            done
+        
+        else
+            for f in $( ls $SOURCE/$ORIGIN/$dir/*$ENDING | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
+                echo $f >> $QOUT/$TASK/runnow.tmp
+            done
+        fi
+    done
 fi
 
 if [ -n "$KEEP" ]; then exit ; fi
@@ -99,6 +101,14 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     # only postcommand 
     if [[ -n "$POSTONLY" || -z "$COMMAND" ]]; then continue; fi
 
+	# create dummy files for the pipe
+	COMMANDARR=(${COMMAND// / })
+	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/")
+	D=$(eval $DUMMY)
+	echo $dir/$TASK/$D.dummy
+	touch $dir/$TASK/$D.dummy
+
+
     echo $COMMAND2
 
     if [ -n "$DIRECT" ]; then eval $COMMAND2; fi
@@ -107,17 +117,6 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
         echo $ARMED
 
-		# create dummy files for the pipe
-		COMMANDARR=(${COMMAND// / })
-		DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/")
-		D=$(eval $DUMMY)
-		echo $dir/$TASK/$D.dummy
-		touch $dir/$TASK/$D.dummy
-		#eval DUMMY=$DUMMY
-		#eval touch $dir/$TASK/$DUMMY.dummy
-		#echo $DUMMY
-		#echo eval touch $(echo $dir/$TASK/$DUMMY).dummy 
-    
         if [ -n "$RECOVER" ] && [ -f $LOGFILE ] ; then
             # add log-file for recovery
             COMMAND2="$COMMAND2 --recover-from $LOGFILE"
@@ -132,13 +131,16 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         # record task in log file
         cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
         echo "[NOTE] Jobfile: "$QOUT/$TASK/job.$(date "+%Y%m%d").log >> $LOGFILE
-    
-        RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+
+        if [ -n "JOBIDS" ]; then 
+            RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$JOBIDS" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
         	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
-        	
+        else 
+            RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+        	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
+        fi    	
         echo -e "Jobnumber $RECIPT"
         MYPBSIDS=$MYPBSIDS":"$RECIPT
-    #    MYPBSIDS=$MYPBSIDS":"$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
     
         # if only the first task should be submitted as test
         if [ -n "$FIRST" ]; then exit; fi

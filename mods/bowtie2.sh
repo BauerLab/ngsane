@@ -31,13 +31,8 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
         -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
-        -r | --reference )      shift; FASTA=$1 ;; # reference genome                                             
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
-        -i | --rgid )           shift; EXPID=$1 ;; # read group identifier RD ID                                  
-        -l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB                                   
-        -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL                                 
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)                             
-        -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU
         --forceSingle )         FORCESINGLE=1;;
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
@@ -78,8 +73,6 @@ echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 echo -e "--convert     --\n "$(convert -version | head -n 1)
 [ -z "$(which convert)" ] && echo "[WARN] imagemagick convert not detected" && exit 1
-echo -e "--wigToBigWig --\n "$(wigToBigWig 2>&1 | tee | head -n 1)
-[ -z "$(which wigToBigWig)" ] && echo "[WARN] wigToBigWig not detected - no bigwigs will be generated"
 
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_BOWTIE2*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
@@ -322,64 +315,6 @@ else
 fi
 
 echo "********* $CHECKPOINT"
-################################################################################
-CHECKPOINT="generate bigwigs"    
-
-FRAGMENTLENGTH=0
-GENOME_CHROMSIZES=$FASTA.chrom.size
-. $CONFIG # overwrite defaults
-
-echo "$FASTQ $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-        
-    if [ -z "$(which wigToBigWig)" ]; then
-        echo "[NOTE] Skip bigwig generation due to missing software: wigToBigWig"
-        
-    else
-        NORMALIZETO=1000000
-        NUMBEROFREADS=$(samtools view -c -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam})
-        SCALEFACTOR=`echo "scale=3; $NORMALIZETO/$NUMBEROFREADS" | bc`
-      
-        echo "[NOTE] library size (mapped reads): $NORMALIZETO" 
-        echo "[NOTE] scale factor: $SCALEFACTOR"
-        echo "[NOTE] fragment length: $FRAGMENTLENGTH"
-    
-        if [ "$PAIRED" = "1" ] && [[ $FRAGMENTLENGTH -le 0 ]]; then
-            echo "[NOTE] generate bigwig for properly paired reads on the same chromosomes"
-            samtools sort -n $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp}
-            samtools view -b -F 1028 -f 0x2 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
-            [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.tmp.bam}
-    	
-        else
-            
-            if [[ $FRAGMENTLENGTH -ge 0 ]]; then
-            	echo "[NOTE] Skip bigwig generation due to invalid value for parameter: FRAGMENTLENGTH"
-
-            else
-
-                if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
-                    echo "[NOTE] generate strand-specific bigwigs considering single reads"
-                    samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.+.bw}
-                    
-                    samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.-.bw}
-        
-                else
-                    echo "[NOTE] generate bigwig considering single reads"
-                    samtools view -b -F 1028 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $MYOUT/${n/%$READONE.$FASTQ/.bw}
-                    
-            	fi
-        	fi
-        fi
-    
-        # mark checkpoint
-        [ -f $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
-
-    fi   
-fi
-
 ################################################################################
 [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
 echo ">>>>> readmapping with Bowtie2 - FINISHED"

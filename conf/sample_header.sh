@@ -34,7 +34,8 @@ TASKDOWN="downsample"
 TASKDOC="coverage"
 TASKDIFFEXP="diffexp"
 TASKTOPHAT="tophat"
-TASKCUFF="cufflinks"
+TASKHTSEQCOUNT="htseqcount"
+TASKCUFFLINKS="cufflinks"
 TASKCUFFDIFF="cuffdiff"
 TASKRRBSMAP="rrbs"
 TASKMACS="macs"
@@ -54,6 +55,7 @@ TASKPEAKRANGER="peakranger"
 TASKMACS2="macs2"
 TASKMEMECHIP="memechip"
 TASKFASTQSCREEN="fastqscreen"
+TASKBIGWIG="bigwig"
 
 ##############################################################
 # PROGRAM PATHS
@@ -304,14 +306,35 @@ PATH_GATKSNP=$PATH_GATKHOME:$PATH_GATKJAR:$PATH_IGVTOOLS
 ##############################################################
 # Tophat (2.0.8b) and cufflinks (2.1.1)
 # http://tophat.cbcb.umd.edu/
-# http://cufflinks.cbcb.umd.edu/
 WALLTIME_TOPHAT=60:00:00
 MEMORY_TOPHAT=50
-CPU_TOPHAT=8
-NODES_TOPHAT="nodes=1:ppn=8"
+CPU_TOPHAT=16
+NODES_TOPHAT="nodes=2:ppn=8"
 
-MODULE_TOPHATCUFF=
-PATH_TOPHATCUFF=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT:$PATH_RNASEQC
+MODULE_TOPHAT=
+PATH_TOPHAT=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT:$PATH_RNASEQC
+
+##############################################################
+# Cufflinks (2.1.1)
+# http://cufflinks.cbcb.umd.edu/
+WALLTIME_CUFFLINKS=60:00:00
+MEMORY_CUFFLINKS=50
+CPU_CUFFLINKS=2
+NODES_CUFFLINKS="nodes=1:ppn=2"
+
+MODULE_CUFFLINKS=
+PATH_CUFFLINKS=
+
+##############################################################
+# HTSEQ-count (2.1.1)
+# http://cufflinks.cbcb.umd.edu/
+WALLTIME_HTSEQCOUNT=60:00:00
+MEMORY_HTSEQCOUNT=50
+CPU_HTSEQCOUNT=1
+NODES_HTSEQCOUNT="nodes=1:ppn=1"
+
+MODULE_HTSEQCOUNT=
+PATH_HTSEQCOUNT=
 
 ##############################################################
 # HICLIB 
@@ -421,6 +444,17 @@ NODES_FASTQSCREEN="nodes=1:ppn=8"
 MODULE_FASTQSCREEN=
 PATH_FASTQSCREEN=
 FASTQSCREEN_DBCONF=
+
+##############################################################
+# Create bigwigs from bam files
+# http://genome.ucsc.edu/util.html/
+WALLTIME_BIGWIG=12:00:00
+MEMORY_BIGWIG=12
+CPU_BIGWIG=2
+NODES_BIGWIG="nodes=1:ppn=2"
+
+MODULE_BIGWIG=
+PATH_BIGWIG=
 
 ##############################################################
 #VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
