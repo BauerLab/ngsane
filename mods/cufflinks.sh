@@ -56,7 +56,7 @@ echo "PATH=$PATH"
 # best common denominator)
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--cufflinks   --\n "$(cufflinks 2>&1 | head -n 2 )
+echo -e "--cufflinks   --\n "$(cufflinks 2>&1 | tee | head -n 2 )
 [ -z "$(which cufflinks)" ] && echo "[ERROR] no cufflinks detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT"
@@ -134,9 +134,10 @@ else
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    cd $OUTDIR
-    ln -s $transcripts.gtf ../${n/%.$ASD.bam/_transcripts.gtf}
-    cd $SOURCE
+    CURDIR=$(pwd) 
+    cd $OUTDIR/.. 
+    ln -s ${n/%.$ASD.bam/}/transcripts.gtf ${n/%.$ASD.bam/_transcripts.gtf} 
+    cd $CURDIR
     
     echo "[NOTE] cufflinks end $(date)"
 

@@ -120,12 +120,9 @@ n=${f##*/}
 FASTASUFFIX=${FASTA##*.}
 BAMFILE=$OUTDIR/../${n/%$READONE.$FASTQ/.$ASD.bam}
 
-CUFOUT=${OUTDIR/$TASKTOPHAT/$TASKCUFF}
-
 #remove old files
 if [ -z "$RECOVERFROM" ]; then
     if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
-    if [ -d $CUFOUT ]; then rm -r $CUFOUT; fi
 fi
 
 
@@ -355,7 +352,7 @@ else
 fi
 
 ################################################################################
-CHECKPOINT="samstat"    
+CHECKPOINT="extract mapped reads"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
@@ -409,6 +406,6 @@ else
 fi
 
 ################################################################################
-[ -e $OUTDIR/${n/.$ASD.bam}.dummy ] && rm $OUTDIR/${n/.$ASD.bam}.dummy
+[ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
 echo ">>>>> alignment with TopHat - FINISHED"
 echo ">>>>> enddate "`date`

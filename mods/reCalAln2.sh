@@ -321,8 +321,8 @@ else
     samtools flagstat $MYOUT/${n/$ASD/$ASR} >> $MYOUT/${n/$ASD/$ASR}.stats
     if [ -n $SEQREG ]; then
         echo "#custom region " >> $MYOUT/${n/$ASD/$ASR}.stats
-        echo `samtools view $MYOUT/${n/$ASD/$ASR} $SEQREG | wc -l`" total reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
-        echo `samtools view -f 2 $MYOUT/${n/$ASD/$ASR} $SEQREG | wc -l`" properly paired reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
+        echo $(samtools view -c -F 4 $MYOUT/${n/$ASD/$ASR} $SEQREG )" total reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
+        echo $(samtools view -c -f 3 $MYOUT/${n/$ASD/$ASR} $SEQREG )" properly paired reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
     fi
 
     #f2=/reCalAln/name.$ASD.bam

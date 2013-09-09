@@ -422,6 +422,22 @@ if [ -n "$RUNTOPHATCUFF" ]; then
 fi
 
 ################################################################################
+#   Create Bigwig from Bam
+#
+# IN:$SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/bowtie/*.bw
+################################################################################
+
+if [ -n "$RUNBIGWIG" ]; then
+    if [ -z "$TASKBIGWIG" ] || [ -z "$NODES_BIGWIG" ] || [ -z "$CPU_BIGWIG" ] || [ -z "$MEMORY_BIGWIG" ] || [ -z "$WALLTIME_BIGWIG" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED --nodir -r -k $CONFIG -t $TASKBIGWIG -i $TASKBOWTIE -e .$ASD.bam -n $NODES_BIGWIG -c $CPU_BIGWIG -m $MEMORY_BIGWIG"G" -w $WALLTIME_BIGWIG \
+        --command "${NGSANE_BASE}/mods/bigwig.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE"
+            
+fi
+
+
+################################################################################
 #  HiC analysis with homer
 #
 # IN: $SOURCE/$dir/bwa/*.bam

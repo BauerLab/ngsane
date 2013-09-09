@@ -55,8 +55,6 @@ echo "PATH=$PATH"
 # best common denominator)
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--JAVA        --\n" $(java -version 2>&1)
-[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--R           --\n "$(R --version | head -n 3)
@@ -65,7 +63,7 @@ echo -e "--bedtools    --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 echo -e "--htSeq       --\n "$(htseq-count | tail -n 1)
 [ -z "$(which htseq-count)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no htseq-count or GENCODEGTF detected" && exit 1
-echo -e "--Python      --\n" $(python --version)
+echo -e "--Python      --\n" $(python --version 2>&1 | tee | head -n 1 )
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 [ hash yolk ] && echo -e "--Python libs --\n "$(yolk -l)
 
@@ -73,6 +71,15 @@ echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_TOPHAT*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
+
+echo -e "\n********* $CHECKPOINT"
+################################################################################
+CHECKPOINT="recall files from tape"
+
+if [ -n "$DMGET" ]; then
+    dmget -a $(dirname $FASTA)/*
+    dmget -a ${f}*
+fi
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
@@ -132,16 +139,51 @@ else
     echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
 fi
 
-mkdir -p $OUTDIR
+annoF=${GENCODEGTF##*/}
+anno_version=${annoF%.*}
 
-echo -e "\n********* $CHECKPOINT"
-################################################################################
-CHECKPOINT="recall files from tape"
-
-if [ -n "$DMGET" ]; then
-    dmget -a $(dirname $FASTA)/*
-    dmget -a ${f}*
+if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
+    echo "[NOTE] make bigwigs; library is fr-unstranded "
+    BAM2BW_OPTION_1="FALSE"
+    BAM2BW_OPTION_2="FALSE"
+elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
+    echo "[NOTE] make bigwigs; library is fr-firststrand "
+    BAM2BW_OPTION_1="TRUE"
+    BAM2BW_OPTION_2="TRUE"
+elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-secondstrand" ]; then
+    echo "[NOTE] make bigwigs; library is fr-secondstrand "
+    BAM2BW_OPTION_1="TRUE"
+    BAM2BW_OPTION_2="FALSE"	    
 fi
+
+BIGWIGSDIR=$OUTDIR/../
+RPKMSSDIR=$OUTDIR/../
+
+
+# run flagstat if no stats available for bam file
+[ ! -e $f.stats ] && samtools flagstat > $f.stats
+# check "paired in sequencing" entry to detect library
+if [[ $(cat $f.stats | head -n 4 | tail -n 1 | cut -d' ' -f 1) -gt 0 ]]; then
+    PAIRED=1
+    echo "[NOTE] paired library detected"
+else 
+    PAIRED=0
+    echo "[NOTE] single-end library detected"
+fi
+
+if [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-unstranded" ]; then
+       echo "[NOTE] library is fr-unstranded; do not run htseq-count stranded"
+       HT_SEQ_OPTIONS="--stranded=no"
+elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-firststrand" ]; then
+       echo "[NOTE] library is fr-firststrand; run htseq-count stranded"
+       HT_SEQ_OPTIONS="--stranded=reverse"
+elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-secondstrand" ]; then
+       echo "[NOTE] library is fr-secondstrand; run htseq-count stranded"
+       HT_SEQ_OPTIONS="--stranded=yes"
+fi
+
+
+mkdir -p $OUTDIR
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
@@ -149,33 +191,6 @@ CHECKPOINT="run htseq-count"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-
-    # run flagstat if no stats available for bam file
-    [ ! -e $f.stats ] && samtools flagstat $f.stats
-    # check "paired in sequencing" entry to detect library
-    if [[ $(cat $f.stats | head -n 4 | tail -n 1 | cut -d' ' -f 1) -gt 0 ]]; then
-    PAIRED=1
-    echo "[NOTE] paired library detected"
-    else 
-    PAIRED=0
-    echo "[NOTE] single-end library detected"
-    fi
-	
-	annoF=${GENCODEGTF##*/}
-#	echo ${annoF}
-	anno_version=${annoF%.*}
-	
-	if [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-unstranded" ]; then
-	       echo "[NOTE] library is fr-unstranded; do not run htseq-count stranded"
-	       HT_SEQ_OPTIONS="--stranded=no"
-	elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-firststrand" ]; then
-	       echo "[NOTE] library is fr-firststrand; run htseq-count stranded"
-	       HT_SEQ_OPTIONS="--stranded=reverse"
-	elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-secondstrand" ]; then
-	       echo "[NOTE] library is fr-secondstrand; run htseq-count stranded"
-	       HT_SEQ_OPTIONS="--stranded=yes"
-	fi
-
 	## htseq-count 
 
 	samtools sort -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
@@ -196,22 +211,6 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
-	    echo "[NOTE] make bigwigs; library is fr-unstranded "
-	    BAM2BW_OPTION_1="FALSE"
-	    BAM2BW_OPTION_2="FALSE"
-    elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
-	    echo "[NOTE] make bigwigs; library is fr-firststrand "
-	    BAM2BW_OPTION_1="TRUE"
-	    BAM2BW_OPTION_2="TRUE"
-    elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-secondstrand" ]; then
-	    echo "[NOTE] make bigwigs; library is fr-secondstrand "
-	    BAM2BW_OPTION_1="TRUE"
-	    BAM2BW_OPTION_2="FALSE"	    
-    fi
-
-    BIGWIGSDIR=$OUTDIR/../
-
 	#make a paired only (f -3 ) bam so bigwigs are comparable to counts.
 	samtools view -f 3 -h -b $f > $OUTDIR/accepted_hits_f3.bam
 	
@@ -228,8 +227,6 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     echo "[NOTE] Gencode RPKM calculation"
-
-    RPKMSSDIR=$OUTDIR/../
 	
     Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $OUTDIR/${anno_version}.gene $RPKMSSDIR/${n/%.$ASD.bam/_gene} ${anno_version}
 
@@ -272,6 +269,6 @@ else
 fi
 
 ################################################################################
-[ -e $OUTDIR/${n/%.$ASD.bam/_masked}.dummy ] && rm $OUTDIR/${n/%.$ASD.bam/_masked}.dummy
+[ -e $OUTDIR/../${n/%.$ASD.bam/_masked}.dummy ] && rm $OUTDIR/../${n/%.$ASD.bam/_masked}.dummy
 echo ">>>>> feature counting with HTSEQ-COUNT - FINISHED"
 echo ">>>>> enddate "`date`

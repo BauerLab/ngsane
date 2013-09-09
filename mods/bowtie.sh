@@ -32,13 +32,8 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
         -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
-        -r | --reference )      shift; FASTA=$1 ;; # reference genome                                             
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
-        -i | --rgid )           shift; EXPID=$1 ;; # read group identifier RD ID                                  
-        -l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB                                   
-        -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL                                 
-        -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)                             
-        -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU
+        -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group prefix
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -339,8 +334,8 @@ else
     
     if [ -n $SEQREG ]; then
         echo "#custom region" >> $STATSOUT
-        echo $(samtools view -b $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" total reads in region " >> $STATSOUT
-        echo $(samtools view -b -f 2 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" properly paired reads in region " >> $STATSOUT
+        echo $(samtools view -c -F 4 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG )" total reads in region " >> $STATSOUT
+        echo $(samtools view -c -f 3 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG )" properly paired reads in region " >> $STATSOUT
     fi
 
     # mark checkpoint

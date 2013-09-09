@@ -100,7 +100,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
 else 
    
     # run flagstat if no stats available for bam file
-    [ ! -e $f.stats ] && samtools flagstat $f.stats
+    [ ! -e $f.stats ] && samtools flagstat > $f.stats
     # check "paired in sequencing" entry to detect library
     if [[ $(cat $f.stats | head -n 4 | tail -n 1 | cut -d' ' -f 1) -gt 0 ]]; then
         PAIRED=1

@@ -302,8 +302,8 @@ else
     samtools flagstat $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} > $STATSMYOUT
     if [ -n $SEQREG ]; then
         echo "#custom region" >> $STATSMYOUT
-        echo $(samtools view $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" total reads in region " >> $STATSMYOUT
-        echo $(samtools view -f 2 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" properly paired reads in region " >> $STATSMYOUT
+        echo $(samtools view -c -F 4 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG )" total reads in region " >> $STATSMYOUT
+        echo $(samtools view -c -f 3 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG )" properly paired reads in region " >> $STATSMYOUT
     fi
 
     # mark checkpoint
