@@ -120,9 +120,17 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         if [ -n "$RECOVER" ] && [ -f $LOGFILE ] ; then
             # add log-file for recovery
             COMMAND2="$COMMAND2 --recover-from $LOGFILE"
-            echo "################################################################################" >> $LOGFILE
-            echo "[NOTE] Recover from logfile: $LOGFILE" >> $LOGFILE
-            echo "################################################################################" >> $LOGFILE
+            
+            if [[ $(grep -P "^>>>>> .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then
+                echo "[NOTE] $TASK finished before without error - nothing to be done"
+                MYPBSIDS=""
+                continue
+            else
+              echo "################################################################################" >> $LOGFILE
+              echo "[NOTE] Recover from logfile: $LOGFILE" >> $LOGFILE
+              echo "################################################################################" >> $LOGFILE           
+            fi
+            
         else
             # remove old submission output logs
             if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi

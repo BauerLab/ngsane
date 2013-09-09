@@ -70,7 +70,7 @@ n=${f##*/}
 
 #remove old files unless recovering
 if [ -z "$RECOVERFROM" ]; then
-    if [ -d $OUTDIR ]; then rm -r $OUTDIR/$n/; fi
+    if [ -e $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf} ]; then rm $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf}; fi
 fi
 
 ## GTF provided?
@@ -136,7 +136,7 @@ else
 
     CURDIR=$(pwd) 
     cd $OUTDIR/.. 
-    ln -s ${n/%.$ASD.bam/}/transcripts.gtf ${n/%.$ASD.bam/_transcripts.gtf} 
+    ln -f -s ${n/%.$ASD.bam/}/transcripts.gtf ${n/%.$ASD.bam/_transcripts.gtf} 
     cd $CURDIR
     
     echo "[NOTE] cufflinks end $(date)"
