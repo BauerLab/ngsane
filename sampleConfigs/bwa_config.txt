@@ -9,7 +9,7 @@
 # Tasks
 #********************
 
-RUNMAPPINGBWA2="1"     # mapping with bwa
+RUNMAPPINGBWA="1"     # mapping with bwa
 
 #********************
 # Paths

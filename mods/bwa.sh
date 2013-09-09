@@ -28,15 +28,10 @@ writes the coverage information for IGV.
 required:
   -k | --toolkit <path>     location of the NGSANE repository 
   -f | --fastq <file>       fastq file
-  -r | --reference <file>   reference genome
   -o | --outdir <path>      output dir
 
 options:
-  -i | --rgid <name>        read group identifier RD ID (default: exp)
-  -l | --rglb <name>        read group library RD LB (default: qbi)
-  -p | --rgpl <name>        read group platform RD PL (default: illumna)
-  -s | --rgsi <name>        read group sample RG SM prefac (default: )
-  -u | --rgpu <name>        read group platform unit RG PU (default:flowcell )
+  -s | --rgsi <name>        read group prefix (default: )
   --forceSingle             run single end eventhough second read is present
   --noMapping
 "
@@ -48,19 +43,14 @@ if [ ! $# -gt 3 ]; then usage ; fi
 #DEFAULTS
 FORCESINGLE=0
 NOMAPPING=0
-QUAL="" # standard Sanger
 
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --fastq )          shift; f=$1 ;; # fastq file
-        -r | --reference )      shift; FASTA=$1 ;; # reference genome
         -o | --outdir )         shift; MYOUT=$1 ;; # output dir
-        -i | --rgid )           shift; EXPID=$1 ;; # read group identifier RD ID
-        -l | --rglb )           shift; LIBRARY=$1 ;; # read group library RD LB
-        -p | --rgpl )           shift; PLATFORM=$1 ;; # read group platform RD PL
-        -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group sample RG SM (pre)
+        -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group prefix
         --forceSingle )         FORCESINGLE=1;;
         --noMapping )           NOMAPPING=1;;
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file

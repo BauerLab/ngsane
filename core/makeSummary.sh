@@ -242,8 +242,8 @@ if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
 fi
 
 ################################################################################
-if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
-    summaryHeader "TOPHAT + Cufflinks" "$TASKTOPHAT" "tophatcuff.sh" "$SUMMARYTMP"
+if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFF" ]]; then
+    summaryHeader "TOPHAT" "$TASKTOPHAT" "tophatcuff.sh" "$SUMMARYTMP"
 
 	vali=""
     echo "<br>Note, the duplication rate is not calculated by tophat and hence zero.<br>" >>$SUMMARYTMP
