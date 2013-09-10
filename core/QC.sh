@@ -75,7 +75,7 @@ done
 echo ">>>>>>>>>> CheckPoints "
 PROGRESS=$(grep -P '^CHECKPOINT="' $SCRIPT | awk -F'"' '{print $2}' | tr '\n' ',')
 for i in $PROGRESS; do
-  var=$(grep -P "^\[CHECKPOINT\] $i" $QOUT/$TASK/*.out | cut -d ":" -f 1 | sort -u | wc -l)
+  var=$(grep -P "^\*{9} $i" $QOUT/$TASK/*.out | cut -d ":" -f 1 | sort -u | wc -l)
   if [ ! "$var" = $files ]; then
     echo "**_FAIL .. $var have $i/$files"
     CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`

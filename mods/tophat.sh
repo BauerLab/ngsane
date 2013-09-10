@@ -107,7 +107,7 @@ JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_TOPHAT*0.8)")"g -Djava.io.tmpdir
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -185,7 +185,7 @@ fi
 
 mkdir -p $OUTDIR
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -194,11 +194,11 @@ if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
 fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="run tophat"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -212,14 +212,14 @@ else
     echo "[NOTE] tophat end $(date)"
 
     # mark checkpoint
-    if [ -e $OUTDIR/accepted_hits.bam ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/accepted_hits.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 ################################################################################
 CHECKPOINT="merge mapped and unmapped"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -252,14 +252,14 @@ else
     rm ${BAMFILE/.bam/.samtools}.bam
 
     # mark checkpoint
-    if [ -f $BAMFILE ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $BAMFILE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 ################################################################################
 CHECKPOINT="flagstat"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     echo "[NOTE] samtools flagstat"
@@ -286,14 +286,14 @@ else
     fi
 
     # mark checkpoint
-    if [ -f $BAMFILE.stats ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $BAMFILE.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 ################################################################################
 CHECKPOINT="index and calculate inner distance"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -322,14 +322,14 @@ else
     rm -r $THISTMP
    
     # mark checkpoint
-    if [ -f $OUTDIR/../metrices/${BAMFILE##*/}.alignment_summary_metrics ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/../metrices/${BAMFILE##*/}.alignment_summary_metrics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 ################################################################################
 CHECKPOINT="coverage track"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -338,14 +338,14 @@ else
         $BAMFILE.cov.tdf ${FASTA/$FASTASUFFIX/}genome
 
     # mark checkpoint
-    if [ -f $BAMFILE.cov.tdf ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $BAMFILE.cov.tdf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
 CHECKPOINT="samstat"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -353,14 +353,14 @@ else
     samstat $BAMFILE
   
     # mark checkpoint
-    if [ -f $BAMFILE.stats ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $BAMFILE.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
 CHECKPOINT="extract mapped reads"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -373,14 +373,14 @@ else
     samtools index ${BAMFILE/.$ASD/.$ALN}
 
     # mark checkpoint
-    if [ -f ${BAMFILE/.$ASD/.$ALN} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f ${BAMFILE/.$ASD/.$ALN} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
 CHECKPOINT="RNA-SeQC"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
@@ -409,7 +409,7 @@ else
     fi
 
     # mark checkpoint
-    if [ -d $RNASeQCDIR ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -d $RNASeQCDIR ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 

@@ -59,7 +59,7 @@ echo -e "--homer       --\n "$(which makeTagDirectory)
 echo -e "--circos      --\n "$(circos --version)
 [ -z "$(which circos)" ] && echo "[WARN] circos not detected"
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -83,7 +83,7 @@ if [ "$HOMER_HIC_INTERACTIONS" != "all" ] && [ "$HOMER_HIC_INTERACTIONS" != "cis
     echo "[ERROR] HiC interactions not specified (all, cis or trans) : $HOMER_HIC_INTERACTIONS"
 fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -92,7 +92,7 @@ if [ -n "$DMGET" ]; then
 	dmls -l ${f/$READONE/"*"}
 fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 
 #homer likes to write in the current directory, so change to target
@@ -102,7 +102,7 @@ cd $OUTDIR
 ################################################################################
 CHECKPOINT="create tagdirectory"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
 
@@ -115,14 +115,14 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -d $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -d $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
 CHECKPOINT="create background model"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
@@ -130,14 +130,14 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$ASD.bam/_background.txt} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/%$READONE.$ASD.bam/_background.txt} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
 CHECKPOINT="normalize matrices"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -166,13 +166,13 @@ else
     fi
 
     # mark checkpoint
-    echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+    echo -e "\n********* $CHECKPOINT\n"
 fi
 
 ################################################################################
 CHECKPOINT="PCA clustering"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -180,14 +180,14 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/.$ASD.bam/}-${INPUT}.summary.txt ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/.$ASD.bam/}-${INPUT}.summary.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
 CHECKPOINT="Significant interactions"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
@@ -213,13 +213,13 @@ else
     fi
 
     # mark checkpoint
-    if [[ $(ls $OUTDIR/${n/'_'$READONE.$ASD.bam/_significantInteractions_}* |  wc -l ) -ge 1 ]];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [[ $(ls $OUTDIR/${n/'_'$READONE.$ASD.bam/_significantInteractions_}* |  wc -l ) -ge 1 ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
 CHECKPOINT="Annotate interactions"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -227,14 +227,14 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -d $OUTDIR/${n/%$READONE.$ASD.bam/_annotations} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -d $OUTDIR/${n/%$READONE.$ASD.bam/_annotations} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
 CHECKPOINT="Circos plots (optional)"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     if hash ${CIRCOS} 2>&- ; then
@@ -244,7 +244,7 @@ else
     fi
 
     # mark checkpoint
-    echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+    echo -e "\n********* $CHECKPOINT\n"
 fi
 
 ################################################################################

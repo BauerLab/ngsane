@@ -58,7 +58,7 @@ echo -e "--R           --\n "$(R --version | head -n 3)
 echo -e "--homer       --\n "$(which makeTagDirectory)
 [ -z "$(which makeTagDirectory)" ] && echo "[ERROR] homer not detected" && exit 1
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -66,7 +66,7 @@ CHECKPOINT="parameters"
 n=${f##*/}
 c=${CHIPINPUT##*/}
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -75,11 +75,11 @@ if [ -n "$DMGET" ]; then
     dmls -l $f
 fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="create tagdirectory"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
     
@@ -103,14 +103,14 @@ else
     fi
 
     # mark checkpoint
-    if [ -d $TAGDIRECTORY ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -d $TAGDIRECTORY ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
 CHECKPOINT="find peaks"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -130,7 +130,7 @@ else
     fi
 
     # mark checkpoint
-    if [ -f $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -145,7 +145,7 @@ if [ -n "$CHIPINPUT" ] && [ -d ${TAGDIRECTORY}_input ]; then
     rm -r ${TAGDIRECTORY}_input
 fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 echo ">>>>> ChIPseq analysis with Homer - FINISHED"
 echo ">>>>> enddate "`date`

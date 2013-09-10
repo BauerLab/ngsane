@@ -74,7 +74,7 @@ echo -e "--fastx_trimmer              --\n "$(fastx_trimmer -h | head -n 2 | tai
 [ -z "$(which fastx_trimmer)" ] && echo "[ERROR] no fastx_trimmer detected" && exit 1
 
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -90,11 +90,11 @@ fi
 # get basename of f
 n=${f##*/}
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="read1-read2"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -103,14 +103,14 @@ else
         $OUTDIR/${n/$READONE/"sidebyside$READONE"}
 
     # mark checkpoint
-    if [ -e $OUTDIR/${n/$READONE/"sidebyside$READONE"} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/${n/$READONE/"sidebyside$READONE"} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 ################################################################################
 CHECKPOINT="read1-read2 demult"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -118,28 +118,28 @@ else
         --bcfile $CUSTOMBARCODE --bol --mismatches 1 --prefix $OUTDIR/$PREFIX$READONE"_" \
         --suffix "_seq.fastq" > $OUTDIR/$PREFIX$READONE"_read_counts"
     
-    if [ -e $OUTDIR/$PREFIX$READONE"_read_counts" ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/$PREFIX$READONE"_read_counts" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 ################################################################################
 CHECKPOINT="read1-read2 unmatched"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
     # find unmatched
     perl ${NGSANE_BASE}/bin/splitintoforandrevreads.pl $OUTDIR/$PREFIX$READONE"_unmatched"
 
-    if [ -e $OUTDIR/$PREFIX$READONE"_unmatched" ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/$PREFIX$READONE"_unmatched" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 ################################################################################
 CHECKPOINT="read2-read1"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -149,14 +149,14 @@ else
         $OUTDIR/$PREFIX$READONE"_unmatched_1_seq.fastq" \
         $OUTDIR/${n/$READONE/"sidebyside$READTWO"}
 
-    if [ -e $OUTDIR/${n/$READONE/"sidebyside$READTWO"} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/${n/$READONE/"sidebyside$READTWO"} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 ################################################################################
 CHECKPOINT="read2-read1 demult"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
@@ -165,14 +165,14 @@ else
         --bcfile $CUSTOMBARCODE --bol --mismatches 1 --prefix $OUTDIR/$PREFIX$READTWO"_" \
         --suffix "_seq.fastq" > $OUTDIR/$PREFIX$READTWO"_read_counts"
 
-    if [ -e $OUTDIR/$PREFIX$READTWO"_read_counts" ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/$PREFIX$READTWO"_read_counts" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 ################################################################################
 CHECKPOINT="cat and trim"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -209,7 +209,7 @@ else
      
     done
     
-    if [ -e $OUTDIR/$PREFIX$READTWO"_read_counts" ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/$PREFIX$READTWO"_read_counts" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
@@ -221,7 +221,7 @@ CHECKPOINT="cleanup"
 [ -e $OUTDIR/${n/$READONE/"sidebyside$READONE"} ] && rm $OUTDIR/${n/$READONE/"sidebyside$READONE"}
 [ -e $OUTDIR/${n/$READONE/"sidebyside$READTWO"} ] && rm $OUTDIR/${n/$READONE/"sidebyside$READTWO"}
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 echo ">>>>> customplex with fastXtoolkit - FINISHED"
 echo ">>>>> enddate "`date`

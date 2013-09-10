@@ -52,7 +52,7 @@ echo -e "--Python      --\n" $(python --version)
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 echo -e "--Python libs --\n "$(yolk -l)
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -87,7 +87,7 @@ else
     echo "[NOTE] mapping data from scratch"
 fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -96,11 +96,11 @@ if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="run hiclib"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
@@ -134,7 +134,7 @@ else
     #rm $OUTDIR/*$READONE.bam.*  $OUTDIR/*$READTWO.bam.*
 
     # mark checkpoint
-    if [ -e $OUTDIR/${EXPERIMENT}-mapped_reads.hdf5 ] ;then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/${EXPERIMENT}-mapped_reads.hdf5 ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 

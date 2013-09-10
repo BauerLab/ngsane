@@ -69,7 +69,7 @@ JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_DOWNSAMPLE*0.8)")"g -Djava.io.tm
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -83,11 +83,11 @@ if [ -n "$DMGET" ]; then
 	dmget -a ${f}
 fi
     
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"    
+echo -e "\n********* $CHECKPOINT\n"    
 ################################################################################
 CHECKPOINT="extract properly paired none duplicate"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -95,14 +95,14 @@ else
     samtools view -f 0x0002 -h -b $f > $OUT/${n/bam/pn.bam}
     
     # mark checkpoint
-    if [ -f $OUT/${n/bam/pn.bam} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUT/${n/bam/pn.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 ################################################################################
 CHECKPOINT="downsample"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -121,28 +121,28 @@ else
     samtools index $OUT/${n/bam/pns.bam}
  
     # mark checkpoint
-    if [ -f $OUT/${n/bam/pns.bam} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUT/${n/bam/pns.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 ################################################################################
 CHECKPOINT="statistics"
    
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
  
     samtools flagstat $OUT/${n/bam/pns.bam} > $OUT/${n/bam/pns.bam}.stats
     
     # mark checkpoint
-    if [ -f $OUT/${n/bam/pns.bam}.stats ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUT/${n/bam/pns.bam}.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
 CHECKPOINT="coverage track"
    
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
  
@@ -151,7 +151,7 @@ else
         $OUT/${n/bam/pns.bam.cov.tdf} $GENOME
 
     # mark checkpoint
-    if [ -f $OUT/${n/bam/pns.bam.cov.tdf} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUT/${n/bam/pns.bam.cov.tdf} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -160,7 +160,7 @@ CHECKPOINT="cleanup"
 
 [ -e $OUT/${n/bam/pn.bam} ] && rm $OUT/${n/bam/pn.bam}
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 echo ">>>>> Downsample - FINISHED"
 echo ">>>>> enddate "`date`

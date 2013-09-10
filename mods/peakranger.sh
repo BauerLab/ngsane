@@ -58,7 +58,7 @@ echo -e "--R          --\n "$(R --version | head -n 3)
 echo -e "--peakranger --\n "$(peakranger | head -n 3 | tail -n 1)
 [ -z "$(which peakranger)" ] && echo "[ERROR] peakranger not detected" && exit 1
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -81,7 +81,7 @@ if [ "$PEAKRANGER_PEAKS" != "broad" ] && [ "$PEAKRANGER_PEAKS" != "sharp" ]; the
     exit 1
 fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -90,11 +90,11 @@ if [ -n "$DMGET" ]; then
 	dmls -l ${f}
 fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="peakranger"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
     
@@ -127,7 +127,7 @@ else
 
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -136,7 +136,7 @@ CHECKPOINT="zip"
 
 $GZIP -f $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_details
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 [ -e $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed.dummy ] && rm $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed.dummy
 echo ">>>>> ChIPseq analysis with Peakranger - FINISHED"

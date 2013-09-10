@@ -51,7 +51,7 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--Python      --\n" $(python --version)
 echo -e "--Python libs --\n "$(yolk -l)
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -79,7 +79,7 @@ IFS=$OLDFS
 
 echo "[NOTE] Datasets: $DATASETS"
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -87,18 +87,18 @@ if [ -n "$DMGET" ]; then
 	dmget -a $OUTDIR/*
 fi
     
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="call hiclib"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
     python ${NGSANE_BASE}/tools/hiclibCorrelate.py ${PARAMS} --outputDir=$OUT/runStats/$TASKHICLIB --tmpDir=$TMP --verbose $DATASETS
     
     # mark checkpoint
-    echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+    echo -e "\n********* $CHECKPOINT\n"
 fi
 ################################################################################
 echo ">>>>> HiC correlation analysis with hiclib - FINISHED"

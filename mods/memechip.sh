@@ -56,7 +56,7 @@ echo -e "--bedtools    --\n "$(bedtools --version)
 echo -e "--meme-chip   --\n "$(cat `which meme`.bin | strings | grep -A 2 "MEME - Motif discovery tool" | tail -n 1)
 [ -z "$(which meme-chip)" ] && echo "[ERROR] meme-chip not detected" && exit 1
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -70,7 +70,7 @@ if [ -z "$CHROMSIZES" ] || [ ! -f $CHROMSIZES ]; then
     echo "[ERROR] chromosome sizes not provided" && exit 1
 fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -79,11 +79,11 @@ if [ -n "$DMGET" ]; then
 	dmls -l ${f}
 fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="get sequence data"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
 
@@ -99,14 +99,14 @@ else
     echo "Peak regions: `wc -l $f | awk '{print $1}'`" > $OUTDIR/${n/$BED/.summary.txt}
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/$BED/.fasta} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/$BED/.fasta} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
 CHECKPOINT="create background model"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -116,14 +116,14 @@ else
         MEMEBACKGROUND=$OUTDIR/${n/$BED/.bg}
     fi
     # mark checkpoint
-    if [ -f $OUTDIR/${n/$BED/.bg} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/$BED/.bg} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
 CHECKPOINT="run meme-chip"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
@@ -131,14 +131,14 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    if [ -f $OUTDIR/${n/$BED/}/combined.meme} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/$BED/}/combined.meme} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
 CHECKPOINT="classify bound regions"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
    
@@ -162,7 +162,7 @@ else
     done
     
     # mark checkpoint
-    if [ -f $OUTDIR/${n/$BED/_motif}_${PATTERN}.direct.bed ] && [ -f $OUTDIR/${n/$BED/_motif}_${PATTERN}.indirect.bed ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/$BED/_motif}_${PATTERN}.direct.bed ] && [ -f $OUTDIR/${n/$BED/_motif}_${PATTERN}.indirect.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -174,7 +174,7 @@ CHECKPOINT="cleanup"
 [ -e $OUTDIR/${n/$BED/_sorted.bed} ] && rm $OUTDIR/${n/$BED/_sorted.bed}
 [ -e $OUTDIR/${n/$BED/.bg} ] && rm $OUTDIR/${n/$BED/.bg} 
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 echo ">>>>> Motif discovery with memechip - FINISHED"
 echo ">>>>> enddate "`date`

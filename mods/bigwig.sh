@@ -64,7 +64,7 @@ JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_BIGWIG*0.8)")"g -Djava.io.tmpdir
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -78,7 +78,7 @@ if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/${n/%.$ASD.bam/.bw} ] && rm $OUTDIR/${n/%.$ASD.bam/.bw}
 fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -87,7 +87,7 @@ if [ -n "$DMGET" ]; then
 	dmget -a ${f}*
 fi
     
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="generate bigwigs"    
 
@@ -95,7 +95,7 @@ FRAGMENTLENGTH=0
 GENOME_CHROMSIZES=$FASTA.chrom.size
 . $CONFIG # overwrite defaults
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
    
@@ -145,7 +145,7 @@ else
     [ -e $OUTDIR/${n/%.$ASD.bam/.tmp.bam} ] && rm $OUTDIR/${n/%.$ASD.bam/.tmp.bam}
       
     # mark checkpoint
-    if [ -f $$OUTDIR/${n/%.$ASD.bam/.bw} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $$OUTDIR/${n/%.$ASD.bam/.bw} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
  
 fi
 

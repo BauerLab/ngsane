@@ -42,7 +42,7 @@ JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_FASTQC*0.8)")"g -Djava.io.tmpdir
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="get input"
 
@@ -59,7 +59,7 @@ mkdir -p $OUT/runStats/$TASKFASTQC
 CPUS=$(echo $FILES | wc -w)
 if [ "$CPUS" -gt "$CPU_FASTQC" ]; then echo "[NOTE] reduce to $CPU_FASTQC CPUs"; CPUS=$CPU_FASTQC; fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="run fastqc"
 
@@ -74,7 +74,7 @@ chmod a+rx $OUT/runStats/fastQC/*fastqc
 chmod a+r $OUT/runStats/fastQC/*fastqc/*
 chmod a+r $OUT/runStats/fastQC/*fastqc/*/*
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 echo ">>>>> fastQC - FINISHED"
 echo ">>>>> enddate "`date`

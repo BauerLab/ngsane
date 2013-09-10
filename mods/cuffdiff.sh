@@ -82,7 +82,7 @@ echo -e "--cuffdiff    --\n "$(cuffdiff 2>&1 | head -n 1 )
 echo -e "--cuffcompare --\n "$(cuffcompare 2>&1 | head -n 1 )
 [ -z "$(which cuffcompare)" ] && echo "[ERROR] no cuffcompare detected" && exit 1
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -116,11 +116,11 @@ if [ -n "$DMGET" ]; then
     dmget -a $(dirname $TOPHATOUT)/*
 fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="check reference GTF"
     
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -132,7 +132,7 @@ else
         GTF=$OUT/comp.combined.gtf
         
         # mark checkpoint
-        if [ -f $OUT/comp.combined.gtf ] ;then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        if [ -f $OUT/comp.combined.gtf ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 
     fi    
@@ -141,14 +141,14 @@ fi
 ################################################################################
 CHECKPOINT="run cuff diff"
     
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
     cuffdiff -r $FASTA -p $CPU_CUFFDIFF -o $OUT $GTF $TOPHATBAM
 
     # mark checkpoint
-    echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+    echo -e "\n********* $CHECKPOINT\n"
 fi 
 cd ../../
 

@@ -72,7 +72,7 @@ JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_TOPHAT*0.8)")"g -Djava.io.tmpdir
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -81,7 +81,7 @@ if [ -n "$DMGET" ]; then
     dmget -a ${f}*
 fi
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -185,10 +185,10 @@ fi
 mkdir -p $OUTDIR
 cat /dev/null > $OUTDIR/../${n}_${anno_version}.summary.txt
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="run htseq-count"    
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -206,12 +206,12 @@ else
     done
 
     # mark checkpoint
-    if [ -f $OUTDIR/${anno_version}_union.gene_id ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${anno_version}_union.gene_id ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
 CHECKPOINT="create bigwigs"    
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -222,13 +222,13 @@ else
     Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} ${n/%.$ASD.bam/} $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2 > /dev/null
 	
     # mark checkpoint
-    if [ -f ${BIGWIGSDIR}/${n/%.$ASD.bam/.bw} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f ${BIGWIGSDIR}/${n/%.$ASD.bam/.bw} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 	
 ################################################################################
 CHECKPOINT="calculate RPKMs per Gencode Gene"    
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     echo "[NOTE] Gencode RPKM calculation"
@@ -271,7 +271,7 @@ else
     Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} ${n/%.$ASD.bam/}_masked $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2 > /dev/null
 
     # mark checkpoint
-    if [ -f $RPKMSSDIR/${n/%.$ASD.bam/_gene_RPKM}${anno_version}.csv ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $RPKMSSDIR/${n/%.$ASD.bam/_gene_RPKM}${anno_version}.csv ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
    
 fi
 
@@ -281,7 +281,7 @@ CHECKPOINT="cleanup"
 [ -e $OUTDIR/${n} ] && rm $OUTDIR/${n}
 [ -e $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} ] && rm $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} 
 
-echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 [ -e $OUTDIR/../${n/%.$ASD.bam/_masked}.dummy ] && rm $OUTDIR/../${n/%.$ASD.bam/_masked}.dummy
 echo ">>>>> feature counting with HTSEQ-COUNT - FINISHED"
