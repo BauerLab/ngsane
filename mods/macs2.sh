@@ -26,7 +26,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --bam )            shift; f=$1 ;; # bam file
-        -o | --outdir )         shift; MYOUT=$1 ;; # output dir 
+        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir 
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -60,7 +60,7 @@ echo -e "--convert     --\n "$(convert -version | head -n 1)
 echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
 [ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress bedgraphs"
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -75,7 +75,7 @@ else
     CHIPINPUT="--control $SOURCE/$CHIPINPUT"
 fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -84,7 +84,7 @@ if [ -n "$DMGET" ]; then
 	[ -n $CHIPINPUT ] && dmget -a $CHIPINPUT
 fi
 
-cd $MYOUT
+cd $OUTDIR
 
 # set default method to ppois unless specified
 if [ -z "$MACS2_BDGCMP_METHOD" ]; then
@@ -98,12 +98,12 @@ else
     echo "[NOTE] no bigbed files will be generated"
 fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 
 ################################################################################
 CHECKPOINT="macs 2 - call peaks "
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
 
@@ -117,49 +117,47 @@ else
     fi
 
     # mark checkpoint
-    [ -f ${n/.$ASD.bam/}_model.r ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f ${n/.$ASD.bam/}_model.r ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi
 
 ################################################################################
 CHECKPOINT="macs 2 - convert bedgraph to bigbed"
 
-if [ -n "$MACS2_MAKEBIGBED" ]; then 
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else
     
-    if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-        echo "::::::::: passed $CHECKPOINT"
-    else
-     
-        if [ -n "$CHIPINPUT" ]; then
-    
-            RUN_COMMAND="macs2 bdgcmp $MACS2_BDGCMP_ADDPARAM --method $MACS2_BDGCMP_METHOD --tfile ${n/.$ASD.bam/_treat_pileup.bdg} --cfile ${n/.$ASD.bam/_control_lambda.bdg} --output ${n/.$ASD.bam/} >> ${n/.$ASD.bam/}.summary.txt 2>&1"
-            echo $RUN_COMMAND && eval $RUN_COMMAND
-    
-    	if [ -n "$(which bedToBigBed)" ]; then 
-                bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
-                bedToBigBed -type=bed4 ${n/.$ASD.bam/_control_lambda.bdg} $CHROMSIZES ${n/.$ASD.bam/_control_lambda.bb}
-                bedToBigBed -type=bed4 ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg} $CHROMSIZES ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bb}
-            fi
-    
-        else
-            if [ -n "$(which bedToBigBed)" ]; then
-                bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
-            fi
+    if [ -n "$CHIPINPUT" ]; then
+
+        RUN_COMMAND="macs2 bdgcmp $MACS2_BDGCMP_ADDPARAM --method $MACS2_BDGCMP_METHOD --tfile ${n/.$ASD.bam/_treat_pileup.bdg} --cfile ${n/.$ASD.bam/_control_lambda.bdg} --output ${n/.$ASD.bam/} >> ${n/.$ASD.bam/}.summary.txt 2>&1"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+
+	if [ -n "$(which bedToBigBed)" ]; then 
+            bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
+            bedToBigBed -type=bed4 ${n/.$ASD.bam/_control_lambda.bdg} $CHROMSIZES ${n/.$ASD.bam/_control_lambda.bb}
+            bedToBigBed -type=bed4 ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg} $CHROMSIZES ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bb}
         fi
-    
-        [ -e ${n/.$ASD.bam/_treat_pileup.bdg} ] && rm ${n/.$ASD.bam/_treat_pileup.bdg} 
-        [ -e ${n/.$ASD.bam/_control_lambda.bdg} ] && rm ${n/.$ASD.bam/_control_lambda.bdg} 
-        [ -e ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg} ] && rm ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg}
-    
-        # mark checkpoint
-        [ -f ${n/.$ASD.bam/_treat_pileup.bb} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+
+    else
+        if [ -n "$(which bedToBigBed)" ]; then
+            bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
+        fi
     fi
+
+    [ -e ${n/.$ASD.bam/_treat_pileup.bdg} ] && rm ${n/.$ASD.bam/_treat_pileup.bdg} 
+    [ -e ${n/.$ASD.bam/_control_lambda.bdg} ] && rm ${n/.$ASD.bam/_control_lambda.bdg} 
+    [ -e ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg} ] && rm ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg}
+
+    # mark checkpoint
+    if [ -f ${n/.$ASD.bam/_treat_pileup.bb} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
 CHECKPOINT="macs 2 - refine peaks "
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
 
@@ -177,7 +175,7 @@ else
 
  
     # mark checkpoint
-    [ -f ${n/.$ASD.bam/}_refinepeak.bed ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f ${n/.$ASD.bam/}_refinepeak.bed ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################

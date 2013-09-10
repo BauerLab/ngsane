@@ -88,7 +88,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     dir=$(dirname $i | gawk '{n=split($1,arr,"/"); print arr[n]}')
     if [ -n "$REV" ]; then dir=$(dirname $i | gawk '{n=split($1,arr,"/"); print arr[n-1]}'); fi
     name=${n/$ENDING/}
-    echo ">>>>>"$dir"/"$name
+    echo ">>>>> "$dir"/"$name
                 
     COMMAND2=${COMMAND//<FILE>/$i} # insert files for which parallele jobs are submitted
     COMMAND2=${COMMAND2//<DIR>/$dir} # insert output dir
@@ -105,9 +105,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 	COMMANDARR=(${COMMAND// / })
 	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/")
 	D=$(eval $DUMMY)
-	echo $dir/$TASK/$D.dummy
 	touch $dir/$TASK/$D.dummy
-
 
     echo $COMMAND2
 
@@ -122,7 +120,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             COMMAND2="$COMMAND2 --recover-from $LOGFILE"
             
             if [[ $(grep -P "^>>>>> .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then
-                echo "[NOTE] $TASK finished before without error - nothing to be done"
+                echo "[NOTE] Previous $TASK run finished without error - nothing to be done"
                 MYPBSIDS=""
                 continue
             else
@@ -164,7 +162,7 @@ if [ -n "$POSTCOMMAND" ]; then
     POSTCOMMAND2=${POSTCOMMAND//<FILE>/$FILES}
     POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$DIR}
 
-    echo ">>>>>"$DIR" wait for "$MYPBSIDS
+    echo ">>>>> "$DIR" wait for "$MYPBSIDS
     echo $POSTCOMMAND2
 
     if [[ -n "$DIRECT" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi

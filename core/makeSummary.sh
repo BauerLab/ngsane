@@ -256,7 +256,7 @@ if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFF" ]]; then
 		done
     done
     cd $CURDIR
-    python ${NGSANE_BASE}/core/Summary.py "$vali" bam.stats tophat >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASD.bam.stats tophat >>$SUMMARYTMP
 
     summaryFooter "$TASKTOPHAT" "$SUMMARYTMP"
 fi

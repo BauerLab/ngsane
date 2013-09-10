@@ -97,7 +97,7 @@ JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_VAR*0.8)")"g -Djava.io.tmpdir="$
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -112,7 +112,7 @@ fi
         
 if [ -n "$SEQREG" ]; then REGION="-L $SEQREG"; fi
         
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -120,11 +120,11 @@ if [ -n $DMGET ]; then
     dmget -a ${FILES//,/ }; 
 fi
     
-echo -e "\n********* $CHECKPOINT"    
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"    
 ################################################################################
 CHECKPOINT="call snps"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -182,14 +182,15 @@ else
         echo "[NOTE] SNP call done "`date`
 
         # mark checkpoint
-        [ -f $MYOUT/$NAME.raw.vcf ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+        if [ -f $MYOUT/$NAME.raw.vcf ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
     fi
 fi 
 
 ################################################################################
 CHECKPOINT="hardfilter"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
@@ -259,14 +260,15 @@ else
         echo "[NOTE] hard filter "`date`
 
         # mark checkpoint
-        [ -f $MYOUT/$NAME.filter.snps.vcf ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+        if [ -f $MYOUT/$NAME.filter.snps.vcf ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
     fi
 fi 
 
 ################################################################################
 CHECKPOINT="re-calibrate"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -328,21 +330,22 @@ else
                 -o $MYOUT/$NAME.recalfilt.eval.txt
     
         # mark checkpoint
-        [ -f $MYOUT/$NAME.recalfilt.eval.txt ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+        if [ -f $MYOUT/$NAME.recalfilt.eval.txt ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
     fi
 fi 
 
 ################################################################################
 CHECKPOINT="index for IGV"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
     java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $MYOUT/${n/bam/fi.vcf}
 
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 ################################################################################
 echo ">>>>> call SNPs using GATK - FINISHED"

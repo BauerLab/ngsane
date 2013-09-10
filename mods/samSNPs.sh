@@ -26,7 +26,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --file    )        shift; f=$1 ;; # bam file
-        -o | --output  )        shift; MYOUT=$1 ;; # output directory
+        -o | --output  )        shift; OUTDIR=$1 ;; # output directory
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help    )        usage ;;
         * )                     echo "don't understand "$1
@@ -63,14 +63,14 @@ JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_SAMVAR*0.8)")"g -Djava.io.tmpdir
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -78,67 +78,70 @@ if [ -n $DMGET ]; then
     dmget -a $f; 
 fi
     
-echo -e "\n********* $CHECKPOINT"    
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"    
 ################################################################################
 CHECKPOINT="remove duplicate reads $(date)"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    samtools rmdup $f $MYOUT/${n/bam/drm.bam}
-    samtools index $MYOUT/${n/bam/drm.bam}
+    samtools rmdup $f $OUTDIR/${n/bam/drm.bam}
+    samtools index $OUTDIR/${n/bam/drm.bam}
 
     # mark checkpoint
-    [ -f $MYOUT/${n/bam/drm.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $OUTDIR/${n/bam/drm.bam} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
 
 ################################################################################
 CHECKPOINT="call variants $(date)"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    samtools mpileup -uf $FASTA -q1 -D $MYOUT/${n/bam/drm.bam} |  bcftools view -vcg - >$MYOUT/${n/bam/vcf}
+    samtools mpileup -uf $FASTA -q1 -D $OUTDIR/${n/bam/drm.bam} |  bcftools view -vcg - >$OUTDIR/${n/bam/vcf}
 
     # mark checkpoint
-    [ -f $MYOUT/${n/bam/vcf} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $OUTDIR/${n/bam/vcf} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
 
 ################################################################################
 CHECKPOINT="convert bcf->vcf; index $(date)"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    vcfutils.pl varFilter -D1000 -w0 -e0 $MYOUT/${n/bam/vcf}  > $MYOUT/${n/bam/clean.vcf}
+    vcfutils.pl varFilter -D1000 -w0 -e0 $OUTDIR/${n/bam/vcf}  > $OUTDIR/${n/bam/clean.vcf}
  
     # mark checkpoint
-    [ -f $MYOUT/${n/bam/clean.vcf} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $OUTDIR/${n/bam/clean.vcf} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
 
 ################################################################################
 CHECKPOINT="index vcf file for viewing in IGV $(date)"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $MYOUT/${n/bam/clean.vcf}
+    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/${n/bam/clean.vcf}
     
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT"
+    echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 fi 
 
 ################################################################################
 CHECKPOINT="cleanup"    
 
-rm $MYOUT/${n/bam/drm.bam} $MYOUT/${n/bam/drm.bam}.bai
-rm $MYOUT/${n/bam/vcf}
+rm $OUTDIR/${n/bam/drm.bam} $OUTDIR/${n/bam/drm.bam}.bai
+rm $OUTDIR/${n/bam/vcf}
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 echo ">>>>> Variant calling with sam - FINISHED"
 echo ">>>>> enddate "`date`

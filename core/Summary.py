@@ -1,12 +1,16 @@
 #!/bin/python
 
-import sys,os,math,re,traceback,datetime
-import glob
+import sys,os,math,re,traceback,datetime,glob
 
 def removePrefix(text, prefix):
 ### remove prefix from a string ###
     return text[len(prefix):] if text.startswith(prefix) else text
-    
+   
+def removeSuffix(text, suffix):
+### remove prefix from a string ###
+    return text[0:-len(suffix)] if text.endswith(suffix) else text
+  
+   
 if (len(sys.argv)==1 or sys.argv[0].find("help")>-1):
     print "python2 times"
     die
@@ -90,7 +94,7 @@ def per(max,arr):
     return sum
 
 
-def printStats(arrV, arrN, arrS, noSummary, filestructure):
+def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix):
 
     out=[[],[],[],[],[],[]]
     string=[]
@@ -118,7 +122,7 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure):
                     formatString="%17.2e"
                 resultPerS+=[ formatString % e ]
             
-            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+ removePrefix(l[1], filestructure)+"</td></tr>"
+            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+ removeSuffix(removePrefix(l[1], filestructure), filesuffix)+"</td></tr>"
         print "</tbody>"
             
     if(noSummary):
@@ -1012,8 +1016,8 @@ for d in dir:
 
     filestructure="/".join(d.split("/")[-4::]) # only list file structure from current root
     print "<h3>"+ filestructure +"</h3>" 
-    printStats(result,names,psresult,noSummary,filestructure)
+    printStats(result,names,psresult,noSummary,filestructure, ext)
 
 if (not noOverallSummary and overAll):
     print "<h3 class='overall'>Aggregation over all libraries</h3>"
-    printStats(oaresult,names,0,noOverallSummary,"")
+    printStats(oaresult,names,0,noOverallSummary,"","")

@@ -47,7 +47,7 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--cutadapt    --\n" $(cutadapt --version 2>&1)
 [ -z "$(which cutadapt)" ] && echo "[ERROR] no cutadapt detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -79,7 +79,7 @@ echo "[NOTE] contaminants: "$CONTAMINANTS
 CONTAM=$(cat $CONTAMINANTS | tr '\n' ' ')
 echo "[NOTE] $CONTAM"
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -87,11 +87,11 @@ if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
 fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="trim"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     RUN_COMMAND="cutadapt $CUTADAPTADDPARAM $CONTAM $f -o $o > $o.stats"
@@ -108,13 +108,14 @@ else
     fi
     
     # mark checkpoint
-    [ -f $o ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM  
+    if [ -f $o ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi
 
 ################################################################################
 CHECKPOINT="zip"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -127,7 +128,7 @@ else
     fi
 
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT"  
+    echo -e "\n[CHECKPOINT] $CHECKPOINT\n"  
 fi
 
 ################################################################################
@@ -140,7 +141,7 @@ if [ "$PAIRED" = "1" ]; then
     echo "remaining reads "$(zcat $FASTQDIRTRIM/${n/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n/$READONE/$READTWO}.stats
 fi
 
-echo "********* $CHECKPOINT"
+echo "[CHECKPOINT] $CHECKPOINT"
 ################################################################################
 echo ">>>>> readtrimming with CUTADAPT - FINISHED"
 echo ">>>>> enddate "`date`

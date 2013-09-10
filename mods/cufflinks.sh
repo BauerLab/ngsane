@@ -59,7 +59,7 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--cufflinks   --\n "$(cufflinks 2>&1 | tee | head -n 2 )
 [ -z "$(which cufflinks)" ] && echo "[ERROR] no cufflinks detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -104,7 +104,7 @@ else
     echo "[NOTE] RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -113,11 +113,11 @@ if [ -n "$DMGET" ]; then
     dmget -a ${f}*
 fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="run cufflinks"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 #    echo ">>>>> from $f to $OUTPUT"
@@ -142,14 +142,14 @@ else
     echo "[NOTE] cufflinks end $(date)"
 
     # mark checkpoint
-    [ -e $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM || (echo "[ERROR] checkpoint failed: $CHECKPOINT" &&  exit 1)
+    if [ -e $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
 CHECKPOINT="statistics"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -167,7 +167,8 @@ else
     done
     
     # mark checkpoint
-    [ -e $SUMMARYFILE ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM || (echo "[ERROR] checkpoint failed: $CHECKPOINT" &&  exit 1)
+    if [ -e $SUMMARYFILE ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 
 fi
 ################################################################################

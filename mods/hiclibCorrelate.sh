@@ -25,7 +25,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --files ) 		    shift; FILES=$1 ;; # input files
-        -o | --outdir )         shift; MYOUT=$1 ;; # output dir   
+        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir   
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -51,7 +51,7 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--Python      --\n" $(python --version)
 echo -e "--Python libs --\n "$(yolk -l)
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -79,26 +79,26 @@ IFS=$OLDFS
 
 echo "[NOTE] Datasets: $DATASETS"
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
-	dmget -a $MYOUT/*
+	dmget -a $OUTDIR/*
 fi
     
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="call hiclib"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
     python ${NGSANE_BASE}/tools/hiclibCorrelate.py ${PARAMS} --outputDir=$OUT/runStats/$TASKHICLIB --tmpDir=$TMP --verbose $DATASETS
     
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT"
+    echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 fi
 ################################################################################
 echo ">>>>> HiC correlation analysis with hiclib - FINISHED"

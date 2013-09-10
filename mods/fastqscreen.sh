@@ -52,7 +52,7 @@ echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(expr $MEMORY_FASTQSCREEN - 1 )"G -Djava.io.tmpdir="$TMP
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -74,7 +74,7 @@ fi
  
 mkdir -p $MYOUT
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -82,11 +82,11 @@ if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
 fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="fastq screening"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -103,7 +103,8 @@ else
     mv $MYOUT/${n}_screen.png $MYOUT/${n/$READONE.$FASTQ/}_screen.png
 
     # mark checkpoint
-    [ -f $MYOUT/${n/$READONE.$FASTQ/}_screen.txt ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $MYOUT/${n/$READONE.$FASTQ/}_screen.txt ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi
 
 ################################################################################

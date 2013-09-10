@@ -26,7 +26,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
         -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
-        -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
+        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir                                                     
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -52,7 +52,7 @@ echo -e "--Python      --\n" $(python --version)
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 echo -e "--Python libs --\n "$(yolk -l)
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -75,19 +75,19 @@ if [ -z "BOWTIE2INDEX" ]; then
 fi
 
 READS="$f ${f/$READONE/$READTWO}"
-if [ -f "$MYOUT/${n/.$FASTQ/_R1.bam.25}"  ]; then
+if [ -f "$OUTDIR/${n/.$FASTQ/_R1.bam.25}"  ]; then
     echo "[NOTE] using bam files from previous run"
     LIBONE=${n/.$FASTQ/_R1.bam}
     LIBTWO=${n/$READONE.$FASTQ/${READTWO}_R2.bam}
 #    LIBTWO=${LIBTWO/.$FASTQ/_R2.bam}
-    READS="$MYOUT/$LIBONE $MYOUT/$LIBTWO"
+    READS="$OUTDIR/$LIBONE $OUTDIR/$LIBTWO"
     FASTQ=bam
     echo $READS
 else
     echo "[NOTE] mapping data from scratch"
 fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -96,11 +96,11 @@ if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="run hiclib"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
@@ -123,18 +123,19 @@ else
     	PARAMS="$PARAMS --readLength $HICLIB_READLENGTH"
     fi
     
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie=$(which bowtie2) --cpus=$CPU_HICLIB --outputDir=$MYOUT --tmpDir=$TMP --verbose $READS &> $MYOUT/$EXPERIMENT.hiclib.log"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie=$(which bowtie2) --cpus=$CPU_HICLIB --outputDir=$OUTDIR --tmpDir=$TMP --verbose $READS &> $OUTDIR/$EXPERIMENT.hiclib.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     RUNSTATS=$OUT/runStats/$TASKHICLIB
     mkdir -p $RUNSTATS
-    mv -f $MYOUT/$EXPERIMENT*.pdf $RUNSTATS
-    mv -f $MYOUT/$EXPERIMENT.hiclib.log $RUNSTATS
+    mv -f $OUTDIR/$EXPERIMENT*.pdf $RUNSTATS
+    mv -f $OUTDIR/$EXPERIMENT.hiclib.log $RUNSTATS
 
-    #rm $MYOUT/*$READONE.bam.*  $MYOUT/*$READTWO.bam.*
+    #rm $OUTDIR/*$READONE.bam.*  $OUTDIR/*$READTWO.bam.*
 
     # mark checkpoint
-    [ -e $MYOUT/${EXPERIMENT}-mapped_reads.hdf5 ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -e $OUTDIR/${EXPERIMENT}-mapped_reads.hdf5 ] ;then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi
 
 ################################################################################

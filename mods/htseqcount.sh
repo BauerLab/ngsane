@@ -72,7 +72,7 @@ JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_TOPHAT*0.8)")"g -Djava.io.tmpdir
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -e "\n[PASS] $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -81,7 +81,7 @@ if [ -n "$DMGET" ]; then
     dmget -a ${f}*
 fi
 
-echo -e "\n[PASS] $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -184,10 +184,10 @@ fi
 
 mkdir -p $OUTDIR
 
-echo -e "\n[PASS] $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="run htseq-count"    
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^[PASS] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -200,12 +200,12 @@ else
 #	samtools view $OUTDIR/${n}  | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $OUTDIR/${anno_version}.transcript
     
     # mark checkpoint
-    [ -f $OUTDIR/${anno_version}.gene ] && echo -e "\n[PASS] $CHECKPOINT" && unset RECOVERFROM || (echo "[ERROR] checkpoint failed: $CHECKPOINT" &&  exit 1)
+    if [ -f $OUTDIR/${anno_version}.gene ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
 CHECKPOINT="create bigwigs"    
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^[PASS] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -213,21 +213,21 @@ else
 	samtools view -f 3 -h -b $f > $OUTDIR/${n/%.$ASD.bam/.$ALN.bam}
 	
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-    Rscript --vanilla --slave ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} ${n/%.$ASD.bam/} $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} ${n/%.$ASD.bam/} $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2 > /dev/null
 	
     # mark checkpoint
-    [ -f ${BIGWIGSDIR}/${n/%.$ASD.bam/.bw} ] && echo -e "\n[PASS] $CHECKPOINT" && unset RECOVERFROM || (echo "[ERROR] checkpoint failed: $CHECKPOINT" &&  exit 1)
+    if [ -f ${BIGWIGSDIR}/${n/%.$ASD.bam/.bw} ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 	
 ################################################################################
 CHECKPOINT="calculate RPKMs per Gencode Gene"    
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^[PASS] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     echo "[NOTE] Gencode RPKM calculation"
 	
-    Rscript --vanilla--slave ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $OUTDIR/${anno_version}.gene $RPKMSSDIR/${n/%.$ASD.bam/_gene_} ${anno_version}
+    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $OUTDIR/${anno_version}.gene $RPKMSSDIR/${n/%.$ASD.bam/_gene_} ${anno_version} > /dev/null
 
     echo "[NOTE] Create filtered bamfile"
 	
@@ -255,15 +255,15 @@ else
 
     echo "[NOTE] calculate RPKMs per Gencode Gene masked"
 
-    Rscript --vanilla --slave ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $OUTDIR/${anno_version}_masked.gene $RPKMSSDIR/${n/%.$ASD.bam/_gene_masked_} ${anno_version}
+    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $OUTDIR/${anno_version}_masked.gene $RPKMSSDIR/${n/%.$ASD.bam/_gene_masked_} ${anno_version} > /dev/null
 
     [ -e $OUTDIR/tophat_aligned_reads_masked_sorted.bam ] && rm $OUTDIR/tophat_aligned_reads_masked_sorted.bam
 
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} ${n/%.$ASD.bam/}_masked $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} ${n/%.$ASD.bam/}_masked $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2 > /dev/null
 
     # mark checkpoint
-    if [ -f $RPKMSSDIR/${n/%.$ASD.bam/_gene_RPKM}${anno_version} ];then echo -e "\n[PASS] $CHECKPOINT"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $RPKMSSDIR/${n/%.$ASD.bam/_gene_RPKM}${anno_version}.csv ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
    
 fi
 
@@ -271,9 +271,9 @@ fi
 CHECKPOINT="cleanup"    
 
 [ -e $OUTDIR/${n} ] && rm $OUTDIR/${n}
-[ -e $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} } ] && rm $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} 
+[ -e $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} ] && rm $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} 
 
-echo -e "\n[PASS] $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 [ -e $OUTDIR/../${n/%.$ASD.bam/_masked}.dummy ] && rm $OUTDIR/../${n/%.$ASD.bam/_masked}.dummy
 echo ">>>>> feature counting with HTSEQ-COUNT - FINISHED"

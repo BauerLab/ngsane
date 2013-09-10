@@ -94,7 +94,7 @@ JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_RECAL*0.8)")"g -Djava.io.tmpdir=
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -127,7 +127,7 @@ f2=${f/$TASKBWA/$TASKRCA}
 # /reCalAln/name.$ASD.bam -> /reCalAln/name.$ASD.real
 f3=${f2/bam/real.bam}
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -136,13 +136,13 @@ if [ -n "$DMGET" ]; then
 	dmget -a $f3
 fi
     
-echo -e "\n********* $CHECKPOINT"    
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"    
 ################################################################################
 CHECKPOINT="find intervals to improve"
 
 echo "[NOTE] realignment"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -156,13 +156,13 @@ else
         -nt $MYTHREADS
         
     # mark checkpoint
-    [ -f $f2.intervals ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $f2.intervals ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="realine"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -180,7 +180,7 @@ else
     samtools index $f3
 
     # mark checkpoint
-    [ -f ${f2/bam/real.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f ${f2/bam/real.bam} ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
@@ -188,7 +188,7 @@ CHECKPOINT="counting covariantes"
 
 echo "[NOTE] recalibrating"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -207,13 +207,13 @@ else
     #    -nt $MYTHREADS
 
     # mark checkpoint
-    [ -f ${f3/.bam/.covar.grp} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f ${f3/.bam/.covar.grp} ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="adjust score"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -228,13 +228,13 @@ else
     samtools index ${f3/.bam/.recal.bam}
 
     # mark checkpoint
-    [ -f ${f3/.bam/.recal.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f ${f3/.bam/.recal.bam} ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="evaluate performace"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -246,13 +246,13 @@ else
          -nct $MYTHREADS 
     
     # mark checkpoint
-    [ -f ${f3/.bam/.recal.performace} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f ${f3/.bam/.recal.performace} ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="counting covariantes after recalibration"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -287,13 +287,13 @@ else
     #    -ignoreQ 5
     
     # mark checkpoint
-    [ -f ${f3/.bam/.recal.covar.grp} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f ${f3/.bam/.recal.covar.grp} ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="sort/index"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -308,13 +308,13 @@ else
     samtools index $MYOUT/${n/$ASD/$ASR}
 
     # mark checkpoint
-    [ -f $MYOUT/${n/$ASD/$ASR} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $MYOUT/${n/$ASD/$ASR} ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="statistics"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -347,13 +347,13 @@ else
     fi
     
     # mark checkpoint
-    [ -f $MYOUT/${n/$ASD/$ASR}.stats ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $MYOUT/${n/$ASD/$ASR}.stats ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="coverage track"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -362,7 +362,7 @@ else
         $MYOUT/${n/$ASD/$ASR}.cov.tdf ${FASTA/fasta/genome}
     
     # mark checkpoint
-    [ -f $MYOUT/${n/$ASD/$ASR}.cov.tdf ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $MYOUT/${n/$ASD/$ASR}.cov.tdf ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi
 
 ################################################################################

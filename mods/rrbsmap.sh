@@ -105,7 +105,7 @@ unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -147,7 +147,7 @@ fi
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 echo "[NOTE] full sample ID "$FULLSAMPLEID
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -156,11 +156,11 @@ if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 fi
     
-echo -e "\n********* $CHECKPOINT"    
+echo -e "\n[CHECKPOINT] $CHECKPOINT\n"    
 ################################################################################
 CHECKPOINT="mapping"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -177,13 +177,13 @@ else
     fi
     
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/$ALN.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUT/${n/%$READONE.$FASTQ/$ALN.bam} ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="merge to single file"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -196,13 +196,13 @@ else
         IS_BISULFITE_SEQUENCE=true 
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.ash.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUT/${n/%$READONE.$FASTQ/.ash.bam} ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="add readgroup"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
@@ -213,13 +213,13 @@ else
         RGPU=$UNIT RGSM=$FULLSAMPLEID 
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.ashrg.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUT/${n/%$READONE.$FASTQ/.ashrg.bam} ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="mark duplicates"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -236,13 +236,13 @@ else
     $SAMTOOLS index $OUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="statistics"                                                                                                
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -256,14 +256,14 @@ else
     fi
 
     # mark checkpoint
-    [ -f $STATSOUT ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $STATSOUT ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi
 
 
 ################################################################################
 CHECKPOINT="coverage track"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\[CHECKPOINT\] $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
 
@@ -271,7 +271,7 @@ else
         $OUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/.genome}
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -e "\n[CHECKPOINT] $CHECKPOINT\n" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -291,7 +291,7 @@ else
       
 fi
 
-echo "********* $CHECKPOINT"
+echo "[CHECKPOINT] $CHECKPOINT"
 ################################################################################
 echo ">>>>> readmapping with rrbsmap - FINISHED"
 echo ">>>>> enddate "`date`
