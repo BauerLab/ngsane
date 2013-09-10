@@ -243,7 +243,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFF" ]]; then
-    summaryHeader "TOPHAT" "$TASKTOPHAT" "tophatcuff.sh" "$SUMMARYTMP"
+    summaryHeader "TOPHAT" "$TASKTOPHAT" "tophat.sh" "$SUMMARYTMP"
 
 	vali=""
     echo "<br>Note, the duplication rate is not calculated by tophat and hence zero.<br>" >>$SUMMARYTMP
@@ -261,6 +261,24 @@ if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFF" ]]; then
     summaryFooter "$TASKTOPHAT" "$SUMMARYTMP"
 fi
 
+################################################################################
+if [[ -n "$RUNCUFFLINKS" || -n "$RUNTOPHATCUFF" ]]; then
+    summaryHeader "CUFFLINKS" "$TASKCUFFLINKS" "cufflinks.sh" "$SUMMARYTMP"
+
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKCUFFLINKS)" .summary.txt cufflinks >>$SUMMARYTMP
+
+    summaryFooter "$CUFFLINKS" "$SUMMARYTMP"
+fi
+
+
+################################################################################
+if [[ -n "$RUNHTSEQCOUNT" || -n "$RUNTOPHATCUFF" ]]; then
+    summaryHeader "HTSEQCOUNT" "$TASKHTSEQCOUNT" "htseqcount.sh" "$SUMMARYTMP"
+
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKHTSEQCOUNT)" _transcripts.gtf gtf >>$SUMMARYTMP
+
+    summaryFooter "$RUNHTSEQCOUNT" "$SUMMARYTMP"
+fi
 
 ################################################################################
 if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then

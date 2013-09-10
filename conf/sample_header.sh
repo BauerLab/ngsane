@@ -304,9 +304,9 @@ MODULE_GATKSNP=
 PATH_GATKSNP=$PATH_GATKHOME:$PATH_GATKJAR:$PATH_IGVTOOLS
 
 ##############################################################
-# Tophat (2.0.8b) and cufflinks (2.1.1)
+# Tophat (2.0.8b) 
 # http://tophat.cbcb.umd.edu/
-WALLTIME_TOPHAT=60:00:00
+WALLTIME_TOPHAT=62:00:00
 MEMORY_TOPHAT=50
 CPU_TOPHAT=16
 NODES_TOPHAT="nodes=2:ppn=8"
@@ -317,10 +317,10 @@ PATH_TOPHAT=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT:$PATH_RNASEQC
 ##############################################################
 # Cufflinks (2.1.1)
 # http://cufflinks.cbcb.umd.edu/
-WALLTIME_CUFFLINKS=60:00:00
+WALLTIME_CUFFLINKS=192:00:00
 MEMORY_CUFFLINKS=50
-CPU_CUFFLINKS=2
-NODES_CUFFLINKS="nodes=1:ppn=2"
+CPU_CUFFLINKS=4
+NODES_CUFFLINKS="nodes=1:ppn=4"
 
 MODULE_CUFFLINKS=
 PATH_CUFFLINKS=
@@ -328,7 +328,7 @@ PATH_CUFFLINKS=
 ##############################################################
 # HTSEQ-count (2.1.1)
 # http://cufflinks.cbcb.umd.edu/
-WALLTIME_HTSEQCOUNT=60:00:00
+WALLTIME_HTSEQCOUNT=24:00:00
 MEMORY_HTSEQCOUNT=50
 CPU_HTSEQCOUNT=1
 NODES_HTSEQCOUNT="nodes=1:ppn=1"

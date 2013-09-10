@@ -146,6 +146,29 @@ else
 fi
 
 ################################################################################
+CHECKPOINT="statistics"    
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    SUMMARYFILE=$OUTDIR/../${n/%.$ASD.bam/.summary.txt}
+    cat /dev/null > $SUMMARYFILE
+    
+    for i in $(ls $OUTDIR/*.fpkm_tracking); do
+        echo "${i##*/} $(cat $i | tail -n+2 | wc -l ); $(cat $i | cut -f 13 | tail -n+2 | sort | uniq -c | tr '\n' ';')" >> $SUMMARYFILE
+    done
+    
+    for i in $(ls $OUTDIR/*.gtf); do
+        if [ -e $i ]; then
+            echo "${i##*/} $(cat $i | wc -l )" >> $SUMMARYFILE
+        fi
+    done
+    
+    # mark checkpoint
+    [ -e $SUMMARYFILE ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM    
+fi
+################################################################################
 [ -e $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf}.dummy ] && rm $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf}.dummy
 echo ">>>>> transcript assembly with cufflinks - FINISHED"
 echo ">>>>> enddate "`date`

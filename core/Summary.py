@@ -240,6 +240,71 @@ def tophat(statsfile):
         
     return names,values
 
+def cufflinksStats(logFile):
+    
+    names=["Transcripts", "Skipped", "Genes FPKM", "% OK", "% Lowdata", "Isoforms FPKM", "% OK", "% Lowdata"]
+    values=[]
+    file=open(logFile).read()
+    # populate
+    tmp=file.split("transcripts.gtf")[1].strip().split()[0]
+    TS=float(tmp.strip())
+    values.append(TS)
+
+    tmp=file.split("skipped.gtf")[1].strip().split()[0]
+    SK=float(tmp.strip())
+    values.append(SK)
+
+    tmp=file.split("genes.fpkm_tracking")[1].split(";")[0].strip().split()[0]
+    GF=float(tmp.strip())
+    values.append(GF)
+
+    try:
+        if not "OK;" in file.split("genes.fpkm_tracking")[1].split("\n")[0]: 
+            raise error
+
+        tmp=file.split("genes.fpkm_tracking")[1].split("OK;")[0].split(";")[-1].strip()
+        GO=float(tmp.strip())
+        values.append(100* GO / GF)
+    except:
+        values.append(0)
+            
+
+    try:
+        if not "LOWDATA;" in file.split("genes.fpkm_tracking")[1].split("\n")[0]: 
+            raise error
+        tmp=file.split("genes.fpkm_tracking")[1].split("LOWDATA;")[0].split(";")[-1].strip()
+        GL=float(tmp.strip())
+        values.append(100* GL / GF)
+    except:
+        values.append(0)
+    
+    tmp=file.split("isoforms.fpkm_tracking")[1].split(";")[0].strip().split()[0]
+    IF=float(tmp.strip())
+    values.append(IF)
+
+    try:    
+        if not "OK;" in file.split("isoforms.fpkm_tracking")[1].split("\n")[0]: 
+            raise error
+
+        tmp=file.split("isoforms.fpkm_tracking")[1].split("OK;")[0].split(";")[-1].strip()
+        IO=float(tmp.strip())
+        values.append(100* IO / IF)
+    except:
+        values.append(0)
+    
+    try:
+        if not "LOWDATA;" in file.split("isoforms.fpkm_tracking")[1].split("\n")[0]: 
+            raise error
+
+        tmp=file.split("isoforms.fpkm_tracking")[1].split("LOWDATA;")[0].split(";")[-1].strip()
+        IL=float(tmp.strip())
+        values.append(100 * IL / IF)
+    except:
+        values.append(0)
+    
+    
+    return names, values
+
 
 def onTarget(statsfile):
     names=["Total reads", "Total paired", "Total  Paired(%)" ,"OnTarget 100","(%)", "Paired on Target 100","(%)"]
@@ -900,6 +965,8 @@ for d in dir:
                 names,values=variant(f)
             if (type=="tophat"):
                 names,values=tophat(f)
+            if (type=="cufflinks"):
+                names,values=cufflinksStats(f)
             if (type=="times"):
                 names,values=time(f)
             if (type=="target"):
