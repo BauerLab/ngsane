@@ -267,7 +267,7 @@ if [[ -n "$RUNCUFFLINKS" || -n "$RUNTOPHATCUFF" ]]; then
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKCUFFLINKS)" .summary.txt cufflinks >>$SUMMARYTMP
 
-    summaryFooter "$CUFFLINKS" "$SUMMARYTMP"
+    summaryFooter "$TASKCUFFLINKS" "$SUMMARYTMP"
 fi
 
 
@@ -277,7 +277,7 @@ if [[ -n "$RUNHTSEQCOUNT" || -n "$RUNTOPHATCUFF" ]]; then
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKHTSEQCOUNT)" _transcripts.gtf gtf >>$SUMMARYTMP
 
-    summaryFooter "$RUNHTSEQCOUNT" "$SUMMARYTMP"
+    summaryFooter "$TASKHTSEQCOUNT" "$SUMMARYTMP"
 fi
 
 ################################################################################
