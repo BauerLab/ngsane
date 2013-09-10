@@ -225,7 +225,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
-    summaryHeader "BOWTIE v1 mapping" "$TASKBOWTIE" "bowtie.sh" "$SUMMARYTMP"
+    summaryHeader "Bowtie v1 mapping" "$TASKBOWTIE" "bowtie.sh" "$SUMMARYTMP"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE)" $ASD.bam.stats samstats >>$SUMMARYTMP
 
@@ -234,7 +234,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
-    summaryHeader "BOWTIE v2 mapping" "$TASKBOWTIE2" "bowtie2.sh" "$SUMMARYTMP"
+    summaryHeader "Bowtie v2 mapping" "$TASKBOWTIE2" "bowtie2.sh" "$SUMMARYTMP"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE2)" $ASD.bam.stats samstats >>$SUMMARYTMP
 
@@ -243,7 +243,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFF" ]]; then
-    summaryHeader "TOPHAT" "$TASKTOPHAT" "tophat.sh" "$SUMMARYTMP"
+    summaryHeader "Tophat" "$TASKTOPHAT" "tophat.sh" "$SUMMARYTMP"
 
 	vali=""
     echo "<br>Note, the duplication rate is not calculated by tophat and hence zero.<br>" >>$SUMMARYTMP
@@ -263,7 +263,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNCUFFLINKS" || -n "$RUNTOPHATCUFF" ]]; then
-    summaryHeader "CUFFLINKS" "$TASKCUFFLINKS" "cufflinks.sh" "$SUMMARYTMP"
+    summaryHeader "Cufflinks" "$TASKCUFFLINKS" "cufflinks.sh" "$SUMMARYTMP"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKCUFFLINKS)" .summary.txt cufflinks >>$SUMMARYTMP
 
@@ -273,7 +273,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNHTSEQCOUNT" || -n "$RUNTOPHATCUFF" ]]; then
-    summaryHeader "HTSEQCOUNT" "$TASKHTSEQCOUNT" "htseqcount.sh" "$SUMMARYTMP"
+    summaryHeader "Htseq-count" "$TASKHTSEQCOUNT" "htseqcount.sh" "$SUMMARYTMP"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKHTSEQCOUNT)" _transcripts.gtf gtf >>$SUMMARYTMP
 
@@ -282,7 +282,7 @@ fi
 
 ################################################################################
 if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
-    summaryHeader "COVERAGE" "$TASKVAR" "gatkSNPs.sh" "$SUMMARYTMP"
+    summaryHeader "Coverage" "$TASKVAR" "gatkSNPs.sh" "$SUMMARYTMP"
 
     vali=$(gatherDirs $TASKDOC)
     echo "<h3>Average coverage</h3>">>$SUMMARYTMP

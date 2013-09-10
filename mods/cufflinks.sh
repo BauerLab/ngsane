@@ -142,7 +142,8 @@ else
     echo "[NOTE] cufflinks end $(date)"
 
     # mark checkpoint
-    [ -e $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM    
+    [ -e $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM || (echo "[ERROR] checkpoint failed: $CHECKPOINT" &&  exit 1)
+
 fi
 
 ################################################################################
@@ -166,7 +167,8 @@ else
     done
     
     # mark checkpoint
-    [ -e $SUMMARYFILE ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM    
+    [ -e $SUMMARYFILE ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM || (echo "[ERROR] checkpoint failed: $CHECKPOINT" &&  exit 1)
+
 fi
 ################################################################################
 [ -e $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf}.dummy ] && rm $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf}.dummy
