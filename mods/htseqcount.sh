@@ -183,6 +183,7 @@ elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-secondstrand" ]; then
 fi
 
 mkdir -p $OUTDIR
+cat /dev/null > $OUTDIR/../${n}_${anno_version}.summary.txt
 
 echo -e "\n[CHECKPOINT] $CHECKPOINT\n"
 ################################################################################
@@ -194,13 +195,18 @@ else
 	samtools sort -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
 	samtools fixmate $OUTDIR/${n/%.$ASD.bam/.tmp.bam} $OUTDIR/${n}
 
-	samtools view $OUTDIR/${n} -f 3 | htseq-count --quiet $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $OUTDIR/${anno_version}.gene
-	samtools view $OUTDIR/${n} -f 3 | htseq-count --quiet --mode=intersection-strict $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $OUTDIR/${anno_version}_strict.gene
-	samtools view $OUTDIR/${n} -f 3 | htseq-count --quiet --mode=intersection-nonempty $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $OUTDIR/${anno_version}_nonempty.gene
-#	samtools view $OUTDIR/${n}  | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $OUTDIR/${anno_version}.transcript
-    
+    for ATTR in gene_id transcript_id; do 
+        for MODE in union intersection-strict intersection-nonempty; do 
+            echo $ATTR $MODE
+        	samtools view $OUTDIR/${n} -f 3 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HT_SEQ_OPTIONS - $GENCODEGTF > $OUTDIR/${anno_version}_$MODE.$ATTR.tmp
+            head -n-5 $OUTDIR/${anno_version}_$MODE.$ATTR.tmp > $OUTDIR/${anno_version}_$MODE.$ATTR
+            echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/${anno_version}_$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/${anno_version}.summary.txt
+            rm $OUTDIR/${anno_version}_$MODE.$ATTR.tmp
+        done
+    done
+
     # mark checkpoint
-    if [ -f $OUTDIR/${anno_version}.gene ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${anno_version}_union.gene_id ];then echo -e "\n[CHECKPOINT] $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
@@ -246,12 +252,14 @@ else
 
     [ -e $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam ] && rm $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam
 	
-    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam -f 3  | htseq-count --quiet $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $OUTDIR/${anno_version}_masked.gene
+    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam -f 3 | htseq-count --quiet $HT_SEQ_OPTIONS - $GENCODEGTF | head -n-5 > $OUTDIR/${anno_version}_masked.gene
+   
     # add intersect
-    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam -f 3  | htseq-count --quiet --mode intersection-strict $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $OUTDIR/${anno_version}_masked_strict.gene
-    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam -f 3  | htseq-count --quiet --mode intersection-nonempty $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENSG > $OUTDIR/${anno_version}_masked_nonempty.gene
+#    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam -f 3 | htseq-count --quiet --mode intersection-strict $HT_SEQ_OPTIONS - $GENCODEGTF | head -n-5 > $OUTDIR/${anno_version}_masked_strict.gene
+#    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam -f 3 | htseq-count --quiet --mode intersection-nonempty $HT_SEQ_OPTIONS - $GENCODEGTF | head -n-5 > $OUTDIR/${anno_version}_masked_nonempty.gene
     
-    #  samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam  | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $OUTDIR/${anno_version}_masked.transcript
+    # same for transcript_id
+#    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam -f 3 | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $OUTDIR/${anno_version}_masked.transcript
 
     echo "[NOTE] calculate RPKMs per Gencode Gene masked"
 
