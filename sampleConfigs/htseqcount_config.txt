@@ -1,0 +1,66 @@
+# author: Fabian Buske
+# date: September 2013
+
+## NOTE: HT-Seq-count expects a GTF with the doctored version is available at the same location. Its only be tested using GENCODE GTFs although other GTFs may work too
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNHTSEQCOUNT="1"    # feature counting
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+## PARAMETER (mandatory)
+##********************
+
+# specify library type for tophat.
+# choose "fr-firststrand" "fr-unstranded" "fr-secondstrand"
+RNA_SEQ_LIBRARY_TYPE="fr-firststrand"
+
+# specify modes and attributes for htseqcount.
+# see http://www-huber.embl.de/users/anders/HTSeq/doc/count.html
+HTSEQCOUNT_MODES=(union intersection-stric intersection-nonempty)
+HTSEQCOUNT_ATTRIBUTES=(gene_id)
+
+## ATTENTION: make sure the GTF file matches your genome assembly (chr naming)
+## see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
+## conversion scripts
+# e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_14/gencode.v14.annotation.gtf
+GTF=
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+#WALLTIME_HTSEQCOUNT=24:00:00
+#MEMORY_HTSEQCOUNT=50
+#CPU_HTSEQCOUNT=1
+#NODES_HTSEQCOUNT="nodes=1:ppn=1"
+#MODULE_HTSEQCOUNT=
+#PATH_HTSEQCOUNT=
+
+
+
+
+
+
+
+
+

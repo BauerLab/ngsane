@@ -62,7 +62,7 @@ echo -e "--R           --\n "$(R --version | head -n 3)
 echo -e "--bedtools    --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 echo -e "--htSeq       --\n "$(htseq-count | tail -n 1)
-[ -z "$(which htseq-count)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no htseq-count or GENCODEGTF detected" && exit 1
+[ -z "$(which htseq-count)" ] && [ -n "$GTF" ] && echo "[ERROR] no htseq-count or GTF detected" && exit 1
 echo -e "--Python      --\n" $(python --version 2>&1 | tee | head -n 1 )
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 [ hash yolk ] && echo -e "--Python libs --\n "$(yolk -l)
@@ -77,7 +77,6 @@ echo -e "\n********* $CHECKPOINT\n"
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
-    dmget -a $(dirname $FASTA)/*
     dmget -a ${f}*
 fi
 
@@ -90,18 +89,15 @@ CHECKPOINT="parameters"
 # get basename of f (samplename)
 n=${f##*/}
 
-# get info about input file
-FASTASUFFIX=${FASTA##*.}
-
 #remove old files
 if [ -z "$RECOVERFROM" ]; then
     if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
 fi
 
 ## GTF provided?
-if [ -n "$GENCODEGTF" ]; then
-    echo "[NOTE] Gencode GTF: $GENCODEGTF"
-    if [ ! -f $GENCODEGTF ]; then
+if [ -n "$GTF" ]; then
+    echo "[NOTE] Gencode GTF: $GTF"
+    if [ ! -f $GTF ]; then
         echo "[ERROR] GENCODE GTF specified but not found!"
         exit 1
     fi 
@@ -113,15 +109,15 @@ elif [ -n "$REFSEQGTF" ]; then
     fi
 fi
 
-if [ -n "$REFSEQGTF" ] && [ -n "$GENCODEGTF" ]; then
+if [ -n "$REFSEQGTF" ] && [ -n "$GTF" ]; then
     echo "[WARN] GENCODE and REFSEQ GTF found. GENCODE takes preference."
 fi
 if [ ! -z "$DOCTOREDGTFSUFFIX" ]; then
-    if [ ! -f ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX} ] ; then
-        echo "[ERROR] Doctored GTF suffix specified but gtf not found: ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX}"
+    if [ ! -f ${GTF/%.gtf/$DOCTOREDGTFSUFFIX} ] ; then
+        echo "[ERROR] Doctored GTF suffix specified but gtf not found: ${GTF/%.gtf/$DOCTOREDGTFSUFFIX}"
         exit 1
     else 
-        echo "[NOTE] Doctored GTF: ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX}"
+        echo "[NOTE] Doctored GTF: ${GTF/%.gtf/$DOCTOREDGTFSUFFIX}"
     fi
 fi
 
@@ -132,14 +128,8 @@ if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then
 else
     echo "[NOTE] RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
-if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
-    echo "[ERROR] library info not set (EXPID, LIBRARY, and PLATFORM): free text needed"
-    exit 1;
-else
-    echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
-fi
 
-annoF=${GENCODEGTF##*/}
+annoF=${GTF##*/}
 anno_version=${annoF%.*}
 
 if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
@@ -158,7 +148,6 @@ fi
 
 BIGWIGSDIR=$OUTDIR/../
 RPKMSSDIR=$OUTDIR/../
-
 
 # run flagstat if no stats available for bam file
 [ ! -e $f.stats ] && samtools flagstat > $f.stats
@@ -182,93 +171,95 @@ elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-secondstrand" ]; then
        HT_SEQ_OPTIONS="--stranded=yes"
 fi
 
+if [ -z "$HTSEQCOUNT_MODES" ]; then
+    echo "[ERROR] HTSEQCOUNT_MODES not defined" && exit 1
+fi
+
+if [ -z "$HTSEQCOUNT_ATTRIBUTES" ]; then
+    echo "[ERROR] HTSEQCOUNT_ATTRIBUTES not defined" && exit 1
+fi
+
 mkdir -p $OUTDIR
-cat /dev/null > $OUTDIR/../${n}_${anno_version}.summary.txt
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-CHECKPOINT="run htseq-count"    
+CHECKPOINT="run htseq-count"
+
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+    cat /dev/null > $OUTDIR/${anno_version}.summary.txt
 
 	samtools sort -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
 	samtools fixmate $OUTDIR/${n/%.$ASD.bam/.tmp.bam} $OUTDIR/${n}
-
-    for ATTR in gene_id transcript_id; do 
-        for MODE in union intersection-strict intersection-nonempty; do 
+    
+    for ATTR in $HTSEQCOUNT_ATTRIBUTES; do 
+        for MODE in $HTSEQCOUNT_MODES; do 
             echo $ATTR $MODE
-        	samtools view $OUTDIR/${n} -f 3 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HT_SEQ_OPTIONS - $GENCODEGTF > $OUTDIR/${anno_version}_$MODE.$ATTR.tmp
-            head -n-5 $OUTDIR/${anno_version}_$MODE.$ATTR.tmp > $OUTDIR/${anno_version}_$MODE.$ATTR
-            echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/${anno_version}_$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/${anno_version}.summary.txt
-            rm $OUTDIR/${anno_version}_$MODE.$ATTR.tmp
+        	samtools view $OUTDIR/${n} -f 3 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HT_SEQ_OPTIONS - $GTF > $OUTDIR/${anno_version}.$MODE.$ATTR.tmp
+            head -n-5 $OUTDIR/${anno_version}.$MODE.$ATTR.tmp > $OUTDIR/${anno_version}.$MODE.$ATTR
+            echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/${anno_version}.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/${anno_version}.summary.txt
+            rm $OUTDIR/${anno_version}.$MODE.$ATTR.tmp
         done
     done
+    
+    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/${anno_version}.union.gene_id $RPKMSSDIR/${n/%.$ASD.bam/_gene_} ${anno_version}
+#    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/${anno_version}.union.transcript_id $RPKMSSDIR/${n/%.$ASD.bam/_transcript_} ${anno_version}
 
     # mark checkpoint
-    if [ -f $OUTDIR/${anno_version}_union.gene_id ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${anno_version}.union.gene_id ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
-
 ################################################################################
-CHECKPOINT="create bigwigs"    
+CHECKPOINT="mask GTF"
+
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-
-	#make a paired only (f -3 ) bam so bigwigs are comparable to counts.
-	samtools view -f 3 -h -b $f > $OUTDIR/${n/%.$ASD.bam/.$ALN.bam}
+    echo "[NOTE] Create filtered bamfile"
 	
-    #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} ${n/%.$ASD.bam/} $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2 > /dev/null
+    ##remove r_RNA and create counts.
+	python ${NGSANE_BASE}/tools/extractFeature.py -f $GTF --keep rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene > $OUTDIR/mask.gff
+	python ${NGSANE_BASE}/tools/extractFeature.py -f $GTF --keep RNA18S5 RNA28S5 -l 17 >> $OUTDIR/mask.gff
+	        
+    intersectBed -v -abam $f -b $OUTDIR/mask.gff > $OUTDIR/${n/%.$ASD.bam/.$ALN.masked.bam}    
+	    
+    samtools index $OUTDIR/${n/%.$ASD.bam/.$ALN.masked.bam}
+
+    [ -e $OUTDIR/mask.gff ] && rm $OUTDIR/mask.gff
+    
+    samtools sort -n $OUTDIR/${n/%.$ASD.bam/.$ALN.masked.bam} $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.tmp}
+    samtools fixmate $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.tmp}.bam $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam}
+
+    [ -e $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.tmp}.bam ] && rm $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.tmp}.bam
 	
     # mark checkpoint
-    if [ -f ${BIGWIGSDIR}/${n/%.$ASD.bam/.bw} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
-fi
-	
+    if [ -f $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+   
+fi	
 ################################################################################
 CHECKPOINT="calculate RPKMs per Gencode Gene"    
+
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     echo "[NOTE] Gencode RPKM calculation"
 	
-    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $OUTDIR/${anno_version}.gene $RPKMSSDIR/${n/%.$ASD.bam/_gene_} ${anno_version} > /dev/null
-
-    echo "[NOTE] Create filtered bamfile"
+	cat /dev/null > $OUTDIR/${anno_version}_masked.summary.txt
 	
-    ##remove r_RNA and create counts.
-	python ${NGSANE_BASE}/tools/extractFeature.py -f $GENCODEGTF --keep rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene > $OUTDIR/mask.gff
-	python ${NGSANE_BASE}/tools/extractFeature.py -f $GENCODEGTF --keep RNA18S5 RNA28S5 -l 17 >> $OUTDIR/mask.gff
-	        
-    intersectBed -v -abam $f -b $OUTDIR/mask.gff > $OUTDIR/tophat_aligned_reads_masked.bam    
-	    
-    samtools index $OUTDIR/tophat_aligned_reads_masked.bam
-
-    [ -e $OUTDIR/mask.gff ] && rm $OUTDIR/mask.gff
+    for ATTR in $HTSEQCOUNT_ATTRIBUTES; do 
+        for MODE in $HTSEQCOUNT_MODES; do 
+            echo $ATTR $MODE
+            samtools view $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} -f 3 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HT_SEQ_OPTIONS - $GTF > $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp
+            head -n-5 $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp > $OUTDIR/${anno_version}_masked.$MODE.$ATTR
+            echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/${anno_version}_masked.summary.txt
+            rm $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp
+        done
+    done
     
-    samtools sort -n $OUTDIR/tophat_aligned_reads_masked.bam $OUTDIR/tophat_aligned_reads_masked_sorted.tmp
-    samtools fixmate $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam $OUTDIR/tophat_aligned_reads_masked_sorted.bam
-
-    [ -e $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam ] && rm $OUTDIR/tophat_aligned_reads_masked_sorted.tmp.bam
-	
-    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam -f 3 | htseq-count --quiet $HT_SEQ_OPTIONS - $GENCODEGTF | head -n-5 > $OUTDIR/${anno_version}_masked.gene
-   
-    # add intersect
-#    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam -f 3 | htseq-count --quiet --mode intersection-strict $HT_SEQ_OPTIONS - $GENCODEGTF | head -n-5 > $OUTDIR/${anno_version}_masked_strict.gene
-#    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam -f 3 | htseq-count --quiet --mode intersection-nonempty $HT_SEQ_OPTIONS - $GENCODEGTF | head -n-5 > $OUTDIR/${anno_version}_masked_nonempty.gene
-    
-    # same for transcript_id
-#    samtools view $OUTDIR/tophat_aligned_reads_masked_sorted.bam -f 3 | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $OUTDIR/${anno_version}_masked.transcript
-
     echo "[NOTE] calculate RPKMs per Gencode Gene masked"
 
-    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GENCODEGTF $OUTDIR/${anno_version}_masked.gene $RPKMSSDIR/${n/%.$ASD.bam/_gene_masked_} ${anno_version} > /dev/null
-
-    [ -e $OUTDIR/tophat_aligned_reads_masked_sorted.bam ] && rm $OUTDIR/tophat_aligned_reads_masked_sorted.bam
-
-    #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} ${n/%.$ASD.bam/}_masked $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2 > /dev/null
+    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/${anno_version}_masked.union.gene_id $RPKMSSDIR/${n/%.$ASD.bam/_gene_masked_} ${anno_version} 
+#    Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/${anno_version}_masked.union.transcript_id $RPKMSSDIR/${n/%.$ASD.bam/_transcript_masked_} ${anno_version} 
 
     # mark checkpoint
     if [ -f $RPKMSSDIR/${n/%.$ASD.bam/_gene_RPKM}${anno_version}.csv ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -276,10 +267,41 @@ else
 fi
 
 ################################################################################
+CHECKPOINT="create bigwigs"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+
+	#make a paired only (f -3 ) bam so bigwigs are comparable to counts.
+	samtools view -f 3 -h -b $f > $OUTDIR/${n/%.$ASD.bam/.$ALN.bam}
+	
+    #file_arg sample_arg stranded_arg firststrand_arg paired_arg
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} ${n/%.$ASD.bam/} $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
+
+    #file_arg sample_arg stranded_arg firststrand_arg paired_arg
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} ${n/%.$ASD.bam/}_masked $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
+
+    [ -e $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} ] && rm $OUTDIR/${n/%.$ASD.bam/.$ALN.bam}
+    
+    # mark checkpoint
+    if [ -f ${BIGWIGSDIR}/${n/%.$ASD.bam/.bw} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi
+
+################################################################################
+CHECKPOINT="summarize"
+
+cat $OUTDIR/${anno_version}.summary.txt | awk '{print all,$0}' > $OUTDIR/../${n}_${anno_version}.summary.txt
+cat $OUTDIR/${anno_version}_masked.summary.txt | awk '{print masked,$0}' >> $OUTDIR/../${n}_${anno_version}.summary.txt
+   
+echo -e "\n********* $CHECKPOINT\n"
+################################################################################
 CHECKPOINT="cleanup"    
 
 [ -e $OUTDIR/${n} ] && rm $OUTDIR/${n}
-[ -e $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} ] && rm $OUTDIR/${n/%.$ASD.bam/.$ALN.bam} 
+[ -e $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} ] && rm $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam}
+[ -e $OUTDIR/${anno_version}.summary.txt ] && rm $OUTDIR/${anno_version}.summary.txt
+[ -e $OUTDIR/${anno_version}_masked.summary.txt ] && rm $OUTDIR/${anno_version}_masked.summary.txt
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
