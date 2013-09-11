@@ -119,7 +119,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             # add log-file for recovery
             COMMAND2="$COMMAND2 --recover-from $LOGFILE"
             
-            if [[ $(grep -P "^>>>>> .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then
+            if [[ $(grep -P "^\>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then
                 echo "[NOTE] Previous $TASK run finished without error - nothing to be done"
                 MYPBSIDS=""
                 continue

@@ -110,7 +110,7 @@ fi
 SUMERRORS=0
 for i in $QOUT/$TASK/*.out;do
     echo -e "\n${i/$LOGFOLDER\//}"
-    ERRORLIST=$(grep -P "^\[ERROR\]" $i)
+    ERRORLIST=$(grep -P "^\[ERROR\])" $i)
     if [ -n "$ERRORLIST" ]; then 
         echo $ERRORLIST
     else

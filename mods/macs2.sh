@@ -107,17 +107,19 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name ${n/.$ASD.bam/} > ${n/.$ASD.bam/}.summary.txt 2>&1"
+    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED --bdg --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name ${n/.$ASD.bam/} > ${n/.$ASD.bam/}.summary.txt"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    Rscript ${n/.$ASD.bam/}_model.r
-
-    if [ -n "$(which convert)" ]; then 
-        convert -format png ${n/.$ASD.bam/_model.pdf} ${n/.$ASD.bam/_model.png}
+    if [ -f ${n/.$ASD.bam/}_model.r ];then 
+    
+        Rscript ${n/.$ASD.bam/}_model.r
+        if [ hash convert ]; then 
+            convert -format png ${n/.$ASD.bam/_model.pdf} ${n/.$ASD.bam/_model.png}
+        fi
     fi
-
+    
     # mark checkpoint
-    if [ -f ${n/.$ASD.bam/}_model.r ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f ${n/.$ASD.bam/}_peaks.xls ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -130,7 +132,7 @@ else
     
     if [ -n "$CHIPINPUT" ]; then
 
-        RUN_COMMAND="macs2 bdgcmp $MACS2_BDGCMP_ADDPARAM --method $MACS2_BDGCMP_METHOD --tfile ${n/.$ASD.bam/_treat_pileup.bdg} --cfile ${n/.$ASD.bam/_control_lambda.bdg} --output ${n/.$ASD.bam/} >> ${n/.$ASD.bam/}.summary.txt 2>&1"
+        RUN_COMMAND="macs2 bdgcmp $MACS2_BDGCMP_ADDPARAM --method $MACS2_BDGCMP_METHOD --tfile ${n/.$ASD.bam/_treat_pileup.bdg} --cfile ${n/.$ASD.bam/_control_lambda.bdg} --output ${n/.$ASD.bam/} >> ${n/.$ASD.bam/}.summary.txt"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
 	if [ -n "$(which bedToBigBed)" ]; then 
@@ -169,7 +171,7 @@ else
         cat ${n/.$ASD.bam/}_peaks.narrowPeak | cut -f1-6 > ${n/.$ASD.bam/}_peaks.bed
     fi
 
-    RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b ${n/.$ASD.bam/}_peaks.bed -i $f --o-prefix ${n/.$ASD.bam/}  >> ${n/.$ASD.bam/}.summary.txt 2>&1"
+    RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b ${n/.$ASD.bam/}_peaks.bed -i $f --o-prefix ${n/.$ASD.bam/}  >> ${n/.$ASD.bam/}.summary.txt"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     [ -e ${n/.$ASD.bam/}_peaks.bed ] && rm ${n/.$ASD.bam/}_peaks.bed    
 
