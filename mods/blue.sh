@@ -76,7 +76,7 @@ n=${f##*/}
 #    PAIRED="0"
 #fi
 
-mkdir -p $MYOUT/tessle
+mkdir -p $MYOUT/tessel
 
 FILES=""
 for i in $(ls ${f/$READONE/\*}); do
@@ -102,18 +102,18 @@ fi
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
-CHECKPOINT="tessle"    
+CHECKPOINT="tessel"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-	RUN_COMMAND="mono ${BLUE_HOME}/Tessel.exe $TESSLEADDPARAM -t $CPU_BLUE -tmp $TMP -k $KMER -g $GENOME $MYOUT/tessle/$n $FILES"
+	RUN_COMMAND="mono ${BLUE_HOME}/Tessel.exe $TESSELADDPARAM -t $CPU_BLUE -tmp $TMP -k $KMER -g $GENOME $MYOUT/tessel/$n $FILES"
 
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -f $MYOUT/tessle/$n"_"$KMER.cbt ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $MYOUT/tessel/$n"_"$KMER.cbt ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -124,7 +124,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
 else 
 
 
-	RUN_COMMAND="mono ${BLUE_HOME}/Blue.exe $BLUEADDPARAM -t $CPU_BLUE -m $CUTOFF -o $MYOUT $MYOUT/tessle/$n*.cbt $FILES"
+	RUN_COMMAND="mono ${BLUE_HOME}/Blue.exe $BLUEADDPARAM -t $CPU_BLUE -m $CUTOFF -o $MYOUT $MYOUT/tessel/$n*.cbt $FILES"
 
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
