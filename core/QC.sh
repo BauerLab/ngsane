@@ -47,7 +47,7 @@ CHECKPOINTS_PASSED=0
 CHECKPOINTS_FAILED=0
 
 # FINISHED ?
-finished=$(grep "FINISHED" $QOUT/$TASK/*.out | cut -d ":" -f 1 | sort -u | wc -l)
+finished=$(grep -P "^>{5} .*  FINISHED" $QOUT/$TASK/*.out | cut -d ":" -f 1 | sort -u | wc -l)
 if [ "$finished" = "$files" ]; then
     echo "QC_PASS .. finished are $finished/$files"
     CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
@@ -110,7 +110,7 @@ fi
 SUMERRORS=0
 for i in $QOUT/$TASK/*.out;do
     echo -e "\n${i/$LOGFOLDER\//}"
-    ERRORLIST=$(grep -P "^\[ERROR\])" $i)
+    ERRORLIST=$(grep -P "^\[ERROR\]" $i)
     if [ -n "$ERRORLIST" ]; then 
         echo $ERRORLIST
     else

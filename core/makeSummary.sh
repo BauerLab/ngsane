@@ -207,7 +207,7 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     	python ${NGSANE_BASE}/core/Summary.py "$vali" merg.anno.stats annostats >>$SUMMARYTMP
     	ROUTH=runStats/$(echo ${DIR[@]}|sed 's/ /_/g')
     	if [ ! -e $ROUTH ]; then mkdir $ROUTH; fi
-	   python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
+	    python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
     fi
     
     summaryFooter "$TASKBWA" "$SUMMARYTMP"

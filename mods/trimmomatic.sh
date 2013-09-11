@@ -114,6 +114,7 @@ else
     if [ "$PAIRED" = "1" ]
     then
         RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED $TRIMMOMATICADDPARAM -threads $CPU_TRIMMOMATIC $f ${f/$READONE/$READTWO} $o ${o/$READONE/${READONE}_unpaired} ${o/$READONE/$READTWO} ${o/$READONE/${READTWO}_unpaired} $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
+
     else
         RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $FASTQ_PHRED $TRIMMOMATICADDPARAM -threads $CPU_TRIMMOMATIC $f $o $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
     fi

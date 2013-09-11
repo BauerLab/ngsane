@@ -105,7 +105,11 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 	COMMANDARR=(${COMMAND// / })
 	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/")
 	D=$(eval $DUMMY)
-	touch $dir/$TASK/$D.dummy
+	if [ -z "$NODIR" ]; then
+    	touch $dir/$TASK/$D.dummy
+    elif [ -n "$REV" ]; then
+        touch $TASK/$dir/$D.dummy
+    fi
 
     echo $COMMAND2
 
@@ -119,7 +123,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             # add log-file for recovery
             COMMAND2="$COMMAND2 --recover-from $LOGFILE"
             
-            if [[ $(grep -P "^\>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then
+            if [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then
                 echo "[NOTE] Previous $TASK run finished without error - nothing to be done"
                 MYPBSIDS=""
                 continue
