@@ -20,8 +20,6 @@ RUNPEAKRANGER=""     # Peakranger
 
 TASKBOWTIE=$TASKBOWTIE2
 
-MODULE_PEAKRANGER="boost/1.49.0 R/2.15.1"
-PATH_PEAKRANGER=/datastore/asc/cam258/
 PEAKRANGER_PEAKS="broad"
 CHIPINPUT="ChIPseq_input/$TASKBOWTIE/Input_chr16.asd.bam"
 
