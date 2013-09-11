@@ -54,6 +54,7 @@ TASKPEAKRANGER="peakranger"
 TASKMACS2="macs2"
 TASKMEMECHIP="memechip"
 TASKFASTQSCREEN="fastqscreen"
+TASKBLUE="blue"
 
 ##############################################################
 # PROGRAM PATHS
