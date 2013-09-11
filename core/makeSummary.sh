@@ -196,11 +196,40 @@ fi
 
 
 ################################################################################
+if [[ -n "$RUNBLUE" ]]; then
+    summaryHeader "BLUE error correction" "$TASKBLUE" "blue.sh" "$SUMMARYTMP"
+
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/fastq/${dir/_$TASKBLUE/}_$TASKBLUE/"
+    done
+
+    python ${NGSANE_BASE}/core/Summary.py "$vali" stats.txt blue >>$SUMMARYTMP
+
+	mkdir -p runstats/blue
+	BLUEOUT=runstats/blue/$(echo ${DIR[@]}|sed 's/ /_/g').ggplot
+	IMAGE=runstats/blue/$(echo ${DIR[@]}|sed 's/ /_/g').pdf
+	echo -e "copy\tcount\tvalue\tperc\tsample" > $BLUEOUT
+	for i in $(ls $vali/tessle/*histo*); do
+		name=$(basename $i)
+		arrIN=(${name//$READONE/ })
+		head -n -10 $i | tail -n +4 | gawk -v x=${arrIN[0]} '{print $0"\t"x}'; 
+	done >> $BLUEOUT
+	Rscript ${NGSANE_BASE}/tools/blue.R $BLUEOUT $IMAGE
+	convert $IMAGE ${IMAGE/pdf/jpg}
+	echo "<h3>Annotation of mapped reads</h3>" >> $SUMMARYTMP
+	echo "<a href=$IMAGE><img src=\""${IMAGE/.pdf/}".jpg\"></a>">>$SUMMARYTMP
+
+    summaryFooter "$TASKBLUE" "$SUMMARYTMP"
+fi
+
+
+
+################################################################################
 if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     summaryHeader "BWA mapping" "$TASKBWA" "bwa.sh" "$SUMMARYTMP"
 
-    vali=$(gatherDirs $TASKBWA)
-    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBWA)" $ASD.bam.stats samstats >>$SUMMARYTMP
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
     	echo "<h3>Annotation</h3>" >>$SUMMARYTMP

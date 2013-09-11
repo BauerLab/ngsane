@@ -205,6 +205,27 @@ if [ -n "$RUNFASTQSCREEN" ]; then
         --command "$NGSANE_BASE/mods/fastqscreen.sh -k $CONFIG -f <FILE>  -o $OUT/<DIR>/$TASKFASTQSCREEN"
 fi
 
+
+
+################################################################################
+#   Blue
+#
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $OUT/$dir_healed/*.
+################################################################################
+
+if [ -n "$RUNBLUE" ]; then
+    if [ -z "$TASKBLUE" ] || [ -z "$NODES_BLUE" ] || [ -z "$CPU_BLUE" ] || [ -z "$MEMORY_BLUE" ] || [ -z "$WALLTIME_BLUE" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -d -k $CONFIG -t $TASKBLUE -i fastq -e $READONE.$FASTQ -n $NODES_BLUE \
+	   -c $CPU_BLUE -m $MEMORY_BLUE"G" -w $WALLTIME_BLUE \
+	   --command "${NGSANE_BASE}/mods/blue.sh -k $CONFIG -f <FILE>" 
+
+fi
+
+
+
+
 ################################################################################
 #   CUTADAPT remove contaminants
 #

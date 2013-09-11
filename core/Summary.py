@@ -211,6 +211,27 @@ def samstats(statsfile):
 
 
 
+# sam statiscis for initial aligment
+def blue(statsfile):
+    names=["Total reads","Reads OK","Reads OK%","healed","healed%","not healed", "not healed %","discarded", "discarded %","subs","dels","ins"]
+    values=[]
+    st=re.split("[\n]+",open(statsfile).read())
+    values.append(int(st[2].split("\t")[0])) # total
+    values.append(int(st[3].split("\t")[0])) # acepted
+    values.append(float(values[-1])/float(values[0])*100) # %
+    values.append(int(st[7].split("\t")[0])) # healed
+    values.append(float(values[-1])/float(values[0])*100) # %
+    values.append(int(st[11].split("\t")[0])) # not healed
+    values.append(float(values[-1])/float(values[0])*100) # %
+    values.append(int(st[17].split("\t")[0])) # discarded
+    values.append(float(values[-1])/float(values[0])*100) # %
+    values.append(int(st[20].split("\t")[0]))
+    values.append(int(st[21].split("\t")[0]))
+    values.append(int(st[22].split("\t")[0]))
+        
+    return names,values
+
+
 
 # sam statiscis for initial aligment
 def tophat(statsfile):
@@ -928,6 +949,8 @@ for d in dir:
                 names,values=memechipStats(f)
             if (type=="fastqscreen"):
                 names,values=fastqscreenStats(f)
+            if (type=="blue"):
+				names,values=blue(f)
 
             result=addValues(result,values)
 
