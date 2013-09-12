@@ -138,13 +138,13 @@ fi
 
 if [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-unstranded" ]; then
        echo "[NOTE] library is fr-unstranded; do not run htseq-count stranded"
-       HT_SEQ_OPTIONS="--stranded=no"
+       HTSEQCOUNT_ADDPARAMS="--stranded=no"
 elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-firststrand" ]; then
        echo "[NOTE] library is fr-firststrand; run htseq-count stranded"
-       HT_SEQ_OPTIONS="--stranded=reverse"
+       HTSEQCOUNT_ADDPARAMS="--stranded=reverse"
 elif [ "$RNA_SEQ_LIBRARY_TYPE" = "fr-secondstrand" ]; then
        echo "[NOTE] library is fr-secondstrand; run htseq-count stranded"
-       HT_SEQ_OPTIONS="--stranded=yes"
+       HTSEQCOUNT_ADDPARAMS="--stranded=yes"
 fi
 
 if [ -z "$HTSEQCOUNT_MODES" ]; then
@@ -190,14 +190,15 @@ else
 
 	samtools sort -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
 	samtools fixmate $OUTDIR/${n/%.$ASD.bam/.tmp.bam} $OUTDIR/${n}
+	rm $OUTDIR/${n/%.$ASD.bam/.tmp}.bam
     
     for ATTR in $HTSEQCOUNT_ATTRIBUTES; do 
         for MODE in $HTSEQCOUNT_MODES; do 
-            echo $ATTR $MODE
+            echo "[NOTE] processing $ATTR $MODE"
             if [ "$PAIRED" ]; then 
-            	samtools view $OUTDIR/${n} -f 3 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HT_SEQ_OPTIONS - $GTF > $OUTDIR/${anno_version}.$MODE.$ATTR.tmp
+            	samtools view $OUTDIR/${n} -f 3 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/${anno_version}.$MODE.$ATTR.tmp
             else
-            	samtools view $OUTDIR/${n} -F 4 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HT_SEQ_OPTIONS - $GTF > $OUTDIR/${anno_version}.$MODE.$ATTR.tmp
+            	samtools view $OUTDIR/${n} -F 4 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/${anno_version}.$MODE.$ATTR.tmp
         	fi
             head -n-5 $OUTDIR/${anno_version}.$MODE.$ATTR.tmp > $OUTDIR/${anno_version}.$MODE.$ATTR
             echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/${anno_version}.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/${anno_version}.summary.txt
@@ -208,7 +209,7 @@ else
     done
     
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%.$ASD.bam/.$MODE.$ATTR} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $RPKMSSDIR/${n/%.$ASD.bam/.$MODE.$ATTR}.RPKM.${anno_version}.csv ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 	
 ################################################################################
@@ -221,30 +222,30 @@ else
 	
     for ATTR in $HTSEQCOUNT_ATTRIBUTES; do 
         for MODE in $HTSEQCOUNT_MODES; do 
-            echo $ATTR $MODE
+            echo "[NOTE] processing $ATTR $MODE"
             if [ "$PAIRED" ]; then 
-                samtools view $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} -f 3 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HT_SEQ_OPTIONS - $GTF > $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp
+                samtools view $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} -f 3 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp
             else
-                samtools view $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} -F 4 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HT_SEQ_OPTIONS - $GTF > $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp
+                samtools view $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} -F 4 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp
             fi
             head -n-5 $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp > $OUTDIR/${anno_version}_masked.$MODE.$ATTR
             echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/${anno_version}_masked.summary.txt
             rm $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp
 
-            Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/${anno_version}_masked.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/.$MODE.$ATTR} ${anno_version} 
+            Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/${anno_version}_masked.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/_masked.$MODE.$ATTR} ${anno_version} 
         done
     done
 
     # mark checkpoint
-    if [ -f $RPKMSSDIR/${n/%.$ASD.bam/.$MODE.$ATTR}_RPKM_${anno_version}.csv ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $RPKMSSDIR/${n/%.$ASD.bam/_masked.$MODE.$ATTR}.RPKM.${anno_version}.csv ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
    
 fi
 
 ################################################################################
 CHECKPOINT="summarize"
 
-cat $OUTDIR/${anno_version}.summary.txt | awk '{print all,$0}' > $OUTDIR/../${n}_${anno_version}.summary.txt
-cat $OUTDIR/${anno_version}_masked.summary.txt | awk '{print masked,$0}' >> $OUTDIR/../${n}_${anno_version}.summary.txt
+cat $OUTDIR/${anno_version}.summary.txt | awk '{print all,$0}' > $RPKMSSDIR/${n}_${anno_version}.summary.txt
+cat $OUTDIR/${anno_version}_masked.summary.txt | awk '{print masked,$0}' >> $RPKMSSDIR/${n}_${anno_version}.summary.txt
    
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################

@@ -172,7 +172,7 @@ if [ -n "$GTF" ]; then
         fi
     fi
 else
-    echo "[ERROR] no GTF specified!"
+    echo "[NOTE] no GTF specified!"
 fi
 
 # check library info is set

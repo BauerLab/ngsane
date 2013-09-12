@@ -53,6 +53,9 @@ GTF=
 # PARAMETER (optional overwriting defaults)
 #********************
 
+# additional parameters for HTSEQ-count call
+HTSEQCOUNT_ADDPARAMS=
+
 # activate to use doctored GTF file for HTSeq-count (provides additional info)
 # assumes the doctored GTF is at the same location as the original one but
 # has a different suffix
