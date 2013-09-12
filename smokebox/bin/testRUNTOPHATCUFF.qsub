@@ -18,19 +18,53 @@ done
 ############################################################################
 
 
-# modify the template config file to flip the RUNTOPHATCUFFLINKS switch
+# modify the template config file to flip the RUNTOPHATLINKS switch
 # specify the resulting html file
-echo "[NOTE] Prep config file tmp/configTOPHATCUFF.txt"
-cat bin/tmpl/config.txt | sed 's/RUNTOPHATCUFF=\"\"/RUNTOPHATCUFF=\"1\"/g' | \
-    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHATCUFF\"/g' > tmp/configTOPHATCUFF.txt
+echo "[NOTE] Prep config file tmp/configTOPHAT.txt"
+cat bin/tmpl/config.txt | sed 's/RUNTOPHAT=\"\"/RUNTOPHAT=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHAT\"/g' > tmp/configTOPHAT.txt
 
-# submit the TOPHATCUFF run to the cluster
-JOBIDS=$( trigger.sh tmp/configTOPHATCUFF.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
+# submit the TOPHAT run to the cluster
+JOBIDS=$( trigger.sh tmp/configTOPHAT.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDS)"
+
+############################################################################
+#  CUFFLINKS
+############################################################################
+
+
+# modify the template config file to flip the RUNCUFFLINKS switch
+# specify the resulting html file
+echo "[NOTE] Prep config file tmp/configCUFFLINKS.txt"
+cat bin/tmpl/config.txt | sed 's/RUNCUFFLINKS=\"\"/RUNCUFFLINKS=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryCUFFLINKS\"/g' > tmp/configCUFFLINKS.txt
+echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}\"" >>tmp/configCUFFLINKS.txt
+
+# submit the CUFFLINKS run to the cluster
+JOBIDSCUFF=$( trigger.sh tmp/configCUFFLINKS.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSCUFF)"
+
+
+############################################################################
+#  HTSEQCOUNT
+############################################################################
+
+
+# modify the template config file to flip the RUNHTSEQCOUNTLINKS switch
+# specify the resulting html file
+echo "[NOTE] Prep config file tmp/configHTSEQCOUNT.txt"
+cat bin/tmpl/config.txt | sed 's/RUNHTSEQCOUNT=\"\"/RUNHTSEQCOUNT=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHTSEQCOUNT\"/g' > tmp/configHTSEQCOUNT.txt
+echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}\"" >>tmp/configHTSEQCOUNT.txt
+
+# submit the HTSEQCOUNT run to the cluster
+JOBIDSHTSEQ=$( trigger.sh tmp/configHTSEQCOUNT.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSHTSEQ)"
 
 #######################################
 # TEST
 #######################################
+JOBIDS="$JOBIDSCUFF:$JOBIDSHTSEQ" #other things
 
 HOLDID=" "$QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}
 

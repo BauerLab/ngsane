@@ -22,7 +22,7 @@ cat bin/tmpl/configChIPseq.txt | sed 's/RUNMAPPINGBOWTIE2=\"\"/RUNMAPPINGBOWTIE2
 
 # submit the BOWTIE2 run to the cluster
 JOBIDS=$( trigger.sh tmp/configBOWTIE2.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
+echo "[NOTE] submitted jobs $(echo -n $JOBIDS)"
 
 
 ############################################################################
@@ -39,7 +39,7 @@ echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}\"" >>tmp/configPEAKRANGER
 
 # submit the PEAKRANGER run to the cluster
 JOBIDSPR=$( trigger.sh tmp/configPEAKRANGER.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] sumitted jobs $(echo -n $JOBIDSPR)"
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSPR)"
 
 
 ############################################################################
@@ -50,7 +50,7 @@ echo "[NOTE] sumitted jobs $(echo -n $JOBIDSPR)"
 #######################################
 # TEST
 #######################################
-JOBIDS=$JOBIDSPR #other things
+JOBIDS="$JOBIDSPR" #other things
 
 HOLDID=" "$QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}
 cat bin/tmpl/configChIPseq.txt | sed 's/RUNMAPPINGBOWTIE2=\"\"/RUNMAPPINGBOWTIE2=\"1\"/g' | \
