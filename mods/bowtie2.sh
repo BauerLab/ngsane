@@ -170,7 +170,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM $FASTQ_PHRED -t -x ${FASTA/.${FASTASUFFIX}/} -p $CPU_BOWTIE2 $READS --un $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}"
+    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM $FASTQ_PHRED -t -x ${FASTA/.${FASTASUFFIX}/} -p $CPU_BOWTIE2 $READS --un-gz $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq.gz} | samtools view -bS -t $FASTA.fai - > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
@@ -183,14 +183,47 @@ CHECKPOINT="bam conversion and sorting"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-       
+    # create bam files for discarded reads and remove fastq files    
+    if [ $PAIRED == "1" ]; then
+        if [ -e $MYOUT/${n/%$READONE.$FASTQ/.${UNM}_1.fq.gz} ]; then
+            java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
+                FASTQ=$MYOUT/${n/%$READONE.$FASTQ/.${UNM}_1.fq.gz} \
+                FASTQ2=$MYOUT/${n/%$READONE.$FASTQ/.${UNM}_2.fq.gz} \
+                OUTPUT=$MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam} \
+                QUALITY_FORMAT=Standard \
+                SAMPLE_NAME=${n/%$READONE.$FASTQ/} \
+                READ_GROUP_NAME=null \
+                QUIET=TRUE \
+                VERBOSITY=ERROR
+            samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam} $MYOUT/${n/%$READONE.$FASTQ/.$UNM.tmp}
+            mv $MYOUT/${n/%$READONE.$FASTQ/.$UNM.tmp.bam} $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam}
+        fi
+    
+    else
+        if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq.gz} ]; then
+            java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
+                FASTQ=$MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq.gz} \
+                OUTPUT=$MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam} \
+                QUALITY_FORMAT=Standard \
+                SAMPLE_NAME=${n/%$READONE.$FASTQ/} \
+                READ_GROUP_NAME=null \
+                QUIET=TRUE \
+                VERBOSITY=ERROR
+            samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam} $MYOUT/${n/%$READONE.$FASTQ/.$UNM.tmp}
+            mv $MYOUT/${n/%$READONE.$FASTQ/.$UNM.tmp.bam} $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam}
+        fi
+    fi
+
     samtools sort $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} $MYOUT/${n/%$READONE.$FASTQ/.map}
-    samtools view -bt $FASTA.fai $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} | samtools sort - $MYOUT/${n/%$READONE.$FASTQ/.unm}
+
     # merge mappend and unmapped
-    samtools merge -f $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam $MYOUT/${n/%$READONE.$FASTQ/.map}.bam $MYOUT/${n/%$READONE.$FASTQ/.unm}.bam 
+    samtools merge -f $MYOUT/${n/%$READONE.$FASTQ/.ash}.bam $MYOUT/${n/%$READONE.$FASTQ/.map}.bam $MYOUT/${n/%$READONE.$FASTQ/.$UNM}.bam 
     # remove sam files 
+    
     [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
-    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.un.sam}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$UNM.bam}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.${UNM}.fq.gz} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.${UNM}.fq.gz}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.${UNM}_1.fq.gz} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.${UNM}_*.fq.gz}
     
     if [ "$PAIRED" = "1" ]; then
         # fix mates

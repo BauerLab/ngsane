@@ -322,7 +322,7 @@ else
 
     echo "********* calculate inner distance"
     echo "[NOTE] picard CollectMultipleMetrics"
-    if [ ! -e $OUTDIR/../metrices ]; then mkdir $OUTDIR/../metrices ; fi
+    if [ ! -e $OUTDIR/../metrices ]; then mkdir -p $OUTDIR/../metrices ; fi
     THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
     mkdir -p  $THISTMP
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
