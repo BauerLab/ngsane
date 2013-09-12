@@ -322,7 +322,7 @@ else
 
     echo "********* calculate inner distance"
     echo "[NOTE] picard CollectMultipleMetrics"
-    if [ ! -e $OUTDIR/../metrices ]; then mkdir $OUTDIR/../metrices ; fi
+    if [ ! -e $OUTDIR/../metrices ]; then mkdir -p $OUTDIR/../metrices ; fi
     THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
     mkdir -p  $THISTMP
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
@@ -441,7 +441,7 @@ else
     Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R ${BAMFILE/.$ASD/.$ALN} ${n/%$READONE.$FASTQ/} $BAM2BW_OPTION_1 $OUTDIR/../ $BAM2BW_OPTION_2
 
     # mark checkpoint
-    if [ -f $OUTDIR/../${n/%$READONE.$FASTQ/.bw} ] || [ -f $OUTDIR/${n/%$READONE.$FASTQ/+.bw} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/../${n/%$READONE.$FASTQ/.bw} ] || [ -f $OUTDIR/../${n/%$READONE.$FASTQ/_+.bw} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 

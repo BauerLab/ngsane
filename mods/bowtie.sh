@@ -280,8 +280,10 @@ else
     fi
     # cleanup
     [ -e $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$UNM.fq}
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.${UNM}_1.fq} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.${UNM}_*.fq}
     [ -e $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$MUL.fq}
-    
+    [ -e $MYOUT/${n/%$READONE.$FASTQ/.${MUL}_1.fq} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.${MUL}_*.fq}
+        
     # continue for normal bam file conversion                                                                         
     samtools view -Sbt $FASTA.fai $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam} > $MYOUT/${n/%$READONE.$FASTQ/.$ALN.bam}
     [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.$ALN.sam}
