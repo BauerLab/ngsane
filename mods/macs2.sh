@@ -80,10 +80,12 @@ echo -e "\n********* $CHECKPOINT\n"
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
+	dmget -a $(dirname $FASTA)/*
 	dmget -a ${f}
 	[ -n $CHIPINPUT ] && dmget -a $CHIPINPUT
 fi
 
+GENOME_CHROMSIZES=$FASTA.chrom.size
 cd $OUTDIR
 
 # set default method to ppois unless specified
@@ -136,14 +138,14 @@ else
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
 	if [ -n "$(which bedToBigBed)" ]; then 
-            bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
-            bedToBigBed -type=bed4 ${n/.$ASD.bam/_control_lambda.bdg} $CHROMSIZES ${n/.$ASD.bam/_control_lambda.bb}
-            bedToBigBed -type=bed4 ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg} $CHROMSIZES ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bb}
+            bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
+            bedToBigBed -type=bed4 ${n/.$ASD.bam/_control_lambda.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_control_lambda.bb}
+            bedToBigBed -type=bed4 ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bb}
         fi
 
     else
         if [ -n "$(which bedToBigBed)" ]; then
-            bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
+            bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
         fi
     fi
 
