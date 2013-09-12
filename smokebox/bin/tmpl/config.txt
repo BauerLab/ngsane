@@ -90,8 +90,8 @@ declare -a DIR; DIR=( Transcript )
 OUT=$SOURCE
 QOUT=$OUT/qout
 
-#READONE="R1"
-#READTWO="R2"
+#READONE="_R1"
+#READTWO="_R2"
 READONE="_read1"
 READTWO="_read2"
 FASTQ=fastq
