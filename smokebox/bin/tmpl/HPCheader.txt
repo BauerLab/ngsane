@@ -1,3 +1,5 @@
+#!/bin/bash -e
+
 #PBS -l walltime=03:00:00
 #PBS -l vmem=4gb
 #PBS -l nodes=1:ppn=1
@@ -14,9 +16,10 @@
 #$ -o qout/NAME.out
 #$ -j yes
 #$ -V
+#$ -S /bin/bash
 
 if [ -n "$PBS_O_WORKDIR" ]; then
-	cd $PBS_O_WORKDIR
+        cd $PBS_O_WORKDIR
 else
         ## SGE
         . /etc/profile.d/modules.sh

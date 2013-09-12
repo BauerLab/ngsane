@@ -20,7 +20,7 @@ cat bin/tmpl/config.txt | sed 's/RUNTOPHATCUFF=\"\"/RUNTOPHATCUFF=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHATCUFF\"/g' > tmp/configTOPHATCUFF.txt
 
 # submit the TOPHATCUFF run to the cluster
-JOBIDS=$( trigger.sh tmp/configTOPHATCUFF.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 |  tr '\n' ':')
+JOBIDS=$( trigger.sh tmp/configTOPHATCUFF.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
 
 HOLDID=" "$QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}
