@@ -1,0 +1,37 @@
+
+# the ngsane version to be tested needs to be loaded by hand
+. $NGSANE_BASE/conf/header.sh
+
+#clean up earlier runs
+for dir in ${DIR[@]}; do
+    echo "[NOTE] remove old $dir/tophat $dir/cufflinks"
+    if [ -e $dir/bwa ]; then 
+       rm -rf $dir/tophat; rm -rf $QOUT/tophat/$dir*;
+       rm -rf $dir/cufflinks; rm -rf $QOUT/cufflins/$dir*;
+    fi
+done 
+
+# modify the template config file to flip the RUNTOPHATCUFFLINKS switch
+# specify the resulting html file
+echo "[NOTE] Prep config file tmp/configTOPHATCUFF.txt"
+cat bin/tmpl/config.txt | sed 's/RUNTOPHATCUFF2=\"\"/RUNTOPHATCUFF2=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHATCUFF\"/g' > tmp/configTOPHATCUFF.txt
+
+# submit the TOPHATCUFF run to the cluster
+JOBIDS=$( trigger.sh tmp/configTOPHATCUFF.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 |  tr '\n' ':')
+echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
+
+HOLDID=" "$QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}
+
+# prepare the job to generate the html result page and perform the diff 
+echo "[NOTE] prepare evaluation script tmp/testTOPHATCUFF.qsub"
+sed 's/NAME/TOPHATCUFF/g' bin/tmpl/HPCheader.txt >tmp/testTOPHATCUFF.qsub
+echo "trigger.sh tmp/configTOPHATCUFF.txt html" >> tmp/testTOPHATCUFF.qsub
+echo "diff result/SummaryTOPHATCUFF.html result/expected/SummaryTOPHATCUFF.html | \
+      grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
+      grep -v\"[NOTE]\" | \
+      grep -v \"[0-9]c[0-9]\" > result/diffTOPHATCUFF.txt" >> tmp/testTOPHATCUFF.qsub
+
+#submit evaluation script
+echo "[NOTE] submit evaluation script"
+qsub -V $HOLDID tmp/testTOPHATCUFF.qsub
