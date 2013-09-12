@@ -386,9 +386,9 @@ else
 
     echo "[NOTE] extract mapped reads"
     if [ "$PAIRED" = "1" ]; then
-        samtools view -f 3 -b $BAMFILE > ${BAMFILE/.$ASD/.$ALN}
+        samtools view -f 3 -h -b $BAMFILE > ${BAMFILE/.$ASD/.$ALN}
     else
-        samtools view -F 4 -b $BAMFILE > ${BAMFILE/.$ASD/.$ALN}
+        samtools view -F 4 -h -b $BAMFILE > ${BAMFILE/.$ASD/.$ALN}
     fi
     samtools index ${BAMFILE/.$ASD/.$ALN}
 
@@ -423,8 +423,6 @@ else
         RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE/.$ASD/.$ALN}|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
-        #tar czf ${n/%$READONE.$FASTQ/_RNASeQC}.tar.gz $RNASeQCDIR 
-        [ -e ${BAMFILE/.$ASD/.$ALN} ] && rm ${BAMFILE/.$ASD/.$ALN}
     fi
 
     # mark checkpoint
@@ -437,25 +435,22 @@ CHECKPOINT="create bigwigs"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
-
-    if [ "$PAIRED" = 1 ]; then
-    	#make a paired only (f -3 ) bam so bigwigs are comparable to counts.
-    	samtools view -f 3 -h -b $f > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
-    else
-    	samtools view -F 4 -h -b $f > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
-    
-    fi	
+else 
     
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} ${n/%$READONE.$FASTQ/} $BAM2BW_OPTION_1 $OUTDIR $BAM2BW_OPTION_2
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R ${BAMFILE/.$ASD/.$ALN} ${n/%$READONE.$FASTQ/} $BAM2BW_OPTION_1 $OUTDIR $BAM2BW_OPTION_2
 
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
-    
     # mark checkpoint
     if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.bw} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
+###############################################################################
+CHECKPOINT="cleanup"
+
+[ -e ${BAMFILE/.$ASD/.$ALN} ] && rm ${BAMFILE/.$ASD/.$ALN}
+
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
 echo ">>>>> alignment with TopHat - FINISHED"
