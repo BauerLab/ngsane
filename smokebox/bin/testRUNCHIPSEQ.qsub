@@ -1,3 +1,5 @@
+#!/bin/sh
+unset module
 
 # the ngsane version to be tested needs to be loaded by hand
 . $NGSANE_BASE/conf/header.sh
@@ -20,7 +22,7 @@ cat bin/tmpl/configChIPseq.txt | sed 's/RUNMAPPINGBOWTIE2=\"\"/RUNMAPPINGBOWTIE2
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBOWTIE2\"/g' > tmp/configBOWTIE2.txt
 
 # submit the BOWTIE2 run to the cluster
-JOBIDS=$( trigger.sh tmp/configBOWTIE2.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':')
+JOBIDS=$( trigger.sh tmp/configBOWTIE2.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
 
 
@@ -37,7 +39,7 @@ cat bin/tmpl/configChIPseq.txt | sed 's/RUNPEAKRANGER=\"\"/RUNPEAKRANGER=\"1\"/g
 echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}\"" >>tmp/configPEAKRANGER.txt
 
 # submit the PEAKRANGER run to the cluster
-JOBIDSPR=$( trigger.sh tmp/configPEAKRANGER.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':')
+JOBIDSPR=$( trigger.sh tmp/configPEAKRANGER.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] sumitted jobs $(echo -n $JOBIDSPR)"
 
 
@@ -66,6 +68,9 @@ echo "diff result/SummaryCHIPSEQ.html result/expected/SummaryCHIPSEQ.html | \
       grep -v \"[NOTE]\" | \
       grep -v \"[0-9]c[0-9]\" > result/diffCHIPSEQ.txt" >> tmp/testCHIPSEQ.qsub
 
+chmod 777 tmp/testCHIPSEQ.qsub
+
 #submit evaluation script
 echo "[NOTE] submit evaluation script"
-qsub -V $HOLDID tmp/testCHIPSEQ.qsub
+echo "qsub -V $HOLDID tmp/testCHIPSEQ.qsub"
+qsub -V -S /bin/bash $HOLDID tmp/testCHIPSEQ.qsub

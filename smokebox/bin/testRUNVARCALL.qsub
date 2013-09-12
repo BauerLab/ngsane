@@ -1,3 +1,5 @@
+#!/bin/sh
+unset module
 
 # the ngsane version to be tested needs to be loaded by hand
 . $NGSANE_BASE/conf/header.sh
@@ -19,7 +21,7 @@ cat bin/tmpl/config.txt | sed 's/RUNMAPPINGBWA2=\"\"/RUNMAPPINGBWA2=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBWA\"/g' > tmp/configBWA.txt
 
 # submit the BWA run to the cluster
-JOBIDS=$( trigger.sh tmp/configBWA.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':')
+JOBIDS=$( trigger.sh tmp/configBWA.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
 
 ############################################################################
@@ -34,7 +36,7 @@ cat bin/tmpl/config.txt | sed 's/RUNREALRECAL3=\"\"/RUNREALRECAL3=\"1\"/g' | \
 echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}\"" >>tmp/configRECAL.txt
 
 # submit the RECAL run to the cluster
-JOBIDS=$( trigger.sh tmp/configRECAL.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':')
+JOBIDS=$( trigger.sh tmp/configRECAL.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
 
 
@@ -50,7 +52,7 @@ cat bin/tmpl/config.txt | sed 's/RUNVARCALLS3=\"\"/RUNVARCALLS3=\"1\"/g' | \
 echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}\"" >>tmp/configVARCALLS.txt
 
 # submit the VARCALLS run to the cluster
-JOBIDS=$( trigger.sh tmp/configVARCALLS.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':')
+JOBIDS=$( trigger.sh tmp/configVARCALLS.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
 
 
@@ -72,6 +74,8 @@ echo "diff result/SummaryVARCALLS.html result/expected/SummaryVARCALLS.html | \
       grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
       grep -v\"[NOTE]\" | \
       grep -v \"[0-9]c[0-9]\" > result/diffVARCALLS.txt" >> tmp/testVARCALLS.qsub
+
+chmod 777 tmp/testCHIPSEQ.qsub
 
 #submit evaluation script
 echo "[NOTE] submit evaluation script"

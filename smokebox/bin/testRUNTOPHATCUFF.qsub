@@ -1,3 +1,5 @@
+#!/bin/sh
+unset module
 
 # the ngsane version to be tested needs to be loaded by hand
 . $NGSANE_BASE/conf/header.sh
@@ -18,7 +20,7 @@ cat bin/tmpl/config.txt | sed 's/RUNTOPHATCUFF2=\"\"/RUNTOPHATCUFF2=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHATCUFF\"/g' > tmp/configTOPHATCUFF.txt
 
 # submit the TOPHATCUFF run to the cluster
-JOBIDS=$( trigger.sh tmp/configTOPHATCUFF.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 |  tr '\n' ':')
+JOBIDS=$( trigger.sh tmp/configTOPHATCUFF.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
 
 HOLDID=" "$QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}
@@ -31,6 +33,8 @@ echo "diff result/SummaryTOPHATCUFF.html result/expected/SummaryTOPHATCUFF.html 
       grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
       grep -v\"[NOTE]\" | \
       grep -v \"[0-9]c[0-9]\" > result/diffTOPHATCUFF.txt" >> tmp/testTOPHATCUFF.qsub
+
+chmod 777 tmp/testTOPHATCUFF.qsub
 
 #submit evaluation script
 echo "[NOTE] submit evaluation script"

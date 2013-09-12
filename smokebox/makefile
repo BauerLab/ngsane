@@ -2,11 +2,13 @@
 
 NGSANE := $(shell trigger.sh -v 2>/dev/null)
 
-all: checkNGSANE result/SummaryTOPHATCUFF.html result/SummaryCHIPSEQ.html result/SummaryVARCALL.html
+all: checkNGSANE result/SummaryCHIPSEQ.html 
+#result/SummaryTOPHATCUFF.html  result/SummaryVARCALL.html
 
 checkNGSANE:
 ifdef NGSANE
 	@echo "Found version $(NGSANE)"
+	mkdir -p tmp
 else
 	@echo NGSANE Not found
 	exit -2
