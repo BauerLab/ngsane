@@ -83,7 +83,7 @@ PATH_RNASEQC=$(dirname $(which RNA-SeQC.jar))
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--JAVA        --\n" $(java -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
-echo -e "--tophat2     --\n "$(tophat --version)
+echo -e "--tophat      --\n "$(tophat --version)
 [ -z "$(which tophat)" ] && echo "[ERROR] no tophat detected" && exit 1
 echo -e "--bowtie2     --\n "$(bowtie2 --version)
 [ -z "$(which bowtie2)" ] && echo "[ERROR] no bowtie2 detected" && exit 1
@@ -141,32 +141,38 @@ if [[ $f = *.gz ]]; then # unless its zipped
     ZCAT="zcat";
 fi
 
+# get encoding
+if [ -z "$FASTQ_PHRED" ]; then 
+    FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+    if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
+        FASTQ_PHRED="" # use default
+    elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
+        FASTQ_PHRED="--phred64-quals"
+    elif [[ "$FASTQ_ENCODING" == *Solexa* ]]; then
+        FASTQ_PHRED="--solexa1.3-quals"
+    else
+        echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default"
+    fi
+    echo "[NOTE] $FASTQ_ENCODING fastq format detected"
+fi
 
 ## GTF provided?
-if [ -n "$GENCODEGTF" ]; then
-    echo "[NOTE] Gencode GTF: $GENCODEGTF"
-    if [ ! -f $GENCODEGTF ]; then
-        echo "[ERROR] GENCODE GTF specified but not found!"
+if [ -n "$GTF" ]; then
+    echo "[NOTE] GTF: $GTF"
+    if [ ! -f $GTF ]; then
+        echo "[ERROR] GTF specified but not found!"
         exit 1
     fi 
-elif [ -n "$REFSEQGTF" ]; then
-    echo "[NOTE] Refseq GTF: $REFSEQGTF"
-    if [ ! -f $REFSEQGTF ]; then
-        echo "[ERROR] REFSEQ GTF specified but not found!"
-        exit 1
+    if [ ! -z "$DOCTOREDGTFSUFFIX" ]; then
+        if [ ! -f ${GTF/%.gtf/$DOCTOREDGTFSUFFIX} ] ; then
+            echo "[ERROR] Doctored GTF suffix specified but gtf not found: ${GTF/%.gtf/$DOCTOREDGTFSUFFIX}"
+            exit 1
+        else 
+            echo "[NOTE] Doctored GTF: ${GTF/%.gtf/$DOCTOREDGTFSUFFIX}"
+        fi
     fi
-fi
-
-if [ -n "$REFSEQGTF" ] && [ -n "$GENCODEGTF" ]; then
-    echo "[WARN] GENCODE and REFSEQ GTF found. GENCODE takes preference."
-fi
-if [ ! -z "$DOCTOREDGTFSUFFIX" ]; then
-    if [ ! -f ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX} ] ; then
-        echo "[ERROR] Doctored GTF suffix specified but gtf not found: ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX}"
-        exit 1
-    else 
-        echo "[NOTE] Doctored GTF: ${GENCODEGTF/%.gtf/$DOCTOREDGTFSUFFIX}"
-    fi
+else
+    echo "[ERROR] no GTF specified!"
 fi
 
 # check library info is set
@@ -182,6 +188,23 @@ if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
 else
     echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
 fi
+
+
+if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
+    echo "[NOTE] make bigwigs; library is fr-unstranded "
+    BAM2BW_OPTION_1="FALSE"
+    BAM2BW_OPTION_2="FALSE"
+elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
+    echo "[NOTE] make bigwigs; library is fr-firststrand "
+    BAM2BW_OPTION_1="TRUE"
+    BAM2BW_OPTION_2="TRUE"
+elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-secondstrand" ]; then
+    echo "[NOTE] make bigwigs; library is fr-secondstrand "
+    BAM2BW_OPTION_1="TRUE"
+    BAM2BW_OPTION_2="FALSE"	    
+fi
+
+BIGWIGSDIR=$OUTDIR/../
 
 mkdir -p $OUTDIR
 
@@ -207,7 +230,7 @@ else
     if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
     if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
     
-    RUN_COMMAND="tophat $TOPHATADDPARAM --keep-fasta-order --num-threads $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
+    RUN_COMMAND="tophat $TOPHATADDPARAM $FASTQ_PHRED --keep-fasta-order --num-threads $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     echo "[NOTE] tophat end $(date)"
 
@@ -275,12 +298,9 @@ else
     echo $JUNCTION" junction reads" >> $BAMFILE.stats
     ## get junction genes overlapping exons +-200bp
     
-    if [ -n "$GENCODEGTF" ]; then
-        JUNCTGENE=$(windowBed -a $OUTDIR/junctions.bed -b $GENCODEGTF -u -w 200 | wc -l | cut -d' ' -f 1)
-        echo $JUNCTGENE" junction reads Gencode" >> $BAMFILE.stats
-    elif [ -n "$REFSEQGTF" ]; then
-        JUNCTGENE=$(windowBed -a $OUTDIR/junctions.bed -b $REFSEQGTF -u -w 200 | wc -l | cut -d' ' -f 1)
-        echo $JUNCTGENE" junction reads NCBIM37" >> $BAMFILE.stats
+    if [ -n "$GTF" ]; then
+        JUNCTGENE=$(windowBed -a $OUTDIR/junctions.bed -b $GTF -u -w 200 | wc -l | cut -d' ' -f 1)
+        echo $JUNCTGENE" junction reads GTF" >> $BAMFILE.stats
     else 
         echo "0 junction reads (no gtf given)" >> $BAMFILE.stats
     fi
@@ -384,16 +404,15 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    if [ -n "$GENCODEGTF" ]; then 
-        RNASEQC_GTF=$GENCODEGTF
-    elif [ -n "$REFSEQGTF" ]; then
-        RNASEQC_GTF=$REFSEQGTF
-    fi
     # take doctored GTF if available
-    if [ -n "$DOCTOREDGTFSUFFIX" ]; then RNASEQC_GTF=${RNASEQC_GTF/%.gtf/$DOCTOREDGTFSUFFIX}; fi
+    if [ -n "$DOCTOREDGTFSUFFIX" ]; then 
+        RNASEQC_GTF=${GTF/%.gtf/$DOCTOREDGTFSUFFIX}; 
+    else
+        RNASEQC_GTF=$GTF
+    fi
     # run GC stratification if available
-    RNASEQC_CG=
     if [ -f ${RNASEQC_GTF}.gc ]; then RNASEQC_CG="-strat gc -gc ${RNASEQC_GTF}.gc"; fi
+    
     # add parameter flag
     if [ -z "$RNASEQC_GTF" ]; then
         echo "[NOTE] no GTF file specified, skipping RNA-SeQC"
@@ -410,6 +429,30 @@ else
 
     # mark checkpoint
     if [ -d $RNASeQCDIR ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi
+
+###############################################################################
+CHECKPOINT="create bigwigs"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+
+    if [ "$PAIRED" = 1 ]; then
+    	#make a paired only (f -3 ) bam so bigwigs are comparable to counts.
+    	samtools view -f 3 -h -b $f > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
+    else
+    	samtools view -F 4 -h -b $f > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
+    
+    fi	
+    
+    #file_arg sample_arg stranded_arg firststrand_arg paired_arg
+    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} ${n/%$READONE.$FASTQ/} $BAM2BW_OPTION_1 $OUTDIR $BAM2BW_OPTION_2
+
+    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
+    
+    # mark checkpoint
+    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.bw} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 

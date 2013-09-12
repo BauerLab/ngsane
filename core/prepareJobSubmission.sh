@@ -128,9 +128,8 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
                 MYPBSIDS=""
                 continue
             else
-              echo "################################################################################" >> $LOGFILE
+              echo "[NOTE] #########################################################################" >> $LOGFILE
               echo "[NOTE] Recover from logfile: $LOGFILE" >> $LOGFILE
-              echo "################################################################################" >> $LOGFILE           
             fi
             
         else

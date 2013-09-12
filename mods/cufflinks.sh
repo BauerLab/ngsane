@@ -74,26 +74,21 @@ if [ -z "$RECOVERFROM" ]; then
 fi
 
 ## GTF provided?
-if [ -n "$GENCODEGTF" ]; then
-    echo "[NOTE] Gencode GTF: $GENCODEGTF"
-    if [ ! -f $GENCODEGTF ]; then
-        echo "[ERROR] GENCODE GTF specified but not found!"
-        exit 1
-    else
-        GTF=$GENCODEGTF
-    fi 
-elif [ -n "$REFSEQGTF" ]; then
-    echo "[NOTE] Refseq GTF: $REFSEQGTF"
-    if [ ! -f $REFSEQGTF ]; then
-        echo "[ERROR] REFSEQ GTF specified but not found!"
-        exit 1
-    else
-        GTF=$REFSEQGTF
-    fi
+if [ -z "$GTF" ] || [ ! -f $GTF ]; then
+    echo "[ERROR] GTF not specified or not found!"
+    exit 1
+else
+    echo "[NOTE] GTF: $GTF"
 fi
 
-if [ -n "$REFSEQGTF" ] && [ -n "$GENCODEGTF" ]; then
-    echo "[WARN] GENCODE and REFSEQ GTF found. GENCODE takes preference."
+if [ ! -z "$DOCTOREDGTFSUFFIX" ]; then
+    if [ ! -f ${GTF/%.gtf/$DOCTOREDGTFSUFFIX} ] ; then
+        echo "[ERROR] Doctored GTF suffix specified but gtf not found: ${GTF/%.gtf/$DOCTOREDGTFSUFFIX}"
+        exit 1
+    else 
+        echo "[NOTE] Using detected doctored GTF: ${GTF/%.gtf/$DOCTOREDGTFSUFFIX}"
+        GTF=${GTF/%.gtf/$DOCTOREDGTFSUFFIX}
+    fi
 fi
 
 # check library info is set
@@ -122,9 +117,10 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 #    echo ">>>>> from $f to $OUTPUT"
     echo "[NOTE] cufflinks $(date)"
-    #specify REFSEQ or Gencode GTF depending on analysis desired.
+
     ## add GTF file if present
     if [ -n "$GTF" ]; then 
+        echo "[NOTE] execute cufflinks with guide (GTF provided)"
         RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --GTF-guide $GTF -p $CPU_CUFFLINKS --library-type $RNA_SEQ_LIBRARY_TYPE -o $OUTDIR $f"
 
     else

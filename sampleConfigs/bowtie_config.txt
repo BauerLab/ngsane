@@ -53,15 +53,12 @@ PLATFORM="Illumina"
 # PARAMETER (optional overwriting defaults)
 #********************
 
-## additional bowtie parameters
+# FASTQ encoding (Phred score), leave empty to detect automatically
+# e.g. "--phred33-quals", "--phred64-quals"
+FASTQ_PHRED=
+
+# additional bowtie parameters
 BOWTIEADDPARAM="-v 3 -m 1 --tryhard --best --strata --time"
-
-# Fragment length to extend reads downstream  - only relevant for single-end libraries during bigwig generation
-# Fragment length of -1 will use the genomic fragment covered by the read-mates if the input is a paired read library
-FRAGMENTLENGTH=0
-
-# uncomment to generate strand-specific bigwig files
-#BIGWIGSTRANDS=strand-specific
 
 #WALLTIME_BOWTIE=10:00:00
 #MEMORY_BOWTIE=60

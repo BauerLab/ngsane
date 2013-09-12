@@ -234,8 +234,8 @@ def tophat(statsfile):
     if (len(st)>76):
         names.append("Junction")
         names.append("Junction %")
-        names.append("Jnct over ncbi")
-        names.append("Jnct over ncbi %")
+        names.append("Jnct over GTF")
+        names.append("Jnct over GTF %")
         values.append(int(st[76])) # junction reads
         #values.append(float(values[-1])/float(values[5])) # junction %
         values.append(float(values[-1])/float(values[0])*100) # junction %

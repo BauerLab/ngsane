@@ -1,8 +1,6 @@
 # author: Fabian Buske
 # date: September 2013
 
-## NOTE: HT-Seq-count expects a GTF with the doctored version being available at the same location. Its only be tested using GENCODE GTFs although other GTFs may work too
-
 #####################################
 # Resources
 #####################################
@@ -10,7 +8,7 @@
 #********************
 # Tasks
 #********************
-RUNHTSEQCOUNT="1"    # feature counting
+RUNCUFFLINKS="1"    # Cufflinks (RNAseq)
 
 #********************
 # Paths
@@ -30,18 +28,23 @@ QOUT=$OUT/qout
 ## PARAMETER (mandatory)
 ##********************
 
-# specify TASK that generated the bam, i.e. folder to look for bam (default TASKTOPHAT)
-#TASKTOPHAT=
+# reference genome
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
+FASTA=
 
 # specify library type for tophat.
 # choose "fr-firststrand" "fr-unstranded" "fr-secondstrand"
 RNA_SEQ_LIBRARY_TYPE="fr-firststrand"
 
-# any combination of "union" "intersection-strict" and "intersection-nonempty"
-HTSEQCOUNT_MODES=
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
 
-# e.g. "gene_id" and/or "transcript_id"
-HTSEQCOUNT_ATTRIBUTES=
+# specify TASK that generated the bam, i.e. folder to look for bam (default TASKTOPHAT)
+#TASKTOPHAT=
+
+# additional parameters for cufflinks
+CUFFLINKSADDPARAM=
 
 # ATTENTION: make sure the GTF file matches your genome assembly (chr naming)
 # see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
@@ -49,21 +52,17 @@ HTSEQCOUNT_ATTRIBUTES=
 # e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_14/gencode.v14.annotation.gtf
 GTF=
 
-#********************
-# PARAMETER (optional overwriting defaults)
-#********************
-
-# activate to use doctored GTF file for HTSeq-count (provides additional info)
+# activate to use doctored GTF file for Cufflinks (provides additional info)
 # assumes the doctored GTF is at the same location as the original one but
 # has a different suffix
 #DOCTOREDGTFSUFFIX=".doctored.gtf"
 
-#WALLTIME_HTSEQCOUNT=24:00:00
-#MEMORY_HTSEQCOUNT=50
-#CPU_HTSEQCOUNT=1
-#NODES_HTSEQCOUNT="nodes=1:ppn=1"
-#MODULE_HTSEQCOUNT=
-#PATH_HTSEQCOUNT=
+#WALLTIME_CUFFLINKS=60:00:00
+#MEMORY_CUFFLINKS=50
+#CPU_CUFFLINKS=8
+#NODES_CUFFLINKS="nodes=1:ppn=8"
+#MODULE_CUFFLINKS=
+#PATH_CUFFLINKS=
 
 
 

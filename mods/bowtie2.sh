@@ -120,17 +120,19 @@ else
 fi
 
 # get encoding
-FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
-if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
-    FASTQ_PHRED="--phred33"    
-elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
-    FASTQ_PHRED="--phred64"
-elif [[ "$FASTQ_ENCODING" == *Solexa* ]]; then
-    FASTQ_PHRED="--solexa-quals"
-else
-    echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default"
+if [ -z "$FASTQ_PHRED" ]; then 
+    FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+    if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
+        FASTQ_PHRED="--phred33"    
+    elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
+        FASTQ_PHRED="--phred64"
+    elif [[ "$FASTQ_ENCODING" == *Solexa* ]]; then
+        FASTQ_PHRED="--solexa-quals"
+    else
+        echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default"
+    fi
+    echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 fi
-echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 
 #readgroup
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
@@ -250,7 +252,6 @@ CHECKPOINT="calculate inner distance"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-    
 
     THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
     mkdir $THISTMP
@@ -278,7 +279,6 @@ CHECKPOINT="coverage track"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-
     
     java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/}.genome
     # mark checkpoint
