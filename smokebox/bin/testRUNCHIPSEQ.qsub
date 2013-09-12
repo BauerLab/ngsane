@@ -1,5 +1,4 @@
 #!/bin/sh
-unset module
 
 # the ngsane version to be tested needs to be loaded by hand
 . $NGSANE_BASE/conf/header.sh
@@ -7,7 +6,7 @@ unset module
 #clean up earlier runs
 for dir in ${DIR[@]}; do
     echo "[NOTE] remove old $dir/bowtie"
-    if [ -e $dir/bwa ]; then rm -rf $dir/bwa; rm -rf $QOUT/bwa/$dir*; fi
+    if [ -e $dir/bowtie ]; then rm -rf $dir/bowtie; rm -rf $QOUT/bowtie/$dir*; fi
 done 
 
 ############################################################################
@@ -72,5 +71,5 @@ chmod 777 tmp/testCHIPSEQ.qsub
 
 #submit evaluation script
 echo "[NOTE] submit evaluation script"
-echo "qsub -V $HOLDID tmp/testCHIPSEQ.qsub"
+unset module
 qsub -V -S /bin/bash $HOLDID tmp/testCHIPSEQ.qsub
