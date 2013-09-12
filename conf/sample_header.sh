@@ -112,20 +112,6 @@ NODES_FASTQC="nodes=2:ppn=8"
 
 MODULE_FASTQC=
 PATH_FASTQC=
-MODULE_LATEX=
-PATH_LATEX=
-
-##############################################################
-# FASTQ2SANGER (requires perl)
-# 
-WALLTIME_FASTQ2SANGER=10:00:00
-MEMORY_FASTQ2SANGER=20
-CPU_FASTQ2SANGER=1
-NODES_FASTQ2SANGER="nodes=1:ppn=1"
-
-MODULE_FASTQ2SANGER=
-PATH_FASTQ2SANGER=
-FASTQ2SANGER_SOURCEFORMAT=
 
 ##############################################################
 # SAMTOOLS (0.1.19) SNP calling
@@ -135,7 +121,8 @@ MEMORY_SAMVAR=40
 CPU_SAMVAR=1
 NODES_SAMVAR="nodes=1:ppn=1"
 
-MODULE_SAMVAR="jdk samtools/0.1.18 igvtools/2.3.5 gatk/2.5"
+MODULE_SAMVAR=
+PATH_SAMVAR=
 
 ##############################################################
 # BWA (0.7.4) 
@@ -158,8 +145,6 @@ NODES_BOWTIE="nodes=1:ppn=8"
 
 MODULE_BOWTIE=
 PATH_BOWTIE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
-BOWTIE_INDEX=
-
 
 ##############################################################
 # Bowtie2 (2.1.0) 
@@ -172,7 +157,6 @@ NODES_BOWTIE2="nodes=1:ppn=8"
 
 MODULE_BOWTIE2=
 PATH_BOWTIE2=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
-BOWTIE2_INDEX=
 
 ##############################################################
 # Wiggler
@@ -186,7 +170,6 @@ MODULE_WIGGLER=
 PATH_WIGGLER=
 
 WIGGLER_UMAPDIR=
-WIGGLERADDPARAMS=""
 
 ##############################################################
 # HOMER HIC 
@@ -267,9 +250,6 @@ NODES_TRIMGALORE="nodes=1:ppn=1"
 
 MODULE_TRIMGALORE=
 PATH_TRIMGALORE=
-TRIMGALORE_ADAPTER1=
-TRIMGALORE_ADAPTER2=
-TRIMGALORE_OPTIONS=
 
 ##############################################################
 # Trimming with TRIMMOMATIC
@@ -281,8 +261,6 @@ NODES_TRIMMOMATIC="nodes=1:ppn=1"
 
 MODULE_TRIMMOMATIC=
 PATH_TRIMMOMATIC=
-TRIMMOMATICADDPARAMS=
-TRIMMOMATICSTEPS=
 
 ##############################################################
 # Snp calling with GATK
@@ -300,11 +278,12 @@ NODES_VAR="nodes=1:ppn=1"
 
 PATH_GATKHOME=
 PATH_GATKJAR=
+MODULE_GATK=
 MODULE_GATKSNP=
 PATH_GATKSNP=$PATH_GATKHOME:$PATH_GATKJAR:$PATH_IGVTOOLS
 
 ##############################################################
-# Tophat (2.0.8b) 
+# Tophat (2.0.9) 
 # http://tophat.cbcb.umd.edu/
 WALLTIME_TOPHAT=62:00:00
 MEMORY_TOPHAT=50
@@ -326,8 +305,8 @@ MODULE_CUFFLINKS=
 PATH_CUFFLINKS=
 
 ##############################################################
-# HTSEQ-count (2.1.1)
-# http://cufflinks.cbcb.umd.edu/
+# HTSEQ-count (0.5.4.p3)
+# http://www-huber.embl.de/users/anders/HTSeq/doc/index.html
 WALLTIME_HTSEQCOUNT=24:00:00
 MEMORY_HTSEQCOUNT=50
 CPU_HTSEQCOUNT=1
@@ -349,8 +328,6 @@ NODES_HICLIB_POSTCOMMAND="nodes=1:ppn=1"
 MODULE_HICLIB=
 PATH_HICLIB=
 HICLIB_GAPFILE=
-HICLIB_RENZYMES=
-HICLIB_READLENGTH=
 
 ##############################################################
 # HICUP + fit-hi-c
@@ -362,7 +339,6 @@ NODES_HICUP="nodes=1:ppn=8"
 
 MODULE_HICUP=
 PATH_HICUP=
-HICUP_RENZYMES=
 
 ##############################################################
 # R (3.0.0)
@@ -443,6 +419,7 @@ NODES_FASTQSCREEN="nodes=1:ppn=8"
 
 MODULE_FASTQSCREEN=
 PATH_FASTQSCREEN=
+
 FASTQSCREEN_DBCONF=
 
 ##############################################################
@@ -455,15 +432,4 @@ NODES_BIGWIG="nodes=1:ppn=2"
 
 MODULE_BIGWIG=
 PATH_BIGWIG=
-
-##############################################################
-#VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
-#SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
-#ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
-#
-#MACS="/clusterdata/hiseq_apps/bin/devel/MACS_git"
-#PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
-#
-#VIENNA=
-#UNAFOLD=
 
