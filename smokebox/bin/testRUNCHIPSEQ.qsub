@@ -1,3 +1,5 @@
+#!/bin/sh
+unset module
 
 # the ngsane version to be tested needs to be loaded by hand
 . $NGSANE_BASE/conf/header.sh
@@ -65,6 +67,8 @@ echo "diff result/SummaryCHIPSEQ.html result/expected/SummaryCHIPSEQ.html | \
       grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
       grep -v \"[NOTE]\" | \
       grep -v \"[0-9]c[0-9]\" > result/diffCHIPSEQ.txt" >> tmp/testCHIPSEQ.qsub
+
+chmod 777 tmp/testCHIPSEQ.qsub
 
 #submit evaluation script
 echo "[NOTE] submit evaluation script"

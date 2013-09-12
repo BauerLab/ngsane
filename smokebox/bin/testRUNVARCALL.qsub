@@ -1,3 +1,5 @@
+#!/bin/sh
+unset module
 
 # the ngsane version to be tested needs to be loaded by hand
 . $NGSANE_BASE/conf/header.sh
@@ -72,6 +74,8 @@ echo "diff result/SummaryVARCALLS.html result/expected/SummaryVARCALLS.html | \
       grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
       grep -v\"[NOTE]\" | \
       grep -v \"[0-9]c[0-9]\" > result/diffVARCALLS.txt" >> tmp/testVARCALLS.qsub
+
+chmod 777 tmp/testVARCALLS.qsub
 
 #submit evaluation script
 echo "[NOTE] submit evaluation script"

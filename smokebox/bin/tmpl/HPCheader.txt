@@ -9,12 +9,17 @@
 #SGE
 #$ -N NAME
 #$ -cwd
+#$ -l h_vmem=4G
+#$ -l h_rt=03:00:00
 #$ -o qout/NAME.out
 #$ -j yes
 #$ -V
 
 if [ -n "$PBS_O_WORKDIR" ]; then
-        cd $PBS_O_WORKDIR
+	cd $PBS_O_WORKDIR
+else
+        ## SGE
+        . /etc/profile.d/modules.sh
 fi
 
 module list

@@ -1,6 +1,6 @@
 
 # author: Denis C. Bauer
-# date: July 2012
+# date: September 2013
 
 ######################################
 # Resources
@@ -26,6 +26,16 @@ MEMORY_TOPHAT=10
 CPU_TOPHAT=8
 NODES_TOPHAT="nodes=1:ppn=8"
 
+WALLTIME_CUFFLINKS=00:30:00
+MEMORY_CUFFLINKS=10
+CPU_CUFFLINKS=4
+NODES_CUFFLINKS="nodes=1:ppn=4"
+
+WALLTIME_HTSEQCOUNT=00:30:00
+MEMORY_HTSEQCOUNT=10
+CPU_HTSEQCOUNT=1
+NODES_HTSEQCOUNT="nodes=1:ppn=1"
+
 WALLTIME_VAR=00:30:00
 MEMORY_VAR=10
 CPU_VAR=1
@@ -49,23 +59,25 @@ NODES_SAMVAR="nodes=1:ppn=1"
 RUNFASTQC=""
 RUNCUTADAPT=""
 RUNMAPPINGBOWTIE=""  # mapping with bowtie1
-RUNMAPPINGBOWTIE2=""  # mapping with bowtie2
-RUNTOPHATCUFF2=""    # mapping with tophat (RNAseq)
-RUNMAPPINGBWA2=""     # mapping with bwa
-RUNREALRECAL3=""       # recalibration/realigment
-DEPTHOFCOVERAGE=""    # determin mean coverage
-RUNVARCALLS3=""        # SNP/Variant detection
-RUNANNOTATINGBAM=""  # anntate bam file with Gencode
+RUNMAPPINGBOWTIE2="" # mapping with bowtie2
+RUNTOPHATCUFF=""     # mapping with tophat (RNAseq)
+RUNMAPPINGBWA2=""    # mapping with bwa
+RUNREALRECAL3=""     # recalibration/realigment
+DEPTHOFCOVERAGE=""   # determine mean coverage
+RUNVARCALLS3=""      # SNP/Variant detection
+RUNANNOTATINGBAM=""  # annotate bam file with Gencode
 RUNSAMVAR=""         # run variant call 
 RUNPEAKRANGER=""     # Peakranger
 
 
-#ASR="asd" # change default because we are not running from refal but bwa
-#TASKRCA=$TASKBWA # change default because we are not running from refal but bwa
+#ASR="asd" # change default because we are not running from recal but bwa
+#TASKRCA=$TASKBWA # change default because we are not running from recal but bwa
 
 HTMLOUT="Summary"
-RUNEXPERIMENTAL_HTSEQCOUNT="True"
 RNASEQCADDPARAM=" -gcMargin .9 "
+
+HTSEQCOUNT_MODES="union"
+HTSEQCOUNT_ATTRIBUTES="gene_id"
 
 #********************
 # Paths
@@ -90,7 +102,7 @@ HAPMAPVCF=referenceData/hapmap_3.3.chr16.vcf
 ONEKGVCF=referenceData/1000G_omni2.5.chr16.vcf
 REFSEQGTF=referenceData/UCSC_GencodeV12.gtf
 CONTAMINANTS=adapters.txt
-GENCODEGTF=referenceData/gencode.v14.annotation.chr16.doctored.gtf
+GTF=referenceData/gencode.v14.annotation.chr16.doctored.gtf
 
 #REF=16:
 #RECALADDPARAM="-L $REF"
