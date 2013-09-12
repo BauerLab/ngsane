@@ -2,8 +2,8 @@
 
 NGSANE := $(shell trigger.sh -v 2>/dev/null)
 
-all: checkNGSANE result/SummaryCHIPSEQ.html 
-#result/SummaryTOPHATCUFF.html  result/SummaryVARCALL.html
+all: checkNGSANE result/SummaryTOPHATCUFF.html
+#result/SummaryCHIPSEQ.html  result/SummaryTOPHATCUFF.html  result/SummaryVARCALL.html
 
 checkNGSANE:
 ifdef NGSANE
@@ -47,4 +47,4 @@ clean:
 	rm -fr Transcript ChIPseq ChIPseq_input
 	rm -fr variant
 	rm -fr qout
-	rm -f tmp/*
+	rm -fr tmp/*

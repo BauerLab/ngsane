@@ -1,17 +1,22 @@
 #!/bin/sh
-unset module
 
 # the ngsane version to be tested needs to be loaded by hand
 . $NGSANE_BASE/conf/header.sh
 
 #clean up earlier runs
 for dir in ${DIR[@]}; do
-    echo "[NOTE] remove old $dir/tophat $dir/cufflinks"
-    if [ -e $dir/bwa ]; then 
+    echo "[NOTE] remove old $dir/tophat $dir/cufflinks $dir/htseqcount"
+    if [ -e $dir/tophat ]; then 
        rm -rf $dir/tophat; rm -rf $QOUT/tophat/$dir*;
-       rm -rf $dir/cufflinks; rm -rf $QOUT/cufflins/$dir*;
+       rm -rf $dir/cufflinks; rm -rf $QOUT/cufflinks/$dir*;
+       rm -rf $dir/htseqcount; rm -rf $QOUT/htseqcount/$dir*;
     fi
 done 
+
+############################################################################
+#  TOPHAT
+############################################################################
+
 
 # modify the template config file to flip the RUNTOPHATCUFFLINKS switch
 # specify the resulting html file
@@ -22,6 +27,10 @@ cat bin/tmpl/config.txt | sed 's/RUNTOPHATCUFF=\"\"/RUNTOPHATCUFF=\"1\"/g' | \
 # submit the TOPHATCUFF run to the cluster
 JOBIDS=$( trigger.sh tmp/configTOPHATCUFF.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
+
+#######################################
+# TEST
+#######################################
 
 HOLDID=" "$QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}
 
@@ -38,4 +47,6 @@ chmod 777 tmp/testTOPHATCUFF.qsub
 
 #submit evaluation script
 echo "[NOTE] submit evaluation script"
-qsub -V $HOLDID tmp/testTOPHATCUFF.qsub
+
+unset module
+qsub -V -S /bin/bash $HOLDID tmp/testTOPHATCUFF.qsub
