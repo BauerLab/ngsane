@@ -2,7 +2,7 @@
 
 NGSANE := $(shell trigger.sh -v 2>/dev/null)
 
-all: checkNGSANE result/SummaryVARCALL.html 
+all: checkNGSANE result/SummaryCHIPSEQ.html result/SummaryTOPHATCUFF.html  result/SummaryVARCALL.html
 #result/SummaryCHIPSEQ.html  result/SummaryTOPHATCUFF.html  result/SummaryVARCALL.html
 
 checkNGSANE:

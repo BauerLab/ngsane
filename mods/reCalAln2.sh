@@ -301,14 +301,14 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     echo "[NOTE] $CHECKPOINT"
 
-    samtools sort ${f3/bam/recal.bam} $OUTDIR/${n/$ASD.bam/$ASR}
-    
     if [ "$PAIRED" == "1" ]; then
         # fix mates
-        samtools fixmate $OUTDIR/${n/%$ASD.bam/$ASR.bam} $OUTDIR/${n/$ASD.bam/$ASR}.tmp.bam
-        mv $OUTDIR/${n/$ASD.bam/$ASR}.tmp.bam $OUTDIR/${n/%$ASD.bam/$ASR.bam}
+        samtools sort -n ${f3/bam/recal.bam} ${f3/bam/recal.tmp}
+        samtools fixmate ${f3/bam/recal.tmp.bam} ${f3/bam/recal.bam}
+        [ -e ${f3/bam/recal.tmp.bam} ] && rm ${f3/bam/recal.tmp.bam}
     fi
-
+    
+    samtools sort ${f3/bam/recal.bam} $OUTDIR/${n/%$ASD.bam/$ASR}
     samtools index $OUTDIR/${n/%$ASD.bam/$ASR.bam}
 
     # mark checkpoint
