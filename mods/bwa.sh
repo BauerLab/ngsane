@@ -189,7 +189,7 @@ else
 fi 
 
 ################################################################################
-CHECKPOINT="run bwa"
+CHECKPOINT="BWA"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
@@ -363,7 +363,7 @@ CHECKPOINT="verify"
 BAMREADS=$(head -n1 $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1)
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi			
 if [ $BAMREADS -eq $FASTQREADS ]; then
-    echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
+    echo "[NOTE] PASS check mapping: $BAMREADS == $FASTQREADS"
     [ -e $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} ] && rm $MYOUT/${n/%$READONE.$FASTQ/.ash.bam}
 else
     echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"

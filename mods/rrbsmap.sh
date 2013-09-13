@@ -281,7 +281,7 @@ CHECKPOINT="verify"
 BAMREADS=`head -n1 $STATSOUT | cut -d " " -f 1`
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi			
 if [ $BAMREADS -eq $FASTQREADS ]; then
-    echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
+    echo "[NOTE] PASS check mapping: $BAMREADS == $FASTQREADS"
     rm $OUT/${n/%$READONE$FASTQ/$ALN.bam}
     rm $OUT/${n/%$READONE$FASTQ/$UNM.bam}
     rm $OUT/${n/%$READONE$FASTQ/.ash.bam}

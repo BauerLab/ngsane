@@ -19,6 +19,8 @@ exit
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <SAMPLE>.summary.txt
+
 if [ ! $# -gt 3 ]; then usage ; fi
 
 #INPUTS
@@ -66,9 +68,9 @@ n=${f##*/}
 if [ -z "$FASTA" ] || [ ! -f $FASTA ]; then
     echo "[ERROR] genome not provided" && exit 1
 fi
-if [ -z "$CHROMSIZES" ] || [ ! -f $CHROMSIZES ]; then
-    echo "[ERROR] chromosome sizes not provided" && exit 1
-fi
+
+GENOME_CHROMSIZES=${FASTA%%.*}.chrom.sizes
+[ ! -f $GENOME_CHROMSIZES ] && echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES" && exit 1
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -90,7 +92,7 @@ else
     if [ -n "$SLOPBEDADDPARAM" ]; then
         echo "[NOTE] extend bed regions: $EXTENDREGION"
     
-        RUN_COMMAND="bedtools slop -i $f -g $CHROMSIZES $SLOPBEDADDPARAM  > $OUTDIR/$n"
+        RUN_COMMAND="bedtools slop -i $f -g $GENOME_CHROMSIZES $SLOPBEDADDPARAM  > $OUTDIR/$n"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         f=$OUTDIR/$n
     fi
@@ -176,6 +178,7 @@ CHECKPOINT="cleanup"
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
+[ -e $OUTDIR/${n/$BED/.summary.txt}.dummy ] && rm $OUTDIR/${n/$BED/.summary.txt}.dummy
 echo ">>>>> Motif discovery with memechip - FINISHED"
 echo ">>>>> enddate "`date`
 

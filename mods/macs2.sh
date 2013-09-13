@@ -19,6 +19,8 @@ exit
 }
 
 # QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <SAMPLE>_refinepeak.bed
+
 if [ ! $# -gt 3 ]; then usage ; fi
 
 #INPUTS                                                                                                           
@@ -75,6 +77,17 @@ else
     CHIPINPUT="--control $SOURCE/$CHIPINPUT"
 fi
 
+GENOME_CHROMSIZES=${FASTA%%.*}.chrom.sizes
+[ ! -f $GENOME_CHROMSIZES ] && echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES" && exit 1
+
+# set default method to ppois unless specified
+if [ -z "$MACS2_BDGCMP_METHOD" ]; then
+    echo "[NOTE] no method provided for MACS2_BDGCMP_METHOD, defaulting to ppois"
+    MACS2_BDGCMP_METHOD="ppois"
+fi
+
+cd $OUTDIR
+
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
@@ -83,21 +96,6 @@ if [ -n "$DMGET" ]; then
 	dmget -a $(dirname $FASTA)/*
 	dmget -a ${f}
 	[ -n $CHIPINPUT ] && dmget -a $CHIPINPUT
-fi
-
-GENOME_CHROMSIZES=$FASTA.chrom.size
-cd $OUTDIR
-
-# set default method to ppois unless specified
-if [ -z "$MACS2_BDGCMP_METHOD" ]; then
-    echo "[NOTE] no method provided for MACS2_BDGCMP_METHOD, defaulting to ppois"
-    MACS2_BDGCMP_METHOD="ppois"
-fi
-
-if [ -n "$MACS2_MAKEBIGBED" ]; then
-    MACS2_MAKEBIGBED="--bdg"
-else
-    echo "[NOTE] no bigbed files will be generated"
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -186,6 +184,7 @@ fi
 cd $SOURCE
 
 ################################################################################
+[ -e $OUTDIR/${n/.$ASD.bam/_refinepeak.bed}.dummy ] && rm $OUTDIR/${n/.$ASD.bam/_refinepeak.bed}.dummy
 echo ">>>>> ChIPseq analysis with MACS2 - FINISHED"
 echo ">>>>> enddate "`date`
 

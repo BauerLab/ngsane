@@ -78,6 +78,13 @@ if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/${n/%.$ASD.bam/.bw} ] && rm $OUTDIR/${n/%.$ASD.bam/.bw}
 fi
 
+GENOME_CHROMSIZES=${FASTA%%.*}.chrom.sizes
+[ ! -f $GENOME_CHROMSIZES ] && echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES" && exit 1
+
+if [ -z "$FRAGMENTLENGTH" ]; then
+    FRAGMENTLENGTH=0
+fi
+
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
@@ -90,10 +97,6 @@ fi
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="generate bigwigs"    
-
-FRAGMENTLENGTH=0
-GENOME_CHROMSIZES=$FASTA.chrom.size
-. $CONFIG # overwrite defaults
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"

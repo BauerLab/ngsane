@@ -40,7 +40,7 @@ RUNMEMECHIP=""        # motif discovery with MEME
 #********************
 SOURCE=$(pwd)
 
-declare -a DIR; DIR=( ChIPseq  ChIPseq_input ) 
+declare -a DIR; DIR=( ChIPseq  ChIPseq_input  ) 
 OUT=$SOURCE
 QOUT=$OUT/qout
 
@@ -61,13 +61,15 @@ PEAKRANGER_PEAKS="broad"
 CHIPINPUT="ChIPseq_input/$TASKBOWTIE/Input_chr16.asd.bam"
 
 MACS2_GENOMESIZE=2.7e9
-MACS2_CALLPEAK_ADDPARAM=
+MACS2_CALLPEAK_ADDPARAM="--nomodel"
 MACS2_BDGCMP_METHOD=ppois
 CS2_BDGCMP_ADDPARAM=
 MACS2_REFINEPEAK_ADDPARAM=
 
-BED="_summit.bed"
-SLOPBEDADDPARAM="-b 100"
+#TASKPEAKRANGER=$TASKMACS2
+
+BED="_refinepeak.bed"
+SLOPBEDADDPARAM="-b 50"
 MEMECHIPADDPARAM="-nmeme 1000 -meme-nmotifs 1 -dreme-m 3 -centrimo-local -centrimo-noseq -meme-mod zoops"
 FIMOADDPARAM="--qv-thresh --thresh 0.05 --motif 0"
 

@@ -35,6 +35,7 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDS)"
 # specify the resulting html file
 echo "[NOTE] Prep config file tmp/configPEAKRANGER.txt"
 cat bin/tmpl/configChIPseq.txt | sed 's/RUNPEAKRANGER=\"\"/RUNPEAKRANGER=\"1\"/g' | \
+    sed 's/ ChIPseq_input / /g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryPEAKRANGER\"/g' > tmp/configPEAKRANGER.txt
 echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}\"" >>tmp/configPEAKRANGER.txt
 
@@ -51,6 +52,7 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSPR)"
 # specify the resulting html file
 echo "[NOTE] Prep config file tmp/configMACS2.txt"
 cat bin/tmpl/configChIPseq.txt | sed 's/RUNMACS2=\"\"/RUNMACS2=\"1\"/g' | \
+    sed 's/ ChIPseq_input / /g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryMACS2\"/g' > tmp/configMACS2.txt
 echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}\"" >>tmp/configMACS2.txt
 
@@ -66,6 +68,8 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSMACS)"
 # specify the resulting html file
 echo "[NOTE] Prep config file tmp/configMEMECHIP.txt"
 cat bin/tmpl/configChIPseq.txt | sed 's/RUNMEMECHIP=\"\"/RUNMEMECHIP=\"1\"/g' | \
+    sed 's/#TASKPEAKRANGER/TASKPEAKRANGER/g' |\
+    sed 's/ ChIPseq_input / /g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryMEMECHIP\"/g' > tmp/configMEMECHIP.txt
 echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDSMACS/:/$QUEUEWAITSEP}\"" >>tmp/configMEMECHIP.txt
 
