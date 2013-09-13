@@ -52,7 +52,7 @@ SUMMARYFILE=$HTMLOUT".html"
 
 mkdir -p $(dirname $SUMMARYTMP) && cat /dev/null > $SUMMARYTMP # clean temporary content
 
-PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd)',os.path.abspath('$(dirname $SUMMARYTMP)'))")
+PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',os.path.abspath('$(dirname $SUMMARYTMP)'))")
 
 ################################################################################
 # define functions for generating summary scaffold
