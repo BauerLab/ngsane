@@ -46,7 +46,8 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-echo "********** programs"
+################################################################################
+CHECKPOINT="programs"
 for MODULE in $MODULE_BOWTIE2; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_BOWTIE2:$PATH
 module list
@@ -93,7 +94,6 @@ if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
 else
     echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
 fi
-
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
