@@ -52,17 +52,11 @@ echo "PATH=$PATH"
 # best common denominator)
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--JAVA        --\n" $(java -version 2>&1)
-[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--bedtools --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 echo -e "--wigToBigWig --\n "$(wigToBigWig 2>&1 | tee | head -n 1)
 [ -z "$(which wigToBigWig)" ] && echo "[WARN] wigToBigWig not detected - no bigwigs will be generated"
 
-echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_BIGWIG*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
-unset _JAVA_OPTIONS
-echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################

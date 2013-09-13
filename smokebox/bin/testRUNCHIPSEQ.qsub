@@ -12,9 +12,9 @@ for dir in ${DIR[@]}; do
     if [ -e $dir/$TASKMEMECHIP ]; then rm -rf $dir/TASKMEMECHIP; rm -rf $QOUT/TASKMEMECHIP/$dir*; fi
 done 
 
-############################################################################
+################################################################################
 #  BOWTIE
-############################################################################
+################################################################################
 
 # modify the template config file to flip the RUNBOWTIE2 switch
 # specify the resulting html file
@@ -27,9 +27,9 @@ JOBIDS=$( trigger.sh tmp/configBOWTIE2.txt forcearmed | grep "Jobnumber" | cut -
 echo "[NOTE] submitted jobs $(echo -n $JOBIDS)"
 
 
-############################################################################
+################################################################################
 #  PEAKRANGER
-############################################################################
+################################################################################
 
 # modify the template config file to flip the RUNPEAKRANGER switch
 # specify the resulting html file
@@ -45,9 +45,9 @@ JOBIDSPR=$( trigger.sh tmp/configPEAKRANGER.txt forcearmed | grep "Jobnumber" | 
 echo "[NOTE] submitted jobs $(echo -n $JOBIDSPR)"
 
 
-############################################################################
+################################################################################
 #  MACS2
-############################################################################
+################################################################################
 
 # modify the template config file to flip the RUNMACS2 switch
 # specify the resulting html file
@@ -62,9 +62,9 @@ echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configMACS2.txt
 JOBIDSMACS=$( trigger.sh tmp/configMACS2.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] submitted jobs $(echo -n $JOBIDSMACS)"
 
-############################################################################
+################################################################################
 #  MEMEchip
-############################################################################
+################################################################################
 
 # modify the template config file to flip the RUNMEMECHIP switch
 # specify the resulting html file
@@ -81,9 +81,9 @@ JOBIDSMEME=$( trigger.sh tmp/configMEMECHIP.txt forcearmed | grep "Jobnumber" | 
 echo "[NOTE] submitted jobs $(echo -n $JOBIDSMEME)"
 
 
-#######################################
+################################################################################
 # TEST
-#######################################
+################################################################################
 JOBIDS="$JOBIDSPR:JOBIDSMACS:$JOBIDSMEME" #other things
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}

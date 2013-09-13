@@ -653,64 +653,12 @@ fi
 # IN:$SOURCE/$dir/fastq/*$READONE.fastq
 # OUT: $OUT/$dir/reCal/*.$$ASR.bam
 ################################################################################
+
 if [ -n "$RUNREALRECAL" ]; then
 
-    echo "********* $TASKRCA"
-    CPU=16
-    exit
-
-    # generates the .dict file
-    #java -Xmx4g -jar /home/Software/picard-tools-1.22/CreateSequenceDictionary.jar R= $FASTA O= ${$FASTA/.fasta/.dict}
-    #sort dbSNP rod file according to fasta
-    #/home/Software/Sting/perl/sortByRef.pl --k 2 $GATKSUP/tmp.dbsnp.txt $FASTA.fai > $DBROD
-
-    if [ ! -d $QOUT/$TASKRCA ]; then mkdir -p $QOUT/$TASKRCA; fi
-
-    for dir in ${DIR[@]}
-      do
-
-     #ensure dirs are there...
-      if [ ! -d $OUT/$dir/$TASKRCA ]; then mkdir -p $OUT/$dir/$TASKRCA; fi
-
-      for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
-	do
-	n=`basename $f`
-	n2=${n/%$READONE.$FASTQ/.$ASD.bam}
-	name=${n/%$READONE.$FASTQ/}
-	echo ">>>>>"$dir$n2
-
-	# wait on pipeline steps
-	if [ -n "$RUNMAPPINGBWA" ]; then HOLD="-hold_jid "$TASKBWA"_"$dir"_"$name; fi
-	# remove old pbs output
-	if [ -e $QOUT/$TASKRCA/$dir'_'$name.out ]; then rm $QOUT/$TASKRCA/$dir'_'$name.*; fi
-			
-	#Sumit (ca. 80 min on AV 1297205 reads) -l h_rt=20:00:00
-	if [ -n "$ARMED" ]; then
-	    $BINQSUB -j oe -o $QOUT/$TASKRCA/$dir'_'$name'.out' -w $(pwd) -l $NODES_RECAL \
-		-l vmem=$MEMORY_RECAL'G' -N $TASKRCA'_'$dir'_'$name -l walltime=$WALLTIME_RECAL \
-		-command "${NGSANE_BASE}/mods/reCalAln.sh -k ${NGSANE_BASE} -f $OUT/$dir/$TASKBWA/$n2 -r $FASTA -d $DBROD \
-		-o $OUT/$dir/$TASKRCA -t $CPU_RECAL"
-	fi
-	
-      done
-    done
-
-fi
-
-
-if [ -n "$RUNREALRECAL2" ]; then
-
     $QSUB $ARMED -r -k $CONFIG -t $TASKRCA -i $TASKBWA/ -e .$ASD.bam \
         -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
-        --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA -t $CPU_RECAL"
-
-fi
-
-if [ -n "$RUNREALRECAL3" ]; then
-
-    $QSUB $ARMED -r -k $CONFIG -t $TASKRCA -i $TASKBWA/ -e .$ASD.bam \
-        -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
-        --command "${NGSANE_BASE}/mods/reCalAln2.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA -t $CPU_RECAL"
+        --command "${NGSANE_BASE}/mods/reCalAln2.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA"
 
 fi
 
@@ -762,7 +710,7 @@ then
 	if [ -e $QOUT/$TASKDOC/$dir'_'$name'.out' ]; then rm $QOUT/$TASKDOC/$dir'_'$name'.out'; fi
 
 	#check if this is part of the pipe and jobsubmission needs to wait
-	if [ -n "$$RUNREALRECAL" ]; then HOLD="-hold_jid "$TASKRCA"_"$dir"_"$name; fi
+#	if [ -n "$$RUNREALRECAL" ]; then HOLD="-hold_jid "$TASKRCA"_"$dir"_"$name; fi
 
 	#Submit
 	if [ -n "$ARMED" ]; then
@@ -1044,79 +992,7 @@ fi
 #   call indels with GATK -- call one vcf file over all folders
 ################################################################################
 
-if [ -n "$RUNVARCALLS" ]
-then
-
-    echo "********* $TASKVAR"
-    CPUS=24
-
-    if [ ! -d $QOUT/$TASKVAR ]; then mkdir -p $QOUT/$TASKVAR; fi
-    if [ ! -d $OUT/$TASKVAR ]; then mkdir -p $OUT/$TASKVAR; fi
-
-    RUNVARS=""
-
-    # one per folder
-    if [ -n "$VARPERFOLDER" ]; then
-	for dir in ${DIR[@]};do
-	    RUNVARS=$RUNVARS" "$dir
-	    if [ ! -d $OUT/$TASKVAR/$dir ]; then mkdir -p $OUT/$TASKVAR/$dir; fi
-            if [ -e  $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp" ]; then rm  $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp"; fi
-	    for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );do
-		n=`basename $f`
-		echo $OUT/$dir/$TASKRCA/${n/%$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp"
-	    done
-	done
-    # one over all folders
-    else
-	NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
-	RUNVARS=$NAME
-	if [ ! -d $OUT/$TASKVAR/$NAME ]; then mkdir -p $OUT/$TASKVAR/$NAME; fi
-        if [ -e  $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp" ]; then rm  $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp"; fi
-	for dir in ${DIR[@]};do
-	    for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );do
-		n=`basename $f`
-		echo $OUT/$dir/$TASKRCA/${n/%$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp"
-	    done
-	done
-	
-    fi
-
-    for dir in $RUNVARS; do #$(ls -d $OUT/$TASKVAR/* ); do
-	NAME=`basename $dir`
-        # remove old pbs output
-	if [ -e $QOUT/$TASKVAR/$NAME.out ]; then rm $QOUT/$TASKVAR/$NAME.out ; fi
-
-    #check if this is part of the pipe and jobsubmission needs to wait
-    #if [ -n "$recalibrateQualScore" ]; then 
-#	HOLD="-hold_jid "
-#	for dir in ${DIR[@]};do
-#	    HOLD=$HOLD","$TASKRCA"_"$dir"*"
- #       done
-#	HOLD=${HOLD/,/}
- #   fi
-
-        #Submit #-pe mpich $CPUS 
-	if [ -n "$ARMED" ]; then
-	    #$BINQSUB -j oe -o $QOUT/$TASKVAR/$NAME.out -w $(pwd) -l $NODES_VAR $HOLD \
-		#-l vmem=$MEMORY_VAR"G" -N $TASKVAR'_'$NAME -l walltime=$WALLTIME_VAR \
-		#-command "${NGSANE_BASE}/mods/gatkSNPs.sh -k $CONFIG -i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
-		#-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME -H $HAPMAPVCF -K $ONEKGVCF"
-    	    
-	    $BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY_VAR"G" -n $NODES_VAR -w $WALLTIME_VAR \
-	    	-j $TASKVAR'_'$NAME -o $QOUT/$TASKVAR/$NAME.out \
-			--command "${NGSANE_BASE}/mods/gatkSNPs.sh -k $CONFIG \
-			-i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
-			-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME \
-			-H $HAPMAPVCF -K $ONEKGVCF"
-
-
-	fi
-    done
-
-    
-fi
-
-if [ -n "$RUNVARCALLS3" ]; then
+if [ -n "$RUNVARCALLS" ]; then
     NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
     $QSUB $ARMED -d -r -k $CONFIG -t $TASKVAR -i $TASKRCA/  -e .$ASR.bam -n $NODES_VAR \
         -c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
@@ -1125,8 +1001,6 @@ if [ -n "$RUNVARCALLS3" ]; then
                         -r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME \
                         -H $HAPMAPVCF -K $ONEKGVCF"
 fi
-
-
 
 
 ########

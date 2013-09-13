@@ -43,15 +43,17 @@ echo "PATH=$PATH"
 # best common denominator)
 PATH_TRIMMOMATIC=$(dirname $(which trimmomatic.jar))
 
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_TRIMMOMATIC*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
+
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--JAVA        --\n" $(java -version 2>&1)
+echo -e "--JAVA        --\n" $(java -Xmx=200m -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--trimmomatic --\n " $(which $PATH_TRIMMOMATIC/trimmomatic.jar)
 [ ! -f $PATH_TRIMMOMATIC/trimmomatic.jar ] && echo "[ERROR] no trimmomatic detected" && exit 1
 
-echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(expr $MEMORY_TRIMMOMATIC - 1 )"G -Djava.io.tmpdir="$TMP
-echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################

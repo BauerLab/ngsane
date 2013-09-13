@@ -13,9 +13,9 @@ for dir in ${DIR[@]}; do
     fi
 done 
 
-############################################################################
+################################################################################
 #  TOPHAT
-############################################################################
+################################################################################
 
 
 # modify the template config file to flip the RUNTOPHAT switch
@@ -28,9 +28,9 @@ cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNTOPHAT=\"\"/RUNTOPHAT=\"1\"/g' |
 JOBIDS=$( trigger.sh tmp/configTOPHAT.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] submitted jobs $(echo -n $JOBIDS)"
 
-############################################################################
+################################################################################
 #  CUFFLINKS
-############################################################################
+################################################################################
 
 
 # modify the template config file to flip the RUNCUFFLINKS switch
@@ -45,9 +45,9 @@ JOBIDSCUFF=$( trigger.sh tmp/configCUFFLINKS.txt forcearmed | grep "Jobnumber" |
 echo "[NOTE] submitted jobs $(echo -n $JOBIDSCUFF)"
 
 
-############################################################################
+################################################################################
 #  HTSEQCOUNT
-############################################################################
+################################################################################
 
 
 # modify the template config file to flip the RUNHTSEQCOUNT switch
@@ -61,9 +61,9 @@ echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configHTSEQCOUN
 JOBIDSHTSEQ=$( trigger.sh tmp/configHTSEQCOUNT.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] submitted jobs $(echo -n $JOBIDSHTSEQ)"
 
-#######################################
+################################################################################
 # TEST
-#######################################
+################################################################################
 JOBIDS="$JOBIDSCUFF:$JOBIDSHTSEQ" #other things
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}

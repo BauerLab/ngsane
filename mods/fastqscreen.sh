@@ -43,14 +43,8 @@ echo "PATH=$PATH"
 # best common denominator)
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--JAVA        --\n" $(java -version 2>&1)
-[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--fastq_screen --\n "  $(`which perl` `which fastq_screen` --version)
 [ ! -f $(which fastq_screen) ] && echo "[ERROR] no fastq_screen detected" && exit 1
-
-echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(expr $MEMORY_FASTQSCREEN - 1 )"G -Djava.io.tmpdir="$TMP
-echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################

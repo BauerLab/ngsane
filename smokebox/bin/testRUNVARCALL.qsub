@@ -10,28 +10,28 @@ for dir in ${DIR[@]}; do
     if [ -e $dir/bwa ]; then rm -rf $dir/bwa; rm -rf $QOUT/bwa/$dir*; fi
 done 
 
-############################################################################
+################################################################################
 #  BWA
-############################################################################
+################################################################################
 
 # modify the template config file to flip the RUNBWA switch
 # specify the resulting html file
 echo "[NOTE] Prep config file tmp/configBWA.txt"
-cat bin/tmpl/config.txt | sed 's/RUNMAPPINGBWA2=\"\"/RUNMAPPINGBWA2=\"1\"/g' | \
+cat bin/tmpl/configVarCall.txt | sed 's/RUNMAPPINGBWA=\"\"/RUNMAPPINGBWA=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBWA\"/g' > tmp/configBWA.txt
 
 # submit the BWA run to the cluster
 JOBIDS=$( trigger.sh tmp/configBWA.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
 
-############################################################################
+################################################################################
 #  RECAL
-############################################################################
+################################################################################
 
 # modify the template config file to flip the RUNRECAL switch
 # specify the resulting html file
 echo "[NOTE] Prep config file tmp/configRECAL.txt"
-cat bin/tmpl/config.txt | sed 's/RUNREALRECAL3=\"\"/RUNREALRECAL3=\"1\"/g' | \
+cat bin/tmpl/configVarCall.txt | sed 's/RUNREALRECAL=\"\"/RUNREALRECAL=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryRECAL\"/g' > tmp/configRECAL.txt
 echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configRECAL.txt
 
@@ -40,14 +40,14 @@ JOBIDS=$( trigger.sh tmp/configRECAL.txt forcearmed | grep "Jobnumber" | cut -d 
 echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
 
 
-############################################################################
+################################################################################
 #  VARCALL
-############################################################################
+################################################################################
 
 # modify the template config file to flip the RUNVARCALLS switch
 # specify the resulting html file
 echo "[NOTE] Prep config file tmp/configVARCALLS.txt"
-cat bin/tmpl/config.txt | sed 's/RUNVARCALLS3=\"\"/RUNVARCALLS3=\"1\"/g' | \
+cat bin/tmpl/configVarCall.txt | sed 's/RUNVARCALLS=\"\"/RUNVARCALLS=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryVARCALLS\"/g' > tmp/configVARCALLS.txt
 echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configVARCALLS.txt
 
@@ -56,15 +56,15 @@ JOBIDS=$( trigger.sh tmp/configVARCALLS.txt forcearmed | grep "Jobnumber" | cut 
 echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
 
 
-#######################################
+################################################################################
 # TEST
-#######################################
+################################################################################
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
-cat bin/tmpl/config.txt | sed 's/RUNVARCALLS3=\"\"/RUNVARCALLS3=\"1\"/g' | \
+cat bin/tmpl/configVarCall.txt | sed 's/RUNVARCALLS=\"\"/RUNVARCALLS=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryVARCALLS\"/g' | \
-    sed 's/RUNMAPPINGBWA2=\"\"/RUNMAPPINGBWA2=\"1\"/g' | \
-    sed 's/RUNREALRECAL3=\"\"/RUNREALRECAL3=\"1\"/g' > tmp/configVARCALLS.txt
+    sed 's/RUNMAPPINGBWA=\"\"/RUNMAPPINGBWA=\"1\"/g' | \
+    sed 's/RUNREALRECAL=\"\"/RUNREALRECAL=\"1\"/g' > tmp/configVARCALLS.txt
 
 # prepare the job to generate the html result page and perform the diff 
 echo "[NOTE] prepare evaluation script tmp/testVARCALLS.qsub"
