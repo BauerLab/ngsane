@@ -49,8 +49,3 @@ READTWO="_R2"
 #
 #MODULE_FASTQC="gi/fastqc/0.10.1"
 #PATH_FASTQC=
-#MODULE_LATEX=
-#PATH_LATEX=
-
-## location of ngsane
-#NGSANE_BASE=

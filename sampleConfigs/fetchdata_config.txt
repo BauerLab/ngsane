@@ -44,7 +44,3 @@ READTWO="_R2"
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
-
-## location of ngsane
-#NGSANE_BASE=
-

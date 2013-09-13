@@ -63,9 +63,3 @@ HICLIB_READLENGTH=
 #NODES_HICLIB="nodes=1:ppn=8"
 #MODULE_HICLIB=
 #PATH_HICLIB=
-
-## location of ngsane
-#NGSANE_BASE=
-
-
-

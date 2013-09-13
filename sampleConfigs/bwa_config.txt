@@ -9,7 +9,7 @@
 # Tasks
 #********************
 
-RUNMAPPINGBWA2="1"     # mapping with bwa
+RUNMAPPINGBWA="1"     # mapping with bwa
 
 #********************
 # Paths
@@ -60,8 +60,3 @@ PLATFORM="Illumina"
 #NODES_BWA="nodes=4:ppn=8"
 #MODULE_BWA=
 #PATH_BWA=
-
-## location of ngsane
-#NGSANE_BASE=
-
-

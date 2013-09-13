@@ -1,0 +1,74 @@
+# author: Fabian Buske
+# date: September 2013
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNCUFFLINKS="1"    # Cufflinks (RNAseq)
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+## PARAMETER (mandatory)
+##********************
+
+# reference genome
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
+FASTA=
+
+# specify library type for tophat.
+# choose "fr-firststrand" "fr-unstranded" "fr-secondstrand"
+RNA_SEQ_LIBRARY_TYPE="fr-firststrand"
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# specify TASK that generated the bam, i.e. folder to look for bam (default TASKTOPHAT)
+#TASKTOPHAT=
+
+# additional parameters for cufflinks
+CUFFLINKSADDPARAM=
+
+# ATTENTION: make sure the GTF file matches your genome assembly (chr naming)
+# see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
+# conversion scripts
+# e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_14/gencode.v14.annotation.gtf
+GTF=
+
+# activate to use doctored GTF file for Cufflinks (provides additional info)
+# assumes the doctored GTF is at the same location as the original one but
+# has a different suffix
+#DOCTOREDGTFSUFFIX=".doctored.gtf"
+
+#WALLTIME_CUFFLINKS=60:00:00
+#MEMORY_CUFFLINKS=50
+#CPU_CUFFLINKS=8
+#NODES_CUFFLINKS="nodes=1:ppn=8"
+#MODULE_CUFFLINKS=
+#PATH_CUFFLINKS=
+
+
+
+
+
+
+
+
+

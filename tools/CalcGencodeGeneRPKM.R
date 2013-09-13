@@ -31,4 +31,4 @@ ordered.gene.length<-gene.length.gencode[match(counts[,1],names(gene.length.genc
 #calculate rpkms using edgeR
 RPKM<-rpkm(matrix(counts[,2]), gene.length=ordered.gene.length)
 #write table of rpkms
-write.csv(cbind("ENSG"=counts[,1],"RPKM"=RPKM[,1]),file=paste(sampleName,"RPKM",annoversion,".csv",sep=""),quote=FALSE,row.names=FALSE)
+write.csv(cbind("ENSG"=counts[,1],"RPKM"=RPKM[,1]),file=paste(sampleName,".RPKM.",annoversion,".csv",sep=""),quote=FALSE,row.names=FALSE)

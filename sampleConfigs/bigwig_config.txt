@@ -1,0 +1,56 @@
+# author: Fabian Buske
+# date: September 2013
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNBIGWIG="1"    # create bigwigs
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which files to run on (replace sample with folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# reference genome, 
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+FASTA=
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# uncomment when BWA was used for mapping
+#TASKBOWTIE=$TASKBWA
+
+# Fragment length to extend reads downstream  - only relevant for single-end libraries during bigwig generation
+# Fragment length of -1 will use the genomic fragment covered by the read-mates if the input is a paired read library
+FRAGMENTLENGTH=0
+
+# uncomment to generate strand-specific bigwig files
+#BIGWIGSTRANDS=strand-specific
+
+#WALLTIME_BIGWIG=10:00:00
+#MEMORY_BIGWIG=60
+#CPU_BIGWIG=1
+#NODES_BIGWIG="nodes=1:ppn=1"
+#MODULE_BIGWIG=
+#PATH_BIGWIG=
+

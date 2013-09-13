@@ -207,7 +207,7 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     	python ${NGSANE_BASE}/core/Summary.py "$vali" merg.anno.stats annostats >>$SUMMARYTMP
     	ROUTH=runStats/$(echo ${DIR[@]}|sed 's/ /_/g')
     	if [ ! -e $ROUTH ]; then mkdir $ROUTH; fi
-	   python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
+	    python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
     fi
     
     summaryFooter "$TASKBWA" "$SUMMARYTMP"
@@ -225,7 +225,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
-    summaryHeader "BOWTIE v1 mapping" "$TASKBOWTIE" "bowtie.sh" "$SUMMARYTMP"
+    summaryHeader "Bowtie v1 mapping" "$TASKBOWTIE" "bowtie.sh" "$SUMMARYTMP"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE)" $ASD.bam.stats samstats >>$SUMMARYTMP
 
@@ -234,7 +234,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
-    summaryHeader "BOWTIE v2 mapping" "$TASKBOWTIE2" "bowtie2.sh" "$SUMMARYTMP"
+    summaryHeader "Bowtie v2 mapping" "$TASKBOWTIE2" "bowtie2.sh" "$SUMMARYTMP"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE2)" $ASD.bam.stats samstats >>$SUMMARYTMP
 
@@ -242,8 +242,8 @@ if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
 fi
 
 ################################################################################
-if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
-    summaryHeader "TOPHAT + Cufflinks" "$TASKTOPHAT" "tophatcuff.sh" "$SUMMARYTMP"
+if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFF" ]]; then
+    summaryHeader "Tophat" "$TASKTOPHAT" "tophat.sh" "$SUMMARYTMP"
 
 	vali=""
     echo "<br>Note, the duplication rate is not calculated by tophat and hence zero.<br>" >>$SUMMARYTMP
@@ -256,15 +256,33 @@ if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
 		done
     done
     cd $CURDIR
-    python ${NGSANE_BASE}/core/Summary.py "$vali" bam.stats tophat >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASD.bam.stats tophat >>$SUMMARYTMP
 
     summaryFooter "$TASKTOPHAT" "$SUMMARYTMP"
 fi
 
+################################################################################
+if [[ -n "$RUNCUFFLINKS" || -n "$RUNTOPHATCUFF" ]]; then
+    summaryHeader "Cufflinks" "$TASKCUFFLINKS" "cufflinks.sh" "$SUMMARYTMP"
+
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKCUFFLINKS)" .summary.txt cufflinks >>$SUMMARYTMP
+
+    summaryFooter "$TASKCUFFLINKS" "$SUMMARYTMP"
+fi
+
+
+################################################################################
+if [[ -n "$RUNHTSEQCOUNT" || -n "$RUNTOPHATCUFF" ]]; then
+    summaryHeader "Htseq-count" "$TASKHTSEQCOUNT" "htseqcount.sh" "$SUMMARYTMP"
+
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKHTSEQCOUNT)" _transcripts.gtf gtf >>$SUMMARYTMP
+
+    summaryFooter "$TASKHTSEQCOUNT" "$SUMMARYTMP"
+fi
 
 ################################################################################
 if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
-    summaryHeader "COVERAGE" "$TASKVAR" "gatkSNPs.sh" "$SUMMARYTMP"
+    summaryHeader "Coverage" "$TASKVAR" "gatkSNPs.sh" "$SUMMARYTMP"
 
     vali=$(gatherDirs $TASKDOC)
     echo "<h3>Average coverage</h3>">>$SUMMARYTMP
@@ -427,7 +445,7 @@ if [ -n "$RUNMACS2" ];then
     row1=""
     row2=""
     for dir in $vali; do
-        for f in $(ls $dir/*model-0.png); do
+        for f in $(ls $dir/*model-0.png 2> /dev/null); do
             n=${f##*/}
             n=${n/"_model-0.png"/}
             row0+="<td>$n</td>"
@@ -447,9 +465,12 @@ if [ -n "$RUNMEMECHIP" ];then
     vali=""
     CURDIR=$(pwd)
     for dir in ${DIR[@]}; do
+        if [ ! -d $dir/$TASKMEMECHIP ]; then
+            continue
+        fi
         vali=$vali" $OUT/$dir/$TASKMEMECHIP/"
         cd $OUT/$dir/$TASKMEMECHIP
-        for d in $(find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \; ); do
+        for d in $(find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \;); do
                 echo "<a href=\"$PROJECT_RELPATH/$dir/$TASKMEMECHIP/$d/index.html\">$dir/$d</a> " >> $CURDIR/$SUMMARYTMP
         done
     done

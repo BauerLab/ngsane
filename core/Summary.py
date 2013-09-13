@@ -1,12 +1,16 @@
 #!/bin/python
 
-import sys,os,math,re,traceback,datetime
-import glob
+import sys,os,math,re,traceback,datetime,glob
 
 def removePrefix(text, prefix):
 ### remove prefix from a string ###
     return text[len(prefix):] if text.startswith(prefix) else text
-    
+   
+def removeSuffix(text, suffix):
+### remove prefix from a string ###
+    return text[0:-len(suffix)] if text.endswith(suffix) else text
+  
+   
 if (len(sys.argv)==1 or sys.argv[0].find("help")>-1):
     print "python2 times"
     die
@@ -90,7 +94,7 @@ def per(max,arr):
     return sum
 
 
-def printStats(arrV, arrN, arrS, noSummary, filestructure):
+def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix):
 
     out=[[],[],[],[],[],[]]
     string=[]
@@ -118,7 +122,7 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure):
                     formatString="%17.2e"
                 resultPerS+=[ formatString % e ]
             
-            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+ removePrefix(l[1], filestructure)+"</td></tr>"
+            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+ removeSuffix(removePrefix(l[1], filestructure), filesuffix)+"</td></tr>"
         print "</tbody>"
             
     if(noSummary):
@@ -230,8 +234,8 @@ def tophat(statsfile):
     if (len(st)>76):
         names.append("Junction")
         names.append("Junction %")
-        names.append("Jnct over ncbi")
-        names.append("Jnct over ncbi %")
+        names.append("Jnct over GTF")
+        names.append("Jnct over GTF %")
         values.append(int(st[76])) # junction reads
         #values.append(float(values[-1])/float(values[5])) # junction %
         values.append(float(values[-1])/float(values[0])*100) # junction %
@@ -239,6 +243,71 @@ def tophat(statsfile):
         values.append(float(values[-1])/float(values[10])*100) # junction reads in ncbi genes %
         
     return names,values
+
+def cufflinksStats(logFile):
+    
+    names=["Transcripts", "Skipped", "Genes FPKM", "% OK", "% Lowdata", "Isoforms FPKM", "% OK", "% Lowdata"]
+    values=[]
+    file=open(logFile).read()
+    # populate
+    tmp=file.split("transcripts.gtf")[1].strip().split()[0]
+    TS=float(tmp.strip())
+    values.append(TS)
+
+    tmp=file.split("skipped.gtf")[1].strip().split()[0]
+    SK=float(tmp.strip())
+    values.append(SK)
+
+    tmp=file.split("genes.fpkm_tracking")[1].split(";")[0].strip().split()[0]
+    GF=float(tmp.strip())
+    values.append(GF)
+
+    try:
+        if not "OK;" in file.split("genes.fpkm_tracking")[1].split("\n")[0]: 
+            raise error
+
+        tmp=file.split("genes.fpkm_tracking")[1].split("OK;")[0].split(";")[-1].strip()
+        GO=float(tmp.strip())
+        values.append(100* GO / GF)
+    except:
+        values.append(0)
+            
+
+    try:
+        if not "LOWDATA;" in file.split("genes.fpkm_tracking")[1].split("\n")[0]: 
+            raise error
+        tmp=file.split("genes.fpkm_tracking")[1].split("LOWDATA;")[0].split(";")[-1].strip()
+        GL=float(tmp.strip())
+        values.append(100* GL / GF)
+    except:
+        values.append(0)
+    
+    tmp=file.split("isoforms.fpkm_tracking")[1].split(";")[0].strip().split()[0]
+    IF=float(tmp.strip())
+    values.append(IF)
+
+    try:    
+        if not "OK;" in file.split("isoforms.fpkm_tracking")[1].split("\n")[0]: 
+            raise error
+
+        tmp=file.split("isoforms.fpkm_tracking")[1].split("OK;")[0].split(";")[-1].strip()
+        IO=float(tmp.strip())
+        values.append(100* IO / IF)
+    except:
+        values.append(0)
+    
+    try:
+        if not "LOWDATA;" in file.split("isoforms.fpkm_tracking")[1].split("\n")[0]: 
+            raise error
+
+        tmp=file.split("isoforms.fpkm_tracking")[1].split("LOWDATA;")[0].split(";")[-1].strip()
+        IL=float(tmp.strip())
+        values.append(100 * IL / IF)
+    except:
+        values.append(0)
+    
+    
+    return names, values
 
 
 def onTarget(statsfile):
@@ -689,14 +758,18 @@ def macs2Stats(logFile):
         values.append(0)
         values.append(0)
 
-    tmp=file.split("#2 number of paired peaks:")[1].strip().split()[0]
-    PP=float(tmp.strip())
-    values.append(PP)
-
-    tmp=file.split("#2 predicted fragment length is")[1].strip().split("bps")[0]
-    PF=float(tmp.strip())
-    values.append(PF)
-
+    try:
+        tmp=file.split("#2 number of paired peaks:")[1].strip().split()[0]
+        PP=float(tmp.strip())
+        values.append(PP)
+    
+        tmp=file.split("#2 predicted fragment length is")[1].strip().split("bps")[0]
+        PF=float(tmp.strip())
+        values.append(PF)
+    except:
+        values.append(0)
+        values.append(0)
+        
     return names, values
 
 def fastqscreenStats(logFile):
@@ -728,12 +801,12 @@ def memechipStats(logFile):
     tmp=file.split("bound directely (strong site):")[1].strip().split()[0]
     SS=float(tmp.strip())
     values.append(SS)
-    values.append(SS/PR)
+    values.append(100. * SS/PR)
 
     tmp=file.split("bound indirectely (weak or no site):")[1].strip().split()[0]
     WS=float(tmp.strip())
     values.append(WS)
-    values.append(WS/PR)
+    values.append(100. * WS/PR)
 
     return names, values
  
@@ -900,6 +973,8 @@ for d in dir:
                 names,values=variant(f)
             if (type=="tophat"):
                 names,values=tophat(f)
+            if (type=="cufflinks"):
+                names,values=cufflinksStats(f)
             if (type=="times"):
                 names,values=time(f)
             if (type=="target"):
@@ -945,8 +1020,8 @@ for d in dir:
 
     filestructure="/".join(d.split("/")[-4::]) # only list file structure from current root
     print "<h3>"+ filestructure +"</h3>" 
-    printStats(result,names,psresult,noSummary,filestructure)
+    printStats(result,names,psresult,noSummary,filestructure, ext)
 
 if (not noOverallSummary and overAll):
     print "<h3 class='overall'>Aggregation over all libraries</h3>"
-    printStats(oaresult,names,0,noOverallSummary,"")
+    printStats(oaresult,names,0,noOverallSummary,"","")

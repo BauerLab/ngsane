@@ -1,0 +1,110 @@
+#!/bin/sh
+
+# the ngsane version to be tested needs to be loaded by hand
+. $NGSANE_BASE/conf/header.sh
+
+#clean up earlier runs
+for dir in ${DIR[@]}; do
+    echo "[NOTE] remove old $dir/bowtie"
+    if [ -e $dir/$TASKBOWTIE ]; then rm -rf $dir/TASKBOWTIE; rm -rf $QOUT/TASKBOWTIE/$dir*; fi
+    if [ -e $dir/$TASKPEAKRANGER ]; then rm -rf $dir/TASKPEAKRANGER; rm -rf $QOUT/TASKPEAKRANGER/$dir*; fi
+    if [ -e $dir/$TASKMACS2 ]; then rm -rf $dir/TASKMACS2; rm -rf $QOUT/TASKMACS2/$dir*; fi
+    if [ -e $dir/$TASKMEMECHIP ]; then rm -rf $dir/TASKMEMECHIP; rm -rf $QOUT/TASKMEMECHIP/$dir*; fi
+done 
+
+################################################################################
+#  BOWTIE
+################################################################################
+
+# modify the template config file to flip the RUNBOWTIE2 switch
+# specify the resulting html file
+echo "[NOTE] Prep config file tmp/configBOWTIE2.txt"
+cat bin/tmpl/configChIPseq.txt | sed 's/RUNMAPPINGBOWTIE2=\"\"/RUNMAPPINGBOWTIE2=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBOWTIE2\"/g' > tmp/configBOWTIE2.txt
+
+# submit the BOWTIE2 run to the cluster
+JOBIDS=$( trigger.sh tmp/configBOWTIE2.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDS)"
+
+
+################################################################################
+#  PEAKRANGER
+################################################################################
+
+# modify the template config file to flip the RUNPEAKRANGER switch
+# specify the resulting html file
+echo "[NOTE] Prep config file tmp/configPEAKRANGER.txt"
+cat bin/tmpl/configChIPseq.txt | sed 's/RUNPEAKRANGER=\"\"/RUNPEAKRANGER=\"1\"/g' | \
+    sed 's/ ChIPseq_input / /g' | \
+    sed 's/ ChIPseq_TF / /g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryPEAKRANGER\"/g' > tmp/configPEAKRANGER.txt
+echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configPEAKRANGER.txt
+
+# submit the PEAKRANGER run to the cluster
+JOBIDSPR=$( trigger.sh tmp/configPEAKRANGER.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSPR)"
+
+
+################################################################################
+#  MACS2
+################################################################################
+
+# modify the template config file to flip the RUNMACS2 switch
+# specify the resulting html file
+echo "[NOTE] Prep config file tmp/configMACS2.txt"
+cat bin/tmpl/configChIPseq.txt | sed 's/RUNMACS2=\"\"/RUNMACS2=\"1\"/g' | \
+    sed 's/ ChIPseq_input / /g' | \
+    sed 's/ ChIPseq_Histone / /g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryMACS2\"/g' > tmp/configMACS2.txt
+echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configMACS2.txt
+
+# submit the MACS run to the cluster
+JOBIDSMACS=$( trigger.sh tmp/configMACS2.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSMACS)"
+
+################################################################################
+#  MEMEchip
+################################################################################
+
+# modify the template config file to flip the RUNMEMECHIP switch
+# specify the resulting html file
+echo "[NOTE] Prep config file tmp/configMEMECHIP.txt"
+cat bin/tmpl/configChIPseq.txt | sed 's/RUNMEMECHIP=\"\"/RUNMEMECHIP=\"1\"/g' | \
+    sed 's/#TASKPEAKRANGER/TASKPEAKRANGER/g' |\
+    sed 's/ ChIPseq_input / /g' | \
+    sed 's/ ChIPseq_Histone / /g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryMEMECHIP\"/g' > tmp/configMEMECHIP.txt
+echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDSMACS/:/$QUEUEWAITSEP}\"" >>tmp/configMEMECHIP.txt
+
+# submit the MEMEchip run to the cluster
+JOBIDSMEME=$( trigger.sh tmp/configMEMECHIP.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSMEME)"
+
+
+################################################################################
+# TEST
+################################################################################
+JOBIDS="$JOBIDSPR:JOBIDSMACS:$JOBIDSMEME" #other things
+
+HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
+cat bin/tmpl/configChIPseq.txt | sed 's/RUNMAPPINGBOWTIE2=\"\"/RUNMAPPINGBOWTIE2=\"1\"/g' | \
+    sed 's/RUNPEAKRANGER=\"\"/RUNPEAKRANGER=\"1\"/g' |\
+    sed 's/RUNMACS2=\"\"/RUNMACS2=\"1\"/g' |\
+    sed 's/RUNMEMECHIP=\"\"/RUNMEMECHIP=\"1\"/g' |\
+	sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryCHIPSEQ\"/g' > tmp/configCHIPSEQ.txt
+
+# prepare the job to generate the html result page and perform the diff 
+echo "[NOTE] prepare evaluation script tmp/testCHIPSEQPR.qsub"
+sed 's/NAME/CHIPSEQ/g' bin/tmpl/HPCheader.txt > tmp/testCHIPSEQ.qsub
+echo "trigger.sh tmp/configCHIPSEQ.txt html" >> tmp/testCHIPSEQ.qsub
+echo "diff result/SummaryCHIPSEQ.html result/expected/SummaryCHIPSEQ.html | \
+      grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
+      grep -v \"[NOTE]\" | \
+      grep -v \"[0-9]c[0-9]\" > result/diffCHIPSEQ.txt" >> tmp/testCHIPSEQ.qsub
+
+chmod 777 tmp/testCHIPSEQ.qsub
+
+#submit evaluation script
+echo "[NOTE] submit evaluation script"
+unset module
+qsub -V -S /bin/bash $HOLDID tmp/testCHIPSEQ.qsub

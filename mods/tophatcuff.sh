@@ -93,8 +93,13 @@ PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 PATH_RNASEQC=$(dirname $(which RNA-SeQC.jar))
 
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_TOPHAT*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
+
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--JAVA        --\n" $(java -version 2>&1)
+echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--tophat2     --\n "$(tophat --version)
 [ -z "$(which tophat)" ] && echo "[ERROR] no tophat detected" && exit 1
@@ -106,9 +111,9 @@ echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
-echo -e "--igvtools    --\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
+echo -e "--igvtools    --\n "$(java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar version 2>&1)
 [ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
-echo -e "--picard      --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+echo -e "--picard      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
@@ -116,15 +121,11 @@ echo -e "--bedtools    --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 echo -e "--htSeq       --\n "$(htseq-count | tail -n 1)
 [ -z "$(which htseq-count)" ] && [ -n "$GENCODEGTF" ] && echo "[ERROR] no htseq-count or GENCODEGTF detected" && exit 1
-echo -e "--RNA-SeQC    --\n "$(java -jar $JAVAPARAMS ${PATH_RNASEQC}/RNA-SeQC.jar --version  2>&1 | head -n 1 )
+echo -e "--RNA-SeQC    --\n "$(java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar --version  2>&1 | head -n 1 )
 [ -z "$(which RNA-SeQC.jar)" ] && echo "[ERROR] no RNA_SeQC.jar detected" && exit 1
 
-echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_TOPHAT*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
-unset _JAVA_OPTIONS
-echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -203,7 +204,7 @@ fi
 
 mkdir -p $OUTDIR
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -212,11 +213,11 @@ if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
 fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="run tophat"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -230,13 +231,13 @@ else
     echo "[NOTE] tophat end $(date)"
 
     # mark checkpoint
-    [ -d $OUTDIR ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -d $OUTDIR ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="merge mapped and unmapped"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -269,13 +270,13 @@ else
     rm ${BAMFILE/.bam/.samtools}.bam
 
     # mark checkpoint
-    [ -f $BAMFILE ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $BAMFILE ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="flagstat"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     echo "[NOTE] samtools flagstat"
@@ -302,13 +303,13 @@ else
     fi
 
     # mark checkpoint
-    [ -f $BAMFILE.stats ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $BAMFILE.stats ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="index and calculate inner distance"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -337,13 +338,13 @@ else
     rm -r $THISTMP
    
     # mark checkpoint
-    [ -f $OUTDIR/../metrices/${BAMFILE##*/}.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUTDIR/../metrices/${BAMFILE##*/}.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="coverage track"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -352,13 +353,13 @@ else
         $BAMFILE.cov.tdf ${FASTA/$FASTASUFFIX/}genome
 
     # mark checkpoint
-    [ -f $BAMFILE.cov.tdf ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $BAMFILE.cov.tdf ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi
 
 ################################################################################
 CHECKPOINT="samstat"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -366,13 +367,13 @@ else
     samstat $BAMFILE
   
     # mark checkpoint
-    [ -f $BAMFILE.stats ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM    
+    [ -f $BAMFILE.stats ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM    
 fi
 
 ################################################################################
 CHECKPOINT="samstat"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -385,13 +386,13 @@ else
     samtools index ${BAMFILE/.$ASD/.$ALN}
 
     # mark checkpoint
-    [ -f ${BAMFILE/.$ASD/.$ALN} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM    
+    [ -f ${BAMFILE/.$ASD/.$ALN} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM    
 fi
 
 ################################################################################
 CHECKPOINT="RNA-SeQC"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
@@ -420,13 +421,13 @@ else
     fi
 
     # mark checkpoint
-    [ -d $RNASeQCDIR ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM    
+    [ -d $RNASeQCDIR ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM    
 fi
 
 ################################################################################
 CHECKPOINT="cufflinks"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     echo ">>>>> from $BAMFILE to $CUFOUT"
@@ -445,7 +446,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -d $CUFOUT ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM    
+    [ -d $CUFOUT ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM    
 fi
 echo "[NOTE] cufflinks end $(date)"
 
@@ -467,7 +468,7 @@ echo ">>>>> alignment with TopHat - FINISHED"
 if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then 
     ################################################################################
     CHECKPOINT="run htseq-count"    
-    if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
         echo "::::::::: passed $CHECKPOINT"
     else 
     	##add secondstrand
@@ -503,12 +504,12 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
     #	samtools view $OUTDIR/accepted_hits_sorted.bam  | htseq-count --quiet --idattr="transcript_id" $HT_SEQ_OPTIONS - $GENCODEGTF | grep ENST > $HTOUTDIR/${anno_version}.transcript
         
         # mark checkpoint
-        [ -f $HTOUTDIR/${anno_version}.gene ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM    
+        [ -f $HTOUTDIR/${anno_version}.gene ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM    
     fi
     
     ################################################################################
     CHECKPOINT="Create bigwigs"    
-    if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
         echo "::::::::: passed $CHECKPOINT"
     else 
     
@@ -538,12 +539,12 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
     	samtools index $OUTDIR/accepted_hits.bam
     
         # mark checkpoint
-        [ -f ${n/%$READONE.$FASTQ/.bw} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM    
+        [ -f ${n/%$READONE.$FASTQ/.bw} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM    
     fi
     	
     ################################################################################
     CHECKPOINT="calculate RPKMs per Gencode Gene"    
-    if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
         echo "::::::::: passed $CHECKPOINT"
     else 
         echo "[NOTE] Gencode RPKM calculation"
@@ -588,7 +589,7 @@ if [ -n "$RUNEXPERIMENTAL_HTSEQCOUNT" ] && [ -n "$GENCODEGTF" ]; then
         Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R $OUTDIR/accepted_hits_f3.bam ${n/%$READONE.$FASTQ/}_masked $BAM2BW_OPTION_1 $BIGWIGSDIR $BAM2BW_OPTION_2
     
         # mark checkpoint
-        [ -f ${n/%$READONE.$FASTQ/_masked} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM    
+        [ -f ${n/%$READONE.$FASTQ/_masked} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM    
     fi
 
 fi

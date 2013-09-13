@@ -14,7 +14,7 @@ required:
   CONFIG     config.txt file specifying the tasks and location of the resources
 
 options for TASK:
-  empty      start dry-run: creates dirs, delete old files, print what will be done
+  [empty]    start dry-run: creates dirs, delete old files, print what will be done
   fetchdata  get data from remote server (via smbclient)
   pushresult puts results to remote server (via smbclient)
   armed      submit tasks to the queue
@@ -76,6 +76,19 @@ if [ -z ${NGSANE_BASE} ]; then
 fi
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
+
+################################################################################
+# define functions 
+#
+# getJobIds takes 1 parameter
+# $1=QSUB output
+function waitForJobIds {
+    JOBIDS=$(echo "$1" | grep "Jobnumber")
+    if [ -n "$JOBIDS" ]; then 
+        JOBIDS=$(echo $JOBIDS | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+    fi
+    echo $JOBIDS
+} 
 
 ################################################################################
 #   Verify
@@ -188,8 +201,8 @@ if [ -n "$RUNFASTQC" ]; then
     if [ -z "$TASKFASTQC" ] || [ -z "$NODES_FASTQC" ] || [ -z "$CPU_FASTQC" ] || [ -z "$MEMORY_FASTQC" ] || [ -z "$WALLTIME_FASTQC" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
     $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -i fastq -e $READONE.$FASTQ -n $NODES_FASTQC \
-	-c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
-	--postcommand "${NGSANE_BASE}/mods/fastQC.sh -k $CONFIG" 
+    	-c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
+    	--postcommand "${NGSANE_BASE}/mods/fastQC.sh -k $CONFIG" 
 fi
 
 ################################################################################
@@ -216,8 +229,8 @@ if [ -n "$RUNCUTADAPT" ]; then
     if [ -z "$TASKCUTADAPT" ] || [ -z "$NODES_CUTADAPT" ] || [ -z "$CPU_CUTADAPT" ] || [ -z "$MEMORY_CUTADAPT" ] || [ -z "$WALLTIME_CUTADAPT" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
     
     $QSUB $ARMED -d -k $CONFIG -t $TASKCUTADAPT -i fastq -e $READONE.$FASTQ -n $NODES_CUTADAPT \
-	   -c $CPU_CUTADAPT -m $MEMORY_CUTADAPT"G" -w $WALLTIME_CUTADAPT \
-	   --command "${NGSANE_BASE}/mods/cutadapt.sh -k $CONFIG -f <FILE>" 
+        -c $CPU_CUTADAPT -m $MEMORY_CUTADAPT"G" -w $WALLTIME_CUTADAPT \
+        --command "${NGSANE_BASE}/mods/cutadapt.sh -k $CONFIG -f <FILE>" 
 fi
 
 ################################################################################
@@ -315,12 +328,11 @@ fi
 # OUT: $OUT/$dir/bwa/*.$ASD.bam
 ################################################################################
 
-if [ -n "$RUNMAPPINGBWA2" ]; then
+if [ -n "$RUNMAPPINGBWA" ]; then
     if [ -z "$TASKBWA" ] || [ -z "$NODES_BWA" ] || [ -z "$CPU_BWA" ] || [ -z "$MEMORY_BWA" ] || [ -z "$WALLTIME_BWA" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -k $CONFIG -t $TASKBWA -i fastq -e $READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA \
-        --command "${NGSANE_BASE}/mods/bwa.sh -k $CONFIG -f <FILE> -r $FASTA \
-            -o $OUT/<DIR>/$TASKBWA --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
+        --command "${NGSANE_BASE}/mods/bwa.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBWA --rgsi <DIR>"
 fi
 
 ################################################################################
@@ -333,12 +345,24 @@ fi
 if [ -n "$RUNMAPPINGBOWTIE" ]; then
     if [ -z "$TASKBOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
-echo $(pwd)
-echo $QSUB
-
     $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
-        --command "${NGSANE_BASE}/mods/bowtie.sh -k $CONFIG -f <FILE> -r $FASTA \
-            -o $OUT/<DIR>/$TASKBOWTIE --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
+        --command "${NGSANE_BASE}/mods/bowtie.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE --rgsi <DIR>"
+            
+fi
+
+
+################################################################################
+#  Mapping with bowtie v2
+#
+# IN:  $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/bowtie/*.bam
+################################################################################
+if [ -n "$RUNMAPPINGBOWTIE2" ]; then
+    if [ -z "$TASKBOWTIE2" ] || [ -z "$NODES_BOWTIE2" ] || [ -z "$CPU_BOWTIE2" ] || [ -z "$MEMORY_BOWTIE2" ] || [ -z "$WALLTIME_BOWTIE2" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE2 -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" -w $WALLTIME_BOWTIE2 \
+	       --command "${NGSANE_BASE}/mods/bowtie2.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE2 --rgsi <DIR>"
+      
 fi
 
 
@@ -359,32 +383,90 @@ fi
 
 
 ################################################################################
-#  Mapping with bowtie v2
-#
-# IN:  $SOURCE/$dir/fastq/*read1.fastq
-# OUT: $OUT/$dir/bowtie/*.bam
-################################################################################
-if [ -n "$RUNMAPPINGBOWTIE2" ]; then
-    if [ -z "$TASKBOWTIE2" ] || [ -z "$NODES_BOWTIE2" ] || [ -z "$CPU_BOWTIE2" ] || [ -z "$MEMORY_BOWTIE2" ] || [ -z "$WALLTIME_BOWTIE2" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
-    
-    $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE2 -i fastq -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" -w $WALLTIME_BOWTIE2 \
-	--command "${NGSANE_BASE}/mods/bowtie2.sh -k $CONFIG -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASKBOWTIE2 \
-        --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
-fi
-
-
-################################################################################
-#  Gene expression analysis with tophat + cufflinks
+#  Transcript mapping tophat
 #
 # IN : $SOURCE/$dir/fastq/*read1.fastq
 # OUT: $OUT/$dir/tophat/*.bam/
 ################################################################################       
-if [ -n "$RUNTOPHATCUFF2" ]; then
+
+if [ -n "$RUNTOPHAT" ]; then
     if [ -z "$TASKTOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
-        --command "${NGSANE_BASE}/mods/tophatcuff.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTOPHAT/<NAME>"
+        --command "${NGSANE_BASE}/mods/tophat.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTOPHAT/<NAME>"
+
 fi
+
+################################################################################
+#  Gene expression analysis with cufflinks
+#
+# IN : $OUT/$dir/tophat/*.bam
+# OUT: $OUT/$dir/cufflinks/*_transcript.gtf
+################################################################################       
+
+if [ -n "$RUNCUFFLINKS" ]; then
+    if [ -z "$TASKCUFFLINKS" ] || [ -z "$NODES_CUFFLINKS" ] || [ -z "$CPU_CUFFLINKS" ] || [ -z "$MEMORY_CUFFLINKS" ] || [ -z "$WALLTIME_CUFFLINKS" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASKCUFFLINKS -i $TASKTOPHAT -e .$ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS  \
+        --command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKCUFFLINKS/<NAME>"
+
+fi
+
+################################################################################
+#  Feature counting with HTSEQCOUNT
+#
+# IN : $OUT/$dir/tophat/*.bam
+# OUT: $OUT/$dir/htseqcount/*_transcript.gtf
+################################################################################       
+
+if [ -n "$RUNHTSEQCOUNT" ]; then
+    if [ -z "$TASKHTSEQCOUNT" ] || [ -z "$NODES_HTSEQCOUNT" ] || [ -z "$CPU_HTSEQCOUNT" ] || [ -z "$MEMORY_HTSEQCOUNT" ] || [ -z "$WALLTIME_HTSEQCOUNT" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASKHTSEQCOUNT -i $TASKTOPHAT -e .$ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT \
+        --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHTSEQCOUNT/<NAME>"
+
+fi
+
+
+################################################################################
+#  Gene expression analysis with tophat + cufflinks + htseqcount
+#
+# IN : $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/tophat/*.bam/
+################################################################################       
+
+if [ -n "$RUNTOPHATCUFF" ]; then
+    if [ -z "$TASKTOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+
+    JOBIDS=$(
+        $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i fastq -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
+            --command "${NGSANE_BASE}/mods/tophat.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTOPHAT/<NAME>"
+    ) && echo "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
+
+    # instruct to wait for TOPHATJOBIDS to finish
+    $QSUB $ARMED -r -k $CONFIG -t $TASKCUFFLINKS -i $TASKTOPHAT -e .$ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS -W "$JOBIDS" \
+        --command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKCUFFLINKS/<NAME>"
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASKHTSEQCOUNT -i $TASKTOPHAT -e .$ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT -W "$JOBIDS" \
+        --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHTSEQCOUNT/<NAME>"
+
+fi
+
+################################################################################
+#   Create Bigwig from Bam
+#
+# IN:$SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/bowtie/*.bw
+################################################################################
+
+if [ -n "$RUNBIGWIG" ]; then
+    if [ -z "$TASKBIGWIG" ] || [ -z "$NODES_BIGWIG" ] || [ -z "$CPU_BIGWIG" ] || [ -z "$MEMORY_BIGWIG" ] || [ -z "$WALLTIME_BIGWIG" ]; then echo "[ERROR] Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED --nodir -r -k $CONFIG -t $TASKBIGWIG -i $TASKBOWTIE -e .$ASD.bam -n $NODES_BIGWIG -c $CPU_BIGWIG -m $MEMORY_BIGWIG"G" -w $WALLTIME_BIGWIG \
+        --command "${NGSANE_BASE}/mods/bigwig.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE"
+            
+fi
+
 
 ################################################################################
 #  HiC analysis with homer
@@ -571,64 +653,12 @@ fi
 # IN:$SOURCE/$dir/fastq/*$READONE.fastq
 # OUT: $OUT/$dir/reCal/*.$$ASR.bam
 ################################################################################
+
 if [ -n "$RUNREALRECAL" ]; then
 
-    echo "********* $TASKRCA"
-    CPU=16
-    exit
-
-    # generates the .dict file
-    #java -Xmx4g -jar /home/Software/picard-tools-1.22/CreateSequenceDictionary.jar R= $FASTA O= ${$FASTA/.fasta/.dict}
-    #sort dbSNP rod file according to fasta
-    #/home/Software/Sting/perl/sortByRef.pl --k 2 $GATKSUP/tmp.dbsnp.txt $FASTA.fai > $DBROD
-
-    if [ ! -d $QOUT/$TASKRCA ]; then mkdir -p $QOUT/$TASKRCA; fi
-
-    for dir in ${DIR[@]}
-      do
-
-     #ensure dirs are there...
-      if [ ! -d $OUT/$dir/$TASKRCA ]; then mkdir -p $OUT/$dir/$TASKRCA; fi
-
-      for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
-	do
-	n=`basename $f`
-	n2=${n/%$READONE.$FASTQ/.$ASD.bam}
-	name=${n/%$READONE.$FASTQ/}
-	echo ">>>>>"$dir$n2
-
-	# wait on pipeline steps
-	if [ -n "$RUNMAPPINGBWA" ]; then HOLD="-hold_jid "$TASKBWA"_"$dir"_"$name; fi
-	# remove old pbs output
-	if [ -e $QOUT/$TASKRCA/$dir'_'$name.out ]; then rm $QOUT/$TASKRCA/$dir'_'$name.*; fi
-			
-	#Sumit (ca. 80 min on AV 1297205 reads) -l h_rt=20:00:00
-	if [ -n "$ARMED" ]; then
-	    $BINQSUB -j oe -o $QOUT/$TASKRCA/$dir'_'$name'.out' -w $(pwd) -l $NODES_RECAL \
-		-l vmem=$MEMORY_RECAL'G' -N $TASKRCA'_'$dir'_'$name -l walltime=$WALLTIME_RECAL \
-		-command "${NGSANE_BASE}/mods/reCalAln.sh -k ${NGSANE_BASE} -f $OUT/$dir/$TASKBWA/$n2 -r $FASTA -d $DBROD \
-		-o $OUT/$dir/$TASKRCA -t $CPU_RECAL"
-	fi
-	
-      done
-    done
-
-fi
-
-
-if [ -n "$RUNREALRECAL2" ]; then
-
     $QSUB $ARMED -r -k $CONFIG -t $TASKRCA -i $TASKBWA/ -e .$ASD.bam \
         -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
-        --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA -t $CPU_RECAL"
-
-fi
-
-if [ -n "$RUNREALRECAL3" ]; then
-
-    $QSUB $ARMED -r -k $CONFIG -t $TASKRCA -i $TASKBWA/ -e .$ASD.bam \
-        -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
-        --command "${NGSANE_BASE}/mods/reCalAln2.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA -t $CPU_RECAL"
+        --command "${NGSANE_BASE}/mods/reCalAln2.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA"
 
 fi
 
@@ -680,7 +710,7 @@ then
 	if [ -e $QOUT/$TASKDOC/$dir'_'$name'.out' ]; then rm $QOUT/$TASKDOC/$dir'_'$name'.out'; fi
 
 	#check if this is part of the pipe and jobsubmission needs to wait
-	if [ -n "$$RUNREALRECAL" ]; then HOLD="-hold_jid "$TASKRCA"_"$dir"_"$name; fi
+#	if [ -n "$$RUNREALRECAL" ]; then HOLD="-hold_jid "$TASKRCA"_"$dir"_"$name; fi
 
 	#Submit
 	if [ -n "$ARMED" ]; then
@@ -962,79 +992,7 @@ fi
 #   call indels with GATK -- call one vcf file over all folders
 ################################################################################
 
-if [ -n "$RUNVARCALLS" ]
-then
-
-    echo "********* $TASKVAR"
-    CPUS=24
-
-    if [ ! -d $QOUT/$TASKVAR ]; then mkdir -p $QOUT/$TASKVAR; fi
-    if [ ! -d $OUT/$TASKVAR ]; then mkdir -p $OUT/$TASKVAR; fi
-
-    RUNVARS=""
-
-    # one per folder
-    if [ -n "$VARPERFOLDER" ]; then
-	for dir in ${DIR[@]};do
-	    RUNVARS=$RUNVARS" "$dir
-	    if [ ! -d $OUT/$TASKVAR/$dir ]; then mkdir -p $OUT/$TASKVAR/$dir; fi
-            if [ -e  $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp" ]; then rm  $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp"; fi
-	    for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );do
-		n=`basename $f`
-		echo $OUT/$dir/$TASKRCA/${n/%$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$dir/$TASKVAR"bamfiles.tmp"
-	    done
-	done
-    # one over all folders
-    else
-	NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
-	RUNVARS=$NAME
-	if [ ! -d $OUT/$TASKVAR/$NAME ]; then mkdir -p $OUT/$TASKVAR/$NAME; fi
-        if [ -e  $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp" ]; then rm  $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp"; fi
-	for dir in ${DIR[@]};do
-	    for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ );do
-		n=`basename $f`
-		echo $OUT/$dir/$TASKRCA/${n/%$READONE.$FASTQ/.$ASR.bam} >> $OUT/$TASKVAR/$NAME/$TASKVAR"bamfiles.tmp"
-	    done
-	done
-	
-    fi
-
-    for dir in $RUNVARS; do #$(ls -d $OUT/$TASKVAR/* ); do
-	NAME=`basename $dir`
-        # remove old pbs output
-	if [ -e $QOUT/$TASKVAR/$NAME.out ]; then rm $QOUT/$TASKVAR/$NAME.out ; fi
-
-    #check if this is part of the pipe and jobsubmission needs to wait
-    #if [ -n "$recalibrateQualScore" ]; then 
-#	HOLD="-hold_jid "
-#	for dir in ${DIR[@]};do
-#	    HOLD=$HOLD","$TASKRCA"_"$dir"*"
- #       done
-#	HOLD=${HOLD/,/}
- #   fi
-
-        #Submit #-pe mpich $CPUS 
-	if [ -n "$ARMED" ]; then
-	    #$BINQSUB -j oe -o $QOUT/$TASKVAR/$NAME.out -w $(pwd) -l $NODES_VAR $HOLD \
-		#-l vmem=$MEMORY_VAR"G" -N $TASKVAR'_'$NAME -l walltime=$WALLTIME_VAR \
-		#-command "${NGSANE_BASE}/mods/gatkSNPs.sh -k $CONFIG -i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
-		#-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME -H $HAPMAPVCF -K $ONEKGVCF"
-    	    
-	    $BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY_VAR"G" -n $NODES_VAR -w $WALLTIME_VAR \
-	    	-j $TASKVAR'_'$NAME -o $QOUT/$TASKVAR/$NAME.out \
-			--command "${NGSANE_BASE}/mods/gatkSNPs.sh -k $CONFIG \
-			-i $OUT/$TASKVAR/$NAME/$TASKVAR'bamfiles.tmp' -t $CPU_VAR \
-			-r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME \
-			-H $HAPMAPVCF -K $ONEKGVCF"
-
-
-	fi
-    done
-
-    
-fi
-
-if [ -n "$RUNVARCALLS3" ]; then
+if [ -n "$RUNVARCALLS" ]; then
     NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
     $QSUB $ARMED -d -r -k $CONFIG -t $TASKVAR -i $TASKRCA/  -e .$ASR.bam -n $NODES_VAR \
         -c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
@@ -1043,8 +1001,6 @@ if [ -n "$RUNVARCALLS3" ]; then
                         -r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME \
                         -H $HAPMAPVCF -K $ONEKGVCF"
 fi
-
-
 
 
 ########

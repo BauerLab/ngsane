@@ -38,7 +38,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f             )        shift; FILES=${1//,/ } ;; # bam files
-        -o             )        shift; MYOUT=$1 ;; # outputdir
+        -o             )        shift; OUTDIR=$1 ;; # outputdir
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help    )        usage ;;
         * )                     echo "don't understand "$1
@@ -63,20 +63,21 @@ echo "PATH=$PATH"
 PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 
-echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--JAVA        --\n" $(java -version 2>&1)
-[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
-echo -e "--igvtools    --\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
-[ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
-echo -e "--GATK        --\n "$(java -jar $JAVAPARAMS $PATH_GATK/GenomeAnalysisTK.jar --version 2>&1)
-[ ! -f $PATH_GATK/GenomeAnalysisTK.jar ] && echo "[ERROR] no GATK detected" && exit 1
-
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_SAMVAR*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
+[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
+echo -e "--igvtools    --\n "$(java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar version 2>&1)
+[ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
+echo -e "--GATK        --\n "$(java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar --version 2>&1)
+[ ! -f $PATH_GATK/GenomeAnalysisTK.jar ] && echo "[ERROR] no GATK detected" && exit 1
+
+
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -85,12 +86,12 @@ n=${f##*/}
 
 # delete old bam file
 #if [ -z "$RECOVERFROM" ]; then
-#    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
-#    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
-#    if [ -e $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $MYOUT/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
+#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
+#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
+#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
 #fi
 # ensure dir is there
-if [ ! -d $MYOUT ]; then mkdir -p $MYOUT; fi
+if [ ! -d $OUTDIR ]; then mkdir -p $OUTDIR; fi
 
 # prep for joining
 VARIANTS=""
@@ -110,7 +111,7 @@ echo $VARIANTS
 REGION=""
 if [ -n "$REF" ]; then echo $REF; REGION="-L $REF"; fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -118,11 +119,11 @@ if [ -n "$DMGET" ]; then
 	dmget -a $FILES
 fi
     
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="join with GATK"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -130,26 +131,27 @@ else
        -R $FASTA \
        -T CombineVariants \
        $VARIANTS \
-       -o $MYOUT/joined.vcf \
+       -o $OUTDIR/joined.vcf \
        -genotypeMergeOptions PRIORITIZE \
        $REGION \
        -priority $NAMES
 
     # mark checkpoint
-    [ -f $MYOUT/joined.vcf ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $OUTDIR/joined.vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
 
 ################################################################################
 CHECKPOINT="index for IGV"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $MYOUT/joined.vcf
+    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/joined.vcf
 
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi
 
 ################################################################################
