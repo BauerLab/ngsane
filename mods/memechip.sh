@@ -133,7 +133,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    if [ -f $OUTDIR/${n/$BED/}/combined.meme} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/$BED/}/combined.meme ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
