@@ -445,7 +445,7 @@ if [ -n "$RUNMACS2" ];then
     row1=""
     row2=""
     for dir in $vali; do
-        for f in $(ls $dir/*model-0.png); do
+        for f in $(ls $dir/*model-0.png 2> /dev/null); do
             n=${f##*/}
             n=${n/"_model-0.png"/}
             row0+="<td>$n</td>"
@@ -465,9 +465,12 @@ if [ -n "$RUNMEMECHIP" ];then
     vali=""
     CURDIR=$(pwd)
     for dir in ${DIR[@]}; do
+        if [ ! -d $dir/$TASKMEMECHIP ]; then
+            continue
+        fi
         vali=$vali" $OUT/$dir/$TASKMEMECHIP/"
         cd $OUT/$dir/$TASKMEMECHIP
-        for d in $(find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \; ); do
+        for d in $(find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \;); do
                 echo "<a href=\"$PROJECT_RELPATH/$dir/$TASKMEMECHIP/$d/index.html\">$dir/$d</a> " >> $CURDIR/$SUMMARYTMP
         done
     done

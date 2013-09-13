@@ -108,7 +108,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED --bdg --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name ${n/.$ASD.bam/} > ${n/.$ASD.bam/}.summary.txt"
+    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED --bdg --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name ${n/.$ASD.bam/} > ${n/.$ASD.bam/}.summary.txt 2>&1"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     if [ -f ${n/.$ASD.bam/}_model.r ];then 
@@ -133,7 +133,7 @@ else
     
     if [ -n "$CHIPINPUT" ]; then
 
-        RUN_COMMAND="macs2 bdgcmp $MACS2_BDGCMP_ADDPARAM --method $MACS2_BDGCMP_METHOD --tfile ${n/.$ASD.bam/_treat_pileup.bdg} --cfile ${n/.$ASD.bam/_control_lambda.bdg} --output ${n/.$ASD.bam/} >> ${n/.$ASD.bam/}.summary.txt"
+        RUN_COMMAND="macs2 bdgcmp $MACS2_BDGCMP_ADDPARAM --method $MACS2_BDGCMP_METHOD --tfile ${n/.$ASD.bam/_treat_pileup.bdg} --cfile ${n/.$ASD.bam/_control_lambda.bdg} --output ${n/.$ASD.bam/} >> ${n/.$ASD.bam/}.summary.txt 2>&1"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
     	if hash bedToBigBed ; then 
@@ -172,7 +172,7 @@ else
         cat ${n/.$ASD.bam/}_peaks.narrowPeak | cut -f1-6 > ${n/.$ASD.bam/}_peaks.bed
     fi
 
-    RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b ${n/.$ASD.bam/}_peaks.bed -i $f --o-prefix ${n/.$ASD.bam/}  >> ${n/.$ASD.bam/}.summary.txt"
+    RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b ${n/.$ASD.bam/}_peaks.bed -i $f --o-prefix ${n/.$ASD.bam/}  >> ${n/.$ASD.bam/}.summary.txt 2>&1"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     [ -e ${n/.$ASD.bam/}_peaks.bed ] && rm ${n/.$ASD.bam/}_peaks.bed    
 

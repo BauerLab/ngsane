@@ -758,14 +758,18 @@ def macs2Stats(logFile):
         values.append(0)
         values.append(0)
 
-    tmp=file.split("#2 number of paired peaks:")[1].strip().split()[0]
-    PP=float(tmp.strip())
-    values.append(PP)
-
-    tmp=file.split("#2 predicted fragment length is")[1].strip().split("bps")[0]
-    PF=float(tmp.strip())
-    values.append(PF)
-
+    try:
+        tmp=file.split("#2 number of paired peaks:")[1].strip().split()[0]
+        PP=float(tmp.strip())
+        values.append(PP)
+    
+        tmp=file.split("#2 predicted fragment length is")[1].strip().split("bps")[0]
+        PF=float(tmp.strip())
+        values.append(PF)
+    except:
+        values.append(0)
+        values.append(0)
+        
     return names, values
 
 def fastqscreenStats(logFile):
@@ -797,12 +801,12 @@ def memechipStats(logFile):
     tmp=file.split("bound directely (strong site):")[1].strip().split()[0]
     SS=float(tmp.strip())
     values.append(SS)
-    values.append(SS/PR)
+    values.append(100. * SS/PR)
 
     tmp=file.split("bound indirectely (weak or no site):")[1].strip().split()[0]
     WS=float(tmp.strip())
     values.append(WS)
-    values.append(WS/PR)
+    values.append(100. * WS/PR)
 
     return names, values
  
