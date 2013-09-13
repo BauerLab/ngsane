@@ -117,7 +117,7 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
-if [ -n $DMGET ]; then 
+if [ -n "$DMGET" ]; then 
     dmget -a ${FILES//,/ }; 
 fi
     
@@ -128,7 +128,8 @@ CHECKPOINT="call snps"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-
+    echo "[NOTE] $CHECKPOINT"
+    
     if [ -n "$CALLSNPS" ]; then
 
         # -nt $THREADS <- it is not parallele (2012)
@@ -194,7 +195,8 @@ CHECKPOINT="hardfilter"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-    
+    echo "[NOTE] $CHECKPOINT"
+        
     if [ -n "$HARDFILTER" ]; then
     
         echo "[NOTE] hard filter SNPs"
@@ -272,7 +274,8 @@ CHECKPOINT="re-calibrate"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-
+    echo "[NOTE] $CHECKPOINT"
+    
     #####################
     # Recalibration
     # http://www.broadinstitute.org/gsa/wiki/index.php/Variant_quality_score_recalibration
@@ -342,7 +345,8 @@ CHECKPOINT="index for IGV"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-
+    echo "[NOTE] $CHECKPOINT"
+    
     java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $MYOUT/${n/bam/fi.vcf}
 
     # mark checkpoint

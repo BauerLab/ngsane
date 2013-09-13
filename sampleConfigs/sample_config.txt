@@ -26,16 +26,16 @@ NODES_BOWTIE="nodes=1:ppn=1"
 RUNFASTQC=""
 RUNCUTADAPT=""
 RUNMAPPINGBOWTIE2=""  # mapping with bowtie
-RUNTOPHATCUFF2="1"    # mapping with tophat (RNAseq)
-RUNMAPPINGBWA2=""     # mapping with bwa
-RUNREALRECAL=""       # recalibration/realigment
-DEPTHOFCOVERAGE=""    # determin mean coverage
+RUNTOPHATCUFF="1"     # mapping with tophat (RNAseq)
+RUNMAPPINGBWA=" "     # mapping with bwa
+RUNREALRECAL=""       # recalibration/realignment
+DEPTHOFCOVERAGE=""    # determine mean coverage
 RUNVARCALLS=""        # SNP/Variant detection
-RUNANNOTATINGBAM=""  # anntate bam file with Gencode
-RUNSAMVAR=""         # run variant call 
+RUNANNOTATINGBAM=""   # annotate bam file with Gencode
+RUNSAMVAR=""          # run variant call 
 
-#ASR="asd" # change default because we are not running from refal but bwa
-#TASKRCA=$TASKBWA # change default because we are not running from refal but bwa
+#ASR="asd" # change default because we are not running from recal but bwa
+#TASKRCA=$TASKBWA # change default because we are not running from recal but bwa
 
 
 #********************

@@ -30,7 +30,6 @@ required:
   -d | --snpdb <path>       path to a SNPdb instance (rod)
 
 options:
-  -t | --threads <nr>       number of CPUs to use (default: 1)
   -L | --region <ps>        region of specific interest, e.g. targeted reseq
                              format chr:pos-pos
 "
@@ -139,8 +138,7 @@ CHECKPOINT="find intervals to improve"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-
-    echo "[NOTE] realignment"
+    echo "[NOTE] $CHECKPOINT"
 
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
         -T RealignerTargetCreator \
@@ -157,11 +155,12 @@ else
 fi 
 
 ################################################################################
-CHECKPOINT="realine"
+CHECKPOINT="realign"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+    echo "[NOTE] $CHECKPOINT"
 
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
         -T IndelRealigner \
@@ -182,14 +181,13 @@ else
 fi 
 
 ################################################################################
-CHECKPOINT="counting covariantes"
-
-echo "[NOTE] recalibrating"
+CHECKPOINT="count covariantes"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-
+    echo "[NOTE] $CHECKPOINT"
+    
     # there seems to be a warning reg. Rscript but it does not affect output
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
         -T BaseRecalibrator \
@@ -215,6 +213,7 @@ CHECKPOINT="adjust score"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+    echo "[NOTE] $CHECKPOINT"
 
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
         -T PrintReads \
@@ -237,6 +236,7 @@ CHECKPOINT="evaluate performace"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+    echo "[NOTE] $CHECKPOINT"
 
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
          -T RecalibrationPerformance \
@@ -251,11 +251,12 @@ else
 fi 
 
 ################################################################################
-CHECKPOINT="counting covariantes after recalibration"
+CHECKPOINT="count covariantes after recalibration"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+    echo "[NOTE] $CHECKPOINT"
 
     # TODO remove the below once it is not experimental anymore
     echo "********* counting covariantes after recalibration"
@@ -298,6 +299,7 @@ CHECKPOINT="sort/index"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+    echo "[NOTE] $CHECKPOINT"
 
     samtools sort ${f3/bam/recal.bam} $OUTDIR/${n/$ASD.bam/$ASR}
     
@@ -320,6 +322,7 @@ CHECKPOINT="statistics"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+    echo "[NOTE] $CHECKPOINT"
 
     samtools flagstat $OUTDIR/${n/%$ASD.bam/$ASR.bam} >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
     if [ -n $SEQREG ]; then
@@ -360,6 +363,7 @@ CHECKPOINT="coverage track"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+    echo "[NOTE] $CHECKPOINT"
 
     # get the coverage track
     java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $OUTDIR/${n/%$ASD.bam/$ASR.bam} \
