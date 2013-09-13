@@ -69,7 +69,7 @@ unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--JAVA        --\n" $(java -Xmx=200m -version 2>&1)
+echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--igvtools    --\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
 [ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1

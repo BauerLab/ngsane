@@ -79,7 +79,7 @@ unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--JAVA        --\n" $(java -version 2>&1)
+echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
@@ -136,11 +136,11 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="find intervals to improve"
 
-echo "[NOTE] realignment"
-
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+
+    echo "[NOTE] realignment"
 
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
         -T RealignerTargetCreator \
@@ -152,7 +152,8 @@ else
         -nt $CPU_RECAL
         
     # mark checkpoint
-    [ -f $f2.intervals ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    if [ -f $f2.intervals ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
 
 ################################################################################
@@ -176,7 +177,8 @@ else
     samtools index $f3
 
     # mark checkpoint
-    [ -f ${f2/bam/real.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    if [ -f ${f2/bam/real.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
 
 ################################################################################
@@ -203,7 +205,8 @@ else
     #    -nt $CPU_RECAL
 
     # mark checkpoint
-    [ -f ${f3/.bam/.covar.grp} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    if [ -f ${f3/.bam/.covar.grp} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
 
 ################################################################################
@@ -224,7 +227,8 @@ else
     samtools index ${f3/.bam/.recal.bam}
 
     # mark checkpoint
-    [ -f ${f3/.bam/.recal.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    if [ -f ${f3/.bam/.recal.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
 
 ################################################################################
@@ -242,7 +246,8 @@ else
          -nct $CPU_RECAL 
     
     # mark checkpoint
-    [ -f ${f3/.bam/.recal.performace} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    if [ -f ${f3/.bam/.recal.performace} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
 
 ################################################################################
@@ -283,7 +288,8 @@ else
     #    -ignoreQ 5
     
     # mark checkpoint
-    [ -f ${f3/.bam/.recal.covar.grp} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    if [ -f ${f3/.bam/.recal.covar.grp} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
 
 ################################################################################
@@ -304,7 +310,8 @@ else
     samtools index $OUTDIR/${n/%$ASD.bam/$ASR.bam}
 
     # mark checkpoint
-    [ -f $OUTDIR/${n/%$ASD.bam/$ASR.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    if [ -f $OUTDIR/${n/%$ASD.bam/$ASR.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
 
 ################################################################################
@@ -343,7 +350,8 @@ else
     fi
     
     # mark checkpoint
-    [ -f $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    if [ -f $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
 
 ################################################################################
@@ -358,7 +366,8 @@ else
         $OUTDIR/${n/%$ASD.bam/$ASR.bam}.cov.tdf ${FASTA/fasta/genome}
     
     # mark checkpoint
-    [ -f $OUTDIR/${n/%$ASD.bam/$ASR.bam}.cov.tdf ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    if [ -f $OUTDIR/${n/%$ASD.bam/$ASR.bam}.cov.tdf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi
 
 ################################################################################

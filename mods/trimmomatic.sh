@@ -49,7 +49,7 @@ unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--JAVA        --\n" $(java -Xmx=200m -version 2>&1)
+echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--trimmomatic --\n " $(which $PATH_TRIMMOMATIC/trimmomatic.jar)
 [ ! -f $PATH_TRIMMOMATIC/trimmomatic.jar ] && echo "[ERROR] no trimmomatic detected" && exit 1
