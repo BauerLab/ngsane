@@ -128,8 +128,11 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
                 MYPBSIDS=""
                 continue
             else
-              echo "[NOTE] #########################################################################" >> $LOGFILE
-              echo "[NOTE] Recover from logfile: $LOGFILE" >> $LOGFILE
+                echo "[NOTE] #########################################################################" >> $LOGFILE
+                echo "[NOTE] Recover from logfile: $LOGFILE" >> $LOGFILE
+                # mask old errors
+                sed -i "s/^\[ERROR\] /[NOTE][PREVIOUS][ERROR] /g" $LOGFILE
+                echo "[NOTE] Previous errors masked" >> $LOGFILE
             fi
             
         else
