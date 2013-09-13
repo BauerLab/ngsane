@@ -38,7 +38,7 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDS)"
 echo "[NOTE] Prep config file tmp/configCUFFLINKS.txt"
 cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNCUFFLINKS=\"\"/RUNCUFFLINKS=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryCUFFLINKS\"/g' > tmp/configCUFFLINKS.txt
-echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}\"" >>tmp/configCUFFLINKS.txt
+echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configCUFFLINKS.txt
 
 # submit the CUFFLINKS run to the cluster
 JOBIDSCUFF=$( trigger.sh tmp/configCUFFLINKS.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
@@ -55,7 +55,7 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSCUFF)"
 echo "[NOTE] Prep config file tmp/configHTSEQCOUNT.txt"
 cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNHTSEQCOUNT=\"\"/RUNHTSEQCOUNT=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHTSEQCOUNT\"/g' > tmp/configHTSEQCOUNT.txt
-echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}\"" >>tmp/configHTSEQCOUNT.txt
+echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configHTSEQCOUNT.txt
 
 # submit the HTSEQCOUNT run to the cluster
 JOBIDSHTSEQ=$( trigger.sh tmp/configHTSEQCOUNT.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
@@ -66,7 +66,7 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSHTSEQ)"
 #######################################
 JOBIDS="$JOBIDSCUFF:$JOBIDSHTSEQ" #other things
 
-HOLDID=" "$QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}
+HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNTOPHAT=\"\"/RUNTOPHAT=\"1\"/g' | \
     sed 's/RUNCUFFLINKS=\"\"/RUNCUFFLINKS=\"1\"/g' |\
     sed 's/RUNHTSEQCOUNT=\"\"/RUNHTSEQCOUNT=\"1\"/g' |\

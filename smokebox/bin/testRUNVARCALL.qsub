@@ -33,7 +33,7 @@ echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
 echo "[NOTE] Prep config file tmp/configRECAL.txt"
 cat bin/tmpl/config.txt | sed 's/RUNREALRECAL3=\"\"/RUNREALRECAL3=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryRECAL\"/g' > tmp/configRECAL.txt
-echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}\"" >>tmp/configRECAL.txt
+echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configRECAL.txt
 
 # submit the RECAL run to the cluster
 JOBIDS=$( trigger.sh tmp/configRECAL.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
@@ -49,7 +49,7 @@ echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
 echo "[NOTE] Prep config file tmp/configVARCALLS.txt"
 cat bin/tmpl/config.txt | sed 's/RUNVARCALLS3=\"\"/RUNVARCALLS3=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryVARCALLS\"/g' > tmp/configVARCALLS.txt
-echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}\"" >>tmp/configVARCALLS.txt
+echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configVARCALLS.txt
 
 # submit the VARCALLS run to the cluster
 JOBIDS=$( trigger.sh tmp/configVARCALLS.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
@@ -60,7 +60,7 @@ echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
 # TEST
 #######################################
 
-HOLDID=" "$QUEUEWAIT${JOBIDS/:/$QUEUEWAITSEP}
+HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/config.txt | sed 's/RUNVARCALLS3=\"\"/RUNVARCALLS3=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryVARCALLS\"/g' | \
     sed 's/RUNMAPPINGBWA2=\"\"/RUNMAPPINGBWA2=\"1\"/g' | \

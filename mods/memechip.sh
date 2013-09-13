@@ -123,7 +123,7 @@ else
 fi
 
 ################################################################################
-CHECKPOINT="run meme-chip"    
+CHECKPOINT="meme-chip"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"

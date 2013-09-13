@@ -66,9 +66,9 @@ FASTQ=fastq
 #FASTQ=fastq.gz
 
 
-FASTA=referenceData/chr16.fasta
-REFSEQGTF=referenceData/UCSC_GencodeV12.gtf
-GTF=referenceData/gencode.v14.annotation.chr16.doctored.gtf
+FASTA=$(pwd)/referenceData/chr16.fasta
+REFSEQGTF=$(pwd)/referenceData/UCSC_GencodeV12.gtf
+GTF=$(pwd)/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 
 #********************
 # PARAMETER

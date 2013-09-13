@@ -40,7 +40,7 @@ RUNMEMECHIP=""        # motif discovery with MEME
 #********************
 SOURCE=$(pwd)
 
-declare -a DIR; DIR=( ChIPseq  ChIPseq_input  ) 
+declare -a DIR; DIR=( ChIPseq_TF ChIPseq_Histone  ChIPseq_input  ) 
 OUT=$SOURCE
 QOUT=$OUT/qout
 
@@ -48,7 +48,7 @@ READONE="_R1"
 READTWO="_R2"
 FASTQ=fq.gz
 
-FASTA=referenceData/chr16.fasta
+FASTA=$(pwd)/referenceData/chr16.fasta
 
 #********************
 # PARAMETER

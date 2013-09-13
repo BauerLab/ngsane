@@ -79,6 +79,7 @@ fi
 
 GENOME_CHROMSIZES=${FASTA%%.*}.chrom.sizes
 [ ! -f $GENOME_CHROMSIZES ] && echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES" && exit 1
+echo "[NOTE] GENOME_CHROMSIZES: $GENOME_CHROMSIZES"
 
 # set default method to ppois unless specified
 if [ -z "$MACS2_BDGCMP_METHOD" ]; then
@@ -135,14 +136,14 @@ else
         RUN_COMMAND="macs2 bdgcmp $MACS2_BDGCMP_ADDPARAM --method $MACS2_BDGCMP_METHOD --tfile ${n/.$ASD.bam/_treat_pileup.bdg} --cfile ${n/.$ASD.bam/_control_lambda.bdg} --output ${n/.$ASD.bam/} >> ${n/.$ASD.bam/}.summary.txt"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
-	if [ -n "$(which bedToBigBed)" ]; then 
+    	if hash bedToBigBed ; then 
             bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
             bedToBigBed -type=bed4 ${n/.$ASD.bam/_control_lambda.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_control_lambda.bb}
             bedToBigBed -type=bed4 ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bb}
         fi
 
     else
-        if [ -n "$(which bedToBigBed)" ]; then
+    	if hash bedToBigBed ; then 
             bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
         fi
     fi
