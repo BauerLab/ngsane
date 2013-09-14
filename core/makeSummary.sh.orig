@@ -229,8 +229,12 @@ fi
 if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     summaryHeader "BWA mapping" "$TASKBWA" "bwa.sh" "$SUMMARYTMP"
 
+<<<<<<< HEAD
     vali=$(gatherDirs $TASKBWA)
     python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASD.bam.stats samstats >>$SUMMARYTMP
+=======
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBWA)" $ASD.bam.stats samstats >>$SUMMARYTMP
+>>>>>>> upstream/master
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
     	echo "<h3>Annotation</h3>" >>$SUMMARYTMP

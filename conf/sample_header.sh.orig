@@ -55,8 +55,11 @@ TASKPEAKRANGER="peakranger"
 TASKMACS2="macs2"
 TASKMEMECHIP="memechip"
 TASKFASTQSCREEN="fastqscreen"
+<<<<<<< HEAD
 TASKBIGWIG="bigwig"
+=======
 TASKBLUE="blue"
+>>>>>>> upstream/master
 
 ##############################################################
 # PROGRAM PATHS

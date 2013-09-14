@@ -175,7 +175,9 @@ def samstats(statsfile):
     return names,values
 
 
-
+<<<<<<< HEAD
+# sam statiscis for tophat aligment
+=======
 
 # sam statiscis for initial aligment
 def blue(statsfile):
@@ -200,6 +202,7 @@ def blue(statsfile):
 
 
 # sam statiscis for initial aligment
+>>>>>>> upstream/master
 def tophat(statsfile):
     names=["Total reads","Accepted","QCfail","Duplicates","Duplicates %","Mapped","Mapped %","Paired", "Paired %", "Singletons"]
     values=[]
