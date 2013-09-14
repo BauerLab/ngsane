@@ -325,7 +325,7 @@ else
     echo "[NOTE] $CHECKPOINT"
 
     samtools flagstat $OUTDIR/${n/%$ASD.bam/$ASR.bam} >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
-    if [ -n $SEQREG ]; then
+    if [ -n "$SEQREG" ]; then
         echo "#custom region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
         echo $(samtools view -c -F 4 $OUTDIR/${n/%$ASD.bam/$ASR.bam} $SEQREG )" total reads in region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
         echo $(samtools view -c -f 3 $OUTDIR/${n/%$ASD.bam/$ASR.bam} $SEQREG )" properly paired reads in region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats

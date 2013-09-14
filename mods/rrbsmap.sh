@@ -249,7 +249,7 @@ else
     STATSOUT=$OUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
     $SAMTOOLS flagstat $OUT/${n/%$READONE.$FASTQ/.$ASD.bam} > STATSOUT
     
-    if [ -n $SEQREG ]; then
+    if [ -n "$SEQREG" ]; then
         echo "#custom region" >> $STATSOUT
         echo $(samtools view -c -F 4 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG )" total reads in region " >> $STATSOUT
         echo $(samtools view -c -f 3 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG )" properly paired reads in region " >> $STATSOUT

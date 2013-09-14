@@ -140,35 +140,6 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix):
             print "<tr><td>av%</td><td>"+"</td><td>".join(out[4])+"</td><td></td></tr>"
         print "</tfoot>"
     print "</table>"
-            
-# sam statiscis for initial aligment
-def samstats_old(statsfile):
-    names=["total","QCfail","dupl","dupl%","mapped","mapped%","paired", "paired%", "singletons", "transv", "regmapped", "regmapped%", "regpaired", "regpaired%"]
-    values=[]
-    st=re.split("[ \n]+",open(statsfile).read())
-    #print st
-    values.append(int(st[0])) # total
-    values.append(int(st[3])) # QCfail
-    values.append(int(st[6])) # dupl
-    values.append(float(st[6])/float(st[0])*100) # dupl%
-    values.append(int(st[8])) # mapped
-    values.append(float(values[-1])/values[0]*100) # mapped %
-    values.append(int(st[19])) # paired
-    values.append(float(values[-1])/values[0]*100) # paired %
-    values.append(int(st[29]))
-    values.append(int(st[40]))
-    if (len(st)>50):
-        values.append(int(st[51])) # regmapped
-        values.append(float(values[-1])/values[0]*100) 
-        values.append(int(st[56]))
-        values.append(float(values[-1])/values[0]*100)
-    #if(printing):
-    #    string="    "
-    #    for v in values:
-    #        string+="%16.2f" % v
-    #    print string+" "+statsfile
-    return names,values
-
 
 # sam statiscis for initial aligment
 def samstats(statsfile):
@@ -184,19 +155,9 @@ def samstats(statsfile):
     paired = int(st[6].strip().split(" ")[0])
     pairedPercent = float(paired)/(float(total)+pseudocount)*100
     singletons = int(st[8].strip().split(" ")[0])
-    #sys.stderr.write(",".join(st))
-#    values.append(int(st[0])) # total
-#    values.append(int(st[2])) # QCfail
-#    values.append(int(st[10])) # dupl
-#    values.append(float(values[-1])/float(values[0])*100) # dupl%
-#    values.append(int(st[14])) # mapped
-#    values.append(float(values[-1])/float(values[0])*100) # mapped %
-#    values.append(int(st[33])) # paired
-#    values.append(float(values[-1])/float(values[0])*100) # paired %
-#    values.append(int(st[47]))
     values = [total, QCfail, dupl, duplPercent, mapped, mappedPercent, paired, pairedPercent, singletons ]
     customRegion = open(statsfile).read().split("#custom region")
-    if (len(customRegion) > 0):
+    if (len(customRegion) >= 2):
         names += ["Region mapped", "Region mapped %", "Region paired", "Region paired %"]
         st = customRegion[1].split("\n")
         regmapped = int(st[1].strip().split(" ")[0])
@@ -214,9 +175,7 @@ def samstats(statsfile):
     return names,values
 
 
-
-
-# sam statiscis for initial aligment
+# sam statiscis for tophat aligment
 def tophat(statsfile):
     names=["Total reads","Accepted","QCfail","Duplicates","Duplicates %","Mapped","Mapped %","Paired", "Paired %", "Singletons"]
     values=[]
@@ -225,11 +184,11 @@ def tophat(statsfile):
     values.append(int(st[0])) # acepted
     values.append(int(st[2])) # QCfail
     values.append(int(st[10])) # dupl
-    values.append(float(values[-1])/float(values[0])*100) # dupl%
+    values.append(float(values[-1])/float(values[1])*100) # dupl%
     values.append(int(st[14])) # mapped
-    values.append(float(values[-1])/float(values[0])*100) # mapped %
+    values.append(float(values[-1])/float(values[1])*100) # mapped %
     values.append(int(st[33])) # paired
-    values.append(float(values[-1])/float(values[0])*100) # paired %
+    values.append(float(values[-1])/float(values[1])*100) # paired %
     values.append(int(st[47]))
     if (len(st)>76):
         names.append("Junction")
@@ -238,7 +197,7 @@ def tophat(statsfile):
         names.append("Jnct over GTF %")
         values.append(int(st[76])) # junction reads
         #values.append(float(values[-1])/float(values[5])) # junction %
-        values.append(float(values[-1])/float(values[0])*100) # junction %
+        values.append(float(values[-1])/float(values[1])*100) # junction %
         values.append(int(st[79])) # junction reads in ncbi genes
         values.append(float(values[-1])/float(values[10])*100) # junction reads in ncbi genes %
         

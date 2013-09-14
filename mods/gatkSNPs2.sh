@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Script running snp calling with GATK version 2.5
 # QC:
@@ -36,7 +36,6 @@ if [ ! $# -gt 3 ]; then usage ; fi
 
 #DEFAULTS
 THREADS=1
-CALLSNPS="1"
 HARDFILTER="1"
 VARIANTRECAL="1"
 
@@ -130,63 +129,59 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     echo "[NOTE] $CHECKPOINT"
     
-    if [ -n "$CALLSNPS" ]; then
+    # -nt $THREADS <- it is not parallele (2012)
+    # from new versions add --computeSLOD
+    # http://seqanswers.com/forums/showthread.php?t=14836
+    echo "java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l INFO \
+            -T UnifiedGenotyper \
+            -glm BOTH \
+            -R $FASTA \
+            --dbsnp $DBSNPVCF \
+            -A HomopolymerRun \
+            -A MappingQualityRankSumTest \
+            -A Coverage \
+            -A QualByDepth \
+            -A RMSMappingQuality \
+            -A SpanningDeletions \
+            -A HaplotypeScore \
+            -A AlleleBalance \
+            -A BaseQualityRankSumTest \
+            -A MappingQualityZero \
+            --out $OUTDIR/$NAME.raw.vcf \
+            -stand_call_conf 30.0 \
+            $REGION \
+            -stand_emit_conf 10.0 \\" > $OUTDIR/gatkVarcall.tmp
+            
+    for f in ${FILES//,/ }; do echo "-I $f \\" >>$OUTDIR/gatkVarcall.tmp ; done
+    echo " -dcov 1000 " >> $OUTDIR/gatkVarcall.tmp
 
-        # -nt $THREADS <- it is not parallele (2012)
-        # from new versions add --computeSLOD
-        # http://seqanswers.com/forums/showthread.php?t=14836
-        echo "[NOTE] call SNPs and VariantAnnotation"
-        echo "java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l INFO \
-             -T UnifiedGenotyper \
-             -glm BOTH \
-             -R $FASTA \
-             --dbsnp $DBSNPVCF \
-             -A HomopolymerRun \
-             -A MappingQualityRankSumTest \
-             -A Coverage \
-             -A QualByDepth \
-             -A RMSMappingQuality \
-             -A SpanningDeletions \
-             -A HaplotypeScore \
-             -A AlleleBalance \
-             -A BaseQualityRankSumTest \
-             -A MappingQualityZero \
-             --out $OUTDIR/$NAME.raw.vcf \
-             -stand_call_conf 30.0 \
-             $REGION \
-             -stand_emit_conf 10.0 \\" > $OUTDIR/gatkVarcall.tmp
-             
-        for f in ${FILES//,/ }; do echo "-I $f \\" >>$OUTDIR/gatkVarcall.tmp ; done
-        echo " -dcov 1000 " >> $OUTDIR/gatkVarcall.tmp
-    
-        # set up to execute
-        echo "rm $OUTDIR/gatkVarcall.tmp" >> $OUTDIR/gatkVarcall.tmp
-        chmod -u=rwx $OUTDIR/gatkVarcall.tmp
-        $OUTDIR/gatkVarcall.tmp
-    
-    
-        echo "[NOTE] get snps only"
-        java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
-    	-T SelectVariants \
-    	-R $FASTA \
-    	--variant  $OUTDIR/$NAME.raw.vcf \
-    	--selectTypeToInclude SNP \
-    	-o $OUTDIR/$NAME.raw.snps.vcf
-    
-        echo "[NOTE] get indels only"
-        java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
-    	-T SelectVariants \
-    	-R $FASTA \
-    	--variant  $OUTDIR/$NAME.raw.vcf \
-    	--selectTypeToInclude INDEL \
-    	-o $OUTDIR/$NAME.raw.indel.vcf
+    # set up to execute
+    echo "rm $OUTDIR/gatkVarcall.tmp" >> $OUTDIR/gatkVarcall.tmp
+    chmod -u=rwx $OUTDIR/gatkVarcall.tmp
+    $OUTDIR/gatkVarcall.tmp
 
-        echo "[NOTE] SNP call done "`date`
 
-        # mark checkpoint
-        if [ -f $OUTDIR/$NAME.raw.vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    echo "[NOTE] get snps only"
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
+	-T SelectVariants \
+	-R $FASTA \
+	--variant  $OUTDIR/$NAME.raw.vcf \
+	--selectTypeToInclude SNP \
+	-o $OUTDIR/$NAME.raw.snps.vcf
 
-    fi
+    echo "[NOTE] get indels only"
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
+	-T SelectVariants \
+	-R $FASTA \
+	--variant  $OUTDIR/$NAME.raw.vcf \
+	--selectTypeToInclude INDEL \
+	-o $OUTDIR/$NAME.raw.indel.vcf
+
+    echo "[NOTE] SNP call done "`date`
+
+    # mark checkpoint
+    if [ -f $OUTDIR/$NAME.raw.vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
 
 ################################################################################
@@ -197,76 +192,96 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     echo "[NOTE] $CHECKPOINT"
         
-    if [ -n "$HARDFILTER" ]; then
-    
-        echo "[NOTE] hard filter SNPs"
-        java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
-    	-T VariantFiltration \
-    	-R $FASTA \
-    	-o $OUTDIR/$NAME.filter.snps.vcf \
-    	--variant $OUTDIR/$NAME.raw.snps.vcf \
-    	$REGION \
-    	--mask $OUTDIR/$NAME.raw.indel.vcf \
-    	--maskName InDel \
-    	--clusterWindowSize 10 \
-            --filterExpression "MQ0 >= 4 && ((MQ0 / (1.0 * (DP+1))) > 0.1)" \
-            --filterName "HARD_TO_VALIDATE" \
-    	--filterExpression "QUAL < 30.0 || QD < 5.0 || HRun > 5 || SB > -0.10" \
-    	--filterName "GATKStandHiCovExomes"
-    
-    
-    #	--filterExpression "AF < 0.2" \
-    #	--filterName "AllelFreq" \
-    #	--genotypeFilterExpression "DP < 20" \
-    #	--genotypeFilterName "Depth" \
-    #	--filterExpression "MQ0 > 50" \
-    #	--filterName "AccMQ0" \
-    #	--filterExpression "SB > -1.0" \
-    #	--filterName "StrandBias"
-    
-    
-        echo "[NOTE] hard filter INDELs"
-        java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
-    	-T VariantFiltration \
-    	-R $FASTA \
-    	-o $OUTDIR/$NAME.filter.indel.vcf \
-    	--variant $OUTDIR/$NAME.raw.indel.vcf \
-    	$REGION \
-    	--filterExpression "MQ0 >= 4 && ((MQ0 / (1.0 * (DP+1))) > 0.1)" \
-    	--filterName "HARD_TO_VALIDATE" \
-    	--filterExpression "SB >= -1.0" \
-    	--filterName "StrandBiasFilter" \
-    	--filterExpression "QUAL < 10" \
-    	--filterName "QualFilter"
-    
-        echo "[NOTE] Hard filter eval SNPs"
-        java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
-                -T VariantEval \
-                -R $FASTA \
-                --dbsnp $DBSNPVCF \
-                --eval $OUTDIR/$NAME.filter.snps.vcf \
-    	       $REGION \
-                --evalModule TiTvVariantEvaluator \
-                -o $OUTDIR/$NAME.filter.snps.eval.txt
-    
-        echo "[NOTE] Hard filter eval INDELs"
-        java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
-                -T VariantEval \
-                -R $FASTA \
-                --dbsnp $DBSNPVCF \
-                --eval $OUTDIR/$NAME.filter.indel.vcf \
-    	    $REGION \
-                --evalModule TiTvVariantEvaluator \
-                -o $OUTDIR/$NAME.filter.indel.eval.txt
-    
-    
-        echo "[NOTE] hard filter "`date`
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
+	-T VariantFiltration \
+	-R $FASTA \
+	-o $OUTDIR/$NAME.filter.snps.vcf \
+	--variant $OUTDIR/$NAME.raw.snps.vcf \
+	$REGION \
+	--mask $OUTDIR/$NAME.raw.indel.vcf \
+	--maskName InDel \
+	--clusterWindowSize 10 \
+    --filterExpression "MQ0 >= 4 && ((MQ0 / (1.0 * (DP+1))) > 0.1)" \
+    --filterName "HARD_TO_VALIDATE" \
+	--filterExpression "QUAL < 30.0 || QD < 5.0 || HRun > 5 || SB > -0.10" \
+	--filterName "GATKStandHiCovExomes"
 
-        # mark checkpoint
-        if [ -f $OUTDIR/$NAME.filter.snps.vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
-    fi
+#	--filterExpression "AF < 0.2" \
+#	--filterName "AllelFreq" \
+#	--genotypeFilterExpression "DP < 20" \
+#	--genotypeFilterName "Depth" \
+#	--filterExpression "MQ0 > 50" \
+#	--filterName "AccMQ0" \
+#	--filterExpression "SB > -1.0" \
+#	--filterName "StrandBias"
+
+
+    echo "[NOTE] hard filter INDELs"
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
+	-T VariantFiltration \
+	-R $FASTA \
+	-o $OUTDIR/$NAME.filter.indel.vcf \
+	--variant $OUTDIR/$NAME.raw.indel.vcf \
+	$REGION \
+	--filterExpression "MQ0 >= 4 && ((MQ0 / (1.0 * (DP+1))) > 0.1)" \
+	--filterName "HARD_TO_VALIDATE" \
+	--filterExpression "SB >= -1.0" \
+	--filterName "StrandBiasFilter" \
+	--filterExpression "QUAL < 10" \
+	--filterName "QualFilter"
+
+    # mark checkpoint
+    if [[ -f $OUTDIR/$NAME.filter.snps.vcf && -f $OUTDIR/$NAME.filter.indel.vcf ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
+
+################################################################################
+CHECKPOINT="index for IGV"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    echo "[NOTE] $CHECKPOINT"
+    
+    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/$NAME.filter.snps.vcf
+    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/$NAME.filter.indel.vcf
+
+    # mark checkpoint
+    if [[ -f $OUTDIR/$NAME.filter.snps.vcf.idx && -f $OUTDIR/$NAME.filter.indel.vcf.idx ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi 
+
+################################################################################
+CHECKPOINT="evaluate"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    echo "[NOTE] Hard filter eval SNPs"
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
+            -T VariantEval \
+            -R $FASTA \
+            --dbsnp $DBSNPVCF \
+            --eval $OUTDIR/$NAME.filter.snps.vcf \
+	       $REGION \
+            --evalModule TiTvVariantEvaluator \
+            -o $OUTDIR/$NAME.filter.snps.eval.txt
+
+    echo "[NOTE] Hard filter eval INDELs"
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
+            -T VariantEval \
+            -R $FASTA \
+            --dbsnp $DBSNPVCF \
+            --eval $OUTDIR/$NAME.filter.indel.vcf \
+	       $REGION \
+            --evalModule TiTvVariantEvaluator \
+            -o $OUTDIR/$NAME.filter.indel.eval.txt
+
+    # mark checkpoint
+    if [[ -f $OUTDIR/$NAME.filter.snps.eval.txt && -f $OUTDIR/$NAME.filter.indel.eval.txt ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi
 
 ################################################################################
 CHECKPOINT="re-calibrate"
@@ -288,7 +303,6 @@ else
         echo $HAPMAPVCF
         echo $ONEKGVCF
     
-    	echo "[NOTE] Recalibrate"
     	if [ ! -e $OUTDIR/R ]; then mkdir $OUTDIR/R; fi
     
     	echo "[NOTE] train"
@@ -339,19 +353,6 @@ else
     fi
 fi 
 
-################################################################################
-CHECKPOINT="index for IGV"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
-    
-    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/${n/bam/fi.vcf}
-
-    # mark checkpoint
-    echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
-fi 
 ################################################################################
 echo ">>>>> call SNPs using GATK - FINISHED"
 echo ">>>>> enddate "`date`
