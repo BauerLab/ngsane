@@ -332,7 +332,7 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
         <div class='wrapper'><div class='hidden'>
 <div id='tophat_checklist'><pre>
 ###################################################
-# NGSANE /apps/gi/ngsane/devel_db//mods/tophat 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/tophat 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -355,10 +355,48 @@ QC_PASS .. 2 have cleanup/2
 <div id='tophat_notes'><pre>
 
 qout/tophat/Transcript_RNA3kChr16.out
-[NOTE] set java parameters [NOTE] Paired library detected [NOTE] Illumina 1.8 Phred33 (41, 74) fastq format detected [NOTE] GTF: /datastore/cci/bau04c/Documents/datahome/Sandbox/smokebox_ngsane/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf [NOTE] RNAseq library type: fr-firststrand [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina [NOTE] make bigwigs; library is fr-firststrand [NOTE] tophat Sat Sep 14 19:05:05 EST 2013 [NOTE] tophat end Sat Sep 14 19:05:33 EST 2013 [NOTE] samtools merge [NOTE] samtools fixmate [NOTE] samtools sort [NOTE] add read group [NOTE] samtools flagstat [NOTE] samtools index [NOTE] picard CollectMultipleMetrics [NOTE] igvtools [NOTE] samstat [NOTE] extract mapped reads
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/tophat/job.20130914.log
+[NOTE] set java parameters
+[NOTE] Paired library detected
+[NOTE] Illumina 1.8 Phred33	(41  74) fastq format detected
+[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] RNAseq library type: fr-firststrand
+[NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
+[NOTE] make bigwigs; library is fr-firststrand 
+[NOTE] tophat Sat Sep 14 19:52:59 EST 2013
+[NOTE] tophat end Sat Sep 14 19:53:42 EST 2013
+[NOTE] samtools merge
+[NOTE] samtools fixmate
+[NOTE] samtools sort
+[NOTE] add read group
+[NOTE] samtools flagstat
+[NOTE] samtools index
+[NOTE] picard CollectMultipleMetrics
+[NOTE] igvtools
+[NOTE] samstat
+[NOTE] extract mapped reads
 
 qout/tophat/Transcript_RNA3kChr16rep.out
-[NOTE] set java parameters [NOTE] Paired library detected [NOTE] Illumina 1.8 Phred33 (41, 74) fastq format detected [NOTE] GTF: /datastore/cci/bau04c/Documents/datahome/Sandbox/smokebox_ngsane/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf [NOTE] RNAseq library type: fr-firststrand [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina [NOTE] make bigwigs; library is fr-firststrand [NOTE] tophat Sat Sep 14 19:05:05 EST 2013 [NOTE] tophat end Sat Sep 14 19:05:33 EST 2013 [NOTE] samtools merge [NOTE] samtools fixmate [NOTE] samtools sort [NOTE] add read group [NOTE] samtools flagstat [NOTE] samtools index [NOTE] picard CollectMultipleMetrics [NOTE] igvtools [NOTE] samstat [NOTE] extract mapped reads
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/tophat/job.20130914.log
+[NOTE] set java parameters
+[NOTE] Paired library detected
+[NOTE] Illumina 1.8 Phred33	(41  74) fastq format detected
+[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] RNAseq library type: fr-firststrand
+[NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
+[NOTE] make bigwigs; library is fr-firststrand 
+[NOTE] tophat Sat Sep 14 19:52:59 EST 2013
+[NOTE] tophat end Sat Sep 14 19:53:43 EST 2013
+[NOTE] samtools merge
+[NOTE] samtools fixmate
+[NOTE] samtools sort
+[NOTE] add read group
+[NOTE] samtools flagstat
+[NOTE] samtools index
+[NOTE] picard CollectMultipleMetrics
+[NOTE] igvtools
+[NOTE] samstat
+[NOTE] extract mapped reads
 </pre></div>
 <div id='tophat_errors'><pre>
 
@@ -376,7 +414,7 @@ qout/tophat/Transcript_RNA3kChr16rep.out
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#tophat_counter_notes').text('2');
+            $('#tophat_counter_notes').text('40');
             $('#tophat_counter_errors').text('0');
             $('#tophat_counter_checkpoints_passed').text('15');
             $('#tophat_counter_checkpoints_failed').text('0'); 
@@ -403,24 +441,24 @@ qout/tophat/Transcript_RNA3kChr16rep.out
 <h3>smokebox/Transcript/tophat/</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>         Accepted</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th><div>         Junction</div></th><th><div>       Junction %</div></th><th><div>    Jnct over GTF</div></th><th><div>  Jnct over GTF %</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7052.00</td><td>            98.55</td><td>            40.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td class='left'>RNA3kChr16</td></tr>
-<tr><td></td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7052.00</td><td>            98.55</td><td>            40.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td class='left'>RNA3kChr16rep</td></tr>
+<tr><td></td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td class='left'>RNA3kChr16</td></tr>
+<tr><td></td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td class='left'>RNA3kChr16rep</td></tr>
 </tbody>
 <tfoot>
-<tr><td class='left'>sum</td><td>         14060.00</td><td>         14312.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>         14192.00</td><td>           198.32</td><td>         14104.00</td><td>           197.09</td><td>            80.00</td><td>            82.00</td><td>             1.15</td><td>            80.00</td><td>           195.12</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7052.00</td><td>            98.55</td><td>            40.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
-<tr><td class='left'>max</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7052.00</td><td>            98.55</td><td>            40.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
-<tr><td class='left'>av</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7052.00</td><td>            98.55</td><td>            40.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
+<tr><td class='left'>sum</td><td>         14060.00</td><td>         14312.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>         14192.00</td><td>           198.32</td><td>         14100.00</td><td>           197.04</td><td>            84.00</td><td>            82.00</td><td>             1.15</td><td>            80.00</td><td>           195.12</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
+<tr><td class='left'>max</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
+<tr><td class='left'>av</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
 <h3 class='overall'>Aggregation over all libraries</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>         Accepted</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th><div>         Junction</div></th><th><div>       Junction %</div></th><th><div>    Jnct over GTF</div></th><th><div>  Jnct over GTF %</div></th><th class='left'>File</th></tr></thead>
 <tfoot>
-<tr><td class='left'>sum</td><td>         14060.00</td><td>         14312.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>         14192.00</td><td>           198.32</td><td>         14104.00</td><td>           197.09</td><td>            80.00</td><td>            82.00</td><td>             1.15</td><td>            80.00</td><td>           195.12</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7052.00</td><td>            98.55</td><td>            40.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
-<tr><td class='left'>max</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7052.00</td><td>            98.55</td><td>            40.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
-<tr><td class='left'>av</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7052.00</td><td>            98.55</td><td>            40.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
+<tr><td class='left'>sum</td><td>         14060.00</td><td>         14312.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>         14192.00</td><td>           198.32</td><td>         14100.00</td><td>           197.04</td><td>            84.00</td><td>            82.00</td><td>             1.15</td><td>            80.00</td><td>           195.12</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
+<tr><td class='left'>max</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
+<tr><td class='left'>av</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
@@ -443,7 +481,7 @@ qout/tophat/Transcript_RNA3kChr16rep.out
         <div class='wrapper'><div class='hidden'>
 <div id='cufflinks_checklist'><pre>
 ###################################################
-# NGSANE /apps/gi/ngsane/devel_db//mods/cufflinks 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/cufflinks 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -458,10 +496,20 @@ QC_PASS .. 2 have statistics/2
 <div id='cufflinks_notes'><pre>
 
 qout/cufflinks/Transcript_RNA3kChr16.out
-[NOTE] GTF: /datastore/cci/bau04c/Documents/datahome/Sandbox/smokebox_ngsane/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf [NOTE] RNAseq library type: fr-firststrand [NOTE] cufflinks Sat Sep 14 19:06:43 EST 2013 [NOTE] execute cufflinks with guide (GTF provided) [NOTE] cufflinks end Sat Sep 14 19:07:02 EST 2013
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/cufflinks/job.20130914.log
+[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] RNAseq library type: fr-firststrand
+[NOTE] cufflinks Sat Sep 14 19:55:27 EST 2013
+[NOTE] execute cufflinks with guide (GTF provided)
+[NOTE] cufflinks end Sat Sep 14 19:55:53 EST 2013
 
 qout/cufflinks/Transcript_RNA3kChr16rep.out
-[NOTE] GTF: /datastore/cci/bau04c/Documents/datahome/Sandbox/smokebox_ngsane/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf [NOTE] RNAseq library type: fr-firststrand [NOTE] cufflinks Sat Sep 14 19:06:44 EST 2013 [NOTE] execute cufflinks with guide (GTF provided) [NOTE] cufflinks end Sat Sep 14 19:07:04 EST 2013
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/cufflinks/job.20130914.log
+[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] RNAseq library type: fr-firststrand
+[NOTE] cufflinks Sat Sep 14 19:55:27 EST 2013
+[NOTE] execute cufflinks with guide (GTF provided)
+[NOTE] cufflinks end Sat Sep 14 19:55:53 EST 2013
 </pre></div>
 <div id='cufflinks_errors'><pre>
 
@@ -479,7 +527,7 @@ qout/cufflinks/Transcript_RNA3kChr16rep.out
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#cufflinks_counter_notes').text('2');
+            $('#cufflinks_counter_notes').text('12');
             $('#cufflinks_counter_errors').text('0');
             $('#cufflinks_counter_checkpoints_passed').text('7');
             $('#cufflinks_counter_checkpoints_failed').text('0'); 
@@ -503,24 +551,24 @@ qout/cufflinks/Transcript_RNA3kChr16rep.out
 <h3>smokebox/Transcript/cufflinks/</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Transcripts</div></th><th><div>          Skipped</div></th><th><div>       Genes FPKM</div></th><th><div>             % OK</div></th><th><div>        % Lowdata</div></th><th><div>    Isoforms FPKM</div></th><th><div>             % OK</div></th><th><div>        % Lowdata</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.03</td><td>             6.97</td><td class='left'>RNA3kChr16</td></tr>
-<tr><td></td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.03</td><td>             6.97</td><td class='left'>RNA3kChr16rep</td></tr>
+<tr><td></td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td class='left'>RNA3kChr16</td></tr>
+<tr><td></td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td class='left'>RNA3kChr16rep</td></tr>
 </tbody>
 <tfoot>
-<tr><td class='left'>sum</td><td>        140470.00</td><td>             0.00</td><td>          3630.00</td><td>           200.00</td><td>             0.00</td><td>         22464.00</td><td>           186.06</td><td>            13.94</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.03</td><td>             6.97</td><td></td></tr>
-<tr><td class='left'>max</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.03</td><td>             6.97</td><td></td></tr>
-<tr><td class='left'>av</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.03</td><td>             6.97</td><td></td></tr>
+<tr><td class='left'>sum</td><td>        140470.00</td><td>             0.00</td><td>          3630.00</td><td>           200.00</td><td>             0.00</td><td>         22464.00</td><td>           186.09</td><td>            13.91</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td></td></tr>
+<tr><td class='left'>max</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td></td></tr>
+<tr><td class='left'>av</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td></td></tr>
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
 <h3 class='overall'>Aggregation over all libraries</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Transcripts</div></th><th><div>          Skipped</div></th><th><div>       Genes FPKM</div></th><th><div>             % OK</div></th><th><div>        % Lowdata</div></th><th><div>    Isoforms FPKM</div></th><th><div>             % OK</div></th><th><div>        % Lowdata</div></th><th class='left'>File</th></tr></thead>
 <tfoot>
-<tr><td class='left'>sum</td><td>        140470.00</td><td>             0.00</td><td>          3630.00</td><td>           200.00</td><td>             0.00</td><td>         22464.00</td><td>           186.06</td><td>            13.94</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.03</td><td>             6.97</td><td></td></tr>
-<tr><td class='left'>max</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.03</td><td>             6.97</td><td></td></tr>
-<tr><td class='left'>av</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.03</td><td>             6.97</td><td></td></tr>
+<tr><td class='left'>sum</td><td>        140470.00</td><td>             0.00</td><td>          3630.00</td><td>           200.00</td><td>             0.00</td><td>         22464.00</td><td>           186.09</td><td>            13.91</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td></td></tr>
+<tr><td class='left'>max</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td></td></tr>
+<tr><td class='left'>av</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td></td></tr>
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
@@ -543,7 +591,7 @@ qout/cufflinks/Transcript_RNA3kChr16rep.out
         <div class='wrapper'><div class='hidden'>
 <div id='htseqcount_checklist'><pre>
 ###################################################
-# NGSANE /apps/gi/ngsane/devel_db//mods/htseqcount 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/htseqcount 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -561,10 +609,24 @@ QC_PASS .. 2 have cleanup/2
 <div id='htseqcount_notes'><pre>
 
 qout/htseqcount/Transcript_RNA3kChr16.out
-[NOTE] GTF: /datastore/cci/bau04c/Documents/datahome/Sandbox/smokebox_ngsane/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf [NOTE] RNAseq library type: fr-firststrand [NOTE] paired library detected [NOTE] library is fr-firststrand; run htseq-count stranded [NOTE] Create filtered bamfile (removed: rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene RNA18S5 RNA28S5) [NOTE] processing gene_id union [NOTE] processing gene_id union
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/htseqcount/job.20130914.log
+[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] RNAseq library type: fr-firststrand
+[NOTE] paired library detected
+[NOTE] library is fr-firststrand; run htseq-count stranded
+[NOTE] Create filtered bamfile (removed: rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene RNA18S5 RNA28S5)
+[NOTE] processing gene_id union
+[NOTE] processing gene_id union
 
 qout/htseqcount/Transcript_RNA3kChr16rep.out
-[NOTE] GTF: /datastore/cci/bau04c/Documents/datahome/Sandbox/smokebox_ngsane/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf [NOTE] RNAseq library type: fr-firststrand [NOTE] paired library detected [NOTE] library is fr-firststrand; run htseq-count stranded [NOTE] Create filtered bamfile (removed: rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene RNA18S5 RNA28S5) [NOTE] processing gene_id union [NOTE] processing gene_id union
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/htseqcount/job.20130914.log
+[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] RNAseq library type: fr-firststrand
+[NOTE] paired library detected
+[NOTE] library is fr-firststrand; run htseq-count stranded
+[NOTE] Create filtered bamfile (removed: rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene RNA18S5 RNA28S5)
+[NOTE] processing gene_id union
+[NOTE] processing gene_id union
 </pre></div>
 <div id='htseqcount_errors'><pre>
 
@@ -582,7 +644,7 @@ qout/htseqcount/Transcript_RNA3kChr16rep.out
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#htseqcount_counter_notes').text('2');
+            $('#htseqcount_counter_notes').text('16');
             $('#htseqcount_counter_errors').text('0');
             $('#htseqcount_counter_checkpoints_passed').text('10');
             $('#htseqcount_counter_checkpoints_failed').text('0'); 
@@ -626,5 +688,5 @@ qout/htseqcount/Transcript_RNA3kChr16rep.out
             $('#htseqcount_panel div.wrapper div.display').html($('#htseqcount_results').html());
         }
         </script>
-<hr><span>Report generated with NGSANE version: 5b4f70238ffa13e4e014c43aa1025717b6a27ba2 (git hash)</span><span style='float:right;'>Last modified: Sat Sep 14 19:29:02 EST 2013</span>
+<hr><span>Report generated with NGSANE version: 5e77d6cf2540912c67a2edd7515562cb16b920e3 (git hash)</span><span style='float:right;'>Last modified: Sat Sep 14 20:21:24 EST 2013</span>
 </div><!-- center --></body></html>
