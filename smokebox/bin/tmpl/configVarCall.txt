@@ -1,0 +1,95 @@
+
+# author: Denis C. Bauer
+# date: September 2013
+
+######################################
+# Resources
+#####################################
+
+WALLTIME_BWA=00:30:00
+MEMORY_BWA=9
+CPU_BWA=1
+NODES_BWA="nodes=1:ppn=1"
+
+WALLTIME_BOWTIE=00:30:00
+MEMORY_BOWTIE=8
+CPU_BOWTIE=8
+NODES_BOWTIE="nodes=1:ppn=8"
+
+WALLTIME_BOWTIE=00:30:00
+MEMORY_BOWTIE=8
+CPU_BOWTIE=2
+NODES_BOWTIE="nodes=1:ppn=2"
+
+WALLTIME_VAR=00:30:00
+MEMORY_VAR=10
+CPU_VAR=1
+NODES_VAR="nodes=1:ppn=1"
+
+WALLTIME_RECAL=00:30:00
+MEMORY_RECAL=8
+CPU_RECAL=4
+NODES_RECAL="nodes=1:ppn=4"
+
+WALLTIME_SAMVAR=00:20:00
+MEMORY_SAMVAR=8
+CPU_SAMVAR=1
+NODES_SAMVAR="nodes=1:ppn=1"
+
+
+#********************
+# Tasks
+#********************
+RUNFASTQC=""
+RUNCUTADAPT=""
+RUNMAPPINGBOWTIE=""  # mapping with bowtie1
+RUNMAPPINGBOWTIE2="" # mapping with bowtie2
+RUNMAPPINGBWA=""     # mapping with bwa
+RUNREALRECAL=""      # recalibration/realignment
+DEPTHOFCOVERAGE=""   # determine mean coverage
+RUNVARCALLS=""       # SNP/Variant detection
+RUNANNOTATINGBAM=""  # annotate bam file with Gencode
+RUNSAMVAR=""         # run variant call 
+
+
+HTMLOUT="Summary"
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+declare -a DIR; DIR=( Transcript ) 
+OUT=$SOURCE
+QOUT=$OUT/qout
+
+#READONE="_R1"
+#READTWO="_R2"
+READONE="_read1"
+READTWO="_read2"
+FASTQ=fastq
+#FASTQ=fastq.gz
+
+
+FASTA=$(pwd)/referenceData/chr16.fasta
+DBROD=$(pwd)/referenceData/dbsnp_135.chr16.vcf
+HAPMAPVCF=$(pwd)/referenceData/hapmap_3.3.chr16.vcf
+ONEKGVCF=$(pwd)/referenceData/1000G_omni2.5.chr16.vcf
+REFSEQGTF=$(pwd)/referenceData/UCSC_GencodeV12.gtf
+CONTAMINANTS=$(pwd)/adapters.txt
+GTF=$(pwd)/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+
+#REF=16:
+#RECALADDPARAM="-L $REF"
+#DOCADDPARAM="-L $REF"
+#VARADDPARAM="-L $REF"
+# --maxGaussians 3 --percentBadVariants 0.05"
+
+#********************
+# PARAMETER
+#********************
+EXPID="OmicsRNA"
+LIBRARY="AGRF"
+PLATFORM="Illumina"
+
+

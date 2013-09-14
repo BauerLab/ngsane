@@ -319,11 +319,11 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
 <div id="center">
 
 <div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>
-<a href='#bowtie2'>bowtie2</a>|<a href='#peakranger'>peakranger</a>
+<a href='#bowtie2'>bowtie2</a>|<a href='#peakranger'>peakranger</a>|<a href='#macs2'>macs2</a>|<a href='#memechip'>memechip</a>
 </div><!-- Links --></div><!-- panel -->
 <div class='panel' id='bowtie2_panel'>
         <div class='headbagb' id='bowtie2_panelback'><a name='bowtie2'></a>
-            <h2 id='bowtie2_h_results' class='sub'>BOWTIE v2 mapping</h2>
+            <h2 id='bowtie2_h_results' class='sub'>Bowtie v2 mapping</h2>
             <h2 id='bowtie2_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='bowtie2_counter_checkpoints_passed'></span><span class='failed' id='bowtie2_counter_checkpoints_failed'></span></span></h2>
             <h2 id='bowtie2_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='bowtie2_counter_notes'></span></span></span></h2>
             <h2 id='bowtie2_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='bowtie2_counter_errors'></span></span></h2>
@@ -332,77 +332,70 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
         <div class='wrapper'><div class='hidden'>
 <div id='bowtie2_checklist'><pre>
 ###################################################
-# NGSANE /apps/gi/ngsane/devel_db//mods/bowtie2 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/bowtie2 
 ###################################################
 QC_PASS .. finished are 3/3
 >>>>>>>>>> Errors
 QC_PASS .. 0 have Resource temporarily unavailable/3
 >>>>>>>>>> CheckPoints 
+QC_PASS .. 3 have programs/3
 QC_PASS .. 3 have parameters/3
 QC_PASS .. 3 have recall files from tape/3
 QC_PASS .. 3 have generating the index files/3
-QC_PASS .. 3 have run bowtie2/3
-QC_PASS .. 3 have bam conversion and sorting/3
+QC_PASS .. 3 have bowtie2/3
 QC_PASS .. 3 have mark duplicates/3
 QC_PASS .. 3 have statistics/3
 QC_PASS .. 3 have calculate inner distance/3
 QC_PASS .. 3 have coverage track/3
 QC_PASS .. 3 have samstat/3
 QC_PASS .. 3 have verify/3
-QC_PASS .. 3 have generate bigwigs/3
 </pre></div>
 <div id='bowtie2_notes'><pre>
 
-qout/bowtie2/ChIPseq_CTCF_chr16.out
-[NOTE] set java parameters
-[NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
-[NOTE] Sanger Phred33	Illumina 1.8 Phred33	(35  67) fastq format detected
-[NOTE] library size (mapped reads): 1000000
-[NOTE] scale factor: 674.308
-[NOTE] fragment length: 0
-[NOTE] Skip bigwig generation due to invalid value for parameter: FRAGMENTLENGTH
-
-qout/bowtie2/ChIPseq_H3k9me3_chr16.out
+qout/bowtie2/ChIPseq_Histone_H3k9me3_chr16.out
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/bowtie2/job.20130914.log
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] Sanger Phred33	(34  66) fastq format detected
-[NOTE] library size (mapped reads): 1000000
-[NOTE] scale factor: 650.618
-[NOTE] fragment length: 0
-[NOTE] Skip bigwig generation due to invalid value for parameter: FRAGMENTLENGTH
+[NOTE] PASS check mapping: 1942 == 1942
 
 qout/bowtie2/ChIPseq_input_Input_chr16.out
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/bowtie2/job.20130914.log
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] Sanger Phred33	Illumina 1.8 Phred33	(35  67) fastq format detected
-[NOTE] library size (mapped reads): 1000000
-[NOTE] scale factor: 719.942
-[NOTE] fragment length: 0
-[NOTE] Skip bigwig generation due to invalid value for parameter: FRAGMENTLENGTH
+[NOTE] PASS check mapping: 1491 == 1491
+
+qout/bowtie2/ChIPseq_TF_CTCF_chr16.out
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/bowtie2/job.20130914.log
+[NOTE] set java parameters
+[NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
+[NOTE] Sanger Phred33	Illumina 1.8 Phred33	(35  67) fastq format detected
+[NOTE] PASS check mapping: 2095 == 2095
 </pre></div>
 <div id='bowtie2_errors'><pre>
 
-qout/bowtie2/ChIPseq_CTCF_chr16.out
--- all good, no errors
-
-qout/bowtie2/ChIPseq_H3k9me3_chr16.out
+qout/bowtie2/ChIPseq_Histone_H3k9me3_chr16.out
 -- all good, no errors
 
 qout/bowtie2/ChIPseq_input_Input_chr16.out
 -- all good, no errors
+
+qout/bowtie2/ChIPseq_TF_CTCF_chr16.out
+-- all good, no errors
 </pre></div>
 <div id='bowtie2_logfiles'><div class='box'>
-<a href='../../../../../../../../../../../datastore/cci/bau04c/Documents/datahome/Sandbox/ngsane/smokebox/qout/bowtie2/ChIPseq_CTCF_chr16.out'>ChIPseq_CTCF_chr16.out</a><br/>
-<a href='../../../../../../../../../../../datastore/cci/bau04c/Documents/datahome/Sandbox/ngsane/smokebox/qout/bowtie2/ChIPseq_H3k9me3_chr16.out'>ChIPseq_H3k9me3_chr16.out</a><br/>
-<a href='../../../../../../../../../../../datastore/cci/bau04c/Documents/datahome/Sandbox/ngsane/smokebox/qout/bowtie2/ChIPseq_input_Input_chr16.out'>ChIPseq_input_Input_chr16.out</a><br/>
+<a href='../qout/bowtie2/ChIPseq_Histone_H3k9me3_chr16.out'>ChIPseq_Histone_H3k9me3_chr16.out</a><br/>
+<a href='../qout/bowtie2/ChIPseq_input_Input_chr16.out'>ChIPseq_input_Input_chr16.out</a><br/>
+<a href='../qout/bowtie2/ChIPseq_TF_CTCF_chr16.out'>ChIPseq_TF_CTCF_chr16.out</a><br/>
 </div></div>
 <script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#bowtie2_counter_notes').text('21');
+            $('#bowtie2_counter_notes').text('15');
             $('#bowtie2_counter_errors').text('0');
-            $('#bowtie2_counter_checkpoints_passed').text('14');
+            $('#bowtie2_counter_checkpoints_passed').text('13');
             $('#bowtie2_counter_checkpoints_failed').text('0'); 
             if (0==0){
                 $('#bowtie2_counter_errors').toggleClass('errors neutral');
@@ -421,34 +414,32 @@ qout/bowtie2/ChIPseq_input_Input_chr16.out
         }
     </script>
 <div id='bowtie2_results'>
-<h3>smokebox/ChIPseq/bowtie2/</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th><div>    Region mapped</div></th><th><div>  Region mapped %</div></th><th><div>    Region paired</div></th><th><div>  Region paired %</div></th><th class='left'>File</th></tr></thead>
+<h3>smokebox/ChIPseq_TF/bowtie2/</h3>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>          2095.00</td><td>             0.00</td><td>           347.00</td><td>            16.56</td><td>          1830.00</td><td>            87.35</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          2095.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td class='left'>CTCF_chr16.asd.bam.stats</td></tr>
-<tr><td></td><td>          1942.00</td><td>             0.00</td><td>           398.00</td><td>            20.49</td><td>          1935.00</td><td>            99.64</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          1942.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td class='left'>H3k9me3_chr16.asd.bam.stats</td></tr>
+<tr><td></td><td>          2095.00</td><td>             0.00</td><td>           347.00</td><td>            16.56</td><td>          1830.00</td><td>            87.35</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td class='left'>CTCF_chr16.</td></tr>
 </tbody>
-<tfoot>
-<tr><td class='left'>sum</td><td>          4037.00</td><td>             0.00</td><td>           745.00</td><td>            37.06</td><td>          3765.00</td><td>           186.99</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          4037.00</td><td>           200.00</td><td>             0.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>          1942.00</td><td>             0.00</td><td>           347.00</td><td>            16.56</td><td>          1830.00</td><td>            87.35</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          1942.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>          2095.00</td><td>             0.00</td><td>           398.00</td><td>            20.49</td><td>          1935.00</td><td>            99.64</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          2095.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>          2018.50</td><td>             0.00</td><td>           372.50</td><td>            18.53</td><td>          1882.50</td><td>            93.50</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          2018.50</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>ste</td><td>            54.09</td><td>             0.00</td><td>            18.03</td><td>             1.39</td><td>            37.12</td><td>             4.34</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            54.09</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-</tfoot>
+</table>
+<h3>smokebox/ChIPseq_Histone/bowtie2/</h3>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th class='left'>File</th></tr></thead>
+<tbody>
+<tr><td></td><td>          1942.00</td><td>             0.00</td><td>           398.00</td><td>            20.49</td><td>          1935.00</td><td>            99.64</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td class='left'>H3k9me3_chr16.</td></tr>
+</tbody>
 </table>
 <h3>smokebox/ChIPseq_input/bowtie2/</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th><div>    Region mapped</div></th><th><div>  Region mapped %</div></th><th><div>    Region paired</div></th><th><div>  Region paired %</div></th><th class='left'>File</th></tr></thead>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>          1491.00</td><td>             0.00</td><td>            55.00</td><td>             3.69</td><td>          1444.00</td><td>            96.85</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          1491.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td class='left'>Input_chr16.asd.bam.stats</td></tr>
+<tr><td></td><td>          1491.00</td><td>             0.00</td><td>            55.00</td><td>             3.69</td><td>          1444.00</td><td>            96.85</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td class='left'>Input_chr16.</td></tr>
 </tbody>
 </table>
 <h3 class='overall'>Aggregation over all libraries</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th><div>    Region mapped</div></th><th><div>  Region mapped %</div></th><th><div>    Region paired</div></th><th><div>  Region paired %</div></th><th class='left'>File</th></tr></thead>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th class='left'>File</th></tr></thead>
 <tfoot>
-<tr><td class='left'>sum</td><td>          5528.00</td><td>             0.00</td><td>           800.00</td><td>            40.75</td><td>          5209.00</td><td>           283.84</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          5528.00</td><td>           300.00</td><td>             0.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>          1491.00</td><td>             0.00</td><td>            55.00</td><td>             3.69</td><td>          1444.00</td><td>            87.35</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          1491.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>          2095.00</td><td>             0.00</td><td>           398.00</td><td>            20.49</td><td>          1935.00</td><td>            99.64</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          2095.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>          1842.67</td><td>             0.00</td><td>           266.67</td><td>            13.58</td><td>          1736.33</td><td>            94.61</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          1842.67</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>ste</td><td>           148.03</td><td>             0.00</td><td>            87.24</td><td>             4.14</td><td>           121.88</td><td>             3.04</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>           148.03</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>sum</td><td>          5528.00</td><td>             0.00</td><td>           800.00</td><td>            40.75</td><td>          5209.00</td><td>           283.84</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>          1491.00</td><td>             0.00</td><td>            55.00</td><td>             3.69</td><td>          1444.00</td><td>            87.35</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>          2095.00</td><td>             0.00</td><td>           398.00</td><td>            20.49</td><td>          1935.00</td><td>            99.64</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>          1842.67</td><td>             0.00</td><td>           266.67</td><td>            13.58</td><td>          1736.33</td><td>            94.61</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>ste</td><td>           148.03</td><td>             0.00</td><td>            87.24</td><td>             4.14</td><td>           121.88</td><td>             3.04</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
 </div></div><div class='display'></div></div></div>
@@ -470,27 +461,22 @@ qout/bowtie2/ChIPseq_input_Input_chr16.out
         <div class='wrapper'><div class='hidden'>
 <div id='peakranger_checklist'><pre>
 ###################################################
-# NGSANE /apps/gi/ngsane/devel_db//mods/peakranger 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/peakranger 
 ###################################################
-QC_PASS .. finished are 2/2
+QC_PASS .. finished are 1/1
 >>>>>>>>>> Errors
-QC_PASS .. 0 have Resource temporarily unavailable/2
+QC_PASS .. 0 have Resource temporarily unavailable/1
 >>>>>>>>>> CheckPoints 
-QC_PASS .. 2 have programs/2
-QC_PASS .. 2 have parameters/2
-QC_PASS .. 2 have recall files from tape/2
-QC_PASS .. 2 have peakranger/2
-QC_PASS .. 2 have zip/2
+QC_PASS .. 1 have programs/1
+QC_PASS .. 1 have parameters/1
+QC_PASS .. 1 have recall files from tape/1
+QC_PASS .. 1 have peakranger/1
+QC_PASS .. 1 have zip/1
 </pre></div>
 <div id='peakranger_notes'><pre>
 
-qout/peakranger/ChIPseq_CTCF_chr16.out
-[NOTE] data quality
-[NOTE] library complexity
-[NOTE] make wigpe
-[NOTE] calling broad peaks
-
-qout/peakranger/ChIPseq_H3k9me3_chr16.out
+qout/peakranger/ChIPseq_Histone_H3k9me3_chr16.out
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/peakranger/job.20130914.log
 [NOTE] data quality
 [NOTE] library complexity
 [NOTE] make wigpe
@@ -498,21 +484,17 @@ qout/peakranger/ChIPseq_H3k9me3_chr16.out
 </pre></div>
 <div id='peakranger_errors'><pre>
 
-qout/peakranger/ChIPseq_CTCF_chr16.out
--- all good, no errors
-
-qout/peakranger/ChIPseq_H3k9me3_chr16.out
+qout/peakranger/ChIPseq_Histone_H3k9me3_chr16.out
 -- all good, no errors
 </pre></div>
 <div id='peakranger_logfiles'><div class='box'>
-<a href='../../../../../../../../../../../datastore/cci/bau04c/Documents/datahome/Sandbox/ngsane/smokebox/qout/peakranger/ChIPseq_CTCF_chr16.out'>ChIPseq_CTCF_chr16.out</a><br/>
-<a href='../../../../../../../../../../../datastore/cci/bau04c/Documents/datahome/Sandbox/ngsane/smokebox/qout/peakranger/ChIPseq_H3k9me3_chr16.out'>ChIPseq_H3k9me3_chr16.out</a><br/>
+<a href='../qout/peakranger/ChIPseq_Histone_H3k9me3_chr16.out'>ChIPseq_Histone_H3k9me3_chr16.out</a><br/>
 </div></div>
 <script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#peakranger_counter_notes').text('8');
+            $('#peakranger_counter_notes').text('5');
             $('#peakranger_counter_errors').text('0');
             $('#peakranger_counter_checkpoints_passed').text('7');
             $('#peakranger_counter_checkpoints_failed').text('0'); 
@@ -533,28 +515,20 @@ qout/peakranger/ChIPseq_H3k9me3_chr16.out
         }
     </script>
 <div id='peakranger_results'>
-<h3>smokebox/ChIPseq/peakranger/</h3>
+<h3>smokebox/ChIPseq_Histone/peakranger/</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>Estimated noise rate</div></th><th><div>      Total reads</div></th><th><div>     Unique reads</div></th><th><div>Library complexity</div></th><th><div>            Peaks</div></th><th><div>          Summits</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>             1.00</td><td>          1830.00</td><td>          1484.00</td><td>            81.10</td><td>            12.00</td><td>            12.00</td><td class='left'>CTCF_chr16-Input_chr16.summary.txt</td></tr>
-<tr><td></td><td>             1.00</td><td>          1935.00</td><td>          1537.00</td><td>            79.40</td><td>             5.00</td><td>             5.00</td><td class='left'>H3k9me3_chr16-Input_chr16.summary.txt</td></tr>
+<tr><td></td><td>             1.00</td><td>          1935.00</td><td>          1537.00</td><td>            79.40</td><td>             5.00</td><td>             5.00</td><td class='left'>H3k9me3_chr16-Input_chr16</td></tr>
 </tbody>
-<tfoot>
-<tr><td class='left'>sum</td><td>             2.00</td><td>          3765.00</td><td>          3021.00</td><td>           160.50</td><td>            17.00</td><td>            17.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>             1.00</td><td>          1830.00</td><td>          1484.00</td><td>            79.40</td><td>             5.00</td><td>             5.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>             1.00</td><td>          1935.00</td><td>          1537.00</td><td>            81.10</td><td>            12.00</td><td>            12.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>             1.00</td><td>          1882.50</td><td>          1510.50</td><td>            80.25</td><td>             8.50</td><td>             8.50</td><td></td></tr>
-<tr><td class='left'>ste</td><td>             0.00</td><td>            37.12</td><td>            18.74</td><td>             0.60</td><td>             2.47</td><td>             2.47</td><td></td></tr>
-</tfoot>
 </table>
 <h3 class='overall'>Aggregation over all libraries</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>Estimated noise rate</div></th><th><div>      Total reads</div></th><th><div>     Unique reads</div></th><th><div>Library complexity</div></th><th><div>            Peaks</div></th><th><div>          Summits</div></th><th class='left'>File</th></tr></thead>
 <tfoot>
-<tr><td class='left'>sum</td><td>             2.00</td><td>          3765.00</td><td>          3021.00</td><td>           160.50</td><td>            17.00</td><td>            17.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>             1.00</td><td>          1830.00</td><td>          1484.00</td><td>            79.40</td><td>             5.00</td><td>             5.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>             1.00</td><td>          1935.00</td><td>          1537.00</td><td>            81.10</td><td>            12.00</td><td>            12.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>             1.00</td><td>          1882.50</td><td>          1510.50</td><td>            80.25</td><td>             8.50</td><td>             8.50</td><td></td></tr>
-<tr><td class='left'>ste</td><td>             0.00</td><td>            37.12</td><td>            18.74</td><td>             0.60</td><td>             2.47</td><td>             2.47</td><td></td></tr>
+<tr><td class='left'>sum</td><td>             1.00</td><td>          1935.00</td><td>          1537.00</td><td>            79.40</td><td>             5.00</td><td>             5.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>             1.00</td><td>          1935.00</td><td>          1537.00</td><td>            79.40</td><td>             5.00</td><td>             5.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>             1.00</td><td>          1935.00</td><td>          1537.00</td><td>            79.40</td><td>             5.00</td><td>             5.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>             1.00</td><td>          1935.00</td><td>          1537.00</td><td>            79.40</td><td>             5.00</td><td>             5.00</td><td></td></tr>
+<tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
 </div></div><div class='display'></div></div></div>
@@ -565,5 +539,185 @@ qout/peakranger/ChIPseq_H3k9me3_chr16.out
             $('#peakranger_panel div.wrapper div.display').html($('#peakranger_results').html());
         }
         </script>
-<hr><span>Report generated with NGSANE version: 2dd27e6855536741f31755647fe184168c44e551 (git hash)</span><span style='float:right;'>Last modified: Sun Sep 8 15:25:20 EST 2013</span>
+<div class='panel' id='macs2_panel'>
+        <div class='headbagb' id='macs2_panelback'><a name='macs2'></a>
+            <h2 id='macs2_h_results' class='sub'>MACS2</h2>
+            <h2 id='macs2_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='macs2_counter_checkpoints_passed'></span><span class='failed' id='macs2_counter_checkpoints_failed'></span></span></h2>
+            <h2 id='macs2_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='macs2_counter_notes'></span></span></span></h2>
+            <h2 id='macs2_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='macs2_counter_errors'></span></span></h2>
+            <h2 id='macs2_h_logfiles' class='sub inactive' rel='errors'>Logfiles</h2>
+        </div>
+        <div class='wrapper'><div class='hidden'>
+<div id='macs2_checklist'><pre>
+###################################################
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/macs2 
+###################################################
+QC_PASS .. finished are 1/1
+>>>>>>>>>> Errors
+QC_PASS .. 0 have Resource temporarily unavailable/1
+>>>>>>>>>> CheckPoints 
+QC_PASS .. 1 have programs/1
+QC_PASS .. 1 have parameters/1
+QC_PASS .. 1 have recall files from tape/1
+QC_PASS .. 1 have macs 2 - call peaks /1
+QC_PASS .. 1 have macs 2 - convert bedgraph to bigbed/1
+QC_PASS .. 1 have macs 2 - refine peaks /1
+</pre></div>
+<div id='macs2_notes'><pre>
+
+qout/macs2/ChIPseq_TF_CTCF_chr16.out
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/macs2/job.20130914.log
+[NOTE] GENOME_CHROMSIZES: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/chr16.chrom.sizes
+[NOTE] convert narrowpeaks to 6 bed file for refining
+</pre></div>
+<div id='macs2_errors'><pre>
+
+qout/macs2/ChIPseq_TF_CTCF_chr16.out
+-- all good, no errors
+</pre></div>
+<div id='macs2_logfiles'><div class='box'>
+<a href='../qout/macs2/ChIPseq_TF_CTCF_chr16.out'>ChIPseq_TF_CTCF_chr16.out</a><br/>
+</div></div>
+<script type='text/javascript'> 
+        if (typeof jQuery === 'undefined') {
+            console.log('jquery not loaded');
+        } else {
+            $('#macs2_counter_notes').text('3');
+            $('#macs2_counter_errors').text('0');
+            $('#macs2_counter_checkpoints_passed').text('8');
+            $('#macs2_counter_checkpoints_failed').text('0'); 
+            if (0==0){
+                $('#macs2_counter_errors').toggleClass('errors neutral');
+            }; 
+            if(0==0){
+                $('#macs2_counter_checkpoints_failed').toggleClass('failed nofailed');
+            };
+
+            $('#macs2_panelback h2').click(function() {
+                $(this).parent().children().addClass('inactive');
+                $(this).removeClass('inactive');
+                console.log();
+                var panel=$(this).attr('id').replace('_h_','_');
+                $('#macs2_panel div.wrapper div.display').html($('#'+ panel).html());
+            });
+        }
+    </script>
+<div id='macs2_results'>
+<h3>smokebox/ChIPseq_TF/macs2/</h3>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>    Total IP tags</div></th><th><div>    IP (filtered)</div></th><th><div>                %</div></th><th><div>     Control tags</div></th><th><div>Control (filtered)</div></th><th><div>                %</div></th><th><div>     Paired peaks</div></th><th><div>  Fragment length</div></th><th class='left'>File</th></tr></thead>
+<tbody>
+<tr><td></td><td>          1483.00</td><td>          1483.00</td><td>           100.00</td><td>          1389.00</td><td>          1389.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td class='left'>CTCF_chr16</td></tr>
+</tbody>
+</table>
+<h3 class='overall'>Aggregation over all libraries</h3>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>    Total IP tags</div></th><th><div>    IP (filtered)</div></th><th><div>                %</div></th><th><div>     Control tags</div></th><th><div>Control (filtered)</div></th><th><div>                %</div></th><th><div>     Paired peaks</div></th><th><div>  Fragment length</div></th><th class='left'>File</th></tr></thead>
+<tfoot>
+<tr><td class='left'>sum</td><td>          1483.00</td><td>          1483.00</td><td>           100.00</td><td>          1389.00</td><td>          1389.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>          1483.00</td><td>          1483.00</td><td>           100.00</td><td>          1389.00</td><td>          1389.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>          1483.00</td><td>          1483.00</td><td>           100.00</td><td>          1389.00</td><td>          1389.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>          1483.00</td><td>          1483.00</td><td>           100.00</td><td>          1389.00</td><td>          1389.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+</tfoot>
+</table>
+<table><tr></tr><tr></tr><tr></tr></table>
+</div></div><div class='display'></div></div></div>
+<script type='text/javascript'> 
+        if (typeof jQuery === 'undefined') {
+            console.log('jquery not loaded');
+        } else {
+            $('#macs2_panel div.wrapper div.display').html($('#macs2_results').html());
+        }
+        </script>
+<div class='panel' id='memechip_panel'>
+        <div class='headbagb' id='memechip_panelback'><a name='memechip'></a>
+            <h2 id='memechip_h_results' class='sub'>MEME-chip Motif discovery</h2>
+            <h2 id='memechip_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='memechip_counter_checkpoints_passed'></span><span class='failed' id='memechip_counter_checkpoints_failed'></span></span></h2>
+            <h2 id='memechip_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='memechip_counter_notes'></span></span></span></h2>
+            <h2 id='memechip_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='memechip_counter_errors'></span></span></h2>
+            <h2 id='memechip_h_logfiles' class='sub inactive' rel='errors'>Logfiles</h2>
+        </div>
+        <div class='wrapper'><div class='hidden'>
+<div id='memechip_checklist'><pre>
+###################################################
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/memechip 
+###################################################
+QC_PASS .. finished are 1/1
+>>>>>>>>>> Errors
+QC_PASS .. 0 have Resource temporarily unavailable/1
+>>>>>>>>>> CheckPoints 
+QC_PASS .. 1 have programs/1
+QC_PASS .. 1 have parameters/1
+QC_PASS .. 1 have recall files from tape/1
+QC_PASS .. 1 have get sequence data/1
+QC_PASS .. 1 have create background model/1
+QC_PASS .. 1 have meme-chip/1
+QC_PASS .. 1 have classify bound regions/1
+QC_PASS .. 1 have cleanup/1
+</pre></div>
+<div id='memechip_notes'><pre>
+
+qout/memechip/ChIPseq_TF_CTCF_chr16.out
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/memechip/job.20130914.log
+[NOTE] extend bed regions: 
+[NOTE] Motif: 0
+</pre></div>
+<div id='memechip_errors'><pre>
+
+qout/memechip/ChIPseq_TF_CTCF_chr16.out
+-- all good, no errors
+</pre></div>
+<div id='memechip_logfiles'><div class='box'>
+<a href='../qout/memechip/ChIPseq_TF_CTCF_chr16.out'>ChIPseq_TF_CTCF_chr16.out</a><br/>
+</div></div>
+<script type='text/javascript'> 
+        if (typeof jQuery === 'undefined') {
+            console.log('jquery not loaded');
+        } else {
+            $('#memechip_counter_notes').text('3');
+            $('#memechip_counter_errors').text('0');
+            $('#memechip_counter_checkpoints_passed').text('10');
+            $('#memechip_counter_checkpoints_failed').text('0'); 
+            if (0==0){
+                $('#memechip_counter_errors').toggleClass('errors neutral');
+            }; 
+            if(0==0){
+                $('#memechip_counter_checkpoints_failed').toggleClass('failed nofailed');
+            };
+
+            $('#memechip_panelback h2').click(function() {
+                $(this).parent().children().addClass('inactive');
+                $(this).removeClass('inactive');
+                console.log();
+                var panel=$(this).attr('id').replace('_h_','_');
+                $('#memechip_panel div.wrapper div.display').html($('#'+ panel).html());
+            });
+        }
+    </script>
+<div id='memechip_results'>
+<a href="../ChIPseq_TF/memechip/CTCF_chr16/index.html">ChIPseq_TF/CTCF_chr16</a> 
+<h3>smokebox/ChIPseq_TF/memechip/</h3>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>     Peak regions</div></th><th><div>with strong sites</div></th><th><div>                %</div></th><th><div> w/o strong sites</div></th><th><div>                %</div></th><th class='left'>File</th></tr></thead>
+<tbody>
+<tr><td></td><td>            10.00</td><td>            10.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td class='left'>CTCF_chr16</td></tr>
+</tbody>
+</table>
+<h3 class='overall'>Aggregation over all libraries</h3>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>     Peak regions</div></th><th><div>with strong sites</div></th><th><div>                %</div></th><th><div> w/o strong sites</div></th><th><div>                %</div></th><th class='left'>File</th></tr></thead>
+<tfoot>
+<tr><td class='left'>sum</td><td>            10.00</td><td>            10.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>            10.00</td><td>            10.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>            10.00</td><td>            10.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>            10.00</td><td>            10.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+</tfoot>
+</table>
+</div></div><div class='display'></div></div></div>
+<script type='text/javascript'> 
+        if (typeof jQuery === 'undefined') {
+            console.log('jquery not loaded');
+        } else {
+            $('#memechip_panel div.wrapper div.display').html($('#memechip_results').html());
+        }
+        </script>
+<hr><span>Report generated with NGSANE version: 33b7960832c686d23e0a1e2a16e4c8ca95f64924 (git hash)</span><span style='float:right;'>Last modified: Sat Sep 14 12:34:31 EST 2013</span>
 </div><!-- center --></body></html>
