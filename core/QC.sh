@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
 # author: Denis C. Bauer
 # date: Feb.2011
 # modified by Fabian Buske, Aug 2013
 
 function usage {
-echo -e "usage: $(basename $0) [OPTIONS] -m MOD.SCRIPT - l LOG.QOUT"
+echo -e "usage: $(basename $0) [OPTIONS] -m MOD.SCRIPT -l QOUT -t TASK"
 exit
 }
 
@@ -56,9 +56,10 @@ else
     CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
 fi
 
-IFS=','
 
 echo ">>>>>>>>>> Errors"
+DEFAULTSEP=$IFS
+IFS=','
 ERROR=$(grep QCVARIABLES $SCRIPT)
 ERROR=${ERROR/"# QCVARIABLES,"/}
 for i in $ERROR; do
@@ -72,6 +73,7 @@ for i in $ERROR; do
   fi
 done
 
+
 echo ">>>>>>>>>> CheckPoints "
 PROGRESS=$(grep -P '^CHECKPOINT="' $SCRIPT | awk -F'"' '{print $2}' | tr '\n' ',')
 for i in $PROGRESS; do
@@ -84,6 +86,8 @@ for i in $PROGRESS; do
     CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
   fi
 done
+
+IFS=$DEFAULTSEP
 
 if [ -n "$HTMLOUTPUT" ]; then
     echo "</pre></div>"
@@ -116,15 +120,15 @@ for i in $QOUT/$TASK/*.out;do
     else
         echo "-- all good, no errors"
     fi
-    SUMERRORS=`expr $SUMERRORS + $(echo $ERRORLIST | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' )`
+    SUMERRORS=$(expr $SUMERRORS + $(echo $ERRORLIST | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' ))
 done
 
 if [ -n "$HTMLOUTPUT" ]; then
 
     echo "</pre></div>"
     echo "<div id='${TASK}_logfiles'><div class='box'>"
-    for i in $QOUT/$TASK/*.out ;do
-        FN=$(python -c "import os.path; print os.path.relpath(os.path.abspath('$i'),os.path.abspath('$(dirname $HTMLOUTPUT)'))")
+    for i in $( ls $QOUT/$TASK/*.out ); do
+        FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
         echo "<a href='$FN'>${i/$QOUT\/$TASK\//}</a><br/>"
     done
     echo "</div></div>"

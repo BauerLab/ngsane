@@ -52,7 +52,7 @@ SUMMARYFILE=$HTMLOUT".html"
 
 mkdir -p $(dirname $SUMMARYTMP) && cat /dev/null > $SUMMARYTMP # clean temporary content
 
-PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',os.path.abspath('$(dirname $SUMMARYTMP)'))")
+PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',os.path.realpath('$(dirname $SUMMARYTMP)'))")
 
 ################################################################################
 # define functions for generating summary scaffold
@@ -246,7 +246,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" || -n "$RUNREALRECAL3" ]]; then 
-    summaryHeader "RECAL mapping" "$TASKRCA" "reCalAln.sh" "$SUMMARYTMP"
+    summaryHeader "Recalibrate + Realign" "$TASKRCA" "reCalAln2.sh" "$SUMMARYTMP"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKRCA)" .$ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
 
@@ -277,7 +277,7 @@ if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFF" ]]; then
 
 	vali=""
     echo "<br>Note, the duplication rate is not calculated by tophat and hence zero.<br>" >>$SUMMARYTMP
-    CURDIR=$(pwd)
+    CURDIR=$(pwd -P)
     for dir in ${DIR[@]}; do
     	vali=$vali" $OUT/$dir/$TASKTOPHAT/"
     	cd $OUT/$dir/$TASKTOPHAT
@@ -493,7 +493,7 @@ if [ -n "$RUNMEMECHIP" ];then
     summaryHeader "MEME-chip Motif discovery" "$TASKMEMECHIP" "memechip.sh" "$SUMMARYTMP"
 
     vali=""
-    CURDIR=$(pwd)
+    CURDIR=$(pwd -P)
     for dir in ${DIR[@]}; do
         if [ ! -d $dir/$TASKMEMECHIP ]; then
             continue
@@ -525,7 +525,7 @@ if [ -n "$RUNANNOTATINGBAM3" ]; then
                 split($1,arr,"[/.]"); print arr[3]" "arr[1]" genes "$3"\n" arr[3]" "arr[1]" rRNA "$4"\n" arr[3]" "arr[1]" tRNA "$5"\n" arr[3]" "arr[1]" lincRNA "$6"\n" arr[3]" "arr[1]" miRNA "$7"\n" arr[3]" "arr[1]" snoRNA "$8"\n" arr[3]" "arr[1]" snRNA "$9"\n" arr[3]" "arr[1]" miscRNA "$10"\n" arr[3]" "arr[1]" PolyA "$11"\n" arr[3]" "arr[1]" other "$12"\n" arr[3]" "arr[1]" HiSeq "$13"\n" arr[3]" "arr[1]" UCSC_rRNA "$14"\n" arr[3]" "arr[1]" SegDups "$15"\n" arr[3]" "arr[1]" unannotated "$16"\n" arr[3]" "arr[1]" unmapped "$17}' $DIR/distribution$typ.txt > $DIR/distribution$typ.ggplot
 
 	RSCRIPT=$DIR/"distribution$typ.ggplot".R
-	P=$(pwd)
+	P=$(pwd -P)
 	DESCRIPT=$(basename $P)
 	IMAGE=$DIR/"distribution$type.pdf"
 	echo 'library("ggplot2")' > $RSCRIPT

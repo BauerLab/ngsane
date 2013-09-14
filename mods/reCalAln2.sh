@@ -127,8 +127,7 @@ echo -e "\n********* $CHECKPOINT\n"
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
-	dmget -a $f2
-	dmget -a $f3
+	dmget -a $f
 fi
     
 echo -e "\n********* $CHECKPOINT\n"    
