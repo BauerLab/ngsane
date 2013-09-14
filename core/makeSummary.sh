@@ -200,7 +200,7 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     summaryHeader "BWA mapping" "$TASKBWA" "bwa.sh" "$SUMMARYTMP"
 
     vali=$(gatherDirs $TASKBWA)
-    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASD.bam.stats samstats >>$SUMMARYTMP
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
     	echo "<h3>Annotation</h3>" >>$SUMMARYTMP
@@ -218,7 +218,7 @@ fi
 if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" || -n "$RUNREALRECAL3" ]]; then 
     summaryHeader "RECAL mapping" "$TASKRCA" "reCalAln.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKRCA)" $ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKRCA)" .$ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
 
     summaryFooter "$TASKRCA" "$SUMMARYTMP"
 fi
@@ -227,7 +227,7 @@ fi
 if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
     summaryHeader "Bowtie v1 mapping" "$TASKBOWTIE" "bowtie.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE)" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE)" .$ASD.bam.stats samstats >>$SUMMARYTMP
 
     summaryFooter "$TASKBOWTIE" "$SUMMARYTMP"
 fi
@@ -236,7 +236,7 @@ fi
 if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
     summaryHeader "Bowtie v2 mapping" "$TASKBOWTIE2" "bowtie2.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE2)" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE2)" .$ASD.bam.stats samstats >>$SUMMARYTMP
 
     summaryFooter "$TASKBOWTIE2" "$SUMMARYTMP"
 fi
@@ -286,13 +286,13 @@ if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
 
     vali=$(gatherDirs $TASKDOC)
     echo "<h3>Average coverage</h3>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASR".bam.doc.sample_summary" coverage >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASR".bam.doc.sample_summary" coverage >>$SUMMARYTMP
     echo "<h3>Base pair coverage over all intervals</h3>" >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASR".bam.doc.sample_cumulative_coverage_counts" coverage --p >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASR".bam.doc.sample_cumulative_coverage_counts" coverage --p >>$SUMMARYTMP
     echo "<h3>Intervals covered</h3>" >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASR".bam.doc.sample_interval_statistics" coverage --p >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASR".bam.doc.sample_interval_statistics" coverage --p >>$SUMMARYTMP
     echo "<h3>On Target</h3>" >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASR".bam.stats" target >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASR".bam.stats" target >>$SUMMARYTMP
 
     summaryFooter "$TASKVAR" "$SUMMARYTMP" 
 fi
