@@ -77,7 +77,7 @@ if [[ -z "$BAMANNLIB" ]]; then
     echo "[ERROR] library info not set (BAMANNLIB)"
     exit 1;
 else
-    echo "[NOTE] $BAMANNLIB"
+    echo "[NOTE] using libraries in $BAMANNLIB"
 fi
 
 # delete old bam files unless attempting to recover
@@ -103,13 +103,13 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-	bedtools bamtobed -i $f > $f.bed
-	bedtools merge -i $f.bed -n > $f.merg.bed
-	rm $f.bed
+	bedtools bamtobed -i $f | bedtools merge -i - -n  > $f.merg.bed
 
 	# mark checkpoint
     if [ -f $f.merg.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-fi 
+
+fi
+ 
 
 ################################################################################
 CHECKPOINT="run annotation"
@@ -121,21 +121,25 @@ else
 	NAMES=""
 	NUMBER=$( ls $BAMANNLIB/*.gtf | wc -l )
 	for i in $(ls $BAMANNLIB/*.gtf ); do
-		NAME=$(dirname $i)
+		NAME=$(basename $i)
 		NAMES=$NAMES" "${NAME/.gtf/}
 	done
 
 	echo "[NOTE] annotate with $NAMES"
 
    	# strandedness does not work for RRNA
-   	bedtools annotate -counts -i $f.merg.bed -files $( ls $BAMANNLIB/* ) -names $NAMES | python ${NGSANE_HOME}/tools/addUnannotated.py >$f.merg.anno.bed
-   	rm $f.merg.bed
+   	COMMAND="bedtools annotate -counts -i $f.merg.bed -files $( ls $BAMANNLIB/*.gtf ) -names $NAMES | python ${NGSANE_HOME}/tools/addUnannotated.py >$f.merg.anno.bed"
+	echo $COMMAND && eval $COMMAND
    
-   	ALLREADS=$(head -n 1 $f.stats | cut -d" " -f1)
+#   	ALLREADS=$(head -n 1 $f.stats | cut -d" " -f1)
 
 
 	# mark checkpoint
-    if [ -f $f.merg.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $f.merg.anno.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+	rm $f.merg.bed
+
+	
+fi
 
 ################################################################################
 CHECKPOINT="summarize"
@@ -144,8 +148,9 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-   	python ${NGSANE_HOME}/tools/sumRows.py -i $f.merg.anno.bed -s 5 -e $(expr $NUMBER + 5) -n $(echo $NAMES | sed 's/ /,/g'),unannotated >$f.anno.stats
-
+   	COMMAND="python ${NGSANE_HOME}/tools/sumRows.py -i $f.merg.anno.bed -l 3 -s 4 -e $(expr $NUMBER + 5) -n $(echo $NAMES | sed 's/ /,/g'),unannotated >$f.anno.stats"
+	echo $COMMAND && eval $COMMAND
+	
 #   echo "total Pgenes rRNA tRNA lincRNA miRNA snoRNA snRNA miscRNA PolyA other HiSeq ucsc_rRNA segDups unannotated unmapped" >$f.merg.anno.stats
 #   gawk -v all=$ALLREADS 'BEGIN{a=0; b=0; c=0; d=0; e=0; f=0; g=0; h=0; i=0; j=0; k=0; l=0; m=0; n=0; o=0; x=0}{
 #        a=a+$4; 
@@ -166,10 +171,12 @@ else
 #        END{print all" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "x" "all-a}' $f.merg.anno.bed >> $f.merg.anno.stats
 
 #    head -n 1 $f.merg.anno.bed >> $f.merg.anno.stats
-    cat $f.merg.anno.bed | sort -k4gr | head -n 20 >> $f.merg.anno.stats  
+    cat $f.merg.anno.bed | sort -k4gr | head -n 20 >> $f.anno.stats  
     
 	# mark checkpoint
-    if [ -f $f.merg.anno.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $f.anno.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi
 
 ################################################################################
 

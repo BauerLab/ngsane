@@ -1,8 +1,8 @@
-#all: result/SummaryTOPHATCUFF.html result/SummaryBWA.html result/SummaryBOWTIE.html result/SummaryBOWTIE2.html result/SummaryVARCALL.html
+all: checkNGSANE result/SummaryVARCALL.html
 
 NGSANE := $(shell trigger.sh -v 2>/dev/null)
 
-all: checkNGSANE result/SummaryCHIPSEQ.html  result/SummaryTOPHATCUFFHTSEQ.html  result/SummaryVARCALL.html
+#all: checkNGSANE result/SummaryCHIPSEQ.html  result/SummaryTOPHATCUFFHTSEQ.html  result/SummaryVARCALL.html
 
 checkNGSANE:
 ifdef NGSANE
@@ -47,3 +47,4 @@ clean:
 	rm -fr variant
 	rm -fr qout
 	rm -fr tmp/*
+	rm -fr runStats

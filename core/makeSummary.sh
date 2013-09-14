@@ -53,6 +53,7 @@ SUMMARYFILE=$HTMLOUT".html"
 mkdir -p $(dirname $SUMMARYTMP) && cat /dev/null > $SUMMARYTMP # clean temporary content
 
 PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',os.path.realpath('$(dirname $SUMMARYTMP)'))")
+[ -z "$PROJECT_RELPATH" ] && PROJECT_RELPATH="."
 
 ################################################################################
 # define functions for generating summary scaffold
@@ -218,7 +219,7 @@ if [[ -n "$RUNBLUE" ]]; then
 	Rscript ${NGSANE_BASE}/tools/blue.R $BLUEOUT $IMAGE
 	convert $IMAGE ${IMAGE/pdf/jpg}
 	echo "<h3>Annotation of mapped reads</h3>" >> $SUMMARYTMP
-	echo "<a href=$IMAGE><img src=\""${IMAGE/.pdf/}".jpg\"></a>">>$SUMMARYTMP
+	echo "<a href=$PROJECT_RELPATH/$IMAGE><img src=\""$PROJECT_RELPATH/${IMAGE/.pdf/}".jpg\"></a>">>$SUMMARYTMP
 
     summaryFooter "$TASKBLUE" "$SUMMARYTMP"
 fi
@@ -234,10 +235,23 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
     	echo "<h3>Annotation</h3>" >>$SUMMARYTMP
-    	python ${NGSANE_BASE}/core/Summary.py "$vali" merg.anno.stats annostats >>$SUMMARYTMP
-    	ROUTH=runStats/$(echo ${DIR[@]}|sed 's/ /_/g')
-    	if [ ! -e $ROUTH ]; then mkdir $ROUTH; fi
-	    python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
+    	python ${NGSANE_BASE}/core/Summary.py "$vali" .anno.stats annostats >>$SUMMARYTMP
+    	BAMANNOUT=runStats/bamann/$(echo ${DIR[@]}|sed 's/ /_/g')_$TASKBWA.ggplot
+		BAMANNIMAGE=${BAMANNOUT/ggplot/pdf}
+    	if [ ! -f $BAMANNOUT ]; then mkdir -p $( dirname $BAMANNOUT); fi
+		cat $vali/*.anno.stats | head -n 1 | gawk '{print "type "$0" sample"}'  >$BAMANNOUT
+		for i in $(ls $vali/*.anno.stats); do
+			name=$(basename $i)
+			arrIN=(${name//.$ASD/ })
+			grep sum $i | gawk -v x=${arrIN[0]} '{print $0" "x}';
+		done >> $BAMANNOUT
+		sed -i -r 's/\s+/ /g' $BAMANNOUT
+		Rscript ${NGSANE_BASE}/tools/bamann.R $BAMANNOUT $BAMANNIMAGE "Genome Features $TASKBWA"
+		convert $BAMANNIMAGE ${BAMANNIMAGE/pdf/jpg}
+		echo "<h3>Annotation of mapped reads</h3>" >> $SUMMARYTMP
+		echo "<a href=$PROJECT_RELPATH/$BAMANNIMAGE><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-0.jpg\"><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-1.jpg\"></a>">>$SUMMARYTMP
+
+#	    python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
     fi
     
     summaryFooter "$TASKBWA" "$SUMMARYTMP"

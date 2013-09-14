@@ -50,7 +50,7 @@ DEPTHOFCOVERAGE=""   # determine mean coverage
 RUNVARCALLS=""       # SNP/Variant detection
 RUNANNOTATINGBAM=""  # annotate bam file with Gencode
 RUNSAMVAR=""         # run variant call 
-
+RUNANNOTATINGBAM=""		 # run bam file annotation
 
 HTMLOUT="Summary"
 
@@ -69,6 +69,7 @@ READONE="_read1"
 READTWO="_read2"
 FASTQ=fastq
 #FASTQ=fastq.gz
+BAMANNLIB=${NGSANE_REFERENCE}/b37/bamann/
 
 
 FASTA=$(pwd)/referenceData/chr16.fasta
