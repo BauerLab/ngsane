@@ -70,21 +70,20 @@ HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNTOPHAT=\"\"/RUNTOPHAT=\"1\"/g' | \
     sed 's/RUNCUFFLINKS=\"\"/RUNCUFFLINKS=\"1\"/g' |\
     sed 's/RUNHTSEQCOUNT=\"\"/RUNHTSEQCOUNT=\"1\"/g' |\
-	sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPCUFFHTSEQ\"/g' > tmp/configTOPCUFFHTSEQ.txt
+	sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHATCUFFHTSEQ\"/g' > tmp/configTOPHATCUFFHTSEQ.txt
 
 # prepare the job to generate the html result page and perform the diff 
-echo "[NOTE] prepare evaluation script tmp/testTOPHATCUFFHTSEQ.qsub"
+echo "[NOTE] prepare evaluation script tmp/testTOPHATCUFFHTSEQ.qsub wait for $HOLDID"
 sed 's/NAME/TOPHATCUFFHTSEQ/g' bin/tmpl/HPCheader.txt >tmp/testTOPHATCUFFHTSEQ.qsub
-echo "trigger.sh tmp/configTOPCUFFHTSEQ.txt html" >> tmp/testTOPHATCUFFHTSEQ.qsub
-echo "diff result/SummaryTOPHATCUFFHTSEQ.html result/expected/SummaryTOPHATCUFFHT.html | \
+echo "trigger.sh tmp/configTOPHATCUFFHTSEQ.txt html" >> tmp/testTOPHATCUFFHTSEQ.qsub
+echo "diff result/SummaryTOPHATCUFFHTSEQ.html result/expected/SummaryTOPHATCUFFHTSEQ.html | \
       grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
       grep -v \"[NOTE]\" | \
-      grep -v \"[0-9]c[0-9]\" > result/diffTOPHATCUFF.txt" >> tmp/testTOPHATCUFFHTSEQ.qsub
+      grep -v \"[0-9]c[0-9]\" > result/diffTOPHATCUFFHTSEQ.txt" >> tmp/testTOPHATCUFFHTSEQ.qsub
 
 chmod 777 tmp/testTOPHATCUFFHTSEQ.qsub
 
 #submit evaluation script
 echo "[NOTE] submit evaluation script"
-
 unset module
-qsub -V -S /bin/bash $HOLDID tmp/testTOPHATCUFFHTSEQ.qsub
+qsub $HOLDID tmp/testTOPHATCUFFHTSEQ.qsub

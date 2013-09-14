@@ -1,5 +1,4 @@
 #!/bin/sh
-unset module
 
 # the ngsane version to be tested needs to be loaded by hand
 . $NGSANE_BASE/conf/header.sh
@@ -67,7 +66,7 @@ cat bin/tmpl/configVarCall.txt | sed 's/RUNVARCALLS=\"\"/RUNVARCALLS=\"1\"/g' | 
     sed 's/RUNREALRECAL=\"\"/RUNREALRECAL=\"1\"/g' > tmp/configVARCALLS.txt
 
 # prepare the job to generate the html result page and perform the diff 
-echo "[NOTE] prepare evaluation script tmp/testVARCALLS.qsub"
+echo "[NOTE] prepare evaluation script tmp/testVARCALLS.qsub wait for $HOLDID"
 sed 's/NAME/VARCALL/g' bin/tmpl/HPCheader.txt > tmp/testVARCALLS.qsub
 echo "trigger.sh tmp/configVARCALLS.txt html" >> tmp/testVARCALLS.qsub
 echo "diff result/SummaryVARCALLS.html result/expected/SummaryVARCALLS.html | \
@@ -80,4 +79,5 @@ chmod 777 tmp/testVARCALLS.qsub
 
 #submit evaluation script
 echo "[NOTE] submit evaluation script"
-qsub -V $HOLDID tmp/testVARCALLS.qsub
+unset module
+qsub $HOLDID tmp/testVARCALLS.qsub
