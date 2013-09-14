@@ -87,7 +87,6 @@ for i in $PROGRESS; do
   fi
 done
 
-IFS=$DEFAULTSEP
 
 if [ -n "$HTMLOUTPUT" ]; then
     echo "</pre></div>"
@@ -122,6 +121,8 @@ for i in $QOUT/$TASK/*.out;do
     fi
     SUMERRORS=$(expr $SUMERRORS + $(echo $ERRORLIST | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' ))
 done
+
+IFS=$DEFAULTSEP
 
 if [ -n "$HTMLOUTPUT" ]; then
 
