@@ -293,6 +293,20 @@ def cufflinksStats(logFile):
     return names, values
 
 
+def htseqcountStats(logFile):
+    
+    names=[]
+    values=[]
+    lines=open(logFile).read().split("\n")
+    for f in lines:
+        cols = f.split(" ")
+        if (len(cols)<6): 
+            continue
+        names+=[" ".join(cols[0:3])+" no_feature", " ".join(cols[0:3])+" ambiguous"]
+        values+=[ float(cols[4]), float(cols[6]) ]
+    return names, values
+
+
 def onTarget(statsfile):
     names=["Total reads", "Total paired", "Total  Paired(%)" ,"OnTarget 100","(%)", "Paired on Target 100","(%)"]
     values=[]
@@ -958,6 +972,8 @@ for d in dir:
                 names,values=tophat(f)
             if (type=="cufflinks"):
                 names,values=cufflinksStats(f)
+            if (type=="htseqcount"):
+                names,values=htseqcountStats(f)
             if (type=="times"):
                 names,values=time(f)
             if (type=="target"):

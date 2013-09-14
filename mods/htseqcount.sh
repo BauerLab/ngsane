@@ -160,13 +160,18 @@ CHECKPOINT="mask GTF"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+
+	samtools sort -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
+	samtools fixmate $OUTDIR/${n/%.$ASD.bam/.tmp.bam} $OUTDIR/${n}
+	rm $OUTDIR/${n/%.$ASD.bam/.tmp}.bam
+
     echo "[NOTE] Create filtered bamfile (removed: rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene RNA18S5 RNA28S5)"
 	
     ##remove r_RNA and create counts.
 	python ${NGSANE_BASE}/tools/extractFeature.py -f $GTF --keep rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene > $OUTDIR/mask.gff
 	python ${NGSANE_BASE}/tools/extractFeature.py -f $GTF --keep RNA18S5 RNA28S5 -l 17 >> $OUTDIR/mask.gff
 	        
-    intersectBed -v -abam $f -b $OUTDIR/mask.gff > $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam}    
+    intersectBed -v -abam $OUTDIR/${n} -b $OUTDIR/mask.gff > $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam}    
 	    
     samtools index $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam}
 
@@ -177,30 +182,26 @@ else
    
 fi
 ################################################################################
-CHECKPOINT="calculate RPKMs per Gene"
+CHECKPOINT="calculate RPKMs"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-    cat /dev/null > $OUTDIR/${anno_version}.summary.txt
-
-	samtools sort -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
-	samtools fixmate $OUTDIR/${n/%.$ASD.bam/.tmp.bam} $OUTDIR/${n}
-	rm $OUTDIR/${n/%.$ASD.bam/.tmp}.bam
+    cat /dev/null > $OUTDIR/GTF.summary.txt
     
     for ATTR in $HTSEQCOUNT_ATTRIBUTES; do 
         for MODE in $HTSEQCOUNT_MODES; do 
             echo "[NOTE] processing $ATTR $MODE"
-            if [ "$PAIRED" ]; then 
-            	samtools view $OUTDIR/${n} -f 3 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/${anno_version}.$MODE.$ATTR.tmp
+            if [ "$PAIRED" = 1 ]; then 
+            	samtools view -f 3  $OUTDIR/${n} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF.$MODE.$ATTR.tmp
             else
-            	samtools view $OUTDIR/${n} -F 4 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/${anno_version}.$MODE.$ATTR.tmp
+            	samtools view -F 4 $OUTDIR/${n} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF.$MODE.$ATTR.tmp
         	fi
-            head -n-5 $OUTDIR/${anno_version}.$MODE.$ATTR.tmp > $OUTDIR/${anno_version}.$MODE.$ATTR
-            echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/${anno_version}.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/${anno_version}.summary.txt
-            rm $OUTDIR/${anno_version}.$MODE.$ATTR.tmp
+            head -n-5 $OUTDIR/GTF.$MODE.$ATTR.tmp > $OUTDIR/GTF.$MODE.$ATTR
+            echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/GTF.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF.summary.txt
+            rm $OUTDIR/GTF.$MODE.$ATTR.tmp
             
-            Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/${anno_version}.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/.$MODE.$ATTR} ${anno_version}
+            Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/GTF.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/.$MODE.$ATTR} ${anno_version}
         done
     done
     
@@ -209,26 +210,26 @@ else
 fi
 	
 ################################################################################
-CHECKPOINT="calculate RPKMs per Transcript"    
+CHECKPOINT="calculate masked RPKMs"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-	cat /dev/null > $OUTDIR/${anno_version}_masked.summary.txt
+	cat /dev/null > $OUTDIR/GTF_masked.summary.txt
 	
     for ATTR in $HTSEQCOUNT_ATTRIBUTES; do 
         for MODE in $HTSEQCOUNT_MODES; do 
             echo "[NOTE] processing $ATTR $MODE"
-            if [ "$PAIRED" ]; then 
-                samtools view $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} -f 3 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp
+            if [ "$PAIRED" = 1 ]; then 
+                samtools view -f 3 $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF_masked.$MODE.$ATTR.tmp
             else
-                samtools view $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} -F 4 | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp
+                samtools view -F 4 $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF_masked.$MODE.$ATTR.tmp
             fi
-            head -n-5 $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp > $OUTDIR/${anno_version}_masked.$MODE.$ATTR
-            echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/${anno_version}_masked.summary.txt
-            rm $OUTDIR/${anno_version}_masked.$MODE.$ATTR.tmp
+            head -n-5 $OUTDIR/GTF_masked.$MODE.$ATTR.tmp > $OUTDIR/GTF_masked.$MODE.$ATTR
+            echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/GTF_masked.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF_masked.summary.txt
+            rm $OUTDIR/GTF_masked.$MODE.$ATTR.tmp
 
-            Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/${anno_version}_masked.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/_masked.$MODE.$ATTR} ${anno_version} 
+            Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/GTF_masked.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/_masked.$MODE.$ATTR} ${anno_version} 
         done
     done
 
@@ -240,17 +241,17 @@ fi
 ################################################################################
 CHECKPOINT="summarize"
 
-cat $OUTDIR/${anno_version}.summary.txt | awk '{print all,$0}' > $RPKMSSDIR/${n}_${anno_version}.summary.txt
-cat $OUTDIR/${anno_version}_masked.summary.txt | awk '{print masked,$0}' >> $RPKMSSDIR/${n}_${anno_version}.summary.txt
+cat $OUTDIR/GTF.summary.txt | awk '{print "all",$0}' > $RPKMSSDIR/${n}.summary.txt
+cat $OUTDIR/GTF_masked.summary.txt | awk '{print "masked",$0}' >> $RPKMSSDIR/${n}.summary.txt
    
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="cleanup"    
 
-[ -e $OUTDIR/${n} ] && rm $OUTDIR/${n}
-[ -e $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} ] && rm $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam}
-[ -e $OUTDIR/${anno_version}.summary.txt ] && rm $OUTDIR/${anno_version}.summary.txt
-[ -e $OUTDIR/${anno_version}_masked.summary.txt ] && rm $OUTDIR/${anno_version}_masked.summary.txt
+#[ -e $OUTDIR/${n} ] && rm $OUTDIR/${n}
+#[ -e $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} ] && rm $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam}
+#[ -e $OUTDIR/GTF.summary.txt ] && rm $OUTDIR/GTF.summary.txt
+#[ -e $OUTDIR/GTF_masked.summary.txt ] && rm $OUTDIR/GTF_masked.summary.txt
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################

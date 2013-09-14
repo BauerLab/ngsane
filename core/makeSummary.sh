@@ -305,7 +305,7 @@ fi
 if [[ -n "$RUNHTSEQCOUNT" || -n "$RUNTOPHATCUFF" ]]; then
     summaryHeader "Htseq-count" "$TASKHTSEQCOUNT" "htseqcount.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKHTSEQCOUNT)" _transcripts.gtf gtf >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKHTSEQCOUNT)" summary.txt htseqcount >>$SUMMARYTMP
 
     summaryFooter "$TASKHTSEQCOUNT" "$SUMMARYTMP"
 fi
