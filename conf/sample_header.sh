@@ -14,6 +14,7 @@ TMP=$(pwd)/tmp                                       # TMP dir
 ##############################################################
 ## uncomment if running on SGE
 #. /etc/profile.d/modules.sh
+#module use /apps/gi/modulefiles
 
 ##############################################################
 # Task Names
@@ -23,11 +24,7 @@ TASKBWA="bwa"
 TASKBOWTIE="bowtie"
 TASKBOWTIE2="bowtie2"
 TASKRCA="reCalAln"
-TASKMERGE="merged"
 TASKVAR="variant"
-TASKDINC="dindelC"
-TASKDINS="dindelS"
-TASKDIN="dindel"
 TASKSNP="snp"
 TASKIND="indel"
 TASKDOWN="downsample"
@@ -38,7 +35,6 @@ TASKHTSEQCOUNT="htseqcount"
 TASKCUFFLINKS="cufflinks"
 TASKCUFFDIFF="cuffdiff"
 TASKRRBSMAP="rrbs"
-TASKMACS="macs"
 TASKANNOVAR="annovar"
 TASKBAMANN="bamann"
 TASKSAMVAR="samvar"
@@ -46,7 +42,6 @@ TASKCUTADAPT="cutadapt"
 TASKTRIMGALORE="trimgalore"
 TASKHICUP="hicup"
 TASKHICLIB="hiclib"
-TASKFASTQ2SANGER="sanger"
 TASKWIGGLER="wiggler"
 TASKTRIMMOMATIC="trimmomatic"
 TASKHOMERHIC="homerhic"
@@ -150,7 +145,6 @@ PATH_BOWTIE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 ##############################################################
 # Bowtie2 (2.1.0) 
 # http://bowtie-bio.sourceforge.net/index.shtml
-
 WALLTIME_BOWTIE2=72:00:00
 MEMORY_BOWTIE2=60
 CPU_BOWTIE2=8
@@ -239,7 +233,6 @@ NODES_CUTADAPT="nodes=1:ppn=1"
 
 MODULE_CUTADAPT=
 PATH_CUTADAPT=
-CUTADAPT_OPTIONS=
 
 ##############################################################
 # Trim adapter with TRIMGALORE
@@ -277,11 +270,8 @@ MEMORY_VAR=20
 CPU_VAR=1
 NODES_VAR="nodes=1:ppn=1"
 
-PATH_GATKHOME=
-PATH_GATKJAR=
 MODULE_GATK=
 MODULE_GATKSNP=
-PATH_GATKSNP=$PATH_GATKHOME:$PATH_GATKJAR:$PATH_IGVTOOLS
 
 ##############################################################
 # Tophat (2.0.9) 
@@ -386,7 +376,6 @@ NODES_RRBSMAP="nodes=4:ppn=8"
 MODULE_RRBSMAP=
 PATH_RRBSMAP=
 
-
 ##############################################################
 # downsample
 # 
@@ -397,7 +386,6 @@ NODES_DOWNSAMPLE="nodes=1:ppn=1"
 
 MODULE_DOWNSAMPLE=
 PATH_DOWNSAMPLE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMTOOLS
-
 
 ##############################################################
 # demultiplex with Fastxtoolkit
@@ -434,3 +422,13 @@ NODES_BIGWIG="nodes=1:ppn=2"
 MODULE_BIGWIG=
 PATH_BIGWIG=
 
+##############################################################
+# Blue Read error correction
+# http://www.bioinformatics.csiro.au/blue/
+WALLTIME_BLUE=10:00:00
+MEMORY_BLUE=60
+CPU_BLUE=4
+NODES_BLUE="nodes=1:ppn=4"
+
+MODULE_BLUE=""
+PATH_BLUE=
