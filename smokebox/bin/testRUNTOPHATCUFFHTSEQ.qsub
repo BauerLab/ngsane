@@ -77,9 +77,10 @@ echo "[NOTE] prepare evaluation script tmp/testTOPHATCUFFHTSEQ.qsub wait for $HO
 sed 's/NAME/TOPHATCUFFHTSEQ/g' bin/tmpl/HPCheader.txt >tmp/testTOPHATCUFFHTSEQ.qsub
 echo "trigger.sh tmp/configTOPHATCUFFHTSEQ.txt html" >> tmp/testTOPHATCUFFHTSEQ.qsub
 echo "diff result/SummaryTOPHATCUFFHTSEQ.html result/expected/SummaryTOPHATCUFFHTSEQ.html | \
-      grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
-      grep -v \"[NOTE]\" | \
-      grep -v \"[0-9]c[0-9]\" > result/diffTOPHATCUFFHTSEQ.txt" >> tmp/testTOPHATCUFFHTSEQ.qsub
+	   python bin/diffparser.py  > result/diffTOPHATCUFFHTSEQ.txt" >> tmp/testTOPHATCUFFHTSEQ.qsub
+#      grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
+#      grep -v \"[NOTE]\" | \
+#      grep -v \"[0-9]c[0-9]\" > result/diffTOPHATCUFFHTSEQ.txt" >> tmp/testTOPHATCUFFHTSEQ.qsub
 
 chmod 777 tmp/testTOPHATCUFFHTSEQ.qsub
 

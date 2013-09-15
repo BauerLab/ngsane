@@ -351,16 +351,38 @@ def annoStatsPicard(statsfile):
     values.append(float(st[21]))
     return names,values
 
+#def annoStats(statsfile):
+#    names=["total", "genes", "(%)", "rRNA", "(%)", "tRNA", "(%)", "lincRNA", "(%)", "miRNA", "(%)", "snoRNA", "(%)", "snrna", "(%)", "miscRNA", "(%)", "polyA", "(%)", "other", "(%)", "HiSeq", "(%)", "ucsc_rRNA", "(%)", "SegDups", "(%)"]
+#    values=[]
+#    f=open(statsfile).read().split("\n")[1]
+#    st=re.split("[ \t]+",f)
+#    values.append(float(st[0]))
+#    for i in range(1,14):
+#        values.append(float(st[i]))
+#        values.append(float(values[-1]/values[0]*100))
+#    return names,values
+
+
 def annoStats(statsfile):
-    names=["total", "genes", "(%)", "rRNA", "(%)", "tRNA", "(%)", "lincRNA", "(%)", "miRNA", "(%)", "snoRNA", "(%)", "snrna", "(%)", "miscRNA", "(%)", "polyA", "(%)", "other", "(%)", "HiSeq", "(%)", "ucsc_rRNA", "(%)", "SegDups", "(%)"]
-    values=[]
-    f=open(statsfile).read().split("\n")[1]
-    st=re.split("[ \t]+",f)
-    values.append(float(st[0]))
-    for i in range(1,14):
-        values.append(float(st[i]))
-        values.append(float(values[-1]/values[0]*100))
-    return names,values
+#    names=["total", "genes", "(%)", "rRNA", "(%)", "tRNA", "(%)", "lincRNA", "(%)", "miRNA", "(%)", "snoRNA", "(%)", "snrna", "(%)", "miscRNA", "(%)", "polyA", "(%)", "other", "(%)", "HiSeq", "(%)", "ucsc_rRNA", "(%)", "SegDups", "(%)"]
+#	print "bla"
+	names=[]
+	values=[]
+	f=open(statsfile).read().split("\n")
+	names=re.split("[ \t]+",f[0].strip())
+	values=map(float,re.split("[ \t]+",f[3].strip())[1:])
+#	for i in range(1,len(st)):
+#		values.append(float(st[i]))
+#		names.append(n[i-1])
+#		print names
+#		print values 
+#		values.append(float(values[-1]/values[0]*100))
+#		names.append("%")
+#	print names
+#	print values
+	return names,values
+
+
 
 def parsetime(string):
     arr=string.split(":")

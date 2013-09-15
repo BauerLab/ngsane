@@ -24,6 +24,22 @@ JOBIDS=$( trigger.sh tmp/configBWA.txt forcearmed | grep "Jobnumber" | cut -d " 
 echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
 
 ################################################################################
+#  BAMANN
+################################################################################
+
+# modify the template config file to flip the BAMANN switch
+# specify the resulting html file
+echo "[NOTE] Prep config file tmp/configBAMANN.txt"
+cat bin/tmpl/configVarCall.txt | sed 's/RUNANNOTATINGBAM=\"\"/RUNANNOTATINGBAM=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBAMANN\"/g' > tmp/configBAMANN.txt
+echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configBAMANN.txt
+
+# submit the BAMANN run to the cluster
+JOBIDS=$( trigger.sh tmp/configBAMANN.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] sumitted jobs $(echo -n $JOBIDS)"
+
+
+################################################################################
 #  RECAL
 ################################################################################
 
@@ -63,6 +79,7 @@ HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configVarCall.txt | sed 's/RUNVARCALLS=\"\"/RUNVARCALLS=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryVARCALLS\"/g' | \
     sed 's/RUNMAPPINGBWA=\"\"/RUNMAPPINGBWA=\"1\"/g' | \
+	sed 's/RUNANNOTATINGBAM=\"\"/RUNANNOTATINGBAM=\"1\"/g' | \
     sed 's/RUNREALRECAL=\"\"/RUNREALRECAL=\"1\"/g' > tmp/configVARCALLS.txt
 
 # prepare the job to generate the html result page and perform the diff 
@@ -70,9 +87,10 @@ echo "[NOTE] prepare evaluation script tmp/testVARCALLS.qsub wait for $HOLDID"
 sed 's/NAME/VARCALL/g' bin/tmpl/HPCheader.txt > tmp/testVARCALLS.qsub
 echo "trigger.sh tmp/configVARCALLS.txt html" >> tmp/testVARCALLS.qsub
 echo "diff result/SummaryVARCALLS.html result/expected/SummaryVARCALLS.html | \
-      grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
-      grep -v \"[NOTE]\" | \
-      grep -v \"[0-9]c[0-9]\" > result/diffVARCALLS.txt" >> tmp/testVARCALLS.qsub
+	   python bin/diffparser.py" > result/diffVARCALLS.txt" >> tmp/testVARCALLS.qsub
+#      grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
+#      grep -v \"[NOTE]\" | \
+#      grep -v \"[0-9]c[0-9]\" > result/diffVARCALLS.txt" >> tmp/testVARCALLS.qsub
 
 
 chmod 777 tmp/testVARCALLS.qsub
