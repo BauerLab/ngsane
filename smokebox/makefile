@@ -1,8 +1,8 @@
-all: checkNGSANE result/SummaryVARCALL.html
+#all: checkNGSANE result/SummaryVARCALL.html
 
 NGSANE := $(shell trigger.sh -v 2>/dev/null)
 
-#all: checkNGSANE result/SummaryCHIPSEQ.html  result/SummaryTOPHATCUFFHTSEQ.html  result/SummaryVARCALL.html
+all: checkNGSANE result/SummaryCHIPSEQ.html  result/SummaryTOPHATCUFFHTSEQ.html  result/SummaryVARCALL.html
 
 checkNGSANE:
 ifdef NGSANE

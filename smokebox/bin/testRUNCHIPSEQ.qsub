@@ -98,7 +98,7 @@ echo "[NOTE] prepare evaluation script tmp/testCHIPSEQPR.qsub wait for $HOLDID"
 sed 's/NAME/CHIPSEQ/g' bin/tmpl/HPCheader.txt > tmp/testCHIPSEQ.qsub
 echo "trigger.sh tmp/configCHIPSEQ.txt html" >> tmp/testCHIPSEQ.qsub
 echo "diff result/SummaryCHIPSEQ.html result/expected/SummaryCHIPSEQ.html | \
-       python bin/diffparser.py" > result/diffCHIPSEQ.txt" >> tmp/testCHIPSEQ.qsub
+       python bin/diffparser.py > result/diffCHIPSEQ.txt" >> tmp/testCHIPSEQ.qsub
 #      grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
 #      grep -v \"[NOTE]\" | \
 #      grep -v \"[0-9]c[0-9]\" > result/diffCHIPSEQ.txt" >> tmp/testCHIPSEQ.qsub

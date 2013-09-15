@@ -87,7 +87,7 @@ echo "[NOTE] prepare evaluation script tmp/testVARCALLS.qsub wait for $HOLDID"
 sed 's/NAME/VARCALL/g' bin/tmpl/HPCheader.txt > tmp/testVARCALLS.qsub
 echo "trigger.sh tmp/configVARCALLS.txt html" >> tmp/testVARCALLS.qsub
 echo "diff result/SummaryVARCALLS.html result/expected/SummaryVARCALLS.html | \
-	   python bin/diffparser.py" > result/diffVARCALLS.txt" >> tmp/testVARCALLS.qsub
+	   python bin/diffparser.py > result/diffVARCALLS.txt" >> tmp/testVARCALLS.qsub
 #      grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
 #      grep -v \"[NOTE]\" | \
 #      grep -v \"[0-9]c[0-9]\" > result/diffVARCALLS.txt" >> tmp/testVARCALLS.qsub
