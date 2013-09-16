@@ -54,6 +54,7 @@ mkdir -p $(dirname $SUMMARYTMP) && cat /dev/null > $SUMMARYTMP # clean temporary
 
 PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd)',os.path.abspath('$(dirname $SUMMARYTMP)'))")
 
+
 ################################################################################
 # define functions for generating summary scaffold
 #
