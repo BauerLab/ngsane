@@ -1,5 +1,5 @@
 # author: Fabian Buske
-# date: June 2013
+# date: September 2013
 
 #####################################
 # Resources
@@ -8,7 +8,8 @@
 #********************
 # Tasks
 #********************
-RUNTRIMGALORE="1"    # adapter trimming with trimgalore
+
+RUNSAMVAR="1"     # variance calling with smtools snpcall
 
 #********************
 # Paths
@@ -20,7 +21,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_TRIMGALORE="fastq"
+INPUT_SAMVAR=$TASKBWA
 
 # where to write the output
 OUT=$SOURCE
@@ -32,25 +33,14 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
-# fastq file suffix
-FASTQ="fq.gz"
-
-# read indicator immediately preceding the fastq file suffix
-READONE="_R1"
-READTWO="_R2"
 
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
-TRIMGALORE_ADAPTER1=
-TRIMGALORE_ADAPTER2=
 
-## additional trimgalore parameters e.g. --phred33 or --phred64
-TRIMGALOREADDPARAM=
-
-#WALLTIME_TRIMGALORE=4:00:00
-#MEMORY_TRIMGALORE=40
-#CPU_TRIMGALORE=1
-#NODES_TRIMGALORE="nodes=1:ppn=1"
-#MODULE_TRIMGALORE=
-#PATH_TRIMGALORE=
+#WALLTIME_SAMVAR=00:20:00
+#MEMORY_SAMVAR=8
+#CPU_SAMVAR=1
+#NODES_SAMVAR="nodes=1:ppn=1"
+#MODULE_SAMVAR=
+#PATH_SAMVAR=

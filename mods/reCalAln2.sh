@@ -117,6 +117,11 @@ if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats ] && rm $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
 fi
 
+if [ -z "$DBROD" ] || [ ! -e $DBROD ] ; then
+    echo "[ERROR] DBROD parameter not set or data not found"
+    exit 1
+fi
+
 # bwa/name.$ASD.bam -> /reCalAln/name.$ASD.bam
 f2=${f/$TASKBWA/$TASKRCA}
 # /reCalAln/name.$ASD.bam -> /reCalAln/name.$ASD.real

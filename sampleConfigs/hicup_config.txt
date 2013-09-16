@@ -16,8 +16,11 @@ RUNHICUP="1"        # map HiC data with hicup
 
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq directory)
+# which folder to run on (i.e. folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_HICUP="fastq"
 
 # where to write the output
 OUT=$SOURCE
@@ -56,6 +59,7 @@ HICUP_RENZYMES=
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
+
 #WALLTIME_HICUP=10:00:00
 #MEMORY_HICUP=60
 #CPU_HICUP=32

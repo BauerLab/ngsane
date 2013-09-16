@@ -110,6 +110,19 @@ if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/gatkSNPcall.tmp ] && rm $OUTDIR/gatkSNPcall.tmp
 fi
         
+if [ -z "$DBSNPVCF" ] || [ ! -e $DBSNPVCF ]; then
+    echo "[ERRPR] DBSNPVCF parameter not specified or file not found"
+    exit 1
+fi
+if [ -z "$HAPMAPVCF" ] || [ ! -e $HAPMAPVCF ]; then
+    echo "[ERRPR] HAPMAPVCF parameter not specified or file not found"
+    exit 1
+fi
+if [ -z "$ONEKGVCF" ] || [ ! -e $ONEKGVCF ]; then
+    echo "[ERRPR] ONEKGVCF parameter not specified or file not found"
+    exit 1
+fi
+        
 if [ -n "$SEQREG" ]; then REGION="-L $SEQREG"; fi
         
 echo -e "\n********* $CHECKPOINT\n"

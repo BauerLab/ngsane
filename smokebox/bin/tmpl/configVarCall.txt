@@ -40,8 +40,6 @@ NODES_SAMVAR="nodes=1:ppn=1"
 #********************
 # Tasks
 #********************
-RUNFASTQC=""
-RUNCUTADAPT=""
 RUNMAPPINGBOWTIE=""  # mapping with bowtie1
 RUNMAPPINGBOWTIE2="" # mapping with bowtie2
 RUNMAPPINGBWA=""     # mapping with bwa
@@ -50,7 +48,7 @@ DEPTHOFCOVERAGE=""   # determine mean coverage
 RUNVARCALLS=""       # SNP/Variant detection
 RUNANNOTATINGBAM=""  # annotate bam file with Gencode
 RUNSAMVAR=""         # run variant call 
-RUNANNOTATINGBAM=""		 # run bam file annotation
+RUNANNOTATINGBAM=""  # run bam file annotation
 
 HTMLOUT="Summary"
 

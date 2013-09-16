@@ -34,7 +34,6 @@ NODES_HTSEQCOUNT="nodes=1:ppn=1"
 #********************
 # Tasks
 #********************
-RUNFASTQC=""
 RUNMAPPINGBOWTIE=""  # mapping with bowtie1
 RUNMAPPINGBOWTIE2="" # mapping with bowtie2
 RUNTOPHAT=""         # mapping with tophat (RNAseq)
