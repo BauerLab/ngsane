@@ -48,3 +48,4 @@ clean:
 	rm -fr qout
 	rm -fr tmp/*
 	rm -fr runStats
+	rm igv.*
