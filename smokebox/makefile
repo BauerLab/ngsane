@@ -1,4 +1,4 @@
-all: checkNGSANE result/SummaryVARCALL.html
+#all: checkNGSANE result/SummaryVARCALL.html
 
 NGSANE := $(shell trigger.sh -v 2>/dev/null)
 
