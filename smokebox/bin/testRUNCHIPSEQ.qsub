@@ -23,8 +23,8 @@ cat bin/tmpl/configChIPseq.txt | sed 's/RUNMAPPINGBOWTIE2=\"\"/RUNMAPPINGBOWTIE2
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBOWTIE2\"/g' > tmp/configBOWTIE2.txt
 
 # submit the BOWTIE2 run to the cluster
-JOBIDS=$( trigger.sh tmp/configBOWTIE2.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] submitted jobs $(echo -n $JOBIDS)"
+JOBIDSBOWTIE=$( trigger.sh tmp/configBOWTIE2.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSBOWTIE)"
 
 
 ################################################################################
@@ -38,7 +38,7 @@ cat bin/tmpl/configChIPseq.txt | sed 's/RUNPEAKRANGER=\"\"/RUNPEAKRANGER=\"1\"/g
     sed 's/ ChIPseq_input / /g' | \
     sed 's/ ChIPseq_TF / /g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryPEAKRANGER\"/g' > tmp/configPEAKRANGER.txt
-echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configPEAKRANGER.txt
+echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDSBOWTIE//:/$QUEUEWAITSEP}\"" >>tmp/configPEAKRANGER.txt
 
 # submit the PEAKRANGER run to the cluster
 JOBIDSPR=$( trigger.sh tmp/configPEAKRANGER.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
@@ -56,7 +56,7 @@ cat bin/tmpl/configChIPseq.txt | sed 's/RUNMACS2=\"\"/RUNMACS2=\"1\"/g' | \
     sed 's/ ChIPseq_input / /g' | \
     sed 's/ ChIPseq_Histone / /g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryMACS2\"/g' > tmp/configMACS2.txt
-echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configMACS2.txt
+echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDSBOWTIE//:/$QUEUEWAITSEP}\"" >>tmp/configMACS2.txt
 
 # submit the MACS run to the cluster
 JOBIDSMACS=$( trigger.sh tmp/configMACS2.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
@@ -70,7 +70,6 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSMACS)"
 # specify the resulting html file
 echo "[NOTE] Prep config file tmp/configMEMECHIP.txt"
 cat bin/tmpl/configChIPseq.txt | sed 's/RUNMEMECHIP=\"\"/RUNMEMECHIP=\"1\"/g' | \
-    sed 's/#TASKPEAKRANGER/TASKPEAKRANGER/g' |\
     sed 's/ ChIPseq_input / /g' | \
     sed 's/ ChIPseq_Histone / /g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryMEMECHIP\"/g' > tmp/configMEMECHIP.txt

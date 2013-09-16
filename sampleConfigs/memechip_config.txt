@@ -16,8 +16,11 @@ RUNMEMECHIP="1"    # motif de novo discovery
 
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq directory)
+# which folder to run on (i.e. folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_MEMECHIP=$TASKMACS2
 
 # where to write the output
 OUT=$SOURCE
@@ -28,10 +31,6 @@ QOUT=$OUT/qout
 #********************
 # PARAMETER (mandatory)
 #********************
-
-# if a different peak caller than peakranger was used to get the enriched regions, e.g. homer
-#TASKPEAKRANGER=$TASKHOMERCHIPSEQ
-
 # reference genome
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
 FASTA=
