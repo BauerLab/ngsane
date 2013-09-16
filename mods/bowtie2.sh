@@ -324,6 +324,8 @@ echo "********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="generate  bigwigs"    
 
+GENOME_CHROMSIZES=$FASTA.chrom.size
+
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
