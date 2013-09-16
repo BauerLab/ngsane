@@ -30,17 +30,12 @@ for MODULE in $MODULE_FASTQC; do module load $MODULE; done  # save way to load m
 export PATH=$PATH_FASTQC:$PATH;
 module list
 echo "PATH=$PATH"
-echo -e "--JAVA     --\n" $(java -version 2>&1)
-[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
-echo -e "--FASTqc   --\n" $(fastqc -version 2>&1)
+
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--FASTqc      --\n" $(fastqc -version 2>&1)
 [ -z "$(which fastqc)" ] && echo "[ERROR] no fastqc detected" && exit 1
 
-echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_FASTQC*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
-unset _JAVA_OPTIONS
-echo "JAVAPARAMS "$JAVAPARAMS
-
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="get input"
 
@@ -57,7 +52,7 @@ mkdir -p $OUT/runStats/$TASKFASTQC
 CPUS=$(echo $FILES | wc -w)
 if [ "$CPUS" -gt "$CPU_FASTQC" ]; then echo "[NOTE] reduce to $CPU_FASTQC CPUs"; CPUS=$CPU_FASTQC; fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="run fastqc"
 
@@ -72,7 +67,7 @@ chmod a+rx $OUT/runStats/fastQC/*fastqc
 chmod a+r $OUT/runStats/fastQC/*fastqc/*
 chmod a+r $OUT/runStats/fastQC/*fastqc/*/*
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 echo ">>>>> fastQC - FINISHED"
 echo ">>>>> enddate "`date`

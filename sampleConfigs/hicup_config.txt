@@ -62,7 +62,3 @@ HICUP_RENZYMES=
 #NODES_HICUP="nodes=1:ppn=8"
 #MODULE_HICUP="fabbus/hicup/0.3.0"
 #PATH_HICUP=
-
-## location of ngsane
-#NGSANE_BASE=
-

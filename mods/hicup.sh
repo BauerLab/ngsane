@@ -51,23 +51,17 @@ echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 
-echo -e "--JAVA    --\n" $(java -version 2>&1)
-[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
-echo -e "--bowtie  --\n "$(bowtie --version | head -n 1 )
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--bowtie      --\n "$(bowtie --version | head -n 1 )
 [ -z "$(which bowtie)" ] && echo "[ERROR] no bowtie detected" && exit 1
-echo -e "--perl    --\n "$(perl -v | grep "version" )
+echo -e "--perl        --\n "$(perl -v | grep "version" )
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
-echo -e "--HiCUP   --\n "$(hicup --version )
+echo -e "--HiCUP       --\n "$(hicup --version )
 [ -z "$(which hicup)" ] && echo "[ERROR] no hicup detected" && exit 1
-echo -e "--fit-hi-c--\n "$(fit-hi-c.py --version)
+echo -e "--fit-hi-c    --\n "$(fit-hi-c.py --version)
 [ -z "$(which fit-hi-c.py)" ] && echo "[ERROR] no fit-hi-c detected" && exit 1
 
-echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_HICUP*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
-unset _JAVA_OPTIONS
-echo "JAVAPARAMS "$JAVAPARAMS
-
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -103,7 +97,7 @@ ENZYME2=(${ENZYMES[1]//,/ })
 
 DIGESTGENOME=""
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -112,11 +106,11 @@ if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="digest reference"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -144,13 +138,14 @@ else
     cd $SOURCE
     
     # mark checkpoint
-    [ -f $DIGESTGENOME ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $DIGESTGENOME ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi
 
 ################################################################################
 CHECKPOINT="create hicup conf script"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -181,13 +176,14 @@ else
     echo "$f | ${f/$READONE/$READTWO} " >> $HICUP_CONF
 
     # mark checkpoint
-    [ -f $HICUP_CONF ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $HICUP_CONF ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi
 
 ################################################################################
 CHECKPOINT="execute hicup"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -211,13 +207,14 @@ else
     cp -f $MYOUT/$OUTDIR/*_ditag_classification.png $RUNSTATS/${n/%$READONE.$FASTQ/}_ditag_classification.png
 
     # mark checkpoint
-    [ -f $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi
 
 ################################################################################
 CHECKPOINT="run fit-hi-c"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -232,11 +229,11 @@ else
     $GZIP $MYOUT/${n/%$READONE.$FASTQ/}*.significances.txt
 
     # mark checkpoint
-    [ -f $MYOUT/${n/%$READONE.$FASTQ/}.spline_pass1.significances.txt ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $MYOUT/${n/%$READONE.$FASTQ/}.spline_pass1.significances.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi
 
 ################################################################################
-
 echo ">>>>> readmapping with hicup (bowtie) - FINISHED"
 echo ">>>>> enddate "`date`
 

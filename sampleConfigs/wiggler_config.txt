@@ -56,6 +56,3 @@ WIGGLER_OUTPUTFORMAT=wig
 #MEMORY_WIGGLER=20
 #CPU_WIGGLER=1
 #NODES_WIGGLER="nodes=1:ppn=1"
-
-## location of ngsane
-#NGSANE_BASE=

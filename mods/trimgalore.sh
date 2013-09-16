@@ -40,10 +40,13 @@ export PATH=$PATH_TRIMGALORE:$PATH;
 module list
 echo "PATH=$PATH"
 
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--trim galore --\n "$(trim_galore --version  | grep version  | tr -d ' ')
 [ -z "$(which trim_galore)" ] && echo "[ERROR] no trim_galore detected" && exit 1
+echo -e "--cutadapt    --\n" $(cutadapt --version 2>&1)
+[ -z "$(which cutadapt)" ] && echo "[ERROR] no cutadapt detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -80,7 +83,7 @@ if [ "$PAIRED" = "1" ] && [ -n "$TRIMGALORE_ADAPTER2" ]; then
 fi
 echo $CONTAM
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -88,11 +91,11 @@ if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
 fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="trim"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
@@ -108,13 +111,14 @@ else
     fi
 
     # mark checkpoint
-    [ -f $FASTQDIRTRIM/$n ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $FASTQDIRTRIM/$n ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi
 
 ################################################################################
 CHECKPOINT="zip"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     $GZIP -t $FASTQDIRTRIM/$n 2>/dev/null
@@ -127,7 +131,7 @@ else
         fi
     fi
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT"
+    echo -e "\n********* $CHECKPOINT\n"
 fi
 
 ################################################################################
@@ -140,7 +144,7 @@ if [ "$PAIRED" = "1" ]; then
     echo "remaining reads "$(zcat $FASTQDIRTRIM/${n/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n/$READONE/$READTWO}_trimming_report.txt
 fi
 
-echo "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 echo ">>>>> readtrimming with TRIMGALORE - FINISHED"
 echo ">>>>> enddate "`date`

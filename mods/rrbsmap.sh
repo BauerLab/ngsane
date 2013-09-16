@@ -85,26 +85,27 @@ echo "PATH=$PATH"
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 
-echo -e "--JAVA        --\n" $(java -version 2>&1)
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_RRBS*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
+
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
-echo -e "--igvtools    --\n "$(java -jar $JAVAPARAMS $PATH_IGVTOOLS/igvtools.jar version 2>&1)
+echo -e "--igvtools    --\n "$(java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar version 2>&1)
 [ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
-echo -e "--PICARD      --\n "$(java -jar $JAVAPARAMS $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 echo -e "--convert     --\n "$(convert -version | head -n 1)
 [ -z "$(which convert)" ] && echo "[WARN] imagemagick convert not detected" 
 
-echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_RRBS*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
-unset _JAVA_OPTIONS
-echo "JAVAPARAMS "$JAVAPARAMS
 
-
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -146,7 +147,7 @@ fi
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 echo "[NOTE] full sample ID "$FULLSAMPLEID
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -155,11 +156,11 @@ if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 fi
     
-echo -e "\n********* $CHECKPOINT"    
+echo -e "\n********* $CHECKPOINT\n"    
 ################################################################################
 CHECKPOINT="mapping"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -176,13 +177,13 @@ else
     fi
     
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/$ALN.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUT/${n/%$READONE.$FASTQ/$ALN.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="merge to single file"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -195,13 +196,13 @@ else
         IS_BISULFITE_SEQUENCE=true 
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.ash.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUT/${n/%$READONE.$FASTQ/.ash.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="add readgroup"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
@@ -212,13 +213,13 @@ else
         RGPU=$UNIT RGSM=$FULLSAMPLEID 
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.ashrg.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUT/${n/%$READONE.$FASTQ/.ashrg.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="mark duplicates"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -235,34 +236,34 @@ else
     $SAMTOOLS index $OUT/${n/%$READONE.$FASTQ/.$ASD.bam}
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
 CHECKPOINT="statistics"                                                                                                
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
     STATSOUT=$OUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
     $SAMTOOLS flagstat $OUT/${n/%$READONE.$FASTQ/.$ASD.bam} > STATSOUT
     
-    if [ -n $SEQREG ]; then
+    if [ -n "$SEQREG" ]; then
         echo "#custom region" >> $STATSOUT
-        echo $(samtools view -b $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" total reads in region " >> $STATSOUT
-        echo $(samtools view -b -f 2 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG | wc -l)" properly paired reads in region " >> $STATSOUT
+        echo $(samtools view -c -F 4 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG )" total reads in region " >> $STATSOUT
+        echo $(samtools view -c -f 3 $MYOUT/${n/%$READONE.$FASTQ/.ash.bam} $SEQREG )" properly paired reads in region " >> $STATSOUT
     fi
 
     # mark checkpoint
-    [ -f $STATSOUT ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $STATSOUT ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi
 
 
 ################################################################################
 CHECKPOINT="coverage track"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
 
@@ -270,7 +271,7 @@ else
         $OUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/.genome}
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -280,7 +281,7 @@ CHECKPOINT="verify"
 BAMREADS=`head -n1 $STATSOUT | cut -d " " -f 1`
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi			
 if [ $BAMREADS -eq $FASTQREADS ]; then
-    echo "-----------------> PASS check mapping: $BAMREADS == $FASTQREADS"
+    echo "[NOTE] PASS check mapping: $BAMREADS == $FASTQREADS"
     rm $OUT/${n/%$READONE$FASTQ/$ALN.bam}
     rm $OUT/${n/%$READONE$FASTQ/$UNM.bam}
     rm $OUT/${n/%$READONE$FASTQ/.ash.bam}
@@ -290,7 +291,7 @@ else
       
 fi
 
-echo "********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 echo ">>>>> readmapping with rrbsmap - FINISHED"
 echo ">>>>> enddate "`date`

@@ -72,8 +72,3 @@ FIMOADDPARAM="--qv-thresh --thresh 0.05 --motif 0"
 #NODES_MEMECHIP="nodes=1:ppn=8"
 #MODULE_MEMECHIP=
 #PATH_MEMECHIP=
-
-## location of ngsane
-#NGSANE_BASE=
-
-

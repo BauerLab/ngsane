@@ -1,0 +1,99 @@
+\documentclass{article}
+%\copyrightyear{2008}
+%\pubyear{2008}
+
+\usepackage{url}
+\usepackage[numbers]{natbib}
+\usepackage{graphicx}
+\usepackage{multirow}
+
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{xspace}
+%\usepackage{adjustbox}
+\usepackage{relsize}
+\usepackage{rotating}
+\usepackage{pdflscape}
+\usepackage{url}
+
+\sloppy
+\linespread{1.5}
+
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox{gray}{\parbox{\textwidth}{#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+\lstset{language=sh,captionpos=t,tabsize=3,frame=lines,keywordstyle=\color{blue},commentstyle=\color{darkgreen},stringstyle=\color{red},numbers=left,numberstyle=\tiny,numbersep=5pt,breaklines=true,showstringspaces=false,basicstyle=\footnotesize,emph={label}}
+
+\usepackage[margin=0.75in]{geometry}
+
+\renewcommand\footnotemark{} % removes mark in front of footmark
+\renewcommand{\bibnumfmt}[1]{{#1}. } % change numbering format in reference list
+\newcommand{\natcite}[1]{\nolinebreak\citep{#1}} % nature cite to prevent superscript to appear on the next line
+\newcommand{\BIBand}{\&}
+
+\begin{document}
+%\firstpage{1}
+\pagestyle{empty}
+\section*{Supplementary material}
+
+\begin{landscape}
+\begin{table}[htdp]
+\tiny 
+\caption{Published pipeline tools}
+\begin{center}
+\begin{tabular}{|p{2cm}|p{0.6cm}|p{1cm}|p{2cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|p{4cm}|}
+\hline
+Name & Date & comercial & Domain specific & language & subset files & recovery & pipelining & parallelization & hpc & hadoop & automatic summary & URL \\
+\hline
+NGSANE & 2013 & academic & no & BASH & yes & yes & yes & yes & yes & not yet & yes & \url{https://github.com/allPowerde/ngsane} \\
+Nestly~\cite{McCoy2013} & 2013 & academic & no & python & yes & no & no & no & no & no & yes & \url{http://github.com/fhcrc/nestly} \\
+RUbioSeq~\cite{Rubio-Camarillo2013} & 2013 & academic & bisulfite and exome variants & perl &  &  & yes & yes & SGE & no & no & \url{http://rubioseq.sourceforge.net/.} \\
+Bpipe~\cite{Sadedin2012} & 2012 & academic & no & Groovy &  & yes & yes & yes & yes & no & yes & \url{http://bpipe.org} \\
+GeneProf~\cite{Halbritter2012} & 2012 & academic & no & Webserver &  &  &  &  &  &  &  & \url{http://www.geneprof.org/GeneProf/} \\
+GenomicTools~\cite{Tsirigos2012} & 2012 & academic & no & C++ & yes & no & yes & yes & no & no & no & \url{http://code.google.com/p/ibm-cbc-genomic-tools} \\
+PGAP~\cite{Zhao2012} & 2012 & academic & pan-genomic analysis & Perl &  &  &  &  &  &  &  & \url{http://pgap.sourceforge.net/} \\
+Snakemake~\cite{Koester2012} & 2012 & academic & no & python & yes &  & yes &  & not yet &  &  & \url{https://code.google.com/p/snakemake/} \\
+NARWHAL~\cite{Brouwer2012} & 2012 & academic & de-multiplexing & python, BASH, c &  &  & yes & yes & no & no & yes & \url{https://trac.nbic.nl/narwhal/} \\
+CLoVR~\cite{Angiuoli2011} & 2011 & academic & yes & Webserver &  &  &  & yes & no & yes &  & \url{http://clovr.org/} \\
+Conveyor~\cite{Linke2011} & 2011 & academic & no & .NET &  &  &  & yes & no &  &  & \url{http://conveyor.cebitec.uni-bielefeld.de} \\
+Knime4Bio~\cite{Lindenbaum2011} & 2011 & academic & yes & Webserver &  &  &  &  &  &  &  & \url{http://code.google.com/p/knime4bio/} \\
+PaPy~\cite{Cieslik2011} & 2011 & academic & no & python &  &  & yes & yes &  &  &  & \url{http://muralab.org/PaPy/} \\
+Pyicos~\cite{Althammer2011} & 2011 & academic & no & python &  &  &  &  &  &  &  & \url{http://regulatorygenomics.upf.edu/pyicos} \\
+NGS\_backbone~\cite{Blanca2011} & 2011 & academic & no &  &  &  & yes & yes &  &  &  & \url{http://bioinf.comav.upv.es/ngs\_backbone/} \\
+Galaxy~\cite{Goecks2010} & 2010 & academic & no & Webserver & yes & yes & yes & no & no &  & no &  \\
+Ruffus~\cite{Goodstadt2010} & 2010 & academic & no & python & yes & yes &  &  &  &  &  & \url{http://www.ruffus.org.uk/} \\
+CrossBow~\cite{Langmead2009} & 2009 & academic & SNP calling & C++ &  &  &  &  &  & yes &  & \url{http://bowtie-bio.sourceforge.net/crossbow/index.shtml} \\
+Mobyle~\cite{Neron2009} & 2009 & academic & no & Webserver & yes &  & no &  &  &  &  &  \\
+Ipython~\cite{Perez2007} & 2007 & academic & no & python & yes & yes & yes & yes & yes &  & no & \url{http://ipython.org/} \\
+Taverna~\cite{Oinn2004} & 2004 & academic & no & Webserver & yes & yes & yes & no & no &  &  & \url{http://www.taverna.org.uk/} \\
+Biopipe~\cite{Hoon2003} & 2003 & academic & no & Webserver &  &  &  &  &  &  &  &  \\
+GATK Queue &  & academic & GATK commands & JAVA &  &  &  &  &  &  &  & \url{http://gatkforums.broadinstitute.org/discussion/1306/overview-of-queue} \\
+Gene Pattern &  & academic &  & Webserver &  &  &  &  &  &  &  & \url{http://www.broadinstitute.org/cancer/software/genepattern} \\
+ISGA &  & academic & prokaryotic annotation and prokaryotic assembly & Webserver &  &  &  &  &  &  &  & \url{http://gmod.org/wiki/ISGA} \\
+Kepler &  & academic &  & Webserver & yes &  & no &  & yes &  &  &  \\
+Pegasus &  & academic &  & Webserver & yes &  &  &  & yes &  &  &  \\
+GeneSpring &  & Agilent &  &  &  &  &  &  &  &  &  & \url{http://www.genomics.agilent.com} \\
+Avadis NGS &  & Avadis NGS &  &  &  &  &  &  &  &  &  & \url{http://www.avadis-ngs.com/} \\
+Genomics Workbench &  & CLC Bio &  &  &  &  &  &  &  &  &  & \url{http://www.clcbio.com/} \\
+DNASTAR &  & DNASTAR &  &  &  &  &  &  &  &  &  & \url{http://www.dnastar.com} \\
+CASAVA &  & illumina &  &  &  &  &  &  &  &  &  & \url{http://www.illumina.com/software/genome\_analyzer\_software.ilmn} \\
+NextGENe &  & NextGENe &  &  &  &  &  &  &  &  &  & \url{http://www.softgenetics.com/NextGENe.html} \\
+Partek &  & Partek &  &  &  &  &  &  &  &  &  & \url{http://www.partek.com/?q=ngs} \\
+geospiza &  & PerkinElmer &  &  &  &  &  &  &  &  &  & \url{http://www.geospiza.com/ & } \\
+\hline
+\end{tabular}
+\end{center}
+\label{Published pipeline tools}
+\end{table}%
+\end{landscape}
+
+\bibliographystyle{natbib}
+\bibliography{ngsane}
+
+\end{document}
+
+
+
+

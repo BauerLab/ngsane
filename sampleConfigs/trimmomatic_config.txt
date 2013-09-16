@@ -38,6 +38,7 @@ READTWO="_R2"
 
 # trimming steps to be perfomed, e.g. ILLUMINACLIP, SLIDINGWINDOW, LEADING,
 # TRAILING, CROP, HEADCROP, MINLEN, TOPHRED33, TOPHRED64
+# e.g. ILLUMINACLIP:/share/ClusterShare/software/contrib/gi/trimmomatic/0.30/adapters/TruSeq3-PE.fa:2:30:10
 # see http://www.usadellab.org/cms/index.php?page=trimmomatic for help
 TRIMMOMATICSTEPS=
 
@@ -45,16 +46,9 @@ TRIMMOMATICSTEPS=
 # PARAMETER (optional overwriting defaults)
 #********************
 
-# additional trimmomatic parameters e.g. --phred33 or --phred64
-TRIMMOMATICADDPARAM=
-
 #WALLTIME_TRIMMOMATIC=8:00:00
 #MEMORY_TRIMMOMATIC=40
 #CPU_TRIMMOMATIC=1
 #NODES_TRIMMOMATIC="nodes=1:ppn=1"
 #MODULE_TRIMMOMATIC=
 #PATH_TRIMMOMATIC=
-
-## location of ngsane
-#NGSANE_BASE=
-

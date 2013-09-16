@@ -75,19 +75,22 @@ echo "PATH=$PATH"
 # best common denominator)
 PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 
-echo -e "--JAVA        --\n" $(java -version 2>&1)
-[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
-echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
-[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
-echo -e "--bedtools --\n "$(bedtools --version)
-[ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
-
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_GATK*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
+[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
+echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
+echo -e "--bedtools    --\n "$(bedtools --version)
+[ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
+echo -e "--GATK        --\n "$(java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar --version)
+[ ! -f $PATH_GATK/GenomeAnalysisTK.jar ] && echo "[ERROR] no GATK detected" && exit 1
+
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -107,11 +110,11 @@ fi
 #java -jar /datastore/cmis/bau04c/SeqAna/apps/prod/Picard_svn/dist/CreateSequenceDictionary.jar R=/datastore/cmis/bau04c//SeqAna/reference/prod/GRCm38/GRCm38_chr.fasta O=/datastore/cmis/bau04c//SeqAna/reference/prod/GRCm38/GRCm38_chr.dict
 # BEDtools has it's own genome index file
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="calculate depthOfCoverage"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
@@ -135,13 +138,14 @@ else
     #    --minBaseQuality 20 \
     
     # mark checkpoint
-    [ -f $OUT/$n.doc ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $OUT/$n.doc ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi 
 
 ################################################################################
 CHECKPOINT="on target"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
@@ -164,8 +168,8 @@ else
     	-abam $f -b stdin -u | $SAMTOOLS flagstat - >> $OUT/$n.stats
 
         # mark checkpoint
-        [ -f $OUT/$n.stats ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
-    
+        if [ -f $OUT/$n.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
     fi
 fi
 
