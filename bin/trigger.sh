@@ -129,7 +129,7 @@ if [ -n "$ADDITIONALTASK" ]; then
 
     elif [ "$ADDITIONALTASK" = "direct" ]; then
         echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
-        ARMED="--direct"
+        ARMED="--direct --force"
 
     elif [ "$ADDITIONALTASK" = "first" ]; then
         echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
@@ -149,6 +149,7 @@ if [ -n "$ADDITIONALTASK" ]; then
     fi
 else
     echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4[empty]\e[24m (dry run)"
+	ARMED="--dryrun"
 fi
 
 ################################################################################
@@ -275,7 +276,7 @@ fi
 # OUT: */bwa/*.ann
 ################################################################################ 
 if [ -n "$RUNANNOTATINGBAM" ]; then
-    if [ -z "$TASKBWA" ] || [ -z "$NODES_BAMANN" ] || [ -z "$CPU_BAMANN" ] || [ -z "$MEMORY_BAMANN" ] || [ -z "$WALLTIME_BAMANN" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    if [ -z "$TASKBAMANN" ] || [ -z "$NODES_BAMANN" ] || [ -z "$CPU_BAMANN" ] || [ -z "$MEMORY_BAMANN" ] || [ -z "$WALLTIME_BAMANN" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
     $QSUB --nodir -r $ARMED -k $CONFIG -t $TASKBAMANN -i $INPUT_BAMANN -e .bam \
     -n $NODES_BAMANN -c $CPU_BAMANN -m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN \
@@ -499,7 +500,7 @@ if [ -n "$RUNBIGWIG" ]; then
     if [ -z "$TASKBIGWIG" ] || [ -z "$NODES_BIGWIG" ] || [ -z "$CPU_BIGWIG" ] || [ -z "$MEMORY_BIGWIG" ] || [ -z "$WALLTIME_BIGWIG" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
     $QSUB $ARMED --nodir -r -k $CONFIG -t $TASKBIGWIG -i $INPUT_BIGWIG -e .$ASD.bam -n $NODES_BIGWIG -c $CPU_BIGWIG -m $MEMORY_BIGWIG"G" -w $WALLTIME_BIGWIG \
-        --command "${NGSANE_BASE}/mods/bigwig.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE"
+        --command "${NGSANE_BASE}/mods/bigwig.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$INPUT_BIGWIG"
             
 fi
 
@@ -513,7 +514,7 @@ fi
 if [ -n "$RUNHOMERHIC" ]; then
     if [ -z "$TASKHOMERHIC" ] || [ -z "$NODES_HOMERHIC" ] || [ -z "$CPU_HOMERHIC" ] || [ -z "$MEMORY_HOMERHIC" ] || [ -z "$WALLTIME_HOMERHIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERHIC -i $INPUT_HOMERHIC -e $READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
+    $QSUB $ARMED -r -k $CONFIG -t $TASKHOMERHIC -i $INPUT_HOMERHIC -e .$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
 	   --command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHOMERHIC"
 fi
 

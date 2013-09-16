@@ -21,7 +21,7 @@ while [ "$1" != "" ]; do
 	--postcpu )             shift; POSTCPU=$1 ;;   # CPU used for postcommand
 	--postmemory )          shift; POSTMEMORY=$1;; # Memory used for postcommand
 	--postwalltime )        shift; POSTWALLTIME=$1;;
-	-r | --reverse )        REV="1";;
+	-r | --reverse )        REV="1";;              # input is fastq
 	-d | --nodir )          NODIR="nodir";;
 	-a | --armed )          ARMED="armed";;
     -W | --wait )           shift; JOBIDS=$1 ;;    # jobids to wait for
@@ -32,6 +32,7 @@ while [ "$1" != "" ]; do
 	--direct )              DIRECT="direct";;
 	--first )               FIRST="first";;
 	--postonly )            POSTONLY="postonly" ;;
+	--dryrun )              DRYRUN="TRUE" ;;
 	-h | --help )           usage ;;
 	* )                     echo "prepareJobSubmission.sh: don't understand "$1
     esac
@@ -107,7 +108,7 @@ else
     echo -e "[NOTE] proceeding with job scheduling..."
 fi
 
-if [ "$FORCE" != "TRUE" ]; then
+if [[ "$FORCE" != "TRUE" && "$DRYRUN" != "TRUE" ]]; then
     echo -n -e "Double check! Then type \e[4msafetyoff\e[24m and hit enter to launch the job: "
     read safetyoff
     if [ "$safetyoff" != "safetyoff" ];then
@@ -146,9 +147,11 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/")
 	D=$(eval $DUMMY)
 	if [ -z "$NODIR" ]; then
-    	touch $dir/$TASK/$D.dummy
-    elif [ -n "$REV" ]; then
-        touch $TASK/$dir/$D.dummy
+    	if [ -n "$REV" ]; then
+        	touch $TASK/$dir/$D.dummy
+		else
+	    	touch $dir/$TASK/$D.dummy # normal case
+		fi
     fi
 
     echo -e "\e[97m[JOB]\e[0m  $COMMAND2"
