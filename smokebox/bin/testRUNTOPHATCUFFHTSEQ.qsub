@@ -1,0 +1,90 @@
+#!/bin/sh
+
+# the ngsane version to be tested needs to be loaded by hand
+. $NGSANE_BASE/conf/header.sh
+
+#clean up earlier runs
+for dir in ${DIR[@]}; do
+    echo "[NOTE] remove old $dir/tophat $dir/cufflinks $dir/htseqcount"
+    if [ -e $dir/$TASKTOPHAT ]; then 
+       rm -rf $dir/$TASKTOPHAT; rm -rf $QOUT/$TASKTOPHAT/$dir*;
+       rm -rf $dir/$TASKCUFFLINKS; rm -rf $QOUT/$TASKCUFFLINKS/$dir*;
+       rm -rf $dir/$TASKHTSEQCOUNT; rm -rf $QOUT/$TASKHTSEQCOUNT/$dir*;
+    fi
+done 
+
+################################################################################
+#  TOPHAT
+################################################################################
+
+
+# modify the template config file to flip the RUNTOPHAT switch
+# specify the resulting html file
+echo "[NOTE] Prep config file tmp/configTOPHAT.txt"
+cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNTOPHAT=\"\"/RUNTOPHAT=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHAT\"/g' > tmp/configTOPHAT.txt
+
+# submit the TOPHAT run to the cluster
+JOBIDS=$( trigger.sh tmp/configTOPHAT.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDS)"
+
+################################################################################
+#  CUFFLINKS
+################################################################################
+
+
+# modify the template config file to flip the RUNCUFFLINKS switch
+# specify the resulting html file
+echo "[NOTE] Prep config file tmp/configCUFFLINKS.txt"
+cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNCUFFLINKS=\"\"/RUNCUFFLINKS=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryCUFFLINKS\"/g' > tmp/configCUFFLINKS.txt
+echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configCUFFLINKS.txt
+
+# submit the CUFFLINKS run to the cluster
+JOBIDSCUFF=$( trigger.sh tmp/configCUFFLINKS.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSCUFF)"
+
+
+################################################################################
+#  HTSEQCOUNT
+################################################################################
+
+
+# modify the template config file to flip the RUNHTSEQCOUNT switch
+# specify the resulting html file
+echo "[NOTE] Prep config file tmp/configHTSEQCOUNT.txt"
+cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNHTSEQCOUNT=\"\"/RUNHTSEQCOUNT=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHTSEQCOUNT\"/g' > tmp/configHTSEQCOUNT.txt
+echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configHTSEQCOUNT.txt
+
+# submit the HTSEQCOUNT run to the cluster
+JOBIDSHTSEQ=$( trigger.sh tmp/configHTSEQCOUNT.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSHTSEQ)"
+
+################################################################################
+# TEST
+################################################################################
+JOBIDS="$JOBIDSCUFF:$JOBIDSHTSEQ" #other things
+
+HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
+cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNTOPHAT=\"\"/RUNTOPHAT=\"1\"/g' | \
+    sed 's/RUNCUFFLINKS=\"\"/RUNCUFFLINKS=\"1\"/g' |\
+    sed 's/RUNHTSEQCOUNT=\"\"/RUNHTSEQCOUNT=\"1\"/g' |\
+	sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHATCUFFHTSEQ\"/g' > tmp/configTOPHATCUFFHTSEQ.txt
+
+# prepare the job to generate the html result page and perform the diff 
+echo "[NOTE] prepare evaluation script tmp/testTOPHATCUFFHTSEQ.qsub wait for $HOLDID"
+sed 's/NAME/TOPHATCUFFHTSEQ/g' bin/tmpl/HPCheader.txt >tmp/testTOPHATCUFFHTSEQ.qsub
+echo "trigger.sh tmp/configTOPHATCUFFHTSEQ.txt html" >> tmp/testTOPHATCUFFHTSEQ.qsub
+echo "diff result/SummaryTOPHATCUFFHTSEQ.html result/expected/SummaryTOPHATCUFFHTSEQ.html | \
+	   python bin/diffparser.py  > result/diffTOPHATCUFFHTSEQ.txt" >> tmp/testTOPHATCUFFHTSEQ.qsub
+#      grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
+#      grep -v \"[NOTE]\" | \
+#      grep -v \"[0-9]c[0-9]\" > result/diffTOPHATCUFFHTSEQ.txt" >> tmp/testTOPHATCUFFHTSEQ.qsub
+
+chmod 777 tmp/testTOPHATCUFFHTSEQ.qsub
+
+#submit evaluation script
+echo "[NOTE] submit evaluation script"
+unset module
+qsub $HOLDID tmp/testTOPHATCUFFHTSEQ.qsub

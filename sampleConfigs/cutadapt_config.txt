@@ -54,7 +54,3 @@ CUTADAPTADDPARAM=
 #NODES_CUTADAPT="nodes=1:ppn=1"
 #MODULE_CUTADAPT=
 #PATH_CUTADAPT=
-
-## location of ngsane
-#NGSANE_BASE=
-

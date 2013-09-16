@@ -1,0 +1,83 @@
+
+# author: Denis C. Bauer
+# date: September 2013
+
+######################################
+# Resources
+#####################################
+
+WALLTIME_BOWTIE=00:30:00
+MEMORY_BOWTIE=8
+CPU_BOWTIE=8
+NODES_BOWTIE="nodes=1:ppn=8"
+
+WALLTIME_PEAKRANGER=00:30:00
+MEMORY_PEAKRANGER=4
+CPU_PEAKRANGER=4
+NODES_PEAKRANGER="nodes=1:ppn=4"
+
+WALLTIME_MACS2=00:30:00
+MEMORY_MACS2=4
+CPU_MACS2=1
+NODES_MACS2="nodes=1:ppn=1"
+
+WALLTIME_MEMECHIP=00:30:00
+MEMORY_MEMECHIP=4
+CPU_MEMECHIP=2
+NODES_MEMECHIP="nodes=1:ppn=2"
+
+#********************
+# Tasks
+#********************
+RUNMAPPINGBOWTIE=""   # mapping with bowtie1
+RUNMAPPINGBOWTIE2=""  # mapping with bowtie2
+RUNPEAKRANGER=""      # peak calling Peakranger
+RUNMACS2=""           # peak calling Macs2
+RUNMEMECHIP=""        # motif discovery with MEME
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+declare -a DIR; DIR=( ChIPseq_TF ChIPseq_Histone  ChIPseq_input  ) 
+OUT=$SOURCE
+QOUT=$OUT/qout
+
+READONE="_R1"
+READTWO="_R2"
+FASTQ=fq.gz
+
+FASTA=$(pwd)/referenceData/chr16.fasta
+
+#********************
+# PARAMETER
+#********************
+
+TASKBOWTIE=$TASKBOWTIE2
+
+PEAKRANGER_PEAKS="broad"
+
+CHIPINPUT="ChIPseq_input/$TASKBOWTIE/Input_chr16.asd.bam"
+
+MACS2_GENOMESIZE=2.7e9
+MACS2_CALLPEAK_ADDPARAM="--nomodel"
+MACS2_BDGCMP_METHOD=ppois
+CS2_BDGCMP_ADDPARAM=
+MACS2_REFINEPEAK_ADDPARAM=
+
+#TASKPEAKRANGER=$TASKMACS2
+
+BED="_refinepeak.bed"
+SLOPBEDADDPARAM="-b 50"
+MEMECHIPADDPARAM="-nmeme 1000 -meme-nmotifs 1 -dreme-m 3 -centrimo-local -centrimo-noseq -meme-mod zoops"
+FIMOADDPARAM="--qv-thresh --thresh 0.05 --motif 0"
+
+HTMLOUT="Summary"
+
+
+EXPID="OmicsRNA"
+LIBRARY="AGRF"
+PLATFORM="Illumina"
+
+

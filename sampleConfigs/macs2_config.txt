@@ -26,8 +26,8 @@ OUT=$SOURCE
 QOUT=$OUT/qout
 
 # chromosome sizes
-# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
-CHROMSIZES=
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa
+FASTA=
 
 #********************
 # PARAMETER (mandatory)
@@ -47,9 +47,6 @@ CHIPINPUT=
 # if bwa was used to map file then set TASKBOWTIE to TASKBWA
 #TASKBOWTIE=$TASKBWA
 
-# set to 1 if bigbeds should be generated
-MACS2_MAKEBIGBED=
-
 # additional MACS parameters, for callpeak
 # e.g. "--broad"
 MACS2_CALLPEAK_ADDPARAM=
@@ -57,9 +54,8 @@ MACS2_CALLPEAK_ADDPARAM=
 # method to use in bedgraph compare
 MACS2_BDGCMP_METHOD=ppois
 
-#Additional MACS parameters, for bdgcmp (only relevant when input is specified
+#Additional MACS parameters, for bdgcmp (only relevant when input is specified)
 CS2_BDGCMP_ADDPARAM=
-
 
 # additional MACS parameters, for refinepeak
 MACS2_REFINEPEAK_ADDPARAM=
@@ -70,8 +66,3 @@ MACS2_REFINEPEAK_ADDPARAM=
 #NODES_MACS2="nodes=1:ppn=1"
 #MODULE_MACS2=
 #PATH_MACS2=
-
-## location of ngsane
-#NGSANE_BASE=
-
-

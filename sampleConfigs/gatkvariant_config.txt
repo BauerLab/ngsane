@@ -84,7 +84,3 @@ PLATFORM="Illumina"
 #
 #MODULE_GATK="gi/R/3.0.0 gi/gatk/2.5 gi/samtools/0.1.19 gi/igvtools/2.3.3"
 #MODULE_GATKSNP="gi/R/3.0.0 gi/gatk/2.5 gi/igvtools/2.3.3"
-
-## location of ngsane
-#NGSANE_BASE=
-
