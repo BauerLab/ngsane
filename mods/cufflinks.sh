@@ -9,7 +9,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,truncated file
-# RESULTFILENAME <SAMPLE>_transcripts.gtf
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>_transcripts.gtf
 
 echo ">>>>> transcript assembly with cufflinks "
 echo ">>>>> startdate "`date`

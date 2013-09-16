@@ -7,7 +7,7 @@
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <SAMPLE>-${CHIPINPUT##*/} | sed "s/.$ASD.bam/_region.bed/"
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>-${CHIPINPUT##*/} | sed "s/.$ASD.bam/_region.bed/"
 
 echo ">>>>> ChIPseq analysis with Peakranger"
 echo ">>>>> startdate "`date`

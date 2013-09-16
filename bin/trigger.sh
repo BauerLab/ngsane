@@ -220,7 +220,7 @@ if [ -n "$RUNBLUE" ]; then
     
     $QSUB $ARMED -d -k $CONFIG -t $TASKBLUE -i $INPUT_BLUE -e $READONE.$FASTQ -n $NODES_BLUE \
 	   -c $CPU_BLUE -m $MEMORY_BLUE"G" -w $WALLTIME_BLUE \
-	   --command "${NGSANE_BASE}/mods/blue.sh -k $CONFIG -f <FILE>" 
+	   --command "${NGSANE_BASE}/mods/blue.sh -k $CONFIG -f <FILE> -o $INPUT_BLUE/<DIR>_$TASKBLUE/" 
 
 fi
 
@@ -305,7 +305,7 @@ fi
 
 if [ -n "$RUNVARCALLS" ]; then
     NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
-    $QSUB $ARMED -d -r -k $CONFIG -t $TASKVAR -i $INPUT_VAR/  -e .$ASR.bam -n $NODES_VAR \
+    $QSUB $ARMED -r -d -k $CONFIG -t $TASKVAR -i $INPUT_VAR  -e .$ASR.bam -n $NODES_VAR \
         -c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
         --postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
                         -i <FILE> -t $CPU_VAR \
@@ -1279,5 +1279,4 @@ if [ -n "$RUNTRINITY" ]; then
     fi
   fi
 fi
-
 

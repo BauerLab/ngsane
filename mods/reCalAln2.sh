@@ -6,7 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,We are loosing reads,for unmapped read,no such file,file not found,reCalAln.sh: line
-# RESULTFILENAME <SAMPLE>.$ASR.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASR.bam
 
 echo ">>>>> recalibration and realignment using GATK"
 echo ">>>>> startdate "`date`
