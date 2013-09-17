@@ -16,8 +16,11 @@ RUNTRIMGALORE="1"    # adapter trimming with trimgalore
 
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq directory)
+# which folder to run on (i.e. folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_TRIMGALORE="fastq"
 
 # where to write the output
 OUT=$SOURCE
@@ -51,7 +54,3 @@ TRIMGALOREADDPARAM=
 #NODES_TRIMGALORE="nodes=1:ppn=1"
 #MODULE_TRIMGALORE=
 #PATH_TRIMGALORE=
-
-## location of ngsane
-#NGSANE_BASE=
-

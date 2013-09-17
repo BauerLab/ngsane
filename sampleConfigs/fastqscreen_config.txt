@@ -16,8 +16,11 @@ RUNFASTQSCREEN="1"    #
 
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq directory)
+# which folder to run on (i.e. folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_FASTQSCREEN="fastq"
 
 # where to write the output
 OUT=$SOURCE
@@ -66,8 +69,3 @@ FASTQSCREENADDPARAM=
 #NODES_FASTQSCREEN="nodes=1:ppn=8"
 #MODULE_FASTQSCREEN=
 #PATH_FASTQSCREEN=
-
-## location of ngsane
-#NGSANE_BASE=
-
-

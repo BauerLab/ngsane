@@ -9,7 +9,7 @@
 # Tasks
 #********************
 
-RUNMAPPINGBWA2="1"     # mapping with bwa
+RUNMAPPINGBWA="1"     # mapping with bwa
 
 #********************
 # Paths
@@ -17,8 +17,11 @@ RUNMAPPINGBWA2="1"     # mapping with bwa
 
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq directory)
+# which folder to run on (i.e. folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_BWA="fastq"
 
 # where to write the output
 OUT=$SOURCE
@@ -51,8 +54,8 @@ PLATFORM="Illumina"
 #********************
 
 ## additional bwa parameters
-#BWAALNADDPARAM=
-#BWASAMPLEADDPARAM=
+BWAALNADDPARAM=
+BWASAMPLEADDPARAM=
 
 #WALLTIME_BWA=50:00:00
 #MEMORY_BWA=50
@@ -60,8 +63,3 @@ PLATFORM="Illumina"
 #NODES_BWA="nodes=4:ppn=8"
 #MODULE_BWA=
 #PATH_BWA=
-
-## location of ngsane
-#NGSANE_BASE=
-
-

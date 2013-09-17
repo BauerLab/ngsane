@@ -14,6 +14,8 @@ TMP=$(pwd)/tmp                                       # TMP dir
 ##############################################################
 ## uncomment if running on SGE
 #. /etc/profile.d/modules.sh
+## uncomment within CSIRO
+#module use /apps/gi/modulefiles
 
 ##############################################################
 # Task Names
@@ -23,21 +25,17 @@ TASKBWA="bwa"
 TASKBOWTIE="bowtie"
 TASKBOWTIE2="bowtie2"
 TASKRCA="reCalAln"
-TASKMERGE="merged"
 TASKVAR="variant"
-TASKDINC="dindelC"
-TASKDINS="dindelS"
-TASKDIN="dindel"
 TASKSNP="snp"
 TASKIND="indel"
 TASKDOWN="downsample"
 TASKDOC="coverage"
 TASKDIFFEXP="diffexp"
 TASKTOPHAT="tophat"
-TASKCUFF="cufflinks"
+TASKHTSEQCOUNT="htseqcount"
+TASKCUFFLINKS="cufflinks"
 TASKCUFFDIFF="cuffdiff"
 TASKRRBSMAP="rrbs"
-TASKMACS="macs"
 TASKANNOVAR="annovar"
 TASKBAMANN="bamann"
 TASKSAMVAR="samvar"
@@ -45,7 +43,6 @@ TASKCUTADAPT="cutadapt"
 TASKTRIMGALORE="trimgalore"
 TASKHICUP="hicup"
 TASKHICLIB="hiclib"
-TASKFASTQ2SANGER="sanger"
 TASKWIGGLER="wiggler"
 TASKTRIMMOMATIC="trimmomatic"
 TASKHOMERHIC="homerhic"
@@ -58,6 +55,10 @@ TASKTRINITY="trinity"
  TASKCHRYSALIS="chrysalis"
  TASKBUTTERFLY="butterfly"
 TASKFASTQSCREEN="fastqscreen"
+TASKBIGWIG="bigwig"
+TASKBLUE="blue"
+TASKCHANCE="chance"
+TASKPOOLBAMS="pooledbam"
 
 ##############################################################
 # PROGRAM PATHS
@@ -93,14 +94,14 @@ for MODULE in $MODULES_DEFAULT; do module load $MODULES_DEFAULT; done
 ##############################################################
 # Summary specifics
 # html2pdf conversion via PRINCE
-MODULE_SUMMARY=
+MODULE_SUMMARY="${NG_R} ${NG_PYTHON} ${NG_PRINCE}"
 PATH_SUMMARY=
 HTMLOUT="Summary"
 
 ##############################################################
 # gzip alternatives, e.g.
 # pigz (2.3) - http://zlib.net/pigz/
-MODULE_GZIP=
+MODULE_GZIP=${NG_GZIP}"
 GZIP="gzip -9"			# command, e.g. gzip or pigz
 [ -n "$MODULE_GZIP" ] && module load $MODULE_GZIP
 
@@ -111,23 +112,9 @@ WALLTIME_FASTQC=10:00:00
 MEMORY_FASTQC=20
 CPU_FASTQC=16
 NODES_FASTQC="nodes=2:ppn=8"
-
-MODULE_FASTQC=
+INPUT_FASTQC="fastq"
+MODULE_FASTQC="${NG_JAVA} ${NG_FASTQC}"
 PATH_FASTQC=
-MODULE_LATEX=
-PATH_LATEX=
-
-##############################################################
-# FASTQ2SANGER (requires perl)
-# 
-WALLTIME_FASTQ2SANGER=10:00:00
-MEMORY_FASTQ2SANGER=20
-CPU_FASTQ2SANGER=1
-NODES_FASTQ2SANGER="nodes=1:ppn=1"
-
-MODULE_FASTQ2SANGER=
-PATH_FASTQ2SANGER=
-FASTQ2SANGER_SOURCEFORMAT=
 
 ##############################################################
 # SAMTOOLS (0.1.19) SNP calling
@@ -136,8 +123,9 @@ WALLTIME_SAMVAR=40:00:00
 MEMORY_SAMVAR=40
 CPU_SAMVAR=1
 NODES_SAMVAR="nodes=1:ppn=1"
-
-MODULE_SAMVAR="jdk samtools/0.1.18 igvtools/2.3.5 gatk/2.5"
+INPUT_SAMVAR=$TASKBWA
+MODULE_SAMVAR="${NG_SAMTOOLS} ${NG_JAVA} ${NG_IGVTOOLS} ${NG_GATK}"
+PATH_SAMVAR=
 
 ##############################################################
 # BWA (0.7.4) 
@@ -146,9 +134,9 @@ WALLTIME_BWA=50:00:00
 MEMORY_BWA=50
 CPU_BWA=32
 NODES_BWA="nodes=4:ppn=8"
-
-MODULE_BWA=
-PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+INPUT_BWA="fastq"
+MODULE_BWA="${NG_BWA} ${NG_JAVA} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_R} ${NG_IMAGEMAGIC} ${NG_PICARD} ${NG_SAMSTAT} ${NG_UCSCTOOLS} ${NG_BEDTOOS}"
+PATH_BWA=
 
 ##############################################################
 # Bowtie (1.0.0)
@@ -157,24 +145,20 @@ WALLTIME_BOWTIE=72:00:00
 MEMORY_BOWTIE=60
 CPU_BOWTIE=8
 NODES_BOWTIE="nodes=1:ppn=8"
-
-MODULE_BOWTIE=
+INPUT_BOWTIE="fastq"
+MODULE_BOWTIE="${NG_BOWTIE} ${NG_JAVA} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_R} ${NG_IMAGEMAGIC} ${NG_PICARD} ${NG_SAMSTAT} ${NG_UCSCTOOLS} ${NG_BEDTOOS}"
 PATH_BOWTIE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
-BOWTIE_INDEX=
-
 
 ##############################################################
 # Bowtie2 (2.1.0) 
 # http://bowtie-bio.sourceforge.net/index.shtml
-
 WALLTIME_BOWTIE2=72:00:00
 MEMORY_BOWTIE2=60
 CPU_BOWTIE2=8
 NODES_BOWTIE2="nodes=1:ppn=8"
-
-MODULE_BOWTIE2=
+INPUT_BOWTIE2="fastq"
+MODULE_BOWTIE2="${NG_BOWTIE2} ${NG_JAVA} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_R} ${NG_IMAGEMAGIC} ${NG_PICARD} ${NG_SAMSTAT} ${NG_UCSCTOOLS} ${NG_BEDTOOS}"
 PATH_BOWTIE2=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
-BOWTIE2_INDEX=
 
 ##############################################################
 # Wiggler
@@ -183,12 +167,11 @@ WALLTIME_WIGGLER=10:00:00
 MEMORY_WIGGLER=60
 CPU_WIGGLER=1
 NODES_WIGGLER="nodes=1:ppn=1"
-
-MODULE_WIGGLER=
+INPUT_WIGGLER=$TASKBWA
+MODULE_WIGGLER="${NG_WIGGLER}"
 PATH_WIGGLER=
 
 WIGGLER_UMAPDIR=
-WIGGLERADDPARAMS=""
 
 ##############################################################
 # HOMER HIC 
@@ -197,8 +180,8 @@ WALLTIME_HOMERHIC=60:00:00
 MEMORY_HOMERHIC=60
 CPU_HOMERHIC=8
 NODES_HOMERHIC="nodes=1:ppn=8"
-
-MODULE_HOMERHIC=
+INPUT_HOMERHIC=$TASKBWA
+MODULE_HOMERHIC="${NG_HOMER}"
 PATH_HOMERHIC=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
@@ -208,8 +191,8 @@ WALLTIME_HOMERCHIPSEQ=12:00:00
 MEMORY_HOMERCHIPSEQ=20
 CPU_HOMERCHIPSEQ=1
 NODES_HOMERCHIPSEQ="nodes=1:ppn=1"
-
-MODULE_HOMERCHIPSEQ=
+INPUT_HOMERCHIPSEQ=$TASKBOWTIE
+MODULE_HOMERCHIPSEQ="${NG_HOMER} ${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_PERL}"
 PATH_HOMERCHIPSEQ=
 
 ##############################################################
@@ -219,8 +202,8 @@ WALLTIME_PEAKRANGER=12:00:00
 MEMORY_PEAKRANGER=20
 CPU_PEAKRANGER=1
 NODES_PEAKRANGER="nodes=1:ppn=1"
-
-MODULE_PEAKRANGER=
+INPUT_PEAKRANGER=$TASKBOWTIE
+MODULE_PEAKRANGER="${NG_PEAKRANGER} ${NG_BOOST} ${NG_R}"
 PATH_PEAKRANGER=
 
 ##############################################################
@@ -230,8 +213,8 @@ WALLTIME_MACS2=12:00:00
 MEMORY_MACS2=20
 CPU_MACS2=1
 NODES_MACS2="nodes=1:ppn=1"
-
-MODULE_MACS2=
+INPUT_MACS2=$TASKBOWTIE
+MODULE_MACS2="${NG_PYTHON} ${NG_R} ${NG_UCSCTOOLS}"
 PATH_MACS2=
 
 ##############################################################
@@ -241,8 +224,8 @@ WALLTIME_MEMECHIP=48:00:00
 MEMORY_MEMECHIP=40
 CPU_MEMECHIP=8
 NODES_MEMECHIP="nodes=1:ppn=8"
-
-MODULE_MEMECHIP=
+INPUT_MEMECHIP=$TASKMACS2
+MODULE_MEMECHIP="${NG_MEME} ${NG_BEDTOOLS} ${NG_PERL}"
 PATH_MEMECHIP=
 
 MEMECHIPDATABASES=
@@ -254,10 +237,9 @@ WALLTIME_CUTADAPT=4:00:00
 MEMORY_CUTADAPT=40
 CPU_CUTADAPT=1
 NODES_CUTADAPT="nodes=1:ppn=1"
-
-MODULE_CUTADAPT=
+INPUT_CUTADAPT="fastq"
+MODULE_CUTADAPT="${NG_CUTADAPT}"
 PATH_CUTADAPT=
-CUTADAPT_OPTIONS=
 
 ##############################################################
 # Trim adapter with TRIMGALORE
@@ -266,12 +248,9 @@ WALLTIME_TRIMGALORE=4:00:00
 MEMORY_TRIMGALORE=40
 CPU_TRIMGALORE=1
 NODES_TRIMGALORE="nodes=1:ppn=1"
-
-MODULE_TRIMGALORE=
+INPUT_TRIMGALORE="fastq"
+MODULE_TRIMGALORE="${NG_TRIMGALORE} ${NG_CUTADAPT}"
 PATH_TRIMGALORE=
-TRIMGALORE_ADAPTER1=
-TRIMGALORE_ADAPTER2=
-TRIMGALORE_OPTIONS=
 
 ##############################################################
 # Trimming with TRIMMOMATIC
@@ -280,11 +259,9 @@ WALLTIME_TRIMMOMATIC=8:00:00
 MEMORY_TRIMMOMATIC=40
 CPU_TRIMMOMATIC=1
 NODES_TRIMMOMATIC="nodes=1:ppn=1"
-
-MODULE_TRIMMOMATIC=
+INPUT_TRIMMOMATIC="fastq"
+MODULE_TRIMMOMATIC="${NG_JAVA} ${NG_TROMMOMATIC}"
 PATH_TRIMMOMATIC=
-TRIMMOMATICADDPARAMS=
-TRIMMOMATICSTEPS=
 
 ##############################################################
 # Snp calling with GATK
@@ -294,28 +271,49 @@ WALLTIME_GATKDOC=50:00:00
 MEMORY_GATKDOC=50
 CPU_GATKDOC=1
 NODES_GATKDOC="nodes=1:ppn=1"
+INPUT_GATKDOC=$TASKRCA
 # GATK VARCALL
 WALLTIME_VAR=100:00:00
 MEMORY_VAR=20
 CPU_VAR=1
 NODES_VAR="nodes=1:ppn=1"
+INPUT_VAR=$TASKRCA
 
-PATH_GATKHOME=
-PATH_GATKJAR=
-MODULE_GATKSNP=
-PATH_GATKSNP=$PATH_GATKHOME:$PATH_GATKJAR:$PATH_IGVTOOLS
+MODULE_GATK="${NG_GATK} ${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_IGVTOOLS}"
+MODULE_GATKSNP="${NG_GATK} ${NG_JAVA} ${NG_R} ${NG_IGVTOOLS}"
 
 ##############################################################
-# Tophat (2.0.8b) and cufflinks (2.1.1)
+# Tophat (2.0.9) 
 # http://tophat.cbcb.umd.edu/
-# http://cufflinks.cbcb.umd.edu/
-WALLTIME_TOPHAT=60:00:00
+WALLTIME_TOPHAT=62:00:00
 MEMORY_TOPHAT=50
-CPU_TOPHAT=8
-NODES_TOPHAT="nodes=1:ppn=8"
+CPU_TOPHAT=16
+NODES_TOPHAT="nodes=2:ppn=8"
+INPUT_TOPHAT="fastq"
+MODULE_TOPHAT="${NG_TOPHAT} ${NG_BOOST} ${NG_JAVA} ${NG_PYTHON} ${NG_R} ${NG_BOWTIE2} ${NG_SAMTOOLS} ${NG_IMAGEMAGIC} ${NG_IGVTOOLS} ${NG_PICARD} ${NG_SAMSTAT} ${NG_BEDTOOLS} ${NG_RNASEQC}"
+PATH_TOPHAT=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT:$PATH_RNASEQC
 
-MODULE_TOPHATCUFF=
-PATH_TOPHATCUFF=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT:$PATH_RNASEQC
+##############################################################
+# Cufflinks (2.1.1)
+# http://cufflinks.cbcb.umd.edu/
+WALLTIME_CUFFLINKS=192:00:00
+MEMORY_CUFFLINKS=50
+CPU_CUFFLINKS=4
+NODES_CUFFLINKS="nodes=1:ppn=4"
+INPUT_CUFFLINKS=$TASKTOPHAT
+MODULE_CUFFLINKS="${NG_CUFFLINKS}"
+PATH_CUFFLINKS=
+
+##############################################################
+# HTSEQ-count (0.5.4.p3)
+# http://www-huber.embl.de/users/anders/HTSeq/doc/index.html
+WALLTIME_HTSEQCOUNT=24:00:00
+MEMORY_HTSEQCOUNT=50
+CPU_HTSEQCOUNT=1
+NODES_HTSEQCOUNT="nodes=1:ppn=1"
+INPUT_HTSEQCOUNT=$TASKTOPHAT
+MODULE_HTSEQCOUNT="${NG_PYTHON} ${NG_R} ${NG_BEDTOOLS} ${NG_SAMTOOLS}"
+PATH_HTSEQCOUNT=
 
 ##############################################################
 # HICLIB 
@@ -326,12 +324,10 @@ CPU_HICLIB=16
 NODES_HICLIB="nodes=1:ppn=8"
 CPU_HICLIB_POSTCOMMAND=1
 NODES_HICLIB_POSTCOMMAND="nodes=1:ppn=1"
-
-MODULE_HICLIB=
+INPUT_HICLIB="fastq"
+MODULE_HICLIB="${NG_HICLIB} ${NG_BOWTIE2} ${NG_SAMTOOLS} ${NG_HDF5} ${NG_PICARD}"
 PATH_HICLIB=
 HICLIB_GAPFILE=
-HICLIB_RENZYMES=
-HICLIB_READLENGTH=
 
 ##############################################################
 # HICUP + fit-hi-c
@@ -340,22 +336,9 @@ WALLTIME_HICUP=10:00:00
 MEMORY_HICUP=60
 CPU_HICUP=8
 NODES_HICUP="nodes=1:ppn=8"
-
-MODULE_HICUP=
+INPUT_HICUP="fastq"
+MODULE_HICUP="${NG_HICUP} ${NG_PYTHON} ${NG_FITHIC}"
 PATH_HICUP=
-HICUP_RENZYMES=
-
-##############################################################
-# R (3.0.0)
-# http://www.r-project.org/
-WALLTIME_R=1:00:00
-MEMORY_R=10
-CPU_R=1
-NODES_R="nodes=1:ppn=1"
-
-MODULE_R=
-PATH_R=
-RSCRIPT=Rscript
 
 ##############################################################
 # Bam Annotations
@@ -364,8 +347,8 @@ WALLTIME_BAMANN=5:00:00
 MEMORY_BAMANN=32
 CPU_BAMANN=1
 NODES_BAMANN="nodes=1:ppn=1"
-
-MODULE_BAMANN=
+INPUT_BAMANN=$TASKBWA
+MODULE_BAMANN="${NG_BEDTOOLS}"
 PATH_BAMANN=
 
 ##############################################################
@@ -375,8 +358,8 @@ WALLTIME_RECAL=60:00:00
 MEMORY_RECAL=50
 CPU_RECAL=8
 NODES_RECAL="nodes=1:ppn=8" 
-
-MODULE_RECAL=
+INPUT_REALRECAL=$TASKBWA
+MODULE_RECAL="${NG_JAVA} ${NG_GATK} ${NG_R} ${NG_SAMTOOLS} ${NG_IGVTOOLS}"
 PATH_RECAL=
 
 ##############################################################
@@ -386,10 +369,9 @@ WALLTIME_RRBSMAP=60:00:00
 MEMORY_RRBSMAP=50
 CPU_RRBSMAP=32
 NODES_RRBSMAP="nodes=4:ppn=8"
-
+INPUT_RRBSMAP="fastq"
 MODULE_RRBSMAP=
 PATH_RRBSMAP=
-
 
 ##############################################################
 # downsample
@@ -401,7 +383,6 @@ NODES_DOWNSAMPLE="nodes=1:ppn=1"
 
 MODULE_DOWNSAMPLE=
 PATH_DOWNSAMPLE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMTOOLS
-
 
 ##############################################################
 # demultiplex with Fastxtoolkit
@@ -459,19 +440,91 @@ WALLTIME_FASTQSCREEN=48:00:00
 MEMORY_FASTQSCREEN=60
 CPU_FASTQSCREEN=8
 NODES_FASTQSCREEN="nodes=1:ppn=8"
-
-MODULE_FASTQSCREEN=
+INPUT_FASTQSCREEN="fastq"
+MODULE_FASTQSCREEN="${NG_PERL} ${NG_FASTQSCREEN} ${NG_BOWTIE2}"
 PATH_FASTQSCREEN=
+
 FASTQSCREEN_DBCONF=
 
 ##############################################################
-#VCFTOOLS="/clusterdata/hiseq_apps/bin/freeze001/VCFtools_0.1.3.2/bin"
-#SAMUTILS="/clusterdata/hiseq_apps/bin/freeze001/tabix-0.2.3"
-#ANNOVAR="/clusterdata/hiseq_apps/bin/freeze001/annovar"
-#
-#MACS="/clusterdata/hiseq_apps/bin/devel/MACS_git"
-#PEAKFINDER="/clusterdata/hiseq_apps/bin/devel/vancouvershortr_svn/"
-#
-#VIENNA=
-#UNAFOLD=
+# Create bigwigs from bam files
+# http://genome.ucsc.edu/util.html/
+WALLTIME_BIGWIG=12:00:00
+MEMORY_BIGWIG=12
+CPU_BIGWIG=2
+NODES_BIGWIG="nodes=1:ppn=2"
+INPUT_BIGWIG=$TASKBOWTIE
+MODULE_BIGWIG="${NG_UCSCTOOLS} ${NG_JAVA} ${NG_SAMTOOLS}"
+PATH_BIGWIG=
+
+##############################################################
+# Blue Read error correction
+# http://www.bioinformatics.csiro.au/blue/
+WALLTIME_BLUE=10:00:00
+MEMORY_BLUE=60
+CPU_BLUE=4
+NODES_BLUE="nodes=1:ppn=4"
+INPUT_BLUE="fastq"
+MODULE_BLUE="${NG_MONO} ${NG_BLUE} ${NG_R} {NG_IMAGEMAGIC}"
+PATH_BLUE=
+
+##############################################################
+# ChIP QC with CHANCE
+# https://github.com/songlab/chance/downloads
+WALLTIME_CHANCE=10:00:00
+MEMORY_CHANCE=20
+CPU_CHANCE=2
+NODES_CHANCE="nodes=1:ppn=2"
+INPUT_CHANCE=$TASKBOWTIE
+MODULE_CHANCE="${NG_CHANCE} ${NG_JAVA} ${NG_MATLAB} ${NG_R}"
+PATH_CHANCE=
+
+##############################################################
+# Pool bam files (e.g. replicates)
+# 
+WALLTIME_POOLBAMS=10:00:00
+MEMORY_POOLBAMS=60
+CPU_POOLBAMS=16
+NODES_POOLBAMS="nodes=2:ppn=8"
+INPUT_POOLBAMS=$TASKBOWTIE
+MODULE_POOLBAMS="${NG_PARALLEL} ${NG_PICARD} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_SAMSTAT}"
+PATH_POOLBAMS=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+
+##############################################################
+# RNA-Seq De novo Assembly Using Trinity
+# http://trinityrnaseq.sourceforge.net/
+
+### Stage P1: Time and resources required for Inchworm stage
+### Only use at maximum, half the available CPUs on a node
+# - Inchworm will not efficiently use any more than 4 CPUs and you will have to take longer for resources to be assigned
+# —min_kmer_cov 2 to reduce memory requirements with large read sets.
+WALLTIME_INCHWORM="4:00:00"             # optional on Wolfpack
+MEMORY_INCHWORM="40"                    # will use it for --JM
+NCPU_INCHWORM="4"                               # Use less than half of the CPUs on a node. This algorithm is limited by cache memory
+NODES_INCHWORM="1"
+NODETYPE_INCHWORM="all.q"
+#NODETYPE_INCHWORM="intel.q"    # Inchworm performs faster when Trinity was installed using the Intell compiler (Intell systems only
+
+### Stage P2: Time and resources required for Chrysalis stage
+### Starts with Bowtie alignment and post-processing of alignment file
+### All CPUs presenct can be used for the Chrysalis parts.
+#They may take a while to be provisioned, so the less request, possibly the faster the jobs turnaround.
+# For one step (the parallel sort) it needs as much memory as specified in P1. Less memory, means more I/O for sorting
+WALLTIME_CHRYSALIS="24:00:00"           # optional on Wolfpack
+MEMORY_CHRYSALIS="40"                           # will use it for --JM
+NCPU_CHRYSALIS="16"                             # For very large datasets, besides normalisation, maybe use 32 cores
+NODES_CHRYSALIS="1"
+NODETYPE_CHRYSALIS="all.q"              # dont use intel.q on Wolfpack for this
+
+# This stage is actually Chrysalis::readsToTranscript and Butterfly. Both should ideally be run through a SGE/PBS array
+# The Chrysalis bit is I/O heavy, so a local memory node is used. If files take up over 500GB, this will cause problems.
+# You may want to normalise your data and/or run Martin's optimised, standalone Trinity module
+WALLTIME_BUTTERFLY="72:00:00"
+MEMORY_BUTTERFLY="40"
+NCPU_BUTTERFLY="32"
+NODES_BUTTERFLY="1"
+NODETYPE_BUTTERFLY="all.q"
+
+MODULES_TRINITY="${NG_TRINITY} ${NG_BOWTIE} ${NG_JAVA}"
+PATH_TRINITY=
 

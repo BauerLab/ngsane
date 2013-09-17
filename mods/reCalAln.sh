@@ -228,7 +228,7 @@ fi
 BAMREADSRERE=`head -n1 $MYOUT/${n/$ASD/$ASR}.stats | cut -d " " -f 1`
 if [ "$BAMREADSRERE" = "" ]; then let BAMREADSRERE="0"; fi	
 if [ $BAMREADS -eq $BAMREADSRERE ]; then
-    echo "-----------------> PASS check recalibration and realignment: $BAMREADS == $BAMREADSRERE"
+    echo "[NOTE] PASS check recalibration and realignment: $BAMREADS == $BAMREADSRERE"
     rm ${f3/.bam/.covar.csv}
     rm ${f3/.bam/.recal.covar.csv}
     rm ${f3/.bam/.recal.bam}

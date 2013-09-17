@@ -52,7 +52,9 @@ SUMMARYFILE=$HTMLOUT".html"
 
 mkdir -p $(dirname $SUMMARYTMP) && cat /dev/null > $SUMMARYTMP # clean temporary content
 
-PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd)',os.path.abspath('$(dirname $SUMMARYTMP)'))")
+PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',os.path.realpath('$(dirname $SUMMARYTMP)'))")
+[ -z "$PROJECT_RELPATH" ] && PROJECT_RELPATH="."
+
 
 ################################################################################
 # define functions for generating summary scaffold
@@ -196,18 +198,61 @@ fi
 
 
 ################################################################################
+if [[ -n "$RUNBLUE" ]]; then
+    summaryHeader "BLUE error correction" "$TASKBLUE" "blue.sh" "$SUMMARYTMP"
+
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/fastq/${dir/_$TASKBLUE/}_$TASKBLUE/"
+    done
+
+    python ${NGSANE_BASE}/core/Summary.py "$vali" stats.txt blue >>$SUMMARYTMP
+
+	mkdir -p runstats/blue
+	BLUEOUT=runstats/blue/$(echo ${DIR[@]}|sed 's/ /_/g').ggplot
+	IMAGE=runstats/blue/$(echo ${DIR[@]}|sed 's/ /_/g').pdf
+	echo -e "copy\tcount\tvalue\tperc\tsample" > $BLUEOUT
+	for i in $(ls $vali/tessle/*histo*); do
+		name=$(basename $i)
+		arrIN=(${name//$READONE/ })
+		head -n -10 $i | tail -n +4 | gawk -v x=${arrIN[0]} '{print $0"\t"x}'; 
+	done >> $BLUEOUT
+	Rscript ${NGSANE_BASE}/tools/blue.R $BLUEOUT $IMAGE
+	convert $IMAGE ${IMAGE/pdf/jpg}
+	echo "<h3>Annotation of mapped reads</h3>" >> $SUMMARYTMP
+	echo "<a href=$PROJECT_RELPATH/$IMAGE><img src=\""$PROJECT_RELPATH/${IMAGE/.pdf/}".jpg\"></a>">>$SUMMARYTMP
+
+    summaryFooter "$TASKBLUE" "$SUMMARYTMP"
+fi
+
+
+
+################################################################################
 if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     summaryHeader "BWA mapping" "$TASKBWA" "bwa.sh" "$SUMMARYTMP"
 
     vali=$(gatherDirs $TASKBWA)
-    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASD.bam.stats samstats >>$SUMMARYTMP
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
     	echo "<h3>Annotation</h3>" >>$SUMMARYTMP
-    	python ${NGSANE_BASE}/core/Summary.py "$vali" merg.anno.stats annostats >>$SUMMARYTMP
-    	ROUTH=runStats/$(echo ${DIR[@]}|sed 's/ /_/g')
-    	if [ ! -e $ROUTH ]; then mkdir $ROUTH; fi
-	   python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
+    	python ${NGSANE_BASE}/core/Summary.py "$vali" .anno.stats annostats >>$SUMMARYTMP
+    	BAMANNOUT=runStats/bamann/$(echo ${DIR[@]}|sed 's/ /_/g')_$TASKBWA.ggplot
+		BAMANNIMAGE=${BAMANNOUT/ggplot/pdf}
+    	if [ ! -f $BAMANNOUT ]; then mkdir -p $( dirname $BAMANNOUT); fi
+		cat $vali/*.anno.stats | head -n 1 | gawk '{print "type "$0" sample"}'  >$BAMANNOUT
+		for i in $(ls $vali/*.anno.stats); do
+			name=$(basename $i)
+			arrIN=(${name//.$ASD/ })
+			grep sum $i | gawk -v x=${arrIN[0]} '{print $0" "x}';
+		done >> $BAMANNOUT
+		sed -i -r 's/\s+/ /g' $BAMANNOUT
+		Rscript ${NGSANE_BASE}/tools/bamann.R $BAMANNOUT $BAMANNIMAGE "Genome Features $TASKBWA"
+		convert $BAMANNIMAGE ${BAMANNIMAGE/pdf/jpg}
+		echo "<h3>Annotation of mapped reads</h3>" >> $SUMMARYTMP
+		echo "<a href=$PROJECT_RELPATH/$BAMANNIMAGE><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-0.jpg\"><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-1.jpg\"></a>">>$SUMMARYTMP
+
+#	    python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
     fi
     
     summaryFooter "$TASKBWA" "$SUMMARYTMP"
@@ -216,38 +261,38 @@ fi
 
 ################################################################################
 if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" || -n "$RUNREALRECAL3" ]]; then 
-    summaryHeader "RECAL mapping" "$TASKRCA" "reCalAln.sh" "$SUMMARYTMP"
+    summaryHeader "Recalibrate + Realign" "$TASKRCA" "reCalAln2.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKRCA)" $ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKRCA)" .$ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
 
     summaryFooter "$TASKRCA" "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
-    summaryHeader "BOWTIE v1 mapping" "$TASKBOWTIE" "bowtie.sh" "$SUMMARYTMP"
+    summaryHeader "Bowtie v1 mapping" "$TASKBOWTIE" "bowtie.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE)" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE)" .$ASD.bam.stats samstats >>$SUMMARYTMP
 
     summaryFooter "$TASKBOWTIE" "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
-    summaryHeader "BOWTIE v2 mapping" "$TASKBOWTIE2" "bowtie2.sh" "$SUMMARYTMP"
+    summaryHeader "Bowtie v2 mapping" "$TASKBOWTIE2" "bowtie2.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE2)" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE2)" .$ASD.bam.stats samstats >>$SUMMARYTMP
 
     summaryFooter "$TASKBOWTIE2" "$SUMMARYTMP"
 fi
 
 ################################################################################
-if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
-    summaryHeader "TOPHAT + Cufflinks" "$TASKTOPHAT" "tophatcuff.sh" "$SUMMARYTMP"
+if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFF" ]]; then
+    summaryHeader "Tophat" "$TASKTOPHAT" "tophat.sh" "$SUMMARYTMP"
 
 	vali=""
     echo "<br>Note, the duplication rate is not calculated by tophat and hence zero.<br>" >>$SUMMARYTMP
-    CURDIR=$(pwd)
+    CURDIR=$(pwd -P)
     for dir in ${DIR[@]}; do
     	vali=$vali" $OUT/$dir/$TASKTOPHAT/"
     	cd $OUT/$dir/$TASKTOPHAT
@@ -256,25 +301,43 @@ if [[ -n "$RUNTOPHATCUFF" || -n "$RUNTOPHATCUFF2" ]]; then
 		done
     done
     cd $CURDIR
-    python ${NGSANE_BASE}/core/Summary.py "$vali" bam.stats tophat >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASD.bam.stats tophat >>$SUMMARYTMP
 
     summaryFooter "$TASKTOPHAT" "$SUMMARYTMP"
 fi
 
+################################################################################
+if [[ -n "$RUNCUFFLINKS" || -n "$RUNTOPHATCUFF" ]]; then
+    summaryHeader "Cufflinks" "$TASKCUFFLINKS" "cufflinks.sh" "$SUMMARYTMP"
+
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKCUFFLINKS)" .summary.txt cufflinks >>$SUMMARYTMP
+
+    summaryFooter "$TASKCUFFLINKS" "$SUMMARYTMP"
+fi
+
+
+################################################################################
+if [[ -n "$RUNHTSEQCOUNT" || -n "$RUNTOPHATCUFF" ]]; then
+    summaryHeader "Htseq-count" "$TASKHTSEQCOUNT" "htseqcount.sh" "$SUMMARYTMP"
+
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKHTSEQCOUNT)" summary.txt htseqcount >>$SUMMARYTMP
+
+    summaryFooter "$TASKHTSEQCOUNT" "$SUMMARYTMP"
+fi
 
 ################################################################################
 if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
-    summaryHeader "COVERAGE" "$TASKVAR" "gatkSNPs.sh" "$SUMMARYTMP"
+    summaryHeader "Coverage" "$TASKVAR" "gatkSNPs.sh" "$SUMMARYTMP"
 
     vali=$(gatherDirs $TASKDOC)
     echo "<h3>Average coverage</h3>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASR".bam.doc.sample_summary" coverage >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASR".bam.doc.sample_summary" coverage >>$SUMMARYTMP
     echo "<h3>Base pair coverage over all intervals</h3>" >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASR".bam.doc.sample_cumulative_coverage_counts" coverage --p >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASR".bam.doc.sample_cumulative_coverage_counts" coverage --p >>$SUMMARYTMP
     echo "<h3>Intervals covered</h3>" >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASR".bam.doc.sample_interval_statistics" coverage --p >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASR".bam.doc.sample_interval_statistics" coverage --p >>$SUMMARYTMP
     echo "<h3>On Target</h3>" >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASR".bam.stats" target >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASR".bam.stats" target >>$SUMMARYTMP
 
     summaryFooter "$TASKVAR" "$SUMMARYTMP" 
 fi
@@ -427,7 +490,7 @@ if [ -n "$RUNMACS2" ];then
     row1=""
     row2=""
     for dir in $vali; do
-        for f in $(ls $dir/*model-0.png); do
+        for f in $(ls $dir/*model-0.png 2> /dev/null); do
             n=${f##*/}
             n=${n/"_model-0.png"/}
             row0+="<td>$n</td>"
@@ -445,11 +508,14 @@ if [ -n "$RUNMEMECHIP" ];then
     summaryHeader "MEME-chip Motif discovery" "$TASKMEMECHIP" "memechip.sh" "$SUMMARYTMP"
 
     vali=""
-    CURDIR=$(pwd)
+    CURDIR=$(pwd -P)
     for dir in ${DIR[@]}; do
+        if [ ! -d $dir/$TASKMEMECHIP ]; then
+            continue
+        fi
         vali=$vali" $OUT/$dir/$TASKMEMECHIP/"
         cd $OUT/$dir/$TASKMEMECHIP
-        for d in $(find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \; ); do
+        for d in $(find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \;); do
                 echo "<a href=\"$PROJECT_RELPATH/$dir/$TASKMEMECHIP/$d/index.html\">$dir/$d</a> " >> $CURDIR/$SUMMARYTMP
         done
     done
@@ -487,7 +553,7 @@ if [ -n "$RUNANNOTATINGBAM3" ]; then
                 split($1,arr,"[/.]"); print arr[3]" "arr[1]" genes "$3"\n" arr[3]" "arr[1]" rRNA "$4"\n" arr[3]" "arr[1]" tRNA "$5"\n" arr[3]" "arr[1]" lincRNA "$6"\n" arr[3]" "arr[1]" miRNA "$7"\n" arr[3]" "arr[1]" snoRNA "$8"\n" arr[3]" "arr[1]" snRNA "$9"\n" arr[3]" "arr[1]" miscRNA "$10"\n" arr[3]" "arr[1]" PolyA "$11"\n" arr[3]" "arr[1]" other "$12"\n" arr[3]" "arr[1]" HiSeq "$13"\n" arr[3]" "arr[1]" UCSC_rRNA "$14"\n" arr[3]" "arr[1]" SegDups "$15"\n" arr[3]" "arr[1]" unannotated "$16"\n" arr[3]" "arr[1]" unmapped "$17}' $DIR/distribution$typ.txt > $DIR/distribution$typ.ggplot
 
 	RSCRIPT=$DIR/"distribution$typ.ggplot".R
-	P=$(pwd)
+	P=$(pwd -P)
 	DESCRIPT=$(basename $P)
 	IMAGE=$DIR/"distribution$type.pdf"
 	echo 'library("ggplot2")' > $RSCRIPT

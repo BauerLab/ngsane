@@ -8,7 +8,7 @@
 #********************
 # Tasks
 #********************
-RUNTOPHATCUFF2="1"    # mapping with tophat (RNAseq)
+RUNTOPHATCUFF="1"    # mapping with tophat (RNAseq)
 
 #********************
 # Paths
@@ -82,9 +82,6 @@ CUFFLINKSADDPARAM=
 #NODES_TOPHAT="nodes=1:ppn=8"
 #MODULE_TOPHATCUFF=
 #PATH_TOPHATCUFF=
-
-## location of ngsane
-#NGSANE_BASE=
 
 
 

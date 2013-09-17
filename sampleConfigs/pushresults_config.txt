@@ -43,7 +43,3 @@ FASTQ="fq.gz"
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
-
-## location of ngsane
-#NGSANE_BASE=
-

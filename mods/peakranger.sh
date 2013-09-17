@@ -7,7 +7,7 @@
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <SAMPLE>-${CHIPINPUT##*/} | sed "s/.$ASD.bam/_region.bed/"
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>-${CHIPINPUT##*/} | sed "s/.$ASD.bam/_region.bed/"
 
 echo ">>>>> ChIPseq analysis with Peakranger"
 echo ">>>>> startdate "`date`
@@ -28,7 +28,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --bam )            shift; f=$1 ;; # bam file
-        -o | --outdir )         shift; MYOUT=$1 ;; # output dir 
+        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir 
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -58,7 +58,7 @@ echo -e "--R          --\n "$(R --version | head -n 3)
 echo -e "--peakranger --\n "$(peakranger | head -n 3 | tail -n 1)
 [ -z "$(which peakranger)" ] && echo "[ERROR] peakranger not detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
@@ -73,7 +73,7 @@ n=${f##*/}
 c=${CHIPINPUT##*/}
 
 if [ -z "$RECOVERFROM" ]; then
-    [ -e $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed ] && rm $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}*
+    [ -e $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed ] && rm $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}*
 fi
 
 if [ "$PEAKRANGER_PEAKS" != "broad" ] && [ "$PEAKRANGER_PEAKS" != "sharp" ]; then
@@ -81,7 +81,7 @@ if [ "$PEAKRANGER_PEAKS" != "broad" ] && [ "$PEAKRANGER_PEAKS" != "sharp" ]; the
     exit 1
 fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
@@ -90,55 +90,55 @@ if [ -n "$DMGET" ]; then
 	dmls -l ${f}
 fi
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="peakranger"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
     
     echo "[NOTE] data quality"
-    peakranger nr --format bam --data $f --control $CHIPINPUT > $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
+    peakranger nr --format bam --data $f --control $CHIPINPUT > $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
     
     echo "[NOTE] library complexity"
-    peakranger lc --data $f >> $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
+    peakranger lc --data $f >> $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
     
     echo "[NOTE] make wigpe"
-    peakranger wigpe --data $f --output $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}
+    peakranger wigpe --data $f --output $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}
 
     if [ "$PEAKRANGER_PEAKS" == "broad" ]; then
         echo "[NOTE] calling broad peaks"
-        RUN_COMMAND="peakranger ccat $PEAKRANGERADDPARAM --format bam --data  $f --control $CHIPINPUT --output $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/} -t $CPU_PEAKRANGER"
+        RUN_COMMAND="peakranger ccat $PEAKRANGERADDPARAM --format bam --data  $f --control $CHIPINPUT --output $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/} -t $CPU_PEAKRANGER"
 
     elif [ "$PEAKRANGER_PEAKS" == "sharp" ]; then
         echo "[NOTE] calling tight peaks"
-        RUN_COMMAND="peakranger ranger $PEAKRANGERADDPARAM --format bam --data $f --control $CHIPINPUT --output $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/} -t $CPU_PEAKRANGER"
+        RUN_COMMAND="peakranger ranger $PEAKRANGERADDPARAM --format bam --data $f --control $CHIPINPUT --output $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/} -t $CPU_PEAKRANGER"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # echo remove comments from bed files
-    grep -v "#" $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed > $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.tmp && mv $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.tmp $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed
+    grep -v "#" $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed > $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.tmp && mv $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.tmp $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed
     
-    grep -v "#" $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed > $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.tmp && mv $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.tmp $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed
+    grep -v "#" $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed > $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.tmp && mv $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.tmp $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed
     
-    echo "Peaks: `wc -l $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed | awk '{print $1}'`" >> $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
-    echo "Summits: `wc -l $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed | awk '{print $1}'`" >> $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
+    echo "Peaks: `wc -l $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed | awk '{print $1}'`" >> $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
+    echo "Summits: `wc -l $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed | awk '{print $1}'`" >> $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
 
 
     # mark checkpoint
-    [ -f $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
 fi
 
 ################################################################################
 CHECKPOINT="zip"
 
-echo "********* zip"
-$GZIP -f $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_details
+$GZIP -f $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_details
 
-echo -e "\n********* $CHECKPOINT"
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed.dummy ] && rm $MYOUT/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed.dummy
+[ -e $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed.dummy ] && rm $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed.dummy
 echo ">>>>> ChIPseq analysis with Peakranger - FINISHED"
 echo ">>>>> enddate "`date`
 

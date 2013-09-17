@@ -1,12 +1,16 @@
 #!/bin/python
 
-import sys,os,math,re,traceback,datetime
-import glob
+import sys,os,math,re,traceback,datetime,glob
 
 def removePrefix(text, prefix):
 ### remove prefix from a string ###
     return text[len(prefix):] if text.startswith(prefix) else text
-    
+   
+def removeSuffix(text, suffix):
+### remove prefix from a string ###
+    return text[0:-len(suffix)] if text.endswith(suffix) else text
+  
+   
 if (len(sys.argv)==1 or sys.argv[0].find("help")>-1):
     print "python2 times"
     die
@@ -90,7 +94,7 @@ def per(max,arr):
     return sum
 
 
-def printStats(arrV, arrN, arrS, noSummary, filestructure):
+def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix):
 
     out=[[],[],[],[],[],[]]
     string=[]
@@ -118,7 +122,7 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure):
                     formatString="%17.2e"
                 resultPerS+=[ formatString % e ]
             
-            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+ removePrefix(l[1], filestructure)+"</td></tr>"
+            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+ removeSuffix(removePrefix(l[1], filestructure), filesuffix)+"</td></tr>"
         print "</tbody>"
             
     if(noSummary):
@@ -136,35 +140,6 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure):
             print "<tr><td>av%</td><td>"+"</td><td>".join(out[4])+"</td><td></td></tr>"
         print "</tfoot>"
     print "</table>"
-            
-# sam statiscis for initial aligment
-def samstats_old(statsfile):
-    names=["total","QCfail","dupl","dupl%","mapped","mapped%","paired", "paired%", "singletons", "transv", "regmapped", "regmapped%", "regpaired", "regpaired%"]
-    values=[]
-    st=re.split("[ \n]+",open(statsfile).read())
-    #print st
-    values.append(int(st[0])) # total
-    values.append(int(st[3])) # QCfail
-    values.append(int(st[6])) # dupl
-    values.append(float(st[6])/float(st[0])*100) # dupl%
-    values.append(int(st[8])) # mapped
-    values.append(float(values[-1])/values[0]*100) # mapped %
-    values.append(int(st[19])) # paired
-    values.append(float(values[-1])/values[0]*100) # paired %
-    values.append(int(st[29]))
-    values.append(int(st[40]))
-    if (len(st)>50):
-        values.append(int(st[51])) # regmapped
-        values.append(float(values[-1])/values[0]*100) 
-        values.append(int(st[56]))
-        values.append(float(values[-1])/values[0]*100)
-    #if(printing):
-    #    string="    "
-    #    for v in values:
-    #        string+="%16.2f" % v
-    #    print string+" "+statsfile
-    return names,values
-
 
 # sam statiscis for initial aligment
 def samstats(statsfile):
@@ -180,19 +155,9 @@ def samstats(statsfile):
     paired = int(st[6].strip().split(" ")[0])
     pairedPercent = float(paired)/(float(total)+pseudocount)*100
     singletons = int(st[8].strip().split(" ")[0])
-    #sys.stderr.write(",".join(st))
-#    values.append(int(st[0])) # total
-#    values.append(int(st[2])) # QCfail
-#    values.append(int(st[10])) # dupl
-#    values.append(float(values[-1])/float(values[0])*100) # dupl%
-#    values.append(int(st[14])) # mapped
-#    values.append(float(values[-1])/float(values[0])*100) # mapped %
-#    values.append(int(st[33])) # paired
-#    values.append(float(values[-1])/float(values[0])*100) # paired %
-#    values.append(int(st[47]))
     values = [total, QCfail, dupl, duplPercent, mapped, mappedPercent, paired, pairedPercent, singletons ]
     customRegion = open(statsfile).read().split("#custom region")
-    if (len(customRegion) > 0):
+    if (len(customRegion) >= 2):
         names += ["Region mapped", "Region mapped %", "Region paired", "Region paired %"]
         st = customRegion[1].split("\n")
         regmapped = int(st[1].strip().split(" ")[0])
@@ -213,6 +178,28 @@ def samstats(statsfile):
 
 
 # sam statiscis for initial aligment
+def blue(statsfile):
+    names=["Total reads","Reads OK","Reads OK%","healed","healed%","not healed", "not healed %","discarded", "discarded %","subs","dels","ins"]
+    values=[]
+    st=re.split("[\n]+",open(statsfile).read())
+    values.append(int(st[2].split("\t")[0])) # total
+    values.append(int(st[3].split("\t")[0])) # acepted
+    values.append(float(values[-1])/float(values[0])*100) # %
+    values.append(int(st[7].split("\t")[0])) # healed
+    values.append(float(values[-1])/float(values[0])*100) # %
+    values.append(int(st[11].split("\t")[0])) # not healed
+    values.append(float(values[-1])/float(values[0])*100) # %
+    values.append(int(st[17].split("\t")[0])) # discarded
+    values.append(float(values[-1])/float(values[0])*100) # %
+    values.append(int(st[20].split("\t")[0]))
+    values.append(int(st[21].split("\t")[0]))
+    values.append(int(st[22].split("\t")[0]))
+        
+    return names,values
+
+
+
+# sam statiscis for initial aligment
 def tophat(statsfile):
     names=["Total reads","Accepted","QCfail","Duplicates","Duplicates %","Mapped","Mapped %","Paired", "Paired %", "Singletons"]
     values=[]
@@ -221,24 +208,103 @@ def tophat(statsfile):
     values.append(int(st[0])) # acepted
     values.append(int(st[2])) # QCfail
     values.append(int(st[10])) # dupl
-    values.append(float(values[-1])/float(values[0])*100) # dupl%
+    values.append(float(values[-1])/float(values[1])*100) # dupl%
     values.append(int(st[14])) # mapped
-    values.append(float(values[-1])/float(values[0])*100) # mapped %
+    values.append(float(values[-1])/float(values[1])*100) # mapped %
     values.append(int(st[33])) # paired
-    values.append(float(values[-1])/float(values[0])*100) # paired %
+    values.append(float(values[-1])/float(values[1])*100) # paired %
     values.append(int(st[47]))
     if (len(st)>76):
         names.append("Junction")
         names.append("Junction %")
-        names.append("Jnct over ncbi")
-        names.append("Jnct over ncbi %")
+        names.append("Jnct over GTF")
+        names.append("Jnct over GTF %")
         values.append(int(st[76])) # junction reads
         #values.append(float(values[-1])/float(values[5])) # junction %
-        values.append(float(values[-1])/float(values[0])*100) # junction %
+        values.append(float(values[-1])/float(values[1])*100) # junction %
         values.append(int(st[79])) # junction reads in ncbi genes
         values.append(float(values[-1])/float(values[10])*100) # junction reads in ncbi genes %
         
     return names,values
+
+def cufflinksStats(logFile):
+    
+    names=["Transcripts", "Skipped", "Genes FPKM", "% OK", "% Lowdata", "Isoforms FPKM", "% OK", "% Lowdata"]
+    values=[]
+    file=open(logFile).read()
+    # populate
+    tmp=file.split("transcripts.gtf")[1].strip().split()[0]
+    TS=float(tmp.strip())
+    values.append(TS)
+
+    tmp=file.split("skipped.gtf")[1].strip().split()[0]
+    SK=float(tmp.strip())
+    values.append(SK)
+
+    tmp=file.split("genes.fpkm_tracking")[1].split(";")[0].strip().split()[0]
+    GF=float(tmp.strip())
+    values.append(GF)
+
+    try:
+        if not "OK;" in file.split("genes.fpkm_tracking")[1].split("\n")[0]: 
+            raise error
+
+        tmp=file.split("genes.fpkm_tracking")[1].split("OK;")[0].split(";")[-1].strip()
+        GO=float(tmp.strip())
+        values.append(100* GO / GF)
+    except:
+        values.append(0)
+            
+
+    try:
+        if not "LOWDATA;" in file.split("genes.fpkm_tracking")[1].split("\n")[0]: 
+            raise error
+        tmp=file.split("genes.fpkm_tracking")[1].split("LOWDATA;")[0].split(";")[-1].strip()
+        GL=float(tmp.strip())
+        values.append(100* GL / GF)
+    except:
+        values.append(0)
+    
+    tmp=file.split("isoforms.fpkm_tracking")[1].split(";")[0].strip().split()[0]
+    IF=float(tmp.strip())
+    values.append(IF)
+
+    try:    
+        if not "OK;" in file.split("isoforms.fpkm_tracking")[1].split("\n")[0]: 
+            raise error
+
+        tmp=file.split("isoforms.fpkm_tracking")[1].split("OK;")[0].split(";")[-1].strip()
+        IO=float(tmp.strip())
+        values.append(100* IO / IF)
+    except:
+        values.append(0)
+    
+    try:
+        if not "LOWDATA;" in file.split("isoforms.fpkm_tracking")[1].split("\n")[0]: 
+            raise error
+
+        tmp=file.split("isoforms.fpkm_tracking")[1].split("LOWDATA;")[0].split(";")[-1].strip()
+        IL=float(tmp.strip())
+        values.append(100 * IL / IF)
+    except:
+        values.append(0)
+    
+    
+    return names, values
+
+
+def htseqcountStats(logFile):
+    
+    names=[]
+    values=[]
+    lines=open(logFile).read().split("\n")
+    for f in lines:
+        cols = f.split(" ")
+        if (len(cols)<6): 
+            continue
+        names+=[" ".join(cols[0:3])+" no_feature", " ".join(cols[0:3])+" ambiguous"]
+        values+=[ float(cols[4]), float(cols[6]) ]
+    return names, values
 
 
 def onTarget(statsfile):
@@ -285,16 +351,38 @@ def annoStatsPicard(statsfile):
     values.append(float(st[21]))
     return names,values
 
+#def annoStats(statsfile):
+#    names=["total", "genes", "(%)", "rRNA", "(%)", "tRNA", "(%)", "lincRNA", "(%)", "miRNA", "(%)", "snoRNA", "(%)", "snrna", "(%)", "miscRNA", "(%)", "polyA", "(%)", "other", "(%)", "HiSeq", "(%)", "ucsc_rRNA", "(%)", "SegDups", "(%)"]
+#    values=[]
+#    f=open(statsfile).read().split("\n")[1]
+#    st=re.split("[ \t]+",f)
+#    values.append(float(st[0]))
+#    for i in range(1,14):
+#        values.append(float(st[i]))
+#        values.append(float(values[-1]/values[0]*100))
+#    return names,values
+
+
 def annoStats(statsfile):
-    names=["total", "genes", "(%)", "rRNA", "(%)", "tRNA", "(%)", "lincRNA", "(%)", "miRNA", "(%)", "snoRNA", "(%)", "snrna", "(%)", "miscRNA", "(%)", "polyA", "(%)", "other", "(%)", "HiSeq", "(%)", "ucsc_rRNA", "(%)", "SegDups", "(%)"]
-    values=[]
-    f=open(statsfile).read().split("\n")[1]
-    st=re.split("[ \t]+",f)
-    values.append(float(st[0]))
-    for i in range(1,14):
-        values.append(float(st[i]))
-        values.append(float(values[-1]/values[0]*100))
-    return names,values
+#    names=["total", "genes", "(%)", "rRNA", "(%)", "tRNA", "(%)", "lincRNA", "(%)", "miRNA", "(%)", "snoRNA", "(%)", "snrna", "(%)", "miscRNA", "(%)", "polyA", "(%)", "other", "(%)", "HiSeq", "(%)", "ucsc_rRNA", "(%)", "SegDups", "(%)"]
+#	print "bla"
+	names=[]
+	values=[]
+	f=open(statsfile).read().split("\n")
+	names=re.split("[ \t]+",f[0].strip())
+	values=map(float,re.split("[ \t]+",f[3].strip())[1:])
+#	for i in range(1,len(st)):
+#		values.append(float(st[i]))
+#		names.append(n[i-1])
+#		print names
+#		print values 
+#		values.append(float(values[-1]/values[0]*100))
+#		names.append("%")
+#	print names
+#	print values
+	return names,values
+
+
 
 def parsetime(string):
     arr=string.split(":")
@@ -689,14 +777,18 @@ def macs2Stats(logFile):
         values.append(0)
         values.append(0)
 
-    tmp=file.split("#2 number of paired peaks:")[1].strip().split()[0]
-    PP=float(tmp.strip())
-    values.append(PP)
-
-    tmp=file.split("#2 predicted fragment length is")[1].strip().split("bps")[0]
-    PF=float(tmp.strip())
-    values.append(PF)
-
+    try:
+        tmp=file.split("#2 number of paired peaks:")[1].strip().split()[0]
+        PP=float(tmp.strip())
+        values.append(PP)
+    
+        tmp=file.split("#2 predicted fragment length is")[1].strip().split("bps")[0]
+        PF=float(tmp.strip())
+        values.append(PF)
+    except:
+        values.append(0)
+        values.append(0)
+        
     return names, values
 
 def fastqscreenStats(logFile):
@@ -728,12 +820,12 @@ def memechipStats(logFile):
     tmp=file.split("bound directely (strong site):")[1].strip().split()[0]
     SS=float(tmp.strip())
     values.append(SS)
-    values.append(SS/PR)
+    values.append(100. * SS/PR)
 
     tmp=file.split("bound indirectely (weak or no site):")[1].strip().split()[0]
     WS=float(tmp.strip())
     values.append(WS)
-    values.append(WS/PR)
+    values.append(100. * WS/PR)
 
     return names, values
  
@@ -900,6 +992,10 @@ for d in dir:
                 names,values=variant(f)
             if (type=="tophat"):
                 names,values=tophat(f)
+            if (type=="cufflinks"):
+                names,values=cufflinksStats(f)
+            if (type=="htseqcount"):
+                names,values=htseqcountStats(f)
             if (type=="times"):
                 names,values=time(f)
             if (type=="target"):
@@ -928,6 +1024,8 @@ for d in dir:
                 names,values=memechipStats(f)
             if (type=="fastqscreen"):
                 names,values=fastqscreenStats(f)
+            if (type=="blue"):
+				names,values=blue(f)
 
             result=addValues(result,values)
 
@@ -945,8 +1043,8 @@ for d in dir:
 
     filestructure="/".join(d.split("/")[-4::]) # only list file structure from current root
     print "<h3>"+ filestructure +"</h3>" 
-    printStats(result,names,psresult,noSummary,filestructure)
+    printStats(result,names,psresult,noSummary,filestructure, ext)
 
 if (not noOverallSummary and overAll):
     print "<h3 class='overall'>Aggregation over all libraries</h3>"
-    printStats(oaresult,names,0,noOverallSummary,"")
+    printStats(oaresult,names,0,noOverallSummary,"","")

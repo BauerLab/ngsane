@@ -16,8 +16,11 @@ RUNHICLIB="1"        # map HiC data with hiclib
 
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq directory)
+# which folder to run on (i.e. folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_HICLIB="fastq"
 
 # where to write the output
 OUT=$SOURCE
@@ -63,9 +66,3 @@ HICLIB_READLENGTH=
 #NODES_HICLIB="nodes=1:ppn=8"
 #MODULE_HICLIB=
 #PATH_HICLIB=
-
-## location of ngsane
-#NGSANE_BASE=
-
-
-
