@@ -248,18 +248,18 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     echo "[NOTE] samtools merge"
-    samtools merge -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
+    samtools merge -@ $CPU_TOPHAT -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
     
     if [ "$PAIRED" = "1" ]; then
         # fix mate pairs
         echo "[NOTE] samtools fixmate"
-        samtools sort -n $BAMFILE.tmp.bam $BAMFILE.tmp2
+        samtools sort -@ $CPU_TOPHAT -n $BAMFILE.tmp.bam $BAMFILE.tmp2
         samtools fixmate $BAMFILE.tmp2.bam $BAMFILE.tmp.bam
         rm $BAMFILE.tmp2.bam
     fi
     
     echo "[NOTE] samtools sort"
-    samtools sort $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
+    samtools sort -@ $CPU_TOPHAT $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
     rm $BAMFILE.tmp.bam
     
     echo "[NOTE] add read group"
@@ -387,9 +387,9 @@ else
 
     echo "[NOTE] extract mapped reads"
     if [ "$PAIRED" = "1" ]; then
-        samtools view -f 3 -h -b $BAMFILE > ${BAMFILE/.$ASD/.$ALN}
+        samtools view -@ $CPU_TOPHAT -f 3 -h -b $BAMFILE > ${BAMFILE/.$ASD/.$ALN}
     else
-        samtools view -F 4 -h -b $BAMFILE > ${BAMFILE/.$ASD/.$ALN}
+        samtools view -@ $CPU_TOPHAT -F 4 -h -b $BAMFILE > ${BAMFILE/.$ASD/.$ALN}
     fi
     samtools index ${BAMFILE/.$ASD/.$ALN}
 
