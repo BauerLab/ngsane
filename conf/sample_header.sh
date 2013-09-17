@@ -88,14 +88,14 @@ for MODULE in $MODULES_DEFAULT; do module load $MODULES_DEFAULT; done
 ##############################################################
 # Summary specifics
 # html2pdf conversion via PRINCE
-MODULE_SUMMARY=
+MODULE_SUMMARY="${NG_R} ${NG_PYTHON}"
 PATH_SUMMARY=
 HTMLOUT="Summary"
 
 ##############################################################
 # gzip alternatives, e.g.
 # pigz (2.3) - http://zlib.net/pigz/
-MODULE_GZIP=
+MODULE_GZIP=${NG_GZIP}"
 GZIP="gzip -9"			# command, e.g. gzip or pigz
 [ -n "$MODULE_GZIP" ] && module load $MODULE_GZIP
 
@@ -107,7 +107,7 @@ MEMORY_FASTQC=20
 CPU_FASTQC=16
 NODES_FASTQC="nodes=2:ppn=8"
 INPUT_FASTQC="fastq"
-MODULE_FASTQC=
+MODULE_FASTQC="${NG_JAVA} ${NG_FASTQC}"
 PATH_FASTQC=
 
 ##############################################################
@@ -118,7 +118,7 @@ MEMORY_SAMVAR=40
 CPU_SAMVAR=1
 NODES_SAMVAR="nodes=1:ppn=1"
 INPUT_SAMVAR=$TASKBWA
-MODULE_SAMVAR=
+MODULE_SAMVAR="${NG_JAVA} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_GATK}"
 PATH_SAMVAR=
 
 ##############################################################
@@ -129,8 +129,8 @@ MEMORY_BWA=50
 CPU_BWA=32
 NODES_BWA="nodes=4:ppn=8"
 INPUT_BWA="fastq"
-MODULE_BWA=
-PATH_BWA=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+MODULE_BWA="${NG_BWA} ${NG_JAVA} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_R} ${NG_IMAGEMAGIC} ${NG_PICARD} ${NG_SAMSTAT} ${NG_UCSCTOOLS} ${NG_BEDTOOS}"
+PATH_BWA=
 
 ##############################################################
 # Bowtie (1.0.0)
@@ -140,7 +140,7 @@ MEMORY_BOWTIE=60
 CPU_BOWTIE=8
 NODES_BOWTIE="nodes=1:ppn=8"
 INPUT_BOWTIE="fastq"
-MODULE_BOWTIE=
+MODULE_BOWTIE="${NG_BOWTIE} ${NG_JAVA} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_R} ${NG_IMAGEMAGIC} ${NG_PICARD} ${NG_SAMSTAT} ${NG_UCSCTOOLS} ${NG_BEDTOOS}"
 PATH_BOWTIE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
@@ -151,7 +151,7 @@ MEMORY_BOWTIE2=60
 CPU_BOWTIE2=8
 NODES_BOWTIE2="nodes=1:ppn=8"
 INPUT_BOWTIE2="fastq"
-MODULE_BOWTIE2=
+MODULE_BOWTIE2="${NG_BOWTIE2} ${NG_JAVA} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_R} ${NG_IMAGEMAGIC} ${NG_PICARD} ${NG_SAMSTAT} ${NG_UCSCTOOLS} ${NG_BEDTOOS}"
 PATH_BOWTIE2=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
@@ -197,7 +197,7 @@ MEMORY_PEAKRANGER=20
 CPU_PEAKRANGER=1
 NODES_PEAKRANGER="nodes=1:ppn=1"
 INPUT_PEAKRANGER=$TASKBOWTIE
-MODULE_PEAKRANGER=
+MODULE_PEAKRANGER="${NG_PEAKRANGER} ${NG_BOOST} ${NG_R}"
 PATH_PEAKRANGER=
 
 ##############################################################
@@ -208,7 +208,7 @@ MEMORY_MACS2=20
 CPU_MACS2=1
 NODES_MACS2="nodes=1:ppn=1"
 INPUT_MACS2=$TASKBOWTIE
-MODULE_MACS2=
+MODULE_MACS2="${NG_PYTHON} ${NG_R} ${NG_UCSCTOOLS}"
 PATH_MACS2=
 
 ##############################################################
@@ -219,7 +219,7 @@ MEMORY_MEMECHIP=40
 CPU_MEMECHIP=8
 NODES_MEMECHIP="nodes=1:ppn=8"
 INPUT_MEMECHIP=$TASKMACS2
-MODULE_MEMECHIP=
+MODULE_MEMECHIP="${NG_MEME} ${NG_BEDTOOLS} ${NG_PERL}"
 PATH_MEMECHIP=
 
 MEMECHIPDATABASES=
@@ -273,8 +273,8 @@ CPU_VAR=1
 NODES_VAR="nodes=1:ppn=1"
 INPUT_VAR=$TASKRCA
 
-MODULE_GATK=
-MODULE_GATKSNP=
+MODULE_GATK="${NG_GATK} ${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_IGVTOOLS}"
+MODULE_GATKSNP="${NG_GATK} ${NG_JAVA} ${NG_R} ${NG_IGVTOOLS}"
 
 ##############################################################
 # Tophat (2.0.9) 
@@ -284,7 +284,7 @@ MEMORY_TOPHAT=50
 CPU_TOPHAT=16
 NODES_TOPHAT="nodes=2:ppn=8"
 INPUT_TOPHAT="fastq"
-MODULE_TOPHAT=
+MODULE_TOPHAT="${NG_TOPHAT} ${NG_BOOST} ${NG_JAVA} ${NG_PYTHON} ${NG_R} ${NG_BOWTIE2} ${NG_SAMTOOLS} ${NG_IMAGEMAGIC} ${NG_IGVTOOLS} ${NG_PICARD} ${NG_SAMSTAT} ${NG_BEDTOOLS} ${NG_RNASEQC}"
 PATH_TOPHAT=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT:$PATH_RNASEQC
 
 ##############################################################
@@ -295,7 +295,7 @@ MEMORY_CUFFLINKS=50
 CPU_CUFFLINKS=4
 NODES_CUFFLINKS="nodes=1:ppn=4"
 INPUT_CUFFLINKS=$TASKTOPHAT
-MODULE_CUFFLINKS=
+MODULE_CUFFLINKS="${NG_CUFFLINKS}"
 PATH_CUFFLINKS=
 
 ##############################################################
@@ -306,7 +306,7 @@ MEMORY_HTSEQCOUNT=50
 CPU_HTSEQCOUNT=1
 NODES_HTSEQCOUNT="nodes=1:ppn=1"
 INPUT_HTSEQCOUNT=$TASKTOPHAT
-MODULE_HTSEQCOUNT=
+MODULE_HTSEQCOUNT="${NG_PYTHON} ${NG_R} ${NG_BEDTOOLS} ${NGSAMTOOLS}"
 PATH_HTSEQCOUNT=
 
 ##############################################################
@@ -342,7 +342,7 @@ MEMORY_BAMANN=32
 CPU_BAMANN=1
 NODES_BAMANN="nodes=1:ppn=1"
 INPUT_BAMANN=$TASKBWA
-MODULE_BAMANN=
+MODULE_BAMANN="${NG_BEDTOOLS}"
 PATH_BAMANN=
 
 ##############################################################
@@ -353,7 +353,7 @@ MEMORY_RECAL=50
 CPU_RECAL=8
 NODES_RECAL="nodes=1:ppn=8" 
 INPUT_REALRECAL=$TASKBWA
-MODULE_RECAL=
+MODULE_RECAL="${NG_JAVA} ${NG_GATK} ${NG_R} ${NG_SAMTOOLS} ${NG_IGVTOOLS}"
 PATH_RECAL=
 
 ##############################################################
@@ -410,7 +410,7 @@ MEMORY_BIGWIG=12
 CPU_BIGWIG=2
 NODES_BIGWIG="nodes=1:ppn=2"
 INPUT_BIGWIG=$TASKBOWTIE
-MODULE_BIGWIG=
+MODULE_BIGWIG=${NG_UCSCTOOLS}
 PATH_BIGWIG=
 
 ##############################################################
@@ -421,5 +421,5 @@ MEMORY_BLUE=60
 CPU_BLUE=4
 NODES_BLUE="nodes=1:ppn=4"
 INPUT_BLUE="fastq"
-MODULE_BLUE=""
+MODULE_BLUE="${NG_MONO} ${NG_BLUE} ${NG_R} {NG_IMAGEMAGIC}"
 PATH_BLUE=
