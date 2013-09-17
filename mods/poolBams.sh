@@ -45,6 +45,8 @@ echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MergeSamFiles.
 [ ! -f $PATH_PICARD/MergeSamFiles.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--igvtools    --\n "$(java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar version 2>&1)
 [ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
+echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 echo -e "--gnu parallel --\n "$(parallel --version 2>&1 | tee | head -n 1)
@@ -80,14 +82,18 @@ for d in ${DIR[@]}; do
     OLDIFS=$IFS
     for POOL in $(cat $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | cut -d' ' -f 1 | sort -u); do 
         OUTBAM=$(grep "$POOL" $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | cut -d' ' -f 2 | head -n 1 | sed -e "s|$PATTERN|$REPLACEWITH|" ) 
+        COMMENT=$(grep "$POOL" $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | cut -d' ' -f 2 | tr '\n' ' ')
+        
         INBAMS=$(grep "$POOL" $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | awk '{print "INPUT="$2}' | tr '\n' ' ')
         [ -f $OUTBAM ] && rm $OUTBAM
-        echo -ne "java $JAVAPARAMS -jar $PATH_PICARD/MergeSamFiles.jar CREATE_INDEX=true VERBOSITY=ERROR VALIDATION_STRINGENCY=LENIENT OUTPUT=$OUTBAM $INBAMS; samstat $OUTBAM; java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $OUTBAM $OUTBAM.cov.tdf ${FASTA%%.*}.genome " >> $COMMAND
+        echo -ne "java $JAVAPARAMS -jar $PATH_PICARD/MergeSamFiles.jar QUIET=true VERBOSITY=ERROR VALIDATION_STRINGENCY=LENIENT TMP_DIR=$TMP COMPRESSION_LEVEL=9 USE_THREADING=true OUTPUT=$OUTBAM $INBAMS COMMENT='merged: $COMMENT'; samtools index $OUTBAM; samstat $OUTBAM; java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $OUTBAM $OUTBAM.cov.tdf ${FASTA%%.*}.genome " >> $COMMAND
         if [ "$DELETEORIGINALBAMS" = "true" ]; then
             for j in $(grep "$POOL" $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | cut -d' ' -f 2 ); do
                 echo -ne "; rm $j*" >> $COMMAND
             done
         fi
+        
+        echo "$OUTBAM = ${INBAMS/INPUT=/}"
         echo ";" >> $COMMAND
     done
 done

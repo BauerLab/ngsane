@@ -19,7 +19,7 @@ exit
 }
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <SAMPLE>_refinepeak.bed
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>-${CHIPINPUT##*/} | sed "s/.$ASD.bam/.IPstrength/"
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
@@ -78,6 +78,10 @@ if [ -z "$GENOME_ASSEMBLY" ]; then
     exit 1
 fi 
 
+if [ -z "$EXPERIMENTID" ] &&  [ -z "$EXPERIMENTPATTERN" ]; then
+    echo "[WARN] no experiment id or pattern given"
+fi
+
 CHANCE="`which run_chance_com.sh` `echo $MCRROOT`"
 echo "[NOTE] Chance Environment: $CHANCE"
 
@@ -114,25 +118,35 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    RUN_COMMAND="${CHANCE} compENCODE -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n}-${c}.compENCODE -e ${EXPERIMENTID} --ipfile ${f} --ipsample ${n} --inputfile ${CHIPINPUT} --inputsample ${c}"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-    
-    # mark checkpoint
-    if [ -f ${OUTDIR}/${n}-${c}.compENCODE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -n "$EXPERIMENTID" ] || [ -n "$EXPERIMENTPATTERN" ]; then
 
+        if [ -z "$EXPERIMENTID" ]; then
+            EXPERIMENTID=$(echo "$n" | sed -rn $EXPERIMENTPATTERN)
+        fi
+        
+        RUN_COMMAND="${CHANCE} compENCODE -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n}-${c}.compENCODE -e $EXPERIMENTID --ipfile ${f} --ipsample ${n} --inputfile ${CHIPINPUT} --inputsample ${c}"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+        
+        # mark checkpoint
+        if [ -f ${OUTDIR}/${n}-${c}.compENCODE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+    else
+        echo "[NOTE] skip ENCODE comparison "
+        echo -e "\n********* $CHECKPOINT\n"
+    fi
 fi
 
 ################################################################################
-CHECKPOINT="summary"
+CHECKPOINT="make plots"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
     
-    Rscript --vanilla --quiet ${NGSANE_BASE}/tools/makeChancePlots.R $f $CHIPINPUT ${OUTDIR}
+    Rscript --vanilla --quiet ${NGSANE_BASE}/tools/makeChancePlots.R $f $CHIPINPUT $OUTDIR
 
     # mark checkpoint
-    if [ -f ${n/.$ASD.bam/_treat_pileup.bb} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f ${n/.bam/.png} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
