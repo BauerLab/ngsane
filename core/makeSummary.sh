@@ -212,7 +212,7 @@ if [[ -n "$RUNBLUE" ]]; then
 	BLUEOUT=runstats/blue/$(echo ${DIR[@]}|sed 's/ /_/g').ggplot
 	IMAGE=runstats/blue/$(echo ${DIR[@]}|sed 's/ /_/g').pdf
 	echo -e "copy\tcount\tvalue\tperc\tsample" > $BLUEOUT
-	for i in $(ls $vali/tessle/*histo*); do
+	for i in $(ls $vali/tessel/*histo*); do
 		name=$(basename $i)
 		arrIN=(${name//$READONE/ })
 		head -n -10 $i | tail -n +4 | gawk -v x=${arrIN[0]} '{print $0"\t"x}'; 

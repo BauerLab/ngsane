@@ -8,7 +8,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
-# RESULTFILENAME fastq/<DIR>_blue/<SAMPLE>.$FASTQ
+# RESULTFILENAME fastq/<DIR>_blue/<SAMPLE>$READONE.$FASTQ
 
 echo ">>>>> read screening with FASTQSCREEN"
 echo ">>>>> startdate "`date`
@@ -21,6 +21,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of NGSANE
         -f | --file )           shift; f=$1 ;; # fastq file
+        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir                                                     
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -62,7 +63,7 @@ echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
-OUTDIR=$(dirname $f)"_blue"
+#OUTDIR=$(dirname $f)"_blue"
 # get basename of f
 n=${f##*/}
 
