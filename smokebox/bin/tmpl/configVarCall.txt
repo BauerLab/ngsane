@@ -67,7 +67,7 @@ READONE="_read1"
 READTWO="_read2"
 FASTQ=fastq
 #FASTQ=fastq.gz
-BAMANNLIB=${NGSANE_REFERENCE}/b37/bamann/
+BAMANNLIB=/share/ClusterShare/biodata/contrib/GENCODE_doctored/release_16/BAM_ANNOTATE
 
 
 FASTA=$(pwd)/referenceData/chr16.fasta

@@ -128,7 +128,7 @@ else
 	echo "[NOTE] annotate with $NAMES"
 
    	# strandedness does not work for RRNA
-   	COMMAND="bedtools annotate -counts -i $f.merg.bed -files $( ls $BAMANNLIB/*.gtf ) -names $NAMES | python ${NGSANE_HOME}/tools/addUnannotated.py >$f.merg.anno.bed"
+   	COMMAND="bedtools annotate -counts -i $f.merg.bed -files $( ls $BAMANNLIB/*.gtf ) -names $NAMES | python ${NGSANE_BASE}/tools/addUnannotated.py >$f.merg.anno.bed"
 	echo $COMMAND && eval $COMMAND
    
 #   	ALLREADS=$(head -n 1 $f.stats | cut -d" " -f1)
@@ -148,7 +148,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-   	COMMAND="python ${NGSANE_HOME}/tools/sumRows.py -i $f.merg.anno.bed -l 3 -s 4 -e $(expr $NUMBER + 5) -n $(echo $NAMES | sed 's/ /,/g'),unannotated >$f.anno.stats"
+   	COMMAND="python ${NGSANE_BASE}/tools/sumRows.py -i $f.merg.anno.bed -l 3 -s 4 -e $(expr $NUMBER + 5) -n $(echo $NAMES | sed 's/ /,/g'),unannotated >$f.anno.stats"
 	echo $COMMAND && eval $COMMAND
 	
 #   echo "total Pgenes rRNA tRNA lincRNA miRNA snoRNA snRNA miscRNA PolyA other HiSeq ucsc_rRNA segDups unannotated unmapped" >$f.merg.anno.stats
