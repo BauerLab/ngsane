@@ -14,7 +14,7 @@ echo ">>>>> job_id "$JOB_ID
 echo ">>>>> $(basename $0) $*"
 
 function usage {
-echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
+echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -o OUTDIR [OPTIONS]"
 exit
 }
 

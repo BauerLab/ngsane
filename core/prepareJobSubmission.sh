@@ -73,7 +73,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
                     D=$(eval $DUMMY)
                 	[ -n "$D" ] && [ -f $TASK/$dir/$D ]  && echo -e "\e[34m[SKIP]\e[0m $dir/$D (already processed)" && continue
                 fi 
-                echo -e "\e[32m[TODO]\e[0m $dir/$D"
+                echo -e "\e[32m[TODO]\e[0m $dir/$n"
                 echo $f >> $QOUT/$TASK/runnow.tmp
             done
         
@@ -87,7 +87,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
                     D=$(eval $DUMMY)
                 	[ -n "$D" ] && [ -f $dir/$TASK/$D ]  && echo -e "\e[34m[SKIP]\e[0m $dir/$D (already processed)" && continue
                 fi 
-                echo -e "\e[32m[TODO]\e[0m $dir/$D"
+                echo -e "\e[32m[TODO]\e[0m $dir/$n"
                 echo $f >> $QOUT/$TASK/runnow.tmp
             done
         fi
@@ -208,7 +208,7 @@ if [ -n "$POSTCOMMAND" ]; then
     POSTCOMMAND2=${POSTCOMMAND//<FILE>/$FILES}
     POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$DIR}
 
-    echo ">>>>> "$DIR" wait for "$MYPBSIDS
+    echo "[NOTE] "$DIR" wait for "$MYPBSIDS
     echo $POSTCOMMAND2
 
     if [[ -n "$DIRECT" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi

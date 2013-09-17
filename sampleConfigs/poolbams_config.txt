@@ -1,0 +1,60 @@
+# author: Fabian Buske
+# date: September 2013
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNPOOLBAMS="1"    # pool bams within a folder given a pattern
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_POOLBAMS=$TASKBOWTIE
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# regular expression pattern identifying replicates
+# e.g. "_Rep[0-9]*"
+PATTERN=
+
+# replacement for the pattern
+# e.g. "_pooled"
+REPLACEWITH=
+
+# Flag indicating whether original bams of the individual replicas should be deleted afterwards
+# set to "true" to remove original files
+DELETEORIGINALBAMS=
+
+# reference genome, 
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+FASTA=
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+#WALLTIME_POOLBAMS=10:00:00
+#MEMORY_POOLBAMS=60
+#CPU_POOLBAMS=4
+#NODES_POOLBAMS="nodes=1:ppn=4"
+#MODULE_POOLBAMS=""
+#PATH_POOLBAMS=

@@ -53,6 +53,8 @@ TASKMEMECHIP="memechip"
 TASKFASTQSCREEN="fastqscreen"
 TASKBIGWIG="bigwig"
 TASKBLUE="blue"
+TASKCHANCE="chance"
+TASKPOOLBAMS="pooledbam"
 
 ##############################################################
 # PROGRAM PATHS
@@ -423,3 +425,25 @@ NODES_BLUE="nodes=1:ppn=4"
 INPUT_BLUE="fastq"
 MODULE_BLUE=""
 PATH_BLUE=
+
+##############################################################
+# ChIP QC with CHANCE
+# https://github.com/songlab/chance/downloads
+WALLTIME_CHANCE=10:00:00
+MEMORY_CHANCE=20
+CPU_CHANCE=2
+NODES_CHANCE="nodes=1:ppn=2"
+INPUT_CHANCE=$TASKBOWTIE
+MODULE_CHANCE=""
+PATH_CHANCE=
+
+##############################################################
+# Pool bam files (e.g. replicates)
+# 
+WALLTIME_POOLBAMS=10:00:00
+MEMORY_POOLBAMS=60
+CPU_POOLBAMS=16
+NODES_POOLBAMS="nodes=2:ppn=8"
+INPUT_POOLBAMS=$TASKBOWTIE
+MODULE_POOLBAMS=""
+PATH_POOLBAMS=

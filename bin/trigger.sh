@@ -517,6 +517,20 @@ if [ -n "$RUNHOMERHIC" ]; then
 	   --command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHOMERHIC"
 fi
 
+
+################################################################################
+#  ChIP-seq QC with CHANCE
+#
+# IN: $SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/chance/
+################################################################################
+if [ -n "$RUNCHANCE" ]; then
+    if [ -z "$TASKCHANCE" ] || [ -z "$NODES_CHANCE" ] || [ -z "$CPU_CHANCE" ] || [ -z "$MEMORY_CHANCE" ] || [ -z "$WALLTIME_CHANCE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASKCHANCE -i $INPUT_CHANCE -e .$ASD.bam -n $NODES_CHANCE -c $CPU_CHANCE -m $MEMORY_CHANCE"G" -w $WALLTIME_CHANCE \
+	   --command "${NGSANE_BASE}/mods/chance.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKCHANCE"
+fi
+
 ################################################################################
 #  ChIP-seq analysis with homer
 #
@@ -598,6 +612,21 @@ if [ -n "$RUNREALRECAL" ]; then
         -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
         --command "${NGSANE_BASE}/mods/reCalAln2.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA"
 
+fi
+
+################################################################################
+#   Pool bam files (e.g. replicates)
+#
+# IN : $SOURCE/TASKBOWTIE/PATTERN*$ASD.bam
+# OUT: $OUT/TASKBOWTIE/_pooled*$ASD.bam
+################################################################################
+
+if [ -n "$RUNPOOLBAMS" ]; then
+    if [ -z "$TASKPOOLBAMS" ] || [ -z "$NODES_POOLBAMS" ] || [ -z "$CPU_POOLBAMS" ] || [ -z "$MEMORY_POOLBAMS" ] || [ -z "$WALLTIME_POOLBAMS" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -r -d -k $CONFIG -t $TASKPOOLBAMS -i $INPUT_POOLBAMS -e .$ASD.bam -n $NODES_POOLBAMS \
+    	-c $CPU_POOLBAMS -m $MEMORY_POOLBAMS"G" -w $WALLTIME_POOLBAMS \
+    	--postcommand "${NGSANE_BASE}/mods/poolBams.sh -k $CONFIG" 
 fi
 
 ################################################################################

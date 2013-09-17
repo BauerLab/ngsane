@@ -8,8 +8,7 @@
 #********************
 # Tasks
 #********************
-
-RUNANNOTATINGBAM="1"     # bam annotation
+RUNCHANCE="1"    # ChIP-seq QC
 
 #********************
 # Paths
@@ -21,7 +20,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_BAMANN=$TASKBWA
+INPUT_MACS2=$TASKBOWTIE
 
 # where to write the output
 OUT=$SOURCE
@@ -33,17 +32,20 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
-# folder containing multiple gtf files for integration
-# e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_17/BAM_ANNOTATE
-BAMANNLIB=
+# location of the input (control) for the chip experiments (bam file)
+CHIPINPUT=
+
+# Genome Assembly
+# e.g. "hg19"
+GENOME_ASSEMBLY=
 
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
 
-#WALLTIME_BAMANN=5:00:00
-#MEMORY_BAMANN=32
-#CPU_BAMANN=1
-#NODES_BAMANN="nodes=1:ppn=1"
-#MODULE_BAMANN=
-#PATH_BAMANN=
+#WALLTIME_CHANCE=10:00:00
+#MEMORY_CHANCE=20
+#CPU_CHANCE=2
+#NODES_CHANCE="nodes=1:ppn=2"
+#MODULE_CHANCE=""
+#PATH_CHANCE=
