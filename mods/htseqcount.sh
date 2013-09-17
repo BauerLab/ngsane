@@ -65,7 +65,7 @@ echo -e "--htSeq       --\n "$(htseq-count | tail -n 1)
 [ -z "$(which htseq-count)" ] && [ -n "$GTF" ] && echo "[ERROR] no htseq-count or GTF detected" && exit 1
 echo -e "--Python      --\n" $(python --version 2>&1 | tee | head -n 1 )
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
-[ hash yolk ] && echo -e "--Python libs --\n "$(yolk -l)
+[  $(hash yolk)  ] && echo -e "--Python libs --\n "$(yolk -l)
 
 
 echo -e "\n********* $CHECKPOINT\n"
