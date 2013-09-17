@@ -88,7 +88,7 @@ for MODULE in $MODULES_DEFAULT; do module load $MODULES_DEFAULT; done
 ##############################################################
 # Summary specifics
 # html2pdf conversion via PRINCE
-MODULE_SUMMARY="${NG_R} ${NG_PYTHON}"
+MODULE_SUMMARY="${NG_R} ${NG_PYTHON} ${NG_PRINCE}"
 PATH_SUMMARY=
 HTMLOUT="Summary"
 
@@ -118,7 +118,7 @@ MEMORY_SAMVAR=40
 CPU_SAMVAR=1
 NODES_SAMVAR="nodes=1:ppn=1"
 INPUT_SAMVAR=$TASKBWA
-MODULE_SAMVAR="${NG_JAVA} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_GATK}"
+MODULE_SAMVAR="${NG_SAMTOOLS} ${NG_JAVA} ${NG_IGVTOOLS} ${NG_GATK}"
 PATH_SAMVAR=
 
 ##############################################################
@@ -162,7 +162,7 @@ MEMORY_WIGGLER=60
 CPU_WIGGLER=1
 NODES_WIGGLER="nodes=1:ppn=1"
 INPUT_WIGGLER=$TASKBWA
-MODULE_WIGGLER=
+MODULE_WIGGLER="${NG_WIGGLER}"
 PATH_WIGGLER=
 
 WIGGLER_UMAPDIR=
@@ -175,7 +175,7 @@ MEMORY_HOMERHIC=60
 CPU_HOMERHIC=8
 NODES_HOMERHIC="nodes=1:ppn=8"
 INPUT_HOMERHIC=$TASKBWA
-MODULE_HOMERHIC=
+MODULE_HOMERHIC="${NG_HOMER}"
 PATH_HOMERHIC=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
 
 ##############################################################
@@ -186,7 +186,7 @@ MEMORY_HOMERCHIPSEQ=20
 CPU_HOMERCHIPSEQ=1
 NODES_HOMERCHIPSEQ="nodes=1:ppn=1"
 INPUT_HOMERCHIPSEQ=$TASKBOWTIE
-MODULE_HOMERCHIPSEQ=
+MODULE_HOMERCHIPSEQ="${NG_HOMER} ${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_PERL}"
 PATH_HOMERCHIPSEQ=
 
 ##############################################################
@@ -232,7 +232,7 @@ MEMORY_CUTADAPT=40
 CPU_CUTADAPT=1
 NODES_CUTADAPT="nodes=1:ppn=1"
 INPUT_CUTADAPT="fastq"
-MODULE_CUTADAPT=
+MODULE_CUTADAPT="${NG_CUTADAPT}"
 PATH_CUTADAPT=
 
 ##############################################################
@@ -243,7 +243,7 @@ MEMORY_TRIMGALORE=40
 CPU_TRIMGALORE=1
 NODES_TRIMGALORE="nodes=1:ppn=1"
 INPUT_TRIMGALORE="fastq"
-MODULE_TRIMGALORE=
+MODULE_TRIMGALORE="${NG_TRIMGALORE} ${NG_CUTADAPT}"
 PATH_TRIMGALORE=
 
 ##############################################################
@@ -254,7 +254,7 @@ MEMORY_TRIMMOMATIC=40
 CPU_TRIMMOMATIC=1
 NODES_TRIMMOMATIC="nodes=1:ppn=1"
 INPUT_TRIMMOMATIC="fastq"
-MODULE_TRIMMOMATIC=
+MODULE_TRIMMOMATIC="${NG_JAVA} ${NG_TROMMOMATIC}"
 PATH_TRIMMOMATIC=
 
 ##############################################################
@@ -306,7 +306,7 @@ MEMORY_HTSEQCOUNT=50
 CPU_HTSEQCOUNT=1
 NODES_HTSEQCOUNT="nodes=1:ppn=1"
 INPUT_HTSEQCOUNT=$TASKTOPHAT
-MODULE_HTSEQCOUNT="${NG_PYTHON} ${NG_R} ${NG_BEDTOOLS} ${NGSAMTOOLS}"
+MODULE_HTSEQCOUNT="${NG_PYTHON} ${NG_R} ${NG_BEDTOOLS} ${NG_SAMTOOLS}"
 PATH_HTSEQCOUNT=
 
 ##############################################################
@@ -319,7 +319,7 @@ NODES_HICLIB="nodes=1:ppn=8"
 CPU_HICLIB_POSTCOMMAND=1
 NODES_HICLIB_POSTCOMMAND="nodes=1:ppn=1"
 INPUT_HICLIB="fastq"
-MODULE_HICLIB=
+MODULE_HICLIB="${NG_HICLIB} ${NG_BOWTIE2} ${NG_SAMTOOLS} ${NG_HDF5} ${NG_PICARD}"
 PATH_HICLIB=
 HICLIB_GAPFILE=
 
@@ -331,7 +331,7 @@ MEMORY_HICUP=60
 CPU_HICUP=8
 NODES_HICUP="nodes=1:ppn=8"
 INPUT_HICUP="fastq"
-MODULE_HICUP=
+MODULE_HICUP="${NG_HICUP} ${NG_PYTHON} ${NG_FITHIC}"
 PATH_HICUP=
 
 ##############################################################
@@ -397,7 +397,7 @@ MEMORY_FASTQSCREEN=60
 CPU_FASTQSCREEN=8
 NODES_FASTQSCREEN="nodes=1:ppn=8"
 INPUT_FASTQSCREEN="fastq"
-MODULE_FASTQSCREEN=
+MODULE_FASTQSCREEN="${NG_PERL} ${NG_FASTQSCREEN} ${NG_BOWTIE2}"
 PATH_FASTQSCREEN=
 
 FASTQSCREEN_DBCONF=
@@ -410,7 +410,7 @@ MEMORY_BIGWIG=12
 CPU_BIGWIG=2
 NODES_BIGWIG="nodes=1:ppn=2"
 INPUT_BIGWIG=$TASKBOWTIE
-MODULE_BIGWIG=${NG_UCSCTOOLS}
+MODULE_BIGWIG="${NG_UCSCTOOLS} ${NG_JAVA} ${NG_SAMTOOLS}"
 PATH_BIGWIG=
 
 ##############################################################
@@ -423,3 +423,64 @@ NODES_BLUE="nodes=1:ppn=4"
 INPUT_BLUE="fastq"
 MODULE_BLUE="${NG_MONO} ${NG_BLUE} ${NG_R} {NG_IMAGEMAGIC}"
 PATH_BLUE=
+
+##############################################################
+# ChIP QC with CHANCE
+# https://github.com/songlab/chance/downloads
+WALLTIME_CHANCE=10:00:00
+MEMORY_CHANCE=20
+CPU_CHANCE=2
+NODES_CHANCE="nodes=1:ppn=2"
+INPUT_CHANCE=$TASKBOWTIE
+MODULE_CHANCE="${NG_CHANCE} ${NG_JAVA} ${NG_MATLAB} ${NG_R}"
+PATH_CHANCE=
+
+##############################################################
+# Pool bam files (e.g. replicates)
+# 
+WALLTIME_POOLBAMS=10:00:00
+MEMORY_POOLBAMS=60
+CPU_POOLBAMS=16
+NODES_POOLBAMS="nodes=2:ppn=8"
+INPUT_POOLBAMS=$TASKBOWTIE
+MODULE_POOLBAMS="${NG_PARALLEL} ${NG_PICARD} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_SAMSTAT}"
+PATH_POOLBAMS=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
+
+##############################################################
+# RNA-Seq De novo Assembly Using Trinity
+# http://trinityrnaseq.sourceforge.net/
+
+### Stage P1: Time and resources required for Inchworm stage
+### Only use at maximum, half the available CPUs on a node
+# - Inchworm will not efficiently use any more than 4 CPUs and you will have to take longer for resources to be assigned
+# —min_kmer_cov 2 to reduce memory requirements with large read sets.
+WALLTIME_INCHWORM="4:00:00"             # optional on Wolfpack
+MEMORY_INCHWORM="40"                    # will use it for --JM
+NCPU_INCHWORM="4"                               # Use less than half of the CPUs on a node. This algorithm is limited by cache memory
+NODES_INCHWORM="1"
+NODETYPE_INCHWORM="all.q"
+#NODETYPE_INCHWORM="intel.q"    # Inchworm performs faster when Trinity was installed using the Intell compiler (Intell systems only
+
+### Stage P2: Time and resources required for Chrysalis stage
+### Starts with Bowtie alignment and post-processing of alignment file
+### All CPUs presenct can be used for the Chrysalis parts.
+#They may take a while to be provisioned, so the less request, possibly the faster the jobs turnaround.
+# For one step (the parallel sort) it needs as much memory as specified in P1. Less memory, means more I/O for sorting
+WALLTIME_CHRYSALIS="24:00:00"           # optional on Wolfpack
+MEMORY_CHRYSALIS="40"                           # will use it for --JM
+NCPU_CHRYSALIS="16"                             # For very large datasets, besides normalisation, maybe use 32 cores
+NODES_CHRYSALIS="1"
+NODETYPE_CHRYSALIS="all.q"              # dont use intel.q on Wolfpack for this
+
+# This stage is actually Chrysalis::readsToTranscript and Butterfly. Both should ideally be run through a SGE/PBS array
+# The Chrysalis bit is I/O heavy, so a local memory node is used. If files take up over 500GB, this will cause problems.
+# You may want to normalise your data and/or run Martin's optimised, standalone Trinity module
+WALLTIME_BUTTERFLY="72:00:00"
+MEMORY_BUTTERFLY="40"
+NCPU_BUTTERFLY="32"
+NODES_BUTTERFLY="1"
+NODETYPE_BUTTERFLY="all.q"
+
+MODULES_TRINITY="${NG_TRINITY} ${NG_BOWTIE} ${NG_JAVA}"
+PATH_TRINITY=
+
