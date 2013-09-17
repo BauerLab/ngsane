@@ -102,7 +102,6 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="pool data"
 
-exit
 if hash parallel ; then
     echo "[NOTE] parallel processing"
     
