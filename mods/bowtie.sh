@@ -7,7 +7,7 @@
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <SAMPLE>.$ASD.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
 
 
 echo ">>>>> read mapping with bowtie 1"

@@ -21,7 +21,7 @@ while [ "$1" != "" ]; do
 	--postcpu )             shift; POSTCPU=$1 ;;   # CPU used for postcommand
 	--postmemory )          shift; POSTMEMORY=$1;; # Memory used for postcommand
 	--postwalltime )        shift; POSTWALLTIME=$1;;
-	-r | --reverse )        REV="1";;
+	-r | --reverse )        REV="1";;              # input is fastq
 	-d | --nodir )          NODIR="nodir";;
 	-a | --armed )          ARMED="armed";;
     -W | --wait )           shift; JOBIDS=$1 ;;    # jobids to wait for
@@ -32,6 +32,7 @@ while [ "$1" != "" ]; do
 	--direct )              DIRECT="direct";;
 	--first )               FIRST="first";;
 	--postonly )            POSTONLY="postonly" ;;
+	--dryrun )              DRYRUN="TRUE" ;;
 	-h | --help )           usage ;;
 	* )                     echo "prepareJobSubmission.sh: don't understand "$1
     esac
@@ -69,7 +70,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
                 if [ "$KEEP" = "new" ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
-                	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/${n/$ENDING/}/")
+                	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$dir/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)
                 	[ -n "$D" ] && [ -f $TASK/$dir/$D ]  && echo -e "\e[34m[SKIP]\e[0m $dir/$D (already processed)" && continue
                 fi 
@@ -78,12 +79,12 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
             done
         
         else
-            for f in $( ls $SOURCE/$ORIGIN/$dir/*$ENDING | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
+            for f in $( ls $SOURCE/$ORIGIN/$dir/*$ENDING* | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
                 n=${f##*/}
                 if [ "$KEEP" = "new" ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
-                	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/${n/$ENDING/}/")
+                	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$dir/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)
                 	[ -n "$D" ] && [ -f $dir/$TASK/$D ]  && echo -e "\e[34m[SKIP]\e[0m $dir/$D (already processed)" && continue
                 fi 
@@ -107,7 +108,7 @@ else
     echo -e "[NOTE] proceeding with job scheduling..."
 fi
 
-if [ "$FORCE" != "TRUE" ]; then
+if [[ "$FORCE" != "TRUE" && "$DRYRUN" != "TRUE" ]]; then
     echo -n -e "Double check! Then type \e[4msafetyoff\e[24m and hit enter to launch the job: "
     read safetyoff
     if [ "$safetyoff" != "safetyoff" ];then
@@ -143,13 +144,21 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
 	# create dummy files for the pipe
 	COMMANDARR=(${COMMAND// / })
-	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/")
+	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$dir/" | sed "s/<TASK>/$TASK/")
 	D=$(eval $DUMMY)
-	if [ -z "$NODIR" ]; then
-    	touch $dir/$TASK/$D.dummy
-    elif [ -n "$REV" ]; then
-        touch $TASK/$dir/$D.dummy
-    fi
+	echo "[NOTE] make $D.dummy"
+	touch $D.dummy
+	ls $D.dummy
+	
+#	if [ -z "$NODIR" ]; then
+#		touch $dir/$TASK/$D.dummy # normal case
+#	else
+#		if [ -n "$REV" ]; then
+#			touch $ORIGIN/$dir"_"$TASK/$D.dummy # no dir
+#		else
+#			touch $dir/$ORIGIN/$D.dummy # no dir
+#		fi
+#    fi
 
     echo -e "\e[97m[JOB]\e[0m  $COMMAND2"
 

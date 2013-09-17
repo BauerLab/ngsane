@@ -19,7 +19,7 @@ exit
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <SAMPLE>.summary.txt
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.summary.txt
 
 if [ ! $# -gt 3 ]; then usage ; fi
 

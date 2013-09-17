@@ -6,6 +6,10 @@
 # author: Fabian Buske
 # date: August 2013
 
+# QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>_refinepeak.bed
+
+
 echo ">>>>> ChIPseq analysis with MACS2"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
@@ -18,8 +22,6 @@ echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -o OUTDIR [OPTIONS]"
 exit
 }
 
-# QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <SAMPLE>_refinepeak.bed
 
 if [ ! $# -gt 3 ]; then usage ; fi
 

@@ -8,7 +8,7 @@
 # modified: August 2013 Fabian Buske
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <SAMPLE>.$ASD.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
 
 echo ">>>>> readmapping with Bowtie2 "
 echo ">>>>> startdate "`date`

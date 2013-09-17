@@ -8,7 +8,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,truncated file
-# RESULTFILENAME <SAMPLE>_masked
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>_masked
 
 echo ">>>>> feature counting with HTSEQ-COUNT "
 echo ">>>>> startdate "`date`

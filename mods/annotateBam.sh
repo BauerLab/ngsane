@@ -6,7 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <SAMPLE>.merg.anno.bed
+# RESULTFILENAME <DIR>/$INPUT_BAMANN/<SAMPLE>.merg.anno.bed
 
 echo ">>>>> Annotate BAM file "
 echo ">>>>> startdate "`date`

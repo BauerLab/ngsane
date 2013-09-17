@@ -7,7 +7,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,We are loosing reads,MAPQ should be 0 for unmapped read,no such file,file not found,bwa.sh: line,Resource temporarily unavailable
-# RESULTFILENAME <SAMPLE>.$ASD.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
 
 echo ">>>>> readmapping with BWA "
 echo ">>>>> startdate "`date`

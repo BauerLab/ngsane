@@ -11,7 +11,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,truncated file
-# RESULTFILENAME <SAMPLE>.$ASD.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
 
 echo ">>>>> readmapping with Tophat "
 echo ">>>>> startdate "`date`

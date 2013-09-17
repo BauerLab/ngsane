@@ -8,7 +8,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
-# RESULTFILENAME <SAMPLE>$FASTQ
+# RESULTFILENAME fastq/<DIR>_blue/<SAMPLE>.$FASTQ
 
 echo ">>>>> read screening with FASTQSCREEN"
 echo ">>>>> startdate "`date`
