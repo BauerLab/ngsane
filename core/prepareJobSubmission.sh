@@ -172,7 +172,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
         echo "[NOTE] Jobfile: "$QOUT/$TASK/job.$(date "+%Y%m%d").log >> $LOGFILE
 
-        if [ -n "JOBIDS" ]; then 
+        if [ -n "$JOBIDS" ]; then
             RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$JOBIDS" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
         	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
         else 
