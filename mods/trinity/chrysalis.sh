@@ -93,33 +93,43 @@ fi
 mkdir -p $OUTDIR/../$TASKTRINITY/$SAMPLE
 ln -f -s ../$TASKTRINITY/$SAMPLE $OUTDIR/$SAMPLE
 
-#TODO check tmp dir
-#mkdir -p $TMP/$JOB_ID
-#cp -r $OUTDIR/$SAMPLE/* $TMP/$JOB_ID
-#cd $TMP/$JOB_ID
+# make sure we use the same tmp folder name all time so stick with one jobid
+if [ ! -f $OUTDIR/$SAMPLE/persistent_id.tmp ]; then 
+    echo "[ERROR] persistens ID not detected"
+    exit 1
+else
+    PERSISTENT_ID="$(head -n 1 $OUTDIR//$SAMPLEpersistent_id.tmp)"
+fi
 
 echo -e "\n********* $CHECKPOINT\n"
-################################################################################
+###############################################################################
 CHECKPOINT="Chrysalis"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
+    mkdir -p $TMP/$PERSISTENT_ID
+    cp -r $OUTDIR/$SAMPLE/* $TMP/$PERSISTENT_ID
+    cd $TMP/$PERSISTENT_ID
+
     echo "[NOTE] --max_reads_per_graph set to 1 million because very high I/O is needed otherwise. It is unlikely that a transcript needs more than 1 million reads to be assembled"
 
     if [ -z "$SS_LIBRARY_TYPE" ]; then
         echo "[WARN] strand-specific RNAseq library type not set ($SS_LIBRARY_TYPE): treating input as non-stranded"
-        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --output $OUTDIR/$SAMPLE --JM $MEMORY_CHRYSALIS"G" --CPU $NCPU_CHRYSALIS --no_run_quantifygraph"
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --output $TMP/$PERSISTENT_ID --JM $MEMORY_CHRYSALIS"G" --CPU $NCPU_CHRYSALIS --no_run_quantifygraph"
     else
         echo "[NOTE] RNAseq library type: $SS_LIBRARY_TYPE"
-        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --output $OUTDIR/$SAMPLE --JM $MEMORY_CHRYSALIS"G" --CPU $NCPU_CHRYSALIS --no_run_quantifygraph"
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --output $TMP/$PERSISTENT_ID --JM $MEMORY_CHRYSALIS"G" --CPU $NCPU_CHRYSALIS --no_run_quantifygraph"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-#    cp -r $TMP/$JOB_ID/* $OUTDIR/$SAMPLE/
-#    rm -r $TMP/$JOB_ID/*
+    cp -r $TMP/$PERSISTENT_ID/* $OUTDIR/$SAMPLE/
+    rm -r $TMP/$PERSISTENT_ID/*
+    
+    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing}
     cp $OUTDIR/$SAMPLE/chrysalis/chrysalis.finished $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.finished}
+    
     echo "[NOTE] Chrysalis pt.1 has completed properly! thank Martin by buying him another beer"
 
     # mark checkpoint

@@ -99,6 +99,14 @@ fi
 mkdir -p $OUTDIR/../$TASKTRINITY/$SAMPLE
 ln -f -s ../$TASKTRINITY/$SAMPLE $OUTDIR/$SAMPLE
 
+# make sure we use the same tmp folder name all time so stick with one jobid
+if [ ! -f $OUTDIR/$SAMPLE/persistent_id.tmp ]; then 
+    PERSISTENT_ID="trinity_$JOB_ID"
+    echo "$PERSISTENT_ID" >  $OUTDIR/$SAMPLE/persistent_id.tmp;
+else
+    PERSISTENT_ID="$(head -n 1 $OUTDIR/$SAMPLE/persistent_id.tmp)"
+fi
+
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="Inchworm"
@@ -119,7 +127,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     echo "[NOTE] inchworm has completed properly! thank Martin by buying him a beer"
 
-    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/${n/%$READONE.$FASTQ/.Trinity.timing}
+    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/${n/%$READONE.$FASTQ/.inchworm.timing}
 
     # mark checkpoint
     if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.Trinity.timing} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
