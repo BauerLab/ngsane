@@ -527,7 +527,7 @@ fi
 
 ################################################################################
 
-if [ -n "$RUNTRINITY" ];then
+#if [ -n "$RUNTRINITY" ];then
     
 #    for dir in ${DIR[@]}; do
 #        vali=$vali" $OUT/$dir/$TASKTRINITY/"
@@ -536,7 +536,7 @@ if [ -n "$RUNTRINITY" ];then
 #    if [ -e $SOURCE/ ]
 #    LINKS=$LINKS" trinity"
 #    echo "<a name=\"trinity\"><h2>Trinity assembly stats</h2></a><pre>">>$SUMMARYTMP
-fi
+#fi
 
 #
 # Old code ...
