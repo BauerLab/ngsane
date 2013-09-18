@@ -72,13 +72,6 @@ CHECKPOINT="parameters"
 n=${f##*/}
 c=${CHIPINPUT##*/}
 
-if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
-    echo "[WARN] input control not provided or invalid (CHIPINPUT)"
-    unset CHIPINPUT
-else
-    CHIPINPUT="--control $SOURCE/$CHIPINPUT"
-fi
-
 GENOME_CHROMSIZES=${FASTA%%.*}.chrom.sizes
 [ ! -f $GENOME_CHROMSIZES ] && echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES" && exit 1
 echo "[NOTE] GENOME_CHROMSIZES: $GENOME_CHROMSIZES"
@@ -89,8 +82,6 @@ if [ -z "$MACS2_BDGCMP_METHOD" ]; then
     MACS2_BDGCMP_METHOD="ppois"
 fi
 
-cd $OUTDIR
-
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
@@ -98,19 +89,29 @@ CHECKPOINT="recall files from tape"
 if [ -n "$DMGET" ]; then
 	dmget -a $(dirname $FASTA)/*
 	dmget -a ${f}
-	[ -n $CHIPINPUT ] && dmget -a $CHIPINPUT
+	[ -n "$CHIPINPUT" ] && dmget -a $CHIPINPUT
 fi
+
+if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
+    echo "[WARN] input control not provided or invalid (CHIPINPUT)"
+    unset CHIPINPUT
+else
+	echo "[NOTE] CHIPINPUT $CHIPINPUT"
+    CHIPINPUT="--control $SOURCE/$CHIPINPUT"
+fi
+
 
 echo -e "\n********* $CHECKPOINT\n"
 
 ################################################################################
 CHECKPOINT="macs 2 - call peaks "
 
+cd $OUTDIR
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED --bdg --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name ${n/.$ASD.bam/} > ${n/.$ASD.bam/}.summary.txt 2>&1"
+    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED --bdg --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name ${n/.$ASD.bam/} > ${n/.$ASD.bam/}.summary.txt" # 2>&1"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     if [ -f ${n/.$ASD.bam/}_model.r ];then 

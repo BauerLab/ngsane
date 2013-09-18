@@ -332,7 +332,7 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
         <div class='wrapper'><div class='hidden'>
 <div id='bwa_checklist'><pre>
 ###################################################
-# NGSANE /apps/gi/ngsane/devel_db//mods/bwa 
+# NGSANE /apps/gi/ngsane/devel_master//mods/bwa 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -481,7 +481,7 @@ qout/bwa/Transcript_RNA3kChr16rep.out
         <div class='wrapper'><div class='hidden'>
 <div id='reCalAln_checklist'><pre>
 ###################################################
-# NGSANE /apps/gi/ngsane/devel_db//mods/reCalAln2 
+# NGSANE /apps/gi/ngsane/devel_master//mods/reCalAln2 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -614,7 +614,7 @@ qout/reCalAln/Transcript_RNA3kChr16rep.out
         <div class='wrapper'><div class='hidden'>
 <div id='variant_checklist'><pre>
 ###################################################
-# NGSANE /apps/gi/ngsane/devel_db//mods/gatkSNPs 
+# NGSANE /apps/gi/ngsane/devel_master//mods/gatkSNPs 
 ###################################################
 **_FAIL .. finished are 0/1
 >>>>>>>>>> Errors
@@ -627,7 +627,7 @@ qout/variant/postcommand.out
 [NOTE] call snps
 [NOTE] get snps only
 [NOTE] get indels only
-[NOTE] SNP call done Sun Sep 15 00:40:45 EST 2013
+[NOTE] SNP call done Wed Sep 18 21:51:54 EST 2013
 [NOTE] hardfilter
 [NOTE] hard filter INDELs
 [NOTE] index for IGV
@@ -670,7 +670,24 @@ qout/variant/postcommand.out
     </script>
 <div id='variant_results'>
 <h3>SNPs</h3>
+<h3>smokebox/variant/Transcript/</h3>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>            Total</div></th><th><div>            known</div></th><th><div>       SNPdb Conc</div></th><th><div> variantRatePerBp</div></th><th><div>      hetHomRatio</div></th><th><div>            novel</div></th><th><div> variantRatePerBp</div></th><th><div>      hetHomRatio</div></th><th class='left'>File</th></tr></thead>
+<tbody>
+<tr><td></td><td>            19.00</td><td>             8.00</td><td>            87.50</td><td>      11294344.00</td><td>             0.00</td><td>            11.00</td><td>       8214068.00</td><td>             0.00</td><td class='left'><a href="../../smokebox/variant/Transcript/Transcript.filter.snps.eval.txt">smokebox/variant/Transcript/Transcript.filter.snps.eval.txt</a></td></tr>
+</tbody>
+</table>
+<h3>smokebox/variant/Transcript/</h3>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th></th><th class='left'>File</th></tr></thead>
+<tbody>
+</tbody>
+</table>
 <h3>INDELs</h3>
+<h3>smokebox/variant/Transcript/</h3>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>            Total</div></th><th><div>            known</div></th><th><div>       SNPdb Conc</div></th><th><div> variantRatePerBp</div></th><th><div>      hetHomRatio</div></th><th><div>            novel</div></th><th><div> variantRatePerBp</div></th><th><div>      hetHomRatio</div></th><th class='left'>File</th></tr></thead>
+<tbody>
+<tr><td></td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td class='left'><a href="../../smokebox/variant/Transcript/Transcript.filter.indel.eval.txt">smokebox/variant/Transcript/Transcript.filter.indel.eval.txt</a></td></tr>
+</tbody>
+</table>
 </div></div><div class='display'></div></div></div>
 <script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
@@ -679,5 +696,5 @@ qout/variant/postcommand.out
             $('#variant_panel div.wrapper div.display').html($('#variant_results').html());
         }
         </script>
-<hr><span>Report generated with NGSANE version: cbcd2d23f4a7679b4787ad5fcac98db4343b1bdf (git hash)</span><span style='float:right;'>Last modified: Sun Sep 15 00:44:01 EST 2013</span>
+<hr><span>Report generated with NGSANE version: 09afd70dd801f6e8bb6993b4ac7fc834f67ba36e (git hash)</span><span style='float:right;'>Last modified: Wed Sep 18 21:53:43 EST 2013</span>
 </div><!-- center --></body></html>

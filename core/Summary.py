@@ -23,7 +23,7 @@ percent=False
 noSummary=False
 noOverallSummary=False
 overAll=True
-link=False
+link=""
 
 if(dir[0]==""):
     dir.pop(0)
@@ -43,7 +43,8 @@ while(len(sys.argv)>i):
     if(sys.argv[i]=="--noOverAll" or sys.argv[i]=="--n"):
         overAll=False
     if(sys.argv[i]=="--link" or sys.argv[i]=="--l"):
-        link=True
+		i+=1
+		link=sys.argv[i]
     if(sys.argv[i]=="--noSummary" or sys.argv[i]=="--s"):
         noSummary=True
     if(sys.argv[i]=="--noOverallSummary" or sys.argv[i]=="--o"):
@@ -1001,8 +1002,8 @@ for d in dir:
 
             # only list file structure from current root
             filename="/".join(f.split("/")[-4::])
-            if (link):
-                filename="<a href=\""+d.replace("illumina/","")+"/"+f+"\">"+f+"</a>"
+            if (link!=""):
+                filename="<a href=\"%s\">%s</a>" % (link+"/"+filename, filename)
             psresult.append([values,filename])
             oaresult=addValues(oaresult,values)
                 

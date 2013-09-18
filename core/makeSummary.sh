@@ -348,10 +348,10 @@ if [ -n "$RUNVARCALLS" ]; then
 
 	vali=$OUT/$TASKVAR/$(echo ${DIR[@]}|sed 's/ /_/g')/
     echo "<h3>SNPs</h3>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.snps.eval.txt" variant --n --l >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "recalfilt.snps.eval.txt" variant --n --l >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.snps.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "recalfilt.snps.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
     echo "<h3>INDELs</h3>" >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
 
     summaryFooter "$TASKVAR" "$SUMMARYTMP"
 fi

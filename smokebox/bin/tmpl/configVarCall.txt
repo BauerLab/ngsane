@@ -1,4 +1,3 @@
-
 # author: Denis C. Bauer
 # date: September 2013
 
@@ -71,7 +70,7 @@ READONE="_read1"
 READTWO="_read2"
 FASTQ=fastq
 #FASTQ=fastq.gz
-BAMANNLIB=/share/ClusterShare/biodata/contrib/GENCODE_doctored/release_16/BAM_ANNOTATE
+BAMANNLIB=$(pwd)/referenceData/bamann/
 
 
 FASTA=$(pwd)/referenceData/chr16.fasta
