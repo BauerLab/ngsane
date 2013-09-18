@@ -101,7 +101,7 @@ HTMLOUT="Summary"
 ##############################################################
 # gzip alternatives, e.g.
 # pigz (2.3) - http://zlib.net/pigz/
-MODULE_GZIP=${NG_GZIP}"
+MODULE_GZIP=${NG_GZIP}
 GZIP="gzip -9"			# command, e.g. gzip or pigz
 [ -n "$MODULE_GZIP" ] && module load $MODULE_GZIP
 

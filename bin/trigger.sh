@@ -1213,17 +1213,17 @@ if [ -n "$RUNTRINITY" ]; then
     else 
       if [ ! -d $QOUT/$TASKINCHWORM ]; then mkdir -p $QOUT/$TASKINCHWORM; fi
       # this executes "prepareJobSubmission.sh", which invokes "jobsubmission.sh"
-      if [ -n "$ARMED" ]; then
+#      if [ -n "$ARMED" ]; then
         JOBIDS=$($QSUB $ARMED --keep -d -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
           -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
           --command "${NGSANE_BASE}/mods/trinity/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
         ) && echo -e "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
-      else
-        JOBIDS=$(echo $QSUB $ARMED --keep -d -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
-        -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
-        --command "${NGSANE_BASE}/mods/trinity/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
-        ) && echo -e "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
-      fi
+#      else
+#        JOBIDS=$(echo $QSUB $ARMED --keep -d -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
+#        -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
+#        --command "${NGSANE_BASE}/mods/trinity/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+#        ) && echo -e "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
+#     fi
     fi
   fi
 
