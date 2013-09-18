@@ -3,7 +3,7 @@
 # tested with trinityrnaseq_r2013-02-25
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.chrysalis.finished
 
 echo ">>>>> transcriptome assembly with trinity chrysalis"
 echo ">>>>> startdate "`date`
@@ -56,8 +56,8 @@ echo -e "--bowtie      --\n "$(bowtie --version)
 [ -z "$(which bowtie)" ] && echo "[ERROR] no bowtie detected" && exit 1
 echo -e "--perl        --\n "$(perl -v | grep "version" )
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
-echo -e "--trinity     --\n "$(trinity --version)
-[ -z "$(which trinity)" ] && echo "[ERROR] no trinity detected" && exit 1
+echo -e "--trinity     --\n "$(Trinity.pl --version)
+[ -z "$(which Trinity.pl)" ] && echo "[ERROR] no trinity detected" && exit 1
 
 ulimit -s unlimited
 
@@ -76,6 +76,7 @@ CHECKPOINT="detect library"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$READONE.$FASTQ/}
 
 ## is paired ?                                                                                                      
 if [ -e ${f/$READONE/$READTWO} ]; then
@@ -88,11 +89,14 @@ else
     exit 1
 fi
 
+# fancy symbolic link generation to work in common trinity folder
+mkdir -p $OUTDIR/../$TASKTRINITY/$SAMPLE
+ln -f -s ../$TASKTRINITY/$SAMPLE $OUTDIR/$SAMPLE
+
 #TODO check tmp dir
-mkdir $TMP/$JOB_ID
-TMP_LOC=${f#*$SOURCE/fastq/}  # project name, i.e. sample1
-cp $SOURCE/${TMP_LOC%/*}/trinity/ $TMP/$JOB_ID
-cd $TMP/$JOB_ID
+#mkdir -p $TMP/$JOB_ID
+#cp -r $OUTDIR/$SAMPLE/* $TMP/$JOB_ID
+#cd $TMP/$JOB_ID
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -106,25 +110,23 @@ else
 
     if [ -z "$SS_LIBRARY_TYPE" ]; then
         echo "[WARN] strand-specific RNAseq library type not set ($SS_LIBRARY_TYPE): treating input as non-stranded"
-        RUN_COMMAND="$(which perl) Trinity.pl --seqType fq --left $f --right $f2 --output /tmp/$JOB_ID --JM $MEMORY_CHRYSALIS"G" --CPU $NCPU_CHRYSALIS --no_run_quantifygraph"
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --output $OUTDIR/$SAMPLE --JM $MEMORY_CHRYSALIS"G" --CPU $NCPU_CHRYSALIS --no_run_quantifygraph"
     else
         echo "[NOTE] RNAseq library type: $SS_LIBRARY_TYPE"
-        RUN_COMMAND="$(which perl) Trinity.pl --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --output /tmp/$JOB_ID --JM $MEMORY_CHRYSALIS"G" --CPU $NCPU_CHRYSALIS --no_run_quantifygraph"
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --output $OUTDIR/$SAMPLE --JM $MEMORY_CHRYSALIS"G" --CPU $NCPU_CHRYSALIS --no_run_quantifygraph"
     fi
-    
-    mv $TMP/$JOB_ID/* $SOURCE/${TMP_LOC%/*}/trinity/
-    
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
+#    cp -r $TMP/$JOB_ID/* $OUTDIR/$SAMPLE/
+#    rm -r $TMP/$JOB_ID/*
+    cp $OUTDIR/$SAMPLE/chrysalis/chrysalis.finished $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.finished}
     echo "[NOTE] Chrysalis pt.1 has completed properly! thank Martin by buying him another beer"
 
     # mark checkpoint
-    #TODO: result file?
-    if [ -f  ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.finished} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi 
 
 ################################################################################
-#TODO correct dummy
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
+[ -e $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.finished}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.finished}.dummy
 echo ">>>>> transcriptome assembly with trinity chrysalis - FINISHED"
 echo ">>>>> enddate "`date`

@@ -88,7 +88,11 @@ function waitForJobIds {
     if [ -n "$JOBIDS" ]; then 
         JOBIDS=$(echo $JOBIDS | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
     fi
-    echo $JOBIDS
+    if [ "$JOBIDS" != "" ]; then
+        echo "-W $JOBIDS"
+    else
+        echo ""
+    fi
 } 
 
 ################################################################################
@@ -115,9 +119,18 @@ if [ -n "$ADDITIONALTASK" ]; then
 	    echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
 	    ARMED="--armed"
 
+        echo -n -e "Double check! Then type \e[4msafetyoff\e[24m and hit enter to launch the job: "
+        read safetyoff
+        if [ "$safetyoff" != "safetyoff" ];then
+            echo -e "Holstering..."
+            exit 0
+        else
+            echo -e "... take cover!"
+        fi
+
     elif [ "$ADDITIONALTASK" = "forcearmed" ]; then
         echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
-        ARMED="--armed --force"
+        ARMED="--armed"
 
     elif [ "$ADDITIONALTASK" = "keep" ]; then
         echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
@@ -129,7 +142,7 @@ if [ -n "$ADDITIONALTASK" ]; then
 
     elif [ "$ADDITIONALTASK" = "direct" ]; then
         echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
-        ARMED="--direct --force"
+        ARMED="--direct"
 
     elif [ "$ADDITIONALTASK" = "first" ]; then
         echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
@@ -141,7 +154,7 @@ if [ -n "$ADDITIONALTASK" ]; then
         
     elif [ "$ADDITIONALTASK" = "recover" ]; then
         echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
-        ARMED="--recover --armed --force"
+        ARMED="--recover --armed"
 
     else
         echo -e "\e[91m[ERROR]\e[0m don't understand $ADDITIONALTASK"
@@ -475,16 +488,17 @@ fi
 if [ -n "$RUNTOPHATCUFF" ]; then
     if [ -z "$TASKTOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    JOBIDS=$(
-        $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
-            --command "${NGSANE_BASE}/mods/tophat.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTOPHAT/<NAME>"
+    JOBIDS=$( \
+        $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" \
+            -w $WALLTIME_TOPHAT \
+            --command "${NGSANE_BASE}/mods/tophat.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTOPHAT/<NAME>" \
     ) && echo -e "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
 
     # instruct to wait for TOPHATJOBIDS to finish
-    $QSUB $ARMED -r -k $CONFIG -t $TASKCUFFLINKS -i $INPUT_CUFFLINKS -e .$ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS -W "$JOBIDS" \
+    $QSUB $ARMED -r -k $CONFIG -t $TASKCUFFLINKS -i $INPUT_CUFFLINKS -e .$ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS "$JOBIDS" \
         --command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKCUFFLINKS/<NAME>"
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASKHTSEQCOUNT -i $INPUT_HTSEQCOUNT -e .$ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT -W "$JOBIDS" \
+    $QSUB $ARMED -r -k $CONFIG -t $TASKHTSEQCOUNT -i $INPUT_HTSEQCOUNT -e .$ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT "$JOBIDS" \
         --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHTSEQCOUNT/<NAME>"
 
 fi
@@ -1193,111 +1207,171 @@ fi
 # IN : $SOURCE/$dir/fastq/*read1.fastq
 ################################################################################
 
-if [ -n "$RUNTRINITY" ]; then
-  echo -e "        _       _     _ _"
-  echo -e "       | |_ ___|_|___|_| |_ _ _"
-  echo -e "       |  _|  _| |   | |  _| | |"
-  echo -e "       |_| |_| |_|_|_|_|_| |_  |"
-  echo -e "   DeNovo Transcriptome    |___|  "
-  echo -e "   Assembly without a reference genome"
-  echo -e ""
-  ###################################
-  ##########   Inchworm   ###########
-  if [ -n "$RUNINCHWORM" ]; then
-    echo -e "-----> ${TASKINCHWORM}"
-    if [ -e $SOURCE/$QOUT/$TASKINCHWORM.checkp ]; then  # this may need to be some other filename
-      echo -e "[WARNING] $TASKINCHWORM has already been performed, set $RUNINCHWORM to blank to avoid wasting resources" ;
-    elif [ -z "$NODES_INCHWORM" ] || [ -z "$NCPU_INCHWORM" ] || [ -z "$MEMORY_INCHWORM" ] || [ -z "$WALLTIME_INCHWORM" ] || [ -z "$NODETYPE_INCHWORM" ] 
-        then 
-      echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1
-    else
-        if [ ! -d $QOUT/$TASKINCHWORM ]; then mkdir -p $QOUT/$TASKINCHWORM; fi
-        # this executes "prepareJobSubmission.sh", which invokes "jobsubmission.sh"
-        JOBIDS=$( $QSUB $ARMED -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
-      	         -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
-      	         --command "${NGSANE_BASE}/mods/trinity/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
-                ) && echo -e "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
-    fi
-  fi
+#  echo -e "        _       _     _ _"
+#  echo -e "       | |_ ___|_|___|_| |_ _ _"
+#  echo -e "       |  _|  _| |   | |  _| | |"
+#  echo -e "       |_| |_| |_|_|_|_|_| |_  |"
+#  echo -e "   DeNovo Transcriptome    |___|  "
+#  echo -e "   Assembly without a reference genome"
+#  echo -e ""
 
-  ###################################
-  ##########   Chrysalis  ###########
-  if [ -n "$RUNCHRYSALIS" ]; then 
-    echo -e "----->  ${TASKCHRYSALIS}"
-    if [ -z "$NODES_CHRYSALIS" ] || [ -z "$NCPU_CHRYSALIS" ] || [ -z "$MEMORY_CHRYSALIS" ] || [ -z "$WALLTIME_CHRYSALIS" ] || [ -z "$NODETYPE_CHRYSALIS" ] ; then 
-      echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1
-    elif [ ! -d $QOUT/$TASKCHRYSALIS ]; then 
-      mkdir -p $QOUT/$TASKCHRYSALIS
-    fi
-    # ensure inchworm has completed or die     
-    if [ ! -n "$RUNINCHWORM" ]; then 
-      for dir in ${DIR[@]}; do
-        if [ ! -e $SOURCE/$dir/$TASKTRINITY/inchworm*.finished ]; then 
-         echo -e "\e[91m[ERROR]\e[0m Inchworm has not completed for sample "$dir", change RUNINCHWORM in your config"
-         exit 1
-        else 
-          echo -e "[NOTE] Inchworm seems to have completed for sample "$dir
-        fi
-      done
-      if [ -n "$ARMED" ]; then
-        $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
-         -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS \
-         --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
-      else
-       echo $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
-         -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS \
-         --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
-      fi      
-    else 
-      if [ -n "$ARMED" ]; then
-        $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
-         -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS -W $TASKINCHWORM \
-         --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
-      else
-       echo $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
-         -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS -W $TASKINCHWORM \
-         --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
-      fi
-    fi
-  fi
-  ###################################
-  ##########   Butterfly  ###########
-  if [ -n "$RUNBUTTERFLY" ]; then 
-    echo -e "-----> ${TASKBUTTERFLY}"
-    if [ -z "$NODES_BUTTERFLY" ] || [ -z "$NCPU_BUTTERFLY" ] || [ -z "$MEMORY_BUTTERFLY" ] || [ -z "$WALLTIME_BUTTERFLY" ] || [ -z "$NODETYPE_BUTTERFLY" ] ; then 
-      echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1
-    elif [ ! -d $QOUT/$TASKBUTTERFLY ]; then 
-      mkdir -p $QOUT/$TASKBUTTERFLY
-    fi
-    if [ ! -n "$RUNCHRYSALIS" ]; then 
-      for dir in ${DIR[@]}; do
-        if [ ! -e $SOURCE/$dir/$TASKTRINITY/chrysalis/chrysalis.finished ]; then 
-         echo -e "\e[91m[ERROR]\e[0m Chrysalis has not completed for sample "$dir", change RUNCHRYSALIS in your config"
-         exit 1
-        else 
-          echo -e "[NOTE] Chrysalis seems to have completed for sample "$dir
-        fi
-      done
-      if [ -n "$ARMED" ]; then
-        $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
-          -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY \
-          --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
-      else
-       echo $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
-         -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY \
-         --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
-      fi
-    else
-      if [ -n "$ARMED" ]; then
-      # -y is for to enable an array
-       $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
-         -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY -W $TASKCHRYSALIS \
-         --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
-      else
-       echo $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
-         -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY -W $TASKCHRYSALIS \
-         --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
-      fi
-    fi
-  fi
+if [ -n "$RUNTRINITY" ]; then
+    if [ -z "$NODES_INCHWORM" ] || [ -z "$NCPU_INCHWORM" ] || [ -z "$MEMORY_INCHWORM" ] || [ -z "$WALLTIME_INCHWORM" ] || [ -z "$NODETYPE_INCHWORM" ]; then  echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    if [ -z "$NODES_CHRYSALIS" ] || [ -z "$NCPU_CHRYSALIS" ] || [ -z "$MEMORY_CHRYSALIS" ] || [ -z "$WALLTIME_CHRYSALIS" ] || [ -z "$NODETYPE_CHRYSALIS" ] ; then  echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    if [ -z "$NODES_BUTTERFLY" ] || [ -z "$NCPU_BUTTERFLY" ] || [ -z "$MEMORY_BUTTERFLY" ] || [ -z "$WALLTIME_BUTTERFLY" ] || [ -z "$NODETYPE_BUTTERFLY" ] ; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    #  ##########   Inchworm   ###########
+    JOBIDS=$( \
+        $QSUB $ARMED -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
+    	         -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
+    	         --command "${NGSANE_BASE}/mods/trinity/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKINCHWORM/"\
+    ) && echo -e "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
+    
+    #  ##########   Chrysalis  ###########
+    JOBIDS=$( \
+        $QSUB $ARMED -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
+         -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS $JOBIDS \
+         --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKCHRYSALIS/"\
+    ) && echo -e "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
+
+    #  ##########   Butterfly  ###########
+    $QSUB $ARMED -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
+          -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY $JOBIDS \
+          --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBUTTERFLY/"
+ 
 fi
+################################################################################
+# individual calls
+#  ##########   Inchworm   ###########
+if [ -n "$RUNINCHWORM" ] && [ -z "$RUNTRINITY" ]; then
+    if [ -z "$NODES_INCHWORM" ] || [ -z "$NCPU_INCHWORM" ] || [ -z "$MEMORY_INCHWORM" ] || [ -z "$WALLTIME_INCHWORM" ] || [ -z "$NODETYPE_INCHWORM" ]; then  echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
+        -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
+        --command "${NGSANE_BASE}/mods/trinity/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKINCHWORM"
+fi
+#  ##########   Chrysalis  ###########
+if [ -n "$RUNCHRYSALIS" ] && [ -z "$RUNTRINITY" ]; then
+    if [ -z "$NODES_CHRYSALIS" ] || [ -z "$NCPU_CHRYSALIS" ] || [ -z "$MEMORY_CHRYSALIS" ] || [ -z "$WALLTIME_CHRYSALIS" ] || [ -z "$NODETYPE_CHRYSALIS" ] ; then  echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
+        -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS $JOBIDS \
+        --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKCHRYSALIS"
+fi
+#  ##########   Butterfly  ###########
+if [ -n "$RUNBUTTERFLY" ] && [ -z "$RUNTRINITY" ]; then
+    if [ -z "$NODES_BUTTERFLY" ] || [ -z "$NCPU_BUTTERFLY" ] || [ -z "$MEMORY_BUTTERFLY" ] || [ -z "$WALLTIME_BUTTERFLY" ] || [ -z "$NODETYPE_BUTTERFLY" ] ; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
+          -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY $JOBIDS \
+          --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBUTTERFLY" 
+fi
+
+#if [ -n "$RUNTRINITY" ]; then
+#  echo -e "        _       _     _ _"
+#  echo -e "       | |_ ___|_|___|_| |_ _ _"
+#  echo -e "       |  _|  _| |   | |  _| | |"
+#  echo -e "       |_| |_| |_|_|_|_|_| |_  |"
+#  echo -e "   DeNovo Transcriptome    |___|  "
+#  echo -e "   Assembly without a reference genome"
+#  echo -e ""
+#  ###################################
+#  ##########   Inchworm   ###########
+#  if [ -n "$RUNINCHWORM" ]; then
+#    echo -e "-----> ${TASKINCHWORM}"
+#    if [ -e $SOURCE/$QOUT/$TASKINCHWORM.checkp ]; then  # this may need to be some other filename
+#      echo -e "[WARNING] $TASKINCHWORM has already been performed, set $RUNINCHWORM to blank to avoid wasting resources" ;
+#    elif [ -z "$NODES_INCHWORM" ] || [ -z "$NCPU_INCHWORM" ] || [ -z "$MEMORY_INCHWORM" ] || [ -z "$WALLTIME_INCHWORM" ] || [ -z "$NODETYPE_INCHWORM" ] 
+#        then 
+#      echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1
+#    else
+#        if [ ! -d $QOUT/$TASKINCHWORM ]; then mkdir -p $QOUT/$TASKINCHWORM; fi
+#        # this executes "prepareJobSubmission.sh", which invokes "jobsubmission.sh"
+#        JOBIDS=$( $QSUB $ARMED -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
+#      	         -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
+#      	         --command "${NGSANE_BASE}/mods/trinity/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+#                ) && echo -e "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
+#    fi
+#  fi
+#
+#  ###################################
+#  ##########   Chrysalis  ###########
+#  if [ -n "$RUNCHRYSALIS" ]; then 
+#    echo -e "----->  ${TASKCHRYSALIS}"
+#    if [ -z "$NODES_CHRYSALIS" ] || [ -z "$NCPU_CHRYSALIS" ] || [ -z "$MEMORY_CHRYSALIS" ] || [ -z "$WALLTIME_CHRYSALIS" ] || [ -z "$NODETYPE_CHRYSALIS" ] ; then 
+#      echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1
+#    elif [ ! -d $QOUT/$TASKCHRYSALIS ]; then 
+#      mkdir -p $QOUT/$TASKCHRYSALIS
+#    fi
+#    # ensure inchworm has completed or die     
+#    if [ ! -n "$RUNINCHWORM" ]; then 
+#      for dir in ${DIR[@]}; do
+#        if [ ! -e $SOURCE/$dir/$TASKTRINITY/inchworm*.finished ]; then 
+#         echo -e "\e[91m[ERROR]\e[0m Inchworm has not completed for sample "$dir", change RUNINCHWORM in your config"
+#         exit 1
+#        else 
+#          echo -e "[NOTE] Inchworm seems to have completed for sample "$dir
+#        fi
+#      done
+#      if [ -n "$ARMED" ]; then
+#        $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
+#         -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS \
+#         --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+#      else
+#       echo $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
+#         -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS \
+#         --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+#      fi      
+#    else 
+#      if [ -n "$ARMED" ]; then
+#        $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
+#         -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS -W $TASKINCHWORM \
+#         --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+#      else
+#       echo $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
+#         -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS -W $TASKINCHWORM \
+#         --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+#      fi
+#    fi
+#  fi
+#  ###################################
+#  ##########   Butterfly  ###########
+#  if [ -n "$RUNBUTTERFLY" ]; then 
+#    echo -e "-----> ${TASKBUTTERFLY}"
+#    if [ -z "$NODES_BUTTERFLY" ] || [ -z "$NCPU_BUTTERFLY" ] || [ -z "$MEMORY_BUTTERFLY" ] || [ -z "$WALLTIME_BUTTERFLY" ] || [ -z "$NODETYPE_BUTTERFLY" ] ; then 
+#      echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1
+#    elif [ ! -d $QOUT/$TASKBUTTERFLY ]; then 
+#      mkdir -p $QOUT/$TASKBUTTERFLY
+#    fi
+#    if [ ! -n "$RUNCHRYSALIS" ]; then 
+#      for dir in ${DIR[@]}; do
+#        if [ ! -e $SOURCE/$dir/$TASKTRINITY/chrysalis/chrysalis.finished ]; then 
+#         echo -e "\e[91m[ERROR]\e[0m Chrysalis has not completed for sample "$dir", change RUNCHRYSALIS in your config"
+#         exit 1
+#        else 
+#          echo -e "[NOTE] Chrysalis seems to have completed for sample "$dir
+#        fi
+#      done
+#      if [ -n "$ARMED" ]; then
+#        $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
+#          -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY \
+#          --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+#      else
+#       echo $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
+#         -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY \
+#         --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+#      fi
+#    else
+#      if [ -n "$ARMED" ]; then
+#      # -y is for to enable an array
+#       $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
+#         -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY -W $TASKCHRYSALIS \
+#         --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+#      else
+#       echo $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
+#         -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY -W $TASKCHRYSALIS \
+#         --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+#      fi
+#    fi
+#  fi
+#fi

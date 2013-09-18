@@ -28,7 +28,6 @@ while [ "$1" != "" ]; do
 	-d | --nodir )          NODIR="nodir";;
 	-a | --armed )          ARMED="armed";;
     -W | --wait )           shift; JOBIDS=$1 ;;    # jobids to wait for
-	--force )               FORCE="TRUE";;         # don't double check
 	--keep )                KEEP="keep";;
 	--new )                 KEEP="new";;
 	--recover )             RECOVER="recover";;
@@ -107,17 +106,6 @@ if [ -n "$KEEP" ]; then
     exit ; 
 else
     echo -e "[NOTE] proceeding with job scheduling..."
-fi
-
-if [[ "$FORCE" != "TRUE" && "$DRYRUN" != "TRUE" ]]; then
-    echo -n -e "Double check! Then type \e[4msafetyoff\e[24m and hit enter to launch the job: "
-    read safetyoff
-    if [ "$safetyoff" != "safetyoff" ];then
-        echo -e "Holstering..."
-        exit 0
-    else
-        echo -e "... take cover!"
-    fi
 fi
 
 MYPBSIDS="" # collect job IDs for postcommand

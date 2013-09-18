@@ -3,7 +3,7 @@
 # tested with trinityrnaseq_r2013-02-25
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.Trinity.timing
 
 echo ">>>>> transcriptome assembly with trinity inchworm"
 echo ">>>>> startdate "`date`
@@ -56,8 +56,8 @@ echo -e "--bowtie      --\n "$(bowtie --version)
 [ -z "$(which bowtie)" ] && echo "[ERROR] no bowtie detected" && exit 1
 echo -e "--perl        --\n "$(perl -v | grep "version" )
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
-echo -e "--trinity     --\n "$(trinity --version)
-[ -z "$(which trinity)" ] && echo "[ERROR] no trinity detected" && exit 1
+echo -e "--trinity     --\n "$(Trinity.pl --version)
+[ -z "$(which Trinity.pl)" ] && echo "[ERROR] no trinity detected" && exit 1
 
 
 #if [ $NODETYPE_INCHWORM -eq "intel.q" ] ; then
@@ -82,6 +82,7 @@ CHECKPOINT="detect library"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$READONE.$FASTQ/}
 
 ## is paired ?                                                                                                      
 if [ -e ${f/$READONE/$READTWO} ]; then
@@ -94,9 +95,9 @@ else
     exit 1
 fi
 
-# cd /tmp ##??????
-
-# this runs Inchworm only
+# fancy symbolic link generation to work in common trinity folder
+mkdir -p $OUTDIR/../$TASKTRINITY/$SAMPLE
+ln -f -s ../$TASKTRINITY/$SAMPLE $OUTDIR/$SAMPLE
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -110,17 +111,18 @@ else
 
     if [ -z "$SS_LIBRARY_TYPE" ]; then
         echo "[WARNING] strand-specific RNAseq library type not set ($SS_LIBRARY_TYPE): treating input as non-stranded"
-        RUN_COMMAND="Trinity.pl --seqType fq --left $f --right $f2 --max_reads_per_graph 1000000 --output $OUTDIR --JM $MEMORY_INCHWORM"G" --CPU $NCPU_INCHWORM --no_run_chrysalis"
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --max_reads_per_graph 1000000 --output $OUTDIR/$SAMPLE --JM $MEMORY_INCHWORM"G" --CPU $NCPU_INCHWORM --no_run_chrysalis"
     else
         echo "[NOTE] RNAseq library type: $SS_LIBRARY_TYPE"
-        RUN_COMMAND="Trinity.pl --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --max_reads_per_graph 1000000 --output $OUTDIR --JM $MEMORY_INCHWORM"G" --CPU $NCPU_INCHWORM --no_run_chrysalis"
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --max_reads_per_graph 1000000 --output $OUTDIR/$SAMPLE --JM $MEMORY_INCHWORM"G" --CPU $NCPU_INCHWORM --no_run_chrysalis"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     echo "[NOTE] inchworm has completed properly! thank Martin by buying him a beer"
 
+    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/${n/%$READONE.$FASTQ/.Trinity.timing}
+
     # mark checkpoint
-    #TODO: result file?
-    if [ -f  ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.Trinity.timing} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi 
 
 ################################################################################
@@ -128,9 +130,7 @@ CHECKPOINT="cleanup"
 
 if [ -n $CLEANUP ]; then 
 #    rm $OUTDIR/*ebwt $OUTDIR/*ebwt  #bowtie files required for chrysalis, and this is the WRONG file location (log path)
-    TMP_LOC=${f#*$SOURCE/fastq/}
-    echo "[NOTE] cleaning up: rm "$SOURCE/${TMP_LOC%/*}"/trinity/jellyfish.kmers.fa"
-    rm $SOURCE/${TMP_LOC%/*}/trinity/jellyfish.kmers.fa
+    [ -e $OUTDIR/$SAMPLE/jellyfish.kmers.fa ] && rm $OUTDIR/$SAMPLE/jellyfish.kmers.fa
 else
     echo "[WARN] no cleaning up: I hope you plan on running some more analyses on the chrysalis/inchworm stuff. \
             Otherwise, free up some space you dirty, dirty hacker.... "
@@ -139,6 +139,6 @@ fi
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 #TODO correct dummy
-#[ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
-echo ">>>>> transcriptome assembly with trinity chrysalis - FINISHED"
+[ -e $OUTDIR/${n/%$READONE.$FASTQ/.Trinity.timing}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.Trinity.timing}.dummy
+echo ">>>>> transcriptome assembly with trinity inchworm - FINISHED"
 echo ">>>>> enddate "`date`

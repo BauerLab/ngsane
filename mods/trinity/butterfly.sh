@@ -3,7 +3,7 @@
 # tested with trinityrnaseq_r2013-02-25
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.fasta.gz
 
 echo ">>>>> transcriptome assembly with trinity butterfly"
 echo ">>>>> startdate "`date`
@@ -54,8 +54,8 @@ echo -e "--bowtie      --\n "$(bowtie --version)
 [ -z "$(which bowtie)" ] && echo "[ERROR] no bowtie detected" && exit 1
 echo -e "--perl        --\n "$(perl -v | grep "version" )
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
-echo -e "--trinity     --\n "$(trinity --version)
-[ -z "$(which trinity)" ] && echo "[ERROR] no trinity detected" && exit 1
+echo -e "--trinity     --\n "$(Trinity.pl --version)
+[ -z "$(which Trinity.pl)" ] && echo "[ERROR] no trinity detected" && exit 1
 
 ulimit -s unlimited
 
@@ -74,6 +74,7 @@ CHECKPOINT="detect library"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$READONE.$FASTQ/}
 
 ## is paired ?                                                                                                      
 if [ -e ${f/$READONE/$READTWO} ]; then
@@ -85,11 +86,15 @@ else
     echo "[ERROR] Single-Strand (unpaired) library detected !!!! currently unsupported !!!!"
     exit 1
 fi
+
+# fancy symbolic link generation to work in common trinity folder
+mkdir -p $OUTDIR/../$TASKTRINITY/$SAMPLE
+ln -f -s ../$TASKTRINITY/$SAMPLE $OUTDIR/$SAMPLE
+
 # copy files over to node-local filesystem
-mkdir /tmp/$JOB_ID
-#cp $SOURCE/${TMP_LOC%/*}/trinity/ /tmp/$JOB_ID
-cd /tmp/$JOB_ID
-TMP_LOC=${f#*$SOURCE/fastq/}  # project name, i.e. sample1
+#mkdir -p $TMP/$JOB_ID
+#cp -r $OUTDIR/$SAMPLE/* $TMP/$JOB_ID
+#cd $TMP/$JOB_ID
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -104,30 +109,42 @@ else
     
     if [ -z "$SS_LIBRARY_TYPE" ]; then
         echo "[WARNING] strand-specific RNAseq library type not set ($SS_LIBRARY_TYPE): treating input as non-stranded"
-        RUN_COMMAND="$(which perl) Trinity.pl --seqType fq --left $f --right $f2 --max_reads_per_graph 1000000 --output $SOURCE/${TMP_LOC%/*}/trinity/ \
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --max_reads_per_graph 1000000 --output $OUTDIR/$SAMPLE \
                         --JM $MEMORY_BUTTERFLY"G" --CPU $NCPU_BUTTERFLY "
     else
         echo "[NOTE] RNAseq library type: $SS_LIBRARY_TYPE"
-        RUN_COMMAND="$(which perl) Trinity.pl --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --max_reads_per_graph 1000000 \
-                        --output $SOURCE/${TMP_LOC%/*}/trinity/ --JM $MEMORY_BUTTERFLY"G" --CPU $NCPU_BUTTERFLY "
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --max_reads_per_graph 1000000 \
+                        --output $OUTDIR/$SAMPLE --JM $MEMORY_BUTTERFLY"G" --CPU $NCPU_BUTTERFLY "
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
+#    rm -r $TMP/$JOB_ID/*
+
     echo "[NOTE] butterly has completed properly! thank Martin by buying him yet another beer (hic!)"
-    # make this from the compute node? 
-    $GZIP -c $SOURCE/${TMP_LOC%/*}/trinity/Trinity.fasta > $SOURCE/${TMP_LOC%/*}.fasta.gz 
 
     # mark checkpoint
-    #TODO: result file?
-    if [ -f ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE/Trinity.fasta ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi 
+################################################################################
+CHECKPOINT="zip"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    $GZIP -c $OUTDIR/$SAMPLE/Trinity.fasta > $OUTDIR/$SAMPLE.fasta.gz
+
+    # mark checkpoint
+    if [ -f $OUTDIR/$SAMPLE.fasta.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi 
 ################################################################################
 CHECKPOINT="cleanup"
 
 if [ -n $CLEANUP ]; then 
-    echo "[WARNING] cleaning up, all intermediary files will disappear: rm "$SOURCE/${TMP_LOC%/*}"/trinity/... \"POOF\""
-    ls SOURCE/${TMP_LOC%/*}/trinity/ | grep -v "Trinity.*" | xargs -d"\n" rm 
-    mv $SOURCE/${TMP_LOC%/*}.fasta.gz $SOURCE/${TMP_LOC%/*}/trinity/ 
+    echo "[WARNING] cleaning up, all intermediary files will disappear: rm $OUTDIR/$SAMPLE/... \"POOF\""
+    cd $OUTDIR/$SAMPLE 
+    ls .| grep -v "Trinity.*" | xargs -d"\n" rm -rf 
+#    mv $SOURCE/${TMP_LOC%/*}.fasta.gz $SOURCE/${TMP_LOC%/*}/trinity/ 
 
 else
     echo "[NOTE] no cleaning up: I hope you plan on running some more analyses on the chrysalis/inchworm stuff. \
@@ -137,7 +154,6 @@ fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-#TODO correct dummy
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
+[ -e $OUTDIR/$SAMPLE.fasta.gz.dummy ] && rm $OUTDIR/$SAMPLE.fasta.gz.dummy
 echo ">>>>> transcriptome assembly with trinity butterfly - FINISHED"
 echo ">>>>> enddate "`date`
