@@ -42,7 +42,9 @@ echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 
-echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--NGSANE       --\n" $(trigger.sh -v 2>&1)
+echo -e "--perl         --\n "$(perl -v | grep "This is perl" )
+[ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
 echo -e "--fastq_screen --\n "  $(`which perl` `which fastq_screen` --version)
 [ ! -f $(which fastq_screen) ] && echo "[ERROR] no fastq_screen detected" && exit 1
 

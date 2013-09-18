@@ -7,6 +7,7 @@
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
+    -q | --queue )          shift; QUEUE=$1 ;;     # nodetype for qsub
 	-k | --toolkit )        shift; CONFIG=$1 ;;    # location of the NGSANE repository
 	-i | --input )          shift; ORIGIN=$1 ;;    # subfile in $SOURCE
 	-e | --fileending )     shift; ENDING=$1 ;;    # select source files of a specific ending
@@ -15,6 +16,8 @@ while [ "$1" != "" ]; do
 	-c | --cpu    )         shift; CPU=$1 ;;       # CPU used
 	-m | --memory )         shift; MEMORY=$1;;     # min Memory required
 	-w | --walltime )       shift; WALLTIME=$1;;
+	# TODO redundant check below
+#    -W | --waitfor )        shift; WAITFOR=$1 ;;    # wait for previous TASK to finish (asumes job names follows std. NGSane rules)
 	-p | --command )        shift; COMMAND=$1;;
 	--postcommand )         shift; POSTCOMMAND=$1;;
 	--postnodes )           shift; POSTNODES=$1;;
@@ -25,7 +28,6 @@ while [ "$1" != "" ]; do
 	-d | --nodir )          NODIR="nodir";;
 	-a | --armed )          ARMED="armed";;
     -W | --wait )           shift; JOBIDS=$1 ;;    # jobids to wait for
-	--force )               FORCE="TRUE";;         # don't double check
 	--keep )                KEEP="keep";;
 	--new )                 KEEP="new";;
 	--recover )             RECOVER="recover";;
@@ -48,9 +50,7 @@ echo -e "\e[96m[Task]\e[0m $TASK $NODIR"
 
 if [ ! -d $QOUT/$TASK ]; then mkdir -p $QOUT/$TASK; fi
 
-## Select files in dir to run (since direct and keep do not delete
-# the runnow.tmp they need to be forced to overwite this file every
-# time it is called)
+## Select files in dir to run 
 if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
     echo -e "[NOTE] setup enviroment"
     if [ -e $QOUT/$TASK/runnow.tmp ]; then rm $QOUT/$TASK/runnow.tmp; fi
@@ -106,17 +106,6 @@ if [ -n "$KEEP" ]; then
     exit ; 
 else
     echo -e "[NOTE] proceeding with job scheduling..."
-fi
-
-if [[ "$FORCE" != "TRUE" && "$DRYRUN" != "TRUE" ]]; then
-    echo -n -e "Double check! Then type \e[4msafetyoff\e[24m and hit enter to launch the job: "
-    read safetyoff
-    if [ "$safetyoff" != "safetyoff" ];then
-        echo -e "Holstering..."
-        exit 0
-    else
-        echo -e "... take cover!"
-    fi
 fi
 
 MYPBSIDS="" # collect job IDs for postcommand
@@ -190,6 +179,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
         	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
         fi    	
+
         echo -e "Jobnumber $RECIPT"
         MYPBSIDS=$MYPBSIDS":"$RECIPT
     
