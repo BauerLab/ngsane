@@ -1188,10 +1188,10 @@ if [ -n "$RUNCUFFDIFF" ]; then
 
 fi
 
-
-
-      done
-fi
+################################################################################
+#   Transcriptome assembly without a Reference (Trinity)
+# IN : $SOURCE/$dir/fastq/*read1.fastq
+################################################################################
 
 if [ -n "$RUNTRINITY" ]; then
   echo -e "        _       _     _ _"
@@ -1216,11 +1216,11 @@ if [ -n "$RUNTRINITY" ]; then
       if [ ! -d $QOUT/$TASKINCHWORM ]; then mkdir -p $QOUT/$TASKINCHWORM; fi
       # this executes "prepareJobSubmission.sh", which invokes "jobsubmission.sh"
       if [ -n "$ARMED" ]; then
-        $QSUB $ARMED --keep -d -k $CONFIG -t $TASKINCHWORM -i fastq -e $READONE.$FASTQ -n $NODES_INCHWORM \
+        $QSUB $ARMED --keep -d -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
           -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
           --command "${NGSANE_BASE}/mods/trinity/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
       else
-        echo $QSUB $ARMED --keep -d -k $CONFIG -t $TASKINCHWORM -i fastq -e $READONE.$FASTQ -n $NODES_INCHWORM \
+        echo $QSUB $ARMED --keep -d -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
         -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
         --command "${NGSANE_BASE}/mods/trinity/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
       fi
@@ -1246,21 +1246,21 @@ if [ -n "$RUNTRINITY" ]; then
         fi
       done
       if [ -n "$ARMED" ]; then
-        $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i fastq -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
+        $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
          -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS \
          --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
       else
-       echo $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i fastq -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
+       echo $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
          -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS \
          --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
       fi      
     else 
       if [ -n "$ARMED" ]; then
-        $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i fastq -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
+        $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
          -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS -W $TASKINCHWORM \
          --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
       else
-       echo $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i fastq -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
+       echo $QSUB $ARMED -d -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
          -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS -W $TASKINCHWORM \
          --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
       fi
@@ -1285,22 +1285,22 @@ if [ -n "$RUNTRINITY" ]; then
         fi
       done
       if [ -n "$ARMED" ]; then
-        $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i fastq -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
+        $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
           -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY \
           --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
       else
-       echo $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i fastq -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
+       echo $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
          -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY \
          --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
       fi
     else
       if [ -n "$ARMED" ]; then
       # -y is for to enable an array
-       $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i fastq -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
+       $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
          -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY -W $TASKCHRYSALIS \
          --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
       else
-       echo $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i fastq -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
+       echo $QSUB $ARMED -d -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
          -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY -W $TASKCHRYSALIS \
          --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
       fi

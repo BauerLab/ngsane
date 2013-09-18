@@ -503,6 +503,7 @@ MEMORY_INCHWORM="40"                    # will use it for --JM
 NCPU_INCHWORM="4"                               # Use less than half of the CPUs on a node. This algorithm is limited by cache memory
 NODES_INCHWORM="1"
 NODETYPE_INCHWORM="all.q"
+INPUT_INCHWORM="fastq"
 #NODETYPE_INCHWORM="intel.q"    # Inchworm performs faster when Trinity was installed using the Intell compiler (Intell systems only
 
 ### Stage P2: Time and resources required for Chrysalis stage
@@ -515,6 +516,7 @@ MEMORY_CHRYSALIS="40"                           # will use it for --JM
 NCPU_CHRYSALIS="16"                             # For very large datasets, besides normalisation, maybe use 32 cores
 NODES_CHRYSALIS="1"
 NODETYPE_CHRYSALIS="all.q"              # dont use intel.q on Wolfpack for this
+INPUT_CHRYSALIS="fastq"
 
 # This stage is actually Chrysalis::readsToTranscript and Butterfly. Both should ideally be run through a SGE/PBS array
 # The Chrysalis bit is I/O heavy, so a local memory node is used. If files take up over 500GB, this will cause problems.
@@ -524,6 +526,7 @@ MEMORY_BUTTERFLY="40"
 NCPU_BUTTERFLY="32"
 NODES_BUTTERFLY="1"
 NODETYPE_BUTTERFLY="all.q"
+INPUT_BUTTERFLY="fastq"
 
 MODULES_TRINITY="${NG_TRINITY} ${NG_BOWTIE} ${NG_JAVA}"
 PATH_TRINITY=
