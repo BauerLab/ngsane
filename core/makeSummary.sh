@@ -346,12 +346,12 @@ fi
 if [ -n "$RUNVARCALLS" ]; then 
     summaryHeader "Variant calling" "$TASKVAR" "gatkSNPs.sh" "$SUMMARYTMP"
 
-	vali=$(gatherDirs $TASKVAR)
+	vali=$OUT/$TASKVAR/$(echo ${DIR[@]}|sed 's/ /_/g')/
     echo "<h3>SNPs</h3>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.snps.eval.txt" variant --n --l>>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "recalfilt.snps.eval.txt" variant --n --l>>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.snps.eval.txt" variant --n --l >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "recalfilt.snps.eval.txt" variant --n --l >>$SUMMARYTMP
     echo "<h3>INDELs</h3>" >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l>>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l >>$SUMMARYTMP
 
     summaryFooter "$TASKVAR" "$SUMMARYTMP"
 fi
