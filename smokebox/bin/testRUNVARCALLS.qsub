@@ -2,6 +2,7 @@
 
 # the ngsane version to be tested needs to be loaded by hand
 . $NGSANE_BASE/conf/header.sh
+. bin/tmpl/configVarCall.txt
 
 #clean up earlier runs
 for dir in ${DIR[@]}; do
@@ -32,7 +33,7 @@ echo "[NOTE] sumitted jobs $(echo -n $JOBIDSBWA)"
 echo "[NOTE] Prep config file tmp/configBAMANN.txt"
 cat bin/tmpl/configVarCall.txt | sed 's/RUNANNOTATINGBAM=\"\"/RUNANNOTATINGBAM=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBAMANN\"/g' > tmp/configBAMANN.txt
-echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDSBWA//:/$QUEUEWAITSEP}\"" >>tmp/configBAMANN.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBWA//:/$QUEUEWAITSEP}\"" >>tmp/configBAMANN.txt
 
 # submit the BAMANN run to the cluster
 JOBIDSBAMANN=$( trigger.sh tmp/configBAMANN.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
@@ -48,7 +49,7 @@ echo "[NOTE] sumitted jobs $(echo -n $JOBIDSBAMANN)"
 echo "[NOTE] Prep config file tmp/configRECAL.txt"
 cat bin/tmpl/configVarCall.txt | sed 's/RUNREALRECAL=\"\"/RUNREALRECAL=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryRECAL\"/g' > tmp/configRECAL.txt
-echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDSBWA//:/$QUEUEWAITSEP}\"" >>tmp/configRECAL.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBWA//:/$QUEUEWAITSEP}\"" >>tmp/configRECAL.txt
 
 # submit the RECAL run to the cluster
 JOBIDSRECAL=$( trigger.sh tmp/configRECAL.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
@@ -64,7 +65,7 @@ echo "[NOTE] sumitted jobs $(echo -n $JOBIDSRECAL)"
 echo "[NOTE] Prep config file tmp/configVARCALLS.txt"
 cat bin/tmpl/configVarCall.txt | sed 's/RUNVARCALLS=\"\"/RUNVARCALLS=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryVARCALLS\"/g' > tmp/configVARCALLS.txt
-echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDSRECAL//:/$QUEUEWAITSEP}\"" >>tmp/configVARCALLS.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSRECAL//:/$QUEUEWAITSEP}\"" >>tmp/configVARCALLS.txt
 
 # submit the VARCALLS run to the cluster
 JOBIDSVARCALL=$( trigger.sh tmp/configVARCALLS.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
@@ -99,4 +100,4 @@ chmod 777 tmp/testVARCALLS.qsub
 #submit evaluation script
 echo "[NOTE] submit evaluation script"
 unset module
-qsub $HOLDID tmp/testVARCALLS.qsub
+qsub $HOLDID $QSUBEXTRA tmp/testVARCALLS.qsub
