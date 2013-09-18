@@ -71,7 +71,7 @@ READONE="_read1"
 READTWO="_read2"
 FASTQ=fastq
 #FASTQ=fastq.gz
-BAMANNLIB=${NGSANE_REFERENCE}/b37/bamann/
+BAMANNLIB=$(pwd)/referenceData/bamann/
 
 
 FASTA=$(pwd)/referenceData/chr16.fasta
