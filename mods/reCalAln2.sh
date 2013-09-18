@@ -307,12 +307,12 @@ else
 
     if [ "$PAIRED" == "1" ]; then
         # fix mates
-        samtools sort -n ${f3/bam/recal.bam} ${f3/bam/recal.tmp}
+        samtools sort -@ $CPU_RECAL -n ${f3/bam/recal.bam} ${f3/bam/recal.tmp}
         samtools fixmate ${f3/bam/recal.tmp.bam} ${f3/bam/recal.bam}
         [ -e ${f3/bam/recal.tmp.bam} ] && rm ${f3/bam/recal.tmp.bam}
     fi
     
-    samtools sort ${f3/bam/recal.bam} $OUTDIR/${n/%$ASD.bam/$ASR}
+    samtools sort -@ $CPU_RECAL ${f3/bam/recal.bam} $OUTDIR/${n/%$ASD.bam/$ASR}
     samtools index $OUTDIR/${n/%$ASD.bam/$ASR.bam}
 
     # mark checkpoint
@@ -331,8 +331,8 @@ else
     samtools flagstat $OUTDIR/${n/%$ASD.bam/$ASR.bam} >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
     if [ -n "$SEQREG" ]; then
         echo "#custom region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
-        echo $(samtools view -c -F 4 $OUTDIR/${n/%$ASD.bam/$ASR.bam} $SEQREG )" total reads in region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
-        echo $(samtools view -c -f 3 $OUTDIR/${n/%$ASD.bam/$ASR.bam} $SEQREG )" properly paired reads in region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
+        echo $(samtools view -@ $CPU_RECAL -c -F 4 $OUTDIR/${n/%$ASD.bam/$ASR.bam} $SEQREG )" total reads in region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
+        echo $(samtools view -@ $CPU_RECAL -c -f 3 $OUTDIR/${n/%$ASD.bam/$ASR.bam} $SEQREG )" properly paired reads in region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
     fi
 
     #f2=/reCalAln/name.$ASD.bam

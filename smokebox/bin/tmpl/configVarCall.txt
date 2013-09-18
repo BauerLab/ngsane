@@ -36,6 +36,10 @@ MEMORY_SAMVAR=8
 CPU_SAMVAR=1
 NODES_SAMVAR="nodes=1:ppn=1"
 
+WALLTIME_BAMANN=00:20:00
+MEMORY_BAMANN=8
+CPU_BAMANN=1
+NODES_BAMANN="nodes=1:ppn=1"
 
 #********************
 # Tasks

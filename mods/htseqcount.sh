@@ -65,7 +65,7 @@ echo -e "--htSeq       --\n "$(htseq-count | tail -n 1)
 [ -z "$(which htseq-count)" ] && [ -n "$GTF" ] && echo "[ERROR] no htseq-count or GTF detected" && exit 1
 echo -e "--Python      --\n" $(python --version 2>&1 | tee | head -n 1 )
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
-[ hash yolk ] && echo -e "--Python libs --\n "$(yolk -l)
+[  $(hash yolk)  ] && echo -e "--Python libs --\n "$(yolk -l)
 
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -161,7 +161,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-	samtools sort -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
+	samtools sort -@ $CPU_HTSEQCOUNT -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
 	samtools fixmate $OUTDIR/${n/%.$ASD.bam/.tmp.bam} $OUTDIR/${n}
 	rm $OUTDIR/${n/%.$ASD.bam/.tmp}.bam
 
@@ -193,9 +193,9 @@ else
         for MODE in $HTSEQCOUNT_MODES; do 
             echo "[NOTE] processing $ATTR $MODE"
             if [ "$PAIRED" = 1 ]; then 
-            	samtools view -f 3  $OUTDIR/${n} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF.$MODE.$ATTR.tmp
+            	samtools view -@ $CPU_HTSEQCOUNT -f 3  $OUTDIR/${n} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF.$MODE.$ATTR.tmp
             else
-            	samtools view -F 4 $OUTDIR/${n} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF.$MODE.$ATTR.tmp
+            	samtools view -@ $CPU_HTSEQCOUNT -F 4 $OUTDIR/${n} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF.$MODE.$ATTR.tmp
         	fi
             head -n-5 $OUTDIR/GTF.$MODE.$ATTR.tmp > $OUTDIR/GTF.$MODE.$ATTR
             echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/GTF.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF.summary.txt
@@ -221,9 +221,9 @@ else
         for MODE in $HTSEQCOUNT_MODES; do 
             echo "[NOTE] processing $ATTR $MODE"
             if [ "$PAIRED" = 1 ]; then 
-                samtools view -f 3 $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF_masked.$MODE.$ATTR.tmp
+                samtools view -@ $CPU_HTSEQCOUNT -f 3 $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF_masked.$MODE.$ATTR.tmp
             else
-                samtools view -F 4 $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF_masked.$MODE.$ATTR.tmp
+                samtools view -@ $CPU_HTSEQCOUNT -F 4 $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF_masked.$MODE.$ATTR.tmp
             fi
             head -n-5 $OUTDIR/GTF_masked.$MODE.$ATTR.tmp > $OUTDIR/GTF_masked.$MODE.$ATTR
             echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/GTF_masked.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF_masked.summary.txt
