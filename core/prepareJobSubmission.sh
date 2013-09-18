@@ -202,20 +202,6 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
         fi    	
 
-### Trinity additions - start
-    # Add previous task dependencies (need another parameter for array dependencies)
-    # .....assumes standard NGsane job name rules
-#    if [ -n $WAITFOR ]; then 
-#        DEPENDENCIES=${WAITFOR}"_"$dir"_"$name
-#        RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME -W $DEPENDENCIES \
-#            -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
-#    else
-#        RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
-#            -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
-#    fi
-
-### Trinity additions - end
-
         echo -e "Jobnumber $RECIPT"
         MYPBSIDS=$MYPBSIDS":"$RECIPT
     

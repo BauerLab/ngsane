@@ -3,7 +3,7 @@
 # tested with trinityrnaseq_r2013-02-25
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>
 
 echo ">>>>> transcriptome assembly with trinity inchworm"
 echo ">>>>> startdate "`date`
@@ -139,6 +139,6 @@ fi
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 #TODO correct dummy
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
+#[ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
 echo ">>>>> transcriptome assembly with trinity chrysalis - FINISHED"
 echo ">>>>> enddate "`date`
