@@ -28,8 +28,9 @@ for line in sys.stdin:
     if line[0]==">" :
         remote.append(line)
 
-#print len(local)
-#print len(remote)
+if len(local) != len(remote):
+    print content
+    sys.exit(1)
 
 for i, j in zip(local, remote):
     if re.match("[0-9]",i) or re.match("[0-9]",j) or parser(i,j)==-1:

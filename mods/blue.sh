@@ -8,7 +8,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
-# RESULTFILENAME <SAMPLE>$FASTQ
+# RESULTFILENAME fastq/<DIR>_blue/<SAMPLE>$READONE.$FASTQ
 
 echo ">>>>> read screening with FASTQSCREEN"
 echo ">>>>> startdate "`date`
@@ -21,7 +21,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of NGSANE
         -f | --file )           shift; f=$1 ;; # fastq file
-#        -o | --outdir )         shift; MYOUT=$1 ;; # output dir
+        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir                                                     
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -63,7 +63,7 @@ echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="parameters"
 
-MYOUT=$(dirname $f)"_blue"
+#OUTDIR=$(dirname $f)"_blue"
 # get basename of f
 n=${f##*/}
 
@@ -76,7 +76,7 @@ n=${f##*/}
 #    PAIRED="0"
 #fi
 
-mkdir -p $MYOUT/tessel
+mkdir -p $OUTDIR/tessel
 
 FILES=""
 for i in $(ls ${f/$READONE/\*}); do
@@ -108,12 +108,12 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-	RUN_COMMAND="mono ${BLUE_HOME}/Tessel.exe $TESSELADDPARAM -t $CPU_BLUE -tmp $TMP -k $KMER -g $GENOME $MYOUT/tessel/$n $FILES"
+	RUN_COMMAND="mono ${BLUE_HOME}/Tessel.exe $TESSELADDPARAM -t $CPU_BLUE -tmp $TMP -k $KMER -g $GENOME $OUTDIR/tessel/$n $FILES"
 
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -f $MYOUT/tessel/$n"_"$KMER.cbt ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUTDIR/tessel/$n"_"$KMER.cbt ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -124,19 +124,20 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
 else 
 
 
-	RUN_COMMAND="mono ${BLUE_HOME}/Blue.exe $BLUEADDPARAM -t $CPU_BLUE -m $CUTOFF -o $MYOUT $MYOUT/tessel/$n*.cbt $FILES"
+	RUN_COMMAND="mono ${BLUE_HOME}/Blue.exe $BLUEADDPARAM -t $CPU_BLUE -m $CUTOFF -o $OUTDIR $OUTDIR/tessel/$n*.cbt $FILES"
 
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
 	#get back to NGSANE fastq format
-	for i in $(ls $MYOUT/*corrected*.fastq); do mv $i ${i/_corrected_$CUTOFF/}; done
+	for i in $(ls $OUTDIR/*corrected*.fastq); do mv $i ${i/_corrected_$CUTOFF/}; done
 
     # mark checkpoint
-    [ -f $MYOUT/$n ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUTDIR/$n ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 
 ################################################################################
+[ -e $OUTDIR/${n}.dummy ] && rm $OUTDIR/${n}.dummy
 echo ">>>>> read correction with Blue - FINISHED"
 echo ">>>>> enddate "`date`
 

@@ -2,6 +2,7 @@
 
 # the ngsane version to be tested needs to be loaded by hand
 . $NGSANE_BASE/conf/header.sh
+. bin/tmpl/configTopCuffHtseq.txt
 
 #clean up earlier runs
 for dir in ${DIR[@]}; do
@@ -25,8 +26,8 @@ cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNTOPHAT=\"\"/RUNTOPHAT=\"1\"/g' |
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHAT\"/g' > tmp/configTOPHAT.txt
 
 # submit the TOPHAT run to the cluster
-JOBIDS=$( trigger.sh tmp/configTOPHAT.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] submitted jobs $(echo -n $JOBIDS)"
+JOBIDSTOPHAT=$( trigger.sh tmp/configTOPHAT.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSTOPHAT)"
 
 ################################################################################
 #  CUFFLINKS
@@ -38,7 +39,7 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDS)"
 echo "[NOTE] Prep config file tmp/configCUFFLINKS.txt"
 cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNCUFFLINKS=\"\"/RUNCUFFLINKS=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryCUFFLINKS\"/g' > tmp/configCUFFLINKS.txt
-echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configCUFFLINKS.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSTOPHAT//:/$QUEUEWAITSEP}\"" >>tmp/configCUFFLINKS.txt
 
 # submit the CUFFLINKS run to the cluster
 JOBIDSCUFF=$( trigger.sh tmp/configCUFFLINKS.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
@@ -55,7 +56,7 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSCUFF)"
 echo "[NOTE] Prep config file tmp/configHTSEQCOUNT.txt"
 cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNHTSEQCOUNT=\"\"/RUNHTSEQCOUNT=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHTSEQCOUNT\"/g' > tmp/configHTSEQCOUNT.txt
-echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}\"" >>tmp/configHTSEQCOUNT.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSTOPHAT//:/$QUEUEWAITSEP}\"" >>tmp/configHTSEQCOUNT.txt
 
 # submit the HTSEQCOUNT run to the cluster
 JOBIDSHTSEQ=$( trigger.sh tmp/configHTSEQCOUNT.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
@@ -87,4 +88,4 @@ chmod 777 tmp/testTOPHATCUFFHTSEQ.qsub
 #submit evaluation script
 echo "[NOTE] submit evaluation script"
 unset module
-qsub $HOLDID tmp/testTOPHATCUFFHTSEQ.qsub
+qsub $HOLDID $QSUBEXTRA tmp/testTOPHATCUFFHTSEQ.qsub

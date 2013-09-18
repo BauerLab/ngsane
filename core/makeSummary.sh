@@ -55,6 +55,7 @@ mkdir -p $(dirname $SUMMARYTMP) && cat /dev/null > $SUMMARYTMP # clean temporary
 PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',os.path.realpath('$(dirname $SUMMARYTMP)'))")
 [ -z "$PROJECT_RELPATH" ] && PROJECT_RELPATH="."
 
+
 ################################################################################
 # define functions for generating summary scaffold
 #
@@ -211,7 +212,7 @@ if [[ -n "$RUNBLUE" ]]; then
 	BLUEOUT=runstats/blue/$(echo ${DIR[@]}|sed 's/ /_/g').ggplot
 	IMAGE=runstats/blue/$(echo ${DIR[@]}|sed 's/ /_/g').pdf
 	echo -e "copy\tcount\tvalue\tperc\tsample" > $BLUEOUT
-	for i in $(ls $vali/tessle/*histo*); do
+	for i in $(ls $vali/tessel/*histo*); do
 		name=$(basename $i)
 		arrIN=(${name//$READONE/ })
 		head -n -10 $i | tail -n +4 | gawk -v x=${arrIN[0]} '{print $0"\t"x}'; 
@@ -319,7 +320,7 @@ fi
 if [[ -n "$RUNHTSEQCOUNT" || -n "$RUNTOPHATCUFF" ]]; then
     summaryHeader "Htseq-count" "$TASKHTSEQCOUNT" "htseqcount.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKHTSEQCOUNT)" _transcripts.gtf gtf >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKHTSEQCOUNT)" summary.txt htseqcount >>$SUMMARYTMP
 
     summaryFooter "$TASKHTSEQCOUNT" "$SUMMARYTMP"
 fi
@@ -345,12 +346,12 @@ fi
 if [ -n "$RUNVARCALLS" ]; then 
     summaryHeader "Variant calling" "$TASKVAR" "gatkSNPs.sh" "$SUMMARYTMP"
 
-	vali=$(gatherDirs $TASKVAR)
+	vali=$OUT/$TASKVAR/$(echo ${DIR[@]}|sed 's/ /_/g')/
     echo "<h3>SNPs</h3>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.snps.eval.txt" variant --n --l>>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "recalfilt.snps.eval.txt" variant --n --l>>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.snps.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "recalfilt.snps.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
     echo "<h3>INDELs</h3>" >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l>>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
 
     summaryFooter "$TASKVAR" "$SUMMARYTMP"
 fi

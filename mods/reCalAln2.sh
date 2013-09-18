@@ -6,7 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,We are loosing reads,for unmapped read,no such file,file not found,reCalAln.sh: line
-# RESULTFILENAME <SAMPLE>.$ASR.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASR.bam
 
 echo ">>>>> recalibration and realignment using GATK"
 echo ">>>>> startdate "`date`
@@ -115,6 +115,11 @@ fi
 if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/${n/%$ASD.bam/$ASR.bam} ] && rm $OUTDIR/${n/%$ASD.bam/$ASR.bam}
     [ -e $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats ] && rm $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
+fi
+
+if [ -z "$DBROD" ] || [ ! -e $DBROD ] ; then
+    echo "[ERROR] DBROD parameter not set or data not found"
+    exit 1
 fi
 
 # bwa/name.$ASD.bam -> /reCalAln/name.$ASD.bam
@@ -302,12 +307,12 @@ else
 
     if [ "$PAIRED" == "1" ]; then
         # fix mates
-        samtools sort -n ${f3/bam/recal.bam} ${f3/bam/recal.tmp}
+        samtools sort -@ $CPU_RECAL -n ${f3/bam/recal.bam} ${f3/bam/recal.tmp}
         samtools fixmate ${f3/bam/recal.tmp.bam} ${f3/bam/recal.bam}
         [ -e ${f3/bam/recal.tmp.bam} ] && rm ${f3/bam/recal.tmp.bam}
     fi
     
-    samtools sort ${f3/bam/recal.bam} $OUTDIR/${n/%$ASD.bam/$ASR}
+    samtools sort -@ $CPU_RECAL ${f3/bam/recal.bam} $OUTDIR/${n/%$ASD.bam/$ASR}
     samtools index $OUTDIR/${n/%$ASD.bam/$ASR.bam}
 
     # mark checkpoint
@@ -326,8 +331,8 @@ else
     samtools flagstat $OUTDIR/${n/%$ASD.bam/$ASR.bam} >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
     if [ -n "$SEQREG" ]; then
         echo "#custom region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
-        echo $(samtools view -c -F 4 $OUTDIR/${n/%$ASD.bam/$ASR.bam} $SEQREG )" total reads in region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
-        echo $(samtools view -c -f 3 $OUTDIR/${n/%$ASD.bam/$ASR.bam} $SEQREG )" properly paired reads in region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
+        echo $(samtools view -@ $CPU_RECAL -c -F 4 $OUTDIR/${n/%$ASD.bam/$ASR.bam} $SEQREG )" total reads in region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
+        echo $(samtools view -@ $CPU_RECAL -c -f 3 $OUTDIR/${n/%$ASD.bam/$ASR.bam} $SEQREG )" properly paired reads in region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
     fi
 
     #f2=/reCalAln/name.$ASD.bam

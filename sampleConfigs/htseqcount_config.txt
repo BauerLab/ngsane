@@ -17,8 +17,11 @@ RUNHTSEQCOUNT="1"    # feature counting
 #********************
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq directory)
+# which folder to run on (i.e. folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_HTSEQCOUNT=$TASKTOPHAT
 
 # where to write the output
 OUT=$SOURCE

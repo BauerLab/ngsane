@@ -5,7 +5,7 @@
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <SAMPLE>.bw
+# RESULTFILENAME <DIR>/$INPUT_BIGWIG/<SAMPLE>.bw
 
 echo ">>>>> bigwig generation"
 echo ">>>>> startdate "`date`
@@ -107,10 +107,10 @@ else
         echo "[NOTE] single-end library detected"
     fi
 
-    samtools sort -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
+    samtools sort -@ $CPU_BIGWIG -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
 
     NORMALIZETO=1000000
-    NUMBEROFREADS=$(samtools view -c -F 1028 $OUTDIR/$n)
+    NUMBEROFREADS=$(samtools view -@ $CPU_BIGWIG -c -F 1028 $OUTDIR/$n)
     SCALEFACTOR=`echo "scale=3; $NORMALIZETO/$NUMBEROFREADS" | bc`
     
     echo "[NOTE] library size (mapped reads): $NORMALIZETO" 
@@ -120,7 +120,7 @@ else
     if [ "$PAIRED" = "1" ] && [[ $FRAGMENTLENGTH -le 0 ]]; then
         echo "[NOTE] generate bigwig for properly paired reads on the same chromosomes"
         
-        samtools view -b -F 1028 -f 0x2 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.bw}
+        samtools view -@ $CPU_BIGWIG -b -F 1028 -f 0x2 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.bw}
         	
     else
         if [[ $FRAGMENTLENGTH -ge 0 ]]; then
@@ -129,13 +129,13 @@ else
         else
             echo "[NOTE] generate bigwig"
         
-            samtools view -b -F 1028 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.bw}
+            samtools view -@ $CPU_BIGWIG -b -F 1028 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.bw}
 
             if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
                 echo "[NOTE] generate strand-specific bigwigs too"
-                samtools view -b -F 1028 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.+.bw}
+                samtools view -@ $CPU_BIGWIG -b -F 1028 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.+.bw}
                 
-                samtools view -b -F 1028 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.-.bw} 
+                samtools view -@ $CPU_BIGWIG -b -F 1028 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.-.bw} 
         	fi
     	fi
     fi 

@@ -23,7 +23,7 @@ percent=False
 noSummary=False
 noOverallSummary=False
 overAll=True
-link=False
+link=""
 
 if(dir[0]==""):
     dir.pop(0)
@@ -43,7 +43,8 @@ while(len(sys.argv)>i):
     if(sys.argv[i]=="--noOverAll" or sys.argv[i]=="--n"):
         overAll=False
     if(sys.argv[i]=="--link" or sys.argv[i]=="--l"):
-        link=True
+		i+=1
+		link=sys.argv[i]
     if(sys.argv[i]=="--noSummary" or sys.argv[i]=="--s"):
         noSummary=True
     if(sys.argv[i]=="--noOverallSummary" or sys.argv[i]=="--o"):
@@ -293,6 +294,20 @@ def cufflinksStats(logFile):
     return names, values
 
 
+def htseqcountStats(logFile):
+    
+    names=[]
+    values=[]
+    lines=open(logFile).read().split("\n")
+    for f in lines:
+        cols = f.split(" ")
+        if (len(cols)<6): 
+            continue
+        names+=[" ".join(cols[0:3])+" no_feature", " ".join(cols[0:3])+" ambiguous"]
+        values+=[ float(cols[4]), float(cols[6]) ]
+    return names, values
+
+
 def onTarget(statsfile):
     names=["Total reads", "Total paired", "Total  Paired(%)" ,"OnTarget 100","(%)", "Paired on Target 100","(%)"]
     values=[]
@@ -427,59 +442,29 @@ def bamDist(bamfile, col):
 
 
 def variant(variantFile):
-    names=["Total","known", "SNPdb Conc", "Ti/Tv", "Het/Hom", "novel", "Ti/Tv","Het/Hom"]
-    values=[]
-    file=open(variantFile).read()
-    CO=file.split("CompOverlap :")[1].split("##")[0].split("\n")
-    snpdb=len(CO)-5
-    CV=file.split("CountVariants :")[1].split("\n")
-    TI=file.split("TiTvVariantEvaluator :")[1].split("\n")
-    #print re.split("[ \t]+",CV[1])
-    #print re.split("[ \t]+",CV[1])[25]
-    #print re.split("[ \t]+",CV[3])[25]
-    number=11
-    number2=24
-    if (CO[1].find("nCompVariants")==-1):
-        number=10
-    if (CV[1].find("nMixed")>-1):
-        number2=25
-    values.append(int(re.split("[ \t]+",CO[snpdb])[5])) #all
-    values.append(int(re.split("[ \t]+",CO[snpdb+1])[5])) #known
-    values.append(float(re.split("[ \t]+",CO[snpdb+1])[number])) #concKnown
-    values.append(float(re.split("[ \t]+",TI[snpdb+1])[7])) #Ti/Tv known
-    values.append(float(re.split("[ \t]+",CV[snpdb+1])[number2])) #Het/Hom known
-    values.append(int(re.split("[ \t]+",CO[snpdb+2])[5])) #novel
-    values.append(float(re.split("[ \t]+",TI[snpdb+2])[7])) # Ti/Tv novel
-    values.append(float(re.split("[ \t]+",CV[snpdb+2])[number2])) # Het/Hom novel
-    if (file.find("MendelianViolationEvaluator :")>-1):
-        ME=file.split("MendelianViolationEvaluator :")[1].split("\n")
-        names.append("EvalVariants")
-        names.append("errors")
-        names.append("Right/Wrong")
-        names.append("HomVarP2HomRefK")
-        names.append("HomRefP2HetK")
-        names.append("HomVarP2HetK")
-        names.append("HomRefP2HomVarK")
-        values.append(float(re.split("[ \t]+",ME[snpdb])[5])) #evaluated Variants
-        values.append(float(re.split("[ \t]+",ME[snpdb])[6])) #all errors
-        values.append((values[-1]/values[-2])*100)
-        values.append(float(re.split("[ \t]+",ME[snpdb])[7])) #all errors
-        values.append(float(re.split("[ \t]+",ME[snpdb])[8])) #all errors
-        values.append(float(re.split("[ \t]+",ME[snpdb])[9])) #all errors
-        values.append(float(re.split("[ \t]+",ME[snpdb])[10])) #all errors
-        
-    i=2
-    while (i!=snpdb):
-        arr=re.split("[ \t]+",CO[i])
-        names.append(arr[1]+" rate")
-        names.append(arr[1]+" numb")
-        names.append(arr[1]+" conc")
-        values.append(float(arr[8]))
-        values.append(float(arr[9]))
-        values.append(float(arr[10]))
-        i+=3
+	names=["Total","known", "SNPdb Conc", "variantRatePerBp", "hetHomRatio", "novel", "variantRatePerBp","hetHomRatio"]
+	values=[]
+	file=open(variantFile).read()
+	CO=re.split("[ \t\n]+", file.split("CompOverlap")[3])
+	values.append(int(CO[5])) #total
+	CO=re.split("[ \t\n]+", file.split("CompOverlap")[4])
+	values.append(int(CO[5])) #known
+	values.append(float(CO[10])) #SNPconc
 
-    return names,values
+	CV=re.split("[ \t\n]+", file.split("CountVariants")[4])
+	values.append(float(CV[10])) #variantRatePerBp
+	values.append(float(CV[26])) #hetHomRatio
+	
+	CO=re.split("[ \t\n]+", file.split("CompOverlap")[5])
+	values.append(int(CO[5])) #novel
+#	values.append(float(CO[10])) #SNPconc
+
+	CV=re.split("[ \t\n]+", file.split("CountVariants")[5])
+	values.append(float(CV[10])) #variantRatePerBp
+	values.append(float(CV[26])) #hetHomRatio
+
+	return names,values
+
 
 def trimgaloreStats(logFile):
     names=["Processed reads", "Trimmed reads","%","Too short reads","%","Too long reads","%", "Remaining reads","%"]
@@ -980,6 +965,8 @@ for d in dir:
                 names,values=tophat(f)
             if (type=="cufflinks"):
                 names,values=cufflinksStats(f)
+            if (type=="htseqcount"):
+                names,values=htseqcountStats(f)
             if (type=="times"):
                 names,values=time(f)
             if (type=="target"):
@@ -1015,8 +1002,8 @@ for d in dir:
 
             # only list file structure from current root
             filename="/".join(f.split("/")[-4::])
-            if (link):
-                filename="<a href=\""+d.replace("illumina/","")+"/"+f+"\">"+f+"</a>"
+            if (link!=""):
+                filename="<a href=\"%s\">%s</a>" % (link+"/"+filename, filename)
             psresult.append([values,filename])
             oaresult=addValues(oaresult,values)
                 

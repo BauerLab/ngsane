@@ -1,4 +1,3 @@
-
 # author: Denis C. Bauer
 # date: September 2013
 
@@ -36,12 +35,14 @@ MEMORY_SAMVAR=8
 CPU_SAMVAR=1
 NODES_SAMVAR="nodes=1:ppn=1"
 
+WALLTIME_BAMANN=00:20:00
+MEMORY_BAMANN=8
+CPU_BAMANN=1
+NODES_BAMANN="nodes=1:ppn=1"
 
 #********************
 # Tasks
 #********************
-RUNFASTQC=""
-RUNCUTADAPT=""
 RUNMAPPINGBOWTIE=""  # mapping with bowtie1
 RUNMAPPINGBOWTIE2="" # mapping with bowtie2
 RUNMAPPINGBWA=""     # mapping with bwa
@@ -50,7 +51,7 @@ DEPTHOFCOVERAGE=""   # determine mean coverage
 RUNVARCALLS=""       # SNP/Variant detection
 RUNANNOTATINGBAM=""  # annotate bam file with Gencode
 RUNSAMVAR=""         # run variant call 
-RUNANNOTATINGBAM=""		 # run bam file annotation
+RUNANNOTATINGBAM=""  # run bam file annotation
 
 HTMLOUT="Summary"
 
@@ -69,7 +70,7 @@ READONE="_read1"
 READTWO="_read2"
 FASTQ=fastq
 #FASTQ=fastq.gz
-BAMANNLIB=${NGSANE_REFERENCE}/b37/bamann/
+BAMANNLIB=$(pwd)/referenceData/bamann/
 
 
 FASTA=$(pwd)/referenceData/chr16.fasta

@@ -363,8 +363,8 @@ qout/tophat/Transcript_RNA3kChr16.out
 [NOTE] RNAseq library type: fr-firststrand
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] make bigwigs; library is fr-firststrand 
-[NOTE] tophat Sat Sep 14 19:52:59 EST 2013
-[NOTE] tophat end Sat Sep 14 19:53:42 EST 2013
+[NOTE] tophat Sat Sep 14 22:23:19 EST 2013
+[NOTE] tophat end Sat Sep 14 22:24:02 EST 2013
 [NOTE] samtools merge
 [NOTE] samtools fixmate
 [NOTE] samtools sort
@@ -385,8 +385,8 @@ qout/tophat/Transcript_RNA3kChr16rep.out
 [NOTE] RNAseq library type: fr-firststrand
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] make bigwigs; library is fr-firststrand 
-[NOTE] tophat Sat Sep 14 19:52:59 EST 2013
-[NOTE] tophat end Sat Sep 14 19:53:43 EST 2013
+[NOTE] tophat Sat Sep 14 22:23:19 EST 2013
+[NOTE] tophat end Sat Sep 14 22:24:02 EST 2013
 [NOTE] samtools merge
 [NOTE] samtools fixmate
 [NOTE] samtools sort
@@ -499,17 +499,17 @@ qout/cufflinks/Transcript_RNA3kChr16.out
 [NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/cufflinks/job.20130914.log
 [NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 [NOTE] RNAseq library type: fr-firststrand
-[NOTE] cufflinks Sat Sep 14 19:55:27 EST 2013
+[NOTE] cufflinks Sat Sep 14 22:25:42 EST 2013
 [NOTE] execute cufflinks with guide (GTF provided)
-[NOTE] cufflinks end Sat Sep 14 19:55:53 EST 2013
+[NOTE] cufflinks end Sat Sep 14 22:27:22 EST 2013
 
 qout/cufflinks/Transcript_RNA3kChr16rep.out
 [NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/cufflinks/job.20130914.log
 [NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 [NOTE] RNAseq library type: fr-firststrand
-[NOTE] cufflinks Sat Sep 14 19:55:27 EST 2013
+[NOTE] cufflinks Sat Sep 14 22:25:42 EST 2013
 [NOTE] execute cufflinks with guide (GTF provided)
-[NOTE] cufflinks end Sat Sep 14 19:55:53 EST 2013
+[NOTE] cufflinks end Sat Sep 14 22:26:07 EST 2013
 </pre></div>
 <div id='cufflinks_errors'><pre>
 
@@ -601,8 +601,8 @@ QC_PASS .. 2 have programs/2
 QC_PASS .. 2 have recall files from tape/2
 QC_PASS .. 2 have parameters/2
 QC_PASS .. 2 have mask GTF/2
-QC_PASS .. 2 have calculate RPKMs per Gene/2
-QC_PASS .. 2 have calculate RPKMs per Transcript/2
+QC_PASS .. 2 have calculate RPKMs/2
+QC_PASS .. 2 have calculate masked RPKMs/2
 QC_PASS .. 2 have summarize/2
 QC_PASS .. 2 have cleanup/2
 </pre></div>
@@ -666,18 +666,27 @@ qout/htseqcount/Transcript_RNA3kChr16rep.out
     </script>
 <div id='htseqcount_results'>
 <h3>smokebox/Transcript/htseqcount/</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th></th><th class='left'>File</th></tr></thead>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>all gene_id union no_feature</div></th><th><div>all gene_id union ambiguous</div></th><th><div>masked gene_id union no_feature</div></th><th><div>masked gene_id union ambiguous</div></th><th class='left'>File</th></tr></thead>
 <tbody>
+<tr><td></td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td class='left'>RNA3kChr16.asd.bam.</td></tr>
+<tr><td></td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td class='left'>RNA3kChr16rep.asd.bam.</td></tr>
 </tbody>
+<tfoot>
+<tr><td class='left'>sum</td><td>          3596.00</td><td>             0.00</td><td>          3596.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+</tfoot>
 </table>
 <h3 class='overall'>Aggregation over all libraries</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th></th><th class='left'>File</th></tr></thead>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>all gene_id union no_feature</div></th><th><div>all gene_id union ambiguous</div></th><th><div>masked gene_id union no_feature</div></th><th><div>masked gene_id union ambiguous</div></th><th class='left'>File</th></tr></thead>
 <tfoot>
-<tr><td class='left'>sum</td><td></td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td></td><td></td></tr>
-<tr><td class='left'>max</td><td></td><td></td></tr>
-<tr><td class='left'>av</td><td></td><td></td></tr>
-<tr><td class='left'>ste</td><td></td><td></td></tr>
+<tr><td class='left'>sum</td><td>          3596.00</td><td>             0.00</td><td>          3596.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
 </div></div><div class='display'></div></div></div>
@@ -688,5 +697,5 @@ qout/htseqcount/Transcript_RNA3kChr16rep.out
             $('#htseqcount_panel div.wrapper div.display').html($('#htseqcount_results').html());
         }
         </script>
-<hr><span>Report generated with NGSANE version: 5e77d6cf2540912c67a2edd7515562cb16b920e3 (git hash)</span><span style='float:right;'>Last modified: Sat Sep 14 20:21:24 EST 2013</span>
+<hr><span>Report generated with NGSANE version: ef02668e012c0a5c8c1e1d7f8fa7ac9466e2bd45 (git hash)</span><span style='float:right;'>Last modified: Sat Sep 14 22:31:44 EST 2013</span>
 </div><!-- center --></body></html>

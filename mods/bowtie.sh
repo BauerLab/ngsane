@@ -7,7 +7,7 @@
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <SAMPLE>.$ASD.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
 
 
 echo ">>>>> read mapping with bowtie 1"
@@ -232,7 +232,7 @@ else
                 READ_GROUP_NAME=null \
                 QUIET=TRUE \
                 VERBOSITY=ERROR
-            samtools sort $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.tmp}
+            samtools sort -@ $CPU_BOWTIE $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.tmp}
             mv $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam}
         fi
     
@@ -247,7 +247,7 @@ else
                 QUIET=TRUE \
                 VERBOSITY=ERROR
         
-            samtools sort $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.tmp}
+            samtools sort -@ $CPU_BOWTIE $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.tmp}
             mv $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam}
         fi
     else
@@ -260,7 +260,7 @@ else
                 READ_GROUP_NAME=null \
                 QUIET=TRUE \
                 VERBOSITY=ERROR
-            samtools sort $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.tmp}
+            samtools sort -@ $CPU_BOWTIE $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.tmp}
             mv $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam}
         fi
     
@@ -274,22 +274,22 @@ else
                 QUIET=TRUE \
                 VERBOSITY=ERROR
         
-            samtools sort $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.tmp}
+            samtools sort -@ $CPU_BOWTIE $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.tmp}
             mv $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam} 
         fi
     fi
         
     # continue for normal bam file conversion                                                                         
-    samtools view -Sbt $FASTA.fai $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.sam} > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
+    samtools view -@ $CPU_BOWTIE -Sbt $FASTA.fai $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.sam} > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
     
     if [ "$PAIRED" = "1" ]; then
         # fix mates
-        samtools sort -n $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} $OUTDIR/${n/%$READONE.$FASTQ/.tmp}
+        samtools sort -@ $CPU_BOWTIE -n $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} $OUTDIR/${n/%$READONE.$FASTQ/.tmp}
         samtools fixmate $OUTDIR/${n/%$READONE.$FASTQ/.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
         [ -e $OUTDIR/${n/%$READONE.$FASTQ/.tmp.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.tmp.bam}
     fi
     
-    samtools sort $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} $OUTDIR/${n/%$READONE.$FASTQ/.ash}
+    samtools sort -@ $CPU_BOWTIE $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} $OUTDIR/${n/%$READONE.$FASTQ/.ash}
 
     # mark checkpoint
     if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.ash.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -343,8 +343,8 @@ else
     
     if [ -n "$SEQREG" ]; then
         echo "#custom region" >> $STATSOUT
-        echo $(samtools view -c -F 4 $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} $SEQREG )" total reads in region " >> $STATSOUT
-        echo $(samtools view -c -f 3 $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} $SEQREG )" properly paired reads in region " >> $STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -F 4 $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} $SEQREG )" total reads in region " >> $STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -f 3 $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} $SEQREG )" properly paired reads in region " >> $STATSOUT
     fi
 
     # mark checkpoint

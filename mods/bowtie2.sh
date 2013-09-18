@@ -8,7 +8,7 @@
 # modified: August 2013 Fabian Buske
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <SAMPLE>.$ASD.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
 
 echo ">>>>> readmapping with Bowtie2 "
 echo ">>>>> startdate "`date`
@@ -170,17 +170,17 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM $FASTQ_PHRED -t -x ${FASTA/.${FASTASUFFIX}/} -p $CPU_BOWTIE2 $READS | samtools view -bS -t $FASTA.fai - > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}"
+    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM $FASTQ_PHRED -t -x ${FASTA/.${FASTASUFFIX}/} -p $CPU_BOWTIE2 $READS | samtools view -@ $CPU_BOWTIE2 -bS -t $FASTA.fai - > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     if [ "$PAIRED" = "1" ]; then
         # fix mates
-        samtools sort -n $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} $OUTDIR/${n/%$READONE.$FASTQ/.tmp}
+        samtools sort -@ $CPU_BOWTIE2 -n $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} $OUTDIR/${n/%$READONE.$FASTQ/.tmp}
         samtools fixmate $OUTDIR/${n/%$READONE.$FASTQ/.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
         [ -e $OUTDIR/${n/%$READONE.$FASTQ/.tmp.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.tmp.bam}
     fi
 
-    samtools sort $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} $OUTDIR/${n/%$READONE.$FASTQ/.ash}
+    samtools sort -@ $CPU_BOWTIE2 $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} $OUTDIR/${n/%$READONE.$FASTQ/.ash}
 
     [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
        
@@ -227,8 +227,8 @@ else
     samtools flagstat $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} > $STATSOUT
     if [ -n "$SEQREG" ]; then
         echo "#custom region" >> $STATSOUT
-        echo $(samtools view -c -F 4 $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} $SEQREG )" total reads in region " >> $STATSOUT
-        echo $(samtools view -c -f 3 $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} $SEQREG )" properly paired reads in region " >> $STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE2 -c -F 4 $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} $SEQREG )" total reads in region " >> $STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE2 -c -f 3 $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} $SEQREG )" properly paired reads in region " >> $STATSOUT
     fi
 
     # mark checkpoint
