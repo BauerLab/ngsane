@@ -1205,7 +1205,6 @@ if [ -n "$RUNTRINITY" ]; then
   ##########   Inchworm   ###########
   if [ -n "$RUNINCHWORM" ]; then
     echo -e "-----> ${TASKINCHWORM}"
-    #       VVVVVVVVVV CHANGE THIS VVVVVVVVVVV
     if [ -e $SOURCE/$QOUT/$TASKINCHWORM.checkp ]; then  # this may need to be some other filename
       echo -e "[WARNING] $TASKINCHWORM has already been performed, set $RUNINCHWORM to blank to avoid wasting resources" ;
     elif [ -z "$NODES_INCHWORM" ] || [ -z "$NCPU_INCHWORM" ] || [ -z "$MEMORY_INCHWORM" ] || [ -z "$WALLTIME_INCHWORM" ] || [ -z "$NODETYPE_INCHWORM" ] 

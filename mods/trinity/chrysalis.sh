@@ -35,6 +35,8 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
+if [ -e $NODE_TMP ]; then TMP=$NODE_TMP; fi     # overwrites temp folder variable to node-local temp folder, if specified
+
 ################################################################################
 CHECKPOINT="programs"
 for MODS in $MODULES_TRINITY; do module load $MODS; done 

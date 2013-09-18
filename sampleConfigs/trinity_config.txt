@@ -53,8 +53,8 @@ CLEANUP="0"
 ## For significant performance boosts, this NGSane variable should point to a local folder on the 
 ## compute node as Chrysalis requires large amounts of I/O 
 ## There should also be at least 250 GB available, depending on the complexity of your data. 
-#TMP=/share/Temp 
-TMP=/temp   		# On Wolfpack, this has up to 500 GB free
+TMP=/share/Temp 
+NODE_TMP=/temp   		# compute node temp folder (500MB on Wolfpack)
 
 ########################################################################
 #			Job parameters *** MANDATORY *** 
