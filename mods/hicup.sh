@@ -54,7 +54,7 @@ echo "PATH=$PATH"
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--bowtie      --\n "$(bowtie --version | head -n 1 )
 [ -z "$(which bowtie)" ] && echo "[ERROR] no bowtie detected" && exit 1
-echo -e "--perl        --\n "$(perl -v | grep "version" )
+echo -e "--perl        --\n "$(perl -v | grep "This is perl" )
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
 echo -e "--HiCUP       --\n "$(hicup --version )
 [ -z "$(which hicup)" ] && echo "[ERROR] no hicup detected" && exit 1
