@@ -1204,7 +1204,6 @@ if [ -n "$RUNTRINITY" ]; then
   ###################################
   ##########   Inchworm   ###########
   if [ -n "$RUNINCHWORM" ]; then
-    echo -e "[NOTE] If re-running a task, make sure /qout/TASK/runnow.tmp is deleted!!!!!!!!!"
     echo -e "-----> ${TASKINCHWORM}"
     #       VVVVVVVVVV CHANGE THIS VVVVVVVVVVV
     if [ -e $SOURCE/$QOUT/$TASKINCHWORM.checkp ]; then  # this may need to be some other filename
@@ -1216,16 +1215,19 @@ if [ -n "$RUNTRINITY" ]; then
       if [ ! -d $QOUT/$TASKINCHWORM ]; then mkdir -p $QOUT/$TASKINCHWORM; fi
       # this executes "prepareJobSubmission.sh", which invokes "jobsubmission.sh"
       if [ -n "$ARMED" ]; then
-        $QSUB $ARMED --keep -d -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
+        JOBIDS=$($QSUB $ARMED --keep -d -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
           -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
           --command "${NGSANE_BASE}/mods/trinity/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+        ) && echo -e "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
       else
-        echo $QSUB $ARMED --keep -d -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
+        JOBIDS=$(echo $QSUB $ARMED --keep -d -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
         -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
         --command "${NGSANE_BASE}/mods/trinity/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTRINITY"
+        ) && echo -e "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
       fi
     fi
   fi
+
   ###################################
   ##########   Chrysalis  ###########
   if [ -n "$RUNCHRYSALIS" ]; then 
@@ -1306,5 +1308,4 @@ if [ -n "$RUNTRINITY" ]; then
       fi
     fi
   fi
-
 fi
