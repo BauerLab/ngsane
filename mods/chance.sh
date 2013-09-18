@@ -19,7 +19,7 @@ exit
 }
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>-${CHIPINPUT##*/} | sed "s/.$ASD.bam/.IPstrength/"
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.pdf
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
@@ -53,10 +53,10 @@ echo "PATH=$PATH"
 # best common denominator)
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--chance      --\n "$(chance --version 2>&1)
+echo -e "--chance      --\n "$(which run_chance_com.sh 2>&1)
 [ -z "$(which run_chance_com.sh)" ] && echo "[ERROR] run_chance_com.sh not detected" && exit 1
-echo -e "--Matlab (MCR)--\n "$(echo $MCRROOT)
-if [ -z "$(echo $MCRROOT)" ] && echo "[ERROR] no matlab runtime environment detected" && exit 1
+echo -e "--Matlab (MCR)--\n "$(echo "$MCRROOT")
+[ -z "$(echo $MCRROOT)" ] && echo "[ERROR] no matlab runtime environment detected" && exit 1
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 
@@ -95,7 +95,6 @@ if [ -n "$DMGET" ]; then
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
-
 ################################################################################
 CHECKPOINT="compute IPstrength"
 
@@ -103,11 +102,11 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    RUN_COMMAND="${CHANCE} IPStrength -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n}-${c}.IPstrength --ipfile $f --ipsample ${n} --inputfile ${CHIPINPUT} --inputsample ${c}"
+    RUN_COMMAND="${CHANCE} IPStrength -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n/.$ASD.bam/}-${c/.$ASD.bam/}.IPstrength --ipfile $f --ipsample ${n/.$ASD.bam/} --inputfile ${CHIPINPUT} --inputsample ${c/.$ASD.bam/}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    if [ -f ${OUTDIR}/${n}-${c}.IPstrength ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f ${OUTDIR}/${n/.$ASD.bam/}-${c/.$ASD.bam/}.IPstrength ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -124,11 +123,11 @@ else
             EXPERIMENTID=$(echo "$n" | sed -rn $EXPERIMENTPATTERN)
         fi
         
-        RUN_COMMAND="${CHANCE} compENCODE -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n}-${c}.compENCODE -e $EXPERIMENTID --ipfile ${f} --ipsample ${n} --inputfile ${CHIPINPUT} --inputsample ${c}"
+        RUN_COMMAND="${CHANCE} compENCODE -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n}-${c}.compENCODE -e $EXPERIMENTID --ipfile ${f} --ipsample ${n/.$ASD.bam/} --inputfile ${CHIPINPUT} --inputsample ${c/.$ASD.bam/}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
         # mark checkpoint
-        if [ -f ${OUTDIR}/${n}-${c}.compENCODE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        if [ -f ${OUTDIR}/${n/.$ASD.bam/}-${c/.$ASD.bam/}.compENCODE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
     else
         echo "[NOTE] skip ENCODE comparison "
@@ -143,15 +142,13 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
     
-    Rscript --vanilla --quiet ${NGSANE_BASE}/tools/makeChancePlots.R $f $CHIPINPUT $OUTDIR
+    Rscript --vanilla ${NGSANE_BASE}/tools/makeChancePlots.R $f $CHIPINPUT ${n/.$ASD.bam/} ${c/.$ASD.bam/} $OUTDIR
 
     # mark checkpoint
-    if [ -f ${n/.bam/.png} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/.$ASD.bam/.pdf} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
-
 ################################################################################
-#[ -e $OUTDIR/${n/.$ASD.bam/_refinepeak.bed}.dummy ] && rm $OUTDIR/${n/.$ASD.bam/_refinepeak.bed}.dummy
+[ -e $OUTDIR/${n/.$ASD.bam/.pdf}.dummy ] && rm $OUTDIR/${n/.$ASD.bam/.pdf}.dummy
 echo ">>>>> ChIPseq QC with Chance - FINISHED"
 echo ">>>>> enddate "`date`
-
