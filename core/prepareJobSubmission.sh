@@ -147,18 +147,8 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$dir/" | sed "s/<TASK>/$TASK/")
 	D=$(eval $DUMMY)
 	echo "[NOTE] make $D.dummy"
+	[ ! -e $(dirname $D) ] && mkdir -p $(dirname $D)
 	touch $D.dummy
-	ls $D.dummy
-	
-#	if [ -z "$NODIR" ]; then
-#		touch $dir/$TASK/$D.dummy # normal case
-#	else
-#		if [ -n "$REV" ]; then
-#			touch $ORIGIN/$dir"_"$TASK/$D.dummy # no dir
-#		else
-#			touch $dir/$ORIGIN/$D.dummy # no dir
-#		fi
-#    fi
 
     echo -e "\e[97m[JOB]\e[0m  $COMMAND2"
 
