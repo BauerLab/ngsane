@@ -17,6 +17,8 @@ echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTION
 exit
 }
 
+if [ ! $# -gt 3 ]; then usage ; fi
+
 # $GE_TASK_ID
 
 while [ "$1" != "" ]; do
@@ -118,7 +120,7 @@ else
 
     # mark checkpoint
     #TODO: result file?
-    if [ -f ${FASTA/.${FASTASUFFIX}/}.1.ebwt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f  ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi 
 
 ################################################################################
