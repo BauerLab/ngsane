@@ -2,6 +2,7 @@
 
 # the ngsane version to be tested needs to be loaded by hand
 . $NGSANE_BASE/conf/header.sh
+. bin/tmpl/configChIPseq.txt
 
 #clean up earlier runs
 for dir in ${DIR[@]}; do
@@ -38,7 +39,7 @@ cat bin/tmpl/configChIPseq.txt | sed 's/RUNPEAKRANGER=\"\"/RUNPEAKRANGER=\"1\"/g
     sed 's/ ChIPseq_input / /g' | \
     sed 's/ ChIPseq_TF / /g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryPEAKRANGER\"/g' > tmp/configPEAKRANGER.txt
-echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDSBOWTIE//:/$QUEUEWAITSEP}\"" >>tmp/configPEAKRANGER.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBOWTIE//:/$QUEUEWAITSEP}\"" >>tmp/configPEAKRANGER.txt
 
 # submit the PEAKRANGER run to the cluster
 JOBIDSPR=$( trigger.sh tmp/configPEAKRANGER.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
@@ -56,7 +57,7 @@ cat bin/tmpl/configChIPseq.txt | sed 's/RUNMACS2=\"\"/RUNMACS2=\"1\"/g' | \
     sed 's/ ChIPseq_input / /g' | \
     sed 's/ ChIPseq_Histone / /g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryMACS2\"/g' > tmp/configMACS2.txt
-echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDSBOWTIE//:/$QUEUEWAITSEP}\"" >>tmp/configMACS2.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBOWTIE//:/$QUEUEWAITSEP}\"" >>tmp/configMACS2.txt
 
 # submit the MACS run to the cluster
 JOBIDSMACS=$( trigger.sh tmp/configMACS2.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
@@ -73,7 +74,7 @@ cat bin/tmpl/configChIPseq.txt | sed 's/RUNMEMECHIP=\"\"/RUNMEMECHIP=\"1\"/g' | 
     sed 's/ ChIPseq_input / /g' | \
     sed 's/ ChIPseq_Histone / /g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryMEMECHIP\"/g' > tmp/configMEMECHIP.txt
-echo "QSUBEXTRA=\" $QUEUEWAIT${JOBIDSMACS/:/$QUEUEWAITSEP}\"" >>tmp/configMEMECHIP.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSMACS/:/$QUEUEWAITSEP}\"" >>tmp/configMEMECHIP.txt
 
 # submit the MEMEchip run to the cluster
 JOBIDSMEME=$( trigger.sh tmp/configMEMECHIP.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
@@ -108,4 +109,4 @@ chmod 777 tmp/testCHIPSEQ.qsub
 #submit evaluation script
 echo "[NOTE] submit evaluation script"
 unset module
-qsub $HOLDID tmp/testCHIPSEQ.qsub
+qsub $HOLDID $QSUBEXTRA  tmp/testCHIPSEQ.qsub
