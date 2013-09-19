@@ -1125,20 +1125,20 @@ if [ -n "$RUNTRINITY" ]; then
     JOBIDS=$( \
         $QSUB $ARMED -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
     	         -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
-    	         --command "${NGSANE_BASE}/mods/trinity/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKINCHWORM/"\
+    	         --command "${NGSANE_BASE}/mods/trinity_inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKINCHWORM/"\
     ) && echo -e "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
     
     #  ##########   Chrysalis  ###########
     JOBIDS=$( \
         $QSUB $ARMED -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
          -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS $JOBIDS \
-         --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKCHRYSALIS/"\
+         --command "${NGSANE_BASE}/mods/trinity_chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKCHRYSALIS/"\
     ) && echo -e "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
 
     #  ##########   Butterfly  ###########
     $QSUB $ARMED -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
           -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY $JOBIDS \
-          --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBUTTERFLY/"
+          --command "${NGSANE_BASE}/mods/trinity_butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBUTTERFLY/"
  
 fi
 ################################################################################
@@ -1149,7 +1149,7 @@ if [ -n "$RUNINCHWORM" ] && [ -z "$RUNTRINITY" ]; then
 
     $QSUB $ARMED -k $CONFIG -t $TASKINCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
         -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
-        --command "${NGSANE_BASE}/mods/trinity/inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKINCHWORM"
+        --command "${NGSANE_BASE}/mods/trinity_inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKINCHWORM"
 fi
 #  ##########   Chrysalis  ###########
 if [ -n "$RUNCHRYSALIS" ] && [ -z "$RUNTRINITY" ]; then
@@ -1157,7 +1157,7 @@ if [ -n "$RUNCHRYSALIS" ] && [ -z "$RUNTRINITY" ]; then
     
     $QSUB $ARMED -k $CONFIG -t $TASKCHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
         -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS $JOBIDS \
-        --command "${NGSANE_BASE}/mods/trinity/chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKCHRYSALIS"
+        --command "${NGSANE_BASE}/mods/trinity_chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKCHRYSALIS"
 fi
 #  ##########   Butterfly  ###########
 if [ -n "$RUNBUTTERFLY" ] && [ -z "$RUNTRINITY" ]; then
@@ -1165,6 +1165,6 @@ if [ -n "$RUNBUTTERFLY" ] && [ -z "$RUNTRINITY" ]; then
     
     $QSUB $ARMED -k $CONFIG -t $TASKBUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
           -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY $JOBIDS \
-          --command "${NGSANE_BASE}/mods/trinity/butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBUTTERFLY" 
+          --command "${NGSANE_BASE}/mods/trinity_butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBUTTERFLY" 
 fi
 

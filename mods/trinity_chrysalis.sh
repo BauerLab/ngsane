@@ -3,9 +3,9 @@
 # tested with trinityrnaseq_r2013-02-25
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.Trinity.timing
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.chrysalis.timing
 
-echo ">>>>> transcriptome assembly with trinity inchworm"
+echo ">>>>> transcriptome assembly with trinity chrysalis"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
@@ -18,8 +18,6 @@ exit
 }
 
 if [ ! $# -gt 3 ]; then usage ; fi
-
-# $GE_TASK_ID
 
 while [ "$1" != "" ]; do
     case $1 in
@@ -37,6 +35,8 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
+if [ -e $NODE_TMP ]; then TMP=$NODE_TMP; fi     # overwrites temp folder variable to node-local temp folder, if specified
+
 ################################################################################
 CHECKPOINT="programs"
 for MODS in $MODULES_TRINITY; do module load $MODS; done 
@@ -45,7 +45,7 @@ module list
 echo "PATH=$PATH"
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_INCHWORM*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_CHRYSALIS*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -59,23 +59,8 @@ echo -e "--perl        --\n "$(perl -v | grep "version" )
 echo -e "--trinity     --\n "$(Trinity.pl --version)
 [ -z "$(which Trinity.pl)" ] && echo "[ERROR] no trinity detected" && exit 1
 
+ulimit -s unlimited
 
-#if [ $NODETYPE_INCHWORM -eq "intel.q" ] ; then
-	#some fancy optimisation stuff for intel nodes. Consider the intel compiler! 
-#	echo "[NOTE] forcing copact thread placement on intel nodes"
-#	export OMP_NUM_THREADS=$NCPU_INCHWORM
-#	export KMP_AFFINITY=compact
-#fi
-
-echo -e "\n********* $CHECKPOINT\n"
-################################################################################
-CHECKPOINT="recall files from tape"
-
-if [ -n "$DMGET" ]; then
-	dmget -a $(dirname $FASTA)/*
-	dmget -a ${f/$READONE/"*"}
-fi
-    
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="detect library"
@@ -101,52 +86,58 @@ ln -f -s ../$TASKTRINITY/$SAMPLE $OUTDIR/$SAMPLE
 
 # make sure we use the same tmp folder name all time so stick with one jobid
 if [ ! -f $OUTDIR/$SAMPLE/persistent_id.tmp ]; then 
-    PERSISTENT_ID="trinity_$JOB_ID"
-    echo "$PERSISTENT_ID" >  $OUTDIR/$SAMPLE/persistent_id.tmp;
+    echo "[ERROR] persistens ID not detected"
+    exit 1
 else
     PERSISTENT_ID="$(head -n 1 $OUTDIR/$SAMPLE/persistent_id.tmp)"
+    echo "[NOTE] Persistent ID found: $PERSISTENT_ID"
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
+###############################################################################
+CHECKPOINT="recall files from tape"
+
+if [ -n "$DMGET" ]; then
+	dmget -a ${f/$READONE/"*"}
+	dmget -a $OUTDIR/$SAMPLE/*
+fi
+    
+echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-CHECKPOINT="Inchworm"
+CHECKPOINT="Chrysalis"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
+    mkdir -p $TMP/$PERSISTENT_ID
+    cp -r $OUTDIR/$SAMPLE/* $TMP/$PERSISTENT_ID
+    cd $TMP/$PERSISTENT_ID
+
     echo "[NOTE] --max_reads_per_graph set to 1 million because very high I/O is needed otherwise. It is unlikely that a transcript needs more than 1 million reads to be assembled"
 
     if [ -z "$SS_LIBRARY_TYPE" ]; then
-        echo "[WARNING] strand-specific RNAseq library type not set ($SS_LIBRARY_TYPE): treating input as non-stranded"
-        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --max_reads_per_graph 1000000 --output $OUTDIR/$SAMPLE --JM $MEMORY_INCHWORM"G" --CPU $NCPU_INCHWORM --no_run_chrysalis"
+        echo "[WARN] strand-specific RNAseq library type not set ($SS_LIBRARY_TYPE): treating input as non-stranded"
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --output $TMP/$PERSISTENT_ID --JM $MEMORY_CHRYSALIS"G" --CPU $NCPU_CHRYSALIS --no_run_quantifygraph"
     else
         echo "[NOTE] RNAseq library type: $SS_LIBRARY_TYPE"
-        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --max_reads_per_graph 1000000 --output $OUTDIR/$SAMPLE --JM $MEMORY_INCHWORM"G" --CPU $NCPU_INCHWORM --no_run_chrysalis"
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --output $TMP/$PERSISTENT_ID --JM $MEMORY_CHRYSALIS"G" --CPU $NCPU_CHRYSALIS --no_run_quantifygraph"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    echo "[NOTE] inchworm has completed properly! thank Martin by buying him a beer"
 
-    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/${n/%$READONE.$FASTQ/.inchworm.timing}
+    cp -r $TMP/$PERSISTENT_ID/* $OUTDIR/$SAMPLE/
+    rm -r $TMP/$PERSISTENT_ID/*
+    
+    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing}
+    echo "Read count:"$(head -n 1 $OUTDIR/$SAMPLE/chrysalis/readcounts.out) > $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
+    
+    echo "[NOTE] Chrysalis pt.1 has completed properly! thank Martin by buying him another beer"
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.Trinity.timing} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi 
 
 ################################################################################
-CHECKPOINT="cleanup"
-
-if [ -n $CLEANUP ]; then 
-#    rm $OUTDIR/*ebwt $OUTDIR/*ebwt  #bowtie files required for chrysalis, and this is the WRONG file location (log path)
-    [ -e $OUTDIR/$SAMPLE/jellyfish.kmers.fa ] && rm $OUTDIR/$SAMPLE/jellyfish.kmers.fa
-else
-    echo "[WARN] no cleaning up: I hope you plan on running some more analyses on the chrysalis/inchworm stuff. \
-            Otherwise, free up some space you dirty, dirty hacker.... "
-fi
-
-echo -e "\n********* $CHECKPOINT\n"
-################################################################################
-#TODO correct dummy
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/.Trinity.timing}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.Trinity.timing}.dummy
-echo ">>>>> transcriptome assembly with trinity inchworm - FINISHED"
+[ -e $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing}.dummy
+echo ">>>>> transcriptome assembly with trinity chrysalis - FINISHED"
 echo ">>>>> enddate "`date`
