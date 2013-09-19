@@ -161,14 +161,10 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    #fixmate
+    echo "[NOTE] fixmates"
 	samtools sort -@ $CPU_HTSEQCOUNT -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
 	samtools fixmate $OUTDIR/${n/%.$ASD.bam/.tmp.bam} $OUTDIR/${n}
 	rm $OUTDIR/${n/%.$ASD.bam/.tmp}.bam
-
-    # sort
-    samtools sort -@ $CPU_HTSEQCOUNT $OUTDIR/${n} $OUTDIR/${n/%.$ASD.bam/.tmp}
-    mv $OUTDIR/${n/%.$ASD.bam/.tmp.bam} $OUTDIR/${n}
 
     echo "[NOTE] Create filtered bamfile (removed: rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene RNA18S5 RNA28S5)"
 	
@@ -176,7 +172,10 @@ else
 	python ${NGSANE_BASE}/tools/extractFeature.py -f $GTF --keep rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene > $OUTDIR/mask.gff
 	python ${NGSANE_BASE}/tools/extractFeature.py -f $GTF --keep RNA18S5 RNA28S5 -l 17 >> $OUTDIR/mask.gff
 	        
-    intersectBed -v -abam $OUTDIR/${n} -b $OUTDIR/mask.gff > $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam}    
+    intersectBed -v -abam $OUTDIR/${n} -b $OUTDIR/mask.gff > $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.tmp}
+    
+    samtools sort -@ $CPU_HTSEQCOUNT -n $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.tmp} $OUTDIR/${n/%.$ASD.bam/.$ASD.masked}
+    rm $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.tmp}
 	    
     samtools index $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam}
 
@@ -198,9 +197,9 @@ else
         for MODE in $HTSEQCOUNT_MODES; do 
             echo "[NOTE] processing $ATTR $MODE"
             if [ "$PAIRED" = 1 ]; then 
-            	samtools view -@ $CPU_HTSEQCOUNT -f 3  $OUTDIR/${n} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF.$MODE.$ATTR.tmp
+            	samtools view -f 3  $OUTDIR/${n} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF.$MODE.$ATTR.tmp
             else
-            	samtools view -@ $CPU_HTSEQCOUNT -F 4 $OUTDIR/${n} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF.$MODE.$ATTR.tmp
+            	samtools view -F 4 $OUTDIR/${n} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF.$MODE.$ATTR.tmp
         	fi
             head -n-5 $OUTDIR/GTF.$MODE.$ATTR.tmp > $OUTDIR/GTF.$MODE.$ATTR
             echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/GTF.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF.summary.txt
@@ -226,9 +225,9 @@ else
         for MODE in $HTSEQCOUNT_MODES; do 
             echo "[NOTE] processing $ATTR $MODE"
             if [ "$PAIRED" = 1 ]; then 
-                samtools view -@ $CPU_HTSEQCOUNT -f 3 $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF_masked.$MODE.$ATTR.tmp
+                samtools view -f 3 $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF_masked.$MODE.$ATTR.tmp
             else
-                samtools view -@ $CPU_HTSEQCOUNT -F 4 $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF_masked.$MODE.$ATTR.tmp
+                samtools view -F 4 $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $OUTDIR/GTF_masked.$MODE.$ATTR.tmp
             fi
             head -n-5 $OUTDIR/GTF_masked.$MODE.$ATTR.tmp > $OUTDIR/GTF_masked.$MODE.$ATTR
             echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/GTF_masked.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF_masked.summary.txt
