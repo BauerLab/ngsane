@@ -285,7 +285,7 @@ if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
 fi
 
 ################################################################################
-if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFF" ]]; then
+if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
     summaryHeader "Tophat" "$TASKTOPHAT" "tophat.sh" "$SUMMARYTMP"
 
 	vali=""
@@ -302,6 +302,11 @@ if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFF" ]]; then
     python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASD.bam.stats tophat >>$SUMMARYTMP
 
     summaryFooter "$TASKTOPHAT" "$SUMMARYTMP"
+
+	RUNCUFFLINKS="1"
+	RUNHTSEQCOUNT="1"
+
+
 fi
 
 ################################################################################
