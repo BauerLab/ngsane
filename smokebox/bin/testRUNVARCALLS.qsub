@@ -33,7 +33,7 @@ echo "[NOTE] sumitted jobs $(echo -n $JOBIDSBWA)"
 echo "[NOTE] Prep config file tmp/configBAMANN.txt"
 cat bin/tmpl/configVarCall.txt | sed 's/RUNANNOTATINGBAM=\"\"/RUNANNOTATINGBAM=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBAMANN\"/g' > tmp/configBAMANN.txt
-echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBWA//:/$QUEUEWAITSEP}\"" >>tmp/configBAMANN.txt
+echo QSUBEXTRA='$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBWA//:/$QUEUEWAITSEP}\"" >>tmp/configBAMANN.txt
 
 # submit the BAMANN run to the cluster
 JOBIDSBAMANN=$( trigger.sh tmp/configBAMANN.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
