@@ -107,20 +107,29 @@ CHECKPOINT="Butterfly"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-    # this runs chrysalis::readsToTranscript and butterfly 
+
+    # copy files over to node-local filesystem
+    mkdir -p $TMP/$PERSISTENT_ID
+    cp -r $OUTDIR/$SAMPLE/* $TMP/$PERSISTENT_ID
+    cd $TMP/$PERSISTENT_ID
+
+    # this runs buterfly only
     echo "[NOTE] --max_reads_per_graph set to 1 million because very high I/O is needed otherwise. It is unlikely that a transcript needs more than 1 million reads to be assembled"
     
     if [ -z "$SS_LIBRARY_TYPE" ]; then
         echo "[WARNING] strand-specific RNAseq library type not set ($SS_LIBRARY_TYPE): treating input as non-stranded"
-        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --max_reads_per_graph 1000000 --output $OUTDIR/$SAMPLE/ \
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --max_reads_per_graph 1000000 --output $TMP/$PERSISTENT_ID \
                         --JM $MEMORY_BUTTERFLY"G" --CPU $NCPU_BUTTERFLY "
     else
         echo "[NOTE] RNAseq library type: $SS_LIBRARY_TYPE"
         RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --max_reads_per_graph 1000000 \
-                        --output $OUTDIR/$SAMPLE/ --JM $MEMORY_BUTTERFLY"G" --CPU $NCPU_BUTTERFLY "
+                        --output $TMP/$PERSISTENT_ID --JM $MEMORY_BUTTERFLY"G" --CPU $NCPU_BUTTERFLY "
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
   
+    cp -r $TMP/$PERSISTENT_ID/* $OUTDIR/$SAMPLE/  
+    rm -r $TMP/$PERSISTENT_ID/*
+
     echo "[NOTE] butterly has completed properly! thank Martin by buying him yet another beer (hic!)"
 
     # mark checkpoint
