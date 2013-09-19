@@ -38,6 +38,7 @@ RUNMAPPINGBOWTIE2="" # mapping with bowtie2
 RUNTOPHAT=""         # mapping with tophat (RNAseq)
 RUNCUFFLINKS=""      # mapping with cufflinks (RNAseq)
 RUNHTSEQCOUNT=""     # mapping with htseqcount (RNAseq)
+RUNTOPHATCUFFHTSEQ="" # run trigger's pipeline
 
 HTMLOUT="Summary"
 
