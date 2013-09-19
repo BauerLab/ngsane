@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # the ngsane version to be tested needs to be loaded by hand
 . $NGSANE_BASE/conf/header.sh
@@ -21,57 +21,24 @@ done
 
 # modify the template config file to flip the RUNTOPHAT switch
 # specify the resulting html file
-echo "[NOTE] Prep config file tmp/configTOPHAT.txt"
-cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNTOPHAT=\"\"/RUNTOPHAT=\"1\"/g' | \
-    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHAT\"/g' > tmp/configTOPHAT.txt
+echo "[NOTE] Prep config file tmp/configTOPHATCUFFHTSEQ.txt"
+cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNTOPHATCUFFHTSEQ=\"\"/RUNTOPHATCUFFHTSEQ=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHATCUFFHTSEQ\"/g' > tmp/configTOPHATCUFFHTSEQ.txt
 
 # submit the TOPHAT run to the cluster
-JOBIDSTOPHAT=$( trigger.sh tmp/configTOPHAT.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] submitted jobs $(echo -n $JOBIDSTOPHAT)"
-
-################################################################################
-#  CUFFLINKS
-################################################################################
-
-
-# modify the template config file to flip the RUNCUFFLINKS switch
-# specify the resulting html file
-echo "[NOTE] Prep config file tmp/configCUFFLINKS.txt"
-cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNCUFFLINKS=\"\"/RUNCUFFLINKS=\"1\"/g' | \
-    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryCUFFLINKS\"/g' > tmp/configCUFFLINKS.txt
-echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSTOPHAT//:/$QUEUEWAITSEP}\"" >>tmp/configCUFFLINKS.txt
-
-# submit the CUFFLINKS run to the cluster
-JOBIDSCUFF=$( trigger.sh tmp/configCUFFLINKS.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] submitted jobs $(echo -n $JOBIDSCUFF)"
-
-
-################################################################################
-#  HTSEQCOUNT
-################################################################################
-
-
-# modify the template config file to flip the RUNHTSEQCOUNT switch
-# specify the resulting html file
-echo "[NOTE] Prep config file tmp/configHTSEQCOUNT.txt"
-cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNHTSEQCOUNT=\"\"/RUNHTSEQCOUNT=\"1\"/g' | \
-    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHTSEQCOUNT\"/g' > tmp/configHTSEQCOUNT.txt
-echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSTOPHAT//:/$QUEUEWAITSEP}\"" >>tmp/configHTSEQCOUNT.txt
-
-# submit the HTSEQCOUNT run to the cluster
-JOBIDSHTSEQ=$( trigger.sh tmp/configHTSEQCOUNT.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] submitted jobs $(echo -n $JOBIDSHTSEQ)"
+JOBIDSTOPHATCUFFHTSEQ=$( trigger.sh tmp/configTOPHATCUFFHTSEQ.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSTOPHATCUFFHTSEQ)"
 
 ################################################################################
 # TEST
 ################################################################################
-JOBIDS="$JOBIDSCUFF:$JOBIDSHTSEQ" #other things
+JOBIDS="$JOBIDSTOPHATCUFFHTSEQ"
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
-cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNTOPHAT=\"\"/RUNTOPHAT=\"1\"/g' | \
-    sed 's/RUNCUFFLINKS=\"\"/RUNCUFFLINKS=\"1\"/g' |\
-    sed 's/RUNHTSEQCOUNT=\"\"/RUNHTSEQCOUNT=\"1\"/g' |\
-	sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHATCUFFHTSEQ\"/g' > tmp/configTOPHATCUFFHTSEQ.txt
+#cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNTOPHAT=\"\"/RUNTOPHAT=\"1\"/g' | \
+#    sed 's/RUNCUFFLINKS=\"\"/RUNCUFFLINKS=\"1\"/g' |\
+#    sed 's/RUNHTSEQCOUNT=\"\"/RUNHTSEQCOUNT=\"1\"/g' |\
+#	sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHATCUFFHTSEQ\"/g' > tmp/configTOPHATCUFFHTSEQ.txt
 
 # prepare the job to generate the html result page and perform the diff 
 echo "[NOTE] prepare evaluation script tmp/testTOPHATCUFFHTSEQ.qsub wait for $HOLDID"
@@ -79,9 +46,6 @@ sed 's/NAME/TOPHATCUFFHTSEQ/g' bin/tmpl/HPCheader.txt >tmp/testTOPHATCUFFHTSEQ.q
 echo "trigger.sh tmp/configTOPHATCUFFHTSEQ.txt html" >> tmp/testTOPHATCUFFHTSEQ.qsub
 echo "diff result/SummaryTOPHATCUFFHTSEQ.html result/expected/SummaryTOPHATCUFFHTSEQ.html | \
 	   python bin/diffparser.py  > result/diffTOPHATCUFFHTSEQ.txt" >> tmp/testTOPHATCUFFHTSEQ.qsub
-#      grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
-#      grep -v \"[NOTE]\" | \
-#      grep -v \"[0-9]c[0-9]\" > result/diffTOPHATCUFFHTSEQ.txt" >> tmp/testTOPHATCUFFHTSEQ.qsub
 
 chmod 777 tmp/testTOPHATCUFFHTSEQ.qsub
 
