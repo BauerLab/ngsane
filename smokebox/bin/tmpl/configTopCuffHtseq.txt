@@ -30,6 +30,12 @@ MEMORY_HTSEQCOUNT=10
 CPU_HTSEQCOUNT=1
 NODES_HTSEQCOUNT="nodes=1:ppn=1"
 
+WALLTIME_BAMANN=00:20:00
+MEMORY_BAMANN=8
+CPU_BAMANN=1
+NODES_BAMANN="nodes=1:ppn=1"
+
+
 #********************
 # Tasks
 #********************
@@ -39,6 +45,7 @@ RUNTOPHAT=""         # mapping with tophat (RNAseq)
 RUNCUFFLINKS=""      # mapping with cufflinks (RNAseq)
 RUNHTSEQCOUNT=""     # mapping with htseqcount (RNAseq)
 RUNTOPHATCUFFHTSEQ="" # run trigger's pipeline
+RUNANNOTATINGBAM=""  # annotate bam file with Gencode
 
 HTMLOUT="Summary"
 
@@ -71,6 +78,7 @@ FASTQ=fastq
 FASTA=$(pwd)/referenceData/chr16.fasta
 REFSEQGTF=$(pwd)/referenceData/UCSC_GencodeV12.gtf
 GTF=$(pwd)/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+BAMANNLIB=$(pwd)/referenceData/bamann/
 
 #********************
 # PARAMETER

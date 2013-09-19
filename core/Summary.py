@@ -97,6 +97,10 @@ def per(max,arr):
 
 def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix):
 
+    if (len(arrV)==0):
+        print " <i> - No result files detected</i>"
+        return
+    
     out=[[],[],[],[],[],[]]
     string=[]
     for c in xrange(len(arrV)):
