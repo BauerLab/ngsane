@@ -494,7 +494,7 @@ if [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
 
     if [ -z "$TASKBAMANN" ] || [ -z "$NODES_BAMANN" ] || [ -z "$CPU_BAMANN" ] || [ -z "$MEMORY_BAMANN" ] || [ -z "$WALLTIME_BAMANN" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    JOBIDS =$( 
+    JOBIDS=$( 
         $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" \
             -w $WALLTIME_TOPHAT \
             --command "${NGSANE_BASE}/mods/tophat.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTOPHAT/<NAME>" 
