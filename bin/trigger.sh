@@ -439,7 +439,7 @@ fi
 # OUT: $OUT/$dir/tophat/*.bam/
 ################################################################################       
 
-if [ -n "$RUNTOPHAT" ] && [ -z "$RUNTOPHATCUFFHTSEQ" ]; then
+if [ -n "$RUNTOPHAT" ]; then
     if [ -z "$TASKTOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
@@ -454,7 +454,7 @@ fi
 # OUT: $OUT/$dir/cufflinks/*_transcript.gtf
 ################################################################################       
 
-if [ -n "$RUNCUFFLINKS" ] && [ -z "$RUNTOPHATCUFFHTSEQ" ]; then
+if [ -n "$RUNCUFFLINKS" ]; then
     if [ -z "$TASKCUFFLINKS" ] || [ -z "$NODES_CUFFLINKS" ] || [ -z "$CPU_CUFFLINKS" ] || [ -z "$MEMORY_CUFFLINKS" ] || [ -z "$WALLTIME_CUFFLINKS" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKCUFFLINKS -i $INPUT_CUFFLINKS -e .$ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS  \
@@ -469,7 +469,7 @@ fi
 # OUT: $OUT/$dir/htseqcount/*_transcript.gtf
 ################################################################################       
 
-if [ -n "$RUNHTSEQCOUNT" ] && [ -z "$RUNTOPHATCUFFHTSEQ" ]; then
+if [ -n "$RUNHTSEQCOUNT" ]; then
     if [ -z "$TASKHTSEQCOUNT" ] || [ -z "$NODES_HTSEQCOUNT" ] || [ -z "$CPU_HTSEQCOUNT" ] || [ -z "$MEMORY_HTSEQCOUNT" ] || [ -z "$WALLTIME_HTSEQCOUNT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKHTSEQCOUNT -i $INPUT_HTSEQCOUNT -e .$ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT \
