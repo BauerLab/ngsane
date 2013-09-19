@@ -8,7 +8,7 @@
 #********************
 # Tasks
 #********************
-RUNTOPHATCUFF="1"    # mapping with tophat (RNAseq)
+RUNTOPHATCUFFHTSEQ="1"    # mapping with tophat (RNAseq)
 #********************
 # Paths
 #********************
