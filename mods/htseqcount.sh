@@ -161,9 +161,14 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
+    #fixmate
 	samtools sort -@ $CPU_HTSEQCOUNT -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
 	samtools fixmate $OUTDIR/${n/%.$ASD.bam/.tmp.bam} $OUTDIR/${n}
 	rm $OUTDIR/${n/%.$ASD.bam/.tmp}.bam
+
+    # sort
+    samtools sort -@ $CPU_HTSEQCOUNT $OUTDIR/${n} $OUTDIR/${n/%.$ASD.bam/.tmp}
+    mv $OUTDIR/${n/%.$ASD.bam/.tmp.bam} $OUTDIR/${n}
 
     echo "[NOTE] Create filtered bamfile (removed: rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene RNA18S5 RNA28S5)"
 	
