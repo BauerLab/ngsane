@@ -40,9 +40,6 @@ FASTA=
 # PARAMETER (optional overwriting defaults)
 #********************
 
-# uncomment when BWA was used for mapping
-#TASKBOWTIE=$TASKBWA
-
 # Fragment length to extend reads downstream  - only relevant for single-end libraries during bigwig generation
 # Fragment length of -1 will use the genomic fragment covered by the read-mates if the input is a paired read library
 FRAGMENTLENGTH=0

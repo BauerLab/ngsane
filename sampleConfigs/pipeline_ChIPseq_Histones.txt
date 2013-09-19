@@ -28,6 +28,9 @@ INPUT_PEAKRANGER=$TASKBOWTIE
 # folder/task containing the data this task operates on
 INPUT_CHANCE=$TASKBOWTIE
 
+# folder/task containing the data this task operates on
+INPUT_BIGWIG=$TASKBOWTIE
+
 # where to write the output
 OUT=$SOURCE
 
@@ -89,6 +92,13 @@ EXPERIMENTID=
 #> Egr1
 EXPERIMENTPATTERN=
 
+# Fragment length to extend reads downstream  - only relevant for single-end libraries during bigwig generation
+# Fragment length of -1 will use the genomic fragment covered by the read-mates if the input is a paired read library
+FRAGMENTLENGTH=0
+
+# uncomment to generate strand-specific bigwig files
+#BIGWIGSTRANDS=strand-specific
+
 #WALLTIME_BOWTIE=10:00:00
 #MEMORY_BOWTIE=60
 #CPU_BOWTIE=8
@@ -109,3 +119,10 @@ EXPERIMENTPATTERN=
 #NODES_CHANCE="nodes=1:ppn=2"
 #MODULE_CHANCE=""
 #PATH_CHANCE=
+
+#WALLTIME_BIGWIG=10:00:00
+#MEMORY_BIGWIG=60
+#CPU_BIGWIG=1
+#NODES_BIGWIG="nodes=1:ppn=1"
+#MODULE_BIGWIG=
+#PATH_BIGWIG=

@@ -26,6 +26,9 @@ INPUT_CUFFLINKS=$TASKTOPHAT
 # folder/task containing the data this task operates on
 INPUT_HTSEQCOUNT=$TASKTOPHAT
 
+# folder/task containing the data this task operates on
+INPUT_BAMANN=$TASKTOPHAT
+
 # where to write the output
 OUT=$SOURCE
 
@@ -68,6 +71,9 @@ HTSEQCOUNT_ATTRIBUTES=
 # e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_14/gencode.v14.annotation.gtf
 GTF=
 
+# folder containing multiple gtf files for integration
+# e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_17/BAM_ANNOTATE
+BAMANNLIB=
 
 #********************
 # PARAMETER (optional overwriting defaults)
@@ -117,6 +123,11 @@ HTSEQCOUNT_ADDPARAMS=
 #MODULE_HTSEQCOUNT=
 #PATH_HTSEQCOUNT=
 
-
+#WALLTIME_BAMANN=5:00:00
+#MEMORY_BAMANN=32
+#CPU_BAMANN=1
+#NODES_BAMANN="nodes=1:ppn=1"
+#MODULE_BAMANN=
+#PATH_BAMANN=
 
 

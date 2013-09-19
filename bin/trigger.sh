@@ -488,18 +488,27 @@ fi
 if [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
     if [ -z "$TASKTOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    JOBIDS=$( \
+    if [ -z "$TASKCUFFLINKS" ] || [ -z "$NODES_CUFFLINKS" ] || [ -z "$CPU_CUFFLINKS" ] || [ -z "$MEMORY_CUFFLINKS" ] || [ -z "$WALLTIME_CUFFLINKS" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    if [ -z "$TASKHTSEQCOUNT" ] || [ -z "$NODES_HTSEQCOUNT" ] || [ -z "$CPU_HTSEQCOUNT" ] || [ -z "$MEMORY_HTSEQCOUNT" ] || [ -z "$WALLTIME_HTSEQCOUNT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    if [ -z "$TASKBAMANN" ] || [ -z "$NODES_BAMANN" ] || [ -z "$CPU_BAMANN" ] || [ -z "$MEMORY_BAMANN" ] || [ -z "$WALLTIME_BAMANN" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    MAPJOBIDS=$( \
         $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" \
             -w $WALLTIME_TOPHAT \
             --command "${NGSANE_BASE}/mods/tophat.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKTOPHAT/<NAME>" \
     ) && echo -e "$JOBIDS" && JOBIDS=$(waitForJobIds "$JOBIDS")
 
     # instruct to wait for TOPHATJOBIDS to finish
-    $QSUB $ARMED -r -k $CONFIG -t $TASKCUFFLINKS -i $INPUT_CUFFLINKS -e .$ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS $JOBIDS \
+    $QSUB $ARMED -r -k $CONFIG -t $TASKCUFFLINKS -i $INPUT_CUFFLINKS -e .$ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS $MAPJOBIDS \
         --command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKCUFFLINKS/<NAME>"
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASKHTSEQCOUNT -i $INPUT_HTSEQCOUNT -e .$ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT $JOBIDS \
-        --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHTSEQCOUNT/<NAME>"
+    $QSUB $ARMED -r -k $CONFIG -t $TASKHTSEQCOUNT -i $INPUT_HTSEQCOUNT -e .$ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT $MAPJOBIDS \
+        --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKHTSEQCOUNT/<NAME>"      
+    
+    $QSUB --nodir -r $ARMED -k $CONFIG -t $TASKBAMANN -i $INPUT_BAMANN -e .$ASD.bam -n $NODES_BAMANN -c $CPU_BAMANN -m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN $MAPJOBIDS \
+        --command "${NGSANE_BASE}/mods/annotateBam.sh -k $CONFIG -f <FILE>"
 
 fi
 
@@ -614,6 +623,8 @@ if [ -n "$RUNCHIPSEQBROAD" ]; then
 
     if [ -z "$TASKCHANCE" ] || [ -z "$NODES_CHANCE" ] || [ -z "$CPU_CHANCE" ] || [ -z "$MEMORY_CHANCE" ] || [ -z "$WALLTIME_CHANCE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
+    if [ -z "$TASKBIGWIG" ] || [ -z "$NODES_BIGWIG" ] || [ -z "$CPU_BIGWIG" ] || [ -z "$MEMORY_BIGWIG" ] || [ -z "$WALLTIME_BIGWIG" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
     MAPJOBIDS=$( \
         $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i $INPUT_BOWTIE -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
             --command "${NGSANE_BASE}/mods/bowtie.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE --rgsi <DIR>" \
@@ -624,6 +635,10 @@ if [ -n "$RUNCHIPSEQBROAD" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKCHANCE -i $INPUT_CHANCE -e .$ASD.bam -n $NODES_CHANCE -c $CPU_CHANCE -m $MEMORY_CHANCE"G" -w $WALLTIME_CHANCE $MAPJOBIDS \
 	   --command "${NGSANE_BASE}/mods/chance.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKCHANCE"
+	   
+    $QSUB $ARMED --nodir -r -k $CONFIG -t $TASKBIGWIG -i $INPUT_BIGWIG -e .$ASD.bam -n $NODES_BIGWIG -c $CPU_BIGWIG -m $MEMORY_BIGWIG"G" -w $WALLTIME_BIGWIG $MAPJOBIDS \
+        --command "${NGSANE_BASE}/mods/bigwig.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$INPUT_BIGWIG"
+        
 	   
 fi
 
@@ -643,6 +658,8 @@ if [ -n "$RUNCHIPSEQSHARP" ]; then
     
     if [ -z "$TASKMEMECHIP" ] || [ -z "$NODES_MEMECHIP" ] || [ -z "$CPU_MEMECHIP" ] || [ -z "$MEMORY_MEMECHIP" ] || [ -z "$WALLTIME_MEMECHIP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
+    if [ -z "$TASKBIGWIG" ] || [ -z "$NODES_BIGWIG" ] || [ -z "$CPU_BIGWIG" ] || [ -z "$MEMORY_BIGWIG" ] || [ -z "$WALLTIME_BIGWIG" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
     MAPJOBIDS=$( \
         $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i $INPUT_BOWTIE -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
             --command "${NGSANE_BASE}/mods/bowtie.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE --rgsi <DIR>" \
@@ -659,6 +676,10 @@ if [ -n "$RUNCHIPSEQSHARP" ]; then
 	   
     $QSUB $ARMED -r -k $CONFIG -t $TASKMEMECHIP -i $INPUT_MEMECHIP -e $BED -n $NODES_MEMECHIP -c $CPU_MEMECHIP -m $MEMORY_MEMECHIP"G" -w $WALLTIME_MEMECHIP $PEAKJOBIDS \
 	   --command "${NGSANE_BASE}/mods/memechip.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKMEMECHIP"
+	   
+    $QSUB $ARMED --nodir -r -k $CONFIG -t $TASKBIGWIG -i $INPUT_BIGWIG -e .$ASD.bam -n $NODES_BIGWIG -c $CPU_BIGWIG -m $MEMORY_BIGWIG"G" -w $WALLTIME_BIGWIG $MAPJOBIDS \
+        --command "${NGSANE_BASE}/mods/bigwig.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$INPUT_BIGWIG"
+        
 fi
 
 ################################################################################
