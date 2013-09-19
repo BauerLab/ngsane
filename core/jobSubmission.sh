@@ -49,9 +49,9 @@ echo "rm $TMPFILE" >> $TMPFILE
 SNAME="NGs_${SNAME:0:60}"
 
 if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
-#	echo "********** submit with PBS submission system"
-	JOBIDS=$(echo -e $JOBIDS | sed 's/://')
-	command="qsub -W depend=afterok:NGs_$JOBIDS -V -j oe -o $SOUTPUT -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
+#	echo "********** submit with PBS submission system" 1>&2
+	JOBIDS=$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
+	command="qsub $JOBIDS -V -j oe -o $SOUTPUT -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
 		-N $SNAME -l walltime=$SWALLTIME $TMPFILE $SADDITIONAL"
 	echo "# $command" >> $TMPFILE
 	RECIPT=$($command)

@@ -3,9 +3,9 @@
 # tested with trinityrnaseq_r2013-02-25
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.fasta.gz
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.inchworm.timing
 
-echo ">>>>> transcriptome assembly with trinity butterfly"
+echo ">>>>> transcriptome assembly with trinity inchworm"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
@@ -18,6 +18,8 @@ exit
 }
 
 if [ ! $# -gt 3 ]; then usage ; fi
+
+# $GE_TASK_ID
 
 while [ "$1" != "" ]; do
     case $1 in
@@ -43,7 +45,7 @@ module list
 echo "PATH=$PATH"
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_BUTTERFLY*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_INCHWORM*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -52,22 +54,19 @@ echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--bowtie      --\n "$(bowtie --version)
 [ -z "$(which bowtie)" ] && echo "[ERROR] no bowtie detected" && exit 1
-echo -e "--perl        --\n "$(perl -v | grep "This is perl" )
+echo -e "--perl        --\n "$(perl -v | grep "version" )
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
 echo -e "--trinity     --\n "$(Trinity.pl --version)
 [ -z "$(which Trinity.pl)" ] && echo "[ERROR] no trinity detected" && exit 1
 
-ulimit -s unlimited
 
-echo -e "\n********* $CHECKPOINT\n"
-################################################################################
-CHECKPOINT="recall files from tape"
+#if [ $NODETYPE_INCHWORM -eq "intel.q" ] ; then
+	#some fancy optimisation stuff for intel nodes. Consider the intel compiler! 
+#	echo "[NOTE] forcing copact thread placement on intel nodes"
+#	export OMP_NUM_THREADS=$NCPU_INCHWORM
+#	export KMP_AFFINITY=compact
+#fi
 
-if [ -n "$DMGET" ]; then
-	dmget -a $(dirname $FASTA)/*
-	dmget -a ${f/$READONE/"*"}
-fi
-    
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="detect library"
@@ -93,77 +92,67 @@ ln -f -s ../$TASKTRINITY/$SAMPLE $OUTDIR/$SAMPLE
 
 # make sure we use the same tmp folder name all time so stick with one jobid
 if [ ! -f $OUTDIR/$SAMPLE/persistent_id.tmp ]; then 
-    echo "[ERROR] persistens ID not detected"
-    exit 1
+    PERSISTENT_ID="trinity_$JOB_ID"
+    echo "$PERSISTENT_ID" >  $OUTDIR/$SAMPLE/persistent_id.tmp;
+    echo "[NOTE] Persistent ID set to: $PERSISTENT_ID"
 else
     PERSISTENT_ID="$(head -n 1 $OUTDIR/$SAMPLE/persistent_id.tmp)"
-fi
-
-###############################################################################
-CHECKPOINT="Butterfly"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-
-    # copy files over to node-local filesystem
-    mkdir -p $TMP/$PERSISTENT_ID
-    cp -r $OUTDIR/$SAMPLE/* $TMP/$PERSISTENT_ID
-    cd $TMP/$PERSISTENT_ID
-
-    # this runs buterfly only
-    echo "[NOTE] --max_reads_per_graph set to 1 million because very high I/O is needed otherwise. It is unlikely that a transcript needs more than 1 million reads to be assembled"
-    
-    if [ -z "$SS_LIBRARY_TYPE" ]; then
-        echo "[WARNING] strand-specific RNAseq library type not set ($SS_LIBRARY_TYPE): treating input as non-stranded"
-        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --max_reads_per_graph 1000000 --output $TMP/$PERSISTENT_ID \
-                        --JM $MEMORY_BUTTERFLY"G" --CPU $NCPU_BUTTERFLY "
-    else
-        echo "[NOTE] RNAseq library type: $SS_LIBRARY_TYPE"
-        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --max_reads_per_graph 1000000 \
-                        --output $TMP/$PERSISTENT_ID --JM $MEMORY_BUTTERFLY"G" --CPU $NCPU_BUTTERFLY "
-    fi
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-  
-    cp -r $TMP/$PERSISTENT_ID/* $OUTDIR/$SAMPLE/  
-    rm -r $TMP/$PERSISTENT_ID/*
-
-    echo "[NOTE] butterly has completed properly! thank Martin by buying him yet another beer (hic!)"
-
-    # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE/Trinity.fasta ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-fi 
-################################################################################
-CHECKPOINT="zip"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-
-    $GZIP $OUTDIR/$SAMPLE/Trinity.fasta 
-    # put into trinity
-    mv $OUTDIR/$SAMPLE/Trinity.fasta.gz $OUTDIR/../$TASKTRINITY/$SAMPLE.fasta.gz
-
-    # mark checkpoint
-    if [ -f $OUTDIR/../$TASKTRINITY/$SAMPLE.fasta.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-fi 
-################################################################################
-CHECKPOINT="cleanup"
-
-if [ -n $CLEANUP ]; then 
-    echo "[WARNING] cleaning up, all intermediary files will disappear: rm $OUTDIR/$SAMPLE/... \"POOF\""
-    cd $OUTDIR/$SAMPLE /
-    ls ./ | grep -v "Trinity.*" | xargs -d"\n" rm -r 
-#    mv $SOURCE/${TMP_LOC%/*}.fasta.gz $SOURCE/${TMP_LOC%/*}/trinity/ 
-
-else
-    echo "[NOTE] no cleaning up: I hope you plan on running some more analyses on the chrysalis/inchworm stuff. \
-            Otherwise, free up some space you dirty, dirty hacker.... "
-    # mv /tmp/$JOB_ID/* $SOURCE/${TMP_LOC%/*}/trinity/
+    echo "[NOTE] Persistent ID found: $PERSISTENT_ID"
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e $OUTDIR/$SAMPLE.fasta.gz.dummy ] && rm $OUTDIR/$SAMPLE.fasta.gz.dummy
-echo ">>>>> transcriptome assembly with trinity butterfly - FINISHED"
+CHECKPOINT="recall files from tape"
+
+if [ -n "$DMGET" ]; then
+	dmget -a ${f/$READONE/"*"}
+	dmget -a $OUTDIR/$SAMPLE/*
+fi
+    
+echo -e "\n********* $CHECKPOINT\n"
+################################################################################
+CHECKPOINT="Inchworm"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    echo "[NOTE] --max_reads_per_graph set to 1 million because very high I/O is needed otherwise. It is unlikely that a transcript needs more than 1 million reads to be assembled"
+
+    if [ -z "$SS_LIBRARY_TYPE" ]; then
+        echo "[WARNING] strand-specific RNAseq library type not set ($SS_LIBRARY_TYPE): treating input as non-stranded"
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --max_reads_per_graph 1000000 --output $OUTDIR/$SAMPLE --JM $MEMORY_INCHWORM"G" --CPU $NCPU_INCHWORM --no_run_chrysalis"
+    else
+        echo "[NOTE] RNAseq library type: $SS_LIBRARY_TYPE"
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --max_reads_per_graph 1000000 --output $OUTDIR/$SAMPLE --JM $MEMORY_INCHWORM"G" --CPU $NCPU_INCHWORM --no_run_chrysalis"
+    fi
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+    echo "[NOTE] inchworm has completed properly! thank Martin by buying him a beer"
+
+    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/${n/%$READONE.$FASTQ/.inchworm.timing}
+
+    echo "jellyfish kmers: "$(grep ">" $OUTDIR/$SAMPLE/jellyfish.kmers.fa |  wc -l) > $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
+    echo "inchworm fasta: "$(grep ">" <$(ls $OUTDIR/$SAMPLE/inchworm.*.fa | head -n 1) | wc -l) >> $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
+    echo "both fasta: "$(grep ">" $OUTDIR/$SAMPLE/both.fa |  wc -l) >> $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
+    
+    # mark checkpoint
+    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.inchworm.timing} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi 
+
+################################################################################
+CHECKPOINT="cleanup"
+
+if [ -n $CLEANUP ]; then 
+#    rm $OUTDIR/*ebwt $OUTDIR/*ebwt  #bowtie files required for chrysalis, and this is the WRONG file location (log path)
+    [ -e $OUTDIR/$SAMPLE/jellyfish.kmers.fa ] && rm $OUTDIR/$SAMPLE/jellyfish.kmers.fa
+else
+    echo "[WARN] no cleaning up: I hope you plan on running some more analyses on the chrysalis/inchworm stuff. \
+            Otherwise, free up some space you dirty, dirty hacker.... "
+fi
+
+echo -e "\n********* $CHECKPOINT\n"
+################################################################################
+#TODO correct dummy
+[ -e $OUTDIR/${n/%$READONE.$FASTQ/.inchworm.timing}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.inchworm.timing}.dummy
+echo ">>>>> transcriptome assembly with trinity inchworm - FINISHED"
 echo ">>>>> enddate "`date`

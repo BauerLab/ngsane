@@ -127,6 +127,7 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix):
         print "</tbody>"
             
     if(noSummary):
+        print "</table>"
         return
         
     elif(arrS==0 or len(arrS)>1):
@@ -800,6 +801,49 @@ def memechipStats(logFile):
 
     return names, values
  
+ 
+def inchwormStats(logFile):
+    names=[ "Read pairs", "Jellyfish kmers", "Inchworm fasta"]
+    values=[]
+    file=open(logFile).read()
+    # populate
+
+    tmp=file.split("both fasta:")[1].strip().split()[0]
+    RP=float(tmp.strip())
+    values.append(RP)
+        
+    tmp=file.split("jellyfish kmers:")[1].strip().split()[0]
+    JK=float(tmp.strip())
+    values.append(JK)
+
+    tmp=file.split("inchworm fasta:")[1].strip().split()[0]
+    IF=float(tmp.strip())
+    values.append(IF)
+    return names, values
+    
+def chrysalisStats(logFile):
+    names=["Read count"]
+    values=[]
+    file=open(logFile).read()
+    # populate
+    tmp=file.split("Read count:")[1].strip().split()[0]
+    RC=float(tmp.strip())
+    values.append(RC)
+    
+    return names, values
+    
+def butterflyStats(logFile):
+    names=[ "Transcripts"]
+    values=[]
+    file=open(logFile).read()
+    # populate
+    
+    tmp=file.split("Transcripts:")[1].strip().split()[0]
+    RP=float(tmp.strip())
+    values.append(RP)
+    
+    return names, values
+
 #################33
 # TEMP
 
@@ -997,6 +1041,12 @@ for d in dir:
                 names,values=fastqscreenStats(f)
             if (type=="blue"):
 				names,values=blue(f)
+            if (type=="trinity_inchworm"):
+                names,values=inchwormStats(f)
+            if (type=="trinity_chrysalis"):
+                names,values=chrysalisStats(f)
+            if (type=="trinity_butterfly"):
+                names,values=butterflyStats(f)
 
             result=addValues(result,values)
 

@@ -21,12 +21,13 @@ for line in sys.stdin:
     content+=line
     if line.find("Last modi")>-1 or line.find("NGSANE")>-1 or line.find("[NOTE]")>-1 :
         continue
-#| grep -v "\-\-" | grep -v
-# "NGSANE" |       grep -v "[NOTE]" |       grep -v "[0-9]c[0-9]")
     if line[0]=="<" :
         local.append(line)
     if line[0]==">" :
         remote.append(line)
+
+#print len(local)
+#print len(remote)
 
 if len(local) != len(remote):
     print content

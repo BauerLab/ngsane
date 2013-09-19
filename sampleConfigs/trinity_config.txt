@@ -42,13 +42,14 @@
 ########################################################################
 ## This must be set to 1, NGSane obliges.
 RUNTRINITY="1"
-## Leave these for now; if declaration is removed, the selected task won't be performed.  
- RUNINCHWORM=
- RUNCHRYSALIS=
- RUNBUTTERFLY="1"
+# alternatively activate individual tasks
+RUNINCHWORM=
+RUNCHRYSALIS=
+RUNBUTTERFLY=
 
-## Remove ALL intermediate files. Avoid this.... 
-CLEANUP="0"
+## Remove ALL intermediate files.
+# e.g. "1" to remove intermediate files at the end
+CLEANUP=
 
 ## For significant performance boosts, this NGSane variable should point to a local folder on the 
 ## compute node as Chrysalis requires large amounts of I/O 
@@ -63,16 +64,20 @@ NODE_TMP=/temp   		# compute node temp folder (500MB on Wolfpack)
 
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq firectory)
+# which folder to run on (i.e. folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
 
+# folder/task containing the data this task operates on
+INPUT_INCHWORM="fastq"
+INPUT_CHRYSALIS="fastq"
+INPUT_BUTTERFLY="fastq"
 # where to write the output
 OUT=$SOURCE
 
 # where to write the log files
 QOUT=$OUT/qout
 
-# read indicator
+# read indicator immediately preceding the fastq file suffix
 READONE="_R1"
 READTWO="_R2"
 

@@ -526,19 +526,28 @@ if [ -n "$RUNMEMECHIP" ];then
 fi
 
 ################################################################################
+if [ -n "$RUNTRINITY" ] || [ -n "$RUNINCHWORM" ];then
+    summaryHeader "Trinity - Inchworm" "$TASKINCHWORM" "trinity_inchworm.sh" "$SUMMARYTMP"
 
-if [ -n "$RUNTRINITY" ];then
-    
-#    for dir in ${DIR[@]}; do
-#        vali=$vali" $OUT/$dir/$TASKTRINITY/"
-#    done
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKINCHWORM)" .summary.txt "trinity_inchworm" --noSummary  >>$SUMMARYTMP
 
-#    if [ -e $SOURCE/ ]
-#    LINKS=$LINKS" trinity"
-#    echo "<a name=\"trinity\"><h2>Trinity assembly stats</h2></a><pre>">>$SUMMARYTMP
-fi
+    summaryFooter "$TASKINCHWORM" "$SUMMARYTMP"
+fi  
+if [ -n "$RUNTRINITY" ] || [ -n "$RUNCHRYSALIS" ];then
+    summaryHeader "Trinity - Chrysalis" "$TASKCHRYSALIS" "trinity_chrysalis.sh" "$SUMMARYTMP"
 
-#
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKCHRYSALIS)" .summary.txt "trinity_chrysalis" --noSummary  >>$SUMMARYTMP
+
+    summaryFooter "$TASKCHRYSALIS" "$SUMMARYTMP"
+fi    
+if [ -n "$RUNTRINITY" ] || [ -n "$RUNBUTTERFLY" ];then
+    summaryHeader "Trinity - Butterfly" "$TASKBUTTERFLY" "trinity_butterfly.sh" "$SUMMARYTMP"
+
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBUTTERFLY)" .summary.txt "trinity_butterfly" --noSummary  >>$SUMMARYTMP
+
+    summaryFooter "$TASKBUTTERFLY" "$SUMMARYTMP"
+fi  
+################################################################################
 # Old code ...
 ################################################################################
 if [ -n "$RUNANNOTATINGBAM3" ]; then
