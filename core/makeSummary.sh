@@ -258,28 +258,7 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     if [ -n "$RUNANNOTATINGBAM" ]; then
         bamAnnotate "$vali" $SUMMARYTMP
     fi
-#    
-#    if [ -n "$RUNANNOTATINGBAM" ]; then
-#    	echo "<h3>Annotation</h3>" >>$SUMMARYTMP
-#    	python ${NGSANE_BASE}/core/Summary.py "$vali" .anno.stats annostats >>$SUMMARYTMP
-#    	BAMANNOUT=runStats/bamann/$(echo ${DIR[@]}|sed 's/ /_/g')_$TASKBWA.ggplot
-#		BAMANNIMAGE=${BAMANNOUT/ggplot/pdf}
-#    	if [ ! -f $BAMANNOUT ]; then mkdir -p $( dirname $BAMANNOUT); fi
-#		cat $vali/*.anno.stats | head -n 1 | gawk '{print "type "$0" sample"}'  >$BAMANNOUT
-#		for i in $(ls $vali/*.anno.stats); do
-#			name=$(basename $i)
-#			arrIN=(${name//.$ASD/ })
-#			grep sum $i | gawk -v x=${arrIN[0]} '{print $0" "x}';
-#		done >> $BAMANNOUT
-#		sed -i -r 's/\s+/ /g' $BAMANNOUT
-#		Rscript ${NGSANE_BASE}/tools/bamann.R $BAMANNOUT $BAMANNIMAGE "Genome Features $TASKBWA"
-#		convert $BAMANNIMAGE ${BAMANNIMAGE/pdf/jpg}
-#		echo "<h3>Annotation of mapped reads</h3>" >> $SUMMARYTMP
-#		echo "<div><a href=$PROJECT_RELPATH/$BAMANNIMAGE><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-0.jpg\" width='250px' style='float:left;'><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-1.jpg\" width='250px' style='float:left;'></a></div>">>$SUMMARYTMP
-#
-##	    python ${NGSANE_BASE}/tools/makeBamHistogram.py "$vali" $ROUTH >>$SUMMARYTMP
-#    fi
-#    
+
     summaryFooter "$TASKBWA" "$SUMMARYTMP"
 fi
 
@@ -299,7 +278,7 @@ if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE)" .$ASD.bam.stats samstats >>$SUMMARYTMP
 
-    if [ -n "$RUNANNOTATINGBAM" ] || [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
+    if [ -n "$RUNANNOTATINGBAM" ]; then
         bamAnnotate "$vali" $SUMMARYTMP
     fi
     
@@ -312,7 +291,7 @@ if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE2)" .$ASD.bam.stats samstats >>$SUMMARYTMP
 
-    if [ -n "$RUNANNOTATINGBAM" ] || [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
+    if [ -n "$RUNANNOTATINGBAM" ]; then
         bamAnnotate "$vali" $SUMMARYTMP
     fi
     
