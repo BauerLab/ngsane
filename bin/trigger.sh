@@ -35,7 +35,7 @@ exit
 function version {
     [ -z $(hash git) ] && NGSANE_VERSION=`which trigger.sh` && cd ${NGSANE_VERSION/bin\/trigger.sh/} && NGSANE_VERSION=`git rev-parse HEAD`
     if [ -z "$NGSANE_VERSION" ] || [[ "$NGSANE_VERSION" == *"fatal: Not a git repository"* ]]; then
-        NGSANE_VERSION="release v0.1.0.1"
+        NGSANE_VERSION="release v0.2.0.0"
     else
         NGSANE_VERSION="$NGSANE_VERSION (git hash)"
     fi
