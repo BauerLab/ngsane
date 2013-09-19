@@ -182,13 +182,11 @@ if [[ -n "$RUNFASTQSCREEN" ]]; then
 
     row0=""
     row1=""
-    for dir in $vali; do
-        for f in $(ls $dir/*_screen.png); do
+    for dir in ${DIR[@]}; do
+        for f in $(ls $dir/$TASKFASTQSCREEN/*_screen.png); do
             n=${f##*/}
-            n=${n/"_screen.png"/}
-
-            row0+="<td>$n</td>"
-            row1+="<td><a href=\"$PROJECT_RELPATH/$dir/"$n"_screen.png\"><img src=\"$PROJECT_RELPATH/$dir/"$n"_screen.png\" width=\"300px\"/></a></td>"
+            row0+="<td>${n/"_screen.png"/}</td>"
+            row1+="<td><a href=\"$PROJECT_RELPATH/$dir/$TASKFASTQSCREEN/$n\"><img src=\"$PROJECT_RELPATH/$dir/$TASKFASTQSCREEN/$n\" width=\"300px\"/></a></td>"
         done
     done
     echo "<table><tr>$row0</tr><tr>$row1</tr></table>" >> $SUMMARYTMP
@@ -489,18 +487,39 @@ if [ -n "$RUNMACS2" ];then
     row0=""
     row1=""
     row2=""
-    for dir in $vali; do
-        for f in $(ls $dir/*model-0.png 2> /dev/null); do
+    for dir in ${DIR[@]}; do
+        for f in $(ls $dir/$TASKMACS2/*model-0.png 2> /dev/null); do
             n=${f##*/}
-            n=${n/"_model-0.png"/}
-            row0+="<td>$n</td>"
-            row1+="<td><a href=\"${f/-0.png/.pdf/}\"><img src=\"$f\" width=\"200px\"/></a></td>"
-            row2+="<td><a href=\"${f/-1.png/.pdf/}\"><img src=\"${f/model-0.png/model-1.png}\" width=\"200px\"/></a></td>"
+            row0+="<td>${n/"_model-0.png"/}</td>"
+            row1+="<td><a href=\"$PROJECT_RELPATH/$dir/$TASKMACS2/${n/-0.png/.pdf}\"><img src=\"$PROJECT_RELPATH/$dir/$TASKMACS2/$n\" width=\"200px\"/></a></td>"
+            row2+="<td><a href=\"$PROJECT_RELPATH/$dir/$TASKMACS2/${n/-1.png/.pdf}\"><img src=\"$PROJECT_RELPATH/$dir/$TASKMACS2/${n/model-0.png/model-1.png}\" width=\"200px\"/></a></td>"
         done
     done
     echo "<table><tr>$row0</tr><tr>$row1</tr><tr>$row2</tr></table>" >> $SUMMARYTMP
 
     summaryFooter "$TASKMACS2" "$SUMMARYTMP"
+fi
+
+################################################################################
+if [ -n "$RUNCHANCE" ];then
+    summaryHeader "Chance" "$TASKCHANCE" "chance.sh" "$SUMMARYTMP"
+
+    vali=$(gatherDirs $TASKCHANCE)
+    python ${NGSANE_BASE}/core/Summary.py "$vali" ".IPstrength" chance >> $SUMMARYTMP
+
+    row0=""
+    row1=""
+    for dir in ${DIR[@]}; do
+        for f in $(ls $dir/$TASKCHANCE/*.png 2> /dev/null); do
+            n=${f##*/}
+            echo $n
+            row0+="<td>${n/".png"/}</td>"
+            row1+="<td><a href=\"$PROJECT_RELPATH/$dir/$TASKCHANCE/${n/.png/.pdf}\"><img src=\"$PROJECT_RELPATH/$dir/$TASKCHANCE/$n\" width=\"200px\"/></a></td>"
+        done
+    done
+    echo "<table><tr>$row0</tr><tr>$row1</tr></table>" >> $SUMMARYTMP
+
+    summaryFooter "$TASKCHANCE" "$SUMMARYTMP"
 fi
 
 ################################################################################

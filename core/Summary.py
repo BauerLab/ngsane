@@ -763,6 +763,46 @@ def macs2Stats(logFile):
         
     return names, values
 
+def chanceStats(logFile):
+    names=[ "Cumulative % enrichment", "Input scaling factor", "Diff. Enrichment", "FDR (overall)", "FDR (TF normal)", "FDR (Histone normal)", "FDR (TF cancer)", "FDR (Histone cancer)"]
+    values=[]
+    file=open(logFile).read()
+    # populate
+    tmp=file.split("percent_genome_enriched,")[1].strip().split()[0]
+    PE=float(tmp.strip())
+    values.append(PE)
+
+    tmp=file.split("input_scaling_factor,")[1].strip().split()[0]
+    IS=float(tmp.strip())
+    values.append(IS)
+
+    tmp=file.split("differential_percentage_enrichment,")[1].strip().split()[0]
+    DE=float(tmp.strip())
+    values.append(DE)
+
+    tmp=file.split("fdr,")[1].strip().split()[0]
+    FD=float(tmp.strip())
+    values.append(FD)
+    
+    tmp=file.split("tfbs_normal_fdr,")[1].strip().split()[0]
+    TN=float(tmp.strip())
+    values.append(TN)
+      
+    tmp=file.split("histone_normal_fdr,")[1].strip().split()[0]
+    HN=float(tmp.strip())
+    values.append(HN)
+    
+    tmp=file.split("tfbs_cancer_fdr,")[1].strip().split()[0]
+    TC=float(tmp.strip())
+    values.append(TC)
+    
+    tmp=file.split("histone_cancer_fdr,")[1].strip().split()[0]
+    HC=float(tmp.strip())
+    values.append(HC)
+    
+    return names, values
+
+
 def fastqscreenStats(logFile):
     file=open(logFile).read()
 
@@ -1035,6 +1075,8 @@ for d in dir:
                 names,values=peakrangerStats(f)
             if (type=="macs2"):
                 names,values=macs2Stats(f)
+            if (type=="chance"):
+                names,values=chanceStats(f)
             if (type=="memechip"):
                 names,values=memechipStats(f)
             if (type=="fastqscreen"):

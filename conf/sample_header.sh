@@ -471,10 +471,10 @@ PATH_BLUE=
 ##############################################################
 # ChIP QC with CHANCE
 # https://github.com/songlab/chance/downloads
-WALLTIME_CHANCE=10:00:00
+WALLTIME_CHANCE=4:00:00
 MEMORY_CHANCE=20
-CPU_CHANCE=2
-NODES_CHANCE="nodes=1:ppn=2"
+CPU_CHANCE=1
+NODES_CHANCE="nodes=1:ppn=1"
 INPUT_CHANCE=$TASKBOWTIE
 MODULE_CHANCE="${NG_CHANCE} ${NG_JAVA} ${NG_MATLAB} ${NG_R}"
 PATH_CHANCE=
