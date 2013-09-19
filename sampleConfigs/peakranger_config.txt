@@ -43,9 +43,6 @@ CHIPINPUT=
 # PARAMETER (optional overwriting defaults)
 #********************
 
-# if bwa was used to map file then set TASKBOWTIE to TASKBWA
-#TASKBOWTIE=$TASKBWA
-
 # additional peakranger parameters, e.g. "--FDR 0.01"
 PEAKRANGERADDPARAM=
 
@@ -53,6 +50,5 @@ PEAKRANGERADDPARAM=
 #MEMORY_PEAKRANGER=20
 #CPU_PEAKRANGER=1
 #NODES_PEAKRANGER="nodes=1:ppn=1"
-
 #MODULE_PEAKRANGER=
 #PATH_PEAKRANGER=

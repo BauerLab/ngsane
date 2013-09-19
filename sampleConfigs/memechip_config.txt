@@ -35,10 +35,6 @@ QOUT=$OUT/qout
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
 FASTA=
 
-# chromosome sizes
-# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
-CHROMSIZES=
-
 # bed file suffix
 BED="_summit.bed"
 

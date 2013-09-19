@@ -43,9 +43,6 @@ RNA_SEQ_LIBRARY_TYPE="fr-firststrand"
 # PARAMETER (optional overwriting defaults)
 #********************
 
-# specify TASK that generated the bam, i.e. folder to look for bam (default TASKTOPHAT)
-#TASKTOPHAT=
-
 # additional parameters for cufflinks
 CUFFLINKSADDPARAM=
 
