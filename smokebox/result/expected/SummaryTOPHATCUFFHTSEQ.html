@@ -42,7 +42,7 @@ h4 {
 	font-size: 100%;
 	font-weight: normal;
 	padding: 2px 10px;
-	margin: 0px;
+	margin: 0 0 6 0;
 }
 
 .panel h3.overall {
@@ -332,7 +332,7 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
         <div class='wrapper'><div class='hidden'>
 <div id='tophat_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/tophat 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/tophat 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -355,16 +355,16 @@ QC_PASS .. 2 have cleanup/2
 <div id='tophat_notes'><pre>
 
 qout/tophat/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/tophat/job.20130919.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/tophat/job.20130919.log
 [NOTE] set java parameters
 [NOTE] Paired library detected
 [NOTE] Illumina 1.8 Phred33	(41  74) fastq format detected
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 [NOTE] RNAseq library type: fr-firststrand
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] make bigwigs; library is fr-firststrand 
-[NOTE] tophat Thu Sep 19 16:19:08 EST 2013
-[NOTE] tophat end Thu Sep 19 16:19:52 EST 2013
+[NOTE] tophat Thu Sep 19 21:41:09 EST 2013
+[NOTE] tophat end Thu Sep 19 21:41:52 EST 2013
 [NOTE] samtools merge
 [NOTE] samtools fixmate
 [NOTE] samtools sort
@@ -377,16 +377,16 @@ qout/tophat/Transcript_RNA3kChr16.out
 [NOTE] extract mapped reads
 
 qout/tophat/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/tophat/job.20130919.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/tophat/job.20130919.log
 [NOTE] set java parameters
 [NOTE] Paired library detected
 [NOTE] Illumina 1.8 Phred33	(41  74) fastq format detected
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 [NOTE] RNAseq library type: fr-firststrand
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] make bigwigs; library is fr-firststrand 
-[NOTE] tophat Thu Sep 19 16:19:08 EST 2013
-[NOTE] tophat end Thu Sep 19 16:19:51 EST 2013
+[NOTE] tophat Thu Sep 19 21:41:09 EST 2013
+[NOTE] tophat end Thu Sep 19 21:41:52 EST 2013
 [NOTE] samtools merge
 [NOTE] samtools fixmate
 [NOTE] samtools sort
@@ -462,28 +462,28 @@ qout/tophat/Transcript_RNA3kChr16rep.out
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
-<h3>Annotation</h3>
+<h3 class='overall'>Reads overlapping annotated regions</h3>
 <h3>smokebox/Transcript/tophat/</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>             exon</div></th><th><div>           intron</div></th><th><div>          lincRNA</div></th><th><div>miRNA_snoRNA_snRNA_miscRNA</div></th><th><div>             tRNA</div></th><th><div>        UCSC_rRNA</div></th><th><div>      unannotated</div></th><th class='left'>File</th></tr></thead>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>             exon</div></th><th><div>           intron</div></th><th><div>          lincRNA</div></th><th><div>      small_ncRNA</div></th><th><div>             tRNA</div></th><th><div>        UCSC_rRNA</div></th><th><div>      unannotated</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td class='left'>RNA3kChr16.asd.bam</td></tr>
-<tr><td></td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td class='left'>RNA3kChr16rep.asd.bam</td></tr>
+<tr><td></td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>           284.00</td><td class='left'>RNA3kChr16.asd.bam</td></tr>
+<tr><td></td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>           284.00</td><td class='left'>RNA3kChr16rep.asd.bam</td></tr>
 </tbody>
 <tfoot>
-<tr><td class='left'>sum</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>sum</td><td>         14060.00</td><td>         13620.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>           568.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>           284.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>           284.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>           284.00</td><td></td></tr>
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
 <h3 class='overall'>Aggregation over all libraries</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>             exon</div></th><th><div>           intron</div></th><th><div>          lincRNA</div></th><th><div>miRNA_snoRNA_snRNA_miscRNA</div></th><th><div>             tRNA</div></th><th><div>        UCSC_rRNA</div></th><th><div>      unannotated</div></th><th class='left'>File</th></tr></thead>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>             exon</div></th><th><div>           intron</div></th><th><div>          lincRNA</div></th><th><div>      small_ncRNA</div></th><th><div>             tRNA</div></th><th><div>        UCSC_rRNA</div></th><th><div>      unannotated</div></th><th class='left'>File</th></tr></thead>
 <tfoot>
-<tr><td class='left'>sum</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>sum</td><td>         14060.00</td><td>         13620.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>           568.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>           284.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>           284.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>           284.00</td><td></td></tr>
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
@@ -508,7 +508,7 @@ qout/tophat/Transcript_RNA3kChr16rep.out
         <div class='wrapper'><div class='hidden'>
 <div id='cufflinks_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/cufflinks 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/cufflinks 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -523,20 +523,20 @@ QC_PASS .. 2 have statistics/2
 <div id='cufflinks_notes'><pre>
 
 qout/cufflinks/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/cufflinks/job.20130919.log
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/cufflinks/job.20130919.log
+[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 [NOTE] RNAseq library type: fr-firststrand
-[NOTE] cufflinks Thu Sep 19 16:21:21 EST 2013
+[NOTE] cufflinks Thu Sep 19 21:43:36 EST 2013
 [NOTE] execute cufflinks with guide (GTF provided)
-[NOTE] cufflinks end Thu Sep 19 16:21:47 EST 2013
+[NOTE] cufflinks end Thu Sep 19 21:44:04 EST 2013
 
 qout/cufflinks/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/cufflinks/job.20130919.log
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/cufflinks/job.20130919.log
+[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 [NOTE] RNAseq library type: fr-firststrand
-[NOTE] cufflinks Thu Sep 19 16:21:21 EST 2013
+[NOTE] cufflinks Thu Sep 19 21:43:36 EST 2013
 [NOTE] execute cufflinks with guide (GTF provided)
-[NOTE] cufflinks end Thu Sep 19 16:21:47 EST 2013
+[NOTE] cufflinks end Thu Sep 19 21:44:10 EST 2013
 </pre></div>
 <div id='cufflinks_errors'><pre>
 
@@ -618,7 +618,7 @@ qout/cufflinks/Transcript_RNA3kChr16rep.out
         <div class='wrapper'><div class='hidden'>
 <div id='htseqcount_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/htseqcount 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/htseqcount 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -636,8 +636,8 @@ QC_PASS .. 2 have cleanup/2
 <div id='htseqcount_notes'><pre>
 
 qout/htseqcount/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/htseqcount/job.20130919.log
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/htseqcount/job.20130919.log
+[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 [NOTE] RNAseq library type: fr-firststrand
 [NOTE] paired library detected
 [NOTE] library is fr-firststrand; run htseq-count stranded
@@ -646,8 +646,8 @@ qout/htseqcount/Transcript_RNA3kChr16.out
 [NOTE] processing gene_id union
 
 qout/htseqcount/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/htseqcount/job.20130919.log
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/htseqcount/job.20130919.log
+[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 [NOTE] RNAseq library type: fr-firststrand
 [NOTE] paired library detected
 [NOTE] library is fr-firststrand; run htseq-count stranded
@@ -724,5 +724,5 @@ qout/htseqcount/Transcript_RNA3kChr16rep.out
             $('#htseqcount_panel div.wrapper div.display').html($('#htseqcount_results').html());
         }
         </script>
-<hr><span>Report generated with NGSANE version: 6ac105ee6b1ccb567ae016bdab27d0af57be2061 (git hash)</span><span style='float:right;'>Last modified: Thu Sep 19 16:26:11 EST 2013</span>
+<hr><span>Report generated with NGSANE version: 61630a8085209d9b5b651ad73431b2fe6b045f45 (git hash)</span><span style='float:right;'>Last modified: Thu Sep 19 21:48:28 EST 2013</span>
 </div><!-- center --></body></html>
