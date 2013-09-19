@@ -1182,5 +1182,3 @@ if [ -n "$RUNBUTTERFLY" ] && [ -z "$RUNTRINITY" ]; then
           -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY $JOBIDS \
           --command "${NGSANE_BASE}/mods/trinity_butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBUTTERFLY" 
 fi
-
-</DIR></FILE></DIR>
