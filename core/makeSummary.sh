@@ -118,11 +118,13 @@ function gatherDirsAggregate {
 
 # add bamannotate section
 # $1=vali 
-# $2=output file ($SUMMARYTMP)
+# $2=TASK (e.g.TASKBWA)
+# $3=output file ($SUMMARYTMP)
 function bamAnnotate {
-	echo "<h3>Annotation</h3>" >>$2
-	python ${NGSANE_BASE}/core/Summary.py "${1}" .anno.stats annostats >>$2
-	BAMANNOUT=runStats/bamann/$(echo ${DIR[@]}|sed 's/ /_/g')_${INPUT_BAMANN}.ggplot
+	echo "<h3 class='overall'>Reads overlapping annotated regions</h3>" >>$3
+	echo $1
+	python ${NGSANE_BASE}/core/Summary.py ${1} .anno.stats annostats >> $3
+	BAMANNOUT=runStats/bamann/$(echo ${DIR[@]}|sed 's/ /_/g')_${2}.ggplot
 	BAMANNIMAGE=${BAMANNOUT/ggplot/pdf}
 	if [ ! -f $BAMANNOUT ]; then mkdir -p $( dirname $BAMANNOUT); fi
 	cat ${1}/*.anno.stats | head -n 1 | gawk '{print "type "$0" sample"}'  >$BAMANNOUT
@@ -132,12 +134,12 @@ function bamAnnotate {
 		grep sum $i | gawk -v x=${arrIN[0]} '{print $0" "x}';
 	done >> $BAMANNOUT
 	sed -i -r 's/\s+/ /g' $BAMANNOUT
-	Rscript ${NGSANE_BASE}/tools/bamann.R $BAMANNOUT $BAMANNIMAGE "Genome Features ${INPUT_BAMANN}"
+	Rscript ${NGSANE_BASE}/tools/bamann.R $BAMANNOUT $BAMANNIMAGE "Genome Features ${2}"
 	convert $BAMANNIMAGE ${BAMANNIMAGE/pdf/jpg}
-	echo "<h3>Annotation of mapped reads</h3>" >> $2
-	echo "<div><a href=$PROJECT_RELPATH/$BAMANNIMAGE><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-0.jpg\" width='250px' style='float:left;'><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-1.jpg\" width='250px' style='float:left;'></a></div>">>$2
+	echo "<h3>Annotation of mapped reads</h3>" >> $3
+	echo "<div><a href=$PROJECT_RELPATH/$BAMANNIMAGE><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-0.jpg\" width='250px' style='float:left;'><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-1.jpg\" width='250px' style='float:left;'></a></div>">>$3
 
-#	    python ${NGSANE_BASE}/tools/makeBamHistogram.py "${1}" $ROUTH >>$2
+#	    python ${NGSANE_BASE}/tools/makeBamHistogram.py "${1}" $ROUTH >>$3
 
 }
 
@@ -256,7 +258,7 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASD.bam.stats samstats >>$SUMMARYTMP
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
-        bamAnnotate "$vali" $SUMMARYTMP
+        bamAnnotate "$vali" $TASKBWA  $SUMMARYTMP
     fi
 
     summaryFooter "$TASKBWA" "$SUMMARYTMP"
@@ -279,7 +281,7 @@ if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE)" .$ASD.bam.stats samstats >>$SUMMARYTMP
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
-        bamAnnotate "$vali" $SUMMARYTMP
+        bamAnnotate "$vali" $TASKBOWTIE  $SUMMARYTMP
     fi
     
     summaryFooter "$TASKBOWTIE" "$SUMMARYTMP"
@@ -292,7 +294,7 @@ if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE2)" .$ASD.bam.stats samstats >>$SUMMARYTMP
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
-        bamAnnotate "$vali" $SUMMARYTMP
+        bamAnnotate "$vali" $TASKBOWTIE2 $SUMMARYTMP
     fi
     
     summaryFooter "$TASKBOWTIE2" "$SUMMARYTMP"
@@ -316,7 +318,7 @@ if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
     python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASD.bam.stats tophat >>$SUMMARYTMP
     
     if [ -n "$RUNANNOTATINGBAM" ] || [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
-        bamAnnotate "$vali" $SUMMARYTMP
+        bamAnnotate "$vali" $TASKTOPHAT  $SUMMARYTMP
     fi
     
     summaryFooter "$TASKTOPHAT" "$SUMMARYTMP"

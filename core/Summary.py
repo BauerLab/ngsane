@@ -370,25 +370,12 @@ def annoStatsPicard(statsfile):
 
 
 def annoStats(statsfile):
-#    names=["total", "genes", "(%)", "rRNA", "(%)", "tRNA", "(%)", "lincRNA", "(%)", "miRNA", "(%)", "snoRNA", "(%)", "snrna", "(%)", "miscRNA", "(%)", "polyA", "(%)", "other", "(%)", "HiSeq", "(%)", "ucsc_rRNA", "(%)", "SegDups", "(%)"]
-#	print "bla"
 	names=[]
 	values=[]
 	f=open(statsfile).read().split("\n")
 	names=re.split("[ \t]+",f[0].strip())
-	values=map(float,re.split("[ \t]+",f[3].strip())[1:])
-#	for i in range(1,len(st)):
-#		values.append(float(st[i]))
-#		names.append(n[i-1])
-#		print names
-#		print values 
-#		values.append(float(values[-1]/values[0]*100))
-#		names.append("%")
-#	print names
-#	print values
+	values=map(float,re.split("[ \t]+",f[2].strip())[1:])
 	return names,values
-
-
 
 def parsetime(string):
     arr=string.split(":")
@@ -414,8 +401,6 @@ def samstatsrecal(statsfile):
 
     names+=["imprpaired"]
     values.append(valun[5]-values[5])
-#    print valun
-#    print values
     if (len(valun)>9 and len(values)>9):
         names+=["imprregpaired"]
         values.append(valun[9]-values[9])
