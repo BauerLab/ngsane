@@ -71,7 +71,7 @@ READTWO="_read2"
 FASTQ=fastq
 #FASTQ=fastq.gz
 BAMANNLIB=$(pwd)/referenceData/bamann/
-
+TASKBAMANN="bamann_bwa"
 
 FASTA=$(pwd)/referenceData/chr16.fasta
 DBROD=$(pwd)/referenceData/dbsnp_135.chr16.vcf
