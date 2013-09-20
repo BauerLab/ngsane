@@ -155,12 +155,12 @@ else
     ln -s $SAMPLE/Trinity.fasta.gz $OUTDIR/../$TASKTRINITY/$SAMPLE.fasta.gz
 
     # mark checkpoint
-    if [ -f $OUTDIR/../$TASKTRINITY/$SAMPLE.fasta.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/../$TASKTRINITY/$SAMPLE.fasta.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi 
 ################################################################################
 CHECKPOINT="cleanup"
 
-if [ -n $CLEANUP ]; then 
+if [ -n "$CLEANUP" ]; then 
     echo "[WARNING] cleaning up, all intermediary files will disappear: rm $OUTDIR/$SAMPLE/... \"POOF\""
     cd $OUTDIR/$SAMPLE /
     ls ./ | grep -v "Trinity.*" | xargs -d"\n" rm -r 
