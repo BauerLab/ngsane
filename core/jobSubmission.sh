@@ -65,6 +65,7 @@ if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 
 
 elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
+    unset module
 #	echo "********** submit with SGE submission system"
 	if [ -n "$JOBIDS" ];then JOBIDS=$(echo -e $JOBIDS | sed 's/^://g' | sed 's/:/,/g'); HOLD_JID="-hold_jid $JOBIDS"; fi
 #	if [ -n "$JOBIDS" ];then JOBIDS=$(echo -e $JOBIDS | sed 's/^://g' | sed 's/:/,/g'); HOLD_JID="-hold_jid NGs_$JOBIDS"; fi
