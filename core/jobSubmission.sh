@@ -51,12 +51,18 @@ SNAME="NGs_${SNAME:0:60}"
 if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 #	echo "********** submit with PBS submission system" 1>&2
 	JOBIDS=$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
-	command="qsub $JOBIDS -V -j oe -o $SOUTPUT -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
+	command="qsub $JOBIDS -V -j oe -o $SOUTPUT.tmp -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
 		-N $SNAME -l walltime=$SWALLTIME $TMPFILE $SADDITIONAL"
+#	command="qsub $JOBIDS -k oe -V -j oe -o $SOUTPUT -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
+#		-N $SNAME -l walltime=$SWALLTIME -W stageout=/tmp/output.txt@headnode:/home/user/output.txt \
+#		$TMPFILE $SADDITIONAL"
 	echo "# $command" >> $TMPFILE
 	RECIPT=$($command)
     JOBID=$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
 	echo $JOBID
+	# append pbs output stream to any previously present file for the recovery mode
+	echo "cat $SOUTPUT.tmp >> $SOUTPUT; rm $SOUTPUT.sh* $SOUTPUT.tmp " > $SOUTPUT.sh; qsub -j oe -o $TMPFILE.mo -N "NG_PBScopy" $QUEUEWAIT${JOBID//Jobnumber /$QUEUEWAITSEP} $SOUTPUT.sh
+
 
 elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
     unset module

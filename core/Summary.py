@@ -374,6 +374,7 @@ def annoStats(statsfile):
 	values=[]
 	f=open(statsfile).read().split("\n")
 	names=re.split("[ \t]+",f[0].strip())
+	names.sort()
 	values=map(float,re.split("[ \t]+",f[2].strip())[1:])
 	return names,values
 
