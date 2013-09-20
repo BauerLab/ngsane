@@ -84,7 +84,7 @@ ln -f -s ../$TASKTRINITY/$SAMPLE $OUTDIR/$SAMPLE
 
 # make sure we use the same tmp folder name all time so stick with one jobid
 if [ ! -f $OUTDIR/$SAMPLE/persistent_id.tmp ]; then 
-    echo "[ERROR] persistens ID not detected"
+    echo "[ERROR] persistent ID not detected"
     exit 1
 else
     PERSISTENT_ID="$(head -n 1 $OUTDIR/$SAMPLE/persistent_id.tmp)"
@@ -107,25 +107,40 @@ CHECKPOINT="Butterfly"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-    # this runs chrysalis::readsToTranscript and butterfly 
+
+#   edit files to replace temporary file paths to local file paths
+    sed -i "s?${TMP}\/${PERSISTENT_ID}?${OUTDIR}\/${SAMPLE}?g"  $OUTDIR/../$TASKTRINITY/$SAMPLE/chrysalis/quantifyGraph_commands $OUTDIR/../$TASKTRINITY/$SAMPLE/chrysalis/butterfly_commands $OUTDIR/../$TASKTRINITY/$SAMPLE/chrysalis/component_file_listing.txt
+
+    # this runs buterfly only
     echo "[NOTE] --max_reads_per_graph set to 1 million because very high I/O is needed otherwise. It is unlikely that a transcript needs more than 1 million reads to be assembled"
     
     if [ -z "$SS_LIBRARY_TYPE" ]; then
         echo "[WARNING] strand-specific RNAseq library type not set ($SS_LIBRARY_TYPE): treating input as non-stranded"
-        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --max_reads_per_graph 1000000 --output $OUTDIR/$SAMPLE/ \
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --max_reads_per_graph 1000000 --output $OUTDIR/../$TASKTRINITY/$SAMPLE  \
                         --JM $MEMORY_BUTTERFLY"G" --CPU $NCPU_BUTTERFLY "
     else
         echo "[NOTE] RNAseq library type: $SS_LIBRARY_TYPE"
-        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --max_reads_per_graph 1000000 \
-                        --output $OUTDIR/$SAMPLE/ --JM $MEMORY_BUTTERFLY"G" --CPU $NCPU_BUTTERFLY "
+        RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --max_reads_per_graph 1000000  \
+                        --output $OUTDIR/../$TASKTRINITY/$SAMPLE --JM $MEMORY_BUTTERFLY"G" --CPU $NCPU_BUTTERFLY "
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
-  
+
     echo "[NOTE] butterly has completed properly! thank Martin by buying him yet another beer (hic!)"
 
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE/Trinity.fasta ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi 
+
+################################################################################
+#CHECKPOINT="statistics"
+#if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+#    echo "::::::::: passed $CHECKPOINT"
+#else 
+#    RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --max_reads_per_graph 1000000 \
+#                        --output $OUTDIR/../$TASKTRINITY/$SAMPLE --JM $MEMORY_BUTTERFLY"G" --CPU $NCPU_BUTTERFLY "
+#    echo $RUN_COMMAND && eval $RUN_COMMAND
+#fi
+
 ################################################################################
 CHECKPOINT="zip"
 
@@ -135,7 +150,7 @@ else
 
     echo "Transcripts: "$(grep ">" $OUTDIR/$SAMPLE/Trinity.fasta | wc -l) > $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
     $GZIP $OUTDIR/$SAMPLE/Trinity.fasta 
-    # put into trinity
+    # put into trinity  <<<-vvv--- this may cause problems with downstream components
     mv $OUTDIR/$SAMPLE/Trinity.fasta.gz $OUTDIR/../$TASKTRINITY/$SAMPLE.fasta.gz
 
     # mark checkpoint
