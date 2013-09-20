@@ -373,9 +373,12 @@ def annoStats(statsfile):
 	names=[]
 	values=[]
 	f=open(statsfile).read().split("\n")
-	names=re.split("[ \t]+",f[0].strip())
-	names.sort()
-	values=map(float,re.split("[ \t]+",f[2].strip())[1:])
+	n=re.split("[ \t]+",f[0].strip())
+	v=map(float,re.split("[ \t]+",f[2].strip())[1:])
+	pairs=zip(n,v)
+	pairs.sort()
+	names = [ p[0] for p in pairs ]
+	values = [ p[1] for p in pairs ]
 	return names,values
 
 def parsetime(string):
