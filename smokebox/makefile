@@ -6,8 +6,8 @@ all: checkNGSANE result/SummaryCHIPSEQ.html  result/SummaryTOPHATCUFFHTSEQ.html 
 
 checkNGSANE:
 ifdef NGSANE
-	@echo "Found version $(NGSANE)"
 	mkdir -p tmp
+	@echo "Found version $(NGSANE)"
 else
 	@echo NGSANE Not found
 	exit -2

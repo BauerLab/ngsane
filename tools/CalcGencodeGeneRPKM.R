@@ -6,8 +6,7 @@ annoF<-args[1]
 countsF<-args[2]
 #sample name eg RNA3kChr16
 sampleName<-args[3]
-#annotation version identifier eg gencode.v14
-annoversion<-args[4]
+
 
 require(GenomicFeatures)
 require(edgeR)
@@ -31,4 +30,4 @@ ordered.gene.length<-gene.length.gencode[match(counts[,1],names(gene.length.genc
 #calculate rpkms using edgeR
 RPKM<-rpkm(matrix(counts[,2]), gene.length=ordered.gene.length)
 #write table of rpkms
-write.csv(cbind("ENSG"=counts[,1],"RPKM"=RPKM[,1]),file=paste(sampleName,".RPKM.",annoversion,".csv",sep=""),quote=FALSE,row.names=FALSE)
+write.csv(cbind("ENSG"=counts[,1],"RPKM"=RPKM[,1]),file=paste(sampleName,".RPKM.csv",sep=""),quote=FALSE,row.names=FALSE)

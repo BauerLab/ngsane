@@ -6,7 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/$INPUT_BAMANN/<SAMPLE>.merg.anno.bed
+# RESULTFILENAME <DIR>/$INPUT_BAMANN/<SAMPLE>.$ASD.bam.merg.anno.bed
 
 echo ">>>>> Annotate BAM file "
 echo ">>>>> startdate "`date`
@@ -128,7 +128,7 @@ else
 	echo "[NOTE] annotate with $NAMES"
 
    	# strandedness does not work for RRNA
-   	COMMAND="bedtools annotate -counts -i $f.merg.bed -files $( ls $BAMANNLIB/*.gtf ) -names $NAMES | python ${NGSANE_BASE}/tools/addUnannotated.py >$f.merg.anno.bed"
+   	COMMAND="bedtools annotate -counts -i $f.merg.bed -files $( ls $BAMANNLIB/*.gtf ) -names $NAMES | python ${NGSANE_BASE}/tools/addUnannotated.py > $f.merg.anno.bed"
 	echo $COMMAND && eval $COMMAND
    
 #   	ALLREADS=$(head -n 1 $f.stats | cut -d" " -f1)
@@ -138,7 +138,6 @@ else
     if [ -f $f.merg.anno.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 	rm $f.merg.bed
 
-	
 fi
 
 ################################################################################
@@ -148,28 +147,9 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-   	COMMAND="python ${NGSANE_BASE}/tools/sumRows.py -i $f.merg.anno.bed -l 3 -s 4 -e $(expr $NUMBER + 5) -n $(echo $NAMES | sed 's/ /,/g'),unannotated >$f.anno.stats"
+   	COMMAND="python ${NGSANE_BASE}/tools/sumRows.py -i $f.merg.anno.bed -l 3 -s 4 -e $(expr $NUMBER + 5) -n $(echo $NAMES | sed 's/ /,/g'),unannotated > $f.anno.stats"
 	echo $COMMAND && eval $COMMAND
 	
-#   echo "total Pgenes rRNA tRNA lincRNA miRNA snoRNA snRNA miscRNA PolyA other HiSeq ucsc_rRNA segDups unannotated unmapped" >$f.merg.anno.stats
-#   gawk -v all=$ALLREADS 'BEGIN{a=0; b=0; c=0; d=0; e=0; f=0; g=0; h=0; i=0; j=0; k=0; l=0; m=0; n=0; o=0; x=0}{
-#        a=a+$4; 
-#        if( $5 !=0){b=b+$4; next}; 
-#        if( $6 !=0){c=c+$4; next};
-#        if( $7 !=0){d=d+$4; next}; 
-#        if( $8 !=0){e=e+$4; next}; 
-#        if( $9 !=0){f=f+$4; next};
-#        if( $10!=0){g=g+$4; next};
-#        if( $11!=0){h=h+$4; next};
-#        if( $12!=0){i=i+$4; next};
-#        if( $13!=0){j=j+$4; next};
-#        if( $14!=0){k=k+$4; next};
-#        if( $15!=0){l=l+$4; next};
-#        if( $16!=0){m=m+$4; next};
-#        if( $17!=0){n=n+$4; next};
-#        if( $5+$6+$7+$8+$9+$10+$11+$12+$13+$14+$15+$16+$17==0){x=x+$4}}
-#        END{print all" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "x" "all-a}' $f.merg.anno.bed >> $f.merg.anno.stats
-
 #    head -n 1 $f.merg.anno.bed >> $f.merg.anno.stats
     cat $f.merg.anno.bed | sort -k4gr | head -n 20 >> $f.anno.stats  
     
@@ -179,8 +159,7 @@ else
 fi
 
 ################################################################################
-
-################################################################################
+[ -e $f.merg.anno.bed.dummy ] && rm $f.merg.anno.bed.dummy
 echo ">>>>> Annotate BAM file - FINISHED"
 echo ">>>>> enddate "`date`
 
