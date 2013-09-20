@@ -86,7 +86,7 @@ ln -f -s ../$TASKTRINITY/$SAMPLE $OUTDIR/$SAMPLE
 
 # make sure we use the same tmp folder name all time so stick with one jobid
 if [ ! -f $OUTDIR/$SAMPLE/persistent_id.tmp ]; then 
-    echo "[ERROR] persistens ID not detected"
+    echo "[ERROR] persistent ID not detected"
     exit 1
 else
     PERSISTENT_ID="$(head -n 1 $OUTDIR/$SAMPLE/persistent_id.tmp)"
@@ -126,8 +126,9 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     cp -r $TMP/$PERSISTENT_ID/* $OUTDIR/$SAMPLE/
-    rm -r $TMP/$PERSISTENT_ID/*
-    
+    rm -r $TMP/$PERSISTENT_ID/* $OUTDIR/../$TASKTRINITY/$SAMPLE/target.fa    
+    ln -f -s $OUTDIR/../$TASKTRINITY/$SAMPLE/inchworm.K25.L25.fa $OUTDIR/../$TASKTRINITY/$SAMPLE/target.fa
+
     cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing}
     echo "Read count:"$(head -n 1 $OUTDIR/$SAMPLE/chrysalis/readcounts.out) > $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
     
