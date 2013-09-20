@@ -137,18 +137,17 @@ for i in open(fn).read().split("\n"):
     if (i=="" or i[0]=="#"):
         continue
     arr=re.split("\t",i)
-#    print arr
+    print >> sys.stderr, arr
     count=0
     for j in range(start,end):
-#        print arr
-        # if count is nonzero add the information in colum location (e.g. coverage)
+        # if count is nonzero add the information in column location (e.g. coverage)
         if (location!=-1 and int(arr[j])!=0):
 #            print arr[j]+" "+arr[location]
             sumarr[count].append(float(arr[location]))
         else:
             sumarr[count].append(float(arr[j]))
         count=count+1
-
+    print >> sys.stderr, sumarr
 
 
 printStats(sumarr,name,0)

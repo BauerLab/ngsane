@@ -127,16 +127,12 @@ else
 
 	echo "[NOTE] annotate with $NAMES"
 
-   	# strandedness does not work for RRNA
-   	COMMAND="bedtools annotate -counts -i $f.merg.bed -files $( ls $BAMANNLIB/*.gtf ) -names $NAMES | python ${NGSANE_BASE}/tools/addUnannotated.py > $f.merg.anno.bed"
-	echo $COMMAND && eval $COMMAND
-   
-#   	ALLREADS=$(head -n 1 $f.stats | cut -d" " -f1)
-
-
+   	# annotated counts and add column indicated non-annotated read counts
+   	bedtools annotate -counts -i $f.merg.bed -files $( ls $BAMANNLIB/*.gtf ) -names $NAMES | sed 's/[ \t]*$//g' | awk '{FS=OFS="\t";if (NR==1){print $0,"unannotated"} else{ for(i=5; i<=NF;i++) j+=$i; if (j>0){print $0,0}else{print $0,1}; j=0}}' > $f.merg.anno.bed
+	
 	# mark checkpoint
     if [ -f $f.merg.anno.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-	rm $f.merg.bed
+#	rm $f.merg.bed
 
 fi
 
@@ -149,7 +145,7 @@ else
 
    	COMMAND="python ${NGSANE_BASE}/tools/sumRows.py -i $f.merg.anno.bed -l 3 -s 4 -e $(expr $NUMBER + 5) -n $(echo $NAMES | sed 's/ /,/g'),unannotated > $f.anno.stats"
 	echo $COMMAND && eval $COMMAND
-	
+
 #    head -n 1 $f.merg.anno.bed >> $f.merg.anno.stats
     cat $f.merg.anno.bed | sort -k4gr | head -n 20 >> $f.anno.stats  
     
