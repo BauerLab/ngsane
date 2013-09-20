@@ -100,9 +100,6 @@ else
     echo "[NOTE] Persistent ID found: $PERSISTENT_ID"
 fi
 
-echo "e[1;31m[DEBUG]\e[0m $OUTDIR/$SAMPLE/ $TMP/$PERSISTENT_ID"
-# e.g. /home/marsmi/data/RNAseq/trinity_test/Transcript/trinity_inchworm/RNA3kChr16/ /share/Temp/trinity_230938
-
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
