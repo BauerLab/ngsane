@@ -59,9 +59,12 @@ if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 	echo "# $command" >> $TMPFILE
 	RECIPT=$($command)
     JOBID=$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
-	echo $JOBID
 	# append pbs output stream to any previously present file for the recovery mode
-	echo "cat $SOUTPUT.tmp >> $SOUTPUT; rm $SOUTPUT.sh* $SOUTPUT.tmp " > $SOUTPUT.sh; qsub -j oe -o $TMPFILE.mo -N "NG_PBScopy" $QUEUEWAIT${JOBID//Jobnumber /$QUEUEWAITSEP} $SOUTPUT.sh
+	echo "cat $SOUTPUT.tmp >> $SOUTPUT; rm $SOUTPUT.sh* $SOUTPUT.tmp " > $SOUTPUT.sh
+	RECIPT=$(qsub -j oe -o $TMPFILE.mo -N "NG_PBScopy" $QUEUEWAIT${JOBID//Jobnumber /$QUEUEWAITSEP} $SOUTPUT.sh)
+    JOBID2=$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
+	echo $JOBID$QUEUEWAITSEP$JOBID2
+	
 
 
 elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
