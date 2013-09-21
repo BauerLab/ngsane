@@ -72,7 +72,7 @@ echo "[NOTE] sumitted jobs $(echo -n $JOBIDSVARCALL)"
 JOBIDS="$JOBIDSBAMANN:$JOBIDSVARCALL" #other things
 
 #PBS: Varcall does not complete the recalibration hence only after
-QUEUEWAIT=${QUEUEWAIT/afterok/after}
+QUEUEWAIT=${QUEUEWAIT/afterok/afterany}
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configVarCall.txt | sed 's/RUNVARCALLS=\"\"/RUNVARCALLS=\"1\"/g' | \
