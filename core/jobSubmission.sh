@@ -65,7 +65,6 @@ if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 		-N $SNAME -l walltime=$SWALLTIME $TMPFILE $SADDITIONAL -l prologue=$SOUTPUT.sh	"
 
 	echo "# $command" >> $TMPFILE
-	echo "$command"
 	RECIPT=$($command)
     JOBID=$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
 	echo $JOBID
