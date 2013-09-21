@@ -151,8 +151,10 @@ if [ -n "$RUNFASTQC" ]; then
     LINKS=$LINKS" $PIPELINK"
     echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
+#    for dir in ${DIR[@]}; do
+#    echo "<h3>${OUT##*/}/$dir/$TASKMEMECHIP/</h3>" >>$SUMMARYTMP
     echo "<table class='data'>" >>$SUMMARYTMP
-    echo "<thead><tr><th class='left'>Libary</th><th><div style='width:100px'>Chart</div></th><th><div style='width:140px'>Encoding</div></th><th><div style='width:120px'>Library size</div></th><th><div style='width:50px'>Read</div></th><th><div style='width:80px'>Read length</div></th><th><div style='width:50px'>%GC</div></th><th><div style='width:120px'>Read Qualities</th></tr></thead><tbody>" >>$SUMMARYTMP
+    echo "<thead><tr><th class='left'>Library</th><th><div style='width:100px'>Chart</div></th><th><div style='width:140px'>Encoding</div></th><th><div style='width:120px'>Library size</div></th><th><div style='width:50px'>Read</div></th><th><div style='width:80px'>Read length</div></th><th><div style='width:50px'>%GC</div></th><th><div style='width:120px'>Read Qualities</th></tr></thead><tbody>" >>$SUMMARYTMP
 
     if [[ -e runStats/ && -e runStats/$TASKFASTQC/ ]]; then
         for f in $( ls runStats/$TASKFASTQC/*.zip ); do
@@ -542,26 +544,42 @@ if [ -n "$RUNCHANCE" ];then
 fi
 
 ################################################################################
-if [ -n "$RUNMEMECHIP" ];then
+if [ -n "$RUNMEMECHIP" ]; then
     summaryHeader "MEME-chip Motif discovery" "$TASKMEMECHIP" "memechip.sh" "$SUMMARYTMP"
 
-    vali=""
-    CURDIR=$(pwd -P)
     for dir in ${DIR[@]}; do
         if [ ! -d $dir/$TASKMEMECHIP ]; then
             continue
         fi
-        vali=$vali" $OUT/$dir/$TASKMEMECHIP/"
-        cd $OUT/$dir/$TASKMEMECHIP
-        for d in $(find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \;); do
-                echo "<a href=\"$PROJECT_RELPATH/$dir/$TASKMEMECHIP/$d/index.html\">$dir/$d</a> " >> $CURDIR/$SUMMARYTMP
+        
+        echo "<h3>${OUT##*/}/$dir/$TASKMEMECHIP/</h3>" >>$SUMMARYTMP
+        echo "<table class='data'>" >>$SUMMARYTMP
+        echo "<thead><tr><th class='left'>Library</th><th><div style='width:140px'>Consensus motif</div></th><th><div style='width:140px'>Logo</div></th><th><div style='width:80px'>q-value</div></th><th><div style='width:100px'>Similar to</div></th><th><div style='width:120px'>Peaks</div></th><th><div style='width:120px'>With strong sites</div></th><th><div style='width:40px'>%</div></th><th><div style='width:120px'>With weak sites</div><th><div style='width:40px'>%</div></th></th></thead><tbody>" >>$SUMMARYTMP
+
+        
+        for summary in $(ls $OUT/$dir/$TASKMEMECHIP/*.summary.txt); do
+            SAMPLE=${summary##*/}
+            SAMPLE=${SAMPLE/.summary.txt/}
+
+            MEMEMOTIF=$(grep "Query consensus:" $summary | cut -d':' -f 2)
+            MEMEQVALUE=$(grep "Q-value:" $summary | cut -d':' -f 2)
+            TOMTOMKNOWNMOTIF=$(grep "Most similar known motif:" $summary | cut -d':' -f 2)
+            PEAKS=$(grep "Peak regions:" $summary | cut -d':' -f 2)
+            FIMODIRECT=$(grep "bound directly" $summary | cut -d':' -f 2)
+            FIMODIRECTP=$(echo "scale=2;100 * $FIMODIRECT / $PEAKS" | bc)
+            FIMOINDIRECT=$(grep "bound indirectly" $summary | cut -d':' -f 2)
+            FIMOINDIRECTP=$(echo "scale=2;100 * $FIMOINDIRECT / $PEAKS" | bc)
+            echo "<tr style='vertical-align: middle;'><td class='left'><a href='$PROJECT_RELPATH/${dir/$OUT/}/$TASKMEMECHIP/$SAMPLE/index.html'>$SAMPLE</a></td><td>$MEMEMOTIF</td>"  >>$SUMMARYTMP
+            echo "<td><a href='$PROJECT_RELPATH/${dir/$OUT/}/$TASKMEMECHIP/$SAMPLE/index.html'><img src='$PROJECT_RELPATH/${dir/$OUT/}/$TASKMEMECHIP/$SAMPLE/meme_out/logo1.png' height=75 alt='Meme Motif LOGO'/></a></td>" >>$SUMMARYTMP            
+            echo "<td>$MEMEQVALUE</td><td>$TOMTOMKNOWNMOTIF</td><td>$PEAKS</td><td>$FIMODIRECT</td><td>$FIMODIRECTP</td><td>$FIMOINDIRECT</td><td>$FIMOINDIRECTP</td></tr>" >>$SUMMARYTMP
+       
         done
+        echo "</tbody></table>">>$SUMMARYTMP
     done
-    cd $CURDIR
-    python ${NGSANE_BASE}/core/Summary.py "$vali" ".summary.txt" memechip >> $SUMMARYTMP
 
     summaryFooter "$TASKMEMECHIP" "$SUMMARYTMP"
 fi
+
 
 ################################################################################
 if [ -n "$RUNTRINITY" ] || [ -n "$RUNINCHWORM" ];then

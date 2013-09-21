@@ -4,16 +4,6 @@
 . $NGSANE_BASE/conf/header.sh
 . bin/tmpl/configTopCuffHtseq.txt
 
-#clean up earlier runs
-for dir in ${DIR[@]}; do
-    echo "[NOTE] remove old $dir/tophat $dir/cufflinks $dir/htseqcount"
-    if [ -e $dir/$TASKTOPHAT ]; then 
-       rm -rf $dir/$TASKTOPHAT; rm -rf $QOUT/$TASKTOPHAT/$dir*;
-       rm -rf $dir/$TASKCUFFLINKS; rm -rf $QOUT/$TASKCUFFLINKS/$dir*;
-       rm -rf $dir/$TASKHTSEQCOUNT; rm -rf $QOUT/$TASKHTSEQCOUNT/$dir*;
-    fi
-done 
-
 ################################################################################
 #  TOPHAT
 ################################################################################

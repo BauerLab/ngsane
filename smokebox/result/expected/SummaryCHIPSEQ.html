@@ -319,8 +319,22 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
 <div id="center">
 
 <div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>
-<a href='#bowtie2'>bowtie2</a>|<a href='#peakranger'>peakranger</a>|<a href='#macs2'>macs2</a>|<a href='#memechip'>memechip</a>
+<a href='#fastqc'>fastqc</a>|<a href='#bowtie2'>bowtie2</a>|<a href='#peakranger'>peakranger</a>|<a href='#macs2'>macs2</a>|<a href='#memechip'>memechip</a>
 </div><!-- Links --></div><!-- panel -->
+<div class='panel'><div class='headbagb'><a name='fastqc'><h2 class='sub'>FASTQC</h2></a></div>
+<table class='data'>
+<thead><tr><th class='left'>Library</th><th><div style='width:100px'>Chart</div></th><th><div style='width:140px'>Encoding</div></th><th><div style='width:120px'>Library size</div></th><th><div style='width:50px'>Read</div></th><th><div style='width:80px'>Read length</div></th><th><div style='width:50px'>%GC</div></th><th><div style='width:120px'>Read Qualities</th></tr></thead><tbody>
+<tr style='vertical-align: middle;'><td class='left'><a href='../runStats/fastQC/CTCF_chr16_R1.fq_fastqc/fastqc_report.html'>CTCF_chr16_R1.fq.fastq</a></td><td> <img height='15px' class='noborder' style='vertical-align:middle' src='../runStats/fastQC/CTCF_chr16_R1.fq_fastqc/Icons/tick.png' title='6'\>6 <img height='15px' class='noborder' style='vertical-align:middle' src='../runStats/fastQC/CTCF_chr16_R1.fq_fastqc/Icons/warning.png'\>4 <img height='15px' class='noborder' style='vertical-align:middle' src='../runStats/fastQC/CTCF_chr16_R1.fq_fastqc/Icons/error.png'\>1</td><td>Sanger / Illumina 1.9</td><td>2095</td><td>1</td><td>36</td><td>52</td><td>
+<a href='../runStats/fastQC/CTCF_chr16_R1.fq_fastqc/fastqc_report.html'><img src='../runStats/fastQC/CTCF_chr16_R1.fq_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all first reads'/></a>
+</td></tr>
+<tr style='vertical-align: middle;'><td class='left'><a href='../runStats/fastQC/H3k9me3_chr16_R1.fq_fastqc/fastqc_report.html'>H3k9me3_chr16_R1.fq.fastq</a></td><td> <img height='15px' class='noborder' style='vertical-align:middle' src='../runStats/fastQC/H3k9me3_chr16_R1.fq_fastqc/Icons/tick.png' title='7'\>7 <img height='15px' class='noborder' style='vertical-align:middle' src='../runStats/fastQC/H3k9me3_chr16_R1.fq_fastqc/Icons/warning.png'\>3 <img height='15px' class='noborder' style='vertical-align:middle' src='../runStats/fastQC/H3k9me3_chr16_R1.fq_fastqc/Icons/error.png'\>1</td><td>Sanger / Illumina 1.9</td><td>1942</td><td>1</td><td>36</td><td>45</td><td>
+<a href='../runStats/fastQC/H3k9me3_chr16_R1.fq_fastqc/fastqc_report.html'><img src='../runStats/fastQC/H3k9me3_chr16_R1.fq_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all first reads'/></a>
+</td></tr>
+<tr style='vertical-align: middle;'><td class='left'><a href='../runStats/fastQC/Input_chr16_R1.fq_fastqc/fastqc_report.html'>Input_chr16_R1.fq.fastq</a></td><td> <img height='15px' class='noborder' style='vertical-align:middle' src='../runStats/fastQC/Input_chr16_R1.fq_fastqc/Icons/tick.png' title='8'\>8 <img height='15px' class='noborder' style='vertical-align:middle' src='../runStats/fastQC/Input_chr16_R1.fq_fastqc/Icons/warning.png'\>2 <img height='15px' class='noborder' style='vertical-align:middle' src='../runStats/fastQC/Input_chr16_R1.fq_fastqc/Icons/error.png'\>1</td><td>Sanger / Illumina 1.9</td><td>1491</td><td>1</td><td>36</td><td>47</td><td>
+<a href='../runStats/fastQC/Input_chr16_R1.fq_fastqc/fastqc_report.html'><img src='../runStats/fastQC/Input_chr16_R1.fq_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all first reads'/></a>
+</td></tr>
+</tbody></table>
+</div></div>
 <div class='panel' id='bowtie2_panel'>
         <div class='headbagb' id='bowtie2_panelback'><a name='bowtie2'></a>
             <h2 id='bowtie2_h_results' class='sub'>Bowtie v2 mapping</h2>
@@ -695,23 +709,13 @@ qout/memechip/ChIPseq_TF_CTCF_chr16.out
         }
     </script>
 <div id='memechip_results'>
-<a href="../ChIPseq_TF/memechip/CTCF_chr16/index.html">ChIPseq_TF/CTCF_chr16</a> 
 <h3>smokebox/ChIPseq_TF/memechip/</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>     Peak regions</div></th><th><div>with strong sites</div></th><th><div>                %</div></th><th><div> w/o strong sites</div></th><th><div>                %</div></th><th class='left'>File</th></tr></thead>
-<tbody>
-<tr><td></td><td>            10.00</td><td>            10.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td class='left'>CTCF_chr16</td></tr>
-</tbody>
-</table>
-<h3 class='overall'>Aggregation over all libraries</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>     Peak regions</div></th><th><div>with strong sites</div></th><th><div>                %</div></th><th><div> w/o strong sites</div></th><th><div>                %</div></th><th class='left'>File</th></tr></thead>
-<tfoot>
-<tr><td class='left'>sum</td><td>            10.00</td><td>            10.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>            10.00</td><td>            10.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>            10.00</td><td>            10.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>            10.00</td><td>            10.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-</tfoot>
-</table>
+<table class='data'>
+<thead><tr><th class='left'>Library</th><th><div style='width:140px'>Consensus motif</div></th><th><div style='width:140px'>Logo</div></th><th><div style='width:80px'>q-value</div></th><th><div style='width:100px'>Similar to</div></th><th><div style='width:120px'>Peaks</div></th><th><div style='width:120px'>With strong sites</div></th><th><div style='width:40px'>%</div></th><th><div style='width:120px'>With weak sites</div><th><div style='width:40px'>%</div></th></th></thead><tbody>
+<tr style='vertical-align: middle;'><td class='left'><a href='../ChIPseq_TF/memechip/CTCF_chr16/index.html'>CTCF_chr16</a></td><td> AGCTGCTGGT</td>
+<td><a href='../ChIPseq_TF/memechip/CTCF_chr16/index.html'><img src='../ChIPseq_TF/memechip/CTCF_chr16/meme_out/logo1.png' height=75 alt='Meme Motif LOGO'/></a></td>
+<td> 0.713963</td><td> Ascl2_DBD</td><td> 10</td><td> 10</td><td>100.00</td><td> 0</td><td>0</td></tr>
+</tbody></table>
 </div></div><div class='display'></div></div></div>
 <script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
@@ -720,5 +724,5 @@ qout/memechip/ChIPseq_TF_CTCF_chr16.out
             $('#memechip_panel div.wrapper div.display').html($('#memechip_results').html());
         }
         </script>
-<hr><span>Report generated with NGSANE version: 07270d63adf1d58f9d315f9a06848664116f5f86 (git hash)</span><span style='float:right;'>Last modified: Sat Sep 21 08:42:56 EST 2013</span>
+<hr><span>Report generated with NGSANE version: 34436c9e6110807885068811ea2d3023bf995d93 (git hash)</span><span style='float:right;'>Last modified: Sat Sep 21 13:53:10 EST 2013</span>
 </div><!-- center --></body></html>

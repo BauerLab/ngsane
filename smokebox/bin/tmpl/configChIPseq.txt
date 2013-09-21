@@ -5,6 +5,12 @@
 # Resources
 #####################################
 
+
+WALLTIME_FASTQC=00:30:00
+MEMORY_FASTQC=10
+CPU_FASTQC=3
+NODES_FASTQC="nodes=1:ppn=3"
+
 WALLTIME_BOWTIE=00:30:00
 MEMORY_BOWTIE=8
 CPU_BOWTIE=8
@@ -33,6 +39,7 @@ NODES_MEMECHIP="nodes=1:ppn=2"
 #********************
 # Tasks
 #********************
+RUNFASTQC=""	      # fastqc
 RUNMAPPINGBOWTIE=""   # mapping with bowtie1
 RUNMAPPINGBOWTIE2=""  # mapping with bowtie2
 RUNPEAKRANGER=""      # peak calling Peakranger

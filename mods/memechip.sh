@@ -161,8 +161,13 @@ else
     
         join -1 4 -2 1 $OUTDIR/${n/$BED/_sorted.bed} $OUTDIR/${n/$BED/_fimo}/${PATTERN}_tmp.txt | awk '{OFS="\t"; print 2,$3,$4,$1,$5,$6}' > $OUTDIR/${n/$BED/_motif}_${PATTERN}.indirect.bed
         
-        echo "Motif $PATTERN bound directely (strong site): $(cat $OUTDIR/${n/$BED/_motif}_${PATTERN}.direct.bed | awk '{print $4}' | sort -u | wc -l | awk '{print $1}')" >> $OUTDIR/${n/$BED/.summary.txt}
-        echo "Motif $PATTERN bound indirectely (weak or no site): $(cat $OUTDIR/${n/$BED/_motif}_${PATTERN}.indirect.bed | awk '{print $4}' | sort -u | wc -l | awk '{print $1}')" >> $OUTDIR/${n/$BED/.summary.txt}
+        echo "Motif $PATTERN bound directly (strong site): $(cat $OUTDIR/${n/$BED/_motif}_${PATTERN}.direct.bed | awk '{print $4}' | sort -u | wc -l | awk '{print $1}')" >> $OUTDIR/${n/$BED/.summary.txt}
+        echo "Motif $PATTERN bound indirectly (weak or no site): $(cat $OUTDIR/${n/$BED/_motif}_${PATTERN}.indirect.bed | awk '{print $4}' | sort -u | wc -l | awk '{print $1}')" >> $OUTDIR/${n/$BED/.summary.txt}
+        
+        echo "Most similar known motif: "$(cat $OUTDIR/${n/$BED/}/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 2) >> $OUTDIR/${n/$BED/.summary.txt}
+        echo "Q-value: "$(cat $OUTDIR/${n/$BED/}/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 6) >> $OUTDIR/${n/$BED/.summary.txt}
+        echo "Query consensus: "$(cat $OUTDIR/${n/$BED/}/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 8) >> $OUTDIR/${n/$BED/.summary.txt}
+        echo "Target consensus: "$(cat $OUTDIR/${n/$BED/}/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 9) >> $OUTDIR/${n/$BED/.summary.txt}
     done
     
     # mark checkpoint
