@@ -41,7 +41,8 @@ done
 if [ ! -n "$STMPDIR" ]; then STMPDIR="tmp"; fi
 if [ ! -e $STMPDIR ]; then mkdir $STMPDIR; fi
 TMPFILE=$STMPDIR/"qsub_"$(date '+%y%m%d%H%m')"_"$(cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 9)".tmp"
-echo "cd $(pwd)" > $TMPFILE
+echo "#!/bin/bash -e" > $TMPFILE
+echo "cd $(pwd)" >> $TMPFILE
 echo $SCOMMAND >> $TMPFILE
 echo "rm $TMPFILE" >> $TMPFILE
 
@@ -49,22 +50,25 @@ echo "rm $TMPFILE" >> $TMPFILE
 SNAME="NGs_${SNAME:0:60}"
 
 if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
+
+	# Prepare Prologue Script
+	# Emulate SGE's behaviour of appending to the previous $SOUTPUT.sh by cat in the prologue
+	echo -e "#!/bin/sh \n cat $SOUTPUT \n exit 0" > $SOUTPUT.sh
+	chmod 500 $SOUTPUT.sh
+	# add to the TMPFILE that the prologue scripts needs deleting
+	echo "rm -fr $SOUTPUT.sh" >> $TMPFILE
+
+
 #	echo "********** submit with PBS submission system" 1>&2
 	JOBIDS=$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
-	command="qsub $JOBIDS -V -j oe -o $SOUTPUT.tmp -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
-		-N $SNAME -l walltime=$SWALLTIME $TMPFILE $SADDITIONAL"
-#	command="qsub $JOBIDS -k oe -V -j oe -o $SOUTPUT -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
-#		-N $SNAME -l walltime=$SWALLTIME -W stageout=/tmp/output.txt@headnode:/home/user/output.txt \
-#		$TMPFILE $SADDITIONAL"
+	command="qsub $JOBIDS -V -j oe -o $SOUTPUT -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
+		-N $SNAME -l walltime=$SWALLTIME $TMPFILE $SADDITIONAL -l prologue=$SOUTPUT.sh	"
+
 	echo "# $command" >> $TMPFILE
+	echo "$command"
 	RECIPT=$($command)
     JOBID=$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
-	# append pbs output stream to any previously present file for the recovery mode
-	echo "cat $SOUTPUT.tmp >> $SOUTPUT; rm $SOUTPUT.sh* $SOUTPUT.tmp " > $SOUTPUT.sh
-	RECIPT=$(qsub -j oe -o $TMPFILE.mo -N "NG_PBScopy" $QUEUEWAIT${JOBID//Jobnumber /$QUEUEWAITSEP} $SOUTPUT.sh)
-    JOBID2=$(echo "$RECIPT" | gawk '{print $(NF-1); split($(NF-1),arr,"."); print arr[1]}' | tail -n 1)
-	echo $JOBID$QUEUEWAITSEP$JOBID2
-	
+	echo $JOBID
 
 
 elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
