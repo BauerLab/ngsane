@@ -33,11 +33,12 @@ exit
 }
 
 function version {
-    [ -z $(hash git) ] && NGSANE_VERSION=`which trigger.sh` && cd ${NGSANE_VERSION/bin\/trigger.sh/} && NGSANE_VERSION=`git rev-parse HEAD`
-    if [ -z "$NGSANE_VERSION" ] || [[ "$NGSANE_VERSION" == *"fatal: Not a git repository"* ]]; then
-        NGSANE_VERSION="release v0.2.0.0"
+
+    NGSANE_VERSION=`which trigger.sh`
+    if [ -e ${NGSANE_VERSION/bin\/trigger.sh/}/.git ]; then 
+	NGSANE_VERSION=`git rev-parse HEAD`" (git hash)"
     else
-        NGSANE_VERSION="$NGSANE_VERSION (git hash)"
+        NGSANE_VERSION="v0.2.0"
     fi
     echo -e "NGSANE version: $NGSANE_VERSION"
     exit
