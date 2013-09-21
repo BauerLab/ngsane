@@ -51,70 +51,92 @@ echo -e "\n********* $CHECKPOINT"
 CHECKPOINT="parameters"
 
 if [ ! -f ~/.smbclient ]; then
-  echo "[WARN] ~/.smbclient not configured"
+    echo "[WARN] ~/.smbclient not configured"
 fi
 
 # test if source server is given
 if [ -z "$SOURCE_SERVER" ]; then
-  echo "[ERROR] source server not specified (SOURCE_SERVER)."
-  exit 1
+    echo "[ERROR] source server not specified (SOURCE_SERVER)."
+    exit 1
 fi
 
 # test if source files are given
-echo "${#SOURCE_FILES[@]}"
 if [ "${#SOURCE_FILES[@]}" -eq "0" ]; then
-  echo "[ERROR] no raw data  specified (SOURCE_FILES)."
-  exit 1
+    echo "[ERROR] no raw data  specified (SOURCE_FILES)."
+    exit 1
+else
+    echo "[NOTE] Number of source file patterns: ${#SOURCE_FILES[@]}"
 fi
 
-# test if source data is defined
-echo "${DIR[@]}"
+# test if fastq folder is defined
 if [ -z "${DIR[@]}" ]; then
-  echo "[ERROR] no input directories specified (DIR)."
-  exit 1
+    echo "[ERROR] no input directories specified (DIR)."
+    exit 1
+else
+    echo "[NOTE] place in fastq/${DIR[@]}"
 fi
 
 # test if multiple source data is defined
 if [ "${#DIR[@]}" -ne "1" ]; then
-  echo "[ERROR] multiple input directories specified (DIR)."
-  exit 1
+    echo "[ERROR] multiple input directories specified (DIR)."
+    exit 1
+fi
+
+if [ -z "$SOURCE_FOLDER" ]; then
+    echo "[ERROR] no path on source server specified"
+    exit 1
+else
+    echo "[NOTE] will fetch from $SOURCE_SERVER/$SOURCE_FOLDER/"
 fi
 
 # ensure out directory is there 
 for dir in ${DIR[@]}; do
-  if [ ! -d $SOURCE/fastq/$dir ]; then mkdir -p $SOURCE/fastq/$dir; fi
+    if [ ! -d $SOURCE/fastq/$dir ]; then mkdir -p $SOURCE/fastq/$dir; fi
 done
+
 
 if [ ! -d $QOUT ]; then mkdir -p $QOUT; fi
 
+if [ -f ~/.smbclient ]; then
+    AUTH="-A ~/.smbclient"
+else
+    AUTH="-U `whoami`"
+fi	
+
 CURDIR=$(pwd)
-cd $SOURCE/fastq/${DIR[0]}
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
-CHECKPOINT="recall files from tape"
+CHECKPOINT="fetch files"
+
+cd $SOURCE/fastq/${DIR[0]}
 
 for sourcefile in ${SOURCE_FILES[@]}; do
-	fn="${sourcefile##*/}" # filename
-	dn="${sourcefile%/*}"  # dirname
-
-#	echo "smbclient ${SOURCE_SERVER} -A ~/.smbclient -c \"prompt; cd ${dn}; get ${fn}\""
-	if [ -f  ~/.smbclient ]; then
-	   smbclient ${SOURCE_SERVER} -A ~/.smbclient -c "prompt; cd ${dn}; get ${fn}"
-	else
-	   smbclient ${SOURCE_SERVER} -U `whoami` -c "prompt; cd ${dn}; get ${fn}"
-	fi
+    RUN_COMMAND="smbclient ${SOURCE_SERVER} $AUTH -c 'prompt; recurse; cd $SOURCE_FOLDER; mask *$READONE.$FASTQ; mget ${sourcefile}'"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
 	
 	# get second read
 	if [ -n "$READTWO" ] && [ "$f" != "${f/$READONE/$READTWO}" ]; then  
-		if [ -f  ~/.smbclient ]; then
-		   smbclient ${SOURCE_SERVER} -A ~/.smbclient -c "prompt; cd ${dn}; get ${fn/$READONE/$READTWO}"
-		else
-		   smbclient ${SOURCE_SERVER} -U `whoami` -c "prompt; cd ${dn}; get ${fn/$READONE/$READTWO}"
-		fi
-	fi	
+        RUN_COMMAND="smbclient ${SOURCE_SERVER} $AUTH -c 'prompt; recurse; cd $SOURCE_FOLDER; mask *$READTWO.$FASTQ; mget ${sourcefile}'"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+	fi
 done
 
+# move to get a flat hierarchy
+for d in $(find . -mindepth 1  -type f -name "*$READONE.$FASTQ" ); do 
+    mv $d .
+done
+if [ -n "$READTWO" ] && [ "$f" != "${f/$READONE/$READTWO}" ]; then  
+    for d in $(find . -mindepth 1 -type f -name "*$READTWO.$FASTQ" ); do 
+        mv $d .
+    done
+fi
+# remove dirs
+for d in $(find . -mindepth 1 -maxdepth 1 -type d ); do 
+    rm -r $d
+done
+
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 echo ">>>>> Transfer data to HPC cluster - FINISHED"
 echo ">>>>> enddate "`date`

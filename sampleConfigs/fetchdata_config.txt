@@ -20,8 +20,14 @@ declare -a DIR; DIR=( sample )
 # server hosting the raw data, e.g. '//gagri/GRIW'
 SOURCE_SERVER=
 
+# Folder on the server containing the data
+# e.g. "Cancer-Epigenetics-Data/Seq_Raw/"
+SOURCE_FOLDER=
+
 # location of fastq files on SOURCE SERVER (full path to R1 library)
 # files will be put into the folder specified by DIR
+# patterns are possible
+# e.g. *LNCaP* will recursively get all fastq files with LNCaP in the name
 SOURCE_FILES=(  )
 
 # where to write the output
