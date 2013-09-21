@@ -90,7 +90,7 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSMEME)"
 ################################################################################
 # TEST
 ################################################################################
-JOBIDS="JOBIDSFASTQC:$JOBIDSPR:$JOBIDSMACS:$JOBIDSMEME" #other things
+JOBIDS="$JOBIDSFASTQC:$JOBIDSPR:$JOBIDSMACS:$JOBIDSMEME" #other things
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configChIPseq.txt | \
