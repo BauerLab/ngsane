@@ -112,39 +112,48 @@ else
         echo "[NOTE] single-end library detected"
     fi
 
-    samtools sort -@ $CPU_BIGWIG -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
-
     NORMALIZETO=1000000
-    NUMBEROFREADS=$(samtools view -c -F 1028 $OUTDIR/${n/%.$ASD.bam/.tmp.bam})
+    NUMBEROFREADS=$(samtools view -c -F 1028 $f )
     SCALEFACTOR=`echo "scale=3; $NORMALIZETO/$NUMBEROFREADS" | bc`
     
-    echo "[NOTE] library size (mapped reads): $NORMALIZETO" 
-    echo "[NOTE] scale factor: $SCALEFACTOR"
-    echo "[NOTE] fragment length: $FRAGMENTLENGTH"
+    echo "[NOTE] library size (mapped reads): $NUMBEROFREADS" 
+    echo "[NOTE] normalize to $NORMALIZETO, scale factor: $SCALEFACTOR"
         
-    if [ "$PAIRED" = "1" ] && [[ $FRAGMENTLENGTH -le 0 ]]; then
-        echo "[NOTE] generate bigwig for properly paired reads on the same chromosomes"
-        
-        samtools view -@ $CPU_BIGWIG -b -F 1028 -f 0x2 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.bw}
-        	
-    else
-        if [[ $FRAGMENTLENGTH -lt 0 ]]; then
-        	echo "[NOTE] Fragment length must be greater than 0, was: $FRAGMENTLENGTH"
+    if [ "$PAIRED" = "1" ]; then 
+    	echo "[NOTE] Paired end libaray detected, ignore fragment length parameter"
 
-        else
-            echo "[NOTE] generate bigwig"
-        
-            samtools view -@ $CPU_BIGWIG -b -F 1028 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.bw}
+        samtools sort -@ $CPU_BIGWIG -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
+        echo "[NOTE] generate bigwig for properly paired reads on the same chromosomes"
+            
+        samtools view -@ $CPU_BIGWIG -b -F 1028 -f 0x2 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | sort -k1,1 -k2,3g | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.bw}
 
             if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
                 echo "[NOTE] generate strand-specific bigwigs too"
-                samtools view -@ $CPU_BIGWIG -b -F 1028 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.+.bw}
+                samtools view -@ $CPU_BIGWIG -b -F 1028 -f 0x2 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | sort -k1,1 -k2,3g | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.+.bw}
                 
-                samtools view -@ $CPU_BIGWIG -b -F 1028 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.-.bw} 
+                samtools view -@ $CPU_BIGWIG -b -F 1028 -f 0x2 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | sort -k1,1 -k2,3g | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.-.bw} 
+        	fi
+            
+        [ -e $OUTDIR/${n/%.$ASD.bam/.tmp.bam} ] && rm $OUTDIR/${n/%.$ASD.bam/.tmp.bam}
+
+    else # single end libraries
+        echo "[NOTE] fragment length: $FRAGMENTLENGTH"
+
+        if [[ $FRAGMENTLENGTH -lt 0 ]]; then
+        	echo "[NOTE] Fragment length must be greater than 0, was: $FRAGMENTLENGTH"
+        else
+            echo "[NOTE] generate bigwig"
+        
+            samtools view -@ $CPU_BIGWIG -b -F 1028 $f | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.bw}
+
+            if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
+                echo "[NOTE] generate strand-specific bigwigs too"
+                samtools view -@ $CPU_BIGWIG -b -F 1028 $f | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.+.bw}
+                
+                samtools view -@ $CPU_BIGWIG -b -F 1028 $f | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.-.bw} 
         	fi
     	fi
     fi 
-    [ -e $OUTDIR/${n/%.$ASD.bam/.tmp.bam} ] && rm $OUTDIR/${n/%.$ASD.bam/.tmp.bam}
       
     # mark checkpoint
     if [ -f $OUTDIR/${n/%.$ASD.bam/.bw} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
