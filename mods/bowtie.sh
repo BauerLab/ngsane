@@ -98,6 +98,11 @@ fi
 # get basename of f
 n=${f##*/}
 
+if [ -z "$FASTA" ]; then
+    echo "[ERROR] no reference provided (FASTA)"
+    exit 1
+fi
+
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}

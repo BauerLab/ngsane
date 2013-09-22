@@ -113,6 +113,11 @@ fi
 # get basename of f
 n=${f##*/}
 
+if [ -z "$FASTA" ]; then
+    echo "[ERROR] no reference provided (FASTA)"
+    exit 1
+fi
+
 # check library variables are set
 if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
     echo "[ERROR] library info not set (EXPID, LIBRARY, and PLATFORM): free text needed"
