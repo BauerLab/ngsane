@@ -82,7 +82,7 @@ FILES=""
 for i in $(ls ${f/$READONE/\*}); do
 	if [[ ${f##*.} == "gz" ]]; then
 		echo "[NOTE] unzip $i"
-		gzip -c $i > $i.unzipped
+		$GZIP -c $i > $i.unzipped
 		FILES=$FILES" "$i.unzipped
 	else
 		FILES=$FILES" "$i
