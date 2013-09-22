@@ -33,6 +33,20 @@ cat bin/tmpl/configChIPseq.txt | sed 's/RUNMAPPINGBOWTIE2=\"\"/RUNMAPPINGBOWTIE2
 JOBIDSBOWTIE=$( trigger.sh tmp/configBOWTIE2.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] submitted jobs $(echo -n $JOBIDSBOWTIE)"
 
+################################################################################
+#  BIGWIG
+################################################################################
+
+# modify the template config file to flip the RUNBIGWIG switch
+# specify the resulting html file
+echo "[NOTE] Prep config file tmp/configBIGWIG.txt"
+cat bin/tmpl/configChIPseq.txt | sed 's/RUNBIGWIG=\"\"/RUNBIGWIG=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBIGWIG\"/g' > tmp/configBIGWIG.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBOWTIE//:/$QUEUEWAITSEP}\"" >>tmp/configBIGWIG.txt
+
+# submit the BIGWIG run to the cluster
+JOBIDBW=$( trigger.sh tmp/configBIGWIG.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDBW)"
 
 ################################################################################
 #  PEAKRANGER
@@ -90,12 +104,13 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSMEME)"
 ################################################################################
 # TEST
 ################################################################################
-JOBIDS="$JOBIDSFASTQC:$JOBIDSPR:$JOBIDSMACS:$JOBIDSMEME" #other things
+JOBIDS="$JOBIDSFASTQC:$JOBIDSPR:$JOBIDBW:$JOBIDSMACS:$JOBIDSMEME" #other things
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configChIPseq.txt | \
     sed 's/RUNFASTQC=\"\"/RUNFASTQC=\"1\"/g' |\
     sed 's/RUNMAPPINGBOWTIE2=\"\"/RUNMAPPINGBOWTIE2=\"1\"/g' | \
+    sed 's/RUNBIGWIG=\"\"/RUNBIGWIG=\"1\"/g' |\
     sed 's/RUNPEAKRANGER=\"\"/RUNPEAKRANGER=\"1\"/g' |\
     sed 's/RUNMACS2=\"\"/RUNMACS2=\"1\"/g' |\
     sed 's/RUNMEMECHIP=\"\"/RUNMEMECHIP=\"1\"/g' |\
