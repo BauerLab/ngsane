@@ -487,6 +487,35 @@ if [ -n "$RUNHICUP" ];then
     summaryFooter "$TASKHICUP" "$SUMMARYTMP"
 fi
 
+
+################################################################################
+if [ -n "$RUNCHANCE" ];then
+    summaryHeader "Chance" "$TASKCHANCE" "chance.sh" "$SUMMARYTMP"
+
+    vali=$(gatherDirs $TASKCHANCE)
+    python ${NGSANE_BASE}/core/Summary.py "$vali" ".IPstrength" chance >> $SUMMARYTMP
+
+    imgs=""
+    for dir in ${DIR[@]}; do
+        for f in $(ls $dir/$TASKCHANCE/*.png 2> /dev/null); do
+            n=${f##*/}
+            echo $n
+            imgs+="<div style='float:left'>${n/".png"/}<br/><a href=\"$PROJECT_RELPATH/$dir/$TASKCHANCE/${n/.png/.pdf}\"><img src=\"$PROJECT_RELPATH/$dir/$TASKCHANCE/$n\" width=\"200px\"/></a></div>"
+        done
+    done
+    echo "<div>$imgs</div>" >> $SUMMARYTMP
+
+    summaryFooter "$TASKCHANCE" "$SUMMARYTMP"
+fi
+
+
+################################################################################
+if [ -n "$RUNBIGWIG" ];then
+    summaryHeader "BigWig" "$TASKBIGWIG" "bigwig.sh" "$SUMMARYTMP"
+
+    summaryFooter "$TASKBIGWIG" "$SUMMARYTMP"
+fi
+
 ################################################################################
 if [ -n "$RUNHOMERCHIPSEQ" ];then
     summaryHeader "Homer ChIP-Seq" "$TASKHOMERCHIPSEQ" "chipseqHomer.sh" "$SUMMARYTMP"
@@ -526,26 +555,6 @@ if [ -n "$RUNMACS2" ];then
     echo "<table><tr>$row0</tr><tr>$row1</tr><tr>$row2</tr></table>" >> $SUMMARYTMP
 
     summaryFooter "$TASKMACS2" "$SUMMARYTMP"
-fi
-
-################################################################################
-if [ -n "$RUNCHANCE" ];then
-    summaryHeader "Chance" "$TASKCHANCE" "chance.sh" "$SUMMARYTMP"
-
-    vali=$(gatherDirs $TASKCHANCE)
-    python ${NGSANE_BASE}/core/Summary.py "$vali" ".IPstrength" chance >> $SUMMARYTMP
-
-    imgs=""
-    for dir in ${DIR[@]}; do
-        for f in $(ls $dir/$TASKCHANCE/*.png 2> /dev/null); do
-            n=${f##*/}
-            echo $n
-            imgs+="<div style='float:left'>${n/".png"/}<br/><a href=\"$PROJECT_RELPATH/$dir/$TASKCHANCE/${n/.png/.pdf}\"><img src=\"$PROJECT_RELPATH/$dir/$TASKCHANCE/$n\" width=\"200px\"/></a></div>"
-        done
-    done
-    echo "<div>$imgs</div>" >> $SUMMARYTMP
-
-    summaryFooter "$TASKCHANCE" "$SUMMARYTMP"
 fi
 
 ################################################################################

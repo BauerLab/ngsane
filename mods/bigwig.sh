@@ -72,6 +72,11 @@ if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/${n/%.$ASD.bam/.bw} ] && rm $OUTDIR/${n/%.$ASD.bam/.bw}
 fi
 
+if [ -z "$FASTA" ]; then
+    echo "[ERROR] no reference provided (FASTA)"
+    exit 1
+fi
+
 GENOME_CHROMSIZES=${FASTA%%.*}.chrom.sizes
 [ ! -f $GENOME_CHROMSIZES ] && echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES" && exit 1
 
@@ -110,7 +115,7 @@ else
     samtools sort -@ $CPU_BIGWIG -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
 
     NORMALIZETO=1000000
-    NUMBEROFREADS=$(samtools view -@ $CPU_BIGWIG -c -F 1028 $OUTDIR/$n)
+    NUMBEROFREADS=$(samtools view -c -F 1028 $OUTDIR/${n/%.$ASD.bam/.tmp.bam})
     SCALEFACTOR=`echo "scale=3; $NORMALIZETO/$NUMBEROFREADS" | bc`
     
     echo "[NOTE] library size (mapped reads): $NORMALIZETO" 
@@ -123,8 +128,8 @@ else
         samtools view -@ $CPU_BIGWIG -b -F 1028 -f 0x2 $OUTDIR/${n/%.$ASD.bam/.tmp.bam} | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/${n/%.$ASD.bam/.bw}
         	
     else
-        if [[ $FRAGMENTLENGTH -ge 0 ]]; then
-        	echo "[NOTE] Skip bigwig generation due to invalid value for parameter: FRAGMENTLENGTH"
+        if [[ $FRAGMENTLENGTH -lt 0 ]]; then
+        	echo "[NOTE] Fragment length must be greater than 0, was: $FRAGMENTLENGTH"
 
         else
             echo "[NOTE] generate bigwig"
@@ -142,7 +147,7 @@ else
     [ -e $OUTDIR/${n/%.$ASD.bam/.tmp.bam} ] && rm $OUTDIR/${n/%.$ASD.bam/.tmp.bam}
       
     # mark checkpoint
-    if [ -f $$OUTDIR/${n/%.$ASD.bam/.bw} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/%.$ASD.bam/.bw} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
  
 fi
 
