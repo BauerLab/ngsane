@@ -161,6 +161,6 @@ else
 fi
 
 ################################################################################
-[ -e $$OUTDIR/${n/%.$ASD.bam/.bw}.dummy ] && rm $OUTDIR/${n/%.$ASD.bam/.bw}.dummy
+[ -e $OUTDIR/${n/%.$ASD.bam/.bw}.dummy ] && rm $OUTDIR/${n/%.$ASD.bam/.bw}.dummy
 echo ">>>>> bigwig generation - FINISHED"
 echo ">>>>> enddate "`date`
