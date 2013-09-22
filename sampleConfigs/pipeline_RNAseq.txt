@@ -48,6 +48,7 @@ READTWO="_R2"
 
 # reference genome
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
+# or  ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
 FASTA=
 
 #specify library type for tophat.
@@ -69,10 +70,12 @@ HTSEQCOUNT_ATTRIBUTES=
 # see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
 # conversion scripts
 # e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_14/gencode.v14.annotation.gtf
+# or   ${NGSANE_REFERENCE}/b37/annotation/gencode.v14.annotation.b37.gtf
 GTF=
 
 # folder containing multiple gtf files for integration
 # e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_17/BAM_ANNOTATE
+# or   ${NGSANE_REFERENCE}/b37/bamann
 BAMANNLIB=
 
 #********************

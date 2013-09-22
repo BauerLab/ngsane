@@ -40,6 +40,7 @@ READTWO="_R2"
 
 # reference genome
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
+# or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
 FASTA=
 
 #specify library type for tophat.
@@ -69,6 +70,7 @@ RNASEQCADDPARAM=
 # see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
 # conversion scripts
 # e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_14/gencode.v14.annotation.gtf
+# or   ${NGSANE_REFERENCE}/b37/annotation/gencode.v14.annotation.b37.gtf
 GTF=
 
 # activate to use doctored GTF file for RNA-SeQC (provides additional info)
@@ -76,7 +78,7 @@ GTF=
 # has a different suffix
 # In addition RNA-SeQC will look for the suffix <GTF-FILE>.gc and apply gc
 # stratification if found
-#DOCTOREDGTFSUFFIX=".doctored.gtf"
+DOCTOREDGTFSUFFIX=".doctored.gtf"
 
 #WALLTIME_TOPHAT=60:00:00
 #MEMORY_TOPHAT=50

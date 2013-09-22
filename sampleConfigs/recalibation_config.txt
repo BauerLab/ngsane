@@ -1,5 +1,5 @@
 # author: Fabian Buske
-# date: Septermber 2013
+# date: September 2013
 
 #####################################
 # Resources
@@ -32,6 +32,8 @@ QOUT=$OUT/qout
 #********************
 
 # location of SNP database file dbsnp.vcf
+# e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/dbsnp_137.hg19.vcf 
+# or   $NGSANE_REFERENCE/gatk_resources_1.5/dbsnp_135.b37.vcf
 DBROD=
 
 #********************

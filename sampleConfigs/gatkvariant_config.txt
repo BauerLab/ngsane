@@ -1,5 +1,5 @@
 # author: Fabian Buske
-# date: May 2013
+# date: September 2013
 
 #####################################
 # Resources
@@ -8,13 +8,8 @@
 #********************
 # Tasks
 #********************
-RUNBWA2="1"        # map with BWA
-RUNREALRECAL3="1"  # recalibrate with GATK
-RUNVARCALLS3="1"    # variant calling with GATK
 
-## if running bowtie instead of bwa
-#RUNBOWTIE2="1"
-#TASKBWA=$TASKBOWTIE
+RUNVARCALLS="1"     # variance  calling with GATK
 
 #********************
 # Paths
@@ -22,8 +17,11 @@ RUNVARCALLS3="1"    # variant calling with GATK
 
 SOURCE=$(pwd)
 
-# which files to run on (replace sample with folders within fastq firectory)
+# which folder to run on (i.e. folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_VAR=$TASKRCA
 
 # where to write the output
 OUT=$SOURCE
@@ -35,52 +33,30 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
-# fastq file suffix
-FASTQ="fq.gz"
+# location of SNP database file dbsnp.vcf (double-check genome assembly)
+# e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/dbsnp_137.hg19.vcf 
+# or   $NGSANE_REFERENCE/gatk_resources_1.5/dbsnp_135.b37.vcf
+DBROD=
 
-# read indicator immediately preceeding the fastq file suffix
-READONE="_R1"
-READTWO="_R2"
+# location of HapMap vcf file (double-check genome assembly)
+# e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/hapmap_3.3.hg19.vcf
+# or   $NGSANE_REFERENCE/gatk_resources_1.5/hapmap_3.3.b37.vcf
+HAPMAPVCF=
 
-# reference genome
-# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
-FASTA=
-
-# dbsnp file (.vcf)
-DBROD=""
-
-#hapmap (.vcf)
-HAPMAPVCF=""
-
-# 1000 Genomes (.vcf)
-ONEKGVCF=""
-
-# library tags
-EXPID="LnCap"
-LIBRARY="HiC"
-PLATFORM="Illumina"
+# location of 1k Genome vcf file (double-check genome assembly)
+# e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/1000G_omni2.5.hg19.vcf
+# or   $NGSANE_REFERENCE/gatk_resources_1.5/1000G_omni2.5.b37.vcf
+ONEKGVCF=
 
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
-## limit variant calling to to specific region
-#REF=chr:start-end
-#
-#Recal
-#WALLTIME_RECAL=60:00:00
-#MEMORY_RECAL=50
-#CPU_RECAL=8
-#NODES_RECAL="nodes=1:ppn=8"
-## COVERAGE
-#WALLTIME_GATKDOC=50:00:00
-#MEMORY_GATKDOC=50
-#CPU_GATKDOC=1
-#NODES_GATKDOC="nodes=1:ppn=1"
-## GATK VARCALL
+
+# additional commands for variant recalibrator
+ADDRECAL=
+
 #WALLTIME_VAR=100:00:00
 #MEMORY_VAR=20
 #CPU_VAR=1
 #NODES_VAR="nodes=1:ppn=1"
-#
-#MODULE_GATK="gi/R/3.0.0 gi/gatk/2.5 gi/samtools/0.1.19 gi/igvtools/2.3.3"
-#MODULE_GATKSNP="gi/R/3.0.0 gi/gatk/2.5 gi/igvtools/2.3.3"
+#MODULE_GATK=

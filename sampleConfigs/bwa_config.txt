@@ -42,6 +42,7 @@ READTWO="_R2"
 
 # reference genome
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+# or ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
 FASTA=
 
 # library tags

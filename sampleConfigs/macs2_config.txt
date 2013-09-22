@@ -30,6 +30,7 @@ QOUT=$OUT/qout
 
 # chromosome sizes
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa
+# or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
 FASTA=
 
 #********************
@@ -46,9 +47,6 @@ MACS2_GENOMESIZE=2.7e9
 
 # location of the input (control) for the chip experiments (bam file)
 CHIPINPUT=
-
-# if bwa was used to map file then set TASKBOWTIE to TASKBWA
-#TASKBOWTIE=$TASKBWA
 
 # additional MACS parameters, for callpeak
 # e.g. "--broad"

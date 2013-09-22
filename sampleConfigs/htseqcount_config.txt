@@ -50,6 +50,7 @@ HTSEQCOUNT_ATTRIBUTES=
 # see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
 # conversion scripts
 # e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_14/gencode.v14.annotation.gtf
+# or   ${NGSANE_REFERENCE}/b37/annotation/gencode.v14.annotation.b37.gtf
 GTF=
 
 #********************

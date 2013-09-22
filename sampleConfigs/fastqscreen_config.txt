@@ -39,21 +39,8 @@ FASTQ="fq.gz"
 READONE="_R1"
 READTWO="_R2"
 
-# reference genome, 
-# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
-FASTA=
-
-# chromosome sizes
-# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.chrom.sizes
-GENOME_CHROMSIZES=
-
 # location of the bowtie indices database (--conf parameter in fastqscreen)
 FASTQSCREEN_DBCONF=
-
-# library tags
-EXPID="Celltype"
-LIBRARY="ChIPseq"
-PLATFORM="Illumina"
 
 #********************
 # PARAMETER (optional overwriting defaults)
