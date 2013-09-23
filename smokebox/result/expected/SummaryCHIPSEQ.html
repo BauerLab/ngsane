@@ -355,7 +355,7 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
         <div class='wrapper'><div class='hidden'>
 <div id='bowtie2_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/mods/bowtie2 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/bowtie2 
 ###################################################
 QC_PASS .. finished are 3/3
 >>>>>>>>>> Errors
@@ -376,21 +376,21 @@ QC_PASS .. 3 have verify/3
 <div id='bowtie2_notes'><pre>
 
 qout/bowtie2/ChIPseq_Histone_H3k9me3_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bowtie2/job.20130922.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bowtie2/job.20130923.log
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] Sanger Phred33	(34  66) fastq format detected
 [NOTE] PASS check mapping: 1942 == 1942
 
 qout/bowtie2/ChIPseq_input_Input_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bowtie2/job.20130922.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bowtie2/job.20130923.log
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] Sanger Phred33	Illumina 1.8 Phred33	(35  67) fastq format detected
 [NOTE] PASS check mapping: 1491 == 1491
 
 qout/bowtie2/ChIPseq_TF_CTCF_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bowtie2/job.20130922.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bowtie2/job.20130923.log
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] Sanger Phred33	Illumina 1.8 Phred33	(35  67) fastq format detected
@@ -484,7 +484,7 @@ qout/bowtie2/ChIPseq_TF_CTCF_chr16.out
         <div class='wrapper'><div class='hidden'>
 <div id='bigwig_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/mods/bigwig 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/bigwig 
 ###################################################
 QC_PASS .. finished are 3/3
 >>>>>>>>>> Errors
@@ -498,26 +498,32 @@ QC_PASS .. 3 have generate bigwigs/3
 <div id='bigwig_notes'><pre>
 
 qout/bigwig/ChIPseq_Histone_H3k9me3_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bigwig/job.20130922.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bigwig/job.20130923.log
+[NOTE] Reference: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/chr16.fasta
+[NOTE] Chromosome size: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/chr16.chrom.sizes
 [NOTE] single-end library detected
-[NOTE] library size (mapped reads): 1000000
-[NOTE] scale factor: 650.618
+[NOTE] library size (mapped reads): 1537
+[NOTE] normalize to 1000000  scale factor: 650.618
 [NOTE] fragment length: 300
 [NOTE] generate bigwig
 
 qout/bigwig/ChIPseq_input_Input_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bigwig/job.20130922.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bigwig/job.20130923.log
+[NOTE] Reference: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/chr16.fasta
+[NOTE] Chromosome size: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/chr16.chrom.sizes
 [NOTE] single-end library detected
-[NOTE] library size (mapped reads): 1000000
-[NOTE] scale factor: 719.942
+[NOTE] library size (mapped reads): 1389
+[NOTE] normalize to 1000000  scale factor: 719.942
 [NOTE] fragment length: 300
 [NOTE] generate bigwig
 
 qout/bigwig/ChIPseq_TF_CTCF_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bigwig/job.20130922.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bigwig/job.20130923.log
+[NOTE] Reference: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/chr16.fasta
+[NOTE] Chromosome size: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/chr16.chrom.sizes
 [NOTE] single-end library detected
-[NOTE] library size (mapped reads): 1000000
-[NOTE] scale factor: 674.308
+[NOTE] library size (mapped reads): 1483
+[NOTE] normalize to 1000000  scale factor: 674.308
 [NOTE] fragment length: 300
 [NOTE] generate bigwig
 </pre></div>
@@ -541,7 +547,7 @@ qout/bigwig/ChIPseq_TF_CTCF_chr16.out
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#bigwig_counter_notes').text('18');
+            $('#bigwig_counter_notes').text('24');
             $('#bigwig_counter_errors').text('0');
             $('#bigwig_counter_checkpoints_passed').text('6');
             $('#bigwig_counter_checkpoints_failed').text('0'); 
@@ -581,7 +587,7 @@ qout/bigwig/ChIPseq_TF_CTCF_chr16.out
         <div class='wrapper'><div class='hidden'>
 <div id='peakranger_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/mods/peakranger 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/peakranger 
 ###################################################
 QC_PASS .. finished are 1/1
 >>>>>>>>>> Errors
@@ -596,7 +602,7 @@ QC_PASS .. 1 have zip/1
 <div id='peakranger_notes'><pre>
 
 qout/peakranger/ChIPseq_Histone_H3k9me3_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/peakranger/job.20130922.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/peakranger/job.20130923.log
 [NOTE] data quality
 [NOTE] library complexity
 [NOTE] make wigpe
@@ -670,7 +676,7 @@ qout/peakranger/ChIPseq_Histone_H3k9me3_chr16.out
         <div class='wrapper'><div class='hidden'>
 <div id='macs2_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/mods/macs2 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/macs2 
 ###################################################
 QC_PASS .. finished are 1/1
 >>>>>>>>>> Errors
@@ -686,8 +692,9 @@ QC_PASS .. 1 have macs 2 - refine peaks /1
 <div id='macs2_notes'><pre>
 
 qout/macs2/ChIPseq_TF_CTCF_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/macs2/job.20130922.log
-[NOTE] GENOME_CHROMSIZES: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/chr16.chrom.sizes
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/macs2/job.20130923.log
+[NOTE] Reference: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/chr16.fasta
+[NOTE] Chromosome size: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/chr16.chrom.sizes
 [NOTE] CHIPINPUT ChIPseq_input/bowtie2/Input_chr16.asd.bam
 [NOTE] convert narrowpeaks to 6 bed file for refining
 </pre></div>
@@ -703,7 +710,7 @@ qout/macs2/ChIPseq_TF_CTCF_chr16.out
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#macs2_counter_notes').text('4');
+            $('#macs2_counter_notes').text('5');
             $('#macs2_counter_errors').text('0');
             $('#macs2_counter_checkpoints_passed').text('8');
             $('#macs2_counter_checkpoints_failed').text('0'); 
@@ -760,7 +767,7 @@ qout/macs2/ChIPseq_TF_CTCF_chr16.out
         <div class='wrapper'><div class='hidden'>
 <div id='memechip_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/mods/memechip 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/memechip 
 ###################################################
 QC_PASS .. finished are 1/1
 >>>>>>>>>> Errors
@@ -778,7 +785,9 @@ QC_PASS .. 1 have cleanup/1
 <div id='memechip_notes'><pre>
 
 qout/memechip/ChIPseq_TF_CTCF_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/memechip/job.20130922.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/memechip/job.20130923.log
+[NOTE] Reference: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/chr16.fasta
+[NOTE] Chromosome size: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/chr16.chrom.sizes
 [NOTE] extend bed regions: 
 [NOTE] Motif: 0
 </pre></div>
@@ -794,7 +803,7 @@ qout/memechip/ChIPseq_TF_CTCF_chr16.out
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#memechip_counter_notes').text('3');
+            $('#memechip_counter_notes').text('5');
             $('#memechip_counter_errors').text('0');
             $('#memechip_counter_checkpoints_passed').text('10');
             $('#memechip_counter_checkpoints_failed').text('0'); 
@@ -830,5 +839,5 @@ qout/memechip/ChIPseq_TF_CTCF_chr16.out
             $('#memechip_panel div.wrapper div.display').html($('#memechip_results').html());
         }
         </script>
-<hr><span>Report generated with NGSANE version: v0.2.0</span><span style='float:right;'>Last modified: Sun Sep 22 21:29:40 EST 2013</span>
+<hr><span>Report generated with NGSANE version: 3b757478699bba5286415fe49533d5ee22da6259 (git hash)</span><span style='float:right;'>Last modified: Mon Sep 23 11:26:05 EST 2013</span>
 </div><!-- center --></body></html>
