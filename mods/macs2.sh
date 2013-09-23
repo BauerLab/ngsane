@@ -72,10 +72,21 @@ CHECKPOINT="parameters"
 n=${f##*/}
 c=${CHIPINPUT##*/}
 
-GENOME_CHROMSIZES=${FASTA%%.*}.chrom.sizes
-[ ! -f $GENOME_CHROMSIZES ] && echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES" && exit 1
-echo "[NOTE] GENOME_CHROMSIZES: $GENOME_CHROMSIZES"
+if [ -z "$FASTA" ] || [ ! -f $FASTA ]; then
+    echo "[ERROR] no reference provided (FASTA)"
+    exit 1
+else
+    echo "[NOTE] Reference: $FASTA"
+fi
 
+GENOME_CHROMSIZES=${FASTA%%.*}.chrom.sizes
+if [ ! -f $GENOME_CHROMSIZES ]; then
+    echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES"
+    exit 1
+else
+    echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
+
+fi
 # set default method to ppois unless specified
 if [ -z "$MACS2_BDGCMP_METHOD" ]; then
     echo "[NOTE] no method provided for MACS2_BDGCMP_METHOD, defaulting to ppois"

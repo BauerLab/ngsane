@@ -72,13 +72,21 @@ if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/${n/%.$ASD.bam/.bw} ] && rm $OUTDIR/${n/%.$ASD.bam/.bw}
 fi
 
-if [ -z "$FASTA" ]; then
+if [ -z "$FASTA" ] || [ ! -f $FASTA ]; then
     echo "[ERROR] no reference provided (FASTA)"
     exit 1
+else
+    echo "[NOTE] Reference: $FASTA"
 fi
 
 GENOME_CHROMSIZES=${FASTA%%.*}.chrom.sizes
-[ ! -f $GENOME_CHROMSIZES ] && echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES" && exit 1
+if [ ! -f $GENOME_CHROMSIZES ]; then
+    echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES"
+    exit 1
+else
+    echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
+
+fi
 
 if [ -z "$FRAGMENTLENGTH" ]; then
     FRAGMENTLENGTH=0

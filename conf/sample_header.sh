@@ -454,7 +454,7 @@ MEMORY_BIGWIG=12
 CPU_BIGWIG=2
 NODES_BIGWIG="nodes=1:ppn=2"
 INPUT_BIGWIG=$TASKBOWTIE
-MODULE_BIGWIG="${NG_UCSCTOOLS} ${NG_JAVA} ${NG_SAMTOOLS}"
+MODULE_BIGWIG="${NG_UCSCTOOLS} ${NG_JAVA} ${NG_SAMTOOLS} ${NG_BEDTOOLS}"
 PATH_BIGWIG=
 
 ##############################################################
@@ -465,7 +465,7 @@ MEMORY_BLUE=60
 CPU_BLUE=4
 NODES_BLUE="nodes=1:ppn=4"
 INPUT_BLUE="fastq"
-MODULE_BLUE="${NG_MONO} ${NG_BLUE} ${NG_R} {NG_IMAGEMAGIC}"
+MODULE_BLUE="${NG_MONO} ${NG_BLUE} ${NG_R} ${NG_IMAGEMAGIC}"
 PATH_BLUE=
 
 ##############################################################
