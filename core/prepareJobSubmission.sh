@@ -178,7 +178,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         if [ -n "$JOBIDS" ]; then
 			JOBID=$(echo $JOBIDS | cut -d ":" -f $JOBNUMBER)
 			echo -e "[NOTE] wait for $JOBID out of $JOBIDS"
-            RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$JOBIDS" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
+            RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$JOBID" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
         	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
         else 
             RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
