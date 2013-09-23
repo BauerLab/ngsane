@@ -17,6 +17,47 @@ TMP=$(pwd)/tmp                                       # TMP dir
 ## uncomment within CSIRO
 #module use /apps/gi/modulefiles
 
+NG_R=
+NG_PYTHON=
+NG_GZIP=
+NG_JAVA=
+NG_FASTQC=
+NG_SAMTOOLS=
+NG_IGVTOOLS=
+NG_GATK=
+NG_BWA=
+NG_IMAGEMAGIC=
+NG_PICARD=
+NG_SAMSTAT=
+NG_UCSCTOOLS=
+NG_BEDTOOLS=
+NG_BOWTIE=
+NG_BOWTIE2=
+NG_BOOST=
+NG_PEAKRANGER=
+NG_MEME=
+NG_TOPHAT=
+NG_RNASEQC=
+NG_CUFFLINKS=
+NG_MONO=
+NG_BLUE=
+NG_PERL=
+NG_PRINCE=
+NG_WIGGLER=
+NG_HOMER=
+NG_CUTADAPT=
+NG_TRIMGALORE=
+NG_TRIMMOMATIC=
+NG_HDF5=
+NG_HICLIB=
+NG_HICUP=
+NG_FITHIC=
+NG_FASTQSCREEN=
+NG_MATLAB=
+NG_CHANCE=
+NG_PARALLEL=
+NG_TRINITY=
+
 ##############################################################
 # Task Names
 ##############################################################
@@ -260,7 +301,7 @@ MEMORY_TRIMMOMATIC=40
 CPU_TRIMMOMATIC=1
 NODES_TRIMMOMATIC="nodes=1:ppn=1"
 INPUT_TRIMMOMATIC="fastq"
-MODULE_TRIMMOMATIC="${NG_JAVA} ${NG_TROMMOMATIC}"
+MODULE_TRIMMOMATIC="${NG_JAVA} ${NG_TRIMMOMATIC}"
 PATH_TRIMMOMATIC=
 
 ##############################################################
