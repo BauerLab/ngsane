@@ -86,7 +86,7 @@ for d in ${DIR[@]}; do
         
         INBAMS=$(grep "$POOL" $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | awk '{print "INPUT="$2}' | tr '\n' ' ')
         [ -f $OUTBAM ] && rm $OUTBAM
-        echo -ne "java $JAVAPARAMS -jar $PATH_PICARD/MergeSamFiles.jar QUIET=true VERBOSITY=ERROR VALIDATION_STRINGENCY=LENIENT TMP_DIR=$TMP COMPRESSION_LEVEL=9 USE_THREADING=true OUTPUT=$OUTBAM $INBAMS COMMENT='merged: $COMMENT'; samtools index $OUTBAM; samstat $OUTBAM; java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $OUTBAM $OUTBAM.cov.tdf ${FASTA%%.*}.genome " >> $COMMAND
+        echo -ne "java $JAVAPARAMS -jar $PATH_PICARD/MergeSamFiles.jar QUIET=true VERBOSITY=ERROR VALIDATION_STRINGENCY=LENIENT TMP_DIR=$TMP COMPRESSION_LEVEL=9 USE_THREADING=true OUTPUT=$OUTBAM $INBAMS COMMENT='merged: $COMMENT'; samtools index $OUTBAM; samstat $OUTBAM; java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $OUTBAM $OUTBAM.cov.tdf ${FASTA%.*}.genome " >> $COMMAND
         if [ "$DELETEORIGINALBAMS" = "true" ]; then
             for j in $(grep "$POOL" $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | cut -d' ' -f 2 ); do
                 echo -ne "; rm $j*" >> $COMMAND

@@ -74,7 +74,7 @@ else
     echo "[NOTE] Reference: $FASTA"
 fi
 
-GENOME_CHROMSIZES=${FASTA%%.*}.chrom.sizes
+GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
 if [ ! -f $GENOME_CHROMSIZES ]; then
     echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES"
     exit 1
