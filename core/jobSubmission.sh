@@ -53,6 +53,7 @@ if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 
 	# Prepare Prologue Script
 	# Emulate SGE's behaviour of appending to the previous $SOUTPUT.sh by cat in the prologue
+        if [ -e $SOUTPUT.sh ]; then rm -f $SOUTPUT.sh; fi
 	echo -e "#!/bin/sh \n cat $SOUTPUT \n exit 0" > $SOUTPUT.sh
 	chmod 500 $SOUTPUT.sh
 	# add to the TMPFILE that the prologue scripts needs deleting

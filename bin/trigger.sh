@@ -87,7 +87,9 @@ fi
 function waitForJobIds {
     JOBIDS=$(echo -e "$1" | grep "Jobnumber")
     if [ -n "$JOBIDS" ]; then 
-        JOBIDS=$(echo $JOBIDS | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+		#JOBIDS=$(echo -e $JOBIDS | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+        JOBIDS=$(echo -e $JOBIDS | gawk '{ ORS=" "; print; }' | sed 's/Jobnumber //g' | sed 's/ /:/g' )
+
     fi
     if [ "$JOBIDS" != "" ]; then
         echo "-W $JOBIDS"

@@ -111,7 +111,10 @@ fi
 MYPBSIDS="" # collect job IDs for postcommand
 DIR=""
 FILES=""
+JOBNUMBER=0
 for i in $(cat $QOUT/$TASK/runnow.tmp); do
+
+	let JOBNUMBER=JOBNUMBER+1
 
     n=$(basename $i) 
     # ending : fastq/xx or xx/bwa
@@ -139,13 +142,13 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 	[ ! -e $(dirname $D) ] && mkdir -p $(dirname $D)
 	touch $D.dummy
 
-    echo -e "\e[97m[JOB]\e[0m  $COMMAND2"
+    echo -e "\e[33m[ JOB]\e[0m  $COMMAND2"
 
     if [ -n "$DIRECT" ]; then eval $COMMAND2; fi
 
     if [ -n "$ARMED" ]; then
 
-        echo $ARMED
+ #       echo $ARMED
 
         if [ -n "$RECOVER" ] && [ -f $LOGFILE ] ; then
             # add log-file for recovery
@@ -173,6 +176,8 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         echo "[NOTE] Jobfile: "$QOUT/$TASK/job.$(date "+%Y%m%d").log >> $LOGFILE
 
         if [ -n "$JOBIDS" ]; then
+			JOBID=$(echo $JOBIDS | cut -d ":" -f $JOBNUMBER)
+			echo -e "[NOTE] wait for $JOBID out of $JOBIDS"
             RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$JOBIDS" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
         	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
         else 
