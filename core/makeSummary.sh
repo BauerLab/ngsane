@@ -212,17 +212,15 @@ if [[ -n "$RUNFASTQSCREEN" ]]; then
     vali=$(gatherDirs $TASKFASTQSCREEN)
     python ${NGSANE_BASE}/core/Summary.py "$vali" _screen.txt fastqscreen --noSummary --noOverallSummary >>$SUMMARYTMP
 
-    row0=""
-    row1=""
+    imgs=""
     for dir in ${DIR[@]}; do
-        for f in $(ls $dir/$TASKFASTQSCREEN/*_screen.png); do
+        for f in $(ls $dir/$TASKFASTQSCREEN/*_screen.png 2> /dev/null); do
             n=${f##*/}
-            row0+="<td>${n/"_screen.png"/}</td>"
-            row1+="<td><a href=\"$PROJECT_RELPATH/$dir/$TASKFASTQSCREEN/$n\"><img src=\"$PROJECT_RELPATH/$dir/$TASKFASTQSCREEN/$n\" width=\"300px\"/></a></td>"
+            imgs+="<div class='inset_image'>${n/"_screen.png"/}<br/><a href=\"$PROJECT_RELPATH/$dir/$TASKFASTQSCREEN/${n}\"><img src=\"$PROJECT_RELPATH/$dir/$TASKFASTQSCREEN/$n\" width=\"200px\"/></a></div>"
         done
     done
-    echo "<table><tr>$row0</tr><tr>$row1</tr></table>" >> $SUMMARYTMP
-
+    echo "<div>$imgs</div>" >> $SUMMARYTMP
+    
     summaryFooter "$TASKFASTQSCREEN" "$SUMMARYTMP"
 fi
 
@@ -255,6 +253,45 @@ if [[ -n "$RUNBLUE" ]]; then
     summaryFooter "$TASKBLUE" "$SUMMARYTMP"
 fi
 
+
+################################################################################
+if [ -n "$RUNTRIMGALORE" ];then
+    summaryHeader "Trimgalore trimming" "$TASKTRIMGALORE" "trimgalore.sh" "$SUMMARYTMP"
+
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/fastq/${dir/_$TASKTRIMGALORE/}_$TASKTRIMGALORE/"
+    done
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "_trimming_report.txt" trimgalore --noSummary >> $SUMMARYTMP
+
+    summaryFooter "$TASKTRIMGALORE" "$SUMMARYTMP"
+fi
+
+################################################################################
+if [ -n "$RUNTRIMMOMATIC" ];then
+    summaryHeader "Trimmomatic trimming" "$TASKTRIMMOMATIC" "trimmomatic.sh" "$SUMMARYTMP"
+
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/fastq/${dir/_$TASKTRIMMOMATIC/}_$TASKTRIMMOMATIC/"
+    done
+    python ${NGSANE_BASE}/core/Summary.py "$vali" ".log" trimmomatic --noSummary >> $SUMMARYTMP
+
+    summaryFooter "$TASKTRIMMOMATIC" "$SUMMARYTMP"
+fi
+
+################################################################################
+if [ -n "$RUNCUTADAPT" ];then
+    summaryHeader "Cutadapt trimming" "$TASKCUTADAPT" "cutadapt.sh" "$SUMMARYTMP"
+
+    vali=""
+    for dir in ${DIR[@]}; do
+        vali=$vali" $OUT/fastq/${dir/_$TASKCUTADAPT/}_$TASKCUTADAPT/"
+    done
+    python ${NGSANE_BASE}/core/Summary.py "$vali" ".stats" cutadapt --noSummary >> $SUMMARYTMP
+
+    summaryFooter "$TASKCUTADAPT" "$SUMMARYTMP"
+fi
 
 
 ################################################################################
@@ -403,45 +440,6 @@ if [ -n "$RUNANNOTATION" ]; then
 fi
 
 ################################################################################
-if [ -n "$RUNTRIMGALORE" ];then
-    summaryHeader "Trimgalore trimming" "$TASKTRIMGALORE" "trimgalore.sh" "$SUMMARYTMP"
-
-    vali=""
-    for dir in ${DIR[@]}; do
-        vali=$vali" $OUT/fastq/${dir/_$TASKTRIMGALORE/}_$TASKTRIMGALORE/"
-    done
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "_trimming_report.txt" trimgalore --noSummary >> $SUMMARYTMP
-
-    summaryFooter "$TASKTRIMGALORE" "$SUMMARYTMP"
-fi
-
-################################################################################
-if [ -n "$RUNTRIMMOMATIC" ];then
-    summaryHeader "Trimmomatic trimming" "$TASKTRIMMOMATIC" "trimmomatic.sh" "$SUMMARYTMP"
-
-    vali=""
-    for dir in ${DIR[@]}; do
-        vali=$vali" $OUT/fastq/${dir/_$TASKTRIMMOMATIC/}_$TASKTRIMMOMATIC/"
-    done
-    python ${NGSANE_BASE}/core/Summary.py "$vali" ".log" trimmomatic --noSummary >> $SUMMARYTMP
-
-    summaryFooter "$TASKTRIMMOMATIC" "$SUMMARYTMP"
-fi
-
-################################################################################
-if [ -n "$RUNCUTADAPT" ];then
-    summaryHeader "Cutadapt trimming" "$TASKCUTADAPT" "cutadapt.sh" "$SUMMARYTMP"
-
-    vali=""
-    for dir in ${DIR[@]}; do
-        vali=$vali" $OUT/fastq/${dir/_$TASKCUTADAPT/}_$TASKCUTADAPT/"
-    done
-    python ${NGSANE_BASE}/core/Summary.py "$vali" ".stats" cutadapt --noSummary >> $SUMMARYTMP
-
-    summaryFooter "$TASKCUTADAPT" "$SUMMARYTMP"
-fi
-
-################################################################################
 if [ -n "$RUNHICLIB" ];then
     summaryHeader "HiClib" "$TASKHICLIB" "hiclibMapping.sh" "$SUMMARYTMP"
 
@@ -499,8 +497,7 @@ if [ -n "$RUNCHANCE" ];then
     for dir in ${DIR[@]}; do
         for f in $(ls $dir/$TASKCHANCE/*.png 2> /dev/null); do
             n=${f##*/}
-            echo $n
-            imgs+="<div style='float:left'>${n/".png"/}<br/><a href=\"$PROJECT_RELPATH/$dir/$TASKCHANCE/${n/.png/.pdf}\"><img src=\"$PROJECT_RELPATH/$dir/$TASKCHANCE/$n\" width=\"200px\"/></a></div>"
+            imgs+="<div class='inset_image'>${n/".png"/}<br/><a href=\"$PROJECT_RELPATH/$dir/$TASKCHANCE/${n/.png/.pdf}\"><img src=\"$PROJECT_RELPATH/$dir/$TASKCHANCE/$n\" width=\"200px\"/></a></div>"
         done
     done
     echo "<div>$imgs</div>" >> $SUMMARYTMP
