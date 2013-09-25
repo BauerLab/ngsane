@@ -67,12 +67,17 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
         if [ -n "$REV" ]; then
             for f in $( ls $SOURCE/$dir/$ORIGIN/*$ENDING* | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
                 n=${f##*/}
+                name=${n/$ENDING/}
+                LOGFILE=$QOUT/$TASK/$dir'_'$name'.out'
                 if [ "$KEEP" = "new" ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
                 	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$dir/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)
-                	[ -n "$D" ] && [ -f $TASK/$dir/$D ]  && echo -e "\e[34m[SKIP]\e[0m $dir/$D (already processed)" && continue
+                	if [ -n "$D" ] && [ -f $TASK/$dir/${D##*/} ] && [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then 
+                	   echo -e "\e[34m[SKIP]\e[0m $n (already processed: $dir/${D##*/})"  
+                	   continue
+                    fi
                 fi 
                 echo -e "\e[32m[TODO]\e[0m $dir/$n"
                 echo $f >> $QOUT/$TASK/runnow.tmp
@@ -81,12 +86,17 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
         else
             for f in $( ls $SOURCE/$ORIGIN/$dir/*$ENDING* | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
                 n=${f##*/}
+                name=${n/$ENDING/}
+                LOGFILE=$QOUT/$TASK/$dir'_'$name'.out'
                 if [ "$KEEP" = "new" ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
                 	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$dir/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)
-                	[ -n "$D" ] && [ -f $dir/$TASK/$D ]  && echo -e "\e[34m[SKIP]\e[0m $dir/$D (already processed)" && continue
+                	if [ -n "$D" ] && [ -f $D ] && [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]]  ; then
+                	   echo -e "\e[34m[SKIP]\e[0m $n (already processed - $dir/${D##*/})"  
+                	   continue
+            	   fi
                 fi 
                 echo -e "\e[32m[TODO]\e[0m $dir/$n"
                 echo $f >> $QOUT/$TASK/runnow.tmp
@@ -155,7 +165,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             COMMAND2="$COMMAND2 --recover-from $LOGFILE"
             
             if [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then
-                echo "[NOTE] Previous $TASK run finished without error - nothing to be done"
+                echo -e "\e[92m[NOTE]\e[0m Previous $TASK run finished without error - nothing to be done"
                 MYPBSIDS=""
                 continue
             else
