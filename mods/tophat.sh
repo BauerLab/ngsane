@@ -112,7 +112,7 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
-[ ! -f $f ] && echo "[ERROR] input file not found: $f" && exit 1
+[ ! -f $f ] && echo "[ERROR] input file not found: $f" 1>&2 && exit 1
 
 # get basename of f (samplename)
 n=${f##*/}
@@ -127,7 +127,9 @@ if [ -z "$RECOVERFROM" ]; then
 fi
 
 
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+if [ "$READONE" == "$READTWO" ]; then
+	echo "[ERROR] read1 == read2 " 1>&2 && exit 1
+elif [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
     f2=${f/$READONE/$READTWO}
     echo "[NOTE] Paired library detected"
@@ -135,6 +137,7 @@ else
     PAIRED="0"
     echo "[NOTE] Single-Strand (unpaired) library detected"
 fi
+
 
 ## is ziped ?
 ZCAT="cat" # always cat
@@ -439,7 +442,8 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-    Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R ${BAMFILE/.$ASD/.$ALN} ${n/%$READONE.$FASTQ/} $BAM2BW_OPTION_1 $OUTDIR/../ $BAM2BW_OPTION_2
+	RUN_COMMAND="Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R ${BAMFILE/.$ASD/.$ALN} ${n/%$READONE.$FASTQ/} $BAM2BW_OPTION_1 $OUTDIR/../ $BAM2BW_OPTION_2"
+	echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
     if [ -f $OUTDIR/../${n/%$READONE.$FASTQ/.bw} ] || [ -f $OUTDIR/../${n/%$READONE.$FASTQ/_+.bw} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi

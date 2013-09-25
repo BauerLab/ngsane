@@ -496,6 +496,19 @@ if [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
     if [ -z "$TASKHTSEQCOUNT" ] || [ -z "$NODES_HTSEQCOUNT" ] || [ -z "$CPU_HTSEQCOUNT" ] || [ -z "$MEMORY_HTSEQCOUNT" ] || [ -z "$WALLTIME_HTSEQCOUNT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     if [ -z "$TASKBAMANN" ] || [ -z "$NODES_BAMANN" ] || [ -z "$CPU_BAMANN" ] || [ -z "$MEMORY_BAMANN" ] || [ -z "$WALLTIME_BAMANN" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+
+	# check that if runnow has been altered this is done for all successor jobs of tophat
+	if [ -e $QOUT/$TASKTOPHAT/runnow.tmp ]; then
+		echo "[NOTE] checking runnow.tmp"
+		LENGTHT=$(wc -l $QOUT/$TASKTOPHAT/runnow.tmp | cut -d " " -f 1)
+		LENGTHC=$(wc -l $QOUT/$TASKCUFFLINKS/runnow.tmp | cut -d " " -f 1)
+		LENGTHH=$(wc -l $QOUT/$TASKHTSEQCOUNT/runnow.tmp | cut -d " " -f 1)
+		LENGTHB=$(wc -l $QOUT/$TASKBAMANN/runnow.tmp  | cut -d " " -f 1)
+		if [[ $LENGTHT != $LENGTHC ]] || [[ $LENGTHT != $LENGTHH ]] || [[ $LENGTHT != $LENGTHB ]] ; then 
+			echo "[ERROR] runnow.tmp files of tophat has different length to its successor jobs ($LENGTHT, $LENGTHC, $LENGTHH, $LENGTHB)"; exit -1; 
+		fi
+	fi
     
     JOBIDS=$( 
         $QSUB $ARMED -k $CONFIG -t $TASKTOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" \
