@@ -104,9 +104,6 @@ else
     echo "[NOTE] library complexity"
     peakranger lc --data $f >> $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
     
-    echo "[NOTE] make wigpe"
-    peakranger wigpe --data $f --output $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}
-
     if [ "$PEAKRANGER_PEAKS" == "broad" ]; then
         echo "[NOTE] calling broad peaks"
         RUN_COMMAND="peakranger ccat $PEAKRANGERADDPARAM --format bam --data  $f --control $CHIPINPUT --output $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/} -t $CPU_PEAKRANGER"
@@ -123,8 +120,6 @@ else
     grep -v "#" $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed > $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.tmp && mv $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.tmp $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed
     
     echo "Peaks: `wc -l $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed | awk '{print $1}'`" >> $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
-    echo "Summits: `wc -l $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_summit.bed | awk '{print $1}'`" >> $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}.summary.txt
-
 
     # mark checkpoint
     if [ -f $OUTDIR/${n/.$ASD.bam/}-${c/.$ASD.bam/}_region.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi

@@ -154,13 +154,12 @@ if [ -n "$RUNFASTQC" ]; then
     for dir in ${DIR[@]}; do
     echo "<h3>${OUT##*/}/fastq/$dir/</h3>" >>$SUMMARYTMP
         echo "<table class='data'>" >>$SUMMARYTMP
-        echo "<thead><tr><th><div style='width:100px'>Chart</div></th><th><div style='width:140px'>Encoding</div></th><th><div style='width:120px'>Library size</div></th><th><div style='width:50px'>Read</div></th><th><div style='width:80px'>Read length</div></th><th><div style='width:50px'>%GC</div></th><th><div style='width:120px'>Read Qualities</th><th class='left'>Library</th></tr></thead><tbody>" >>$SUMMARYTMP
+        echo "<thead><tr><th><div style='width:100px'>Chart</div></th><th><div style='width:140px'>Encoding</div></th><th><div style='width:120px'>Library size</div></th><th><div style='width:50px'>Read</div></th><th><div style='width:80px'>Read length</div></th><th><div style='width:50px'>%GC</div></th><th><div style='width:120px'>Read qualities</th><th class='left'>Library</th></tr></thead><tbody>" >>$SUMMARYTMP
         
         if [[ -e runStats/ && -e runStats/$TASKFASTQC/ ]]; then
             for fasta in $(ls $OUT/fastq/$dir/*.$FASTQ); do
                 fastan=${fasta##*/}
-                fastan=${fastan%.*}
-                f="runStats/$TASKFASTQC/${fastan}_fastqc.zip"
+                f="runStats/$TASKFASTQC/${fastan%.*}_fastqc.zip"
                 # get basename of f
                 n=${f##*/}
                 n=${n/"_fastqc.zip"/}
@@ -195,7 +194,7 @@ if [ -n "$RUNFASTQC" ]; then
         		else
         			echo "[ERROR] no fastq files $f"
                 fi
-                echo "</td><td class='left'><a href='$PROJECT_RELPATH/runStats/$TASKFASTQC/"$n"_fastqc/fastqc_report.html'>$n.fastq</a></td></tr>" >>$SUMMARYTMP
+                echo "</td><td class='left'><a href='$PROJECT_RELPATH/runStats/$TASKFASTQC/"$n"_fastqc/fastqc_report.html'>${fastan/.$FASTQ/}</a></td></tr>" >>$SUMMARYTMP
 
             done
         fi
@@ -468,19 +467,15 @@ if [ -n "$RUNHICUP" ];then
     echo "<h4>deduplicator</h4>">>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$vali" "hicup_deduplicater_summary_results.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     
-    row0=""
-    row1=""
-    row2=""
-    for f in $(ls runStats/$TASKHICUP/*_ditag_classification.png); do
-    	n=${f##*/}
-	    n=${n/"_ditag_classification.png"/}
-	    
-	    row0+="<td>$n</td>"
-	    row1+="<td><a href=\"$PROJECT_RELPATH/runStats/$TASKHICUP/"$n"_ditag_classification.png\"><img src=\"$PROJECT_RELPATH/runStats/$TASKHICUP/"$n"_ditag_classification.png\" width=\"200px\"/></a></td>"
-   	    row2+="<td><a href=\"$PROJECT_RELPATH/runStats/$TASKHICUP/"$n"_uniques_cis-trans.png\"><img src=\"$PROJECT_RELPATH/runStats/$TASKHICUP/"$n"_uniques_cis-trans.png\" width=\"200px\"/></a></td>"
-
+    imgs=""
+    for dir in ${DIR[@]}; do
+        for f in $(ls $dir/$TASKHICUP/*_ditag_classification.png 2> /dev/null); do
+            n=${f##*/}
+            n=${n/"_ditag_classification.png"/}
+            imgs+="<div class='inset_image'>$n<br/><a href=\"$PROJECT_RELPATH/runStats/$TASKHICUP/"$n"_ditag_classification.png\"><img src=\"$PROJECT_RELPATH/runStats/$TASKHICUP/"$n"_ditag_classification.png\" width=\"200px\"/></a><br/><a href=\"$PROJECT_RELPATH/runStats/$TASKHICUP/"$n"_uniques_cis-trans.png\"><img src=\"$PROJECT_RELPATH/runStats/$TASKHICUP/"$n"_uniques_cis-trans.png\" width=\"200px\"/></a></div>"
+        done
     done
-    echo "<table><tr>$row0</tr><tr>$row1</tr><tr>$row2</tr></table>" >> $SUMMARYTMP
+    echo "<div>$imgs</div>" >> $SUMMARYTMP
     
     summaryFooter "$TASKHICUP" "$SUMMARYTMP"
 fi
@@ -538,18 +533,14 @@ if [ -n "$RUNMACS2" ];then
     vali=$(gatherDirs $TASKMACS2)
     python ${NGSANE_BASE}/core/Summary.py "$vali" ".summary.txt" macs2 >> $SUMMARYTMP
 
-    row0=""
-    row1=""
-    row2=""
+    imgs=""
     for dir in ${DIR[@]}; do
-        for f in $(ls $dir/$TASKMACS2/*model-0.png 2> /dev/null); do
+        for f in $(ls $dir/$TASKMACS2/*_model-0.png 2> /dev/null); do
             n=${f##*/}
-            row0+="<td>${n/"_model-0.png"/}</td>"
-            row1+="<td><a href=\"$PROJECT_RELPATH/$dir/$TASKMACS2/${n/-0.png/.pdf}\"><img src=\"$PROJECT_RELPATH/$dir/$TASKMACS2/$n\" width=\"200px\"/></a></td>"
-            row2+="<td><a href=\"$PROJECT_RELPATH/$dir/$TASKMACS2/${n/-1.png/.pdf}\"><img src=\"$PROJECT_RELPATH/$dir/$TASKMACS2/${n/model-0.png/model-1.png}\" width=\"200px\"/></a></td>"
+            imgs+="<div class='inset_image'>${n/_model-0.png/}<br/><a href=\"$PROJECT_RELPATH/$dir/$TASKMACS2/${n/-0.png/.pdf}\"><img src=\"$PROJECT_RELPATH/$dir/$TASKMACS2/$n\" width=\"200px\"/><img src=\"$PROJECT_RELPATH/$dir/$TASKMACS2/${n/model-0.png/model-1.png}\" width=\"200px\"/></a></div>"
         done
     done
-    echo "<table><tr>$row0</tr><tr>$row1</tr><tr>$row2</tr></table>" >> $SUMMARYTMP
+    echo "<div>$imgs</div>" >> $SUMMARYTMP
 
     summaryFooter "$TASKMACS2" "$SUMMARYTMP"
 fi

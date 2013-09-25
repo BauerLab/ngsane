@@ -702,14 +702,10 @@ def peakrangerStats(logFile):
     PE=float(tmp.strip())
     values.append(PE)
 
-    tmp=file.split("Summits:")[1].strip().split()[0]
-    SM=float(tmp.strip())
-    values.append(SM)
-
     return names, values
 
 def macs2Stats(logFile):
-    names=["Total IP tags", "IP (filtered)", "%","Control tags","Control (filtered)","%","Paired peaks","Fragment length"]
+    names=["Total IP tags", "IP (filtered)", "%","Control tags","Control (filtered)","%","Paired peaks","Fragment length","Refined peaks"]
     values=[]
     file=open(logFile).read()
     # populate
@@ -753,7 +749,11 @@ def macs2Stats(logFile):
     except:
         values.append(0)
         values.append(0)
-        
+     
+    tmp=file.split("Final number of refined peaks:")[1].strip().split()[0]
+    RP=float(tmp.strip())
+    values.append(RP)
+           
     return names, values
 
 def chanceStats(logFile):

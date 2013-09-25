@@ -128,7 +128,7 @@ else
     if [ -f ${n/.$ASD.bam/}_model.r ];then 
     
         Rscript ${n/.$ASD.bam/}_model.r
-        if [ hash convert ]; then 
+        if hash convert; then 
             convert -format png ${n/.$ASD.bam/_model.pdf} ${n/.$ASD.bam/_model.png}
         fi
     fi
@@ -152,7 +152,7 @@ else
 
     	if hash bedToBigBed ; then 
             bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
-            bedToBigBed -type=bed4 ${n/.$ASD.bam/_control_lambda.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_control_lambda.bb}
+#            bedToBigBed -type=bed4 ${n/.$ASD.bam/_control_lambda.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_control_lambda.bb}
             bedToBigBed -type=bed4 ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bb}
         fi
 
@@ -190,6 +190,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     [ -e ${n/.$ASD.bam/}_peaks.bed ] && rm ${n/.$ASD.bam/}_peaks.bed    
 
+    echo "Final number of refined peaks: $(wc -l ${n/.$ASD.bam/}_refinepeak.bed )" >> ${n/.$ASD.bam/}.summary.txt
  
     # mark checkpoint
     if [ -f ${n/.$ASD.bam/}_refinepeak.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi

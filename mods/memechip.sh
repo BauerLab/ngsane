@@ -108,7 +108,6 @@ else
     fi
     
     bedtools getfasta -name -fi $FASTA -bed $f -fo $OUTDIR/${n/$BED/.fasta}
-    echo "Peak regions: `wc -l $f | awk '{print $1}'`" > $OUTDIR/${n/$BED/.summary.txt}
 
     # mark checkpoint
     if [ -f $OUTDIR/${n/$BED/.fasta} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -125,12 +124,12 @@ else
     # create background from bed file unless provided
     if [ -z $MEMEBACKGROUND ]; then
         fasta-get-markov -nostatus $FASTAGETMARKOVADDPARAM < $OUTDIR/${n/$BED/.fasta} > $OUTDIR/${n/$BED/.bg}
-        MEMEBACKGROUND=$OUTDIR/${n/$BED/.bg}
     fi
     # mark checkpoint
     if [ -f $OUTDIR/${n/$BED/.bg} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
+MEMEBACKGROUND=$OUTDIR/${n/$BED/.bg}
 
 ################################################################################
 CHECKPOINT="meme-chip"    
@@ -153,34 +152,42 @@ CHECKPOINT="classify bound regions"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-   
+
+    echo "Peak regions: `wc -l $f | awk '{print $1}'`" > $OUTDIR/${n/$BED/.summary.txt}
+       
     RUN_COMMAND="fimo $FIMOADDPARAM --bgfile $MEMEBACKGROUND --oc $OUTDIR/${n/$BED/_fimo} $OUTDIR/${n/$BED/}/combined.meme $OUTDIR/${n/$BED/.fasta}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     sort -k4,4 -k1,1 -k2,2g $f > $OUTDIR/${n/$BED/_sorted.bed}
-    for PATTERN in $(tail -n+2 $OUTDIR/${n/$BED/_fimo}/fimo.txt | awk '{print $1}' | sort -u); do
-        echo "[NOTE] Motif: $PATTERN"
     
-        grep -P "^${PATTERN}\t" $OUTDIR/${n/$BED/_fimo}/fimo.txt | cut -f2-4,6 | tail -n+2 | sort -k1,1 > $OUTDIR/${n/$BED/_fimo}/$PATTERN.txt
+    if [[ "$(wc -l $OUTDIR/${n/$BED/_fimo}/fimo.txt)" -le 1 ]]; then
+        echo "[NOTE] no motif occurences enriched using fimo with given cutoff"
     
-        join -1 1 -2 4 $OUTDIR/${n/$BED/_fimo}/$PATTERN.txt $OUTDIR/${n/$BED/_sorted.bed} | awk '{OFS="\t"; print $5,$6+$2,$6+$3,$1,$4,$9}' > $OUTDIR/${n/$BED/_motif}_${PATTERN}.direct.bed
+    else
+        for PATTERN in $(tail -n+2 $OUTDIR/${n/$BED/_fimo}/fimo.txt | awk '{print $1}' | sort -u); do
+            echo "[NOTE] Motif: $PATTERN"
         
-        comm -13 <(awk '{print $1}' $OUTDIR/${n/$BED/_fimo}/$PATTERN.txt | sort -u ) <(awk '{print $4}' $f | sort -u ) > $OUTDIR/${n/$BED/_fimo}/${PATTERN}_tmp.txt
-    
-        join -1 4 -2 1 $OUTDIR/${n/$BED/_sorted.bed} $OUTDIR/${n/$BED/_fimo}/${PATTERN}_tmp.txt | awk '{OFS="\t"; print 2,$3,$4,$1,$5,$6}' > $OUTDIR/${n/$BED/_motif}_${PATTERN}.indirect.bed
+            grep -P "^${PATTERN}\t" $OUTDIR/${n/$BED/_fimo}/fimo.txt | cut -f2-4,6 | tail -n+2 | sort -k1,1 > $OUTDIR/${n/$BED/_fimo}/$PATTERN.txt
         
-        echo "Motif $PATTERN bound directly (strong site): $(cat $OUTDIR/${n/$BED/_motif}_${PATTERN}.direct.bed | awk '{print $4}' | sort -u | wc -l | awk '{print $1}')" >> $OUTDIR/${n/$BED/.summary.txt}
-        echo "Motif $PATTERN bound indirectly (weak or no site): $(cat $OUTDIR/${n/$BED/_motif}_${PATTERN}.indirect.bed | awk '{print $4}' | sort -u | wc -l | awk '{print $1}')" >> $OUTDIR/${n/$BED/.summary.txt}
+            join -1 1 -2 4 $OUTDIR/${n/$BED/_fimo}/$PATTERN.txt $OUTDIR/${n/$BED/_sorted.bed} | awk '{OFS="\t"; print $5,$6+$2,$6+$3,$1,$4,$9}' > $OUTDIR/${n/$BED/_motif}_${PATTERN}.direct.bed
+            
+            comm -13 <(awk '{print $1}' $OUTDIR/${n/$BED/_fimo}/$PATTERN.txt | sort -u ) <(awk '{print $4}' $f | sort -u ) > $OUTDIR/${n/$BED/_fimo}/${PATTERN}_tmp.txt
         
-        echo "Most similar known motif: "$(cat $OUTDIR/${n/$BED/}/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 2) >> $OUTDIR/${n/$BED/.summary.txt}
-        echo "Q-value: "$(cat $OUTDIR/${n/$BED/}/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 6) >> $OUTDIR/${n/$BED/.summary.txt}
-        echo "Query consensus: "$(cat $OUTDIR/${n/$BED/}/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 8) >> $OUTDIR/${n/$BED/.summary.txt}
-        echo "Target consensus: "$(cat $OUTDIR/${n/$BED/}/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 9) >> $OUTDIR/${n/$BED/.summary.txt}
-    done
+            join -1 4 -2 1 $OUTDIR/${n/$BED/_sorted.bed} $OUTDIR/${n/$BED/_fimo}/${PATTERN}_tmp.txt | awk '{OFS="\t"; print 2,$3,$4,$1,$5,$6}' > $OUTDIR/${n/$BED/_motif}_${PATTERN}.indirect.bed
+            
+            echo "Motif $PATTERN bound directly (strong site): $(cat $OUTDIR/${n/$BED/_motif}_${PATTERN}.direct.bed | awk '{print $4}' | sort -u | wc -l | awk '{print $1}')" >> $OUTDIR/${n/$BED/.summary.txt}
+            echo "Motif $PATTERN bound indirectly (weak or no site): $(cat $OUTDIR/${n/$BED/_motif}_${PATTERN}.indirect.bed | awk '{print $4}' | sort -u | wc -l | awk '{print $1}')" >> $OUTDIR/${n/$BED/.summary.txt}
+            
+            echo "Most similar known motif: "$(cat $OUTDIR/${n/$BED/}/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 2) >> $OUTDIR/${n/$BED/.summary.txt}
+            echo "Q-value: "$(cat $OUTDIR/${n/$BED/}/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 6) >> $OUTDIR/${n/$BED/.summary.txt}
+            echo "Query consensus: "$(cat $OUTDIR/${n/$BED/}/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 8) >> $OUTDIR/${n/$BED/.summary.txt}
+            echo "Target consensus: "$(cat $OUTDIR/${n/$BED/}/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 9) >> $OUTDIR/${n/$BED/.summary.txt}
+        done
+    fi
     
     # mark checkpoint
-    if [ -f $OUTDIR/${n/$BED/_motif}_${PATTERN}.direct.bed ] && [ -f $OUTDIR/${n/$BED/_motif}_${PATTERN}.indirect.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
+    if [ -f $OUTDIR/${n/$BED/.summary.txt} ];then echo -e "\n********* $CHECKPOINT   \n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    
 fi
 
 ################################################################################
