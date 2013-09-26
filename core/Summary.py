@@ -798,16 +798,22 @@ def chanceStats(logFile):
 
 def fastqscreenStats(logFile):
     file=open(logFile).read()
-
+    names=[]
     species=file.split("\n")[2:-3]
-    names=[ s.split()[0] for s in species ]+ ["Hit no libraries"]
+    for p in [ s.split()[0] for s in species ]:
+        names+=[ p+" (unique hit)" ]
+        names+=[ p+" (multi map)" ]
+    
+    names+=["Hit no libraries"]
     values=[]
 
     # populate
     for s in species:
-	values.append(float(s.split()[2]))
+        values.append(float(s.split()[2]))
+        values.append(float(s.split()[3]))
 
     tmp=file.split("%Hit_no_libraries:")[1].strip().split()[0]
+    
     TT=float(tmp.strip())
     values.append(TT)
     

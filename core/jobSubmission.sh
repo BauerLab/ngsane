@@ -22,7 +22,7 @@ while [ "$1" != "" ]; do
     -W | --wait )           shift; JOBIDS=$1 ;; # jobids to wait for
     -j | --jobname   )      shift; SNAME=$1 ;; # name used
 	-q | --queue )			shift; QUEUE=$1 ;; # nodetype
-    -o | --output )	    shift; SOUTPUT=$1 ;; # pbsoutput
+    -o | --output )	        shift; SOUTPUT=$1 ;; # pbsoutput
     -a | --additional )	    shift; SADDITIONAL=$1 ;; # additional paramers
     -p | --command )	    shift; SCOMMAND=$1 ;; # Program call
     -t | --tmpdir )	        shift; STMPDIR=$1 ;; # additional paramers	
@@ -53,12 +53,11 @@ if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 
 	# Prepare Prologue Script
 	# Emulate SGE's behaviour of appending to the previous $SOUTPUT.sh by cat in the prologue
-        if [ -e $SOUTPUT.sh ]; then rm -f $SOUTPUT.sh; fi
+    if [ -e $SOUTPUT.sh ]; then rm -f $SOUTPUT.sh; fi
 	echo -e "#!/bin/sh \n cat $SOUTPUT \n exit 0" > $SOUTPUT.sh
 	chmod 500 $SOUTPUT.sh
 	# add to the TMPFILE that the prologue scripts needs deleting
 	echo "rm -fr $SOUTPUT.sh" >> $TMPFILE
-
 
 #	echo "********** submit with PBS submission system" 1>&2
 	JOBIDS=$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
@@ -72,10 +71,10 @@ if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 
 
 elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
+#   taking care of the SGE module bug
     unset module
 #	echo "********** submit with SGE submission system"
 	if [ -n "$JOBIDS" ];then JOBIDS=$(echo -e $JOBIDS | sed 's/^://g' | sed 's/:/,/g'); HOLD_JID="-hold_jid $JOBIDS"; fi
-#	if [ -n "$JOBIDS" ];then JOBIDS=$(echo -e $JOBIDS | sed 's/^://g' | sed 's/:/,/g'); HOLD_JID="-hold_jid NGs_$JOBIDS"; fi
 	command="qsub $HOLD_JID -V -S /bin/bash -j y -o $SOUTPUT -cwd -pe smp $SCPU -l h_vmem=$SMEMORY \
 	    -N $SNAME -l h_rt=$SWALLTIME $SADDITIONAL $TMPFILE" 
 	echo "# $command" >>$TMPFILE

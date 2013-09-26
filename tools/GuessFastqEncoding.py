@@ -23,6 +23,9 @@ RANGES = {
     'Illumina 1.8 Phred33': (35, 74)
 }
 
+maxEncodedChar=104
+foundInvalidEncodingBefore=False
+
 def get_qual_range(qual_str):
     """
     >>> get_qual_range("DLXYXXRXWYYTPMLUUQWTXTRSXSWMDMTRNDNSMJFJFFRMV")
@@ -34,16 +37,28 @@ def get_qual_range(qual_str):
 def process_lines():
     global options
     global args
-
+    global maxEncodedChar, foundInvalidEncodingBefore
+    
     gmin, gmax  = 99, 0
     valid = []
     for i, line in enumerate(sys.stdin):
         (lmin, lmax) = get_qual_range(line.rstrip())
         if (lmin < gmin or lmax > gmax):
             (gmin, gmax) = min(lmin, gmin), max(lmax, gmax)
+            if (gmax > maxEncodedChar):
+                if (not foundInvalidEncodingBefore):
+                    if (options.strict):
+                        print >> sys.stderr, "[ERROR] Character found that exceeds/violates any known FASTQ encoding: %d - %s " % (gmax, str(unichr(gmax)))
+                        sys.exit(1)
+                    else:
+                        print >> sys.stderr, "[WARN] Character found that exceeds/violates any known FASTQ encoding: %d|'%s' (revert to maximum of %d|'%s')" % (gmax, str(unichr(gmax)), maxEncodedChar, str(unichr(maxEncodedChar)))
+                        foundInvalidEncodingBefore =True
+                gmax = maxEncodedChar
             valid = get_encodings_in_range(gmin, gmax)
+            
             if (len(valid) == 0):
-                print >>sys.stderr, "no encodings for range: %s" % str((gmin, gmax))
+                print >> sys.stderr, "no encodings for range: %s" % str((gmin, gmax))
+                print line
                 sys.exit(1)
                 
             if (len(valid) == 1 and options.n == -1):
@@ -77,6 +92,8 @@ def main():
     parser.add_option("-n", dest="n", help="number of lines to test default:-1"
                  " means test until end of file or until it it possible to "
                  " determine a single file-type", type='int', default=-1)
+    parser.add_option("-s", action="store_true", dest="strict",
+                 help="stop when invalid encoding is detected")
 
     (options, args) = parser.parse_args()
 

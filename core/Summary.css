@@ -308,4 +308,12 @@ img.noborder {
     border: 0px;
 }
 
+div.inset_image {
+    float:left;
+    text-align: center; 
+    margin:2px; 
+    padding:2px;
+    border-width:1px;
+    border-style:dotted;
+}
 </style>
