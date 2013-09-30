@@ -309,6 +309,14 @@ img.noborder {
     border: 0px;
 }
 
+div.inset_image {
+    float:left;
+    text-align: center; 
+    margin:2px; 
+    padding:2px;
+    border-width:1px;
+    border-style:dotted;
+}
 </style><script type='text/javascript'>
 /*! jQuery v1.9.1 | (c) 2005, 2012 jQuery Foundation, Inc. | jquery.org/license
 //@ sourceMappingURL=jquery.min.map
@@ -332,7 +340,7 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
         <div class='wrapper'><div class='hidden'>
 <div id='bwa_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/bwa 
+# NGSANE /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/mods/bwa 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -359,7 +367,7 @@ QC_PASS .. 2 have verify/2
 <div id='bwa_notes'><pre>
 
 qout/bwa/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bwa/job.20130921.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/qout/bwa/job.20130930.log
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
@@ -368,7 +376,7 @@ qout/bwa/Transcript_RNA3kChr16.out
 [NOTE] PASS check mapping: 7030 == 7030
 
 qout/bwa/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bwa/job.20130921.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/qout/bwa/job.20130930.log
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
@@ -483,7 +491,7 @@ qout/bwa/Transcript_RNA3kChr16rep.out
         <div class='wrapper'><div class='hidden'>
 <div id='reCalAln_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/reCalAln2 
+# NGSANE /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/mods/reCalAln2 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -509,7 +517,7 @@ QC_PASS .. 2 have coverage track/2
 <div id='reCalAln_notes'><pre>
 
 qout/reCalAln/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/reCalAln/job.20130921.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/qout/reCalAln/job.20130930.log
 [NOTE] set java parameters
 [NOTE] PAIRED
 [NOTE] find intervals to improve
@@ -524,7 +532,7 @@ qout/reCalAln/Transcript_RNA3kChr16.out
 [NOTE] coverage track
 
 qout/reCalAln/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/reCalAln/job.20130921.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/qout/reCalAln/job.20130930.log
 [NOTE] set java parameters
 [NOTE] PAIRED
 [NOTE] find intervals to improve
@@ -618,7 +626,7 @@ qout/reCalAln/Transcript_RNA3kChr16rep.out
         <div class='wrapper'><div class='hidden'>
 <div id='variant_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/gatkSNPs 
+# NGSANE /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/mods/gatkSNPs 
 ###################################################
 **_FAIL .. finished are 0/1
 >>>>>>>>>> Errors
@@ -631,7 +639,7 @@ qout/variant/postcommand.out
 [NOTE] call snps
 [NOTE] get snps only
 [NOTE] get indels only
-[NOTE] SNP call done Sat Sep 21 08:52:11 EST 2013
+[NOTE] SNP call done Mon Sep 30 11:20:05 EST 2013
 [NOTE] hardfilter
 [NOTE] hard filter INDELs
 [NOTE] index for IGV
@@ -697,5 +705,5 @@ qout/variant/postcommand.out
             $('#variant_panel div.wrapper div.display').html($('#variant_results').html());
         }
         </script>
-<hr><span>Report generated with NGSANE version: 07270d63adf1d58f9d315f9a06848664116f5f86 (git hash)</span><span style='float:right;'>Last modified: Sat Sep 21 08:55:13 EST 2013</span>
+<hr><span>Report generated with NGSANE version: v0.2.0_p1</span><span style='float:right;'>Last modified: Mon Sep 30 11:23:00 EST 2013</span>
 </div><!-- center --></body></html>

@@ -309,6 +309,14 @@ img.noborder {
     border: 0px;
 }
 
+div.inset_image {
+    float:left;
+    text-align: center; 
+    margin:2px; 
+    padding:2px;
+    border-width:1px;
+    border-style:dotted;
+}
 </style><script type='text/javascript'>
 /*! jQuery v1.9.1 | (c) 2005, 2012 jQuery Foundation, Inc. | jquery.org/license
 //@ sourceMappingURL=jquery.min.map
@@ -332,7 +340,7 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
         <div class='wrapper'><div class='hidden'>
 <div id='tophat_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/tophat 
+# NGSANE /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/mods/tophat 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -355,16 +363,16 @@ QC_PASS .. 2 have cleanup/2
 <div id='tophat_notes'><pre>
 
 qout/tophat/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/tophat/job.20130921.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/qout/tophat/job.20130930.log
 [NOTE] set java parameters
 [NOTE] Paired library detected
 [NOTE] Illumina 1.8 Phred33	(41  74) fastq format detected
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] GTF: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 [NOTE] RNAseq library type: fr-firststrand
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] make bigwigs; library is fr-firststrand 
-[NOTE] tophat Sat Sep 21 08:39:29 EST 2013
-[NOTE] tophat end Sat Sep 21 08:40:13 EST 2013
+[NOTE] tophat Mon Sep 30 11:08:09 EST 2013
+[NOTE] tophat end Mon Sep 30 11:08:51 EST 2013
 [NOTE] samtools merge
 [NOTE] samtools fixmate
 [NOTE] samtools sort
@@ -375,18 +383,20 @@ qout/tophat/Transcript_RNA3kChr16.out
 [NOTE] igvtools
 [NOTE] samstat
 [NOTE] extract mapped reads
+[NOTE] Read gapped aligment paired
+[NOTE] Stranded
 
 qout/tophat/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/tophat/job.20130921.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/qout/tophat/job.20130930.log
 [NOTE] set java parameters
 [NOTE] Paired library detected
 [NOTE] Illumina 1.8 Phred33	(41  74) fastq format detected
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] GTF: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 [NOTE] RNAseq library type: fr-firststrand
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] make bigwigs; library is fr-firststrand 
-[NOTE] tophat Sat Sep 21 08:39:29 EST 2013
-[NOTE] tophat end Sat Sep 21 08:40:14 EST 2013
+[NOTE] tophat Mon Sep 30 11:08:09 EST 2013
+[NOTE] tophat end Mon Sep 30 11:08:51 EST 2013
 [NOTE] samtools merge
 [NOTE] samtools fixmate
 [NOTE] samtools sort
@@ -397,6 +407,8 @@ qout/tophat/Transcript_RNA3kChr16rep.out
 [NOTE] igvtools
 [NOTE] samstat
 [NOTE] extract mapped reads
+[NOTE] Read gapped aligment paired
+[NOTE] Stranded
 </pre></div>
 <div id='tophat_errors'><pre>
 
@@ -414,7 +426,7 @@ qout/tophat/Transcript_RNA3kChr16rep.out
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#tophat_counter_notes').text('40');
+            $('#tophat_counter_notes').text('44');
             $('#tophat_counter_errors').text('0');
             $('#tophat_counter_checkpoints_passed').text('15');
             $('#tophat_counter_checkpoints_failed').text('0'); 
@@ -436,8 +448,8 @@ qout/tophat/Transcript_RNA3kChr16rep.out
     </script>
 <div id='tophat_results'>
 <br>Note, the duplication rate is not calculated by tophat and hence zero.<br>
-<a href="../Transcript/tophat/RNA3kChr16_RNASeQC/index.html">RNAseq-QC for Transcript/RNA3kChr16_RNASeQC</a><br/>
 <a href="../Transcript/tophat/RNA3kChr16rep_RNASeQC/index.html">RNAseq-QC for Transcript/RNA3kChr16rep_RNASeQC</a><br/>
+<a href="../Transcript/tophat/RNA3kChr16_RNASeQC/index.html">RNAseq-QC for Transcript/RNA3kChr16_RNASeQC</a><br/>
 <h3>smokebox/Transcript/tophat/</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>         Accepted</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th><div>         Junction</div></th><th><div>       Junction %</div></th><th><div>    Jnct over GTF</div></th><th><div>  Jnct over GTF %</div></th><th class='left'>File</th></tr></thead>
 <tbody>
@@ -508,7 +520,7 @@ qout/tophat/Transcript_RNA3kChr16rep.out
         <div class='wrapper'><div class='hidden'>
 <div id='cufflinks_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/cufflinks 
+# NGSANE /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/mods/cufflinks 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -523,20 +535,20 @@ QC_PASS .. 2 have statistics/2
 <div id='cufflinks_notes'><pre>
 
 qout/cufflinks/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/cufflinks/job.20130921.log
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/qout/cufflinks/job.20130930.log
+[NOTE] GTF: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 [NOTE] RNAseq library type: fr-firststrand
-[NOTE] cufflinks Sat Sep 21 08:42:24 EST 2013
+[NOTE] cufflinks Mon Sep 30 11:10:49 EST 2013
 [NOTE] execute cufflinks with guide (GTF provided)
-[NOTE] cufflinks end Sat Sep 21 08:42:52 EST 2013
+[NOTE] cufflinks end Mon Sep 30 11:11:14 EST 2013
 
 qout/cufflinks/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/cufflinks/job.20130921.log
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/qout/cufflinks/job.20130930.log
+[NOTE] GTF: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 [NOTE] RNAseq library type: fr-firststrand
-[NOTE] cufflinks Sat Sep 21 08:42:24 EST 2013
+[NOTE] cufflinks Mon Sep 30 11:10:49 EST 2013
 [NOTE] execute cufflinks with guide (GTF provided)
-[NOTE] cufflinks end Sat Sep 21 08:42:51 EST 2013
+[NOTE] cufflinks end Mon Sep 30 11:11:14 EST 2013
 </pre></div>
 <div id='cufflinks_errors'><pre>
 
@@ -618,7 +630,7 @@ qout/cufflinks/Transcript_RNA3kChr16rep.out
         <div class='wrapper'><div class='hidden'>
 <div id='htseqcount_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/htseqcount 
+# NGSANE /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/mods/htseqcount 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -636,8 +648,8 @@ QC_PASS .. 2 have cleanup/2
 <div id='htseqcount_notes'><pre>
 
 qout/htseqcount/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/htseqcount/job.20130921.log
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/qout/htseqcount/job.20130930.log
+[NOTE] GTF: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 [NOTE] RNAseq library type: fr-firststrand
 [NOTE] paired library detected
 [NOTE] library is fr-firststrand; run htseq-count stranded
@@ -647,8 +659,8 @@ qout/htseqcount/Transcript_RNA3kChr16.out
 [NOTE] processing gene_id union
 
 qout/htseqcount/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/htseqcount/job.20130921.log
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/qout/htseqcount/job.20130930.log
+[NOTE] GTF: /share/ClusterShare/software/contrib/gi/ngsane/0.2.0/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 [NOTE] RNAseq library type: fr-firststrand
 [NOTE] paired library detected
 [NOTE] library is fr-firststrand; run htseq-count stranded
@@ -726,5 +738,5 @@ qout/htseqcount/Transcript_RNA3kChr16rep.out
             $('#htseqcount_panel div.wrapper div.display').html($('#htseqcount_results').html());
         }
         </script>
-<hr><span>Report generated with NGSANE version: 07270d63adf1d58f9d315f9a06848664116f5f86 (git hash)</span><span style='float:right;'>Last modified: Sat Sep 21 08:48:00 EST 2013</span>
+<hr><span>Report generated with NGSANE version: v0.2.0_p1</span><span style='float:right;'>Last modified: Mon Sep 30 11:15:38 EST 2013</span>
 </div><!-- center --></body></html>
