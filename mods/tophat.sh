@@ -132,9 +132,11 @@ if [ "$READONE" == "$READTWO" ]; then
 elif [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
     f2=${f/$READONE/$READTWO}
+    BAM2BW_OPTION_ISPAIRED="True"
     echo "[NOTE] Paired library detected"
 else
     PAIRED="0"
+    BAM2BW_OPTION_ISPAIRED="False"
     echo "[NOTE] Single-Strand (unpaired) library detected"
 fi
 
@@ -442,7 +444,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-	RUN_COMMAND="Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R ${BAMFILE/.$ASD/.$ALN} ${n/%$READONE.$FASTQ/} $BAM2BW_OPTION_1 $OUTDIR/../ $BAM2BW_OPTION_2"
+	RUN_COMMAND="Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R ${BAMFILE/.$ASD/.$ALN} ${n/%$READONE.$FASTQ/} $BAM2BW_OPTION_1 $OUTDIR/../ $BAM2BW_OPTION_2 $BAM2BW_OPTION_ISPAIRED"
 	echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
