@@ -11,7 +11,7 @@ variable on the cluster or in your .bash_rc or .profile You can also specify it
 in the project-based config file.
 
 For more information check out the wiki at
-https://github.com/allPowerde/ngsane/wiki
+https://github.com/BauerLab/ngsane/wiki
 
 ################################################################################
 # Structure of NGSANE:

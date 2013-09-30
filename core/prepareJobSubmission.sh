@@ -111,7 +111,7 @@ if [ -n "$KEEP" ]; then
     if [ "$KEEP" = "new" ]; then
         echo -e "[NOTE] Data setup finished. Please, start trigger in \e[4marmed\e[24m or \e[4mdirect\e[24m mode."
     else
-        echo -e "[NOTE] Data setup finished. Please, inspect/modify runnow.tmp in the qout/TASK folder and then start \e[4marmed\e[24m or \e[4mdirect\e[24m mode."
+        echo -e "[NOTE] Data setup finished. Please, inspect/modify runnow.tmp in the qout/$TASK/runnow.tmp folder and then start \e[4marmed\e[24m or \e[4mdirect\e[24m mode."
     fi
     exit ; 
 else
