@@ -26,7 +26,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --bam )            shift; f=$1 ;; # bam file
-        -o | --outdir )         shift; MYOUT=$1 ;; # output dir 
+        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir 
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -72,7 +72,7 @@ CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a $f
-    dmls -l $f
+    dmget -a $OUTDIR/*
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -83,14 +83,14 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
     
-    TAGDIRECTORY=$MYOUT/${n/%.$ASD.bam/_homer}
+    TAGDIRECTORY=$OUTDIR/${n/%.$ASD.bam/_homer}
     mkdir -p $TAGDIRECTORY
     RUN_COMMAND="makeTagDirectory $TAGDIRECTORY $f $HOMER_CHIPSEQ_TAGDIR_ADDPARAM"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     
     if [ -n "$CHIPINPUT" ];then
-        TAGDIRECTORY=$MYOUT/${n/%.$ASD.bam/_homer}
+        TAGDIRECTORY=$OUTDIR/${n/%.$ASD.bam/_homer}
         mkdir -p ${TAGDIRECTORY}_input
         # copy input to prevent interfering concurrent processing by homer
         cp $CHIPINPUT ${TAGDIRECTORY}
@@ -121,16 +121,16 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     if [ "$HOMER_CHIPSEQ_STYLE" == "factor" ]; then
-        pos2bed.pl $MYOUT/${n/.$ASD.bam/_homer}/peaks.txt > $MYOUT/${n/.$ASD.bam/}-${INPUT}_peaks.bed
-        grep "^#" $MYOUT/${n/.$ASD.bam/_homer}/peaks.txt > $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt
+        pos2bed.pl $OUTDIR/${n/.$ASD.bam/_homer}/peaks.txt > $OUTDIR/${n/.$ASD.bam/}-${INPUT}_peaks.bed
+        grep "^#" $OUTDIR/${n/.$ASD.bam/_homer}/peaks.txt > $OUTDIR/${n/.$ASD.bam/}-${INPUT}.summary.txt
     
     elif [ "$HOMER_CHIPSEQ_STYLE" == "histone" ]; then
-        pos2bed.pl $MYOUT/${n/.$ASD.bam/_homer}/regions.txt > $MYOUT/${n/.$ASD.bam/}-${INPUT}_regions.bed
-        grep "^#" $MYOUT/${n/.$ASD.bam/_homer}/regions.txt > $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt
+        pos2bed.pl $OUTDIR/${n/.$ASD.bam/_homer}/regions.txt > $OUTDIR/${n/.$ASD.bam/}-${INPUT}_regions.bed
+        grep "^#" $OUTDIR/${n/.$ASD.bam/_homer}/regions.txt > $OUTDIR/${n/.$ASD.bam/}-${INPUT}.summary.txt
     fi
 
     # mark checkpoint
-    if [ -f $MYOUT/${n/.$ASD.bam/}-${INPUT}.summary.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/.$ASD.bam/}-${INPUT}.summary.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 

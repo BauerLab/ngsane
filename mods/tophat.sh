@@ -127,7 +127,7 @@ if [ -z "$RECOVERFROM" ]; then
 fi
 
 
-if [ "$READONE" == "$READTWO" ]; then
+if [ -n "$READONE" ] && ["$READONE" == "$READTWO" ]; then
 	echo "[ERROR] read1 == read2 " 1>&2 && exit 1
 elif [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
@@ -221,6 +221,7 @@ CHECKPOINT="recall files from tape"
 if [ -n "$DMGET" ]; then
     dmget -a $(dirname $FASTA)/*
     dmget -a ${f/$READONE/"*"}
+    dmget -a $OUTDIR/*
 fi
 
 echo -e "\n********* $CHECKPOINT\n"

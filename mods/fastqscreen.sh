@@ -7,7 +7,8 @@
 # date: 
 
 # messages to look out for -- relevant for the QC.sh script:
-# QCVARIABLES,
+# QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>_screen.txt
 
 echo ">>>>> read screening with FASTQSCREEN"
 echo ">>>>> startdate "`date`
@@ -20,7 +21,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of NGSANE
         -f | --file )           shift; f=$1 ;; # fastq file
-        -o | --outdir )         shift; MYOUT=$1 ;; # output dir
+        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -68,7 +69,7 @@ if [ -z "$FASTQSCREEN_DBCONF" ] || [ ! -f $FASTQSCREEN_DBCONF ]; then
     echo "[NOTE] FASTQSCREEN_DBCONF file not specified or found" && exit 1
 fi
  
-mkdir -p $MYOUT
+mkdir -p $OUTDIR
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -76,6 +77,7 @@ CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
+    dmget -a ${OUTDIR}/*
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -89,21 +91,22 @@ else
 
     # Paired read
     if [ "$PAIRED" = "1" ]; then
-        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $MYOUT --conf $FASTQSCREEN_DBCONF --paired --threads $CPU_FASTQSCREEN $f ${f/$READONE/$READTWO}"
+        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --paired --threads $CPU_FASTQSCREEN $f ${f/$READONE/$READTWO}"
     else
-        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $MYOUT --conf $FASTQSCREEN_DBCONF --threads $CPU_FASTQSCREEN $f"
+        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --threads $CPU_FASTQSCREEN $f"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    mv $MYOUT/${n}_screen.txt $MYOUT/${n/$READONE.$FASTQ/}_screen.txt
-    mv $MYOUT/${n}_screen.png $MYOUT/${n/$READONE.$FASTQ/}_screen.png
+    mv $OUTDIR/${n}_screen.txt $OUTDIR/${n/$READONE.$FASTQ/}_screen.txt
+    mv $OUTDIR/${n}_screen.png $OUTDIR/${n/$READONE.$FASTQ/}_screen.png
 
     # mark checkpoint
-    if [ -f $MYOUT/${n/$READONE.$FASTQ/}_screen.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/$READONE.$FASTQ/}_screen.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
+[ -e $OUTDIR/${n/%$READONE.$FASTQ/_screen.txt}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/_screen.txt}.dummy
 echo ">>>>> read screening with  FASTQSCREEN - FINISHED"
 echo ">>>>> enddate "`date`
 

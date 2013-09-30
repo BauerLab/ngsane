@@ -31,7 +31,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
         -f | --bam )            shift; f=$1 ;; # bam file                                                       
-        -o | --outdir )         shift; MYOUT=$1 ;; # output dir                                                     
+        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir                                                     
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -79,7 +79,7 @@ elif [ "$WIGGLER_OUTPUTFORMAT" != "bg" ] && [ "$WIGGLER_OUTPUTFORMAT" != "wig" ]
     echo "[ERROR] wiggler output format not known" && exit 1
 fi
 
-mkdir -p ${MYOUT}
+mkdir -p ${OUTDIR}
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -92,7 +92,7 @@ echo $FILES
 
 if [ -n "$DMGET" ]; then
 	dmget -a $FILES
-	dmls -l $FILES
+	dmget -a $OUTDIR/*
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -107,11 +107,11 @@ else
         INPUTS="${INPUTS} -i=$FILE"
     done
     
-    RUN_COMMAND="align2rawsignal $WIGGLERADDPARAMS -of=$WIGGLER_OUTPUTFORMAT ${INPUTS} -s=${FASTA_CHROMDIR} -u=${WIGGLER_UMAPDIR} -v=${MYOUT}/wiggler-${n}.log -o=${MYOUT}/${n}.$WIGGLER_OUTPUTFORMAT -mm=$MEMORY_WIGGLER"
+    RUN_COMMAND="align2rawsignal $WIGGLERADDPARAMS -of=$WIGGLER_OUTPUTFORMAT ${INPUTS} -s=${FASTA_CHROMDIR} -u=${WIGGLER_UMAPDIR} -v=${OUTDIR}/wiggler-${n}.log -o=${OUTDIR}/${n}.$WIGGLER_OUTPUTFORMAT -mm=$MEMORY_WIGGLER"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -f ${MYOUT}/${n}.$WIGGLER_OUTPUTFORMAT ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f ${OUTDIR}/${n}.$WIGGLER_OUTPUTFORMAT ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
