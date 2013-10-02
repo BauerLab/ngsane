@@ -16,8 +16,6 @@ while [ "$1" != "" ]; do
 	-c | --cpu    )         shift; CPU=$1 ;;       # CPU used
 	-m | --memory )         shift; MEMORY=$1;;     # min Memory required
 	-w | --walltime )       shift; WALLTIME=$1;;
-	# TODO redundant check below
-#    -W | --waitfor )        shift; WAITFOR=$1 ;;    # wait for previous TASK to finish (asumes job names follows std. NGSane rules)
 	-p | --command )        shift; COMMAND=$1;;
 	--postcommand )         shift; POSTCOMMAND=$1;;
 	--postnodes )           shift; POSTNODES=$1;;
@@ -72,9 +70,9 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
                 if [ "$KEEP" = "new" ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
-                	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$dir/" | sed "s/<TASK>/$TASK/")
+                	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$dir/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)
-                	if [ -n "$D" ] && [ -f $TASK/$dir/${D##*/} ] && [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then 
+                	if [ -n "$D" ] && [ -f $D ] && [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then 
                 	   echo -e "\e[34m[SKIP]\e[0m $n (already processed: $dir/${D##*/})"  
                 	   continue
                     fi
@@ -93,10 +91,10 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
                 	COMMANDARR=(${COMMAND// / })
                 	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$dir/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)
-                	if [ -n "$D" ] && [ -f $D ] && [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]]  ; then
+                	if [ -n "$D" ] && [ -f $D ] && [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]]; then
                 	   echo -e "\e[34m[SKIP]\e[0m $n (already processed - $dir/${D##*/})"  
                 	   continue
-            	   fi
+                    fi
                 fi 
                 echo -e "\e[32m[TODO]\e[0m $dir/$n"
                 echo $f >> $QOUT/$TASK/runnow.tmp
