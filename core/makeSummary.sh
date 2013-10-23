@@ -321,6 +321,7 @@ fi
 if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
     summaryHeader "Bowtie v1 mapping" "$TASKBOWTIE" "bowtie.sh" "$SUMMARYTMP"
 
+    vali=$(gatherDirs $TASKBOWTIE)
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE)" .$ASD.bam.stats samstats >>$SUMMARYTMP
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
