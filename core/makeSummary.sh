@@ -122,30 +122,24 @@ function gatherDirsAggregate {
 # $3=output file ($SUMMARYTMP)
 function bamAnnotate {
 	echo "<h3 class='overall'>Reads overlapping annotated regions</h3>" >>$3
-	echo $1
 	python ${NGSANE_BASE}/core/Summary.py ${1} .anno.stats annostats >> $3
 	BAMANNOUT=runStats/bamann/$(echo ${DIR[@]}|sed 's/ /_/g')_${2}.ggplot
 	BAMANNIMAGE=${BAMANNOUT/ggplot/pdf}
 	if [ ! -f $BAMANNOUT ]; then mkdir -p $( dirname $BAMANNOUT); fi
 	
-	for PROJECT in ${1}; do 
-    	if [ $(ls ${PROJECT}/*.anno.stats 2> /dev/null | wc -l ) -gt 0 ]; then 
-            echo "annotate ${PROJECT}"
-            cat ${PROJECT}/*.anno.stats | head -n 1 | gawk '{print "type "$0" sample"}' > $BAMANNOUT
-            for i in $(ls ${PROJECT}/*.anno.stats); do
-                name=$(basename $i)
-                arrIN=(${name//.$ASD/ })
-                grep --no-messages sum $i | gawk -v x=${arrIN[0]} '{print $0" "x}';
-        	done >> $BAMANNOUT
-        	sed -i -r 's/\s+/ /g' $BAMANNOUT
-        	Rscript ${NGSANE_BASE}/tools/bamann.R $BAMANNOUT $BAMANNIMAGE "Genome Features ${2}"
-        	convert $BAMANNIMAGE ${BAMANNIMAGE/pdf/jpg}
-        	echo "<h3>Annotation of mapped reads</h3>" >> $3
-        	echo "<div><a href=$PROJECT_RELPATH/$BAMANNIMAGE><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-0.jpg\" width='250px' style='float:left;'><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-1.jpg\" width='250px' style='float:left;'></a></div>">>$3
-    
-    #	    python ${NGSANE_BASE}/tools/makeBamHistogram.py "${PROJECT}" $ROUTH >>$3
-        fi
-    done
+	find ${1} -type f -name *anno.stats |  xargs -d"\n" cat | head -n 1 | gawk '{print "type "$0" sample"}' > $BAMANNOUT
+    for i in $(find ${1} -type f -name *anno.stats); do
+        name=$(basename $i)
+        arrIN=(${name//.$ASD/ })
+        grep --no-messages sum $i | gawk -v x=${arrIN[0]} '{print $0" "x}';
+	done >> $BAMANNOUT
+	sed -i -r 's/\s+/ /g' $BAMANNOUT
+	Rscript ${NGSANE_BASE}/tools/bamann.R $BAMANNOUT $BAMANNIMAGE "Genome Features ${2}"
+	convert $BAMANNIMAGE ${BAMANNIMAGE/pdf/jpg}
+	echo "<h3>Annotation of mapped reads</h3>" >> $3
+	echo "<div><a href=$PROJECT_RELPATH/$BAMANNIMAGE><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-0.jpg\" width='250px' style='float:left;'><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-1.jpg\" width='250px' style='float:left;'></a></div>">>$3
+
+#	    python ${NGSANE_BASE}/tools/makeBamHistogram.py "${PROJECT}" $ROUTH >>$3
 
 }
 
