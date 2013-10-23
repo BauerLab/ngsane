@@ -213,8 +213,10 @@ else
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    $GZIP $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL*.fq} $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM*.fq}
-
+    if [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL*.fq} ] || [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM*.fq} ]; then
+        $GZIP $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL*.fq} $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM*.fq}
+    fi
+    
     # bam file conversion                                                                         
     samtools view -@ $CPU_BOWTIE -Sbt $FASTA.fai $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam} > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
     
