@@ -19,6 +19,8 @@ exit
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.summary.txt
+
 if [ ! $# -gt 3 ]; then usage ; fi
 
 #INPUTS                                                                                                           
@@ -103,7 +105,7 @@ else
     fi
 
     # mark checkpoint
-    if [ -d $TAGDIRECTORY ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $TAGDIRECTORY/tagLengthDistribution.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -122,15 +124,15 @@ else
     
     if [ "$HOMER_CHIPSEQ_STYLE" == "factor" ]; then
         pos2bed.pl $OUTDIR/${n/.$ASD.bam/_homer}/peaks.txt > $OUTDIR/${n/.$ASD.bam/}-${INPUT}_peaks.bed
-        grep "^#" $OUTDIR/${n/.$ASD.bam/_homer}/peaks.txt > $OUTDIR/${n/.$ASD.bam/}-${INPUT}.summary.txt
+        grep "^#" $OUTDIR/${n/.$ASD.bam/_homer}/peaks.txt > $OUTDIR/${n/.$ASD.bam/}.summary.txt
     
     elif [ "$HOMER_CHIPSEQ_STYLE" == "histone" ]; then
         pos2bed.pl $OUTDIR/${n/.$ASD.bam/_homer}/regions.txt > $OUTDIR/${n/.$ASD.bam/}-${INPUT}_regions.bed
-        grep "^#" $OUTDIR/${n/.$ASD.bam/_homer}/regions.txt > $OUTDIR/${n/.$ASD.bam/}-${INPUT}.summary.txt
+        grep "^#" $OUTDIR/${n/.$ASD.bam/_homer}/regions.txt > $OUTDIR/${n/.$ASD.bam/}.summary.txt
     fi
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/.$ASD.bam/}-${INPUT}.summary.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/.$ASD.bam/}.summary.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -147,6 +149,7 @@ fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
+[ -e $OUTDIR/${n/.$ASD.bam/.summary.txt}.dummy ] && rm $OUTDIR/${n/.$ASD.bam/.summary.txt}.dummy
 echo ">>>>> ChIPseq analysis with Homer - FINISHED"
 echo ">>>>> enddate "`date`
 
