@@ -38,7 +38,7 @@ function version {
     if [ -e ${NGSANE_VERSION/bin\/trigger.sh/}/.git ]; then 
 	    NGSANE_VERSION=`cd ${NGSANE_VERSION/bin\/trigger.sh/}/ && git rev-parse HEAD `" (git hash)"
     else
-        NGSANE_VERSION="v0.2.0_p1"
+        NGSANE_VERSION="v0.2.0_p2"
     fi
     echo -e "NGSANE version: $NGSANE_VERSION"
     exit
