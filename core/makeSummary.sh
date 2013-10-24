@@ -63,20 +63,32 @@ PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',o
 # $1=PIPELINE name
 # $2=TASK (e.g. $TASKBWA)
 # $3=pipeline mod script (e.g. bwa.sh)
-# $4=output file ($SUMMARYTMP)
+# $4=html report file ($SUMMARYTMP)
+# $5=result file suffix (e.g. asb.bwa)
+# $6=output location if different to the default ($TASK)
 function summaryHeader {
-    LINKS=$LINKS" $2"
+    LINKS=$LINKS" $2"   
+    echo $2
     echo "<div class='panel' id='$2_panel'>
         <div class='headbagb' id='$2_panelback'><a name='$2'></a>
             <h2 id='$2_h_results' class='sub'>$1</h2>
             <h2 id='$2_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='$2_counter_checkpoints_passed'></span><span class='failed' id='$2_counter_checkpoints_failed'></span></span></h2>
             <h2 id='$2_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='$2_counter_notes'></span></span></span></h2>
             <h2 id='$2_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='$2_counter_errors'></span></span></h2>
-            <h2 id='$2_h_logfiles' class='sub inactive' rel='errors'>Logfiles</h2>
-        </div>
-        <div class='wrapper'><div class='hidden'>" >> $4
+            <h2 id='$2_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>" >> $4
+    if [ -n "$5" ]; then 
+        SUFFIX="--filesuffix $5"; 
+        echo "<h2 id='$2_h_files' class='sub inactive' rel='files'>Result files</h2>" >> $4
+    fi
+    echo "</div><div class='wrapper'><div class='hidden'>" >> $4
     echo "QC - $2"
-    ${NGSANE_BASE}/core/QC.sh -o $4 -m ${NGSANE_BASE}/mods/$3 -l $QOUT -t $2 >> $4
+    #check of resultfiles are redirected into to a different folder
+    if [ -n "$6" ]; then 
+       RESULTLOCATION="--results-task $6"
+    else 
+        RESULTLOCATION=""
+    fi
+    ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $4 --modscript ${NGSANE_BASE}/mods/$3 --log $QOUT --task $2 $RESULTLOCATION $SUFFIX >> $4    
     echo "<div id='$2_results'>" >> $4
 } 
 
@@ -319,7 +331,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
-    summaryHeader "Bowtie v1 mapping" "$TASKBOWTIE" "bowtie.sh" "$SUMMARYTMP"
+    summaryHeader "Bowtie v1 mapping" "$TASKBOWTIE" "bowtie.sh" "$SUMMARYTMP" ".$ASD.bam"
 
     vali=$(gatherDirs $TASKBOWTIE)
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE)" .$ASD.bam.stats samstats >>$SUMMARYTMP
@@ -333,7 +345,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
-    summaryHeader "Bowtie v2 mapping" "$TASKBOWTIE2" "bowtie2.sh" "$SUMMARYTMP"
+    summaryHeader "Bowtie v2 mapping" "$TASKBOWTIE2" "bowtie2.sh" "$SUMMARYTMP" ".$ASD.bam"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKBOWTIE2)" .$ASD.bam.stats samstats >>$SUMMARYTMP
 
@@ -346,7 +358,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
-    summaryHeader "Tophat" "$TASKTOPHAT" "tophat.sh" "$SUMMARYTMP"
+    summaryHeader "Tophat" "$TASKTOPHAT" "tophat.sh" "$SUMMARYTMP" ".$ASD.bam"
 
 	vali=""
     echo "<br>Note, the duplication rate is not calculated by tophat and hence zero.<br>" >>$SUMMARYTMP
@@ -371,7 +383,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNCUFFLINKS" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
-    summaryHeader "Cufflinks" "$TASKCUFFLINKS" "cufflinks.sh" "$SUMMARYTMP"
+    summaryHeader "Cufflinks" "$TASKCUFFLINKS" "cufflinks.sh" "$SUMMARYTMP" "_transcripts.gtf"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKCUFFLINKS)" .summary.txt cufflinks >>$SUMMARYTMP
 
@@ -381,7 +393,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNHTSEQCOUNT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
-    summaryHeader "Htseq-count" "$TASKHTSEQCOUNT" "htseqcount.sh" "$SUMMARYTMP"
+    summaryHeader "Htseq-count" "$TASKHTSEQCOUNT" "htseqcount.sh" "$SUMMARYTMP" ".RPKM.csv"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKHTSEQCOUNT)" summary.txt htseqcount >>$SUMMARYTMP
 
@@ -504,14 +516,14 @@ fi
 
 ################################################################################
 if [ -n "$RUNBIGWIG" ];then
-    summaryHeader "BigWig" "$TASKBIGWIG" "bigwig.sh" "$SUMMARYTMP"
+    summaryHeader "BigWig" "$TASKBIGWIG" "bigwig.sh" "$SUMMARYTMP" ".bw" $INPUT_BIGWIG
 
     summaryFooter "$TASKBIGWIG" "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [ -n "$RUNHOMERCHIPSEQ" ];then
-    summaryHeader "Homer ChIP-Seq" "$TASKHOMERCHIPSEQ" "chipseqHomer.sh" "$SUMMARYTMP"
+    summaryHeader "Homer ChIP-Seq" "$TASKHOMERCHIPSEQ" "chipseqHomer.sh" "$SUMMARYTMP" ".bed"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKHOMERCHIPSEQ)" ".summary.txt" homerchipseq >> $SUMMARYTMP
 
@@ -520,7 +532,7 @@ fi
 
 ################################################################################
 if [ -n "$RUNPEAKRANGER" ];then
-    summaryHeader "Peakranger" "$TASKPEAKRANGER" "peakranger.sh" "$SUMMARYTMP"
+    summaryHeader "Peakranger" "$TASKPEAKRANGER" "peakranger.sh" "$SUMMARYTMP" "_region.bed"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKPEAKRANGER)" ".summary.txt" peakranger >> $SUMMARYTMP
 
@@ -529,7 +541,7 @@ fi
 
 ################################################################################
 if [ -n "$RUNMACS2" ];then
-    summaryHeader "MACS2" "$TASKMACS2" "macs2.sh" "$SUMMARYTMP"
+    summaryHeader "MACS2" "$TASKMACS2" "macs2.sh" "$SUMMARYTMP" "_refinepeak.bed"
 
     vali=$(gatherDirs $TASKMACS2)
     python ${NGSANE_BASE}/core/Summary.py "$vali" ".summary.txt" macs2 >> $SUMMARYTMP
