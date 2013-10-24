@@ -68,7 +68,6 @@ PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',o
 # $6=output location if different to the default ($TASK)
 function summaryHeader {
     LINKS=$LINKS" $2"   
-    echo $2
     echo "<div class='panel' id='$2_panel'>
         <div class='headbagb' id='$2_panelback'><a name='$2'></a>
             <h2 id='$2_h_results' class='sub'>$1</h2>
