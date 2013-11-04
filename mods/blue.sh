@@ -1,14 +1,14 @@
 #!/bin/bash -e
 
 # Script to ... 
-# It takes a <Run>/*.$FASTQ[.gz] file and returns <Run>_healed/*.$FASTQ[.gz]
+# It takes a <Run>/*.$FASTQ[.gz] file and returns <Run>_$TASKBLUE/*.$FASTQ[.gz]
 #
 # author: Denis Bauer
 # date: Sept 2013
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
-# RESULTFILENAME fastq/<DIR>_blue/<SAMPLE>$READONE.$FASTQ
+# RESULTFILENAME fastq/<DIR>_$TASKBLUE/<SAMPLE>$READONE.$FASTQ
 
 echo ">>>>> read screening with FASTQSCREEN"
 echo ">>>>> startdate "`date`
@@ -28,13 +28,6 @@ while [ "$1" != "" ]; do
     esac
     shift
 done
-
-
-#defaults
-KMER=25
-GENOME=200000
-CUTOFF=10
-
 
 # overwrite defaults
 . $CONFIG
@@ -56,7 +49,7 @@ BLUE_HOME=$(dirname $(which Blue.exe))
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--MONO        --\n" $(mono --version 2>&1) | head -n 1
 [ -z "$(which mono)" ] && echo "[ERROR] no mono detected" && exit 1
-echo -e "--blue        --\n "  $(which Blue.exe) | gawk '{print $NF}'
+echo -e "--BLUE        --\n" $(which Blue.exe) | gawk '{print $NF}'
 [ ! -f $(which Blue.exe) ] && echo "[ERROR] no Blue detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT"
@@ -67,30 +60,45 @@ CHECKPOINT="parameters"
 # get basename of f
 n=${f##*/}
 
-#is paired ?
-#if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
-#    echo "[NOTE] PAIRED library"
-#    PAIRED="1"
-#else
-#    echo "[NOTE] SINGLE library"
-#    PAIRED="0"
-#fi
+if [ -z $BLUE_KMER ]; then
+    echo "[ERROR] BLUE_KMER not set"; 
+    exit 1
+fi
+
+if [ -z $GENOMESIZE ]; then
+    echo "[ERROR] GENOMESIZE not set"; 
+    exit 1
+fi
+
+if [ -z ${BLUE_MINREPS} ]; then
+    echo "[ERROR] {BLUE_MINREPS} not set"; 
+    exit 1
+fi
+
+#is paired ?                                                                                                      
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+    PAIRED="1"
+    echo 
+else
+    PAIRED="0"
+fi
 
 mkdir -p $OUTDIR/tessel
 
 FILES=""
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
+echo $THISTMP/blue
+mkdir -p $THISTMP
 for i in $(ls ${f/$READONE/\*}); do
 	if [[ ${f##*.} == "gz" ]]; then
 		echo "[NOTE] unzip $i"
-		$GZIP -c $i > $i.unzipped
-		FILES=$FILES" "$i.unzipped
+		zcat $i > $THISTMP/$n.unzipped
+		FILES=$FILES" "$THISTMP/$n.unzipped
 	else
 		FILES=$FILES" "$i
 	fi
 done
 echo "[NOTE] run on $FILES"
-
-
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
@@ -109,12 +117,12 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-	RUN_COMMAND="mono ${BLUE_HOME}/Tessel.exe $TESSELADDPARAM -t $CPU_BLUE -tmp $TMP -k $KMER -g $GENOME $OUTDIR/tessel/$n $FILES"
+	RUN_COMMAND="mono ${BLUE_HOME}/Tessel.exe $TESSELADDPARAM -t ${CPU_BLUE} -tmp $THISTMP -k $BLUE_KMER -g $GENOMESIZE $OUTDIR/tessel/$n $FILES"
 
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -f $OUTDIR/tessel/$n"_"$KMER.cbt ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    [ -f $OUTDIR/tessel/$n"_"$BLUE_KMER.cbt ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -125,18 +133,32 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
 else 
 
 
-	RUN_COMMAND="mono ${BLUE_HOME}/Blue.exe $BLUEADDPARAM -t $CPU_BLUE -m $CUTOFF -o $OUTDIR $OUTDIR/tessel/$n*.cbt $FILES"
-
+	RUN_COMMAND="mono ${BLUE_HOME}/Blue.exe $BLUEADDPARAM -t ${CPU_BLUE} -m ${BLUE_MINREPS} -o $OUTDIR $OUTDIR/tessel/$n*.cbt $FILES"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
 	#get back to NGSANE fastq format
-	for i in $(ls $OUTDIR/*corrected*.fastq); do mv $i ${i/_corrected_$CUTOFF/}; done
+	for i in $(ls $OUTDIR/*corrected*.fastq); do 
+	   mv $i ${i/_corrected_${BLUE_MINREPS}/}; 
+	done
+	
+	# zip
+	$GZIP $OUTDIR/*fastq
+
+    # rename file suffix
+    for i in $(ls ${f/$READONE/\*}); do
+    	mv ${n/$FASTQ/fastq} $OUTDIR/$n
+	done
 
     # mark checkpoint
     [ -f $OUTDIR/$n ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
 fi
 
+################################################################################
+CHECKPOINT="cleanup"    
 
+[ -f $THISTMP ] && rm -r $THISTMP
+
+echo -e "\n********* $CHECKPOINT"
 ################################################################################
 [ -e $OUTDIR/${n}.dummy ] && rm $OUTDIR/${n}.dummy
 echo ">>>>> read correction with Blue - FINISHED"
