@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/bash -e 
 
 # author: Fabian Buske
-# date: August 2013
+# date: November 2013
 
 echo ">>>>> Create wig files with wiggler"
 echo ">>>>> startdate "`date`
@@ -56,8 +56,8 @@ echo "PATH=$PATH"
 # best common denominator)
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-#echo -e "--wiggler  --\n "$(align2rawsignal 2>&1 | head -n 3 | tail -n 1)
-#[ -z "$(which align2rawsignal)" ] && echo "[ERROR] wiggler not detected (align2rawsignal)" && exit 1
+echo -e "--wiggler  --\n "$(align2rawsignal 2>&1 | head -n 3 | tail -n 1)
+[ -z "$(which align2rawsignal)" ] && echo "[ERROR] wiggler not detected (align2rawsignal)" && exit 1
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -86,7 +86,7 @@ echo -e "\n********* $CHECKPOINT\n"
 CHECKPOINT="recall files from tape"
 
 for d in ${DIR[@]}; do
-    FILES=$FILES" "$( ls $OUT/$d/$TASKBWA/*$ASD.bam )
+    FILES=$FILES" "$( ls $OUT/$d/$INPUT_WIGGLER/*$ASD.bam )
 done
 echo $FILES
 
