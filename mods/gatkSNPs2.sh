@@ -118,10 +118,11 @@ if [ -z "$HAPMAPVCF" ] || [ ! -e $HAPMAPVCF ]; then
     echo "[ERRPR] HAPMAPVCF parameter not specified or file not found"
     exit 1
 fi
-if [ -z "$ONEKGVCF" ] || [ ! -e $ONEKGVCF ]; then
-    echo "[ERRPR] ONEKGVCF parameter not specified or file not found"
-    exit 1
-fi
+# ONEKGVCF only optional
+#if [ -z "$ONEKGVCF" ] || [ ! -e $ONEKGVCF ]; then
+#    echo "[ERRPR] ONEKGVCF parameter not specified or file not found"
+#    exit 1
+#fi
         
 if [ -n "$SEQREG" ]; then REGION="-L $SEQREG"; fi
         
@@ -315,7 +316,10 @@ else
         echo $DBSNPVCF
         echo $HAPMAPVCF
         echo $ONEKGVCF
-    
+	if [ -n "$ONEKGVCF" ]; then 
+	    ONEKGPARAMS="-resource:omni,known=false,training=true,truth=false,prior=12.0 $ONEKGVCF"
+	fi
+
     	if [ ! -e $OUTDIR/R ]; then mkdir $OUTDIR/R; fi
     
     	echo "[NOTE] train"
@@ -327,8 +331,8 @@ else
     	    -R $FASTA \
     	    --input $OUTDIR/$NAME.raw.vcf \
     	    -resource:hapmap,known=false,training=true,truth=true,prior=15.0 $HAPMAPVCF \
-    	    -resource:omni,known=false,training=true,truth=false,prior=12.0 $ONEKGVCF \
     	    -resource:dbsnp,known=true,training=false,truth=false,prior=8.0 $DBSNPVCF \
+	    $ONEKGPARAMS \
     	    -an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an FS -an MQ \
     	    -mode BOTH \
     	    -recalFile $OUTDIR/$NAME.raw.recal \

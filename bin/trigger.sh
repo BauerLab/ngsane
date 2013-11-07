@@ -326,7 +326,7 @@ if [ -n "$RUNVARCALLS" ]; then
         --postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
                         -i <FILE> -t $CPU_VAR \
                         -r $FASTA -d $DBROD -o $OUT/$TASKVAR/$NAME -n $NAME \
-                        -H $HAPMAPVCF -K $ONEKGVCF"
+                        -H $HAPMAPVCF" #-K $ONEKGVCF"
 fi
 
 ################################################################################
