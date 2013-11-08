@@ -8,8 +8,8 @@ countsF<-args[2]
 sampleName<-args[3]
 
 
-require(GenomicFeatures)
-require(edgeR)
+library(GenomicFeatures)
+library(edgeR)
 
 #read in annotation file
 gencode.annotation.gtf<-read.table(file=annoF,sep="\t",stringsAsFactors=F,comment.char="#")

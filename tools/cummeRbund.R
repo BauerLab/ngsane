@@ -4,7 +4,7 @@
 # functions and their usage for doing so.
 #
 ######################################################
-library("cummeRbund")
+library(cummeRbund)
 
 args<-commandArgs(TRUE)
 
