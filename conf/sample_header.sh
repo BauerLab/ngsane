@@ -57,6 +57,7 @@ NG_MATLAB=
 NG_CHANCE=
 NG_PARALLEL=
 NG_TRINITY=
+NG_PINDEL=
 
 ##############################################################
 # Task Names
@@ -100,6 +101,7 @@ TASKBIGWIG="bigwig"
 TASKBLUE="blue"
 TASKCHANCE="chance"
 TASKPOOLBAMS="pooledbam"
+TASKPINDEL="pindel"
 
 ##############################################################
 # PROGRAM PATHS
@@ -572,3 +574,13 @@ INPUT_BUTTERFLY="fastq"
 MODULES_TRINITY="${NG_TRINITY} ${NG_BOWTIE} ${NG_JAVA}"
 PATH_TRINITY=
 
+##############################################################
+# pindel
+# http://gmt.genome.wustl.edu/pindel/current/
+WALLTIME_PINDEL=60:00:00
+MEMORY_PINDEL=50
+CPU_PINDEL=32
+NODES_PINDEL="nodes=4:ppn=8"
+INPUT_PINDEL=$TASKBWA
+MODULE_PINDEL="${NG_PINDEL} ${NG_PERL}"
+PATH_PINDEL=

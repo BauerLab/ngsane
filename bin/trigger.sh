@@ -1198,3 +1198,15 @@ if [ -n "$RUNBUTTERFLY" ] && [ -z "$RUNTRINITY" ]; then
           -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY $JOBIDS \
           --command "${NGSANE_BASE}/mods/trinity_butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBUTTERFLY" 
 fi
+
+################################################################################ 
+#   Pindel
+################################################################################
+
+if [ -n "$RUNPINDEL" ]; then
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASKPINDEL -i $INPUT_PINDEL -e .$ASD.bam \
+        -n $NODES_PINDEL -c $CPU_PINDEL -m $MEMORY_PINDEL"G" -w $WALLTIME_PINDEL \
+        --command "${NGSANE_BASE}/mods/pindel.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKPINDEL"
+
+fi
