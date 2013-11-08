@@ -24,3 +24,6 @@ levelplot(e)
 
 dev.off()
 
+sink(type = "message")
+sessionInfo()
+

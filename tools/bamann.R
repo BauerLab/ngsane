@@ -22,3 +22,7 @@ ggplot(distribution, aes(x = sample, y=value)) +
   labs(title=args[3]) +
   theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
 #  facet_grid(. ~ type , space = "free", scales = "free_x")
+
+
+sink(type = "message")
+sessionInfo()

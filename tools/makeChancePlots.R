@@ -71,4 +71,6 @@ rm(list=setdiff(ls(), c("outputpath","chipname", "inputname", "df", "plotfxn", "
 # save session
 save.image(file = paste(outputpath,"/", chipname, ".Rdata", sep=""))
 
+sink(type = "message")
+sessionInfo()
 
