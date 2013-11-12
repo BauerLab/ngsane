@@ -113,6 +113,7 @@ annoF=${GTF##*/}
 anno_version=${annoF%.*}
 
 
+
 # check library info is set
 if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then
     echo "[ERROR] RNAseq library type not set (RNA_SEQ_LIBRARY_TYPE): either fr-unstranded or fr-firststrand"
@@ -166,6 +167,18 @@ else
 	samtools sort -@ $CPU_HTSEQCOUNT -n $f $OUTDIR/${n/%.$ASD.bam/.tmp}
 	samtools fixmate $OUTDIR/${n/%.$ASD.bam/.tmp.bam} $OUTDIR/${n}
 	rm $OUTDIR/${n/%.$ASD.bam/.tmp}.bam
+
+
+if	[[ -n "$HTSEQCOUNT_UNIQUE" ]] ; then
+
+	echo "[NOTE] Filter for uniquely mapped reads"
+
+	samtools view $OUTDIR/${n} | fgrep -w NH:i:1 | samtools view -b -S > $OUTDIR/${n}.tmp
+	mv $OUTDIR/${n}.tmp $OUTDIR/${n}
+	
+fi	
+
+
 
     echo "[NOTE] Create filtered bamfile (removed: rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene RNA18S5 RNA28S5)"
 	

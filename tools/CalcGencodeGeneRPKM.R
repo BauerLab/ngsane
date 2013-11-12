@@ -8,8 +8,8 @@ countsF<-args[2]
 sampleName<-args[3]
 
 
-require(GenomicFeatures)
-require(edgeR)
+library(GenomicFeatures)
+library(edgeR)
 
 #read in annotation file
 gencode.annotation.gtf<-read.table(file=annoF,sep="\t",stringsAsFactors=F,comment.char="#")
@@ -31,3 +31,6 @@ ordered.gene.length<-gene.length.gencode[match(counts[,1],names(gene.length.genc
 RPKM<-rpkm(matrix(counts[,2]), gene.length=ordered.gene.length)
 #write table of rpkms
 write.csv(cbind("ENSG"=counts[,1],"RPKM"=RPKM[,1]),file=paste(sampleName,".RPKM.csv",sep=""),quote=FALSE,row.names=FALSE)
+
+sink(type = "message")
+sessionInfo()

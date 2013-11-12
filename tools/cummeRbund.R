@@ -4,7 +4,7 @@
 # functions and their usage for doing so.
 #
 ######################################################
-library("cummeRbund")
+library(cummeRbund)
 
 args<-commandArgs(TRUE)
 
@@ -156,4 +156,6 @@ mySimilar<-findSimilar(cuff,"XLOC_016380",n=20)
 expressionPlot(mySimilar,logMode=T,showErrorbars=F)
 
 
+sink(type = "message")
+sessionInfo()
 

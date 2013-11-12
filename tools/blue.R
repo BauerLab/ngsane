@@ -1,4 +1,4 @@
-library("ggplot2")
+library(ggplot2)
 
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -11,3 +11,6 @@ ggplot(x, aes(x=copy, y=perc)) +
   geom_line(aes(color=sample)) +
   labs(y = "frequency (%)", x = "copies of reads", title = "Read histogram")
 dev.off()
+
+sink(type = "message")
+sessionInfo()

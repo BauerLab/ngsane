@@ -98,6 +98,9 @@ CUFFLINKSADDPARAM=
 # additional parameters for HTSEQ-count call
 HTSEQCOUNT_ADDPARAMS=
 
+# uniquely mapping reads used for ht-seq-count
+HTSEQCOUNT_UNIQUE=
+
 # activate to use doctored GTF file for RNA-SeQC (provides additional info)
 # assumes the doctored GTF is at the same location as the original one but
 # has a different suffix
