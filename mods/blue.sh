@@ -122,7 +122,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -f $OUTDIR/tessel/$n"_"$BLUE_KMER.cbt ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $OUTDIR/tessel/$n"_"$BLUE_KMER.cbt ]; then echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
@@ -150,7 +150,7 @@ else
 	done
 
     # mark checkpoint
-    [ -f $OUTDIR/$n ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $OUTDIR/$n ]; then echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
