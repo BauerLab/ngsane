@@ -39,7 +39,7 @@ FASTA_CHROMDIR=
 # e.g. /share/ClusterShare/biodata/contrib/fabbus/umap/hg19_male/globalmap_k20tok54/
 WIGGLER_UMAPDIR=
 
-# wiggler output format (one of “bg”, “wig”, “mat”)
+# wiggler output format (one of “bg”, “wig”)
 WIGGLER_OUTPUTFORMAT=
 
 #********************

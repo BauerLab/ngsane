@@ -23,6 +23,7 @@ required:
 exit
 }
 # QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$WIGGLER_OUTPUTFORMAT.gz
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
@@ -72,26 +73,28 @@ if [ -z "$WIGGLER_UMAPDIR" ] || [ ! -d ${WIGGLER_UMAPDIR} ]; then
     exit 1
 fi
 
+# check reference folder exist
+if [ -z "$FASTA_CHROMDIR" ] || [ ! -d ${FASTA_CHROMDIR} ]; then
+    echo "[ERROR] Chromosome directory not specified (FASTA_CHROMDIR)"
+    exit 1
+fi
+
 # check output format
 if [ -z "$WIGGLER_OUTPUTFORMAT" ]; then
     echo "[ERROR] wiggler output format not set" && exit 1
-elif [ "$WIGGLER_OUTPUTFORMAT" != "bg" ] && [ "$WIGGLER_OUTPUTFORMAT" != "wig" ] && [ "$WIGGLER_OUTPUTFORMAT" != "mat" ]; then
+elif [ "$WIGGLER_OUTPUTFORMAT" != "bg" ] && [ "$WIGGLER_OUTPUTFORMAT" != "wig" ]; then
     echo "[ERROR] wiggler output format not known" && exit 1
 fi
 
-mkdir -p ${OUTDIR}
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$n | md5sum | cut -d' ' -f1)
+mkdir -p $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
-for d in ${DIR[@]}; do
-    FILES=$FILES" "$( ls $OUT/$d/$INPUT_WIGGLER/*$ASD.bam )
-done
-echo $FILES
-
 if [ -n "$DMGET" ]; then
-	dmget -a $FILES
+	dmget -a ${f}
 	dmget -a $OUTDIR/*
 fi
 
@@ -102,20 +105,35 @@ CHECKPOINT="run align2rawsignal"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-    INPUTS=""
-    for FILE in $FILES; do
-        INPUTS="${INPUTS} -i=$FILE"
-    done
     
-    RUN_COMMAND="align2rawsignal $WIGGLERADDPARAMS -of=$WIGGLER_OUTPUTFORMAT ${INPUTS} -s=${FASTA_CHROMDIR} -u=${WIGGLER_UMAPDIR} -v=${OUTDIR}/wiggler-${n}.log -o=${OUTDIR}/${n}.$WIGGLER_OUTPUTFORMAT -mm=$MEMORY_WIGGLER"
+    RUN_COMMAND="align2rawsignal $WIGGLERADDPARAMS -of=$WIGGLER_OUTPUTFORMAT -i=$f -s=${FASTA_CHROMDIR} -u=${WIGGLER_UMAPDIR} -v=${OUTDIR}/${n//.$ASD.bam/.log} -o=${THISTMP}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT} -mm=$MEMORY_WIGGLER"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -f ${OUTDIR}/${n}.$WIGGLER_OUTPUTFORMAT ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f ${THISTMP}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 ################################################################################
+CHECKPOINT="gzip"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    $GZIP -c ${THISTMP}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT} > ${OUTDIR}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT}.gz
+        
+    # mark checkpoint
+    if [ -f ${OUTDIR}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT}.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+################################################################################
+CHECKPOINT="cleanup"
+
+if [ -d $THISTMP ]; then rm -r $THISTMP; fi
+
+echo -e "\n********* $CHECKPOINT\n"
+################################################################################
+[ -e $OUTDIR/${n//.$ASD.bam/$WIGGLER_OUTPUTFORMAT}.dummy ] && rm $OUTDIR/${n//.$ASD.bam/$WIGGLER_OUTPUTFORMAT}.dummy
 echo ">>>>> wiggler - FINISHED"
 echo ">>>>> enddate "`date`
-

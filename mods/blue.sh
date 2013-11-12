@@ -10,7 +10,7 @@
 # QCVARIABLES,
 # RESULTFILENAME fastq/<DIR>_$TASKBLUE/<SAMPLE>$READONE.$FASTQ
 
-echo ">>>>> read screening with FASTQSCREEN"
+echo ">>>>> read correction with Blue"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
@@ -47,9 +47,9 @@ echo "PATH=$PATH"
 BLUE_HOME=$(dirname $(which Blue.exe))
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--MONO        --\n" $(mono --version 2>&1) | head -n 1
+echo -e "--MONO        --\n" $(mono --version | head -n 1 )
 [ -z "$(which mono)" ] && echo "[ERROR] no mono detected" && exit 1
-echo -e "--BLUE        --\n" $(which Blue.exe) | gawk '{print $NF}'
+echo -e "--BLUE        --\n" $(which Blue.exe | gawk '{print $NF}')
 [ ! -f $(which Blue.exe) ] && echo "[ERROR] no Blue detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT"
@@ -59,6 +59,7 @@ CHECKPOINT="parameters"
 #OUTDIR=$(dirname $f)"_blue"
 # get basename of f
 n=${f##*/}
+LIBRARY=${n/$READONE.$FASTQ/}
 
 if [ -z $BLUE_KMER ]; then
     echo "[ERROR] BLUE_KMER not set"; 
@@ -75,29 +76,35 @@ if [ -z ${BLUE_MINREPS} ]; then
     exit 1
 fi
 
-#is paired ?                                                                                                      
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+#is paired ?
+if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
     PAIRED="1"
-    echo 
 else
     PAIRED="0"
 fi
 
-mkdir -p $OUTDIR/tessel
+TESSELDIR=$OUTDIR/$LIBRARY"_"tessel
+mkdir -p $TESSELDIR
 
 FILES=""
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
-echo $THISTMP/blue
 mkdir -p $THISTMP
-for i in $(ls ${f/$READONE/\*}); do
-	if [[ ${f##*.} == "gz" ]]; then
-		echo "[NOTE] unzip $i"
-		zcat $i > $THISTMP/$n.unzipped
-		FILES=$FILES" "$THISTMP/$n.unzipped
-	else
-		FILES=$FILES" "$i
-	fi
-done
+
+if [[ ${f##*.} != "gz" ]]; then
+    FILES="${f/$FASTQ/}"
+    if [ $PAIRED = "1" ]; then 
+        FILES="$FILES ${f/$READONE.$FASTQ/$READTWO}"
+    fi
+else
+    echo "[NOTE] unzip input"
+    zcat $f > $THISTMP/${n/.$FASTQ/.unzipped}
+    FILES="$THISTMP/${n/.$FASTQ/.unzipped}"
+    if [ $PAIRED = "1" ]; then 
+        zcat ${f/$READONE/$READTWO} > $THISTMP/$LIBRARY$READTWO.unzipped
+        FILES="$FILES $THISTMP/$LIBRARY$READTWO.unzipped"
+    fi
+fi
+
 echo "[NOTE] run on $FILES"
 
 echo -e "\n********* $CHECKPOINT"
@@ -117,37 +124,41 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-	RUN_COMMAND="mono ${BLUE_HOME}/Tessel.exe $TESSELADDPARAM -t ${CPU_BLUE} -tmp $THISTMP -k $BLUE_KMER -g $GENOMESIZE $OUTDIR/tessel/$n $FILES"
+	RUN_COMMAND="mono ${BLUE_HOME}/Tessel.exe $TESSELADDPARAM -t ${CPU_BLUE} -tmp $THISTMP -k $BLUE_KMER -g $GENOMESIZE $TESSELDIR/$LIBRARY $FILES"
 
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -f $OUTDIR/tessel/$n"_"$BLUE_KMER.cbt ]; then echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+    if [ -f $TESSELDIR/$LIBRARY"_"$BLUE_KMER".cbt" ]; then echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
-CHECKPOINT="run blue"    
+CHECKPOINT="blue"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-
-	RUN_COMMAND="mono ${BLUE_HOME}/Blue.exe $BLUEADDPARAM -t ${CPU_BLUE} -m ${BLUE_MINREPS} -o $OUTDIR $OUTDIR/tessel/$n*.cbt $FILES"
+	RUN_COMMAND="mono ${BLUE_HOME}/Blue.exe $BLUEADDPARAM -t ${CPU_BLUE} -m ${BLUE_MINREPS} -o $OUTDIR $TESSELDIR/$LIBRARY"*.cbt" $FILES"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-	#get back to NGSANE fastq format
-	for i in $(ls $OUTDIR/*corrected*.fastq); do 
-	   mv $i ${i/_corrected_${BLUE_MINREPS}/}; 
-	done
+    mv $OUTDIR/$LIBRARY$READONE"_corrected_"$BLUE_MINREPS".unzipped" $OUTDIR/$LIBRARY$READONE".fastq"
+    if [ $PAIRED = "1" ]; then 
+        mv $OUTDIR/$LIBRARY$READTWO"_corrected_"$BLUE_MINREPS".unzipped" $OUTDIR/$LIBRARY$READTWO".fastq"
+    fi
 	
 	# zip
-	$GZIP $OUTDIR/*fastq
+	$GZIP -c $OUTDIR/$LIBRARY$READONE".fastq" > $OUTDIR/$n
+	[ -f $OUTDIR/$LIBRARY$READONE".fastq" ] && rm $OUTDIR/$LIBRARY$READONE".fastq"
+	if [ $PAIRED = "1" ]; then 
+    	$GZIP -c $OUTDIR/$LIBRARY$READTWO".fastq" > $OUTDIR/${n/$READONE.$FASTQ/$READTWO.$FASTQ}
+		[ -f $OUTDIR/$LIBRARY$READTWO".fastq" ] && rm $OUTDIR/$LIBRARY$READTWO".fastq"
+    fi
 
-    # rename file suffix
-    for i in $(ls ${f/$READONE/\*}); do
-    	mv ${n/$FASTQ/fastq} $OUTDIR/$n
-	done
+    if [ -n "$READONE" ]; then
+        mv $OUTDIR/$LIBRARY$READONE"_corrected_"$BLUE_MINREPS"_stats.txt" $OUTDIR/$LIBRARY"_corrected_"$BLUE_MINREPS"_stats.txt"
+    fi
 
     # mark checkpoint
     if [ -f $OUTDIR/$n ]; then echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -156,7 +167,15 @@ fi
 ################################################################################
 CHECKPOINT="cleanup"    
 
-[ -f $THISTMP ] && rm -r $THISTMP
+for i in $(ls ${f/$READONE/\*}); do
+	if [[ ${f##*.} == "gz" ]]; then
+		[ -e $THISTMP/$n.unzipped ] && rm $THISTMP/$n.unzipped
+	fi
+done
+
+if [ -d $TESSELDIR ]; then
+    rm -r $TESSELDIR
+fi
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
