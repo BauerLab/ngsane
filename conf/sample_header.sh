@@ -17,6 +17,9 @@ TMP=$(pwd)/tmp                                       # TMP dir
 ## uncomment within CSIRO
 #module use /apps/gi/modulefiles
 
+##############################################################
+# Software Modules
+##############################################################
 NG_R=
 NG_PYTHON=
 NG_GZIP=

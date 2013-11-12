@@ -399,8 +399,7 @@ if [ -n "$RUNMAPPINGBOWTIE" ]; then
     if [ -z "$TASKBOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i $INPUT_BOWTIE -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
-        --command "${NGSANE_BASE}/mods/bowtie.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE --rgsi <DIR>"
-            
+        --command "${NGSANE_BASE}/mods/bowtie.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE --rgsi <DIR>"        
 fi
 
 
