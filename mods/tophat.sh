@@ -340,8 +340,6 @@ else
 
 
 
-	$FASTA
-
 
     echo "[NOTE] samtools index"
     samtools index $BAMFILE
