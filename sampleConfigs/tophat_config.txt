@@ -60,6 +60,11 @@ PLATFORM="Illumina"
 # e.g. "--phred64-quals"
 FASTQ_PHRED=
 
+# tophat transcriptome search 
+# eg --transcriptome-index=transcriptome_data/known 
+# eg /share/ClusterShare/biodata/contrib/hugfre/Transcriptome/Ensembl/GRCh37/transcriptome_data/known
+TOPHATTRANSCRIPTOMEINDEX=
+
 # additional parameters for tophat, see http://tophat.cbcb.umd.edu/manual.shtml
 TOPHATADDPARAM=
 
