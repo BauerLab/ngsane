@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# Script to ... 
+# Script to screen a fastq library for contamination
 # It takes a <Run>/*.$FASTQ[.gz] file and gets the file containing the contaminats
 #
 # author: 

@@ -10,7 +10,7 @@
 # QCVARIABLES,
 # RESULTFILENAME fastq/<DIR>_$TASKBLUE/<SAMPLE>$READONE.$FASTQ
 
-echo ">>>>> read screening with FASTQSCREEN"
+echo ">>>>> read correction with Blue"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
@@ -129,7 +129,8 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [ -f $TESSELDIR/$LIBRARY"_"$BLUE_KMER".cbt" ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+
+    if [ -f $TESSELDIR/$LIBRARY"_"$BLUE_KMER".cbt" ]; then echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
@@ -160,7 +161,7 @@ else
     fi
 
     # mark checkpoint
-    [ -f $OUTDIR/$n ] && echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM
+    if [ -f $OUTDIR/$n ]; then echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
