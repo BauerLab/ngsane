@@ -63,19 +63,22 @@ module list
 echo $PATH
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
+PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 
-#echo "[NOTE] set java parameters"
-#JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_RECAL*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
-#unset _JAVA_OPTIONS
-#echo "JAVAPARAMS "$JAVAPARAMS
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_PINDEL*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-#echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
-#[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
+echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
+[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 #echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 #[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--Pindel       --\n "$(pindel --v | grep version)
 [ -z "$(pindel)" ] && echo "[ERROR] no pindel detected" && exit 1
+echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+[ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
 #echo -e "--igvtools    --\n "$(java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar version 2>&1)
 #[ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
 #echo -e "--GATK        --\n "$(java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar --version)
@@ -92,16 +95,6 @@ n=${f##*/}
 #BAMREADS=`head -n1 $f.stats | cut -d " " -f 1`
 
 #if [ -n "$SEQREG" ]; then REGION="-L $SEQREG"; fi
-
-#is paired ?
-p=`grep "paired in " $f.stats | cut -d " " -f 1`
-if [ ! "$p" -eq "0" ]; then
-    PAIRED="1"
-    echo "[NOTE] PAIRED"
-else
-    echo "[NOTE] SINGLE"
-    PAIRED="0"
-fi
 
 NAME=$(basename $f)
 NAME=${NAME/.$ASD.bam/}
@@ -122,6 +115,46 @@ if [ -n "$DMGET" ]; then
 fi
     
 echo -e "\n********* $CHECKPOINT\n"    
+
+
+################################################################################
+CHECKPOINT="calculate inner distance"                                                                                                
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    
+
+	if [ ! -e ${f/$INPUT_PINDEL/$INPUT_PINDEL\/metrices}.insert_size_metrics ]; then
+		echo "[NOTE] run picard metrices to get insert size"
+
+		INDIR=${OUTDIR/$TASKPINDEL/$INPUT_PINDEL}
+		#mkdir $INDIR/metrices
+
+	    export PATH=$PATH:/usr/bin/
+	    THISTMP=$TMP/$NAME$RANDOM #mk tmp dir because picard writes none-unique files
+	    mkdir -p $THISTMP
+	    java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
+	        INPUT=$f \
+	        REFERENCE_SEQUENCE=$FASTA \
+	        OUTPUT=${f/$INPUT_PINDEL/$INPUT_PINDEL\/metrices} \
+	        VALIDATION_STRINGENCY=SILENT \
+	        PROGRAM=CollectAlignmentSummaryMetrics \
+	        PROGRAM=CollectInsertSizeMetrics \
+	        PROGRAM=QualityScoreDistribution \
+	        TMP_DIR=$THISTMP
+	    for im in $( ls $INDIR/metrices/*.pdf ); do
+	        convert $im ${im/pdf/jpg}
+	    done
+	    [ -d $THISTMP ] && rm -r $THISTMP
+	fi
+
+    # mark checkpoint
+    if [ -f ${f/$INPUT_PINDEL/$INPUT_PINDEL\/metrices}.insert_size_metrics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi
+
+
+
 
 ################################################################################
 CHECKPOINT="create bam config file"
