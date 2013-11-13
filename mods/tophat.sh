@@ -435,7 +435,7 @@ else
 	java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=${BAMFILE/.$ASD/.$ALN} O=${BAMFILE/.$ASD/.$ALN}_unsorted.bam R=$FASTA
 
 	#sort
-	samtools sort ${BAMFILE/.$ASD/.$ALN}_unsorted.bam ${BAMFILE/.$ASD/.$ALN}_sorted.bam
+	samtools sort ${BAMFILE/.$ASD/.$ALN}_unsorted.bam ${BAMFILE/.$ASD/.$ALN}_sorted
 
 	rm ${BAMFILE/.$ASD/.$ALN}_unsorted.bam
     
@@ -480,8 +480,6 @@ else
 
     # mark checkpoint
     if [ -f $OUTDIR/../${n/%$READONE.$FASTQ/.bw} ] || [ -f $OUTDIR/../${n/%$READONE.$FASTQ/_+.bw} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
-
 
 fi
 

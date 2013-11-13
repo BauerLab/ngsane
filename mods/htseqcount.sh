@@ -219,7 +219,13 @@ else
             echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/GTF.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF.summary.txt
             rm $OUTDIR/GTF.$MODE.$ATTR.tmp
             
-            Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/GTF.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/.$MODE.$ATTR} 
+            if [ "$ATTR" == "gene_id" ]; then
+            	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/GTF.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/.$MODE.$ATTR} 
+            fi
+            
+            if [ "$ATTR" == "transcript_id" ]; then
+            	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeTranscriptRPKM.R $GTF $OUTDIR/GTF.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/.$MODE.$ATTR} 
+            fi
         done
     done
     
@@ -247,7 +253,16 @@ else
             echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/GTF_masked.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF_masked.summary.txt
             rm $OUTDIR/GTF_masked.$MODE.$ATTR.tmp
 
-            Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/GTF_masked.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/_masked.$MODE.$ATTR} 
+        	 
+            if [ "$ATTR" == "gene_id" ]; then
+            	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/GTF_masked.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/_masked.$MODE.$ATTR} 
+            fi
+            
+            if [ "$ATTR" == "transcript_id" ]; then
+            	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeTranscriptRPKM.R $GTF $OUTDIR/GTF_masked.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/_masked.$MODE.$ATTR} 
+            fi
+        
+        
         done
     done
 
