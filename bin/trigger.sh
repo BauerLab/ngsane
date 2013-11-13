@@ -1210,3 +1210,17 @@ if [ -n "$RUNPINDEL" ]; then
         --command "${NGSANE_BASE}/mods/pindel.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKPINDEL"
 
 fi
+
+
+
+################################################################################
+#   BAM2FASTQ
+################################################################################
+
+if [ -n "$RUNBAM2FASTQ" ]; then
+    $QSUB $ARMED -r -d -k $CONFIG -t $TASKBAM2FASTQ -i $INPUT_BAM2FASTQ -e .$ASD.bam -n $NODES_BAM2FASTQ \
+        -c $CPU_BAM2FASTQ -m $MEMORY_BAM2FASTQ"G" -w $WALLTIME_BAM2FASTQ \
+        --command "$NGSANE_BASE/mods/bam2fastq.sh -k $CONFIG -f <FILE>  -o fastq/<DIR>/"
+fi
+
+

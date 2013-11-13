@@ -58,6 +58,7 @@ NG_CHANCE=
 NG_PARALLEL=
 NG_TRINITY=
 NG_PINDEL=
+NG_RESOLVEPAIR=
 
 ##############################################################
 # Task Names
@@ -102,6 +103,7 @@ TASKBLUE="blue"
 TASKCHANCE="chance"
 TASKPOOLBAMS="pooledbam"
 TASKPINDEL="pindel"
+TASKBAM2FASTQ="bam2fastq"
 
 ##############################################################
 # PROGRAM PATHS
@@ -584,3 +586,14 @@ NODES_PINDEL="nodes=4:ppn=8"
 INPUT_PINDEL=$TASKBWA
 MODULE_PINDEL="${NG_PINDEL} ${NG_PERL}"
 PATH_PINDEL=
+
+##############################################################
+# bam2fastq
+WALLTIME_BAM2FASTQ=30:00:00
+MEMORY_BAM2FASTQ=50
+CPU_BAM2FASTQ=1
+NODES_BAM2FASTQ="nodes=1:ppn=1"
+INPUT_BAM2FASTQ=$TASKBWA
+MODULE_BAM2FASTQ="${NG_JAVA} ${NG_PICARD} ${NG_PYTHON} ${NG_RESOLVEPAIR}"
+PATH_BAM2FASTQ=
+
