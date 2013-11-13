@@ -436,7 +436,11 @@ else
 
 	#sort
 	samtools sort ${BAMFILE/.$ASD/.$ALN}_unsorted.bam ${BAMFILE/.$ASD/.$ALN}_sorted
-
+	
+	#index
+	samtools index ${BAMFILE/.$ASD/.$ALN}_sorted.bam
+	
+	
 	rm ${BAMFILE/.$ASD/.$ALN}_unsorted.bam
     
     # take doctored GTF if available
@@ -459,7 +463,7 @@ else
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
     	rm ${BAMFILE/.$ASD/.$ALN}_sorted.bam
-    
+    	rm ${BAMFILE/.$ASD/.$ALN}_sorted.bam.bai
     fi
 
     # mark checkpoint
