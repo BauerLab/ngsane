@@ -417,6 +417,20 @@ if [ -n "$RUNMAPPINGBOWTIE2" ]; then
       
 fi
 
+################################################################################
+#   Mapping using Masai
+#
+# IN:$SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/bowtie/*.bam
+################################################################################
+
+if [ -n "$RUNMAPPINGMASAI" ]; then
+    if [ -z "$TASKMASAI" ] || [ -z "$NODES_MASAI" ] || [ -z "$CPU_MASAI" ] || [ -z "$MEMORY_MASAI" ] || [ -z "$WALLTIME_MASAI" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -k $CONFIG -t $TASKMASAI -i $INPUT_MASAI -e $READONE.$FASTQ -n $NODES_MASAI -c $CPU_MASAI -m $MEMORY_MASAI"G" -w $WALLTIME_MASAI \
+        --command "${NGSANE_BASE}/mods/masai.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKMASAI --rgsi <DIR>"        
+fi
+
 
 ################################################################################
 #   Mapping using rrbsmap
@@ -1197,3 +1211,4 @@ if [ -n "$RUNBUTTERFLY" ] && [ -z "$RUNTRINITY" ]; then
           -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY $JOBIDS \
           --command "${NGSANE_BASE}/mods/trinity_butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBUTTERFLY" 
 fi
+bowtie
