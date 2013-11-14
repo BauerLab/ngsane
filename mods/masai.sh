@@ -82,12 +82,10 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
-# get basename of f
 # get basename of input file f
 INPUTFILENAME=${INPUTFILE##*/}
 # get sample prefix
 SAMPLE=${INPUTFILENAME/%$READONE.$FASTQ/}
-
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
@@ -129,10 +127,12 @@ fi
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
 mkdir -p $THISTMP
 
+FASTASUFFIX=${FASTA##*.}
+    
 #readgroup
 #TODO check readgroups
-#FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
-#RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
+FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
+RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -152,9 +152,14 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    FASTASUFFIX=${FASTA##*.}
     if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo "[NOTE] make index .$MASAI_INDEX"; 
-        masai_indexer -t $TMP -x $MASAI_INDEX $FASTA
+        # make sure parallel executions don't interfere when generating the index.
+        mkdir -p $THISTMP/reference/
+        ln -s $FASTA $THISTMP/reference/
+        FASTAREFERENCE=$THISTMP
+        masai_indexer -t $TMP -x $MASAI_INDEX $THISTMP
+    else
+        FASTAREFERENCE=$FASTA
     fi
     if [ ! -e $FASTA.fai ]; then echo "[NOTE] make .fai"; samtools faidx $FASTA; fi
 
@@ -173,10 +178,10 @@ else
         mkfifo $THISTMP/${n}_pipe
         $ZCAT $f > $THISTMP/${n}_pipe &
 
-        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-format raw --output-file $THISTMP/${n/%.$FASTQ/.raw} $FASTA $THISTMP/${n}_pipe"
+        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-format raw --output-file $THISTMP/${n/%.$FASTQ/.raw} $FASTAREFERENCE $THISTMP/${n}_pipe"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
-        RUN_COMMAND="masai_output_se $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-format sam --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTA $f $THISTMP/${n/%.$FASTQ/.raw}"
+        RUN_COMMAND="masai_output_se $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-format sam --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTAREFERENCE $f $THISTMP/${n/%.$FASTQ/.raw}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
     else if [ "$PAIRED" = "1" ]; then
@@ -185,13 +190,13 @@ else
         $ZCAT $f > $THISTMP/${n}_pipe &
         $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe &
       
-        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-format raw --output-file $THISTMP/${n/%.$FASTQ/.raw} $FASTA $THISTMP/${n}_pipe"
+        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-format raw --output-file $THISTMP/${n/%.$FASTQ/.raw} $FASTAREFERENCE $THISTMP/${n}_pipe"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
-        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-format raw --output-file $THISTMP/${n/%$READONE.$FASTQ/$READTWO.raw} $FASTA $THISTMP/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe"
+        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-format raw --output-file $THISTMP/${n/%$READONE.$FASTQ/$READTWO.raw} $FASTAREFERENCE $THISTMP/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
-        RUN_COMMAND="masai_output_pe $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-format sam --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTA $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} $THISTMP/${n/%.$FASTQ/.raw} $THISTMP/${n/%$READONE.$FASTQ/$READTWO.raw}"
+        RUN_COMMAND="masai_output_pe $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-format sam --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTAREFERENCE $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} $THISTMP/${n/%.$FASTQ/.raw} $THISTMP/${n/%$READONE.$FASTQ/$READTWO.raw}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
     fi
@@ -209,9 +214,28 @@ else
     [ -e $OUTDIR/$SAMPLE.$ALN.bam ] && rm $OUTDIR/$SAMPLE.$ALN.bam
        
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.$ALN.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE.ash.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
 fi
+
+################################################################################
+CHECKPOINT="add readgroup"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    
+    java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
+        INPUT=$OUTDIR/$SAMPLE.ash.bam \
+        OUTPUT=$OUTDIR/$SAMPLE.ashrg.bam \
+        RGID=$EXPID RGLB=$LIBRARY RGPL=$PLATFORM \
+        RGSM=$FULLSAMPLEID 
+
+    # mark checkpoint
+    if [ -f $OUTDIR/$SAMPLE.ashrg.bam ];then echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    
+    [ -e $OUTDIR/$SAMPLE.ash.bam ] && rm $OUTDIR/$SAMPLE.ash.bam
+fi 
 
 ################################################################################
 CHECKPOINT="mark duplicates"
@@ -222,18 +246,19 @@ else
    
     if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
-        INPUT=$OUTDIR/${n/%$READONE.$FASTQ/.ash.bam} \
+        INPUT=$OUTDIR/$SAMPLE.ashrg.bam \
         OUTPUT=$OUTDIR/$SAMPLE.$ASD.bam \
         METRICS_FILE=$OUTDIR/metrices/$SAMPLE.$ASD.bam.dupl AS=true \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
+        
     samtools index $OUTDIR/$SAMPLE.$ASD.bam
           
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE.$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
     #cleanup
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.ash.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.ash.bam}
+    [ -e $OUTDIR/$SAMPLE.ashrg.bam ] && rm $OUTDIR/$SAMPLE.ashrg.bam
     
 fi
 
@@ -287,9 +312,9 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $OUTDIR/$SAMPLE.$ASD.bam $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/}.genome
+    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $OUTDIR/$SAMPLE.$ASD.bam $OUTDIR/$SAMPLE.$ASD.bam.cov.tdf ${FASTA/.$FASTASUFFIX/}.genome
     # mark checkpoint
-    [ -f $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    [ -f $OUTDIR/$SAMPLE.$ASD.bam.cov.tdf ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi
 
 ################################################################################
