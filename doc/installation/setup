@@ -9,6 +9,7 @@ sudo -i
 
 
 ############STARCLUSTER
+echo "remove already existing eggs -- otherwise yolk will crash"
 rm /usr/lib/python2.7/dist-packages/numpy-1.6.1.egg-info
 rm /usr/lib/pymodules/python2.7/Cython-0.15.1.egg-info
 
@@ -215,8 +216,8 @@ apt-get install python2.7-dev -y
 apt-get install python-setuptools -y
 easy_install pip
 pip install yolk
-pip install Numpy --upgrade
-pip install cython --upgrade
+pip install Numpy
+pip install cython
 pip install numexpr
 pip install HTSeq
 pip install MACS2
