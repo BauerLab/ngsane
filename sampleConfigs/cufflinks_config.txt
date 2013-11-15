@@ -51,8 +51,8 @@ CUFFLINKSADDPARAM=
 # see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
 # conversion scripts
 # Also either specify a doctored GTF or uncomment the DOCTOREDGTFSUFFIX below
-# e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_14/gencode.v14.annotation.gtf
-# or  ${NGSANE_REFERENCE}/b37/annotation/gencode.v14.annotation.b37.gtf
+# e.g. /share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.gtf
+# or   ${NGSANE_REFERENCE}/b37/annotation/gencode.v14.annotation.b37.gtf
 GTF=
 
 # activate to use doctored GTF file for Cufflinks (provides additional info)

@@ -169,14 +169,17 @@ else
 	rm $OUTDIR/${n/%.$ASD.bam/.tmp}.bam
 
 
-if	[[ -n "$HTSEQCOUNT_UNIQUE" ]] ; then
+	if	[[ -n "$HTSEQCOUNT_UNIQUE" ]] ; then
 
-	echo "[NOTE] Filter for uniquely mapped reads"
+		echo "[NOTE] Filter for uniquely mapped reads"
 
-	samtools view $OUTDIR/${n} | fgrep -w NH:i:1 | samtools view -b -S > $OUTDIR/${n}.tmp
-	mv $OUTDIR/${n}.tmp $OUTDIR/${n}
-	
-fi	
+   		samtools view -h $OUTDIR/${n} | grep -E 'NH:i:1|^@' | samtools view -b -S - > $OUTDIR/${n}.tmp
+		samtools sort -@ $CPU_HTSEQCOUNT -n $OUTDIR/${n}.tmp $OUTDIR/${n}.tmp
+		rm $OUTDIR/${n}.tmp
+		samtools fixmate $OUTDIR/${n}.tmp.bam $OUTDIR/${n}
+		rm $OUTDIR/${n}.tmp.bam
+		
+	fi	
 
 
 
@@ -219,7 +222,13 @@ else
             echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/GTF.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF.summary.txt
             rm $OUTDIR/GTF.$MODE.$ATTR.tmp
             
-            Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/GTF.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/.$MODE.$ATTR} 
+            if [ "$ATTR" == "gene_id" ]; then
+            	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/GTF.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/.$MODE.$ATTR} 
+            fi
+            
+            if [ "$ATTR" == "transcript_id" ]; then
+            	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeTranscriptRPKM.R $GTF $OUTDIR/GTF.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/.$MODE.$ATTR} 
+            fi
         done
     done
     
@@ -247,7 +256,16 @@ else
             echo "${ATTR} ${MODE} "$(tail -n 5 $OUTDIR/GTF_masked.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF_masked.summary.txt
             rm $OUTDIR/GTF_masked.$MODE.$ATTR.tmp
 
-            Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/GTF_masked.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/_masked.$MODE.$ATTR} 
+        	 
+            if [ "$ATTR" == "gene_id" ]; then
+            	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/GTF_masked.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/_masked.$MODE.$ATTR} 
+            fi
+            
+            if [ "$ATTR" == "transcript_id" ]; then
+            	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeTranscriptRPKM.R $GTF $OUTDIR/GTF_masked.$MODE.$ATTR $RPKMSSDIR/${n/%.$ASD.bam/_masked.$MODE.$ATTR} 
+            fi
+        
+        
         done
     done
 
