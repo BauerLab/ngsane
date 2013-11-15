@@ -129,7 +129,7 @@ else
 fi
 
 ################################################################################
-[ -e $OUTDIR/${n}.dummy ] && rm $OUTDIR/${n}.dummy
+[ -e $FASTQDIRTRIM/${n}.dummy ] && rm $FASTQDIRTRIM/${n}.dummy
 echo ">>>>> readtrimming with TRIMMOMATIC - FINISHED"
 echo ">>>>> enddate "`date`
 

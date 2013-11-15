@@ -33,9 +33,6 @@ QOUT=$OUT/qout
 ## PARAMETER (mandatory)
 ##********************
 
-# specify TASK that generated the bam, i.e. folder to look for bam (default TASKTOPHAT)
-#TASKTOPHAT=
-
 # specify library type for tophat.
 # choose "fr-firststrand" "fr-unstranded" "fr-secondstrand"
 RNA_SEQ_LIBRARY_TYPE="fr-firststrand"
@@ -52,8 +49,8 @@ HTSEQCOUNT_UNIQUE=1
 # ATTENTION: make sure the GTF file matches your genome assembly (chr naming)
 # see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
 # conversion scripts
-# e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_14/gencode.v14.annotation.gtf
-# or   ${NGSANE_REFERENCE}/b37/annotation/gencode.v14.annotation.b37.gtf
+# e.g. /share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.gtf
+# or   /share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.b37.gtf
 GTF=
 
 #********************

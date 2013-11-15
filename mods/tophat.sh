@@ -127,7 +127,7 @@ if [ -z "$RECOVERFROM" ]; then
 fi
 
 
-if [ -n "$READONE" ] && ["$READONE" == "$READTWO" ]; then
+if [ -n "$READONE" ] && [ "$READONE" == "$READTWO" ]; then
 	echo "[ERROR] read1 == read2 " 1>&2 && exit 1
 elif [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
@@ -427,6 +427,21 @@ CHECKPOINT="RNA-SeQC"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+
+
+## ensure bam is properly ordered for GATK
+
+	#reheader bam
+	java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=${BAMFILE/.$ASD/.$ALN} O=${BAMFILE/.$ASD/.$ALN}_unsorted.bam R=$FASTA
+
+	#sort
+	samtools sort ${BAMFILE/.$ASD/.$ALN}_unsorted.bam ${BAMFILE/.$ASD/.$ALN}_sorted
+	
+	#index
+	samtools index ${BAMFILE/.$ASD/.$ALN}_sorted.bam
+	
+	
+	rm ${BAMFILE/.$ASD/.$ALN}_unsorted.bam
     
     # take doctored GTF if available
     if [ -n "$DOCTOREDGTFSUFFIX" ]; then 
@@ -444,9 +459,11 @@ else
         RNASeQCDIR=$OUTDIR/../${n/%$READONE.$FASTQ/_RNASeQC}
         mkdir -p $RNASeQCDIR
     
-        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE/.$ASD/.$ALN}|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
+        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE/.$ASD/.$ALN}_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
+    	rm ${BAMFILE/.$ASD/.$ALN}_sorted.bam
+    	rm ${BAMFILE/.$ASD/.$ALN}_sorted.bam.bai
     fi
 
     # mark checkpoint
