@@ -6,12 +6,13 @@ parser = optparse.OptionParser()
 parser.add_option("-i","--input", dest = "fn", help = "input file")
 parser.add_option("-s","--start", type="int",  dest = "start", help = "start collecting")
 parser.add_option("-e","--end", type="int", dest = "end", help = "end collecting")
+parser.add_option("-f","--header", action='store_true', dest="header", help = "header", default=False)
+parser.add_option("-o","--oneline", action='store_true', dest="oneline", help = "oneline", default=False)
 parser.add_option("-n","--names", dest = "names", help = "names", default="")
 parser.add_option("-l","--location", type="int", dest = "location", help = "use location column's value", default=-1)
 parser.add_option("--normalize", type="string", dest = "normalize", help = "normalize")
 parser.add_option("--normalizeBy", type="float", dest = "normalizeBy", help = "normalize")
 (options, args) = parser.parse_args()
-
 
 names=options.names.split(",")
 fn=options.fn
@@ -66,6 +67,7 @@ def printStats(arrV, arrN, arrS):
     #normaliziation
     normsum=0
     normnZe=0
+
     for c in range(0,len(arrV)):
         string+="%17s " % arrN[c]
         formatString="%17.2f"
@@ -97,6 +99,10 @@ def printStats(arrV, arrN, arrS):
             out[5][i]=str(float(out[5][i])/(normalizeBy+1e-6))
         for i in range(0,len(out[6])):
             out[6][i]=str(float(out[6][i])/(normalizeBy+1e-6))
+
+    if(options.oneline):
+		print "nZe %s sum %s min %s max %s av %s stde %s" % (" ".join(out[6])," ".join(out[5])," ".join(out[0])," ".join(out[1])," ".join(out[2])," ".join(out[3]))
+		sys.exit(0)
 
     if(printing and arrS!=0 ):
         print string
@@ -133,8 +139,16 @@ for i in range(start,end):
     if (names==[""]):
         name.append("row"+str(i))
 
-for i in open(fn).read().split("\n"):
-    if (i=="" or i[0]=="#"):
+datastream=""
+if (fn == "-"):
+    datastream=sys.stdin
+else:
+	datastream=open(fn)
+
+for i in datastream:
+    if (i=="" or i[0]=="#" or options.header):
+#        print >> sys.stderr, i.split("\t")
+        options.header=False
         continue
     arr=re.split("\t",i)
 #    print >> sys.stderr, arr
