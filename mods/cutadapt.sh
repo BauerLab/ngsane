@@ -10,6 +10,8 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
+# RESULTFILENAME fastq/<DIR>_$TASK_CUTADAPT/<SAMPLE>$READONE.$FASTQ
+
 
 # TODO: for paired end reads the pairs need to be cleaned up (removed)
 # with PICARD...
@@ -143,6 +145,7 @@ fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
+[ -e $FASTQDIRTRIM/${n}.dummy ] && rm $FASTQDIRTRIM/${n}.dummy
 echo ">>>>> readtrimming with CUTADAPT - FINISHED"
 echo ">>>>> enddate "`date`
 

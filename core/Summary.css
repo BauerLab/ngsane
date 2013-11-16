@@ -107,7 +107,7 @@ div.panel {
 	border-radius: 12px;
 	padding: 2px;
 	margin-bottom: 25px;
-	min-width:1050px;
+	min-width:1170px;
 }
 
 #controls div,#gallery div {
@@ -149,7 +149,7 @@ div.panel h2.sub {
 	border-bottom: none;
 	display: inline-block;
 	vertical-align: top;
-	width: 180px;
+	width: 165px;
 }
 
 div.panel span.counter {

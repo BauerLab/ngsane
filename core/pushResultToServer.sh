@@ -75,12 +75,13 @@ for f in $(ls $SOURCE); do
 	fn="${f##*/}" # basename
    	# don't copy the raw files or the tmp folder
    	if [ "$fn" != "fastq" ] && [ "$fn" != "tmp" ]; then 
-   		echo "smbclient ${TARGET_SERVER} -A ~/.smbclient -c \"prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}\""
  		if [ -f  ~/.smbclient ]; then
-		   smbclient ${TARGET_SERVER} -A ~/.smbclient -c "prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}"
+		   RUN_COMMAND="smbclient ${TARGET_SERVER} -A ~/.smbclient -c \"prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}\""
 		else
-		   smbclient ${TARGET_SERVER} -U `whoami` -c "prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}"
+		   RUN_COMMAND="smbclient ${TARGET_SERVER} -U `whoami` -c \"prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}\""
 		fi
+		echo $RUN_COMMAND
+		eval $RUN_COMMAND
 	fi
 done
 

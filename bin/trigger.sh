@@ -38,7 +38,7 @@ function version {
     if [ -e ${NGSANE_VERSION/bin\/trigger.sh/}/.git ]; then 
 	    NGSANE_VERSION=`cd ${NGSANE_VERSION/bin\/trigger.sh/}/ && git rev-parse HEAD `" (git hash)"
     else
-        NGSANE_VERSION="v0.2.0_p1"
+        NGSANE_VERSION="v0.2.0_p2"
     fi
     echo -e "NGSANE version: $NGSANE_VERSION"
     exit
@@ -399,8 +399,7 @@ if [ -n "$RUNMAPPINGBOWTIE" ]; then
     if [ -z "$TASKBOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -k $CONFIG -t $TASKBOWTIE -i $INPUT_BOWTIE -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
-        --command "${NGSANE_BASE}/mods/bowtie.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE --rgsi <DIR>"
-            
+        --command "${NGSANE_BASE}/mods/bowtie.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKBOWTIE --rgsi <DIR>"        
 fi
 
 
@@ -630,14 +629,14 @@ fi
 ################################################################################
 #  Creating normalized (wig) files with wiggler
 #
-# IN: $SOURCE/<DIR>/bowtie/*.bam
+# IN: $SOURCE/$dir/bowtie/*.bam
 # OUT: $OUT/$dir/wiggler/
 ################################################################################
 if [ -n "$RUNWIGGLER" ]; then
     if [ -z "$TASKWIGGLER" ] || [ -z "$NODES_WIGGLER" ] || [ -z "$CPU_WIGGLER" ] || [ -z "$MEMORY_WIGGLER" ] || [ -z "$WALLTIME_WIGGLER" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKWIGGLER -i $INPUT_WIGGLER -e .$ASD.bam -n $NODES_WIGGLER -c $CPU_WIGGLER -m $MEMORY_WIGGLER"G" -w $WALLTIME_WIGGLER \
-        --postcommand "${NGSANE_BASE}/mods/wiggler.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKWIGGLER" 
+        --command "${NGSANE_BASE}/mods/wiggler.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKWIGGLER" 
 fi
 
 ################################################################################ 

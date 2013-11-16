@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# Script running HIC HOMER pipeline tapping into bowtie2
+# Script running HIC HOMER pipeline tapping
 # It expects bam files, paired end, as input.
 # author: Fabian Buske
 # date: August 2013
@@ -89,7 +89,7 @@ CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
-	dmls -l ${f/$READONE/"*"}
+	dmget -a $OUTDIR/*
 fi
 
 echo -e "\n********* $CHECKPOINT\n"

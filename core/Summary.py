@@ -1098,7 +1098,7 @@ for d in dir:
             psresult.append([values,filename])
             oaresult=addValues(oaresult,values)
                 
-        except :
+        except:
             sys.stderr.write("error with "+f+"\n")
             traceback.print_exc()
             #sys.exit()

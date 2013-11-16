@@ -83,6 +83,7 @@ fi
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
     [ -e $f.merg.anno.bed ] && rm $f.merg.anno.bed
+    [ -e $f.anno.stats ] && rm $f.anno.stats
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -119,22 +120,25 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
 	NAMES=""
-	NUMBER=$( ls $BAMANNLIB/*.gtf | wc -l )
-	for i in $(ls $BAMANNLIB/*.gtf ); do
+	NUMBER=$( ls $BAMANNLIB | grep -P "(.gtf|.bed)$" | wc -l )
+	ANNFILES=""
+	
+	for i in $(ls $BAMANNLIB | grep -P "(.gtf|.bed)$" | tr '\n' ' '); do
 		NAME=$(basename $i)
-		NAMES=$NAMES" "${NAME/.gtf/}
+		NAMES=$NAMES" "${NAME%*.*}
+		ANNFILES=$ANNFILES" "$BAMANNLIB/$i
 	done
 
-	echo "[NOTE] annotate with $NAMES"
+	echo "[NOTE] annotate with $NAMES $ANNFILES"
 
    	# annotated counts and add column indicated non-annotated read counts
-   	bedtools annotate -counts -i $f.merg.bed -files $( ls $BAMANNLIB/*.gtf ) -names $NAMES | sed 's/[ \t]*$//g' | awk '{FS=OFS="\t";if (NR==1){print $0,"unannotated"} else{ for(i=5; i<=NF;i++) j+=$i; if (j>0){print $0,0}else{print $0,1}; j=0}}' > $f.merg.anno.bed
+   	bedtools annotate -counts -i $f.merg.bed -files $ANNFILES -names $NAMES | sed 's/[ \t]*$//g' | awk '{FS=OFS="\t";if (NR==1){print $0,"unannotated"} else{ for(i=5; i<=NF;i++) j+=$i; if (j>0){print $0,0}else{print $0,1}; j=0}}' > $f.merg.anno.bed
 	
 	# mark checkpoint
     if [ -f $f.merg.anno.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-#	rm $f.merg.bed
 
 fi
+[ -e f.merg.bed  ] && rm $f.merg.bed
 
 ################################################################################
 CHECKPOINT="summarize"

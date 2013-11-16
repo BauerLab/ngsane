@@ -139,7 +139,9 @@ if [ -z "$FASTQ_PHRED" ]; then
 fi
 
 FASTASUFFIX=${FASTA##*.}
-    
+
+FASTQTMP=$TMP/`whoami`_${n/%$READONE.$FASTQ/} # tmp dir to deposit fastq intermediate files
+mkdir -p $FASTQTMP
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -148,6 +150,7 @@ CHECKPOINT="recall files from tape"
 if [ -n "$DMGET" ]; then
 	dmget -a $(dirname $FASTA)/*
 	dmget -a ${f/$READONE/"*"}
+    dmget -a $OUTDIR/*
 fi
     
 echo -e "\n********* $CHECKPOINT\n"
@@ -192,7 +195,7 @@ else
 	if [ $PAIRED == "0" ]; then
         echo "[NOTE] SINGLE READS"
 
-        RUN_COMMAND="$ZCAT $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.fq} --max $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.sam}"
+        RUN_COMMAND="$ZCAT $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq} --max $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam}"
 
 	#Paired
     else
@@ -205,17 +208,25 @@ else
         $ZCAT $f > $OUTDIR/${n}_pipe &
         $ZCAT ${f/$READONE/$READTWO} > $OUTDIR/${n/$READONE/$READTWO}_pipe &
         
-		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.fq} --max $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $OUTDIR/${n}_pipe -2 $OUTDIR/${n/$READONE/$READTWO}_pipe $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.sam}"
+		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq} --max $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $OUTDIR/${n}_pipe -2 $OUTDIR/${n/$READONE/$READTWO}_pipe $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam}"
 
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
+    if [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL*.fq} ] || [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM*.fq} ]; then
+        $GZIP $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL*.fq} $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM*.fq}
+    fi
+    
+    # bam file conversion                                                                         
+    samtools view -@ $CPU_BOWTIE -Sbt $FASTA.fai $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam} > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
+    
     # cleanup
     [ -e $OUTDIR/${n}_pipe ] && rm $OUTDIR/${n}_pipe
     [ -e $OUTDIR/${n/$READONE/$READTWO}_pipe ] && rm $OUTDIR/${n/$READONE/$READTWO}_pipe
+    [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam} ] && rm $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam}
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.sam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
@@ -227,10 +238,10 @@ else
 
     # create bam files for discarded reads and remove fastq files    
     if [ $PAIRED == "1" ]; then
-        if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.${UNM}_1.fq} ]; then
+        if [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.${UNM}_1.fq.gz} ]; then
             java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
-                FASTQ=$OUTDIR/${n/%$READONE.$FASTQ/.${UNM}_1.fq} \
-                FASTQ2=$OUTDIR/${n/%$READONE.$FASTQ/.${UNM}_2.fq} \
+                FASTQ=$FASTQTMP/${n/%$READONE.$FASTQ/.${UNM}_1.fq.gz} \
+                FASTQ2=$FASTQTMP/${n/%$READONE.$FASTQ/.${UNM}_2.fq.gz} \
                 OUTPUT=$OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam} \
                 QUALITY_FORMAT=Standard \
                 SAMPLE_NAME=${n/%$READONE.$FASTQ/} \
@@ -240,11 +251,11 @@ else
             samtools sort -@ $CPU_BOWTIE $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.tmp}
             mv $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam}
         fi
-    
-        if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.${MUL}_1.fq} ]; then
+        
+        if [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.${MUL}_1.fq.gz} ]; then
             java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
-                FASTQ=$OUTDIR/${n/%$READONE.$FASTQ/.${MUL}_1.fq} \
-                FASTQ2=$OUTDIR/${n/%$READONE.$FASTQ/.${MUL}_2.fq} \
+                FASTQ=$FASTQTMP/${n/%$READONE.$FASTQ/.${MUL}_1.fq.gz} \
+                FASTQ2=$FASTQTMP/${n/%$READONE.$FASTQ/.${MUL}_2.fq.gz} \
                 OUTPUT=$OUTDIR/${n/%$READONE.$FASTQ/.${MUL}.bam} \
                 QUALITY_FORMAT=Standard \
                 SAMPLE_NAME=${n/%$READONE.$FASTQ/} \
@@ -256,9 +267,9 @@ else
             mv $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam}
         fi
     else
-        if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.fq} ]; then
+        if [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq.gz} ]; then
             java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
-                FASTQ=$OUTDIR/${n/%$READONE.$FASTQ/.$UNM.fq} \
+                FASTQ=$FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq.gz} \
                 OUTPUT=$OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam} \
                 QUALITY_FORMAT=Standard \
                 SAMPLE_NAME=${n/%$READONE.$FASTQ/} \
@@ -267,11 +278,13 @@ else
                 VERBOSITY=ERROR
             samtools sort -@ $CPU_BOWTIE $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.tmp}
             mv $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam}
+        else
+            echo "[NOTE] no unmapped reads: $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq.gz}"
         fi
     
-        if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.fq} ]; then
+        if [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq.gz} ]; then
             java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
-                FASTQ=$OUTDIR/${n/%$READONE.$FASTQ/.$MUL.fq} \
+                FASTQ=$FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq.gz} \
                 OUTPUT=$OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam} \
                 QUALITY_FORMAT=Standard \
                 SAMPLE_NAME=${n/%$READONE.$FASTQ/} \
@@ -281,12 +294,12 @@ else
         
             samtools sort -@ $CPU_BOWTIE $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.tmp}
             mv $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam} 
+        else
+            echo "[NOTE] no multi-mapping reads: $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq.gz}"
+
         fi
     fi
-        
-    # continue for normal bam file conversion                                                                         
-    samtools view -@ $CPU_BOWTIE -Sbt $FASTA.fai $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.sam} > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
-    
+            
     if [ "$PAIRED" = "1" ]; then
         # fix mates
         samtools sort -@ $CPU_BOWTIE -n $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} $OUTDIR/${n/%$READONE.$FASTQ/.tmp}
@@ -300,11 +313,7 @@ else
     if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.ash.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
     # cleanup
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.fq} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.fq}
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.${UNM}_1.fq} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.${UNM}_*.fq}
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.fq} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.fq}
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.${MUL}_1.fq} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.${MUL}_*.fq}
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.sam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.sam}
+    [ -e $FASTQTMP ] && rm -r $FASTQTMP
     [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam}
     [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
 fi

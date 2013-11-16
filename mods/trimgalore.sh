@@ -9,6 +9,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
+# RESULTFILENAME fastq/<DIR>_$TASKTRIMGALORE/<SAMPLE>$READONE.$FASTQ
 
 echo ">>>>> readtrimming with TRIMGALORE "
 echo ">>>>> startdate "`date`
@@ -146,6 +147,7 @@ fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
+[ -e $FASTQDIRTRIM/${n}.dummy ] && rm $FASTQDIRTRIM/${n}.dummy
 echo ">>>>> readtrimming with TRIMGALORE - FINISHED"
 echo ">>>>> enddate "`date`
 

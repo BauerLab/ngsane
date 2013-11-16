@@ -127,7 +127,7 @@ if [ -z "$RECOVERFROM" ]; then
 fi
 
 
-if [ "$READONE" == "$READTWO" ]; then
+if [ -n "$READONE" ] && [ "$READONE" == "$READTWO" ]; then
 	echo "[ERROR] read1 == read2 " 1>&2 && exit 1
 elif [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
@@ -214,6 +214,20 @@ BIGWIGSDIR=$OUTDIR/../
 
 mkdir -p $OUTDIR
 
+
+
+if [ -n "$TOPHATTRANSCRIPTOMEINDEX" ]; then
+    echo "[NOTE] RNAseq --transcriptome-index specified: ${TOPHATTRANSCRIPTOMEINDEX}"
+    TOPHAT_TRANSCRIPTOME_PARAM="--transcriptome-index=${TOPHATTRANSCRIPTOMEINDEX}"
+    PICARD_REFERENCE=${TOPHATTRANSCRIPTOMEINDEX}.fa
+else
+    echo "[NOTE] no --transcriptome-index specified."
+    TOPHAT_TRANSCRIPTOME_PARAM=
+    PICARD_REFERENCE=$FASTA
+fi
+
+
+
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
@@ -221,6 +235,7 @@ CHECKPOINT="recall files from tape"
 if [ -n "$DMGET" ]; then
     dmget -a $(dirname $FASTA)/*
     dmget -a ${f/$READONE/"*"}
+    dmget -a $OUTDIR/*
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -236,7 +251,7 @@ else
     if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
     if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
     
-    RUN_COMMAND="tophat $TOPHATADDPARAM $FASTQ_PHRED --keep-fasta-order --num-threads $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
+    RUN_COMMAND="tophat $TOPHATADDPARAM $TOPHAT_TRANSCRIPTOME_PARAM $FASTQ_PHRED --keep-fasta-order --num-threads $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     echo "[NOTE] tophat end $(date)"
 
@@ -323,6 +338,9 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
+
+
+
     echo "[NOTE] samtools index"
     samtools index $BAMFILE
 
@@ -333,7 +351,7 @@ else
     mkdir -p  $THISTMP
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
         INPUT=$BAMFILE \
-        REFERENCE_SEQUENCE=$FASTA \
+        REFERENCE_SEQUENCE=$PICARD_REFERENCE \
         OUTPUT=$OUTDIR/../metrices/$(basename $BAMFILE) \
         VALIDATION_STRINGENCY=SILENT \
         PROGRAM=CollectAlignmentSummaryMetrics \
@@ -409,6 +427,21 @@ CHECKPOINT="RNA-SeQC"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+
+
+## ensure bam is properly ordered for GATK
+
+	#reheader bam
+	java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=${BAMFILE/.$ASD/.$ALN} O=${BAMFILE/.$ASD/.$ALN}_unsorted.bam R=$FASTA
+
+	#sort
+	samtools sort ${BAMFILE/.$ASD/.$ALN}_unsorted.bam ${BAMFILE/.$ASD/.$ALN}_sorted
+	
+	#index
+	samtools index ${BAMFILE/.$ASD/.$ALN}_sorted.bam
+	
+	
+	rm ${BAMFILE/.$ASD/.$ALN}_unsorted.bam
     
     # take doctored GTF if available
     if [ -n "$DOCTOREDGTFSUFFIX" ]; then 
@@ -426,9 +459,11 @@ else
         RNASeQCDIR=$OUTDIR/../${n/%$READONE.$FASTQ/_RNASeQC}
         mkdir -p $RNASeQCDIR
     
-        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE/.$ASD/.$ALN}|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
+        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE/.$ASD/.$ALN}_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
+    	rm ${BAMFILE/.$ASD/.$ALN}_sorted.bam
+    	rm ${BAMFILE/.$ASD/.$ALN}_sorted.bam.bai
     fi
 
     # mark checkpoint

@@ -1,5 +1,5 @@
-# author: Fabian Buske
-# date: May 2013
+# author: 
+# date: 
 
 #####################################
 # Resources
@@ -8,7 +8,7 @@
 #********************
 # Tasks
 #********************
-RUNFASTQSCREEN="1"    # 
+RUNYourNewTask="1"   
 
 #********************
 # Paths
@@ -20,7 +20,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_FASTQSCREEN="fastq"
+INPUT_YourNewTask=
 
 # where to write the output
 OUT=$SOURCE
@@ -32,27 +32,8 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
-# fastq file suffix
-FASTQ="fq.gz"
-
-# read indicator immediately preceding the fastq file suffix
-READONE="_R1"
-READTWO="_R2"
-
-# location of the bowtie indices database (--conf parameter in fastqscreen)
-FASTQSCREEN_DBCONF=
 
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
 
-## additional fastqscreen parameters
-# e.g. "--subset 500000" (highly recommended)
-FASTQSCREENADDPARAM=
-
-#WALLTIME_FASTQSCREEN=10:00:00
-#MEMORY_FASTQSCREEN=60
-#CPU_FASTQSCREEN=8
-#NODES_FASTQSCREEN="nodes=1:ppn=8"
-#MODULE_FASTQSCREEN=
-#PATH_FASTQSCREEN=

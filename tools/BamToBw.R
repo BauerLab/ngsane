@@ -14,7 +14,7 @@ library(GenomicFeatures)
 
 RNAbamTobw <- function(file, name, stranded=TRUE, firstStrand=TRUE, paired=TRUE,path) 
 {
-    require(rtracklayer)
+
     if (paired) {
 				cat("[NOTE] Read gapped aligment paired\n")
                 rs <- readGappedAlignmentPairs(file)
@@ -56,4 +56,7 @@ RNAbamTobw <- function(file, name, stranded=TRUE, firstStrand=TRUE, paired=TRUE,
 }
 
 RNAbamTobw(file=file_arg,name=sample_arg,stranded=stranded_arg,firstStrand=firststrand_arg,paired=isPaired_arg, path=path_arg)
+
+sink(type = "message")
+sessionInfo()
 

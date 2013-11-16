@@ -12,18 +12,27 @@ exit
 if [ ! $# -gt 2 ]; then usage ; fi
 
 HTMLOUTPUT=""
+RESULTSUFFIX=""
 
 while [ "$1" != "" ]; do
     case $1 in
-        -m | --mod )             shift; SCRIPT=$1 ;; # location of mod script                       
-        -l | --log )             shift; QOUT=$1 ;;   # location of log output
-        -t | --task )            shift; TASK=$1 ;;   # location of log output
-        -o | --html-file )       shift; HTMLOUTPUT=$1;; # where the output will be place in the end
-        -h | --help )            usage ;;
-        * )                      echo "don't understand "$1
+        -m | --modscript )      shift; SCRIPT=$1 ;; # location of mod script                       
+        -l | --log )            shift; QOUT=$1 ;;   # location of log output
+        -t | --task )           shift; TASK=$1 ;;   # task at hand
+        -r | --results-dir )    shift; OUTDIR=$1 ;; # location of the output 
+        -s | --results-task )   shift; OUTTASK=$1 ;; # task the results are put in 
+        -f | --filesuffix )     shift; RESULTSUFFIX=$1 ;; # suffix of the result file
+        -o | --html-file )      shift; HTMLOUTPUT=$1;; # where the output will be place in the end
+        -h | --help )           usage ;;
+        * )                     echo "don't understand "$1
     esac
     shift
 done
+
+# default output location corresponds to the task at hand
+if [ -z "$OUTTASK" ]; then
+    OUTTASK=$TASK
+fi
 
 ################################################################################
 
@@ -133,6 +142,14 @@ if [ -n "$HTMLOUTPUT" ]; then
         echo "<a href='$FN'>${i/$QOUT\/$TASK\//}</a><br/>"
     done
     echo "</div></div>"
+    if [ -n "$RESULTSUFFIX" ]; then
+        echo "<div id='${TASK}_files'><div class='box'>"
+        for i in $(find $OUTDIR/*/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX ); do
+            FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
+            echo "<a href='$FN'>${i/$OUTDIR\/*\/$OUTTASK\//}</a><br/>"
+        done
+        echo "</div></div>"
+    fi
     echo "<script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
@@ -158,6 +175,7 @@ if [ -n "$HTMLOUTPUT" ]; then
         }
     </script>"    
 fi
+
 
 
 ################################################################################
