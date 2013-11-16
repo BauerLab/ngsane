@@ -83,7 +83,7 @@ echo -e "\n********* $CHECKPOINT\n"
 CHECKPOINT="parameters"
 
 # get basename of input file f
-INPUTFILENAME=${INPUTFILE##*/}
+INPUTFILENAME=${f##*/}
 # get sample prefix
 SAMPLE=${INPUTFILENAME/%$READONE.$FASTQ/}
 
@@ -113,15 +113,20 @@ if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
 
 #is paired ?                                                                                                      
 if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
+    echo "[NOTE] paired-end library detected"
     PAIRED="1"
-    READS="-1 $f -2 ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
     READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
     READ2=`$ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}' `
     let FASTQREADS=$READ1+$READ2
 else
+    echo "[NOTE] single-end library detected"
     PAIRED="0"
-    READS="-U $f"
     let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
+fi
+
+if [ -z "$MASAI_INDEX" ]; then
+    echo "[NOTE] default index for masai is sa"
+    MASAI_INDEX="sa"
 fi
 
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
@@ -131,7 +136,7 @@ FASTASUFFIX=${FASTA##*.}
     
 #readgroup
 #TODO check readgroups
-FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
+FULLSAMPLEID=$SAMPLEID"${INPUTFILENAME/%$READONE.$FASTQ/}"
 RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -140,8 +145,8 @@ CHECKPOINT="recall files from tape"
 	
 if [ -n "$DMGET" ]; then
     dmget -a $FASTA*
-	dmget -a ${f/%$READONE.$FASTQ/"*"}
-	dmget -a ${OUTDIR}
+    dmget -a ${f/%$READONE.$FASTQ/"*"}
+    dmget -a ${OUTDIR}
 fi
     
 echo -e "\n********* $CHECKPOINT\n"
@@ -152,19 +157,38 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo "[NOTE] make index .$MASAI_INDEX"; 
-        # make sure parallel executions don't interfere when generating the index.
+    if [[ "$MASAI_INDEX" = "sa" ]] && [[ ! -e ${FASTA/.$FASTASUFFIX/.sa} ]]; then 
+        echo "[NOTE] make index: $MASAI_INDEX"; 
+        # make sure parallel executions don't interfere with each other when generating the index.
         mkdir -p $THISTMP/reference/
         ln -s $FASTA $THISTMP/reference/
-        FASTAREFERENCE=$THISTMP
-        masai_indexer -t $TMP -x $MASAI_INDEX $THISTMP
+        FASTAREFERENCE=$THISTMP/reference/${FASTA##*/}
+        masai_indexer -t $TMP -x $MASAI_INDEX $FASTAREFERENCE
+
+    elif [[ "$MASAI_INDEX" = "fm" ]] && [[ ! -e ${FASTA/.$FASTASUFFIX/.fma} ]]; then
+        echo "[NOTE] make index: $MASAI_INDEX";
+        # make sure parallel executions don't interfere with each other when generating the index.
+        mkdir -p $THISTMP/reference/
+        ln -s $FASTA $THISTMP/reference/
+        FASTAREFERENCE=$THISTMP/reference/${FASTA##*/}
+        masai_indexer -t $TMP -x $MASAI_INDEX $FASTAREFERENCE
+
+    elif [[ "$MASAI_INDEX" = "esa" ]] && [[ ! -e ${FASTA/.$FASTASUFFIX/.esa} ]]; then
+        echo "[NOTE] make index: $MASAI_INDEX";
+        # make sure parallel executions don't interfere with each other when generating the index.
+        mkdir -p $THISTMP/reference/
+        ln -s $FASTA $THISTMP/reference/
+        FASTAREFERENCE=$THISTMP/reference/${FASTA##*/}
+        masai_indexer -t $TMP -x $MASAI_INDEX $FASTAREFERENCE
+
     else
         FASTAREFERENCE=$FASTA
     fi
+
     if [ ! -e $FASTA.fai ]; then echo "[NOTE] make .fai"; samtools faidx $FASTA; fi
 
     # mark checkpoint
-    if [ -f ${FASTA/.$FASTASUFFIX/.$MASAI_INDEX} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $FASTA.fai ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi 
 
 ################################################################################
@@ -174,29 +198,48 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
         
     if [ "$PAIRED" = "0" ]; then
+        
         # avoid IO by using named pipes
-        mkfifo $THISTMP/${n}_pipe
-        $ZCAT $f > $THISTMP/${n}_pipe &
+        [ -e $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} ] && rm $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
+#        mkfifo $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
+#        $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} &
+        $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
 
-        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-format raw --output-file $THISTMP/${n/%.$FASTQ/.raw} $FASTAREFERENCE $THISTMP/${n}_pipe"
+#        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}"
+        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $FASTAREFERENCE <($ZCAT $f)"
+
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
-        RUN_COMMAND="masai_output_se $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-format sam --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTAREFERENCE $f $THISTMP/${n/%.$FASTQ/.raw}"
+        # reset named pipe 
+#        [ -e $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} ] && rm $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
+#        mkfifo $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
+#        $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} &
+    
+        RUN_COMMAND="masai_output_se $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
-    else if [ "$PAIRED" = "1" ]; then
+    elif [ "$PAIRED" = "1" ]; then
         # avoid IO by using named pipes
-        mkfifo $THISTMP/${n}_pipe $THISTMP/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe        
-        $ZCAT $f > $THISTMP/${n}_pipe &
-        $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe &
+        [ -e $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.$FASTQ} ] && rm $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.$FASTQ}
+        [ -e $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq} ] && rm $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}
+        mkfifo $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}
+        $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} &
+        $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq} &
       
-        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-format raw --output-file $THISTMP/${n/%.$FASTQ/.raw} $FASTAREFERENCE $THISTMP/${n}_pipe"
+        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
-        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-format raw --output-file $THISTMP/${n/%$READONE.$FASTQ/$READTWO.raw} $FASTAREFERENCE $THISTMP/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe"
+        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.raw} $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
+
+        # reset named pipe 
+        [ -e $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.$FASTQ} ] && rm $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.$FASTQ}
+        [ -e $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq} ] && rm $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}
+        mkfifo $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}
+        $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} &
+        $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq} &
         
-        RUN_COMMAND="masai_output_pe $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-format sam --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTAREFERENCE $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} $THISTMP/${n/%.$FASTQ/.raw} $THISTMP/${n/%$READONE.$FASTQ/$READTWO.raw}"
+        RUN_COMMAND="masai_output_pe $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq} $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.raw}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
     fi
@@ -206,11 +249,11 @@ else
     samtools sort -@ $CPU_MASAI $OUTDIR/$SAMPLE.$ALN.bam $OUTDIR/$SAMPLE.ash
 
     # cleanup
-    [ -e $THISTMP/${n}_pipe ] && rm $THISTMP/${n}_pipe
-    [ -e $THISTMP/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe ] && rm $THISTMP/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe
+    [ -e $THISTMP/${INPUTFILENAME}_pipe ] && rm $THISTMP/${INPUTFILENAME}_pipe
+    [ -e $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe ] && rm $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe
     [ -e $THISTMP/$SAMPLE.$ALN.sam ] && rm $THISTMP/$SAMPLE.$ALN.sam
-    [ -e $THISTMP/${n/%.$FASTQ/.raw} ] && rm $THISTMP/${n/%.$FASTQ/.raw}
-    [ -e $THISTMP/${n/%$READONE.$FASTQ/$READTWO.raw} ] && rm $THISTMP/${n/%$READONE.$FASTQ/$READTWO.raw}
+    [ -e $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} ] && rm $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw}
+    [ -e $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.raw} ] && rm $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.raw}
     [ -e $OUTDIR/$SAMPLE.$ALN.bam ] && rm $OUTDIR/$SAMPLE.$ALN.bam
        
     # mark checkpoint
