@@ -646,14 +646,14 @@ fi
 #   http://picard.sourceforge.net/command-line-overview.shtml#FixMateInformation
 #   full pipe: http://www.broadinstitute.org/gsa/wiki/index.php/Whole_genome,_deep_coverage
 # IN:$SOURCE/$dir/fastq/*$READONE.fastq
-# OUT: $OUT/$dir/reCal/*.$$ASR.bam
+# OUT: $OUT/$dir/reCal/*.$ASR.bam
 ################################################################################
 
 if [ -n "$RUNREALRECAL" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKRCA -i $INPUT_REALRECAL -e .$ASD.bam \
         -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
-        --command "${NGSANE_BASE}/mods/reCalAln2.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA"
+        --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASKRCA"
 
 fi
 
@@ -718,53 +718,6 @@ if [ -n "$mergeBWAbams" ]; then
     for e in $( ls $OUT/combined/mergeguide/lanes/ ); do
 	merge.sh ${NGSANE_BASE} $OUT/combined/mergeguide/lanes/$e $OUT/combined/bwa/ ${e/tmp/$ASD.bam} bam qout/merged/
     done
-fi
-
-################################################################################
-#   recalibrate quality scores OLD
-#   http://www.broadinstitute.org/gsa/wiki/index.php/Base_quality_score_recalibration
-#   http://www.broadinstitute.org/gsa/wiki/index.php/Local_realignment_around_indels
-#   http://picard.sourceforge.net/command-line-overview.shtml#FixMateInformation
-#   full pipe: http://www.broadinstitute.org/gsa/wiki/index.php/Whole_genome,_deep_coverage
-# IN:$SOURCE/$dir/fastq/*$READONE.fastq
-# OUT: $OUT/$dir/reCal/*.$$ASR.bam
-################################################################################
-if [ -n "$recalibrateQualScore" ]; then
-
-    echo -e "********* $TASKRCA"
-
-    # generates the .dict file
-    #java -Xmx4g -jar /home/Software/picard-tools-1.22/CreateSequenceDictionary.jar R= $FASTA O= ${$FASTA/.fasta/.dict}
-    #sort dbSNP rod file according to fasta
-    #/home/Software/Sting/perl/sortByRef.pl --k 2 $GATKSUP/tmp.dbsnp.txt $FASTA.fai > $DBROD
-
-    if [ ! -d $QOUT/$TASKRCA ]; then mkdir -p $QOUT/$TASKRCA; fi
-    #ensure dirs are there...
-    if [ ! -d $OUT/combined/$TASKRCA ]; then mkdir -p $OUT/combined/$TASKRCA; fi
-
-    for f in $( ls $OUT/combined/bwa/*$ASD.bam )
-#    for f in $( ls combined/bwa/Nina_FC3056JAAXX_l6.$ASD.bam )
-	do
-	n=`basename $f`
-	name=${n/.bam/}
-	echo -e ">>>>>"$n
-
-
-	# wait on pipeline steps
-	HOLD="-hold_jid *mergeBams*"
-	# remove old pbs output
-	if [ -e $QOUT/$TASKRCA/$name.out ]; then rm $QOUT/$TASKRCA/$name.*; fi
-
-	#Sumit (ca. 80 min on AV 1297205 reads) -l h_rt=20:00:00
-	if [ -n "$ARMED" ]; then
-	    qsub $PRIORITY -j y -o $QOUT/$TASKRCA/$name'.out' -cwd -b y -l vf=20G \
-		-l mem_free=20G -l h_vmem=20G -N $TASKRCA'_'$name $HOLD\
-		${NGSANE_BASE}/mods/reCalAln.sh ${NGSANE_BASE} $f $FASTA $DBROD \
-		$OUT/combined/$TASKRCA $SEQREG
-	fi
-	
-    done
-
 fi
 
 

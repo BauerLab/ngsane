@@ -1,12 +1,12 @@
-#!/bin/bash
+#!/bin/bash -e
 
-# Recalibation script, expects .asd
+# Recalibation script; this is for gatk v2.5
 # author: Denis C. Bauer
-# date: Nov.2010
+# date: May.2013
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,We are loosing reads,for unmapped read,no such file,file not found,reCalAln.sh: line
-
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASR.bam
 
 echo ">>>>> recalibration and realignment using GATK"
 echo ">>>>> startdate "`date`
@@ -20,7 +20,7 @@ function usage {
 echo -e "usage: $(basename $0) -k NGSANE -f bam -r REFERENCE -o OUTDIR -d SNPDB [OPTIONS]
 
 Script running the recalibration and realigment step (GATK)
-It expects a bam file (*.asd.bam)
+It expects a bam file (*.$ASD.bam)
 
 required:
   -k | --toolkit <path>     location of the NGSANE repository 
@@ -30,7 +30,6 @@ required:
   -d | --snpdb <path>       path to a SNPdb instance (rod)
 
 options:
-  -t | --threads <nr>       number of CPUs to use (default: 1)
   -L | --region <ps>        region of specific interest, e.g. targeted reseq
                              format chr:pos-pos
 "
@@ -39,20 +38,14 @@ exit
 
 if [ ! $# -gt 4 ]; then usage ; fi
 
-#DEFAULTS
-MYTHREADS=1
-module load R
-module load jdk #/1.7.0_03
-
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
-        -t | --threads )        shift; MYTHREADS=$1 ;; # number of CPUs to use
-        -f | --fastq )          shift; f=$1 ;; # bam file
+        -f | --bam )            shift; f=$1 ;; # bam file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
         -d | --snpdb )          shift; DBROD=$1 ;; # snpdb
-        -o | --outdir )         shift; MYOUT=$1 ;; # output dir
+        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
         -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
@@ -66,10 +59,39 @@ done
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
-export PATH=$PATH:$RSCRIPT
 
+################################################################################
+CHECKPOINT="programs"
+
+for MODULE in $MODULE_RECAL; do module load $MODULE; done  # save way to load modules that itself load other modules
+export PATH=$PATH_RECAL:$PATH
+module list
+echo $PATH
+#this is to get the full path (modules should work but for path we need the full path and this is the\
+# best common denominator)
+PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
+
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_RECAL*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
+
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
+echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
+[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
+echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
+echo -e "--R           --\n "$(R --version | head -n 3)
+[ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
+echo -e "--GATK        --\n "$(java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar --version)
+[ ! -f $PATH_GATK/GenomeAnalysisTK.jar ] && echo "[ERROR] no GATK detected" && exit 1
+
+echo -e "\n********* $CHECKPOINT\n"
+################################################################################
+CHECKPOINT="parameters"
 
 # get basename of f
+f=${f/%.dummy/} #if input came from pipe
 n=${f##*/}
 
 BAMREADS=`head -n1 $f.stats | cut -d " " -f 1`
@@ -80,173 +102,264 @@ if [ -n "$SEQREG" ]; then REGION="-L $SEQREG"; fi
 p=`grep "paired in " $f.stats | cut -d " " -f 1`
 if [ ! "$p" -eq "0" ]; then
     PAIRED="1"
-    echo "********* PAIRED"
+    echo "[NOTE] PAIRED"
 else
-    echo "********* SINGLE"
+    echo "[NOTE] SINGLE"
     PAIRED="0"
 fi
 
-# delete old output files
-if [ -e $MYOUT/${n/asd/asdrr} ]; then rm $MYOUT/${n/asd/asdrr}; fi
-if [ -e $MYOUT/${n/asd/asdrr}.stats ]; then rm $MYOUT/${n/asd/asdrr}.stats; fi
-
-if [ ! -d $MYOUT/GATKorig ]; then
-    mkdir $MYOUT/GATKorig	
-    mkdir $MYOUT/GATKrcal
+# delete old bam files unless attempting to recover
+if [ -z "$RECOVERFROM" ]; then
+    [ -e $OUTDIR/${n/%$ASD.bam/$ASR.bam} ] && rm $OUTDIR/${n/%$ASD.bam/$ASR.bam}
+    [ -e $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats ] && rm $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
 fi
 
-if [ ! -d $MYOUT/GATKorig/$n ]; then
-    mkdir $MYOUT/GATKorig/$n
-    mkdir $MYOUT/GATKrcal/$n
-else 
-    rm -r $MYOUT/GATKorig/$n
-    rm -r $MYOUT/GATKrcal/$n
-fi
-
-
-# bwa/name.asd.bam -> /reCalAln/name.asd.bam
-f2=${f/$TASKBWA/$TASKRCA}
-
-#################
-# REALIGMENT
-#################
-
-echo "********* realignment"
-echo "********* find intervals to improve"
-java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
-    -T RealignerTargetCreator \
-    -I $f \
-    -R $FASTA \
-    -o $f2.intervals \
-    -known $DBROD \
-    $REGION \
-    -nt $MYTHREADS
-
-echo "********* realine them"
-java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
-    -T IndelRealigner \
-    -I $f \
-    -R $FASTA \
-    -targetIntervals $f2.intervals \
-    --out ${f2/bam/real.bam} \
-    -known $DBROD \
-    -compress 0 
-#    -nt $MYTHREADS
-
-# /reCalAln/name.asd.bam /reCalAln/name.asd.real.bam
-f3=${f2/bam/real.bam}
-
-
-echo "********* index"
-#$SAMTOOLS sort ${f2/bam/real.fix.bam} $MYOUT/${n/asd.bam/asdrr}
-$SAMTOOLS index $f3
-
-
-#################
-# RECALIBRATION
-#################
-
-echo "********* recalibrating"
-echo "********* counting covariantes" 
-java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
-    -T CountCovariates \
-    -R $FASTA \
-    -knownSites $DBROD \
-    -I $f3 \
-    -dcov 1000 \
-    -cov ReadGroupCovariate \
-    -cov QualityScoreCovariate \
-    -cov CycleCovariate \
-    -cov DinucCovariate \
-    -recalFile ${f3/.bam/.covar.csv} \
-    -nt $MYTHREADS
-
-
-echo "********* change score"
-java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
-    -T TableRecalibration \
-    -R $FASTA \
-    -I $f3 \
-    --out ${f3/.bam/.recal.bam} \
-    -recalFile ${f3/.bam/.covar.csv} 
-#    -nt $MYTHREADS
-
-
-
-echo "********* QC Step"
-echo "********* index"
-$SAMTOOLS index ${f3/.bam/.recal.bam}
-
-echo "********* counting covariantes after recalibration"
-java -Xmx16g -Djava.io.tmpdir=$TMP -jar $GATKJAR/GenomeAnalysisTK.jar -l WARN \
-    -T CountCovariates \
-    -R $FASTA \
-    -knownSites $DBROD \
-    -I ${f3/.bam/.recal.bam} \
-    -dcov 1000 \
-    -cov ReadGroupCovariate \
-    -cov QualityScoreCovariate \
-    -cov CycleCovariate \
-    -cov DinucCovariate \
-    -recalFile ${f3/.bam/.recal.covar.csv} \
-    -nt $MYTHREADS
-#    --default_platform illumina
-
-echo "********* plotting both"
-java -Xmx4g -jar $GATKJAR/AnalyzeCovariates.jar \
-    -recalFile ${f3/.bam/.covar.csv} \
-    -outputDir $MYOUT/GATKorig/$n \
-    -ignoreQ 5
-
-#    -Rscript $RSCRIPT \
-#    -resources $GATKHOME/R/ \
-
-
-java -Xmx4g -jar $GATKJAR/AnalyzeCovariates.jar \
-    -recalFile ${f3/.bam/.recal.covar.csv} \
-    -outputDir $MYOUT/GATKrcal/$n  \
-    -ignoreQ 5
-
-
-
-echo "********* sort/index"
-$SAMTOOLS sort ${f3/bam/recal.bam} $MYOUT/${n/$ASD.bam/$ASR}
-$SAMTOOLS index $MYOUT/${n/$ASD/$ASR}
-
-# statistics
-echo "********* statistics"
-$SAMTOOLS flagstat $MYOUT/${n/$ASD/$ASR} >> $MYOUT/${n/$ASD/$ASR}.stats
-if [ -n $SEQREG ]; then
-    echo "#custom region " >> $MYOUT/${n/$ASD/$ASR}.stats
-    echo `$SAMTOOLS view $MYOUT/${n/$ASD/$ASR} $SEQREG | wc -l`" total reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
-    echo `$SAMTOOLS view -f 2 $MYOUT/${n/$ASD/$ASR} $SEQREG | wc -l`" properly paired reads in region " >> $MYOUT/${n/$ASD/$ASR}.stats
-fi
-
-#f2=/reCalAln/name.asd.bam
-#f3=/reCalAln/name.asd.real.bam
-
-BAMREADSRERE=`head -n1 $MYOUT/${n/$ASD/$ASR}.stats | cut -d " " -f 1`
-if [ "$BAMREADSRERE" = "" ]; then let BAMREADSRERE="0"; fi	
-if [ $BAMREADS -eq $BAMREADSRERE ]; then
-    echo "[NOTE] PASS check recalibration and realignment: $BAMREADS == $BAMREADSRERE"
-    rm ${f3/.bam/.covar.csv}
-    rm ${f3/.bam/.recal.covar.csv}
-    rm ${f3/.bam/.recal.bam}
-    rm ${f3/.bam/.recal.bam}.bai
-    rm ${f3/.bam/.recal}.bai
-    rm $f2.intervals
-    rm $f3
-    rm ${f2/bam/real.bam}.bai
-    rm ${f2/bam/real}.bai
-else
-    echo -e "***ERROR**** We are loosing reads during recalibration and realignment-> .bam in $f: bam had $BAMREADS recal+real bam has $BAMREADSRERE"
+if [ -z "$DBROD" ] || [ ! -e $DBROD ] ; then
+    echo "[ERROR] DBROD parameter not set or data not found"
     exit 1
 fi
 
-# get the coverage track
-echo "********* coverage track"
-java -Xmx1g -jar $IGVTOOLS count $MYOUT/${n/$ASD/$ASR} \
-    $MYOUT/${n/$ASD/$ASR}.cov.tdf ${FASTA/fasta/genome}
+# bwa/name.$ASD.bam -> /reCalAln/name.$ASD.bam
+f2=${f/$INPUT_REALRECAL/$TASKRCA}
+# /reCalAln/name.$ASD.bam -> /reCalAln/name.$ASD.real
+f3=${f2/bam/real.bam}
 
+echo -e "\n********* $CHECKPOINT\n"
+################################################################################
+CHECKPOINT="recall files from tape"
+
+if [ -n "$DMGET" ]; then
+	dmget -a $f
+	dmget -a $OUTDIR/*
+fi
+    
+echo -e "\n********* $CHECKPOINT\n"    
+################################################################################
+CHECKPOINT="find intervals to improve"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    echo "[NOTE] $CHECKPOINT"
+
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
+        -T RealignerTargetCreator \
+        -I $f \
+        -R $FASTA \
+        -o $f2.intervals \
+        -known $DBROD \
+        $REGION \
+        -nt $CPU_RECAL
+        
+    # mark checkpoint
+    if [ -f $f2.intervals ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+
+################################################################################
+CHECKPOINT="realign"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    echo "[NOTE] $CHECKPOINT"
+
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
+        -T IndelRealigner \
+        -I $f \
+        -R $FASTA \
+        -targetIntervals $f2.intervals \
+        --out ${f2/bam/real.bam} \
+        -known $DBROD \
+        -compress 0 
+    #    -nt $CPU_RECAL
+
+    #samtools sort ${f2/bam/real.fix.bam} $OUTDIR/${n/$ASD.bam/$ASR}
+    samtools index $f3
+
+    # mark checkpoint
+    if [ -f ${f2/bam/real.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+
+################################################################################
+CHECKPOINT="count covariantes"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    echo "[NOTE] $CHECKPOINT"
+    
+    # there seems to be a warning reg. Rscript but it does not affect output
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
+        -T BaseRecalibrator \
+        -R $FASTA \
+        -knownSites $DBROD \
+        -I $f3 \
+        -dcov 1000 \
+        -cov ReadGroupCovariate \
+        -cov QualityScoreCovariate \
+        -cov CycleCovariate \
+        --plot_pdf_file $OUTDIR/GATKorig.pdf \
+        -o ${f3/.bam/.covar.grp} 
+    #    -nt $CPU_RECAL
+
+    # mark checkpoint
+    if [ -f ${f3/.bam/.covar.grp} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+
+################################################################################
+CHECKPOINT="adjust score"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    echo "[NOTE] $CHECKPOINT"
+
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
+        -T PrintReads \
+        -R $FASTA \
+        -I $f3 \
+        -o ${f3/.bam/.recal.bam} \
+        -BQSR ${f3/.bam/.covar.grp} \
+        -nct $CPU_RECAL
+        
+    samtools index ${f3/.bam/.recal.bam}
+
+    # mark checkpoint
+    if [ -f ${f3/.bam/.recal.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+
+################################################################################
+CHECKPOINT="evaluate performace"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    echo "[NOTE] $CHECKPOINT"
+
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
+         -T RecalibrationPerformance \
+         -o ${f3/.bam/.recal.performace} \
+         -R $FASTA \
+         --recal ${f3/.bam/.covar.grp} \
+         -nct $CPU_RECAL 
+    
+    # mark checkpoint
+    if [ -f ${f3/.bam/.recal.performace} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+
+################################################################################
+CHECKPOINT="count covariantes after recalibration"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    echo "[NOTE] $CHECKPOINT"
+
+    # TODO remove the below once it is not experimental anymore
+    echo "********* counting covariantes after recalibration"
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar  -l WARN \
+        -T BaseRecalibrator \
+        -R $FASTA \
+        -knownSites $DBROD \
+        -I ${f3/.bam/.recal.bam}  \
+        -dcov 1000 \
+        -cov ReadGroupCovariate \
+        -cov QualityScoreCovariate \
+        -cov CycleCovariate \
+        --plot_pdf_file $OUTDIR/GATKrecal.pdf \
+        -o ${f3/.bam/.recal.covar.grp} 
+    #    -nt $CPU_RECAL
+    
+    #echo " plotting both"
+    #java $JAVAPARAMS -jar $PATH_GATK/AnalyzeCovariates.jar \
+    #    -recalFile ${f3/.bam/.covar.csv} \
+    #    -outputDir $OUTDIR/GATKorig/$n \
+    #    -ignoreQ 5
+    
+    #    -Rscript $RSCRIPT \
+    #    -resources $GATKHOME/R/ \
+    
+    
+    #java $JAVAPARAMS -jar $PATH_GATK/AnalyzeCovariates.jar \
+    #    -recalFile ${f3/.bam/.recal.covar.csv} \
+    #    -outputDir $OUTDIR/GATKrcal/$n  \
+    #    -ignoreQ 5
+    
+    # mark checkpoint
+    if [ -f ${f3/.bam/.recal.covar.grp} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+
+################################################################################
+CHECKPOINT="sort/index"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    echo "[NOTE] $CHECKPOINT"
+
+    if [ "$PAIRED" == "1" ]; then
+        # fix mates
+        samtools sort -@ $CPU_RECAL -n ${f3/bam/recal.bam} ${f3/bam/recal.tmp}
+        samtools fixmate ${f3/bam/recal.tmp.bam} ${f3/bam/recal.bam}
+        [ -e ${f3/bam/recal.tmp.bam} ] && rm ${f3/bam/recal.tmp.bam}
+    fi
+    
+    samtools sort -@ $CPU_RECAL ${f3/bam/recal.bam} $OUTDIR/${n/%$ASD.bam/$ASR}
+    samtools index $OUTDIR/${n/%$ASD.bam/$ASR.bam}
+
+    # mark checkpoint
+    if [ -f $OUTDIR/${n/%$ASD.bam/$ASR.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+
+################################################################################
+CHECKPOINT="statistics"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    echo "[NOTE] $CHECKPOINT"
+
+    samtools flagstat $OUTDIR/${n/%$ASD.bam/$ASR.bam} >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
+    if [ -n "$SEQREG" ]; then
+        echo "#custom region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
+        echo $(samtools view -@ $CPU_RECAL -c -F 4 $OUTDIR/${n/%$ASD.bam/$ASR.bam} $SEQREG )" total reads in region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
+        echo $(samtools view -@ $CPU_RECAL -c -f 3 $OUTDIR/${n/%$ASD.bam/$ASR.bam} $SEQREG )" properly paired reads in region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
+    fi
+
+    #f2=/reCalAln/name.$ASD.bam
+    #f3=/reCalAln/name.$ASD.real.bam
+    
+    BAMREADSRERE=`head -n1 $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats | cut -d " " -f 1`
+    if [ "$BAMREADSRERE" = "" ]; then let BAMREADSRERE="0"; fi	
+    if [[ $BAMREADS -eq $BAMREADSRERE  && ! $BAMREADS -eq 0 ]]; then
+        echo "[NOTE] PASS check recalibration and realignment: $BAMREADS == $BAMREADSRERE"
+        rm ${f3/.bam/.covar.grp}
+        rm ${f3/.bam/.recal.covar.grp}
+        rm ${f3/.bam/.recal.bam}
+        rm ${f3/.bam/.recal.bam}.bai
+        rm ${f3/.bam/.recal}.bai
+        rm $f2.intervals
+        rm $f3
+        rm ${f2/bam/real.bam}.bai
+        rm ${f2/bam/real}.bai
+    else
+        echo -e "[ERROR] We are loosing reads during recalibration and realignment-> .bam in $f: bam had $BAMREADS recal+real bam has $BAMREADSRERE"
+        exit 1
+    fi
+    
+    # mark checkpoint
+    if [ -f $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+
+################################################################################
+[ -e $OUTDIR/${n/%$ASD.bam/$ASR.bam}.dummy ] && rm $OUTDIR/${n/%$ASD.bam/$ASR.bam}.dummy
 echo ">>>>> recalibration and realignment using GATK - FINISHED"
 echo ">>>>> enddate "`date`

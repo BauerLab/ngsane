@@ -41,5 +41,5 @@ chmod 777 tmp/testTOPHATCUFFHTSEQ.qsub
 
 #submit evaluation script
 echo "[NOTE] submit evaluation script"
-unset module
+if [[ "$SUBMISSIONSYSTEM" = "SGE" ]]; then unset module; fi
 qsub $HOLDID $QSUBEXTRA tmp/testTOPHATCUFFHTSEQ.qsub

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # the ngsane version to be tested needs to be loaded by hand
 . $NGSANE_BASE/conf/header.sh
@@ -131,5 +131,5 @@ chmod 777 tmp/testCHIPSEQ.qsub
 
 #submit evaluation script
 echo "[NOTE] submit evaluation script"
-unset module
+if [[ "$SUBMISSIONSYSTEM" = "SGE" ]]; then unset module; fi
 qsub $HOLDID $QSUBEXTRA  tmp/testCHIPSEQ.qsub
