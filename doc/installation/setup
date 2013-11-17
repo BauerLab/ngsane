@@ -1184,13 +1184,13 @@ module load $SOFTWARE/$VERSION
 
 ################################################################################
 
-NGSANE_VERSION=0.2.0_p2
+NGSANE_VERSION=0.3.0
 NGSANE_SOFTWARE=ngsane
 
 echo "install $NGSANE_SOFTWARE $NGSANE_VERSION " && cd /tmp/
 mkdir -p $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION $MODULEPATH/$NGSANE_SOFTWARE
 
-wget https://github.com/clark-lab/$NGSANE_SOFTWARE/archive/v$NGSANE_VERSION.tar.gz
+wget https://github.com/BauerLab/$NGSANE_SOFTWARE/archive/v$NGSANE_VERSION.tar.gz
 tar -xf v$NGSANE_VERSION.tar.gz
 mv $NGSANE_SOFTWARE-$NGSANE_VERSION/* $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION
 cd $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION
