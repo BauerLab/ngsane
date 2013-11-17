@@ -19,7 +19,8 @@ options for TASK:
   fetchdata  get data from remote server (via smbclient)
   pushresult puts results to remote server (via smbclient)
   armed      submit tasks to the queue
-  direct     run task directly (e.g. on node after qrsh)
+  debug      run task directly (e.g. on node after qrsh) output is written to stdout
+  direct     run task directly (e.g. on node after qrsh) output is written to logfiles
   postonly   run only the post analysis steps of a task (if available)
   recover    pick up unfinished business (interrupted jobs)
   html       checks logfiles for errors and creates summary HTML page
@@ -142,6 +143,10 @@ if [ -n "$ADDITIONALTASK" ]; then
     elif [ "$ADDITIONALTASK" = "new" ]; then
         echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
         ARMED="--new"
+
+    elif [ "$ADDITIONALTASK" = "debug" ]; then
+        echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
+        ARMED="--debug"
 
     elif [ "$ADDITIONALTASK" = "direct" ]; then
         echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
