@@ -339,7 +339,7 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
 </div><div class='wrapper'><div class='hidden'>
 <div id='bwa_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/bwa 
+# NGSANE /apps/gi/ngsane/devel_master//mods/bwa 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -359,14 +359,13 @@ QC_PASS .. 2 have bam conversion and sorting/2
 QC_PASS .. 2 have mark duplicates/2
 QC_PASS .. 2 have statistics/2
 QC_PASS .. 2 have calculate inner distance/2
-QC_PASS .. 2 have coverage track/2
 QC_PASS .. 2 have samstat/2
 QC_PASS .. 2 have verify/2
 </pre></div>
 <div id='bwa_notes'><pre>
 
 qout/bwa/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bwa/job.20131024.log
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/bwa/job.20131116.log
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
@@ -375,7 +374,7 @@ qout/bwa/Transcript_RNA3kChr16.out
 [NOTE] PASS check mapping: 7030 == 7030
 
 qout/bwa/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bwa/job.20131024.log
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/bwa/job.20131116.log
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
@@ -401,7 +400,7 @@ qout/bwa/Transcript_RNA3kChr16rep.out
         } else {
             $('#bwa_counter_notes').text('14');
             $('#bwa_counter_errors').text('0');
-            $('#bwa_counter_checkpoints_passed').text('19');
+            $('#bwa_counter_checkpoints_passed').text('18');
             $('#bwa_counter_checkpoints_failed').text('0'); 
             if (0==0){
                 $('#bwa_counter_errors').toggleClass('errors neutral');
@@ -489,7 +488,7 @@ qout/bwa/Transcript_RNA3kChr16rep.out
 </div><div class='wrapper'><div class='hidden'>
 <div id='reCalAln_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/reCalAln2 
+# NGSANE /apps/gi/ngsane/devel_master//mods/reCalAln 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -510,12 +509,11 @@ QC_PASS .. 2 have evaluate performace/2
 QC_PASS .. 2 have count covariantes after recalibration/2
 QC_PASS .. 2 have sort/index/2
 QC_PASS .. 2 have statistics/2
-QC_PASS .. 2 have coverage track/2
 </pre></div>
 <div id='reCalAln_notes'><pre>
 
 qout/reCalAln/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/reCalAln/job.20131024.log
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/reCalAln/job.20131116.log
 [NOTE] set java parameters
 [NOTE] PAIRED
 [NOTE] find intervals to improve
@@ -527,10 +525,9 @@ qout/reCalAln/Transcript_RNA3kChr16.out
 [NOTE] sort/index
 [NOTE] statistics
 [NOTE] PASS check recalibration and realignment: 7030 == 7030
-[NOTE] coverage track
 
 qout/reCalAln/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/reCalAln/job.20131024.log
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/reCalAln/job.20131116.log
 [NOTE] set java parameters
 [NOTE] PAIRED
 [NOTE] find intervals to improve
@@ -542,7 +539,6 @@ qout/reCalAln/Transcript_RNA3kChr16rep.out
 [NOTE] sort/index
 [NOTE] statistics
 [NOTE] PASS check recalibration and realignment: 7030 == 7030
-[NOTE] coverage track
 </pre></div>
 <div id='reCalAln_errors'><pre>
 
@@ -560,9 +556,9 @@ qout/reCalAln/Transcript_RNA3kChr16rep.out
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#reCalAln_counter_notes').text('26');
+            $('#reCalAln_counter_notes').text('24');
             $('#reCalAln_counter_errors').text('0');
-            $('#reCalAln_counter_checkpoints_passed').text('18');
+            $('#reCalAln_counter_checkpoints_passed').text('17');
             $('#reCalAln_counter_checkpoints_failed').text('0'); 
             if (0==0){
                 $('#reCalAln_counter_errors').toggleClass('errors neutral');
@@ -623,7 +619,7 @@ qout/reCalAln/Transcript_RNA3kChr16rep.out
 </div><div class='wrapper'><div class='hidden'>
 <div id='variant_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/gatkSNPs 
+# NGSANE /apps/gi/ngsane/devel_master//mods/gatkSNPs 
 ###################################################
 **_FAIL .. finished are 0/1
 >>>>>>>>>> Errors
@@ -636,7 +632,7 @@ qout/variant/postcommand.out
 [NOTE] call snps
 [NOTE] get snps only
 [NOTE] get indels only
-[NOTE] SNP call done Thu Oct 24 11:51:47 EST 2013
+[NOTE] SNP call done Sat Nov 16 14:36:34 EST 2013
 [NOTE] hardfilter
 [NOTE] hard filter INDELs
 [NOTE] index for IGV
@@ -702,5 +698,5 @@ qout/variant/postcommand.out
             $('#variant_panel div.wrapper div.display').html($('#variant_results').html());
         }
         </script>
-<hr><span>Report generated with NGSANE version: a90f7184561523e7844c8801fb048b40dfc3645e (git hash)</span><span style='float:right;'>Last modified: Thu Oct 24 11:54:44 EST 2013</span>
+<hr><span>Report generated with NGSANE version: 24ddd28a06c5605f059971731e62ba8eee3b82a0 (git hash)</span><span style='float:right;'>Last modified: Sat Nov 16 14:55:21 EST 2013</span>
 </div><!-- center --></body></html>

@@ -327,7 +327,7 @@ MODULE_GATK="${NG_GATK} ${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_IGVTOOLS}"
 MODULE_GATKSNP="${NG_GATK} ${NG_JAVA} ${NG_R} ${NG_IGVTOOLS}"
 
 ##############################################################
-# Tophat (2.0.9) 
+# Tophat (2.0.10) 
 # http://tophat.cbcb.umd.edu/
 WALLTIME_TOPHAT=62:00:00
 MEMORY_TOPHAT=50

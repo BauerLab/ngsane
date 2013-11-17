@@ -320,8 +320,8 @@ fi
 
 
 ################################################################################
-if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" || -n "$RUNREALRECAL3" ]]; then 
-    summaryHeader "Recalibrate + Realign" "$TASKRCA" "reCalAln2.sh" "$SUMMARYTMP"
+if [[ -n "$RUNREALRECAL" ]]; then 
+    summaryHeader "Recalibrate + Realign" "$TASKRCA" "reCalAln.sh" "$SUMMARYTMP"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKRCA)" .$ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
 

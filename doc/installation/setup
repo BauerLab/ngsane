@@ -585,7 +585,8 @@ DELIM
 
 module load $SOFTWARE/$VERSION
 
-
+##############
+# needs more memory than ti.micro
 ################################################################################
 VERSION=2.1.1
 SOFTWARE=cufflinks
@@ -614,16 +615,16 @@ module load $SOFTWARE/$VERSION
 
 ################################################################################
 VERSION=1.1.7
-SOFTWARE=RNA-SeQC
+SOFTWAREREAL=RNA-SeQC
+SOFTWARE=RNASEQC
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
 mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 
-wget http://www.broadinstitute.org/cancer/cga/sites/default/files/data/tools/rnaseqc/$SOFTWARE"_v"$VERSION.jar
-cp $SOFTWARE"_v"$VERSION.jar $PACKAGEPATH/$SOFTWARE/$VERSION/$SOFTWARE.jar
-chmod 555 $PACKAGEPATH/$SOFTWARE/$VERSION/$SOFTWARE.jar
+wget http://www.broadinstitute.org/cancer/cga/sites/default/files/data/tools/rnaseqc/$SOFTWAREREAL"_v"$VERSION.jar
+cp $SOFTWAREREAL"_v"$VERSION.jar $PACKAGEPATH/$SOFTWARE/$VERSION/$SOFTWAREREAL.jar
+chmod 555 $PACKAGEPATH/$SOFTWARE/$VERSION/$SOFTWAREREAL.jar
 
-SOFTWARE=RNASEQC
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
 proc ModulesHelp { } {
@@ -1061,7 +1062,8 @@ SOFTWARE=mcr
 echo "install $SOFTWARE $VERSION " && cd /tmp/
 mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 
-wget http://www.broadinstitute.org/~anshul/softwareRepo/MCR$VERSION.bin
+#wget http://www.broadinstitute.org/~anshul/softwareRepo/MCR$VERSION.bin
+wget http://www.mathworks.com.au/supportfiles/MCR_Runtime/R2012b/MCR_R2012b_glnxa64_installer.zip
 chmod 777 MCR$VERSION.bin
 ./MCR2010b.bin -console
 # choose "1" then "/packages/mcr/2010b" then "1" "1" "3"
@@ -1119,35 +1121,6 @@ module load $SOFTWARE/$VERSION
 
 ################################################################################
 
-#VERSION=11p1
-#SOFTWARE=ge
-#
-#echo "install $SOFTWARE $VERSION " && cd /tmp/
-#mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
-#
-#apt-get install -y pvm-dev
-#
-#wget http://downloads.sourceforge.net/project/gridscheduler/GE2011.11p1/GE2011.$VERSION.tar.gz
-#
-#tar -xf GE2011.$VERSION.tar.gz
-#cd GE2011.$VERSION/source
-#
-#cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
-##%Module1.0
-#proc ModulesHelp { } {
-#global dotversion
-# puts stderr "\t $SOFTWARE $VERSION"
-#}
-# module-whatis "$SOFTWARE $VERSION"
-#conflict $SOFTWARE
-#prepend-path    PATH            $PACKAGEPATH/$SOFTWARE/$VERSION/bin
-#setenv          MCR_CACHE_ROOT  /tmp
-#DELIM
-
-module load $SOFTWARE/$VERSION
-
-################################################################################
-
 VERSION=0.64
 SOFTWARE=circos
 
@@ -1177,6 +1150,8 @@ DELIM
 
 module load $SOFTWARE/$VERSION
 
+##############
+# needs more memory than ti.micro
 ################################################################################
 
 VERSION=1.3.3
@@ -1192,7 +1167,7 @@ mkdir -p build/Release && cd build/Release
 cmake ../.. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ -G "Unix Makefiles" && make
 cd ../.. && ./demos/smoketest_triplexator.sh ./bin/triplexator
 
-mv /tmp/$SOFTWARE/* $PACKAGEPATH/$SOFTWARE/$VERSION
+mv /tmp/$SOFTWARE/* $PACKAGEPATH/$SOFTWARE/$VERSION/
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
@@ -1256,9 +1231,9 @@ sed -i 's|^NG_FSEQ=|NG_FSEQ=fseq/1.84|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VE
 sed -i 's|^NG_BOWTIE=|NG_BOWTIE=bowtie/1.0.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BOWTIE2=|NG_BOWTIE2=bowtie/2.1.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BOOST=|NG_BOOST=boost/1.53.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_PEAKRANGER=|NG_PEAKRANGER=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_PEAKRANGER=|NG_PEAKRANGER=peakranger/1.16|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_MEME=|NG_MEME=meme/4.9.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_TOPHAT=|NG_TOPHAT=tophat/2.0.9|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_TOPHAT=|NG_TOPHAT=tophat/2.0.10|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_RNASEQC=|NG_RNASEQC=RNA-SeQC/1.1.7|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CUFFLINKS=|NG_CUFFLINKS=cufflinks/2.1.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_MONO=|NG_MONO=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1266,10 +1241,10 @@ sed -i 's|^NG_BLUE=|NG_BLUE=blue/1.0.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_V
 sed -i 's|^NG_PERL=|NG_PERL=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_WIGGLER=|NG_WIGGLER=wiggler/2.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HOMER=|NG_HOMER=homer/4.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_CUTADAPT=||' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_CUTADAPT=|NG_CUTADAPT=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_TRIMGALORE=|NG_TRIMGALORE=trim_galore/0.3.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_TRIMMOMATIC=|NG_TRIMMOMATIC=trimmomatic/0.30|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_HDF5=|NG_HDF5=hdf5/1.8.11|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_HDF5=|NG_HDF5=hdf5/1.8.12|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HICLIB=|NG_HICLIB=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HICUP=|NG_HICUP=hicup/0.4.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_FITHIC=|NG_FITHIC=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
