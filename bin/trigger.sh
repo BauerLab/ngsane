@@ -200,7 +200,7 @@ if [ ! -d $TMP ]; then mkdir -p $TMP; fi
 #   FastQC summary of fastq files
 #
 # IN : $SOURCE/fastq/$dir/*read1.fastq
-# OUT: $OUT/runstats/fastQC/*
+# OUT: $OUT/$dir/fastQC/*
 ################################################################################
 
 if [ -n "$RUNFASTQC" ]; then
@@ -208,7 +208,7 @@ if [ -n "$RUNFASTQC" ]; then
     
     $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -i $INPUT_FASTQC -e $READONE.$FASTQ -n $NODES_FASTQC \
     	-c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
-    	--postcommand "${NGSANE_BASE}/mods/fastQC.sh -k $CONFIG" 
+    	--command "${NGSANE_BASE}/mods/fastQC.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKFASTQC" 
 fi
 
 ################################################################################
