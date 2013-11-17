@@ -179,7 +179,8 @@ fi
 ################################################################################
 # create output directories
 for dir in ${DIR[@]}; do
-    if [ ! -d $OUT/$dir ]; then mkdir -p $OUT/$dir; fi
+    DIRNAME=${dir%%/*} # get (first) folder name
+    if [ ! -d $OUT/$DIRNAME ]; then mkdir -p $OUT/$DIRNAME; fi
 done
 
 if [ ! -d $QOUT ]; then mkdir -p $QOUT; fi
