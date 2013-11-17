@@ -179,7 +179,8 @@ fi
 ################################################################################
 # create output directories
 for dir in ${DIR[@]}; do
-    if [ ! -d $OUT/$dir ]; then mkdir -p $OUT/$dir; fi
+    DIRNAME=${dir%%/*} # get (first) folder name
+    if [ ! -d $OUT/$DIRNAME ]; then mkdir -p $OUT/$DIRNAME; fi
 done
 
 if [ ! -d $QOUT ]; then mkdir -p $QOUT; fi
@@ -200,7 +201,7 @@ if [ ! -d $TMP ]; then mkdir -p $TMP; fi
 #   FastQC summary of fastq files
 #
 # IN : $SOURCE/fastq/$dir/*read1.fastq
-# OUT: $OUT/runstats/fastQC/*
+# OUT: $OUT/$dir/fastQC/*
 ################################################################################
 
 if [ -n "$RUNFASTQC" ]; then
@@ -208,7 +209,7 @@ if [ -n "$RUNFASTQC" ]; then
     
     $QSUB $ARMED -d -k $CONFIG -t $TASKFASTQC -i $INPUT_FASTQC -e $READONE.$FASTQ -n $NODES_FASTQC \
     	-c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
-    	--postcommand "${NGSANE_BASE}/mods/fastQC.sh -k $CONFIG" 
+    	--command "${NGSANE_BASE}/mods/fastQC.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKFASTQC" 
 fi
 
 ################################################################################

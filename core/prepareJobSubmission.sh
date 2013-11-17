@@ -240,4 +240,5 @@ if [ -n "$POSTCOMMAND" ]; then
     fi
 fi
 
+# remove job list of this rounds files
 if [ ! -n "$KEEP" ] && [ -e $QOUT/$TASK/runnow.tmp ]; then  rm $QOUT/$TASK/runnow.tmp ; fi

@@ -153,9 +153,9 @@ GZIP="gzip -9"			# command, e.g. gzip or pigz
 # FASTQC (0.10.1) 
 # http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
 WALLTIME_FASTQC=10:00:00
-MEMORY_FASTQC=20
-CPU_FASTQC=16
-NODES_FASTQC="nodes=2:ppn=8"
+MEMORY_FASTQC=10
+CPU_FASTQC=2
+NODES_FASTQC="nodes=1:ppn=2"
 INPUT_FASTQC="fastq"
 MODULE_FASTQC="${NG_JAVA} ${NG_FASTQC}"
 PATH_FASTQC=
