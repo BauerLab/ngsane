@@ -82,10 +82,20 @@ else
 
     RUN_COMMAND="fastqc --nogroup -t $CPU_FASTQC --outdir $OUTDIR $INPUTFILE"
     echo $RUN_COMMAND && eval $RUN_COMMAND
+    # check for ".fastq.gz" suffix as FASTQC removes both suffixes then
+    if [ "$FASTQ" != "fastq.gz" ];then 
+        mv $OUTDIR/${INPUTFILENAME%.*}"_"fastqc.zip $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}; 
+        mv $OUTDIR/${INPUTFILENAME%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc}
+    fi
 
     if [ "$PAIRED" = "1" ];then
         RUN_COMMAND="fastqc --nogroup -t $CPU_FASTQC --outdir $OUTDIR ${INPUTFILE/%$READONE.$FASTQ/$READTWO.$FASTQ}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
+        R2=${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.$FASTQ}
+        if [ "$FASTQ" != "fastq.gz" ];then 
+            mv $OUTDIR/${R2%.*}"_"fastqc.zip $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc.zip}; 
+            mv $OUTDIR/${R2%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc}; 
+        fi
     fi
     
     chmod -R a+rx $OUTDIR/
