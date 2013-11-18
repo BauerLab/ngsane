@@ -121,7 +121,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    if [ -n "MACS2_MAKEBIGBEDS" ]; then
+    if [ -n "$MACS2_MAKEBIGBEDS" ]; then
         MAKEBEDGRAPH="--bdg "
     fi
     
@@ -146,8 +146,8 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
     
-    if [ -z "MACS2_MAKEBIGBEDS" ]; then
-        echo  "[NOTE] skipping bigbed generation"
+    if [ -z "$MACS2_MAKEBIGBEDS" ]; then
+        echo -e "[NOTE] skipping bigbed generation"
         echo -e "\n********* $CHECKPOINT\n"
         
     else
