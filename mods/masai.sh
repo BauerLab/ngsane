@@ -199,32 +199,18 @@ else
         
     if [ "$PAIRED" = "0" ]; then
         
-        # avoid IO by using named pipes
-        [ -e $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} ] && rm $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
-#        mkfifo $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
-#        $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} &
         $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
 
-#        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}"
-        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $FASTAREFERENCE <($ZCAT $f)"
-
+        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
-    
-        # reset named pipe 
-#        [ -e $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} ] && rm $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
-#        mkfifo $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
-#        $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} &
     
         RUN_COMMAND="masai_output_se $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
     elif [ "$PAIRED" = "1" ]; then
-        # avoid IO by using named pipes
-        [ -e $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.$FASTQ} ] && rm $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.$FASTQ}
-        [ -e $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq} ] && rm $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}
-        mkfifo $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}
-        $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} &
-        $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq} &
+
+        $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
+        $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}
       
         RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -232,12 +218,8 @@ else
         RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.raw} $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
-        # reset named pipe 
-        [ -e $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.$FASTQ} ] && rm $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.$FASTQ}
-        [ -e $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq} ] && rm $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}
-        mkfifo $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}
-        $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} &
-        $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq} &
+        $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
+        $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}
         
         RUN_COMMAND="masai_output_pe $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq} $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.raw}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -272,7 +254,7 @@ else
         INPUT=$OUTDIR/$SAMPLE.ash.bam \
         OUTPUT=$OUTDIR/$SAMPLE.ashrg.bam \
         RGID=$EXPID RGLB=$LIBRARY RGPL=$PLATFORM \
-        RGSM=$FULLSAMPLEID 
+        RGSM=$FULLSAMPLEID RGPU="XXXXXX"
 
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE.ashrg.bam ];then echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi

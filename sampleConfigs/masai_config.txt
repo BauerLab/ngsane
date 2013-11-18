@@ -57,6 +57,9 @@ PLATFORM="Illumina"
 MASAI_MAPPERADDPARAM=
 
 # additional parameters passed to masai_output_se / masai_output_pe
+# use appropriate seed and error setting, default is optimized for 100bp
+# Illumina reads
+# e.g. "--seed-length 20 --errors 3" for 35 bp reads
 MASAI_OUTPUTADDPARAM=
 
 # Index data structure for the mapping. 
