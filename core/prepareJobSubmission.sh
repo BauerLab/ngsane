@@ -185,10 +185,19 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         fi
     
         # record task in log file
-        cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
-        echo "[NOTE] Jobfile: "$QOUT/$TASK/job.$(date "+%Y%m%d").log >> $LOGFILE
+        JOBLOG=$QOUT/$TASK/job.$(date "+%Y%m%d").log
+        cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $JOBLOG
+        echo "[NOTE] Jobfile: "$JOBLOG >> $LOGFILE
 
-		
+        # add citations
+        TASKNAME=$(grep -P "^TASK.*=.?$TASK.?" $JOBLOG | cut -d "=" -f 1)
+        for M in NG_CITE_NGSANE $(grep -P "^${TASKNAME/TASK/MODULE_}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE_}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g'); do
+            CITE=$(grep -P "^$M=" $JOBLOG) || CITE=""
+            if [ -n "$CITE" ]; then
+                echo -e "[CITE] ${CITE/$M=/}" >> $LOGFILE
+            fi 
+        done
+
 		#eval job directly but write to logfile
 	    if [ -n "$DIRECT" ]; then eval $COMMAND2 >> $LOGFILE 2>&1 ; continue; fi
 

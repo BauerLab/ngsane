@@ -1,4 +1,4 @@
-<!DOCTYPE html><html><title>NGSANE project card</title><head>
+<!DOCTYPE html><html><head><meta charset="utf-8"> <title>NGSANE project card</title>
 <style type="text/css">
 body {
 	font: 12px/19px "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode",
@@ -327,7 +327,7 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
 <div id="center">
 
 <div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>
-<a href='#bwa'>bwa</a>|<a href='#reCalAln'>reCalAln</a>|<a href='#variant'>variant</a>
+<a href='#bwa'>bwa</a>|<a href='#reCalAln'>reCalAln</a>|<a href='#variant'>variant</a>|<a href='#References'>References</a>
 </div><!-- Links --></div><!-- panel -->
 <div class='panel' id='bwa_panel'>
         <div class='headbagb' id='bwa_panelback'><a name='bwa'></a>
@@ -339,7 +339,7 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
 </div><div class='wrapper'><div class='hidden'>
 <div id='bwa_checklist'><pre>
 ###################################################
-# NGSANE /apps/gi/ngsane/devel_master//mods/bwa 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/bwa 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -365,7 +365,7 @@ QC_PASS .. 2 have verify/2
 <div id='bwa_notes'><pre>
 
 qout/bwa/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/bwa/job.20131116.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bwa/job.20131118.log
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
@@ -374,7 +374,7 @@ qout/bwa/Transcript_RNA3kChr16.out
 [NOTE] PASS check mapping: 7030 == 7030
 
 qout/bwa/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/bwa/job.20131116.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/bwa/job.20131118.log
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
@@ -488,7 +488,7 @@ qout/bwa/Transcript_RNA3kChr16rep.out
 </div><div class='wrapper'><div class='hidden'>
 <div id='reCalAln_checklist'><pre>
 ###################################################
-# NGSANE /apps/gi/ngsane/devel_master//mods/reCalAln 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/reCalAln 
 ###################################################
 QC_PASS .. finished are 2/2
 >>>>>>>>>> Errors
@@ -513,7 +513,7 @@ QC_PASS .. 2 have statistics/2
 <div id='reCalAln_notes'><pre>
 
 qout/reCalAln/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/reCalAln/job.20131116.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/reCalAln/job.20131118.log
 [NOTE] set java parameters
 [NOTE] PAIRED
 [NOTE] find intervals to improve
@@ -527,7 +527,7 @@ qout/reCalAln/Transcript_RNA3kChr16.out
 [NOTE] PASS check recalibration and realignment: 7030 == 7030
 
 qout/reCalAln/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/reCalAln/job.20131116.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/master/smokebox/qout/reCalAln/job.20131118.log
 [NOTE] set java parameters
 [NOTE] PAIRED
 [NOTE] find intervals to improve
@@ -619,7 +619,7 @@ qout/reCalAln/Transcript_RNA3kChr16rep.out
 </div><div class='wrapper'><div class='hidden'>
 <div id='variant_checklist'><pre>
 ###################################################
-# NGSANE /apps/gi/ngsane/devel_master//mods/gatkSNPs 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/master/mods/gatkSNPs 
 ###################################################
 **_FAIL .. finished are 0/1
 >>>>>>>>>> Errors
@@ -632,7 +632,7 @@ qout/variant/postcommand.out
 [NOTE] call snps
 [NOTE] get snps only
 [NOTE] get indels only
-[NOTE] SNP call done Sat Nov 16 14:36:34 EST 2013
+[NOTE] SNP call done Mon Nov 18 16:20:03 EST 2013
 [NOTE] hardfilter
 [NOTE] hard filter INDELs
 [NOTE] index for IGV
@@ -698,5 +698,19 @@ qout/variant/postcommand.out
             $('#variant_panel div.wrapper div.display').html($('#variant_results').html());
         }
         </script>
-<hr><span>Report generated with NGSANE version: 24ddd28a06c5605f059971731e62ba8eee3b82a0 (git hash)</span><span style='float:right;'>Last modified: Sat Nov 16 14:55:21 EST 2013</span>
+<div class='panel'><div class='headbagb'><a name='References'><h2 class='sub'>References</h2></a></div>
+<h3>Please cite the following publications/resources</h3>
+<table class="data"><thead><tr><th><div style="width:10px"></div></th><th><div></div></th></tr></thead><tbody>
+<tr><td>[1]</td><td class='left'>Bioinformatics. 2009 Aug 15;25(16):2078-9. doi: 10.1093/bioinformatics/btp352. Epub 2009 Jun 8. 'The Sequence Alignment/Map format and SAMtools.'; Li H, Handsaker B, Wysoker A, Fennell T, Ruan J, Homer N, Marth G, Abecasis G, Durbin R; 1000 Genome Project Data Processing Subgroup.</td></tr>
+<tr><td>[2]</td><td class='left'>Bioinformatics. 2010 Mar 1;26(5):589-95. doi: 10.1093/bioinformatics/btp698. Epub 2010 Jan 15. 'Fast and accurate long-read alignment with Burrows-Wheeler transform.'; Li H, Durbin R.</td></tr>
+<tr><td>[3]</td><td class='left'>Bioinformatics. 2010 Mar 15;26(6):841-2. doi: 10.1093/bioinformatics/btq033. Epub 2010 Jan 28. 'BEDTools: a flexible suite of utilities for comparing genomic features.; Quinlan AR, Hall IM.</td></tr>
+<tr><td>[4]</td><td class='left'>Bioinformatics. 2011 Jan 1;27(1):130-1. doi: 10.1093/bioinformatics/btq614. Epub 2010 Nov 18. 'SAMStat: monitoring biases in next generation sequencing data.'; Lassmann T, Hayashizaki Y, Daub CO.</td></tr>
+<tr><td>[5]</td><td class='left'>Brief Bioinform. 2013 Mar;14(2):144-61. doi: 10.1093/bib/bbs038. Epub 2012 Aug 20. 'The UCSC genome browser and associated tools.'; Kuhn RM, Haussler D, Kent WJ.</td></tr>
+<tr><td>[6]</td><td class='left'>Brief Bioinform. 2013 Mar;14(2):178-92. doi: 10.1093/bib/bbs017. Epub 2012 Apr 19. 'Integrative Genomics Viewer (IGV): high-performance genomics data visualization and exploration.'; Thorvaldsdóttir H, Robinson JT, Mesirov JP.</td></tr>
+<tr><td>[7]</td><td class='left'>http://picard.sourceforge.net.</td></tr>
+<tr><td>[8]</td><td class='left'>(in review); 'NGSANE: A Lightweight Production Informatics Framework for High Throughput Data Analysis; Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC</td></tr>
+<tr><td>[9]</td><td class='left'>R: A language and environment for statistical computing; R Core Team. R Foundation for Statistical Computing, Vienna, Austria, (2013)</td></tr>
+</tbody></table>
+</div></div>
+<hr><span>Report generated with NGSANE version: 4c3350c87d49d829c6ec47e8e9e45cb1cf4a656d (git hash)</span><span style='float:right;'>Last modified: Mon Nov 18 16:23:05 EST 2013</span>
 </div><!-- center --></body></html>
