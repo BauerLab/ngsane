@@ -4,6 +4,14 @@
 . $NGSANE_BASE/conf/header.sh
 . bin/tmpl/configTopCuffHtseq.txt
 
+# direct or submitting?
+if [[ -z "$SB_MODE" ]]; then
+        if hash qsub 2>&- ; then SB_MODE="forcearmed"
+        else
+            SB_MODE="direct";
+        fi
+fi
+echo "[NOTE] run in $SB_MODE mode $(date)"
 ################################################################################
 #  TOPHAT
 ################################################################################
@@ -11,13 +19,14 @@
 
 # modify the template config file to flip the RUNTOPHAT switch
 # specify the resulting html file
-echo "[NOTE] Prep config file tmp/configTOPHATCUFFHTSEQ.txt"
+echo "[NOTE] Prep and run config file tmp/configTOPHATCUFFHTSEQ.txt"
 cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNTOPHATCUFFHTSEQ=\"\"/RUNTOPHATCUFFHTSEQ=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHATCUFFHTSEQ\"/g' > tmp/configTOPHATCUFFHTSEQ.txt
 
 # submit the TOPHAT run to the cluster
-JOBIDSTOPHATCUFFHTSEQ=$( trigger.sh tmp/configTOPHATCUFFHTSEQ.txt forcearmed | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+JOBIDSTOPHATCUFFHTSEQ=$( trigger.sh tmp/configTOPHATCUFFHTSEQ.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] submitted jobs $(echo -n $JOBIDSTOPHATCUFFHTSEQ)"
+
 
 ################################################################################
 # TEST
@@ -40,6 +49,10 @@ echo "diff result/SummaryTOPHATCUFFHTSEQ.html result/expected/SummaryTOPHATCUFFH
 chmod 777 tmp/testTOPHATCUFFHTSEQ.qsub
 
 #submit evaluation script
-echo "[NOTE] submit evaluation script"
-unset module
-qsub $HOLDID $QSUBEXTRA tmp/testTOPHATCUFFHTSEQ.qsub
+echo "[NOTE] submit or run evaluation script"
+if [[ "$SUBMISSIONSYSTEM" = "SGE" ]]; then unset module; fi
+if [[ "$SB_MODE" = "forcearmed" ]]; then
+	qsub $HOLDID $QSUBEXTRA tmp/testTOPHATCUFFHTSEQ.qsub
+else
+    eval tmp/testTOPHATCUFFHTSEQ.qsub
+fi

@@ -61,6 +61,10 @@ CS2_BDGCMP_ADDPARAM=
 # additional MACS parameters, for refinepeak
 MACS2_REFINEPEAK_ADDPARAM=
 
+# set to 1 in order to convert and keep the bedGraphs into BigBed format
+MACS2_MAKEBIGBEDS=
+
+
 #WALLTIME_MACS2=12:00:00
 #MEMORY_MACS2=20
 #CPU_MACS2=1

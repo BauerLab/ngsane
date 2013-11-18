@@ -29,6 +29,7 @@ while [ "$1" != "" ]; do
 	--keep )                KEEP="keep";;
 	--new )                 KEEP="new";;
 	--recover )             RECOVER="recover";;
+	--debug )               DEBUG="debug";;
 	--direct )              DIRECT="direct";;
 	--first )               FIRST="first";;
 	--postonly )            POSTONLY="postonly" ;;
@@ -49,7 +50,7 @@ echo -e "\e[96m[Task]\e[0m $TASK $NODIR"
 if [ ! -d $QOUT/$TASK ]; then mkdir -p $QOUT/$TASK; fi
 
 ## Select files in dir to run 
-if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
+if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
     echo -e "[NOTE] setup enviroment"
     if [ -e $QOUT/$TASK/runnow.tmp ]; then rm $QOUT/$TASK/runnow.tmp; fi
     
@@ -156,9 +157,9 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
     echo -e "\e[33m[ JOB]\e[0m  $COMMAND2"
 
-    if [ -n "$DIRECT" ]; then eval $COMMAND2; fi
+    if [ -n "$DEBUG" ]; then eval $COMMAND2; fi
 
-    if [ -n "$ARMED" ]; then
+    if [[ -n "$ARMED" || -n "$DIRECT" ]]; then
 
  #       echo $ARMED
 
@@ -184,8 +185,21 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         fi
     
         # record task in log file
-        cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
-        echo "[NOTE] Jobfile: "$QOUT/$TASK/job.$(date "+%Y%m%d").log >> $LOGFILE
+        JOBLOG=$QOUT/$TASK/job.$(date "+%Y%m%d").log
+        cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $JOBLOG
+        echo "[NOTE] Jobfile: "$JOBLOG >> $LOGFILE
+
+        # add citations
+        TASKNAME=$(grep -P "^TASK.*=.?$TASK.?" $JOBLOG | cut -d "=" -f 1)
+        for M in NG_CITE_NGSANE $(grep -P "^${TASKNAME/TASK/MODULE_}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE_}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g'); do
+            CITE=$(grep -P "^$M=" $JOBLOG) || CITE=""
+            if [ -n "$CITE" ]; then
+                echo -e "[CITE] ${CITE/$M=/}" >> $LOGFILE
+            fi 
+        done
+
+		#eval job directly but write to logfile
+	    if [ -n "$DIRECT" ]; then eval $COMMAND2 >> $LOGFILE 2>&1 ; continue; fi
 
         if [ -n "$JOBIDS" ]; then
 			JOBID=$(echo $JOBIDS | cut -d ":" -f $JOBNUMBER)
@@ -215,16 +229,19 @@ if [ -n "$POSTCOMMAND" ]; then
     POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$DIR}
 
     echo "[NOTE] "$DIR" wait for "$MYJOBIDS
-    echo $POSTCOMMAND2
+    #echo $POSTCOMMAND2
 
-    if [[ -n "$DIRECT" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi
-    if [[ -n "$ARMED" ||  -n "$POSTONLY" ]]; then
+    if [[ -n "$DEBUG" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi
+    if [[ -n "$ARMED" ||  -n "$POSTONLY" || "$DIRECT" ]]; then
 
     # remove old submission output logs
     if [ -e $QOUT/$TASK/postcommand.out ]; then rm $QOUT/$TASK/postcommand.out; fi
 
     # record task in log file
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
+
+	#eval job directly but write to logfile
+	if [ -n "$DIRECT" ]; then eval $POSTCOMMAND2 > $QOUT/$TASK/postcommand.out 2>&1 ; exit; fi
 
     # unless specified otherwise use HPC parameter from main job 
     if [ -z "$POSTNODES" ];    then POSTNODES=$NODES; fi
@@ -240,4 +257,5 @@ if [ -n "$POSTCOMMAND" ]; then
     fi
 fi
 
+# remove job list of this rounds files
 if [ ! -n "$KEEP" ] && [ -e $QOUT/$TASK/runnow.tmp ]; then  rm $QOUT/$TASK/runnow.tmp ; fi

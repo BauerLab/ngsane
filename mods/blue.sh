@@ -59,7 +59,7 @@ CHECKPOINT="parameters"
 #OUTDIR=$(dirname $f)"_blue"
 # get basename of f
 n=${f##*/}
-LIBRARY=${n/$READONE.$FASTQ/}
+SAMPLE=${n/$READONE.$FASTQ/}
 
 if [ -z $BLUE_KMER ]; then
     echo "[ERROR] BLUE_KMER not set"; 
@@ -83,7 +83,7 @@ else
     PAIRED="0"
 fi
 
-TESSELDIR=$OUTDIR/$LIBRARY"_"tessel
+TESSELDIR=$OUTDIR/$SAMPLE"_"tessel
 mkdir -p $TESSELDIR
 
 FILES=""
@@ -100,8 +100,8 @@ else
     zcat $f > $THISTMP/${n/.$FASTQ/.unzipped}
     FILES="$THISTMP/${n/.$FASTQ/.unzipped}"
     if [ $PAIRED = "1" ]; then 
-        zcat ${f/$READONE/$READTWO} > $THISTMP/$LIBRARY$READTWO.unzipped
-        FILES="$FILES $THISTMP/$LIBRARY$READTWO.unzipped"
+        zcat ${f/$READONE/$READTWO} > $THISTMP/$SAMPLE$READTWO.unzipped
+        FILES="$FILES $THISTMP/$SAMPLE$READTWO.unzipped"
     fi
 fi
 
@@ -124,13 +124,13 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-	RUN_COMMAND="mono ${BLUE_HOME}/Tessel.exe $TESSELADDPARAM -t ${CPU_BLUE} -tmp $THISTMP -k $BLUE_KMER -g $GENOMESIZE $TESSELDIR/$LIBRARY $FILES"
+	RUN_COMMAND="mono ${BLUE_HOME}/Tessel.exe $TESSELADDPARAM -t ${CPU_BLUE} -tmp $THISTMP -k $BLUE_KMER -g $GENOMESIZE $TESSELDIR/$SAMPLE $FILES"
 
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
 
-    if [ -f $TESSELDIR/$LIBRARY"_"$BLUE_KMER".cbt" ]; then echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $TESSELDIR/$SAMPLE"_"$BLUE_KMER".cbt" ]; then echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
@@ -140,24 +140,24 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-	RUN_COMMAND="mono ${BLUE_HOME}/Blue.exe $BLUEADDPARAM -t ${CPU_BLUE} -m ${BLUE_MINREPS} -o $OUTDIR $TESSELDIR/$LIBRARY"*.cbt" $FILES"
+	RUN_COMMAND="mono ${BLUE_HOME}/Blue.exe $BLUEADDPARAM -t ${CPU_BLUE} -m ${BLUE_MINREPS} -o $OUTDIR $TESSELDIR/$SAMPLE"*.cbt" $FILES"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    mv $OUTDIR/$LIBRARY$READONE"_corrected_"$BLUE_MINREPS".unzipped" $OUTDIR/$LIBRARY$READONE".fastq"
+    mv $OUTDIR/$SAMPLE$READONE"_corrected_"$BLUE_MINREPS".unzipped" $OUTDIR/$SAMPLE$READONE".fastq"
     if [ $PAIRED = "1" ]; then 
-        mv $OUTDIR/$LIBRARY$READTWO"_corrected_"$BLUE_MINREPS".unzipped" $OUTDIR/$LIBRARY$READTWO".fastq"
+        mv $OUTDIR/$SAMPLE$READTWO"_corrected_"$BLUE_MINREPS".unzipped" $OUTDIR/$SAMPLE$READTWO".fastq"
     fi
 	
 	# zip
-	$GZIP -c $OUTDIR/$LIBRARY$READONE".fastq" > $OUTDIR/$n
-	[ -f $OUTDIR/$LIBRARY$READONE".fastq" ] && rm $OUTDIR/$LIBRARY$READONE".fastq"
+	$GZIP -c $OUTDIR/$SAMPLE$READONE".fastq" > $OUTDIR/$n
+	[ -f $OUTDIR/$SAMPLE$READONE".fastq" ] && rm $OUTDIR/$SAMPLE$READONE".fastq"
 	if [ $PAIRED = "1" ]; then 
-    	$GZIP -c $OUTDIR/$LIBRARY$READTWO".fastq" > $OUTDIR/${n/$READONE.$FASTQ/$READTWO.$FASTQ}
-		[ -f $OUTDIR/$LIBRARY$READTWO".fastq" ] && rm $OUTDIR/$LIBRARY$READTWO".fastq"
+    	$GZIP -c $OUTDIR/$SAMPLE$READTWO".fastq" > $OUTDIR/${n/$READONE.$FASTQ/$READTWO.$FASTQ}
+		[ -f $OUTDIR/$SAMPLE$READTWO".fastq" ] && rm $OUTDIR/$SAMPLE$READTWO".fastq"
     fi
 
     if [ -n "$READONE" ]; then
-        mv $OUTDIR/$LIBRARY$READONE"_corrected_"$BLUE_MINREPS"_stats.txt" $OUTDIR/$LIBRARY"_corrected_"$BLUE_MINREPS"_stats.txt"
+        mv $OUTDIR/$SAMPLE$READONE"_corrected_"$BLUE_MINREPS"_stats.txt" $OUTDIR/$SAMPLE"_corrected_"$BLUE_MINREPS"_stats.txt"
     fi
 
     # mark checkpoint

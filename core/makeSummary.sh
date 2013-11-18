@@ -49,8 +49,9 @@ echo -e "--Python      --\n "$(python --version 2>&1 | tee | head -n 1)
 
 SUMMARYTMP=$HTMLOUT".tmp"
 SUMMARYFILE=$HTMLOUT".html"
+SUMMARYCITES=$HTMLOUT".cites"
 
-mkdir -p $(dirname $SUMMARYTMP) && cat /dev/null > $SUMMARYTMP # clean temporary content
+mkdir -p $(dirname $SUMMARYTMP) && cat /dev/null > $SUMMARYTMP && cat /dev/null > $SUMMARYCITES # clean temporary content
 
 PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',os.path.realpath('$(dirname $SUMMARYTMP)'))")
 [ -z "$PROJECT_RELPATH" ] && PROJECT_RELPATH="."
@@ -88,6 +89,9 @@ function summaryHeader {
         RESULTLOCATION=""
     fi
     ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $4 --modscript ${NGSANE_BASE}/mods/$3 --log $QOUT --task $2 $RESULTLOCATION $SUFFIX >> $4    
+    
+    grep -r -P '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES
+    
     echo "<div id='$2_results'>" >> $4
 } 
 
@@ -156,35 +160,31 @@ function bamAnnotate {
 
 ################################################################################
 if [ -n "$RUNFASTQC" ]; then
-    PIPELINE="FASTQC"
-    PIPELINK="fastqc"
-    
-    LINKS=$LINKS" $PIPELINK"
-    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+    summaryHeader "FASTQC" "$TASKFASTQC" "fastQC.sh" "$SUMMARYTMP"
 
     for dir in ${DIR[@]}; do
     echo "<h3>${OUT##*/}/fastq/$dir/</h3>" >>$SUMMARYTMP
         echo "<table class='data'>" >>$SUMMARYTMP
         echo "<thead><tr><th><div style='width:100px'>Chart</div></th><th><div style='width:140px'>Encoding</div></th><th><div style='width:120px'>Library size</div></th><th><div style='width:50px'>Read</div></th><th><div style='width:80px'>Read length</div></th><th><div style='width:50px'>%GC</div></th><th><div style='width:120px'>Read qualities</th><th class='left'>Library</th></tr></thead><tbody>" >>$SUMMARYTMP
         
-        if [[ -e runStats/ && -e runStats/$TASKFASTQC/ ]]; then
+        if [[ -e $dir/$TASKFASTQC/ ]]; then
             for fasta in $(ls $OUT/fastq/$dir/*.$FASTQ); do
                 fastan=${fasta##*/}
-                f="runStats/$TASKFASTQC/${fastan%.*}_fastqc.zip"
+                f="$dir/$TASKFASTQC/${fastan/.$FASTQ/}_fastqc.zip"
                 # get basename of f
                 n=${f##*/}
                 n=${n/"_fastqc.zip"/}
-                ICO=" <img height='15px' class='noborder' style='vertical-align:middle' src='$PROJECT_RELPATH/runStats/$TASKFASTQC/"$n"_fastqc/Icons/"
-                P=$(grep "PASS" -c runStats/$TASKFASTQC/$n"_fastqc/summary.txt")
-                W=$(grep "WARN" -c runStats/$TASKFASTQC/$n"_fastqc/summary.txt")
-                F=$(grep "FAIL" -c runStats/$TASKFASTQC/$n"_fastqc/summary.txt")
+                ICO=" <img height='15px' class='noborder' style='vertical-align:middle' src='$PROJECT_RELPATH/$dir/$TASKFASTQC/"$n"_fastqc/Icons/"
+                P=$(grep "PASS" -c $dir/$TASKFASTQC/$n"_fastqc/summary.txt")
+                W=$(grep "WARN" -c $dir/$TASKFASTQC/$n"_fastqc/summary.txt")
+                F=$(grep "FAIL" -c $dir/$TASKFASTQC/$n"_fastqc/summary.txt")
                 CHART=$ICO"tick.png' title='$P'\>$P"
                 if [ "$W" -ne "0" ]; then CHART=$CHART""$ICO"warning.png'\>"$W; fi
                 if [ "$F" -ne "0" ]; then CHART=$CHART""$ICO"error.png'\>"$F; fi
-                ENCODING=$(grep "Encoding" runStats/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                LIBRARYSIZE=$(grep "Total Sequences" runStats/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                READLENGTH=$(grep "Sequence length" runStats/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                GCCONTENT=$(grep "\%GC" runStats/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+                ENCODING=$(grep "Encoding" $dir/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+                LIBRARYSIZE=$(grep "Total Sequences" $dir/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+                READLENGTH=$(grep "Sequence length" $dir/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+                GCCONTENT=$(grep "\%GC" $dir/$TASKFASTQC/$n"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
                 if [[ "$f" == *$READTWO* ]] && [ "$f" != "${f/$READTWO/$READONE}" ]; then
                     READ=2
                 else
@@ -193,26 +193,25 @@ if [ -n "$RUNFASTQC" ]; then
                 echo "<tr style='vertical-align: middle;'><td>$CHART</td><td>$ENCODING</td><td>$LIBRARYSIZE</td><td>$READ</td><td>$READLENGTH</td><td>$GCCONTENT</td><td>" >>$SUMMARYTMP
         
                 if [[ "$f" == *$READONE* ]]; then
-                    echo "<a href='$PROJECT_RELPATH/runStats/$TASKFASTQC/${n}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/runStats/$TASKFASTQC/${n}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all first reads'/></a>" >>$SUMMARYTMP
+                    echo "<a href='$PROJECT_RELPATH/$dir/$TASKFASTQC/${n}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/$dir/$TASKFASTQC/${n}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all first reads'/></a>" >>$SUMMARYTMP
                     
                     if [ -e ${f/$READONE/$READTWO} ] && [ "$f" != "${f/$READONE/$READTWO}" ]; then
-                        echo "<a href='$PROJECT_RELPATH/runStats/$TASKFASTQC/${n/$READONE/$READTWO}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/runStats/$TASKFASTQC/${n/$READONE/$READTWO}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all second reads'/></a>" >>$SUMMARYTMP
+                        echo "<a href='$PROJECT_RELPATH/$dir/$TASKFASTQC/${n/$READONE/$READTWO}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/$dir/$TASKFASTQC/${n/$READONE/$READTWO}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all second reads'/></a>" >>$SUMMARYTMP
                     fi
                 
                 elif [[ "$f" == *$READTWO* ]] && [ "$f" != "${f/$READTWO/$READONE}" ]; then
-                    echo "<a href='$PROJECT_RELPATH/runStats/$TASKFASTQC/${n/$READTWO/$READONE}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/runStats/$TASKFASTQC/${n/$READTWO/$READONE}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all first reads'/></a>" >>$SUMMARYTMP
-                    echo "<a href='$PROJECT_RELPATH/runStats/$TASKFASTQC/${n}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/runStats/$TASKFASTQC/${n}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all second reads'/></a>" >>$SUMMARYTMP
+                    echo "<a href='$PROJECT_RELPATH/$dir/$TASKFASTQC/${n/$READTWO/$READONE}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/$dir/$TASKFASTQC/${n/$READTWO/$READONE}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all first reads'/></a>" >>$SUMMARYTMP
+                    echo "<a href='$PROJECT_RELPATH/$dir/$TASKFASTQC/${n}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/$dir/$TASKFASTQC/${n}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all second reads'/></a>" >>$SUMMARYTMP
         		else
         			echo "[ERROR] no fastq files $f"
                 fi
-                echo "</td><td class='left'><a href='$PROJECT_RELPATH/runStats/$TASKFASTQC/"$n"_fastqc/fastqc_report.html'>${fastan/.$FASTQ/}</a></td></tr>" >>$SUMMARYTMP
-
+                echo "</td><td class='left'><a href='$PROJECT_RELPATH/$dir/$TASKFASTQC/"$n"_fastqc/fastqc_report.html'>${fastan/.$FASTQ/}</a></td></tr>" >>$SUMMARYTMP
             done
         fi
         echo "</tbody></table>">>$SUMMARYTMP
     done
-    
-    echo "</div></div>">>$SUMMARYTMP
+
+    summaryFooter "$TASKFASTQC" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -320,8 +319,8 @@ fi
 
 
 ################################################################################
-if [[ -n "$RUNREALRECAL" || -n "$RUNREALRECAL2" || -n "$RUNREALRECAL3" ]]; then 
-    summaryHeader "Recalibrate + Realign" "$TASKRCA" "reCalAln2.sh" "$SUMMARYTMP"
+if [[ -n "$RUNREALRECAL" ]]; then 
+    summaryHeader "Recalibrate + Realign" "$TASKRCA" "reCalAln.sh" "$SUMMARYTMP"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASKRCA)" .$ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
 
@@ -656,12 +655,31 @@ fi
 
 
 
-
-#TODO add IGV
-
-
 ################################################################################
-echo '<!DOCTYPE html><html><title>NGSANE project card</title><head>' > $SUMMARYFILE.tmp
+# citation list
+################################################################################    
+PIPELINE="References"
+PIPELINK="References"
+
+LINKS=$LINKS" $PIPELINK"
+echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+echo '<h3>Please cite the following publications/resources</h3>' >>$SUMMARYTMP
+echo '<table class="data"><thead><tr><th><div style="width:10px"></div></th><th><div></div></th></tr></thead><tbody>' >>$SUMMARYTMP
+
+COUNT=1
+while read -r line; do
+    echo "<tr><td>[$COUNT]</td><td class='left'>${line//\"/}</td></tr>" >>$SUMMARYTMP
+    COUNT=$(( $COUNT + 1 ))
+done <<< "$(cat $SUMMARYCITES | cut -d']' -f 2 | sort -u )"
+
+echo "</tbody></table>" >>$SUMMARYTMP
+
+echo "</div></div>">>$SUMMARYTMP
+rm $SUMMARYCITES
+    
+################################################################################
+echo '<!DOCTYPE html><html><head><meta charset="utf-8"> <title>NGSANE project card</title>' > $SUMMARYFILE.tmp
 cat ${NGSANE_BASE}/core/Summary.css >> $SUMMARYFILE.tmp
 
 echo "<script type='text/javascript'>" >> $SUMMARYFILE.tmp
