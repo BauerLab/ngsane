@@ -178,7 +178,7 @@ else
 		rm $OUTDIR/${n}.tmp
 		samtools fixmate $OUTDIR/${n}.tmp.bam $OUTDIR/${n}
 		rm $OUTDIR/${n}.tmp.bam
-		
+		samtools index $OUTDIR/${n}
 	fi	
 
 

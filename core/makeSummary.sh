@@ -49,8 +49,9 @@ echo -e "--Python      --\n "$(python --version 2>&1 | tee | head -n 1)
 
 SUMMARYTMP=$HTMLOUT".tmp"
 SUMMARYFILE=$HTMLOUT".html"
+SUMMARYCITES=$HTMLOUT".cites"
 
-mkdir -p $(dirname $SUMMARYTMP) && cat /dev/null > $SUMMARYTMP # clean temporary content
+mkdir -p $(dirname $SUMMARYTMP) && cat /dev/null > $SUMMARYTMP && cat /dev/null > $SUMMARYCITES # clean temporary content
 
 PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',os.path.realpath('$(dirname $SUMMARYTMP)'))")
 [ -z "$PROJECT_RELPATH" ] && PROJECT_RELPATH="."
@@ -88,6 +89,9 @@ function summaryHeader {
         RESULTLOCATION=""
     fi
     ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $4 --modscript ${NGSANE_BASE}/mods/$3 --log $QOUT --task $2 $RESULTLOCATION $SUFFIX >> $4    
+    
+    grep -r -P '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES
+    
     echo "<div id='$2_results'>" >> $4
 } 
 
@@ -156,11 +160,7 @@ function bamAnnotate {
 
 ################################################################################
 if [ -n "$RUNFASTQC" ]; then
-    PIPELINE="FASTQC"
-    PIPELINK="fastqc"
-    
-    LINKS=$LINKS" $PIPELINK"
-    echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+    summaryHeader "FASTQC" "$TASKFASTQC" "fastQC.sh" "$SUMMARYTMP"
 
     for dir in ${DIR[@]}; do
     echo "<h3>${OUT##*/}/fastq/$dir/</h3>" >>$SUMMARYTMP
@@ -206,13 +206,12 @@ if [ -n "$RUNFASTQC" ]; then
         			echo "[ERROR] no fastq files $f"
                 fi
                 echo "</td><td class='left'><a href='$PROJECT_RELPATH/$dir/$TASKFASTQC/"$n"_fastqc/fastqc_report.html'>${fastan/.$FASTQ/}</a></td></tr>" >>$SUMMARYTMP
-
             done
         fi
         echo "</tbody></table>">>$SUMMARYTMP
     done
-    
-    echo "</div></div>">>$SUMMARYTMP
+
+    summaryFooter "$TASKFASTQC" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -656,12 +655,31 @@ fi
 
 
 
-
-#TODO add IGV
-
-
 ################################################################################
-echo '<!DOCTYPE html><html><title>NGSANE project card</title><head>' > $SUMMARYFILE.tmp
+# citation list
+################################################################################    
+PIPELINE="References"
+PIPELINK="References"
+
+LINKS=$LINKS" $PIPELINK"
+echo "<div class='panel'><div class='headbagb'><a name='$PIPELINK'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
+
+echo '<h3>Please cite the following publications/resources</h3>' >>$SUMMARYTMP
+echo '<table class="data"><thead><tr><th><div style="width:10px"></div></th><th><div></div></th></tr></thead><tbody>' >>$SUMMARYTMP
+
+COUNT=1
+while read -r line; do
+    echo "<tr><td>[$COUNT]</td><td class='left'>${line//\"/}</td></tr>" >>$SUMMARYTMP
+    COUNT=$(( $COUNT + 1 ))
+done <<< "$(cat $SUMMARYCITES | cut -d']' -f 2 | sort -u )"
+
+echo "</tbody></table>" >>$SUMMARYTMP
+
+echo "</div></div>">>$SUMMARYTMP
+rm $SUMMARYCITES
+    
+################################################################################
+echo '<!DOCTYPE html><html><head><meta charset="utf-8"> <title>NGSANE project card</title>' > $SUMMARYFILE.tmp
 cat ${NGSANE_BASE}/core/Summary.css >> $SUMMARYFILE.tmp
 
 echo "<script type='text/javascript'>" >> $SUMMARYFILE.tmp

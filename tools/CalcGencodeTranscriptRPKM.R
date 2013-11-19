@@ -32,7 +32,7 @@ ordered.gene.length<-transcript.length.gencode[match(counts[,1],names(transcript
 #calculate rpkms using edgeR
 RPKM<-rpkm(matrix(counts[,2]), gene.length=transcript.length.gencode)
 #write table of rpkms
-write.csv(cbind("ENST"=counts[,1],"RPKM"=RPKM[,1]),file=paste(sampleName,".RPKM.transcript.csv",sep=""),quote=FALSE,row.names=FALSE)
+write.csv(cbind("ENST"=counts[,1],"RPKM"=RPKM[,1]),file=paste(sampleName,".RPKM.csv",sep=""),quote=FALSE,row.names=FALSE)
 
 sink(type = "message")
 sessionInfo()

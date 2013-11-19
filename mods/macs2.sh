@@ -112,9 +112,7 @@ else
     CHIPINPUT="--control $SOURCE/$CHIPINPUT"
 fi
 
-
 echo -e "\n********* $CHECKPOINT\n"
-
 ################################################################################
 CHECKPOINT="macs 2 - call peaks "
 
@@ -123,7 +121,11 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED --bdg --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name ${n/.$ASD.bam/} > ${n/.$ASD.bam/}.summary.txt 2>&1"
+    if [ -n "$MACS2_MAKEBIGBEDS" ]; then
+        MAKEBEDGRAPH="--bdg "
+    fi
+    
+    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED $MAKEBEDGRAPH --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name ${n/.$ASD.bam/} > ${n/.$ASD.bam/}.summary.txt 2>&1"    
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     if [ -f ${n/.$ASD.bam/}_model.r ];then 
@@ -136,9 +138,7 @@ else
     
     # mark checkpoint
     if [ -f ${n/.$ASD.bam/}_peaks.xls ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
 fi
-
 ################################################################################
 CHECKPOINT="macs 2 - convert bedgraph to bigbed"
 
@@ -146,32 +146,43 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
     
-    if [ -n "$CHIPINPUT" ]; then
-
-        RUN_COMMAND="macs2 bdgcmp $MACS2_BDGCMP_ADDPARAM --method $MACS2_BDGCMP_METHOD --tfile ${n/.$ASD.bam/_treat_pileup.bdg} --cfile ${n/.$ASD.bam/_control_lambda.bdg} --output ${n/.$ASD.bam/} >> ${n/.$ASD.bam/}.summary.txt 2>&1"
-        echo $RUN_COMMAND && eval $RUN_COMMAND
-
-    	if hash bedToBigBed ; then 
-            bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
-#            bedToBigBed -type=bed4 ${n/.$ASD.bam/_control_lambda.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_control_lambda.bb}
-            bedToBigBed -type=bed4 ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bb}
-        fi
-
+    if [ -z "$MACS2_MAKEBIGBEDS" ]; then
+        echo -e "[NOTE] skipping bigbed generation"
+        echo -e "\n********* $CHECKPOINT\n"
+        
     else
-    	if hash bedToBigBed ; then 
-            bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
+        if [ -n "$CHIPINPUT" ]; then
+    
+            RUN_COMMAND="macs2 bdgcmp $MACS2_BDGCMP_ADDPARAM --method $MACS2_BDGCMP_METHOD --tfile ${n/.$ASD.bam/_treat_pileup.bdg} --cfile ${n/.$ASD.bam/_control_lambda.bdg} --output ${n/.$ASD.bam/} >> ${n/.$ASD.bam/}.summary.txt 2>&1"
+            echo $RUN_COMMAND && eval $RUN_COMMAND
+    
+        	if hash bedToBigBed ; then 
+                bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
+                bedToBigBed -type=bed4 ${n/.$ASD.bam/"_"$MACS2_BDGCMP_METHOD.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/"_"$MACS2_BDGCMP_METHOD.bb}
+                # don't create another one for the control in case if already exists
+                if [ ! -f ${n/.$ASD.bam/_control_lambda.bb} ]; then 
+                    BBTMP=$RANDOM
+                    bedToBigBed -type=bed4 ${n/.$ASD.bam/_control_lambda.bdg} $GENOME_CHROMSIZES $TMP/${n/.$ASD.bam/_control_lambda.bb$BBTMP}
+                    mv $TMP/${n/.$ASD.bam/_control_lambda.bb$BBTMP} ${n/.$ASD.bam/_control_lambda.bb}
+                fi
+            fi
+    
+        else
+        	if hash bedToBigBed ; then 
+                bedToBigBed -type=bed4 ${n/.$ASD.bam/_treat_pileup.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/_treat_pileup.bb}
+            fi
         fi
-    fi
-
+        
+        # mark checkpoint
+        if [ -f ${n/.$ASD.bam/_treat_pileup.bb} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    fi 
+    
+    # cleanup
     [ -e ${n/.$ASD.bam/_treat_pileup.bdg} ] && rm ${n/.$ASD.bam/_treat_pileup.bdg} 
     [ -e ${n/.$ASD.bam/_control_lambda.bdg} ] && rm ${n/.$ASD.bam/_control_lambda.bdg} 
     [ -e ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg} ] && rm ${n/.$ASD.bam/_$MACS2_BDGCMP_METHOD.bdg}
 
-    # mark checkpoint
-    if [ -f ${n/.$ASD.bam/_treat_pileup.bb} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
 fi
-
 ################################################################################
 CHECKPOINT="macs 2 - refine peaks "
 
@@ -196,10 +207,9 @@ else
     # mark checkpoint
     if [ -f ${n/.$ASD.bam/}_refinepeak.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
-
 ################################################################################
+# back to where we came from
 cd $SOURCE
-
 ################################################################################
 [ -e $OUTDIR/${n/.$ASD.bam/_refinepeak.bed}.dummy ] && rm $OUTDIR/${n/.$ASD.bam/_refinepeak.bed}.dummy
 echo ">>>>> ChIPseq analysis with MACS2 - FINISHED"
