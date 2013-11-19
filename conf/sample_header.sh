@@ -5,7 +5,8 @@ SUBMISSIONSYSTEM="PBS"                            # SGE or PBS
 QUEUEWAIT=" -W depend=afterok:"                   # PBS
 QUEUEWAITSEP=":"
 #QUEUEWAIT=" -hold_jid "                          # SGE
-#QUEUEWAITSEP=","       
+#QUEUEWAITSEP=","
+#QUEUEPARENV="smp"     
 DMGET=""                    # or Yes when storing data on tape
 TMP=$(pwd)/tmp                                       # TMP dir
 
@@ -154,8 +155,8 @@ GZIP="gzip -9"			# command, e.g. gzip or pigz
 # http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
 WALLTIME_FASTQC=10:00:00
 MEMORY_FASTQC=10
-CPU_FASTQC=2
-NODES_FASTQC="nodes=1:ppn=2"
+CPU_FASTQC=1
+NODES_FASTQC="nodes=1:ppn=1"
 INPUT_FASTQC="fastq"
 MODULE_FASTQC="${NG_JAVA} ${NG_FASTQC}"
 PATH_FASTQC=

@@ -160,7 +160,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     
     FASTASUFFIX=${FASTA##*.}
-    if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
+    if [[ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 || ! -e ${FASTA/.${FASTASUFFIX}/}.rev.4.bt2 ]]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
     if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
 
     # mark checkpoint
