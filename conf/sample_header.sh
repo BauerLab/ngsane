@@ -134,15 +134,5 @@ GZIP="gzip -9"			# command, e.g. gzip or pigz
 [ -n "$MODULE_GZIP" ] && module load $MODULE_GZIP
 
 # source content in default folder twice to properly set up crosslinked variables
-source ${NGSANE_BASE}/conf/header.d/*
-source ${NGSANE_BASE}/conf/header.d/*
-
-
-
-
-
-
-
-
-
-
+for NGSANE_DEFAULTS in ${NGSANE_BASE}/conf/header.d/* ; do source $NGSANE_DEFAULTS; done
+for NGSANE_DEFAULTS in ${NGSANE_BASE}/conf/header.d/* ; do source $NGSANE_DEFAULTS; done

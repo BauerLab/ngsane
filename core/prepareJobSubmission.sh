@@ -26,6 +26,7 @@ while [ "$1" != "" ]; do
 	-d | --nodir )          NODIR="nodir";;
 	-a | --armed )          ARMED="armed";;
     -W | --wait )           shift; JOBIDS=$1 ;;    # jobids to wait for
+    --commontask )          COMMONTASK="1";;    # a task common to multiple libraries
 	--keep )                KEEP="keep";;
 	--new )                 KEEP="new";;
 	--recover )             RECOVER="recover";;
@@ -53,7 +54,7 @@ if [ ! -d $QOUT/$TASK ]; then mkdir -p $QOUT/$TASK; fi
 if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
     echo -e "[NOTE] setup enviroment"
     if [ -e $QOUT/$TASK/runnow.tmp ]; then rm $QOUT/$TASK/runnow.tmp; fi
-    
+        
     for dir in ${DIR[@]}; do
     
         # separate folder from sample pattern
@@ -186,12 +187,13 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     
         # record task in log file
         JOBLOG=$QOUT/$TASK/job.$(date "+%Y%m%d").log
-        cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $JOBLOG
+        cat $CONFIG ${NGSANE_BASE}/conf/header.sh ${NGSANE_BASE}/conf/header.d/* > $JOBLOG
         echo "[NOTE] Jobfile: "$JOBLOG >> $LOGFILE
 
         # add citations
-        TASKNAME=$(grep -P "^TASK.*=.?$TASK.?" $JOBLOG | cut -d "=" -f 1)
-        for M in NG_CITE_NGSANE $(grep -P "^${TASKNAME/TASK/MODULE_}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE_}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g'); do
+        TASKNAME=$(grep -P "^TASK_[A_Z0_9]+=[\"']?$TASK[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
+        for M in NG_CITE_NGSANE $(grep -P "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g'); do
+
             CITE=$(grep -P "^$M=" $JOBLOG) || CITE=""
             if [ -n "$CITE" ]; then
                 echo -e "[CITE] ${CITE/$M=/}" >> $LOGFILE
@@ -202,20 +204,27 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 	    if [ -n "$DIRECT" ]; then eval $COMMAND2 >> $LOGFILE 2>&1 ; continue; fi
 
         if [ -n "$JOBIDS" ]; then
-			JOBID=$(echo $JOBIDS | cut -d ":" -f $JOBNUMBER)
+            if [[ $(echo $JOBIDS | sed 's/:*$//g'| awk -F':' '{print NF}') = 1 ]]; then
+                # everyone waits for the same job if only one id was given
+                JOBID=$(echo $JOBIDS | cut -d ":" -f 1)        
+            else
+                # otherwise wait for job in corresponding slot
+                JOBID=$(echo $JOBIDS | cut -d ":" -f $JOBNUMBER)
+            fi
+			
 			echo -e "[NOTE] wait for $JOBID out of $JOBIDS"
             RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$JOBID" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
-        	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
+        	   -j $TASK'_'$dir'_'$name$COMMONTASK -o $LOGFILE --command "$COMMAND2")
         else 
             RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
-        	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
+        	   -j $TASK'_'$dir'_'$name$COMMONTASK -o $LOGFILE --command "$COMMAND2")
         fi    	
 
         echo -e "Jobnumber $RECIPT"
         MYJOBIDS=$MYJOBIDS":"$RECIPT
     
         # if only the first task should be submitted as test
-        if [ -n "$FIRST" ]; then exit; fi
+        if [[ -n "$FIRST" || -n "$COMMONTASK" ]] ; then exit; fi
     
     fi
 done

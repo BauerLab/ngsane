@@ -208,7 +208,6 @@ if [ ! -d $TMP ]; then mkdir -p $TMP; fi
 # IN : $SOURCE/fastq/$dir/*read1.fastq
 # OUT: $OUT/$dir/fastQC/*
 ################################################################################
-
 if [ -n "$RUNFASTQC" ]; then
     if [ -z "$TASK_FASTQC" ] || [ -z "$NODES_FASTQC" ] || [ -z "$CPU_FASTQC" ] || [ -z "$MEMORY_FASTQC" ] || [ -z "$WALLTIME_FASTQC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
@@ -390,7 +389,18 @@ fi
 if [ -n "$RUNMAPPINGBWA" ]; then
     if [ -z "$TASK_BWA" ] || [ -z "$NODES_BWA" ] || [ -z "$CPU_BWA" ] || [ -z "$MEMORY_BWA" ] || [ -z "$WALLTIME_BWA" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -k $CONFIG -t $TASK_BWA -i $INPUT_BWA -e $READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA \
+    if [ ! -f $FASTA.bwt ];then
+        # submit job for index generation if necessary
+        JOBIDS=$(
+            $QSUB $ARMED -k $CONFIG -t $TASK_BWA -i $INPUT_BWA -e $READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA --commontask  \
+            --command "${NGSANE_BASE}/mods/bwaIndex.sh -k $CONFIG"
+        ) && echo -e "$JOBIDS"
+        JOBIDS=$(waitForJobIds "$JOBIDS")
+    else
+        JOBIDS=""
+    fi
+
+    $QSUB $ARMED -k $CONFIG -t $TASK_BWA -i $INPUT_BWA -e $READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA $JOBIDS \
         --command "${NGSANE_BASE}/mods/bwa.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_BWA --rgsi <DIR>"
 fi
 
@@ -398,13 +408,24 @@ fi
 #   Mapping using Bowtie v1
 #
 # IN:$SOURCE/$dir/fastq/*read1.fastq
-# OUT: $OUT/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/bowtie/*$ASD.bam
 ################################################################################
 
 if [ -n "$RUNMAPPINGBOWTIE" ]; then
     if [ -z "$TASK_BOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE -i $INPUT_BOWTIE -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE \
+    if [ ! -f ${FASTA%.*}.1.ebwt ];then
+        # submit job for index generation if necessary
+        INDEXJOBIDS=$(
+            $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE -i $INPUT_BOWTIE -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE --commontask \
+            --command "${NGSANE_BASE}/mods/bowtieIndex.sh -k $CONFIG"
+        ) && echo -e "$INDEXJOBIDS"
+        INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+    else
+        INDEXJOBIDS=""
+    fi
+    
+    $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE -i $INPUT_BOWTIE -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE $INDEXJOBIDS \
         --command "${NGSANE_BASE}/mods/bowtie.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_BOWTIE --rgsi <DIR>"        
 fi
 
@@ -413,12 +434,23 @@ fi
 #  Mapping with bowtie v2
 #
 # IN:  $SOURCE/$dir/fastq/*read1.fastq
-# OUT: $OUT/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/bowtie2/*$ASD.bam
 ################################################################################
 if [ -n "$RUNMAPPINGBOWTIE2" ]; then
     if [ -z "$TASK_BOWTIE2" ] || [ -z "$NODES_BOWTIE2" ] || [ -z "$CPU_BOWTIE2" ] || [ -z "$MEMORY_BOWTIE2" ] || [ -z "$WALLTIME_BOWTIE2" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE2 -i $INPUT_BOWTIE2 -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" -w $WALLTIME_BOWTIE2 \
+    if [ ! -f ${FASTA%.*}.1.bt2 ];then
+        # submit job for index generation if necessary
+        INDEXJOBIDS=$(
+            $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE2 -i $INPUT_BOWTIE2 -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" -w $WALLTIME_BOWTIE2 --commontask \
+            --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
+        ) && echo -e "$INDEXJOBIDS"
+        INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+    else
+        INDEXJOBIDS=""
+    fi
+    
+    $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE2 -i $INPUT_BOWTIE2 -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" -w $WALLTIME_BOWTIE2 $INDEXJOBIDS \
 	       --command "${NGSANE_BASE}/mods/bowtie2.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_BOWTIE2 --rgsi <DIR>"
       
 fi
@@ -450,7 +482,18 @@ fi
 if [ -n "$RUNTOPHAT" ]; then
     if [ -z "$TASK_TOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT \
+    if [ ! -f ${FASTA%.*}.1.bt2 ];then
+        # submit job for index generation if necessary
+        INDEXJOBIDS=$(
+            $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT --commontask \
+            --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
+        ) && echo -e "$INDEXJOBIDS"
+        INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+    else
+        INDEXJOBIDS=""
+    fi
+
+    $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT $INDEXJOBIDS \
         --command "${NGSANE_BASE}/mods/tophat.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_TOPHAT/<NAME>"
 
 fi
@@ -515,8 +558,19 @@ if [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
 		fi
 	fi
     
+    if [ ! -f ${FASTA%.*}.1.bt2 ];then
+        # submit job for index generation if necessary
+        INDEXJOBIDS=$(
+            $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT --commontask \
+            --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
+        ) && echo -e "$JOBIDS"
+        INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+    else
+        INDEXJOBIDS=""
+    fi
+    
     JOBIDS=$( 
-        $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" \
+        $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" $INDEXJOBIDS \
             -w $WALLTIME_TOPHAT \
             --command "${NGSANE_BASE}/mods/tophat.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_TOPHAT/<NAME>" 
     ) && echo -e "$JOBIDS"
@@ -527,7 +581,7 @@ if [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
     $QSUB $ARMED -r -k $CONFIG -t $TASK_CUFFLINKS -i $INPUT_CUFFLINKS -e .$ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS $JOBIDS \
         --command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFLINKS/<NAME>"
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_HTSEQCOUNT -i $INPUT_HTSEQCOUNT -e .$ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT $JOBIDS \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_HTSEQCOUNT -i $INPUT_HTSEQCOUNT -e .$ASD.bam -n $NODES_HTSEfQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT $JOBIDS \
         --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HTSEQCOUNT/<NAME>"      
     
     $QSUB --nodir -r $ARMED -k $CONFIG -t $TASK_BAMANN -i $INPUT_BAMANN -e .$ASD.bam -n $NODES_BAMANN -c $CPU_BAMANN -m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN $JOBIDS \

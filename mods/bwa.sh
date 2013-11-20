@@ -114,6 +114,11 @@ if [ -z "$FASTA" ]; then
     exit 1
 fi
 
+if [[ ! -e $FASTA.bwt ]]; then
+    echo "[ERROR] BWA index not detected. Exeute bwaIndex.sh first"
+    exit 1
+fi
+
 # check library variables are set
 if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
     echo "[ERROR] library info not set (EXPID, LIBRARY, and PLATFORM): free text needed"
@@ -159,10 +164,7 @@ else
 fi
 echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 
-
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
-echo ">>>>> full sample ID "$FULLSAMPLEID
-FASTASUFFIX=${FASTA##*.}
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -175,22 +177,6 @@ if [ -n "$DMGET" ]; then
 fi
     
 echo -e "\n********* $CHECKPOINT\n"
-################################################################################
-CHECKPOINT="generating the index files"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-
-    
-    # generating the index files
-    if [ ! -e $FASTA.bwt ]; then echo ">>>>> make .bwt"; bwa index -a bwtsw $FASTA; fi
-    if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
-
-    # mark checkpoint
-    if [ -f $FASTA.bwt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-fi 
-
 ################################################################################
 CHECKPOINT="BWA"
 

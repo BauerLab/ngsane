@@ -18,7 +18,7 @@ echo ">>>>> job_id "$JOB_ID
 echo ">>>>> $(basename $0) $*"
 
 function usage {
-echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
+echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -o OUTDIR [OPTIONS]"
 exit
 }
 
@@ -89,6 +89,11 @@ if [ -z "$FASTA" ]; then
     exit 1
 fi
 
+if [[ ! -e ${FASTA%.*}.1.bt2 ]]; then
+    echo "[ERROR] Bowtie2 index not detected. Exeute bowtieIndex.sh first"
+    exit 1
+fi
+
 # check library variables are set
 if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
     echo "[ERROR] library info not set (EXPID, LIBRARY, and PLATFORM): free text needed"
@@ -153,27 +158,12 @@ fi
     
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-CHECKPOINT="generating the index files"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    
-    FASTASUFFIX=${FASTA##*.}
-    if [[ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 || ! -e ${FASTA/.${FASTASUFFIX}/}.rev.4.bt2 ]]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
-    if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
-
-    # mark checkpoint
-    if [ -f ${FASTA/.${FASTASUFFIX}/}.1.bt2 ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-fi 
-
-################################################################################
 CHECKPOINT="bowtie2"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM $FASTQ_PHRED -t -x ${FASTA/.${FASTASUFFIX}/} -p $CPU_BOWTIE2 $READS | samtools view -@ $CPU_BOWTIE2 -bS -t $FASTA.fai - > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}"
+    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM $FASTQ_PHRED -t -x ${FASTA%.*} -p $CPU_BOWTIE2 $READS | samtools view -@ $CPU_BOWTIE2 -bS -t $FASTA.fai - > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     if [ "$PAIRED" = "1" ]; then
