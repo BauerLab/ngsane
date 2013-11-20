@@ -439,7 +439,7 @@ else
         RNASeQCDIR=$OUTDIR/../${n/%$READONE.$FASTQ/_RNASeQC}
         mkdir -p $RNASeQCDIR
     
-        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|$BAMFILE_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
+        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE}_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
     	rm ${BAMFILE}_sorted.bam
