@@ -1,0 +1,12 @@
+#!/bin/bash -e
+##############################################################
+# MACS2
+# https://github.com/taoliu/MACS/
+WALLTIME_MACS2=12:00:00
+MEMORY_MACS2=20
+CPU_MACS2=1
+NODES_MACS2="nodes=1:ppn=1"
+INPUT_MACS2=$TASKBOWTIE
+MODULE_MACS2="${NG_R} ${NG_UCSCTOOLS} ${NG_MACS2}"
+PATH_MACS2=
+

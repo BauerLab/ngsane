@@ -1,0 +1,12 @@
+#!/bin/bash -r
+##############################################################
+# Trimming with TRIMMOMATIC
+# http://www.usadellab.org/cms/index.php?page=trimmomatic
+WALLTIME_TRIMMOMATIC=8:00:00
+MEMORY_TRIMMOMATIC=40
+CPU_TRIMMOMATIC=1
+NODES_TRIMMOMATIC="nodes=1:ppn=1"
+INPUT_TRIMMOMATIC="fastq"
+MODULE_TRIMMOMATIC="${NG_JAVA} ${NG_TRIMMOMATIC}"
+PATH_TRIMMOMATIC=
+

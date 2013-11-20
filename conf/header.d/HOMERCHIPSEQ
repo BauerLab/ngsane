@@ -1,0 +1,12 @@
+#!/bin/bash -e
+##############################################################
+# HOMER CHIPSEQ
+# http://biowhat.ucsd.edu/homer/index.html
+WALLTIME_HOMERCHIPSEQ=12:00:00
+MEMORY_HOMERCHIPSEQ=20
+CPU_HOMERCHIPSEQ=1
+NODES_HOMERCHIPSEQ="nodes=1:ppn=1"
+INPUT_HOMERCHIPSEQ=$TASKBOWTIE
+MODULE_HOMERCHIPSEQ="${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_PERL} ${NG_HOMER}"
+PATH_HOMERCHIPSEQ=
+

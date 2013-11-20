@@ -1,0 +1,12 @@
+#!/bin/bash -e
+##############################################################
+# Blue Read error correction
+# http://www.bioinformatics.csiro.au/blue/
+WALLTIME_BLUE=10:00:00
+MEMORY_BLUE=60
+CPU_BLUE=4
+NODES_BLUE="nodes=1:ppn=4"
+INPUT_BLUE="fastq"
+MODULE_BLUE="${NG_MONO} ${NG_BLUE}"
+PATH_BLUE=
+

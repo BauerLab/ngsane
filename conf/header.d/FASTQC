@@ -1,0 +1,12 @@
+#!/bin/bash -e
+##############################################################
+# FASTQC (0.10.1) 
+# http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+WALLTIME_FASTQC=10:00:00
+MEMORY_FASTQC=10
+CPU_FASTQC=1
+NODES_FASTQC="nodes=1:ppn=1"
+INPUT_FASTQC="fastq"
+MODULE_FASTQC="${NG_JAVA} ${NG_FASTQC}"
+PATH_FASTQC=
+
