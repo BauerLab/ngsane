@@ -95,8 +95,8 @@ fi
 # get basename of f (samplename)
 n=${fs/,/:}
 O=${OUT/$n/}
-CUFOUT=${O/$TASKCUFFDIFF/Run\/$TASKCUFF/}
-TOPHATOUT=${O/$TASKCUFFDIFF/Run\/$TASKTOPHAT/}
+CUFOUT=${O/$TASK_CUFFDIFF/Run\/$TASK_CUFF/}
+TOPHATOUT=${O/$TASK_CUFFDIFF/Run\/$TASK_TOPHAT/}
 
 CUFGTFS=""
 TOPHATBAM=""

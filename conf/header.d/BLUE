@@ -2,6 +2,7 @@
 ##############################################################
 # Blue Read error correction
 # http://www.bioinformatics.csiro.au/blue/
+TASK_BLUE="blue"
 WALLTIME_BLUE=10:00:00
 MEMORY_BLUE=60
 CPU_BLUE=4

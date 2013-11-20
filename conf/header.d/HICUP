@@ -2,6 +2,7 @@
 ##############################################################
 # HICUP + fit-hi-c
 # http://www.bioinformatics.babraham.ac.uk/projects/hicup/
+TASK_HICUP="hicup"
 WALLTIME_HICUP=10:00:00
 MEMORY_HICUP=60
 CPU_HICUP=8

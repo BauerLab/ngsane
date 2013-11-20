@@ -2,10 +2,11 @@
 ##############################################################
 # HTSEQ-count (0.5.4.p3)
 # http://www-huber.embl.de/users/anders/HTSeq/doc/index.html
+TASK_HTSEQCOUNT="htseqcount"
 WALLTIME_HTSEQCOUNT=24:00:00
 MEMORY_HTSEQCOUNT=50
 CPU_HTSEQCOUNT=1
 NODES_HTSEQCOUNT="nodes=1:ppn=1"
-INPUT_HTSEQCOUNT=$TASKTOPHAT
+INPUT_HTSEQCOUNT=$TASK_TOPHAT
 MODULE_HTSEQCOUNT="${NG_R} ${NG_BEDTOOLS} ${NG_SAMTOOLS} ${NG_HTSEQ}"
 PATH_HTSEQCOUNT=

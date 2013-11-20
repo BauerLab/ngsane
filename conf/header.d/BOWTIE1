@@ -1,4 +1,7 @@
 #!/bin/bash -e
+# Bowtie1 (1.0.0)
+# http://bowtie-bio.sourceforge.net/index.shtml
+TASK_BOWTIE="bowtie"
 WALLTIME_BOWTIE=72:00:00
 MEMORY_BOWTIE=60
 CPU_BOWTIE=8

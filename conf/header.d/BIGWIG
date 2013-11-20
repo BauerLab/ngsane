@@ -2,11 +2,12 @@
 ##############################################################
 # Create bigwigs from bam files
 # http://genome.ucsc.edu/util.html/
+TASK_BIGWIG="bigwig"
 WALLTIME_BIGWIG=12:00:00
 MEMORY_BIGWIG=12
 CPU_BIGWIG=2
 NODES_BIGWIG="nodes=1:ppn=2"
-INPUT_BIGWIG=$TASKBOWTIE
+INPUT_BIGWIG=$TASK_BOWTIE
 MODULE_BIGWIG="${NG_UCSCTOOLS} ${NG_JAVA} ${NG_SAMTOOLS} ${NG_BEDTOOLS}"
 PATH_BIGWIG=
 

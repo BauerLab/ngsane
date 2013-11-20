@@ -2,6 +2,7 @@
 ##############################################################
 # demultiplex with Fastxtoolkit
 # http://hannonlab.cshl.edu/fastx_toolkit/
+TASK_DEMULTIPLEX=“demultiplex”
 WALLTIME_DEMULTIPLEX=5:00:00
 MEMORY_DEMULTIPLEX=20
 CPU_DEMULTIPLEX=1

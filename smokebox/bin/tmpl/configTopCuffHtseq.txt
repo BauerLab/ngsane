@@ -56,8 +56,8 @@ HTSEQCOUNT_MODES="union"
 HTSEQCOUNT_ATTRIBUTES="gene_id"
 
 # folder/task containing the data this task operates on
-INPUT_BAMANN=$TASKTOPHAT
-TASKBAMANN="bamann_tophat"
+INPUT_BAMANN=$TASK_TOPHAT
+TASK_BAMANN="bamann_tophat"
 
 #********************
 # Paths

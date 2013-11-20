@@ -1,14 +1,14 @@
 #!/bin/bash -e
 
 # Script to ... 
-# It takes a <Run>/*.$FASTQ[.gz] file and returns <Run>_$TASKBLUE/*.$FASTQ[.gz]
+# It takes a <Run>/*.$FASTQ[.gz] file and returns <Run>"_"$TASK_BLUE/*.$FASTQ[.gz]
 #
 # author: Denis Bauer
 # date: Sept 2013
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
-# RESULTFILENAME fastq/<DIR>_$TASKBLUE/<SAMPLE>$READONE.$FASTQ
+# RESULTFILENAME fastq/<DIR>"_"$TASK_BLUE/<SAMPLE>$READONE.$FASTQ
 
 echo ">>>>> read correction with Blue"
 echo ">>>>> startdate "`date`

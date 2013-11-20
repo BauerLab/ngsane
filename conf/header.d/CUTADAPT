@@ -2,6 +2,7 @@
 ##############################################################
 # Trim adapter with CUTADAPT ()
 # https://code.google.com/p/cutadapt/
+TASK_CUTADAPT="cutadapt"
 WALLTIME_CUTADAPT=4:00:00
 MEMORY_CUTADAPT=40
 CPU_CUTADAPT=1

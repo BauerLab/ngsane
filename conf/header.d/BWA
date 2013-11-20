@@ -1,6 +1,7 @@
 ##############################################################
 # BWA (0.7.4) 
 # http://bio-bwa.sourceforge.net/
+TASK_BWA="bwa"
 WALLTIME_BWA=50:00:00
 MEMORY_BWA=50
 CPU_BWA=32

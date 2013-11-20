@@ -2,6 +2,7 @@
 ##############################################################
 # FASTQC (0.10.1) 
 # http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+TASK_FASTQC="fastQC"
 WALLTIME_FASTQC=10:00:00
 MEMORY_FASTQC=10
 CPU_FASTQC=1

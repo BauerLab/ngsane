@@ -103,61 +103,11 @@ NG_CITE_MACS2="Genome Biol. 2008;9(9):R137. doi: 10.1186/gb-2008-9-9-r137. Epub 
 NG_CITE_HTSEQ="Conf Proc IEEE Eng Med Biol Soc. 2013 Jul;2013:647-50. doi: 10.1109/EMBC.2013.6609583. 'Benchmarking RNA-Seq quantification tools.'; Chandramohan R, Wu PY, Phan JH, Wang MD."
 
 ##############################################################
-# Task Names
-##############################################################
-TASKFASTQC="fastQC"
-TASKBWA="bwa"
-TASKBOWTIE="bowtie"
-TASKBOWTIE2="bowtie2"
-TASKRCA="reCalAln"
-TASKVAR="variant"
-TASKSNP="snp"
-TASKIND="indel"
-TASKDOWN="downsample"
-TASKDOC="coverage"
-TASKDIFFEXP="diffexp"
-TASKTOPHAT="tophat"
-TASKHTSEQCOUNT="htseqcount"
-TASKCUFFLINKS="cufflinks"
-TASKCUFFDIFF="cuffdiff"
-TASKRRBSMAP="rrbs"
-TASKANNOVAR="annovar"
-TASKBAMANN="bamann"
-TASKSAMVAR="samvar"
-TASKCUTADAPT="cutadapt"
-TASKTRIMGALORE="trimgalore"
-TASKHICUP="hicup"
-TASKHICLIB="hiclib"
-TASKWIGGLER="wiggler"
-TASKTRIMMOMATIC="trimmomatic"
-TASKHOMERHIC="homerhic"
-TASKHOMERCHIPSEQ="homerchipseq"
-TASKPEAKRANGER="peakranger"
-TASKMACS2="macs2"
-TASKMEMECHIP="memechip"
-TASKTRINITY="trinity"
-TASKINCHWORM="trinity_inchworm"
-TASKCHRYSALIS="trinity_chrysalis"
-TASKBUTTERFLY="trinity_butterfly"
-TASKFASTQSCREEN="fastqscreen"
-TASKBIGWIG="bigwig"
-TASKBLUE="blue"
-TASKCHANCE="chance"
-TASKPOOLBAMS="pooledbam"
-
-##############################################################
 # PROGRAM PATHS
 ##############################################################
 QSUB=${NGSANE_BASE}/core/prepareJobSubmission.sh
 BINQSUB=${NGSANE_BASE}/core/jobSubmission.sh
 QSUBEXTRA=""            # any extra such as email notification
-
-#Additional programs not necessarily available as module
-PATH_SAMTOOLS=
-PATH_IGVTOOLS=
-PATH_PICARD=
-PATH_SAMSTAT=
-PATH_FASTXTK=
 
 # Commonly used file abbreviations
 READONE="_read1"
@@ -177,51 +127,15 @@ MODULES_DEFAULT=
 for MODULE in $MODULES_DEFAULT; do module load $MODULES_DEFAULT; done
 
 ##############################################################
-# Summary specifics
-# 
-MODULE_SUMMARY="${NG_R} ${NG_PYTHON}"
-PATH_SUMMARY=
-HTMLOUT="Summary"
-
-##############################################################
 # gzip alternatives, e.g.
 # pigz (2.3) - http://zlib.net/pigz/
 MODULE_GZIP=${NG_GZIP}
 GZIP="gzip -9"			# command, e.g. gzip or pigz
 [ -n "$MODULE_GZIP" ] && module load $MODULE_GZIP
 
+# source content in default folder twice to properly set up crosslinked variables
 source $(dirname)/header.d/*
-
-##############################################################
-# Snp calling with GATK
-# http://www.broadinstitute.org/gatk/
-# COVERAGE
-WALLTIME_GATKDOC=50:00:00
-MEMORY_GATKDOC=50
-CPU_GATKDOC=1
-NODES_GATKDOC="nodes=1:ppn=1"
-INPUT_GATKDOC=$TASKRCA
-# GATK VARCALL
-WALLTIME_VAR=100:00:00
-MEMORY_VAR=20
-CPU_VAR=1
-NODES_VAR="nodes=1:ppn=1"
-INPUT_VAR=$TASKRCA
-
-MODULE_GATK="${NG_GATK} ${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_IGVTOOLS}"
-MODULE_GATKSNP="${NG_GATK} ${NG_JAVA} ${NG_R} ${NG_IGVTOOLS}"
-
-
-##############################################################
-# downsample
-# 
-WALLTIME_DOWNSAMPLE=5:00:00
-MEMORY_DOWNSAMPLE=20
-CPU_DOWNSAMPLE=1
-NODES_DOWNSAMPLE="nodes=1:ppn=1"
-
-MODULE_DOWNSAMPLE=
-PATH_DOWNSAMPLE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMTOOLS
+source $(dirname)/header.d/*
 
 
 

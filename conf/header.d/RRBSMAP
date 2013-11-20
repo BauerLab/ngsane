@@ -2,6 +2,7 @@
 ##############################################################
 # reduced representation bisulfite sequencing mapping 
 # https://code.google.com/p/bsmap/
+TASK_RRBSMAP="rrbs"
 WALLTIME_RRBSMAP=60:00:00
 MEMORY_RRBSMAP=50
 CPU_RRBSMAP=32

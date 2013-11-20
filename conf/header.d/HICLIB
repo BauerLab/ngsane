@@ -2,6 +2,7 @@
 ##############################################################
 # HICLIB 
 # https://bitbucket.org/mirnylab/hiclib
+TASK_HICLIB="hiclib"
 WALLTIME_HICLIB=50:00:00
 MEMORY_HICLIB=60
 CPU_HICLIB=16

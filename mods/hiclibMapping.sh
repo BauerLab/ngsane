@@ -127,7 +127,7 @@ else
     RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie=$(which bowtie2) --cpus=$CPU_HICLIB --outputDir=$OUTDIR --tmpDir=$TMP --verbose $READS &> $OUTDIR/$EXPERIMENT.hiclib.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    RUNSTATS=$OUT/runStats/$TASKHICLIB
+    RUNSTATS=$OUT/runStats/$TASK_HICLIB
     mkdir -p $RUNSTATS
     mv -f $OUTDIR/$EXPERIMENT*.pdf $RUNSTATS
     mv -f $OUTDIR/$EXPERIMENT.hiclib.log $RUNSTATS

@@ -3,6 +3,11 @@
 # RNA-Seq De novo Assembly Using Trinity
 # http://trinityrnaseq.sourceforge.net/
 
+TASK_TRINITY="trinity"
+TASK_INCHWORM="trinity_inchworm"
+TASK_CHRYSALIS="trinity_chrysalis"
+TASK_BUTTERFLY="trinity_butterfly"
+
 ### Stage P1: Time and resources required for Inchworm stage
 ### Only use at maximum, half the available CPUs on a node
 # - Inchworm will not efficiently use any more than 4 CPUs and you will have to take longer for resources to be assigned

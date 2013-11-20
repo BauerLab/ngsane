@@ -21,13 +21,13 @@ declare -a DIR; DIR=( sample1 sample2 )
 INPUT_TOPHAT="fastq"
 
 # folder/task containing the data this task operates on
-INPUT_CUFFLINKS=$TASKTOPHAT
+INPUT_CUFFLINKS=$TASK_TOPHAT
 
 # folder/task containing the data this task operates on
-INPUT_HTSEQCOUNT=$TASKTOPHAT
+INPUT_HTSEQCOUNT=$TASK_TOPHAT
 
 # folder/task containing the data this task operates on
-INPUT_BAMANN=$TASKTOPHAT
+INPUT_BAMANN=$TASK_TOPHAT
 
 # where to write the output
 OUT=$SOURCE
