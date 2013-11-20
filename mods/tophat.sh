@@ -412,16 +412,16 @@ else
 	## ensure bam is properly ordered for GATK
 
 	#reheader bam
-	java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=$BAMFILE O=$BAMFILE_unsorted.bam R=$FASTA VALIDATION_STRINGENCY=SILENT
+	java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=$BAMFILE O=${BAMFILE}_unsorted.bam R=$FASTA VALIDATION_STRINGENCY=SILENT
 
 	#sort
-	samtools sort $BAMFILE_unsorted.bam $BAMFILE_sorted
+	samtools sort ${BAMFILE}_unsorted.bam ${BAMFILE}_sorted
 	
 	#index
-	samtools index $BAMFILE_sorted.bam
+	samtools index ${BAMFILE}_sorted.bam
 	
 	
-	rm $BAMFILE_unsorted.bam
+	rm ${BAMFILE}_unsorted.bam
     
     # take doctored GTF if available
     if [ -n "$DOCTOREDGTFSUFFIX" ]; then 
@@ -442,8 +442,8 @@ else
         RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|$BAMFILE_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    	rm $BAMFILE_sorted.bam
-    	rm $BAMFILE_sorted.bam.bai
+    	rm ${BAMFILE}_sorted.bam
+    	rm ${BAMFILE}_sorted.bam.bai
     fi
 
     # mark checkpoint
