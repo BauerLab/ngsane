@@ -412,7 +412,7 @@ else
 	## ensure bam is properly ordered for GATK
 
 	#reheader bam
-	java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=$BAMFILE O=$BAMFILE_unsorted.bam R=$FASTA
+	java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=$BAMFILE O=$BAMFILE_unsorted.bam R=$FASTA VALIDATION_STRINGENCY=SILENT
 
 	#sort
 	samtools sort $BAMFILE_unsorted.bam $BAMFILE_sorted
