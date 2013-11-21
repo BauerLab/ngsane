@@ -470,10 +470,12 @@ fi
 ###############################################################################
 CHECKPOINT="cleanup"
 
-[ -e ${BAMFILE/.$ASD/.$ALN} ] && rm ${BAMFILE/.$ASD/.$ALN}
+[ -e ${BAMFILE/.$ASD/.$ALN} ] && rm ${BAMFILE/.$ASD/.$ALN} 
+
+[ -e ${BAMFILE/.$ASD/.$ALN}.bai ] && rm ${BAMFILE/.$ASD/.$ALN}.bai
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
+[ -e rm ${BAMFILE}.dummy ] && rm ${BAMFILE}.dummy
 echo ">>>>> alignment with TopHat - FINISHED"
 echo ">>>>> enddate "`date`
