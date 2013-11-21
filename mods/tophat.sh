@@ -247,12 +247,6 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     echo "[NOTE] tophat end $(date)"
 
-    # fix unmapped reads 
-    # TODO replaced by Picard CleanSam once they address 
-    # the PNEXT issue http://seqanswers.com/forums/showthread.php?t=28155
-    # or tophat fixes its unmapped reads
-    python ${NGSANE_BASE}/tools/fix_tophat_unmapped_reads.py $OUTDIR
-
     # mark checkpoint
     if [ -e $OUTDIR/accepted_hits.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
@@ -264,6 +258,12 @@ CHECKPOINT="merge mapped and unmapped"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+
+    # fix unmapped reads 
+    # TODO replaced by Picard CleanSam once they address 
+    # the PNEXT issue http://seqanswers.com/forums/showthread.php?t=28155
+    # or tophat fixes its unmapped reads
+    python ${NGSANE_BASE}/tools/fix_tophat_unmapped_reads.py $OUTDIR
 
     echo "[NOTE] samtools merge"
     samtools merge -@ $CPU_TOPHAT -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped_fixup.bam
