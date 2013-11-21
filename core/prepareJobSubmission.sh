@@ -191,7 +191,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         echo "[NOTE] Jobfile: "$JOBLOG >> $LOGFILE
 
         # add citations
-        TASKNAME=$(grep -P "^TASK_[A_Z0_9]+=[\"']?$TASK[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
+        TASKNAME=$(grep -P "^TASK_[A-Z0-9]+=[\"']?$TASK[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
         for M in NG_CITE_NGSANE $(grep -P "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g'); do
 
             CITE=$(grep -P "^$M=" $JOBLOG) || CITE=""
@@ -204,7 +204,8 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 	    if [ -n "$DIRECT" ]; then eval $COMMAND2 >> $LOGFILE 2>&1 ; continue; fi
 
         if [ -n "$JOBIDS" ]; then
-            if [[ $(echo $JOBIDS | sed 's/:*$//g'| awk -F':' '{print NF}') = 1 ]]; then
+            echo "check joids"
+            if [[ $(echo $JOBIDS | sed 's/:*$//g'| awk -F':' '{print NF}') == 1 ]]; then
                 # everyone waits for the same job if only one id was given
                 JOBID=$(echo $JOBIDS | cut -d ":" -f 1)        
             else

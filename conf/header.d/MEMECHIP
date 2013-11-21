@@ -1,4 +1,3 @@
-#!/bin/bash -e
 ##############################################################
 # MEMECHIP
 # http://meme.nbcr.net/
@@ -10,6 +9,4 @@ NODES_MEMECHIP="nodes=1:ppn=8"
 INPUT_MEMECHIP=$TASK_MACS2
 MODULE_MEMECHIP="${NG_BEDTOOLS} ${NG_PERL} ${NG_MEME}"
 PATH_MEMECHIP=
-
-MEMECHIPDATABASES=
 
