@@ -125,8 +125,9 @@ else
     NUMBEROFREADS=$(samtools view -c -F 1028 $f )
     SCALEFACTOR=`echo "scale=3; $NORMALIZETO/$NUMBEROFREADS" | bc`
     
-    echo "[NOTE] library size (mapped reads): $NUMBEROFREADS" 
-    echo "[NOTE] normalize to $NORMALIZETO, scale factor: $SCALEFACTOR"
+    echo "library size: $NUMBEROFREADS" > $OUTDIR/${n/%.$ASD.bam/.bw.stats}
+    echo "normalize to: $NORMALIZETO" >> $OUTDIR/${n/%.$ASD.bam/.bw.stats}
+    echo "scale factor: $SCALEFACTOR" >> $OUTDIR/${n/%.$ASD.bam/.bw.stats}
         
     if [ "$PAIRED" = "1" ]; then 
     	echo "[NOTE] Paired end libaray detected, ignore fragment length parameter"

@@ -322,7 +322,7 @@ fi
 if [[ -n "$RUNREALRECAL" ]]; then 
     summaryHeader "Recalibrate + Realign" "$TASK_RECAL" "reCalAln.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_RECAL)" .$ASR".bam.stats" samstatsrecal >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_RECAL)" .$ASR.bam.stats samstatsrecal >>$SUMMARYTMP
 
     summaryFooter "$TASK_RECAL" "$SUMMARYTMP"
 fi
@@ -515,6 +515,8 @@ fi
 ################################################################################
 if [ -n "$RUNBIGWIG" ];then
     summaryHeader "BigWig" "$TASK_BIGWIG" "bigwig.sh" "$SUMMARYTMP" ".bw" $INPUT_BIGWIG
+
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $INPUT_BIGWIG)" ".bw.stats" bigwig  --noSummary --noOverallSummary >> $SUMMARYTMP
 
     summaryFooter "$TASK_BIGWIG" "$SUMMARYTMP"
 fi
