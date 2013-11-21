@@ -259,14 +259,8 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    # fix unmapped reads 
-    # TODO replaced by Picard CleanSam once they address 
-    # the PNEXT issue http://seqanswers.com/forums/showthread.php?t=28155
-    # or tophat fixes its unmapped reads
-    python ${NGSANE_BASE}/tools/fix_tophat_unmapped_reads.py $OUTDIR
-
     echo "[NOTE] samtools merge"
-    samtools merge -@ $CPU_TOPHAT -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped_fixup.bam
+    samtools merge -@ $CPU_TOPHAT -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
     
     if [ "$PAIRED" = "1" ]; then
         # fix mate pairs
@@ -425,7 +419,6 @@ else
 	#index
 	samtools index ${BAMFILE}_sorted.bam
 	
-	
 	rm ${BAMFILE}_unsorted.bam
     
     # take doctored GTF if available
@@ -444,7 +437,9 @@ else
         RNASeQCDIR=$OUTDIR/../${n/%$READONE.$FASTQ/_RNASeQC}
         mkdir -p $RNASeQCDIR
     
-        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE}_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
+        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE}_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG  2>&1 | tee | grep -v 'Ignoring SAM validation error: ERROR:'"
+        # TODO: find a way to fix the bamfile reg. the SAM error
+        # http://seqanswers.com/forums/showthread.php?t=28155
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
     	rm ${BAMFILE}_sorted.bam
