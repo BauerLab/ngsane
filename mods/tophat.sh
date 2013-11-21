@@ -476,6 +476,6 @@ CHECKPOINT="cleanup"
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e rm ${BAMFILE}.dummy ] && rm ${BAMFILE}.dummy
+[ -e ${BAMFILE}.dummy ] && rm ${BAMFILE}.dummy
 echo ">>>>> alignment with TopHat - FINISHED"
 echo ">>>>> enddate "`date`
