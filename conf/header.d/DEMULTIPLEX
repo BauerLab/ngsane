@@ -1,0 +1,12 @@
+#!/bin/bash -e
+##############################################################
+# demultiplex with Fastxtoolkit
+# http://hannonlab.cshl.edu/fastx_toolkit/
+TASK_DEMULTIPLEX=“demultiplex”
+WALLTIME_DEMULTIPLEX=5:00:00
+MEMORY_DEMULTIPLEX=20
+CPU_DEMULTIPLEX=1
+NODES_DEMULTIPLEX="nodes=1:ppn=1"
+
+MODULE_DEMULTIPLEX="${NG_FASTXTK}"
+PATH_DEMULTIPLEX=$PATH_FASTXTK

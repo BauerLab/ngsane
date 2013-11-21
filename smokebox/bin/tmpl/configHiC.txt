@@ -21,7 +21,7 @@ NODES_BOWTIE2="nodes=1:ppn=8"
 #********************
 RUNMAPPINGBOWTIE2=""  # mapping with bowtie2
 
-TASKBOWTIE=$TASKBOWTIE2
+TASK_BOWTIE=$TASK_BOWTIE2
 
 HTMLOUT="Summary"
 

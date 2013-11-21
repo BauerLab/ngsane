@@ -41,7 +41,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_HOMERHIC=$TASKBWA
+INPUT_HOMERHIC=$TASK_BWA
 
 # where to write the output
 OUT=$SOURCE
@@ -91,9 +91,6 @@ HOMER_HIC_ANNOTATE_ADDPARAM=
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
-
-## if bowtie was used to map file then set TASKBWA to TASKBOWTIE
-#TASKBWA=$TASKBOWTIE
 
 #WALLTIME_HOMERHIC=60:00:00
 #MEMORY_HOMERHIC=60

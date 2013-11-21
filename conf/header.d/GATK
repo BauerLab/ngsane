@@ -1,0 +1,17 @@
+#!/bin/bash -e
+##############################################################
+# Snp calling with GATK
+# http://www.broadinstitute.org/gatk/
+# GATK VARCALL
+TASK_VAR="variant"
+TASK_IND="indel"
+
+WALLTIME_VAR=100:00:00
+MEMORY_VAR=20
+CPU_VAR=1
+NODES_VAR="nodes=1:ppn=1"
+INPUT_VAR=$TASK_RECAL
+
+MODULE_GATK="${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_GATK}"
+
+

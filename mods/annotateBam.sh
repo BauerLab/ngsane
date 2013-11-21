@@ -38,7 +38,7 @@ if [ ! $# -gt 3 ]; then usage ; fi
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
-        -f           )          shift; f=$1 ;; # bam file
+        -f | --bam )            shift; f=$1 ;; # bam file                                                       
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -51,11 +51,9 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-
-# get basename of f
-n=${f##*/}
-
+################################################################################
 CHECKPOINT="programs"
+
 for MODULE in $MODULE_BAMANN; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_BAMANN:$PATH
 module list

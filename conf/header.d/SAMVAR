@@ -1,0 +1,13 @@
+#!/bin/bash -e
+##############################################################
+# SAMTOOLS (0.1.19) SNP calling
+# http://samtools.sourceforge.net/
+TASK_SAMVAR="samvar"
+WALLTIME_SAMVAR=40:00:00
+MEMORY_SAMVAR=40
+CPU_SAMVAR=1
+NODES_SAMVAR="nodes=1:ppn=1"
+INPUT_SAMVAR=$TASK_BWA
+MODULE_SAMVAR="${NG_SAMTOOLS} ${NG_JAVA} ${NG_IGVTOOLS} ${NG_GATK}"
+PATH_SAMVAR=
+

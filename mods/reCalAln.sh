@@ -120,7 +120,7 @@ if [ -z "$DBROD" ] || [ ! -e $DBROD ] ; then
 fi
 
 # bwa/name.$ASD.bam -> /reCalAln/name.$ASD.bam
-f2=${f/$INPUT_REALRECAL/$TASKRCA}
+f2=${f/$INPUT_REALRECAL/$TASK_RECAL}
 # /reCalAln/name.$ASD.bam -> /reCalAln/name.$ASD.real
 f3=${f2/bam/real.bam}
 

@@ -1,0 +1,12 @@
+#!/bin/bash -e
+##############################################################
+# Read re-calibration
+# 
+TASK_RECAL="reCalAln"
+WALLTIME_RECAL=60:00:00
+MEMORY_RECAL=50
+CPU_RECAL=8
+NODES_RECAL="nodes=1:ppn=8" 
+INPUT_REALRECAL=$TASK_BWA
+MODULE_RECAL="${NG_JAVA} ${NG_GATK} ${NG_R} ${NG_SAMTOOLS} ${NG_IGVTOOLS}"
+PATH_RECAL=

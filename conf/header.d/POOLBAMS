@@ -1,0 +1,12 @@
+#!/bin/bash -e
+##############################################################
+# Pool bam files (e.g. replicates)
+# 
+TASK_POOLBAMS="pooledbam"
+WALLTIME_POOLBAMS=10:00:00
+MEMORY_POOLBAMS=60
+CPU_POOLBAMS=16
+NODES_POOLBAMS="nodes=2:ppn=8"
+INPUT_POOLBAMS=$TASK_BOWTIE
+MODULE_POOLBAMS="${NG_PARALLEL} ${NG_PICARD} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_SAMSTAT}"
+PATH_POOLBAMS=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
