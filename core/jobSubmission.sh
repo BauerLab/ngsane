@@ -75,7 +75,7 @@ elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
     unset module
 #	echo "********** submit with SGE submission system"
 	if [ -n "$JOBIDS" ];then JOBIDS=$(echo -e $JOBIDS | sed 's/^://g' | sed 's/:/,/g'); HOLD_JID="-hold_jid $JOBIDS"; fi
-	command="qsub $HOLD_JID -V -S /bin/bash -j y -o $SOUTPUT -cwd -pe smp $SCPU -l h_vmem=$SMEMORY \
+	command="qsub $HOLD_JID -V -S /bin/bash -j y -o $SOUTPUT -cwd -pe $QUEUEPARENV $SCPU -l h_vmem=$SMEMORY \
 	    -N $SNAME -l h_rt=$SWALLTIME $SADDITIONAL $TMPFILE" 
 	echo "# $command" >>$TMPFILE
 	RECIPT=$($command)

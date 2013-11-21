@@ -1,0 +1,11 @@
+#!/bin/bash -e
+##############################################################
+# GATK depth of coverage
+#
+TASK_GATKDOC="coverage"
+WALLTIME_GATKDOC=50:00:00
+MEMORY_GATKDOC=50
+CPU_GATKDOC=1
+NODES_GATKDOC="nodes=1:ppn=1"
+INPUT_GATKDOC=$TASK_RECAL
+MODULE_GATKDOC="${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_GATK}"

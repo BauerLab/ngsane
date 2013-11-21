@@ -81,8 +81,8 @@ else
 fi
 
 # fancy symbolic link generation to work in common trinity folder
-mkdir -p $OUTDIR/../$TASKTRINITY/$SAMPLE
-ln -f -s ../$TASKTRINITY/$SAMPLE $OUTDIR/$SAMPLE
+mkdir -p $OUTDIR/../$TASK_TRINITY/$SAMPLE
+ln -f -s ../$TASK_TRINITY/$SAMPLE $OUTDIR/$SAMPLE
 
 # make sure we use the same tmp folder name all time so stick with one jobid
 if [ ! -f $OUTDIR/$SAMPLE/persistent_id.tmp ]; then 
@@ -126,8 +126,8 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     cp -r $TMP/$PERSISTENT_ID/* $OUTDIR/$SAMPLE/
-    rm -r $TMP/$PERSISTENT_ID/* $OUTDIR/../$TASKTRINITY/$SAMPLE/target.fa    
-    ln -f -s $OUTDIR/../$TASKTRINITY/$SAMPLE/inchworm.K25.L25.fa $OUTDIR/../$TASKTRINITY/$SAMPLE/target.fa
+    rm -r $TMP/$PERSISTENT_ID/* $OUTDIR/../$TASK_TRINITY/$SAMPLE/target.fa    
+    ln -f -s $OUTDIR/../$TASK_TRINITY/$SAMPLE/inchworm.K25.L25.fa $OUTDIR/../$TASK_TRINITY/$SAMPLE/target.fa
 
     cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing}
     echo "Read count:"$(head -n 1 $OUTDIR/$SAMPLE/chrysalis/readcounts.out) > $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}

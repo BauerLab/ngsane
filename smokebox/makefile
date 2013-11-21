@@ -48,4 +48,4 @@ clean:
 	rm -fr tmp/*
 	rm -fr runStats
 	rm -f igv.*
-	rm -f core.*
+	rm -f core*

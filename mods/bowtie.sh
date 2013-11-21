@@ -18,7 +18,7 @@ echo ">>>>> job_id "$JOB_ID
 echo ">>>>> $(basename $0) $*"
 
 function usage {
-echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
+echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -o OUTDIR [OPTIONS]"
 exit
 }
 
@@ -100,6 +100,11 @@ if [ -z "$FASTA" ]; then
     exit 1
 fi
 
+if [[ ! -e ${FASTA%.*}.1.ebwt ]]; then
+    echo "[ERROR] Bowtie index not detected. Exeute bowtieIndex.sh first"
+    exit 1
+fi
+
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}
@@ -119,7 +124,6 @@ fi
 ZCAT="zcat"
 if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
 
-
 # get encoding
 if [ -z "$FASTQ_PHRED" ]; then 
     FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
@@ -135,8 +139,6 @@ if [ -z "$FASTQ_PHRED" ]; then
     echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 fi
 
-FASTASUFFIX=${FASTA##*.}
-
 FASTQTMP=$TMP/`whoami`_${n/%$READONE.$FASTQ/} # tmp dir to deposit fastq intermediate files
 mkdir -p $FASTQTMP
 
@@ -151,20 +153,6 @@ if [ -n "$DMGET" ]; then
 fi
     
 echo -e "\n********* $CHECKPOINT\n"
-################################################################################
-CHECKPOINT="generating the index files"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-
-    if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.ebwt ]; then echo ">>>>> make .ebwt"; bowtie-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
-    if [ ! -e $FASTA.fai ]; then echo "[NOTE] make .fai"; samtools faidx $FASTA; fi
-
-    # mark checkpoint
-    if [ -f ${FASTA/.${FASTASUFFIX}/}.1.ebwt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-fi 
-
 ################################################################################
 CHECKPOINT="bowtie"
 
@@ -192,7 +180,7 @@ else
 	if [ $PAIRED == "0" ]; then
         echo "[NOTE] SINGLE READS"
 
-        RUN_COMMAND="$ZCAT $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq} --max $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} - $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam}"
+        RUN_COMMAND="$ZCAT $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq} --max $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA%.*} - $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam}"
 
 	#Paired
     else
@@ -205,7 +193,7 @@ else
         $ZCAT $f > $OUTDIR/${n}_pipe &
         $ZCAT ${f/$READONE/$READTWO} > $OUTDIR/${n/$READONE/$READTWO}_pipe &
         
-		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq} --max $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA/.${FASTASUFFIX}/} -1 $OUTDIR/${n}_pipe -2 $OUTDIR/${n/$READONE/$READTWO}_pipe $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam}"
+		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq} --max $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA%.*} -1 $OUTDIR/${n}_pipe -2 $OUTDIR/${n/$READONE/$READTWO}_pipe $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam}"
 
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND

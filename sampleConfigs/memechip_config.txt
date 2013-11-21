@@ -20,7 +20,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_MEMECHIP=$TASKMACS2
+INPUT_MEMECHIP=$TASK_MACS2
 
 # where to write the output
 OUT=$SOURCE

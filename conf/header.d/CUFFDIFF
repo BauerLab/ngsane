@@ -1,0 +1,12 @@
+#!/bin/bash -e
+##############################################################
+# Cuffdiff
+# http://cufflinks.cbcb.umd.edu/
+TASK_CUFFDIFF="cuffdiff"
+WALLTIME_CUFFDIFF=24:00:00
+MEMORY_CUFFDIFF=10
+CPU_CUFFDIFF=1
+NODES_CUFFDIFF="nodes=1:ppn=1"
+INPUT_CUFFDIFF=$TASK_TOPHAT
+MODULE_CUFFDIFF="${NG_SAMTOOLS} ${NG_BOOST} ${NG_CUFFLINKS}"
+PATH_CUFFDIFF=

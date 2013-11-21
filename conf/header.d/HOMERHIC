@@ -1,0 +1,13 @@
+#!/bin/bash -e
+##############################################################
+# HOMER HIC 
+# http://biowhat.ucsd.edu/homer/index.html
+TASK_HOMERHIC="homerhic"
+WALLTIME_HOMERHIC=60:00:00
+MEMORY_HOMERHIC=60
+CPU_HOMERHIC=8
+NODES_HOMERHIC="nodes=1:ppn=8"
+INPUT_HOMERHIC=$TASK_BWA
+MODULE_HOMERHIC="${NG_PERL} ${NG_HOMER}"
+PATH_HOMERHIC=
+

@@ -61,7 +61,6 @@ while [ "$1" != "" ]; do
 	shift
 done
 
-#PROGRAMS (note, both configs are necessary to overwrite the default, here:e.g.  TASKTOPHAT)
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
@@ -409,19 +408,19 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
 
-## ensure bam is properly ordered for GATK
+	## ensure bam is properly ordered for GATK
 
 	#reheader bam
-	java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=${BAMFILE/.$ASD/.$ALN} O=${BAMFILE/.$ASD/.$ALN}_unsorted.bam R=$FASTA
+	java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=$BAMFILE O=${BAMFILE}_unsorted.bam R=$FASTA VALIDATION_STRINGENCY=SILENT
 
 	#sort
-	samtools sort ${BAMFILE/.$ASD/.$ALN}_unsorted.bam ${BAMFILE/.$ASD/.$ALN}_sorted
+	samtools sort ${BAMFILE}_unsorted.bam ${BAMFILE}_sorted
 	
 	#index
-	samtools index ${BAMFILE/.$ASD/.$ALN}_sorted.bam
+	samtools index ${BAMFILE}_sorted.bam
 	
 	
-	rm ${BAMFILE/.$ASD/.$ALN}_unsorted.bam
+	rm ${BAMFILE}_unsorted.bam
     
     # take doctored GTF if available
     if [ -n "$DOCTOREDGTFSUFFIX" ]; then 
@@ -439,11 +438,11 @@ else
         RNASeQCDIR=$OUTDIR/../${n/%$READONE.$FASTQ/_RNASeQC}
         mkdir -p $RNASeQCDIR
     
-        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE/.$ASD/.$ALN}_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
+        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE}_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    	rm ${BAMFILE/.$ASD/.$ALN}_sorted.bam
-    	rm ${BAMFILE/.$ASD/.$ALN}_sorted.bam.bai
+    	rm ${BAMFILE}_sorted.bam
+    	rm ${BAMFILE}_sorted.bam.bai
     fi
 
     # mark checkpoint

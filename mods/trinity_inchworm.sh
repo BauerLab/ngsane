@@ -87,8 +87,8 @@ else
 fi
 
 # fancy symbolic link generation to work in common trinity folder
-mkdir -p $OUTDIR/../$TASKTRINITY/$SAMPLE
-ln -f -s ../$TASKTRINITY/$SAMPLE $OUTDIR/$SAMPLE
+mkdir -p $OUTDIR/../$TASK_TRINITY/$SAMPLE
+ln -f -s ../$TASK_TRINITY/$SAMPLE $OUTDIR/$SAMPLE
 
 # make sure we use the same tmp folder name all time so stick with one jobid
 if [ ! -f $OUTDIR/$SAMPLE/persistent_id.tmp ]; then 

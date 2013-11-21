@@ -39,8 +39,6 @@ while [ "$1" != "" ]; do
 	shift
 done
 
-
-#PROGRAMS (note, both configs are necessary to overwrite the default, here:e.g.  TASKCUFFLINKS)
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG

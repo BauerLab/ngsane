@@ -70,7 +70,7 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-JAVAPARAMS="-Xmx"$(expr $MEMORY_VAR - 1 )"G -Djava.io.tmpdir=$TMP" # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
+JAVAPARAMS="-Xmx"$(expr $MEMORY_GATKSNP - 1 )"G -Djava.io.tmpdir=$TMP" # -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:MaxDirectMemorySize=4G"
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo "********** programs"

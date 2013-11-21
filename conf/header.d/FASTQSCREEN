@@ -1,0 +1,15 @@
+#!/bin/bash -e
+##############################################################
+# Screen reads against multiple indices
+# http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/
+TASK_FASTQSCREEN="fastqscreen"
+WALLTIME_FASTQSCREEN=48:00:00
+MEMORY_FASTQSCREEN=60
+CPU_FASTQSCREEN=8
+NODES_FASTQSCREEN="nodes=1:ppn=8"
+INPUT_FASTQSCREEN="fastq"
+MODULE_FASTQSCREEN="${NG_PERL} ${NG_FASTQSCREEN} ${NG_BOWTIE2}"
+PATH_FASTQSCREEN=
+
+FASTQSCREEN_DBCONF=
+

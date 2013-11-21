@@ -20,7 +20,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_MACS2=$TASKBOWTIE
+INPUT_MACS2=$TASK_BOWTIE
 
 # where to write the output
 OUT=$SOURCE

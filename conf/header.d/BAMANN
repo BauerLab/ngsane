@@ -1,0 +1,13 @@
+#!/bin/bash -e
+##############################################################
+# Bam Annotations
+# 
+TASK_BAMANN="bamann"
+WALLTIME_BAMANN=5:00:00
+MEMORY_BAMANN=32
+CPU_BAMANN=1
+NODES_BAMANN="nodes=1:ppn=1"
+INPUT_BAMANN=$TASK_BWA
+MODULE_BAMANN="${NG_BEDTOOLS}"
+PATH_BAMANN=
+

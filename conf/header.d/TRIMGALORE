@@ -1,0 +1,12 @@
+#!/bin/bash -e
+##############################################################
+# Trim adapter with TRIMGALORE
+# http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
+TASK_TRIMGALORE="trimgalore"
+WALLTIME_TRIMGALORE=4:00:00
+MEMORY_TRIMGALORE=40
+CPU_TRIMGALORE=1
+NODES_TRIMGALORE="nodes=1:ppn=1"
+INPUT_TRIMGALORE="fastq"
+MODULE_TRIMGALORE="${NG_CUTADAPT} ${NG_TRIMGALORE}"
+PATH_TRIMGALORE=

@@ -95,7 +95,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    python ${NGSANE_BASE}/tools/hiclibCorrelate.py ${PARAMS} --outputDir=$OUT/runStats/$TASKHICLIB --tmpDir=$TMP --verbose $DATASETS
+    python ${NGSANE_BASE}/tools/hiclibCorrelate.py ${PARAMS} --outputDir=$OUT/runStats/$TASK_HICLIB --tmpDir=$TMP --verbose $DATASETS
     
     # mark checkpoint
     echo -e "\n********* $CHECKPOINT\n"
