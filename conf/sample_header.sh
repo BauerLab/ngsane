@@ -136,3 +136,6 @@ GZIP="gzip -9"			# command, e.g. gzip or pigz
 # source content in default folder twice to properly set up crosslinked variables
 for NGSANE_DEFAULTS in ${NGSANE_BASE}/conf/header.d/* ; do source $NGSANE_DEFAULTS; done
 for NGSANE_DEFAULTS in ${NGSANE_BASE}/conf/header.d/* ; do source $NGSANE_DEFAULTS; done
+
+# Location of the meme motif database of choice
+MEMECHIPDATABASES=

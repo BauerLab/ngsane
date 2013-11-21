@@ -21,12 +21,12 @@ while [ "$1" != "" ]; do
     -w | --walltime )       shift; SWALLTIME=$1 ;; # walltime used
     -W | --wait )           shift; JOBIDS=$1 ;; # jobids to wait for
     -j | --jobname   )      shift; SNAME=$1 ;; # name used
-	-q | --queue )			shift; QUEUE=$1 ;; # nodetype
-    -o | --output )	        shift; SOUTPUT=$1 ;; # pbsoutput
+    -q | --queue )          shift; QUEUE=$1 ;; # nodetype
+    -o | --output )	    shift; SOUTPUT=$1 ;; # pbsoutput
     -a | --additional )	    shift; SADDITIONAL=$1 ;; # additional paramers
     -p | --command )	    shift; SCOMMAND=$1 ;; # Program call
-    -t | --tmpdir )	        shift; STMPDIR=$1 ;; # additional paramers	
-	-h | --help )           usage ;;
+    -t | --tmpdir )	    shift; STMPDIR=$1 ;; # additional paramers	
+    -h | --help )           usage ;;
     * )                     echo "don't understand "$1
     esac
     shift

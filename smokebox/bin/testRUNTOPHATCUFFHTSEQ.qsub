@@ -27,7 +27,6 @@ cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNTOPHATCUFFHTSEQ=\"\"/RUNTOPHATCU
 JOBIDSTOPHATCUFFHTSEQ=$( trigger.sh tmp/configTOPHATCUFFHTSEQ.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] submitted jobs $(echo -n $JOBIDSTOPHATCUFFHTSEQ)"
 
-
 ################################################################################
 # TEST
 ################################################################################

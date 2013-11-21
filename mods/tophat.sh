@@ -112,8 +112,12 @@ CHECKPOINT="parameters"
 # get basename of f (samplename)
 n=${f##*/}
 
+if [[ ! -e ${FASTA%.*}.1.bt2 ]]; then
+    echo "[ERROR] Bowtie2 index not detected. Exeute bowtieIndex.sh first"
+    exit 1
+fi
+
 # get info about input file
-FASTASUFFIX=${FASTA##*.}
 BAMFILE=$OUTDIR/../${n/%$READONE.$FASTQ/.$ASD.bam}
 
 #remove old files
@@ -209,8 +213,6 @@ BIGWIGSDIR=$OUTDIR/../
 
 mkdir -p $OUTDIR
 
-
-
 if [ -n "$TOPHATTRANSCRIPTOMEINDEX" ]; then
     echo "[NOTE] RNAseq --transcriptome-index specified: ${TOPHATTRANSCRIPTOMEINDEX}"
     TOPHAT_TRANSCRIPTOME_PARAM="--transcriptome-index=${TOPHATTRANSCRIPTOMEINDEX}"
@@ -220,8 +222,6 @@ else
     TOPHAT_TRANSCRIPTOME_PARAM=
     PICARD_REFERENCE=$FASTA
 fi
-
-
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -242,13 +242,16 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     echo "[NOTE] tophat $(date)"
-    ## generating the index files
-    if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
-    if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
     
-    RUN_COMMAND="tophat $TOPHATADDPARAM $TOPHAT_TRANSCRIPTOME_PARAM $FASTQ_PHRED --keep-fasta-order --num-threads $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
+    RUN_COMMAND="tophat $TOPHATADDPARAM $TOPHAT_TRANSCRIPTOME_PARAM $FASTQ_PHRED --keep-fasta-order --num-threads $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA%.*} $f $f2"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     echo "[NOTE] tophat end $(date)"
+
+    # fix unmapped reads 
+    # TODO replaced by Picard CleanSam once they address 
+    # the PNEXT issue http://seqanswers.com/forums/showthread.php?t=28155
+    # or tophat fixes its unmapped reads
+    python ${NGSANE_BASE}/tools/fix_tophat_unmapped_reads.py $OUTDIR
 
     # mark checkpoint
     if [ -e $OUTDIR/accepted_hits.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -263,7 +266,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     echo "[NOTE] samtools merge"
-    samtools merge -@ $CPU_TOPHAT -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
+    samtools merge -@ $CPU_TOPHAT -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped_fixup.bam
     
     if [ "$PAIRED" = "1" ]; then
         # fix mate pairs
@@ -281,14 +284,24 @@ else
     THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
     mkdir -p  $THISTMP
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
-         I=${BAMFILE/.bam/.samtools}.bam \
-         O=$BAMFILE \
-         LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID \
-         VALIDATION_STRINGENCY=SILENT \
+        I=${BAMFILE/.bam/.samtools}.bam \
+        O=$BAMFILE.rg \
+        LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID \
+        VALIDATION_STRINGENCY=SILENT \
         TMP_DIR=$THISTMP"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    rm -r $THISTMP
+    
     rm ${BAMFILE/.bam/.samtools}.bam
+        
+    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
+        I=$BAMFILE.rg \
+        O=$BAMFILE \
+        VALIDATION_STRINGENCY=SILENT \
+        TMP_DIR=$THISTMP"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+
+    rm $BAMFILE.rg
+    rm -r $THISTMP
 
     # mark checkpoint
     if [ -f $BAMFILE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -332,10 +345,6 @@ CHECKPOINT="index and calculate inner distance"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-
-
-
-
     echo "[NOTE] samtools index"
     samtools index $BAMFILE
 
@@ -373,7 +382,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     echo "[NOTE] samstat"
-    samstat $BAMFILE
+    samstat $BAMFILE 2>&1 | tee | grep -v -P "Bad x in routine betai"
   
     # mark checkpoint
     if [ -f $BAMFILE.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -406,10 +415,7 @@ CHECKPOINT="RNA-SeQC"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-
-
 	## ensure bam is properly ordered for GATK
-
 	#reheader bam
 	java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=$BAMFILE O=${BAMFILE}_unsorted.bam R=$FASTA VALIDATION_STRINGENCY=SILENT
 
