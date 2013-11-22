@@ -1,4 +1,3 @@
-#!/bin/bash -e 
 ##############################################################
 # HTSEQ-count (0.5.4.p3)
 # http://www-huber.embl.de/users/anders/HTSeq/doc/index.html

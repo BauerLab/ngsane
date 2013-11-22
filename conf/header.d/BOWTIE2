@@ -1,4 +1,3 @@
-#!/bin/bash -e
 ##############################################################
 # Bowtie2 (2.1.0) 
 # http://bowtie-bio.sourceforge.net/index.shtml

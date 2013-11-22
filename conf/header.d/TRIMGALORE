@@ -1,4 +1,3 @@
-#!/bin/bash -e
 ##############################################################
 # Trim adapter with TRIMGALORE
 # http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/

@@ -1,4 +1,3 @@
-#!/bin/bash -e
 ##############################################################
 # SAMTOOLS (0.1.19) SNP calling
 # http://samtools.sourceforge.net/

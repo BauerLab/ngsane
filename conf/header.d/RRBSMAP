@@ -1,4 +1,3 @@
-#!/bin/bash -e
 ##############################################################
 # reduced representation bisulfite sequencing mapping 
 # https://code.google.com/p/bsmap/

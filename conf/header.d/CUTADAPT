@@ -1,4 +1,3 @@
-#!/bin/bash -e
 ##############################################################
 # Trim adapter with CUTADAPT ()
 # https://code.google.com/p/cutadapt/
