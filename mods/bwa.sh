@@ -148,9 +148,9 @@ fi
 if [ -z "FASTQ_ENCODING" ]; then 
     FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
 fi
-if [[ "$FASTQ_ENCODING" == *Phred33* || "$FASTQ_ENCODING" == "Sanger" ]]; then
+if [[ "$FASTQ_ENCODING" == "Phred33" ]]; then
     FASTQ_PHRED=""    
-elif [[ "$FASTQ_ENCODING" == *Illumina* || "$FASTQ_ENCODING" == *Solexa* || "$FASTQ_ENCODING" == "Phred64" ]]; then
+elif [[ "$FASTQ_ENCODING" == "Phred64" ]]; then
     FASTQ_PHRED="-I"
 else
     echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default"
