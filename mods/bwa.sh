@@ -145,8 +145,10 @@ else
 fi
 
 # get encoding unless specified
-if [ -z "FASTQ_ENCODING" ]; then 
+if [ -z "$FASTQ_ENCODING" ]; then 
+    echo "[NOTE] Detect fastq Phred encoding"
     FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+    echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 fi
 if [[ "$FASTQ_ENCODING" == "Phred33" ]]; then
     FASTQ_PHRED=""    
@@ -155,7 +157,6 @@ elif [[ "$FASTQ_ENCODING" == "Phred64" ]]; then
 else
     echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default"
 fi
-echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 
