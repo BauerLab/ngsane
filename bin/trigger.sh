@@ -357,8 +357,20 @@ fi
 if [ -n "$RUNHICUP" ]; then
     if [ -z "$TASK_HICUP" ] || [ -z "$NODES_HICUP" ] || [ -z "$CPU_HICUP" ] || [ -z "$MEMORY_HICUP" ] || [ -z "$WALLTIME_HICUP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
+    if [ ! -f ${FASTA%.*}.1.ebwt ];then
+        # submit job for index generation if necessary
+        INDEXJOBIDS=$(
+            $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
+    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP --commontask \
+            --command "${NGSANE_BASE}/mods/bowtieIndex.sh -k $CONFIG"
+        ) && echo -e "$INDEXJOBIDS"
+        INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+    else
+        INDEXJOBIDS=""
+    fi
+
     $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
-    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP \
+    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS \
         --command "${NGSANE_BASE}/mods/hicup.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HICUP"
 fi
 
@@ -372,9 +384,20 @@ fi
 if [ -n "$RUNHICLIB" ]; then
     if [ -z "$TASK_HICLIB" ] || [ -z "$NODES_HICLIB" ] || [ -z "$CPU_HICLIB" ] || [ -z "$MEMORY_HICLIB" ] || [ -z "$WALLTIME_HICLIB" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
+    if [ ! -f ${FASTA%.*}.1.bt2 ];then
+        # submit job for index generation if necessary
+        INDEXJOBIDS=$(
+            $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ -n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB --commontask \
+            --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
+        ) && echo -e "$INDEXJOBIDS"
+        INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+    else
+        INDEXJOBIDS=""
+    fi
+    
     $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ \
     	-n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
-    	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND \
+    	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND $INDEXJOBIDS \
         --command "${NGSANE_BASE}/mods/hiclibMapping.sh -k $CONFIG --fastq <FILE> --outdir $OUT/<DIR>/$TASK_HICLIB --fastqName <NAME>" \
         --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh -f <FILE> -k $CONFIG --outdir $OUT/hiclib/$TASK_HICLIB-<DIR>"
 fi

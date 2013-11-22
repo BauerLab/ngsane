@@ -7,7 +7,8 @@
 # date: Apr 2013
 
 # messages to look out for -- relevant for the QC.sh script:
-# QCVARIABLES
+# QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.spline_pass1.significances.txt
 
 echo ">>>>> HiC readmapping with HiCUP "
 echo ">>>>> startdate "`date`
@@ -67,6 +68,16 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
+
+if [ -z "$FASTA" ]; then
+    echo "[ERROR] no reference provided (FASTA)"
+    exit 1
+fi
+
+if [[ ! -e ${FASTA%.*}.1.ebwt ]]; then
+    echo "[ERROR] Bowtie index not detected. Exeute bowtieIndex.sh first"
+    exit 1
+fi
 
 #output for this library
 OUTDIR=${n/%$READONE.$FASTQ/}
@@ -164,7 +175,7 @@ else
     echo "#Path to the alignment program Bowtie | include the executable Bowtie filename" >> $HICUP_CONF
     echo "Bowtie:$(which bowtie)" >> $HICUP_CONF
     echo "#Path to the reference genome indices" >> $HICUP_CONF
-    echo "Index:${BOWTIE_INDEX}"  >> $HICUP_CONF
+    echo "Index:${FASTA%.*}"  >> $HICUP_CONF
     echo "#Path to the genome digest file" >> $HICUP_CONF
     echo "DIGEST:$DIGESTGENOME" >> $HICUP_CONF
     echo "#FASTQ file format | phred33-quals, phred64-quals, solexa-quals or solexa1.3-quals" >> $HICUP_CONF
@@ -230,11 +241,12 @@ else
     $GZIP $OUTDIR/${n/%$READONE.$FASTQ/}*.significances.txt
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/}.spline_pass1.significances.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.spline_pass1.significances.txt} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
+[ -e $OUTDIR/${n/%$READONE.$FASTQ/.spline_pass1.significances.txt}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.spline_pass1.significances.txt}.dummy
 echo ">>>>> readmapping with hicup (bowtie) - FINISHED"
 echo ">>>>> enddate "`date`
 

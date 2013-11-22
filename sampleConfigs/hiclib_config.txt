@@ -41,11 +41,11 @@ READTWO="_R2"
 
 # reference as single chromosomes
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Chromosomes/
-FASTA=
+FASTA_CHROMDIR=
 
 # bowtie v2.0 index including basename
-# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome
-BOWTIE2_INDEX=
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
+FASTA=
 
 # restriction enzyme specifics
 
@@ -60,6 +60,10 @@ HICLIB_READLENGTH=
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
+
+# uncomment to keep intermediate bam files
+#HICLIB_KEEPBAM=1
+
 #WALLTIME_HICLIB=60:00:00
 #MEMORY_HICLIB=60
 #CPU_HICLIB=32

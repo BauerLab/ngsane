@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# Script running HIC HOMER pipeline tapping
+# Script running HIC HOMER pipeline
 # It expects bam files, paired end, as input.
 # author: Fabian Buske
 # date: August 2013
@@ -17,6 +17,7 @@ echo -e "usage: $(basename $0) -k NGSANE -f bam -o OUTDIR [OPTIONS]"
 exit
 }
 # QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>_significantInteractions.log
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
@@ -66,6 +67,11 @@ CHECKPOINT="parameters"
 # get basename of f
 n=${f##*/}
 
+if [ -z "$FASTA" ]; then
+    echo "[ERROR] no reference provided (FASTA)"
+    exit 1
+fi
+
 #is paired ?                                                                                                      
 if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
     PAIRED="1"
@@ -76,8 +82,6 @@ fi
 if [ $PAIRED == "0" ]; then 
     echo "[ERROR] paired library required for HIC analysis" && exit 1
 fi
-
-FASTASUFFIX=${FASTA##*.}
 
 if [ "$HOMER_HIC_INTERACTIONS" != "all" ] && [ "$HOMER_HIC_INTERACTIONS" != "cis" ] && [ "$HOMER_HIC_INTERACTIONS" != "trans" ]; then
     echo "[ERROR] HiC interactions not specified (all, cis or trans) : $HOMER_HIC_INTERACTIONS"
@@ -142,23 +146,23 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
-        RUN_COMMAND="analyzeHiC $OUTDIR/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_ADDPARAM -model $OUTDIR/${n/'_'$READONE.$ASD.bam/_background.txt}  > $OUTDIR/${n/'_'$READONE.$ASD.bam/_matrix.txt}"
+        RUN_COMMAND="analyzeHiC $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_ADDPARAM -model $OUTDIR/${n/%$READONE.$ASD.bam/_background.txt}  > $OUTDIR/${n/%$READONE.$ASD.bam/_matrix.txt}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
+    [ ! -f $FASTA.fai ] && samtools faidx $FASTA
+    
     elif [ "$HOMER_HIC_INTERACTIONS" == "cis" ]; then
-        [ ! -f $FASTA.fai ] && samtools faidx $FASTA
     
         for CHR in $(awk '{print $1'} $FASTA.fai); do
-    	    RUN_COMMAND="analyzeHiC $OUTDIR/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR -model $OUTDIR/${n/'_'$READONE.$ASD.bam/_background.txt}  > $OUTDIR/${n/'_'$READONE.$ASD.bam/_${CHR}_matrix.txt}"
+    	    RUN_COMMAND="analyzeHiC $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR -model $OUTDIR/${n/%$READONE.$ASD.bam/_background.txt}  > $OUTDIR/${n/%$READONE.$ASD.bam/_${CHR}_matrix.txt}"
     	    echo $RUN_COMMAND && eval $RUN_COMMAND
         done
     elif [ "$HOMER_HIC_INTERACTIONS" == "trans" ]; then
-       [ ! -f $FASTA.fai ] && samtools faidx $FASTA
     
         for CHR1 in $(awk '{print $1'} $FASTA.fai); do
             for CHR2 in $(awk '{print $1'} $FASTA.fai); do
                 if [ "$CHR1" != "$CHR2" ]; then
-                    RUN_COMMAND="analyzeHiC $OUTDIR/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR1 -chr2 $CHR2 -model $OUTDIR/${n/'_'$READONE.$ASD.bam/_background.txt}  > $OUTDIR/${n/'_'$READONE.$ASD.bam/_${CHR1}-${CHR2}_matrix.txt}"
+                    RUN_COMMAND="analyzeHiC $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR1 -chr2 $CHR2 -model $OUTDIR/${n/%$READONE.$ASD.bam/_background.txt}  > $OUTDIR/${n/%$READONE.$ASD.bam/_${CHR1}-${CHR2}_matrix.txt}"
                     echo $RUN_COMMAND && eval $RUN_COMMAND
                 fi
             done
@@ -180,7 +184,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/.$ASD.bam/}-${INPUT}.summary.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/.$ASD.bam/.PC1.txt} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -190,30 +194,34 @@ CHECKPOINT="Significant interactions"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-    
+    cat /dev/null > $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}
+        
     if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
-        RUN_COMMAND="analyzeHiC $OUTDIR/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_ADDPARAM -interactions $OUTDIR/${n/'_'$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $CPU_HOMERHIC "
+        RUN_COMMAND="analyzeHiC $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_ADDPARAM -interactions $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $CPU_HOMERHIC "
         echo $RUN_COMMAND && eval $RUN_COMMAND
+        echo "$OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.txt} all" >> $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}
     
     elif [ "$HOMER_HIC_INTERACTIONS" == "cis" ]; then
         for CHR in $(awk '{print $1'} $FASTA.fai); do
-            RUN_COMMAND="analyzeHiC $OUTDIR/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_ADDPARAM -chr $CHR -interactions $OUTDIR/${n/'_'$READONE.$ASD.bam/_significantInteractions_$CHR.txt} -nomatrix -cpu $CPU_HOMERHIC "
+            RUN_COMMAND="analyzeHiC $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_ADDPARAM -chr $CHR -interactions $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions_$CHR.txt} -nomatrix -cpu $CPU_HOMERHIC "
             echo $RUN_COMMAND && eval $RUN_COMMAND
+            echo "$OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions_$CHR.txt} $CHR" >> $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}
         done
     
     elif [ "$HOMER_HIC_INTERACTIONS" == "trans" ]; then
         for CHR1 in $(awk '{print $1'} $FASTA.fai); do
             for CHR2 in $(awk '{print $1'} $FASTA.fai); do
                 if [ "$CHR1" != "$CHR2" ]; then
-                    RUN_COMMAND="analyzeHiC $OUTDIR/${n/'_'$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_ADDPARAM -chr $CHR1 -chr2 $CHR2 -interactions $OUTDIR/${n/'_'$READONE.$ASD.bam/_significantInteractions_$CHR1-$CHR2.txt} -nomatrix -cpu $CPU_HOMERHIC "
+                    RUN_COMMAND="analyzeHiC $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_ADDPARAM -chr $CHR1 -chr2 $CHR2 -interactions $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions_$CHR1-$CHR2.txt} -nomatrix -cpu $CPU_HOMERHIC "
                     echo $RUN_COMMAND && eval $RUN_COMMAND
+                    echo "$OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions_$CHR1-$CHR2.txt} $CHR1-$CHR2" >> $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}
                 fi
             done
         done
     fi
 
     # mark checkpoint
-    if [[ $(ls $OUTDIR/${n/'_'$READONE.$ASD.bam/_significantInteractions_}* |  wc -l ) -ge 1 ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [[ $(wc -l $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}) -ge 1 ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
@@ -223,8 +231,12 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    RUN_COMMAND="annotateInteractions.pl $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.txt} $HOMER_HIC_ANNOTATE_ADDPARAM $OUTDIR/${n/%$READONE.$ASD.bam/_annotations}"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
+    while IFS=$' ' read -r -a INTERACTIONS
+    do
+        SUFFIX=${echo $LINE | cut -d' ' -f 1}
+        RUN_COMMAND="annotateInteractions.pl ${INTERACTIONS[0]} $HOMER_HIC_ANNOTATE_ADDPARAM $OUTDIR/${n/%$READONE.$ASD.bam/_annotations_${INTERACTIONS[1]}"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+    done < $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}
 
     # mark checkpoint
     if [ -d $OUTDIR/${n/%$READONE.$ASD.bam/_annotations} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -252,6 +264,7 @@ fi
 cd $CURDIR
 
 ################################################################################
+[ -e $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}.dummy ] && rm $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}.dummy
 echo ">>>>> HiC analysis with homer - FINISHED"
 echo ">>>>> enddate "`date`
 

@@ -43,10 +43,6 @@ READTWO="_R2"
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
 FASTA=
 
-# bowtie v1.0 index including basename
-# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome
-BOWTIE_INDEX=
-
 # library tags
 EXPID="LnCap"
 LIBRARY="HiC"

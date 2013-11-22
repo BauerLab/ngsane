@@ -18,6 +18,7 @@ exit
 }
 
 # QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <DIR>/<TASK>/${HICLIB_RENZYMES}_<SAMPLE>-mapped_reads.hdf5
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
@@ -59,6 +60,16 @@ CHECKPOINT="parameters"
 # get basename of f
 n=${f##*/}
 
+if [ -z "$FASTA" ]; then
+    echo "[ERROR] no reference provided (FASTA)"
+    exit 1
+fi
+
+if [[ ! -e ${FASTA%.*}.1.bt2 ]]; then
+    echo "[ERROR] Bowtie2 index not detected. Exeute bowtie2Index.sh first"
+    exit 1
+fi
+
 #is paired ?                                                                                                      
 if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
     PAIRED="1"
@@ -87,11 +98,15 @@ else
     echo "[NOTE] mapping data from scratch"
 fi
 
+#EXPERIMENT=$(echo ${HICLIB_RENZYMES}_${n/%$READONE.$FASTQ/} | sed 's/_*$//g')
+EXPERIMENT=$(echo ${HICLIB_RENZYMES}_${n/%$READONE.$FASTQ/})
+
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
+	dmget -a $(dirname $FASTA_CHROMDIR)/*
 	dmget -a $(dirname $FASTA)/*
 	dmget -a ${f/$READONE/"*"}
 	dmget -a $OUTDIR/*
@@ -105,12 +120,11 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    EXPERIMENT=$(echo ${HICLIB_RENZYMES}_${n/%$READONE.$FASTQ/} | sed 's/_*$//g')
     PARAMS="--restrictionEnzyme=$HICLIB_RENZYMES \
        --experimentName=$EXPERIMENT \
        --gapFile=$HICLIB_GAPFILE \
-       --referenceGenome=$FASTA \
-       --index=$BOWTIE2_INDEX"
+       --referenceGenome=$FASTA_CHROMDIR \
+       --index=${FASTA%.*}"
     
     if [ "$FASTQ" = "sra" ]; then
     	PARAMS="$PARAMS --inputFormat=sra --sra-reader=$(which fastq-dump)"
@@ -132,7 +146,9 @@ else
     mv -f $OUTDIR/$EXPERIMENT*.pdf $RUNSTATS
     mv -f $OUTDIR/$EXPERIMENT.hiclib.log $RUNSTATS
 
-    #rm $OUTDIR/*$READONE.bam.*  $OUTDIR/*$READTWO.bam.*
+    if [ -z "$HICLIB_KEEPBAM" ]; then 
+        rm $OUTDIR/*$READONE.bam.*  $OUTDIR/*$READTWO.bam.*
+    fi
 
     # mark checkpoint
     if [ -e $OUTDIR/${EXPERIMENT}-mapped_reads.hdf5 ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -140,5 +156,6 @@ else
 fi
 
 ################################################################################
+[ -e $OUTDIR/${EXPERIMENT}-mapped_reads.hdf5.dummy ] && rm $OUTDIR/${EXPERIMENT}-mapped_reads.hdf5.dummy
 echo ">>>>> readmapping with hiclib (Bowtie2) - FINISHED"
 echo ">>>>> enddate "`date`

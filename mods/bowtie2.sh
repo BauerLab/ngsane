@@ -90,7 +90,7 @@ if [ -z "$FASTA" ]; then
 fi
 
 if [[ ! -e ${FASTA%.*}.1.bt2 ]]; then
-    echo "[ERROR] Bowtie2 index not detected. Exeute bowtieIndex.sh first"
+    echo "[ERROR] Bowtie2 index not detected. Exeute bowtie2Index.sh first"
     exit 1
 fi
 
