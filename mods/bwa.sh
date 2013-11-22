@@ -99,13 +99,6 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
-if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
-    echo "[ERROR] library info not set (EXPID, LIBRARY, and PLATFORM): free text needed"
-    exit 1;
-else
-    echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
-fi
-
 # get basename of f
 n=${f##*/}
 
