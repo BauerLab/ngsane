@@ -1056,18 +1056,23 @@ module load $SOFTWARE/$VERSION
 
 ################################################################################
 
-VERSION=2010b
+VERSION=2012b
 SOFTWARE=mcr
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
 mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 
 #wget http://www.broadinstitute.org/~anshul/softwareRepo/MCR$VERSION.bin
-wget http://www.mathworks.com.au/supportfiles/MCR_Runtime/R2012b/MCR_R2012b_glnxa64_installer.zip
-chmod 777 MCR$VERSION.bin
-./MCR2010b.bin -console
-# choose "1" then "/packages/mcr/2010b" then "1" "1" "3"
-rm MCR2010b.bin
+wget http://www.mathworks.com.au/supportfiles/MCR_Runtime/R2012b/MCR_R$VERSION"_"glnxa64_installer.zip
+unzip MCR_R$VERSION"_"glnxa64_installer.zip
+cat > input.txt <<DELIM
+destinationFolder=$PACKAGEPATH/$SOFTWARE/$VERSION
+agreeToLicense=yes
+outputFile=$PACKAGEPATH/$SOFTWARE/$VERSION/mathworks_install.log
+mode=silent
+DELIM
+
+./install -inputFile input.txt -mode silent
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
@@ -1077,8 +1082,8 @@ global dotversion
 }
  module-whatis "$SOFTWARE $VERSION"
 conflict $SOFTWARE
-set MCRROOT $PACKAGEPATH/$SOFTWARE/$VERSION/v714
-setenv MCRROOT $PACKAGEPATH/$SOFTWARE/$VERSION/v714
+set MCRROOT $PACKAGEPATH/$SOFTWARE/$VERSION/v80
+setenv MCRROOT $PACKAGEPATH/$SOFTWARE/$VERSION/v80
 
 prepend-path    LD_LIBRARY_PATH ${MCRROOT}/runtime/glnxa64
 prepend-path    LD_LIBRARY_PATH ${MCRROOT}/bin/glnxa64
@@ -1091,6 +1096,37 @@ setenv XAPPLRESDIR ${MCRROOT}/X11/app-defaults
 DELIM
 
 module load $SOFTWARE/$VERSION
+
+################################################################################
+
+VERSION=com
+SOFTWARE=chance
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://songlab.ucsf.edu/CHANCE_files/$SOFTWARE"_"$VERSION.zip
+mkdir chance
+mv chance_com.zip chance
+cd chance/
+unzip chance_com.zip
+cp *chance_com* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+
+prepend-path    PATH $PACKAGEPATH/$SOFTWARE/$VERSION
+
+DELIM
+
+module load $SOFTWARE/$VERSION
+
 
 ################################################################################
 
@@ -1249,10 +1285,13 @@ sed -i 's|^NG_HICLIB=|NG_HICLIB=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION
 sed -i 's|^NG_HICUP=|NG_HICUP=hicup/0.4.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_FITHIC=|NG_FITHIC=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_FASTQSCREEN=|NG_FASTQSCREEN=fastq_screen/0.4.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_MATLAB=|NG_MATLAB=mcr/2010b|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_CHANCE=|NG_CHANCE=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_MATLAB=|NG_MATLAB=mcr/2012b|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_CHANCE=|NG_CHANCE=chance/com|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_PARALLEL=|NG_PARALLEL=parallel/20131022|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_TRINITY=|NG_TRINITY=trinityrnaseq/2013_08_14|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+
+# databases
+sed -i 's|^MEMECHIPDATABASES=|MEMECHIPDATABASES=/packages/meme/4.9.1/db/motif_databases/jolma2013.meme|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 
 # activate SGE
 sed -i 's|^SUBMISSIONSYSTEM="PBS"|SUBMISSIONSYSTEM="SGE"|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
