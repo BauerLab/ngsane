@@ -68,7 +68,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
-SAMPLE=${SAMPLE}
+SAMPLE=${n/%$READONE.$FASTQ/}
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
@@ -79,9 +79,6 @@ if [[ ! -e ${FASTA%.*}.1.ebwt ]]; then
     echo "[ERROR] Bowtie index not detected. Exeute bowtieIndex.sh first"
     exit 1
 fi
-
-#output for this library
-OUTDIR=${SAMPLE}
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
@@ -175,7 +172,7 @@ else
     echo "#Path to the reference genome indices" >> $OUTDIR/${SAMPLE}.conf
     echo "Index:${FASTA%.*}"  >> $OUTDIR/${SAMPLE}.conf
     echo "#Path to the genome digest file" >> $OUTDIR/${SAMPLE}.conf
-    echo "DIGEST:$DIGESTGENOME" >> $OUTDIR/${SAMPLE}.conf
+    echo "DIGEST:$OUTDIR/$DIGESTGENOME" >> $OUTDIR/${SAMPLE}.conf
     echo "#FASTQ file format | phred33-quals, phred64-quals, solexa-quals or solexa1.3-quals" >> $OUTDIR/${SAMPLE}.conf
     echo "Format:phred33-quals" >> $OUTDIR/${SAMPLE}.conf
     echo "#Maximum di-tag length | optional parameter" >> $OUTDIR/${SAMPLE}.conf
