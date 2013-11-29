@@ -68,6 +68,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/$READONE.$FASTQ/}
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
@@ -84,7 +85,7 @@ OUTDIR=${n/%$READONE.$FASTQ/}
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    [ -d $OUTDIR/$OUTDIR ] && rm -r $OUTDIR/$OUTDIR
+    [ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
     [ -e $OUTDIR/${n/%$READONE.$FASTQ/}.spline_pass1.q05.txt ] && rm $OUTDIR/${n/%$READONE.$FASTQ/}*.txt
 fi
 
@@ -126,21 +127,20 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    FASTASUFFIX=${FASTA##*.}
     FASTABASE=${FASTA##*/}
-    
-    mkdir -p $OUTDIR/$OUTDIR
-    cd $OUTDIR/$OUTDIR
+
+    mkdir -p $OUTDIR/$SAMPLE
+    cd $OUTDIR/$SAMPLE
     if [ ${#ENZYMES[@]} = 1 ]; then
        echo "Restriction Enzyme 1: ${ENZYME1[1]}:${ENZYME1[0]} "
-       DIGESTGENOME=$OUTDIR/${FASTABASE/.$FASTASUFFIX/}_${ENZYME1[1]}_None.txt
+       DIGESTGENOME=$OUTDIR/${FASTABASE%.*}_${ENZYME1[1]}_None.txt
        hicup_digester -g "${FASTABASE%.*}" -1 ${ENZYME1[0]} $FASTA
        mv Digest_* ${DIGESTGENOME}
     
-    elif [ ${#ENZYMES[@]} = 2 ] && [ ! -e $OUTDIR/${FASTABASE/.$FASTASUFFIX/}_${ENZYME1[1]}_${ENZYME2[2]}.txt ]; then
+    elif [ ${#ENZYMES[@]} = 2 ] && [ ! -e $OUTDIR/${FASTABASE%.*}_${ENZYME1[1]}_${ENZYME2[2]}.txt ]; then
        echo "Restriction Enzyme 1: ${ENZYME1[1]}:${ENZYME1[0]} "
        echo "Restriction Enzyme 2: ${ENZYME2[1]}:${ENZYME2[0]} "
-       DIGESTGENOME=$OUTDIR/${FASTABASE/.$FASTASUFFIX/}_${ENZYME1[1]}_${ENZYME2[2]}.txt
+       DIGESTGENOME=$OUTDIR/${FASTABASE%.*}_${ENZYME1[1]}_${ENZYME2[2]}.txt
        hicup_digester -g "${FASTABASE%.*}" -1 ${ENZYME1[0]} -2 ${ENZYME2[0]} $FASTA
        mv Digest_* ${DIGESTGENOME}
     else
@@ -185,7 +185,7 @@ else
     echo "#Minimum di-tag length | optional parameter" >> $HICUP_CONF
     echo "#Shortest:" >> $HICUP_CONF
     echo "#FASTQ files to be analysed, separating file pairs using the pipe '|' character" >> $HICUP_CONF
-    echo "$f | ${f/$READONE/$READTWO} " >> $HICUP_CONF
+    echo "$f | ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} " >> $HICUP_CONF
 
     # mark checkpoint
     if [ -f $HICUP_CONF ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -200,14 +200,14 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     CURDIR=$(pwd)
-    cd $OUTDIR/$OUTDIR
+    cd $OUTDIR/$SAMPLE
     RUN_COMMAND="$(which perl) $(which hicup) -c $HICUP_CONF"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    cp -f $OUTDIR/$OUTDIR/hicup_deduplicater_summary_results_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_deduplicater_summary_results.txt
-    cp -f $OUTDIR/$OUTDIR/hicup_filter_summary_results_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_filter_summary_results.txt
-    cp -f $OUTDIR/$OUTDIR/hicup_mapper_summary_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_mapper_summary.txt
-    cp -f $OUTDIR/$OUTDIR/hicup_truncater_summary_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_truncater_summary.txt
+    cp -f $OUTDIR/$SAMPLE/hicup_deduplicater_summary_results_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_deduplicater_summary_results.txt
+    cp -f $OUTDIR/$SAMPLE/hicup_filter_summary_results_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_filter_summary_results.txt
+    cp -f $OUTDIR/$SAMPLE/hicup_mapper_summary_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_mapper_summary.txt
+    cp -f $OUTDIR/$SAMPLE/hicup_truncater_summary_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_truncater_summary.txt
     ln -f -s $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam $OUTDIR/${n/%$READONE.$FASTQ/}_uniques.bam
     
     cd $CURDIR
@@ -215,8 +215,8 @@ else
     # copy piecharts
     RUNSTATS=$OUT/runStats/$TASK_HICUP
     mkdir -p $RUNSTATS
-    cp -f $OUTDIR/$OUTDIR/uniques_*_cis-trans.png $RUNSTATS/${n/%$READONE.$FASTQ/}_uniques_cis-trans.png
-    cp -f $OUTDIR/$OUTDIR/*_ditag_classification.png $RUNSTATS/${n/%$READONE.$FASTQ/}_ditag_classification.png
+    cp -f $OUTDIR/$SAMPLE/uniques_*_cis-trans.png $RUNSTATS/${n/%$READONE.$FASTQ/}_uniques_cis-trans.png
+    cp -f $OUTDIR/$SAMPLE/*_ditag_classification.png $RUNSTATS/${n/%$READONE.$FASTQ/}_ditag_classification.png
 
     # mark checkpoint
     if [ -f $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
