@@ -68,7 +68,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
-SAMPLE=${n/$READONE.$FASTQ/}
+SAMPLE=${n/%$READONE.$FASTQ/}
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
@@ -86,11 +86,11 @@ OUTDIR=${n/%$READONE.$FASTQ/}
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
     [ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/}.spline_pass1.q05.txt ] && rm $OUTDIR/${n/%$READONE.$FASTQ/}*.txt
+    [ -e $OUTDIR/${SAMPLE}.spline_pass1.q05.txt ] && rm $OUTDIR/${SAMPLE}*.txt
 fi
 
 #is paired ?
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     PAIRED="1"
 else
     echo "HiCUP requires paired fastq libraries" && exit 1
@@ -133,16 +133,16 @@ else
     cd $OUTDIR/$SAMPLE
     if [ ${#ENZYMES[@]} = 1 ]; then
        echo "Restriction Enzyme 1: ${ENZYME1[1]}:${ENZYME1[0]} "
-       DIGESTGENOME=$OUTDIR/${FASTABASE%.*}_${ENZYME1[1]}_None.txt
+       DIGESTGENOME=${FASTABASE%.*}_${ENZYME1[1]}_None.txt
        hicup_digester -g "${FASTABASE%.*}" -1 ${ENZYME1[0]} $FASTA
-       mv Digest_* ${DIGESTGENOME}
+       mv Digest_* ../${DIGESTGENOME}
     
     elif [ ${#ENZYMES[@]} = 2 ] && [ ! -e $OUTDIR/${FASTABASE%.*}_${ENZYME1[1]}_${ENZYME2[2]}.txt ]; then
        echo "Restriction Enzyme 1: ${ENZYME1[1]}:${ENZYME1[0]} "
        echo "Restriction Enzyme 2: ${ENZYME2[1]}:${ENZYME2[0]} "
-       DIGESTGENOME=$OUTDIR/${FASTABASE%.*}_${ENZYME1[1]}_${ENZYME2[2]}.txt
+       DIGESTGENOME=${FASTABASE%.*}_${ENZYME1[1]}_${ENZYME2[2]}.txt
        hicup_digester -g "${FASTABASE%.*}" -1 ${ENZYME1[0]} -2 ${ENZYME2[0]} $FASTA
-       mv Digest_* ${DIGESTGENOME}
+       mv Digest_* ../${DIGESTGENOME}
     else
        echo "[ERROR] Invalid number or pattern of enzyme digest patterns."
        exit 1
@@ -150,7 +150,7 @@ else
     cd $SOURCE
     
     # mark checkpoint
-    if [ -f $DIGESTGENOME ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$DIGESTGENOME ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -161,7 +161,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    HICUP_CONF=$OUTDIR/${n/%$READONE.$FASTQ/.conf}
+    HICUP_CONF=$OUTDIR/${SAMPLE}.conf
     
     cat /dev/null > $HICUP_CONF
     echo "#Number of threads to use" >> $HICUP_CONF
@@ -203,14 +203,13 @@ else
     cd $OUTDIR/$SAMPLE
     RUN_COMMAND="$(which perl) $(which hicup) -c $HICUP_CONF"
     echo $RUN_COMMAND && eval $RUN_COMMAND
+    cd $CURDIR
     
     cp -f $OUTDIR/$SAMPLE/hicup_deduplicater_summary_results_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_deduplicater_summary_results.txt
     cp -f $OUTDIR/$SAMPLE/hicup_filter_summary_results_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_filter_summary_results.txt
     cp -f $OUTDIR/$SAMPLE/hicup_mapper_summary_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_mapper_summary.txt
     cp -f $OUTDIR/$SAMPLE/hicup_truncater_summary_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_truncater_summary.txt
     ln -f -s $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam $OUTDIR/${n/%$READONE.$FASTQ/}_uniques.bam
-    
-    cd $CURDIR
 
     # copy piecharts
     RUNSTATS=$OUT/runStats/$TASK_HICUP
