@@ -708,10 +708,12 @@ rm $SUMMARYTMP
 rm $SUMMARYFILE.tmp
 
 ################################################################################
-# convert html to pdf
-#if [ "$(hash prince)" == "" ]; then
-#    prince $SUMMARYFILE -o ${HTMLOUT}.pdf
-#fi
+# make tar containing all files smaller than 100k
+[ -f Summary_files.tmp ] && rm Summary_files.tmp
+find . -size -80k > Summary_files.tmp
+echo "$SUMMARYFILE" >> Summary_files.tmp
+tar -czf ${SUMMARYFILE%.*}.tar.gz -T Summary_files.tmp --no-recursion
+rm Summary_files.tmp
 
 ################################################################################
 echo ">>>>> Generate HTML report - FINISHED"
