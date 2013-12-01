@@ -32,7 +32,7 @@ QOUT=$OUT/qout
 ##********************
 
 # fastq file suffix
-FASTQ="fq.gz"
+FASTQ="fastq.gz"
 
 # read indicator immediately preceding the fastq file suffix
 READONE="_R1"
