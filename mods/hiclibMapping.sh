@@ -71,10 +71,10 @@ if [[ ! -e ${FASTA%.*}.1.bt2 ]]; then
 fi
 
 #is paired ?                                                                                                      
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     PAIRED="1"
 else
-    echo "[ERROR] hiclib requires paired-end fastq files. Could not find ${f/$READONE/$READTWO}" && exit 1
+    echo "[ERROR] hiclib requires paired-end fastq files. Could not find ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" && exit 1
 fi
 
 if [ -z "$HICLIB_RENZYMES" ]; then
@@ -85,7 +85,7 @@ if [ -z "BOWTIE2INDEX" ]; then
 	echo "[ERROR] bowtie2 index not specified" && exit 1
 fi
 
-READS="$f ${f/$READONE/$READTWO}"
+READS="$f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
 if [ -f "$OUTDIR/${n/.$FASTQ/_R1.bam.25}"  ]; then
     echo "[NOTE] using bam files from previous run"
     LIBONE=${n/.$FASTQ/_R1.bam}

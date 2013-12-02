@@ -78,7 +78,11 @@ if [ -z "$TRIMMOMATICSTEPS" ]; then
 fi
 
 # get encoding
-FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+if [ -z $FASTQ_ENCODING ]; then
+    echo "[NOTE] Detect fastq Phred encoding"
+    FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+    echo "[NOTE] $FASTQ_ENCODING fastq format detected"
+fi
 if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
     FASTQ_PHRED=" -phred33"    
 elif [[ "$FASTQ_ENCODING" == *Phred64* ]]; then
@@ -104,6 +108,7 @@ CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
+    dmget -a ${o/$READONE/"*"}
 fi
 
 echo -e "\n********* $CHECKPOINT\n"

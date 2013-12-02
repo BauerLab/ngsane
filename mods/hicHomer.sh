@@ -110,7 +110,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    RUN_COMMAND="makeTagDirectory $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $f,${f/$READONE/$READTWO} $HOMER_HIC_TAGDIR_ADDPARAM"
+    RUN_COMMAND="makeTagDirectory $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $f,${f/%$READONE.$FASTQ/$READTWO.$FASTQ} $HOMER_HIC_TAGDIR_ADDPARAM"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     cp -r $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered}

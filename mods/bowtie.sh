@@ -113,7 +113,7 @@ if [ -z "$RECOVERFROM" ]; then
 fi
 
 #is paired ?                                                                                                      
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
     echo 
 else
@@ -161,9 +161,9 @@ if [ $PAIRED == "0" ]; then
     let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
 else 
 
-    READS="-1 $f -2 ${f/$READONE/$READTWO}"
+    READS="-1 $f -2 ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
     READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-    READ2=`$ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}' `
+    READ2=`$ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}' `
     let FASTQREADS=$READ1+$READ2
 fi
 
@@ -187,13 +187,13 @@ else
         echo "[NOTE] PAIRED READS"
         # clever use of named pipes to avoid fastq unzipping
         [ -e $OUTDIR/${n}_pipe ] && rm $OUTDIR/${n}_pipe
-        [ -e $OUTDIR/${n/$READONE/$READTWO}_pipe ] && rm $OUTDIR/${n/$READONE/$READTWO}_pipe
-        mkfifo $OUTDIR/${n}_pipe $OUTDIR/${n/$READONE/$READTWO}_pipe
+        [ -e $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe ] && rm $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe
+        mkfifo $OUTDIR/${n}_pipe $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe
         
         $ZCAT $f > $OUTDIR/${n}_pipe &
-        $ZCAT ${f/$READONE/$READTWO} > $OUTDIR/${n/$READONE/$READTWO}_pipe &
+        $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe &
         
-		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq} --max $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA%.*} -1 $OUTDIR/${n}_pipe -2 $OUTDIR/${n/$READONE/$READTWO}_pipe $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam}"
+		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq} --max $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA%.*} -1 $OUTDIR/${n}_pipe -2 $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam}"
 
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -207,7 +207,7 @@ else
     
     # cleanup
     [ -e $OUTDIR/${n}_pipe ] && rm $OUTDIR/${n}_pipe
-    [ -e $OUTDIR/${n/$READONE/$READTWO}_pipe ] && rm $OUTDIR/${n/$READONE/$READTWO}_pipe
+    [ -e $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe ] && rm $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe
     [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam} ] && rm $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam}
 
     # mark checkpoint
