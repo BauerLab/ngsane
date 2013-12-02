@@ -58,6 +58,11 @@ PLATFORM="Illumina"
 # e.g. "Phred33" (Sanger, Illumina 1.8+), "Phred64" (Solexa, Illumina 1.5)
 FASTQ_ENCODING=
 
+# Activate iterative mapping by providing 3 arguments. 
+# 1) maximum read length, 2) negative step size 3) minimum read length
+# e.g. “90 -10 20” for all reads from 100bp to 20bp with step size 10bp
+BWA_ITERATIVE=
+
 ## additional bwa parameters
 BWAALNADDPARAM=
 BWASAMPLEADDPARAM=

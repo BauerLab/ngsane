@@ -31,17 +31,11 @@ required:
 
 options:
   -s | --rgsi <name>        read group prefix (default: )
-  --forceSingle             run single end eventhough second read is present
-  --noMapping
 "
 exit
 }
 
 if [ ! $# -gt 3 ]; then usage ; fi
-
-#DEFAULTS
-FORCESINGLE=0
-NOMAPPING=0
 
 #INPUTS
 while [ "$1" != "" ]; do
@@ -50,8 +44,6 @@ while [ "$1" != "" ]; do
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # read group prefix
-        --forceSingle )         FORCESINGLE=1;;
-        --noMapping )           NOMAPPING=1;;
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -101,6 +93,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/$READONE.$FASTQ/}
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
@@ -123,9 +116,9 @@ fi
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl
+    [ -e $OUTDIR/$SAMPLE.$ASD.bam ] && rm $OUTDIR/$SAMPLE.$ASD.bam
+    [ -e $OUTDIR/$SAMPLE.$ASD.bam.stats ] && rm $OUTDIR/$SAMPLE.$ASD.bam.stats
+    [ -e $OUTDIR/$SAMPLE.$ASD.bam.dupl ] && rm $OUTDIR/$SAMPLE.$ASD.bam.dupl
 fi
 
 #is ziped ?
@@ -133,10 +126,10 @@ ZCAT="zcat"
 if [[ $f != *.gz ]]; then ZCAT="cat"; fi
 
 #is paired ?
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     PAIRED="1"
     READ1=$($ZCAT $f | wc -l | gawk '{print int($1/4)}')
-    READ2=$($ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}')
+    READ2=$($ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}')
     let FASTQREADS=$READ1+$READ2
 else
     PAIRED="0"
@@ -151,14 +144,19 @@ if [ -z "$FASTQ_ENCODING" ]; then
     echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 fi
 if [[ "$FASTQ_ENCODING" == "Phred33" ]]; then
-    FASTQ_PHRED=""    
+    FASTQ_PHRED=""
+    FASTQ_PHRED_TRIM=" -phred33"
 elif [[ "$FASTQ_ENCODING" == "Phred64" ]]; then
     FASTQ_PHRED="-I"
+    FASTQ_PHRED_TRIM=" -phred64"
 else
     echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default"
 fi
 
-FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
+FULLSAMPLEID=$SAMPLEID$SAMPLE
+
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
+mkdir -p $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -180,42 +178,154 @@ else
     
     if [ "$PAIRED" = 1 ]; then
 
-        if [ "$NOMAPPING" = 0 ]; then
-            echo "[NOTE] PAIRED READS"
-            # clever use of named pipes to avoid IO
-            [ -e $OUTDIR/${n/$FASTQ/sai} ] && rm $OUTDIR/${n/$FASTQ/sai}
-            [ -e $OUTDIR/${n/$READONE.$FASTQ/$READTWO.sai} ] && rm $OUTDIR/${n/$READONE.$FASTQ/$READTWO.sai} 
-            mkfifo $OUTDIR/${n/$FASTQ/sai} $OUTDIR/${n/$READONE.$FASTQ/$READTWO.sai}
-        
-            bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $f > $OUTDIR/${n/$FASTQ/sai} &
-            bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA ${f/$READONE/$READTWO} > $OUTDIR/${n/$READONE.$FASTQ/$READTWO.sai} &
-            bwa sampe $FASTA $OUTDIR/${n/$FASTQ/sai} $OUTDIR/${n/$READONE.$FASTQ/$READTWO.sai} \
-       	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-    	       $f ${f/$READONE/$READTWO} | samtools view -@ $CPU_BWA -bS -t $FASTA.fai - > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
+        echo "[NOTE] PAIRED READS"
+        # clever use of named pipes to avoid IO
+        [ -e $OUTDIR/$SAMPLE$READONE.sai ] && rm $OUTDIR/$SAMPLE$READONE.sai
+        [ -e $OUTDIR/$SAMPLE$READTWO.sai] && rm $OUTDIR/$SAMPLE$READTWO.sai
+        mkfifo $OUTDIR/$SAMPLE$READONE.sai $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.sai}
     
-            [ -e $OUTDIR/${n/$FASTQ/sai} ] && rm $OUTDIR/${n/$FASTQ/sai}
-            [ -e $OUTDIR/${n/$READONE.$FASTQ/$READTWO.sai} ] && rm $OUTDIR/${n/$READONE.$FASTQ/$READTWO.sai}
-        fi
+        bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $f > $OUTDIR/$SAMPLE$READONE.sai &
+        bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $OUTDIR/$SAMPLE$READTWO.sai &
+        
+        bwa sampe $FASTA $OUTDIR/$SAMPLE$READONE.sai $OUTDIR/$SAMPLE$READTWO.sai\
+    	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
+	       $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | samtools view -@ $CPU_BWA -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE.$ALN.bam
+
+        [ -e $OUTDIR/$SAMPLE$READONE.sai ] && rm $OUTDIR/$SAMPLE$READONE.sai
+        [ -e $OUTDIR/$SAMPLE$READTWO.sai ] && rm $OUTDIR/$SAMPLE$READTWO.sai
 
     else
         echo "[NOTE] SINGLE READS"
         # clever use of named pipes to avoid IO
-        [ -e $OUTDIR/${n/$FASTQ/sai} ] && rm $OUTDIR/${n/$FASTQ/sai}
-        mkfifo $OUTDIR/${n/$FASTQ/sai}
+        [ -e $OUTDIR/$SAMPLE$READONE.sai ] && rm $OUTDIR/$SAMPLE$READONE.sai
+        mkfifo $OUTDIR/$SAMPLE$READONE.sai
         
-        bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA $f > $OUTDIR/${n/$FASTQ/sai} &
+        bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA $f > $OUTDIR/$SAMPLE$READONE.sai &
     
-        bwa samse $FASTA $OUTDIR/${n/$FASTQ/sai} $BWASAMPLEADDPARAM \
-    	-r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-    	$f | samtools view -@ $CPU_BWA -bS -t $FASTA.fai - > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
+        bwa samse $FASTA $OUTDIR/$SAMPLE$READONE.sai \
+            $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
+        	$f | samtools view -@ $CPU_BWA -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE.$ALN.bam
     
-        [ -e $OUTDIR/${n/$FASTQ/sai} ] && rm $OUTDIR/${n/$FASTQ/sai}
+        [ -e $OUTDIR/$SAMPLE$READONE.sai ] && rm $OUTDIR/$SAMPLE$READONE.sai
     fi
     
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE.$ALN.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
+################################################################################
+CHECKPOINT="Iterative Mapping"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else
+    # iterative mapping    
+    if [ $z "$BWA_ITERATIVE" ]; then
+        echo "[NOTE] Skip iterative mapping"
+    else
+
+        ITERATIVEINPUT=$OUTDIR/$SAMPLE.$ALN.bam
+        samtools view -H $ITERATIVEINPUT > $THISTMP/$SAMPLE.$ALN.fullsize.header
+
+        if [ "$PAIRED" = 1 ]; then
+
+            for COUNTER in $(seq $BWA_ITERATIVE); do
+
+                # get exactly one end mapped
+                samtools view -bh -F 4 -f 8 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$UNM.1.bam
+                samtools view -bh -F 8 -f 4 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$UNM.2.bam
+                
+                # exactly two ends mapped
+                samtools view -bh -F 12 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$UNM.3.bam
+                
+                # merge
+                samtools merge -n $THISTMP/$SAMPLE.$UNM.bam $THISTMP/$SAMPLE.$UNM.1.bam $THISTMP/$SAMPLE.$UNM.2.bam $THISTMP/$SAMPLE.$UNM.3.bam
+                
+                # check for premature exit from loop
+                if [ $(samtools view -c $THISTMP/$SAMPLE.$UNM.bam) == 0 ]; then 
+                    break
+                fi
+                
+                samtools index $THISTMP/$SAMPLE.$UNM.bam
+                rm $THISTMP/$SAMPLE.$UNM.1.bam $THISTMP/$SAMPLE.$UNM.2.bam $THISTMP/$SAMPLE.$UNM.3.bam
+
+                # properly paired reads
+                samtools view -bh -f 3 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$ALN.$COUNTER.iterative
+                
+                # convert
+                java $JAVAPARAMS -jar $PATH_PICARD/SamToFastq.jar INPUT=$THISTMP/$SAMPLE.$UNM.bam FASTQ=$THISTMP/$SAMPLE$READONE.fastq SECOND_END_FASTQ=$THISTMP/$SAMPLE$READTWO.fastq
+                $GZIP $THISTMP/$SAMPLE$READONE.fastq $THISTMP/$SAMPLE$READTWO.fastq
+                
+                # crop reads using trimmomatic
+                RUN_COMMAND="java $JAVAPARAMS -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED_TRIM -threads $CPU_BWA $THISTMP/$SAMPLE$READONE.fastq.gz $THISTMP/$SAMPLE$READTWO.fastq.gz $THISTMP/$SAMPLE$READONE.cropped.fastq.gz $THISTMP/$SAMPLE$READONE.unpaired.fastq.gz $THISTMP/$SAMPLE$READTWO.cropped.fastq.gz $THISTMP/$SAMPLE$READTWO.unpaired.fastq.gz CROP:$COUNTER -trimlog $THISTMP/$SAMPLE.trim.log"
+    
+                [ -e $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
+                [ -e $THISTMP/$SAMPLE$READTWO.sai] && rm $THISTMP/$SAMPLE$READTWO.sai
+                mkfifo $THISTMP/$SAMPLE$READONE.sai $THISTMP/${n/%$READONE.$FASTQ/$READTWO.sai}
+            
+                bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $THISTMP/$SAMPLE$READONE.cropped.fastq.gz > $THISTMP/$SAMPLE$READONE.sai &
+                bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $THISTMP/$SAMPLE$READTWO.cropped.fastq.gz > $THISTMP/$SAMPLE$READTWO.sai &
+                
+                bwa sampe $FASTA $THISTMP/$SAMPLE$READONE.sai $THISTMP/$SAMPLE$READTWO.sai\
+        	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
+        	       $THISTMP/$SAMPLE$READONE.cropped.fastq.gz $THISTMP/$SAMPLE$READTWO.cropped.fastq.gz | samtools view -@ $CPU_BWA -bS -t $FASTA.fai - > $THISTMP/$SAMPLE.$ALN.$COUNTER.bam
+        
+                [ -e $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
+                [ -e $THISTMP/$SAMPLE$READTWO.sai ] && rm $THISTMP/$SAMPLE$READTWO.sai
+                    
+                rm $THISTMP/$SAMPLE$READONE.cropped.* $THISTMP/$SAMPLE$READTWO.cropped.* $THISTMP/$SAMPLE.$UNM.bam*
+                ITERATIVEINPUT=$THISTMP/$SAMPLE.$ALN.$COUNTER.bam
+            done
+
+        elif [ "$PAIRED" = 0 ]; then
+
+            for COUNTER in $(seq $BWA_ITERATIVE); do
+
+                # exactly unmapped
+                samtools view -bh -f 4 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$UNM.bam
+
+                # check for premature exit from loop
+                if [ $(samtools view -c $THISTMP/$SAMPLE.$UNM.bam) == 0 ]; then 
+                    break
+                fi
+
+                samtools index $THISTMP/$SAMPLE.$UNM.bam
+
+                # properly mapped reads
+                samtools view -bh -F 4 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$ALN.$COUNTER.iterative
+                
+                # convert
+                java $JAVAPARAMS -jar $PATH_PICARD/SamToFastq.jar INPUT=$THISTMP/$SAMPLE.$UNM.bam FASTQ=$THISTMP/$SAMPLE$READONE.fastq
+                $GZIP $THISTMP/$SAMPLE$READONE.fastq
+                
+                # crop reads using trimmomatic
+                RUN_COMMAND="java $JAVAPARAMS -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $FASTQ_PHRED_TRIM -threads $CPU_BWA $THISTMP/$SAMPLE$READONE.fastq.gz $THISTMP/$SAMPLE$READONE.cropped.fastq.gz CROP:$COUNTER -trimlog $THISTMP/$SAMPLE.trim.log"
+    
+                [ -e $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
+                mkfifo $THISTMP/$SAMPLE$READONE.sai
+            
+                bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $THISTMP/$SAMPLE$READONE.cropped.fastq.gz > $THISTMP/$SAMPLE$READONE.sai &
+                
+                bwa samse $FASTA $THISTMP/$SAMPLE$READONE.sai \
+        	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
+        	       $THISTMP/$SAMPLE$READONE.cropped.fastq.gz | samtools view -@ $CPU_BWA -bS -t $FASTA.fai - > $THISTMP/$SAMPLE.$ALN.$COUNTER.bam
+        
+                [ -e $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
+                    
+                rm $THISTMP/$SAMPLE$READONE.cropped.* $THISTMP/$SAMPLE.$UNM.bam*
+                ITERATIVEINPUT=$THISTMP/$SAMPLE.$ALN.$COUNTER.bam
+            done
+        fi
+        
+        # merge iterative mapped reads
+        samtools merge -h $OUTDIR/$SAMPLE.$ALN.fullsize.header $THISTMP/$SAMPLE.$ALN.tmp $ITERATIVEINPUT $THISTMP/$SAMPLE.$ALN.*.iterative
+        mv $THISTMP/$SAMPLE.$ALN.tmp $OUTDIR/$SAMPLE.$ALN.bam
+        rm $THISTMP/$SAMPLE.$ALN.*.iterative $THISTMP/$SAMPLE.$ALN.fullsize.header $THISTMP/$SAMPLE.$ALN.*.bam
+
+        # mark checkpoint
+        if [ -f $OUTDIR/$SAMPLE.$ALN.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    fi
+fi
 
 ################################################################################
 CHECKPOINT="bam conversion and sorting"
@@ -224,11 +334,11 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    samtools sort -@ $CPU_BWA $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} $OUTDIR/${n/%$READONE.$FASTQ/.ash}
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
+    samtools sort -@ $CPU_BWA $OUTDIR/$SAMPLE.$ALN.bam $OUTDIR/$SAMPLE.ash
+    [ -e $OUTDIR/$SAMPLE.$ALN.bam ] && rm $OUTDIR/$SAMPLE.$ALN.bam
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.ash.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE.ash.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 
@@ -246,20 +356,20 @@ else
     #agreement between bwa and picard
     #http://seqanswers.com/forums/showthread.php?t=4246
     if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
-    THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
-    echo $THISTMP
-    mkdir -p $THISTMP
+#    THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
+#    echo $THISTMP
+#    mkdir -p $THISTMP
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
-        INPUT=$OUTDIR/${n/%$READONE.$FASTQ/.ash.bam} \
-        OUTPUT=$OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} \
-        METRICS_FILE=$OUTDIR/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
+        INPUT=$OUTDIR/$SAMPLE.ash.bam \
+        OUTPUT=$OUTDIR/$SAMPLE.$ASD.bam \
+        METRICS_FILE=$OUTDIR/metrices/$SAMPLE.$ASD.bam.dupl AS=true \
         VALIDATION_STRINGENCY=SILENT \
         TMP_DIR=$THISTMP
-    [ -d $THISTMP ] && rm -r $THISTMP
-    samtools index $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}
+#    [ -d $THISTMP ] && rm -r $THISTMP
+    samtools index $OUTDIR/$SAMPLE.$ASD.bam
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE.$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 
@@ -270,12 +380,12 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
         
-    STATSOUTDIR=$OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
-    samtools flagstat $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} > $STATSOUTDIR
+    STATSOUTDIR=$OUTDIR/$SAMPLE.$ASD.bam.stats
+    samtools flagstat $OUTDIR/$SAMPLE.$ASD.bam > $STATSOUTDIR
     if [ -n "$SEQREG" ]; then
         echo "#custom region" >> $STATSOUTDIR
-        echo $(samtools view -c -F 4 $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} $SEQREG )" total reads in region " >> $STATSOUTDIR
-        echo $(samtools view -c -f 3 $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} $SEQREG )" properly paired reads in region " >> $STATSOUTDIR
+        echo $(samtools view -c -F 4 $OUTDIR/$SAMPLE.$ASD.bam $SEQREG )" total reads in region " >> $STATSOUTDIR
+        echo $(samtools view -c -f 3 $OUTDIR/$SAMPLE.$ASD.bam $SEQREG )" properly paired reads in region " >> $STATSOUTDIR
     fi
 
     # mark checkpoint
@@ -291,12 +401,12 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
       
     export PATH=$PATH:/usr/bin/
-    THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
-    mkdir -p $THISTMP
+#    THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
+#    mkdir -p $THISTMP
     java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
-        INPUT=$OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} \
+        INPUT=$OUTDIR/$SAMPLE.$ASD.bam \
         REFERENCE_SEQUENCE=$FASTA \
-        OUTPUT=$OUTDIR/metrices/${n/%$READONE.$FASTQ/.$ASD.bam} \
+        OUTPUT=$OUTDIR/metrices/$SAMPLE.$ASD.bam \
         VALIDATION_STRINGENCY=SILENT \
         PROGRAM=CollectAlignmentSummaryMetrics \
         PROGRAM=CollectInsertSizeMetrics \
@@ -305,10 +415,10 @@ else
     for im in $( ls $OUTDIR/metrices/*.pdf ); do
         convert $im ${im/pdf/jpg}
     done
-    [ -d $THISTMP ] && rm -r $THISTMP
+#    [ -d $THISTMP ] && rm -r $THISTMP
 
     # mark checkpoint
-    if [ -f $OUTDIR/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.alignment_summary_metrics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/metrices/$SAMPLE.$ASD.bam.alignment_summary_metrics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
@@ -318,21 +428,21 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    samstat $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} 2>&1 | tee | grep -v -P "Bad x in routine betai"
+    samstat $OUTDIR/$SAMPLE.$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE.$ASD.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
 fi
 
 ################################################################################
 CHECKPOINT="verify"    
     
-BAMREADS=$(head -n1 $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1)
+BAMREADS=$(head -n1 $OUTDIR/$SAMPLE.$ASD.bam.stats | cut -d " " -f 1)
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi			
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "[NOTE] PASS check mapping: $BAMREADS == $FASTQREADS"
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.ash.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.ash.bam}
+    [ -e $OUTDIR/$SAMPLE.ash.bam ] && rm $OUTDIR/$SAMPLE.ash.bam
 else
     echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
     exit 1 
@@ -340,7 +450,7 @@ fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
+[ -e $OUTDIR/$SAMPLE.$ASD.bam.dummy ] && rm $OUTDIR/$SAMPLE.$ASD.bam.dummy
 echo ">>>>> readmapping with BWA - FINISHED"
 echo ">>>>> enddate "`date`
 
