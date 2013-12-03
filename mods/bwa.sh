@@ -85,7 +85,11 @@ echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n 1 )
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
-
+if [ -n "$BWA_ITERATIVE" ]; then 
+    PATH_TRIMMOMATIC=$(dirname $(which trimmomatic.jar))
+    echo -e "--trimmomatic --\n " $(which $PATH_TRIMMOMATIC/trimmomatic.jar)
+    [ ! -f $PATH_TRIMMOMATIC/trimmomatic.jar ] && echo "[ERROR] no trimmomatic detected" && exit 1
+fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -143,10 +147,10 @@ if [ -z "$FASTQ_ENCODING" ]; then
     FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
     echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 fi
-if [[ "$FASTQ_ENCODING" == "Phred33" ]]; then
+if [[ "$FASTQ_ENCODING" == **Phred33** ]]; then
     FASTQ_PHRED=""
     FASTQ_PHRED_TRIM=" -phred33"
-elif [[ "$FASTQ_ENCODING" == "Phred64" ]]; then
+elif [[ "$FASTQ_ENCODING" == **Phred64** ]]; then
     FASTQ_PHRED="-I"
     FASTQ_PHRED_TRIM=" -phred64"
 else
@@ -181,7 +185,7 @@ else
         echo "[NOTE] PAIRED READS"
         # clever use of named pipes to avoid IO
         [ -e $OUTDIR/$SAMPLE$READONE.sai ] && rm $OUTDIR/$SAMPLE$READONE.sai
-        [ -e $OUTDIR/$SAMPLE$READTWO.sai] && rm $OUTDIR/$SAMPLE$READTWO.sai
+        [ -e $OUTDIR/$SAMPLE$READTWO.sai ] && rm $OUTDIR/$SAMPLE$READTWO.sai
         mkfifo $OUTDIR/$SAMPLE$READONE.sai $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.sai}
     
         bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $f > $OUTDIR/$SAMPLE$READONE.sai &
@@ -220,7 +224,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
     # iterative mapping    
-    if [ $z "$BWA_ITERATIVE" ]; then
+    if [ -z "$BWA_ITERATIVE" ]; then
         echo "[NOTE] Skip iterative mapping"
     else
 
@@ -230,7 +234,8 @@ else
         if [ "$PAIRED" = 1 ]; then
 
             for COUNTER in $(seq $BWA_ITERATIVE); do
-
+                
+                echo "[NOTE] Iterative Mapping with read length $COUNTER"
                 # get exactly one end mapped
                 samtools view -bh -F 4 -f 8 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$UNM.1.bam
                 samtools view -bh -F 8 -f 4 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$UNM.2.bam
@@ -239,7 +244,9 @@ else
                 samtools view -bh -F 12 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$UNM.3.bam
                 
                 # merge
-                samtools merge -n $THISTMP/$SAMPLE.$UNM.bam $THISTMP/$SAMPLE.$UNM.1.bam $THISTMP/$SAMPLE.$UNM.2.bam $THISTMP/$SAMPLE.$UNM.3.bam
+                samtools merge $THISTMP/$SAMPLE.$UNM.all.bam $THISTMP/$SAMPLE.$UNM.1.bam $THISTMP/$SAMPLE.$UNM.2.bam $THISTMP/$SAMPLE.$UNM.3.bam
+                
+                samtools sort $THISTMP/$SAMPLE.$UNM.all.bam $THISTMP/$SAMPLE.$UNM
                 
                 # check for premature exit from loop
                 if [ $(samtools view -c $THISTMP/$SAMPLE.$UNM.bam) == 0 ]; then 
@@ -260,7 +267,7 @@ else
                 RUN_COMMAND="java $JAVAPARAMS -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED_TRIM -threads $CPU_BWA $THISTMP/$SAMPLE$READONE.fastq.gz $THISTMP/$SAMPLE$READTWO.fastq.gz $THISTMP/$SAMPLE$READONE.cropped.fastq.gz $THISTMP/$SAMPLE$READONE.unpaired.fastq.gz $THISTMP/$SAMPLE$READTWO.cropped.fastq.gz $THISTMP/$SAMPLE$READTWO.unpaired.fastq.gz CROP:$COUNTER -trimlog $THISTMP/$SAMPLE.trim.log"
     
                 [ -e $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
-                [ -e $THISTMP/$SAMPLE$READTWO.sai] && rm $THISTMP/$SAMPLE$READTWO.sai
+                [ -e $THISTMP/$SAMPLE$READTWO.sai ] && rm $THISTMP/$SAMPLE$READTWO.sai
                 mkfifo $THISTMP/$SAMPLE$READONE.sai $THISTMP/${n/%$READONE.$FASTQ/$READTWO.sai}
             
                 bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $THISTMP/$SAMPLE$READONE.cropped.fastq.gz > $THISTMP/$SAMPLE$READONE.sai &
