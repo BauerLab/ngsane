@@ -121,7 +121,7 @@ else
     # Paired read
     if [ "$PAIRED" = "1" ]
     then
-        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC -trimlog ${o/%$READONE.$FASTQ/}.log $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} $o ${o/%$READONE.$FASTQ/${READONE.$FASTQ}_unpaired} ${o/%$READONE.$FASTQ/$READTWO.$FASTQ} ${o/%$READONE.$FASTQ/${READTWO.$FASTQ}_unpaired} $TRIMMOMATICSTEPS"
+        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC -trimlog ${o/%$READONE.$FASTQ/}.log $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} $o ${o}_unpaired ${o/%$READONE.$FASTQ/$READTWO.$FASTQ} ${o/%$READONE.$FASTQ/${READTWO.$FASTQ}_unpaired $TRIMMOMATICSTEPS"
 
     else
         RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC -trimlog ${o/%$READONE.$FASTQ/}.log $f $o $TRIMMOMATICSTEPS"
@@ -137,4 +137,3 @@ fi
 [ -e $FASTQDIRTRIM/${n}.dummy ] && rm $FASTQDIRTRIM/${n}.dummy
 echo ">>>>> readtrimming with TRIMMOMATIC - FINISHED"
 echo ">>>>> enddate "`date`
-
