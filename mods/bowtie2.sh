@@ -24,8 +24,6 @@ exit
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
-FORCESINGLE=0
-
 #INPUTS                                                                                                           
 while [ "$1" != "" ]; do
     case $1 in
@@ -33,7 +31,6 @@ while [ "$1" != "" ]; do
         -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir                                                     
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # SAMPLEID
-        --forceSingle )         FORCESINGLE=1;;
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -114,7 +111,7 @@ ZCAT="zcat"
 if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
 
 #is paired ?                                                                                                      
-if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ] && [ "$FORCESINGLE" = 0 ]; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     PAIRED="1"
     READS="-1 $f -2 ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
     READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `

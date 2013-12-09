@@ -25,8 +25,6 @@ exit
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
-FORCESINGLE=0
-
 #INPUTS                                                                                                           
 while [ "$1" != "" ]; do
     case $1 in
@@ -113,9 +111,8 @@ if [ -z "$RECOVERFROM" ]; then
 fi
 
 #is paired ?                                                                                                      
-if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ] && [ "$FORCESINGLE" = 0 ]; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     PAIRED="1"
-    echo 
 else
     PAIRED="0"
 fi
