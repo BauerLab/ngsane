@@ -160,6 +160,7 @@ fi
 FULLSAMPLEID=$SAMPLEID$SAMPLE
 
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
+[ -d $THISTMP ] && rm -r $THISTMP
 mkdir -p $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -226,46 +227,50 @@ else
     # iterative mapping    
     if [ -z "$BWA_ITERATIVE" ]; then
         echo "[NOTE] Skip iterative mapping"
+        echo -e "\n********* $CHECKPOINT\n"
+        
     else
-
         ITERATIVEINPUT=$OUTDIR/$SAMPLE.$ALN.bam
         samtools view -H $ITERATIVEINPUT > $THISTMP/$SAMPLE.$ALN.fullsize.header
-
+        
         if [ "$PAIRED" = 1 ]; then
-
-            for COUNTER in $(seq $BWA_ITERATIVE); do
-                
+            echo "[NOTE] iterative mapping of paired-end libary"
+            
+            for COUNTER in $(seq $BWA_ITERATIVE); do                
                 echo "[NOTE] Iterative Mapping with read length $COUNTER"
                 # get exactly one end mapped
                 samtools view -bh -F 4 -f 8 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$UNM.1.bam
                 samtools view -bh -F 8 -f 4 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$UNM.2.bam
                 
-                # exactly two ends mapped
-                samtools view -bh -F 12 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$UNM.3.bam
+                # both two ends unmapped
+                samtools view -bh -f 12 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$UNM.3.bam
                 
-                # merge
-                samtools merge $THISTMP/$SAMPLE.$UNM.all.bam $THISTMP/$SAMPLE.$UNM.1.bam $THISTMP/$SAMPLE.$UNM.2.bam $THISTMP/$SAMPLE.$UNM.3.bam
-                
+                # merge and sort
+                samtools merge $THISTMP/$SAMPLE.$UNM.all.bam $THISTMP/$SAMPLE.$UNM.1.bam $THISTMP/$SAMPLE.$UNM.2.bam $THISTMP/$SAMPLE.$UNM.3.bam               
                 samtools sort $THISTMP/$SAMPLE.$UNM.all.bam $THISTMP/$SAMPLE.$UNM
                 
                 # check for premature exit from loop
                 if [ $(samtools view -c $THISTMP/$SAMPLE.$UNM.bam) == 0 ]; then 
                     break
-                fi
-                
+                fi               
                 samtools index $THISTMP/$SAMPLE.$UNM.bam
-                rm $THISTMP/$SAMPLE.$UNM.1.bam $THISTMP/$SAMPLE.$UNM.2.bam $THISTMP/$SAMPLE.$UNM.3.bam
 
                 # properly paired reads
-                samtools view -bh -f 3 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$ALN.$COUNTER.iterative
-                
+                samtools view -bh -f 1 -F 12 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$ALN.$COUNTER.iterative
+
+                rm $THISTMP/$SAMPLE.$UNM.1.bam $THISTMP/$SAMPLE.$UNM.2.bam $THISTMP/$SAMPLE.$UNM.3.bam $THISTMP/$SAMPLE.$UNM.all.bam
+
                 # convert
+                [ -e $THISTMP/$SAMPLE$READONE.fastq.gz ] && rm $THISTMP/$SAMPLE$READONE.fastq.gz
+                [ -e $THISTMP/$SAMPLE$READTWO.fastq.gz ] && rm $THISTMP/$SAMPLE$READTWO.fastq.gz
+                
                 java $JAVAPARAMS -jar $PATH_PICARD/SamToFastq.jar INPUT=$THISTMP/$SAMPLE.$UNM.bam FASTQ=$THISTMP/$SAMPLE$READONE.fastq SECOND_END_FASTQ=$THISTMP/$SAMPLE$READTWO.fastq
                 $GZIP $THISTMP/$SAMPLE$READONE.fastq $THISTMP/$SAMPLE$READTWO.fastq
                 
                 # crop reads using trimmomatic
-                RUN_COMMAND="java $JAVAPARAMS -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED_TRIM -threads $CPU_BWA $THISTMP/$SAMPLE$READONE.fastq.gz $THISTMP/$SAMPLE$READTWO.fastq.gz $THISTMP/$SAMPLE$READONE.cropped.fastq.gz $THISTMP/$SAMPLE$READONE.unpaired.fastq.gz $THISTMP/$SAMPLE$READTWO.cropped.fastq.gz $THISTMP/$SAMPLE$READTWO.unpaired.fastq.gz CROP:$COUNTER -trimlog $THISTMP/$SAMPLE.trim.log"
-    
+                RUN_COMMAND="java $JAVAPARAMS -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED_TRIM -threads $CPU_BWA -trimlog $THISTMP/$SAMPLE.trim.log $THISTMP/$SAMPLE$READONE.fastq.gz $THISTMP/$SAMPLE$READTWO.fastq.gz $THISTMP/$SAMPLE$READONE.cropped.fastq.gz $THISTMP/$SAMPLE$READONE.unpaired.fastq.gz $THISTMP/$SAMPLE$READTWO.cropped.fastq.gz $THISTMP/$SAMPLE$READTWO.unpaired.fastq.gz CROP:$COUNTER"
+                echo $RUN_COMMAND && eval $RUN_COMMAND
+                
                 [ -e $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
                 [ -e $THISTMP/$SAMPLE$READTWO.sai ] && rm $THISTMP/$SAMPLE$READTWO.sai
                 mkfifo $THISTMP/$SAMPLE$READONE.sai $THISTMP/${n/%$READONE.$FASTQ/$READTWO.sai}
@@ -285,9 +290,11 @@ else
             done
 
         elif [ "$PAIRED" = 0 ]; then
+            echo "[NOTE] iterative mapping of single-end libary"
 
             for COUNTER in $(seq $BWA_ITERATIVE); do
-
+                echo "[NOTE] Iterative Mapping with read length $COUNTER"
+                
                 # exactly unmapped
                 samtools view -bh -f 4 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$UNM.bam
 
@@ -302,12 +309,14 @@ else
                 samtools view -bh -F 4 $ITERATIVEINPUT > $THISTMP/$SAMPLE.$ALN.$COUNTER.iterative
                 
                 # convert
+                [ -e $THISTMP/$SAMPLE$READONE.fastq.gz ] && rm $THISTMP/$SAMPLE$READONE.fastq.gz
                 java $JAVAPARAMS -jar $PATH_PICARD/SamToFastq.jar INPUT=$THISTMP/$SAMPLE.$UNM.bam FASTQ=$THISTMP/$SAMPLE$READONE.fastq
                 $GZIP $THISTMP/$SAMPLE$READONE.fastq
                 
                 # crop reads using trimmomatic
-                RUN_COMMAND="java $JAVAPARAMS -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $FASTQ_PHRED_TRIM -threads $CPU_BWA $THISTMP/$SAMPLE$READONE.fastq.gz $THISTMP/$SAMPLE$READONE.cropped.fastq.gz CROP:$COUNTER -trimlog $THISTMP/$SAMPLE.trim.log"
-    
+                RUN_COMMAND="java $JAVAPARAMS -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $FASTQ_PHRED_TRIM -threads $CPU_BWA -trimlog $THISTMP/$SAMPLE.trim.log $THISTMP/$SAMPLE$READONE.fastq.gz $THISTMP/$SAMPLE$READONE.cropped.fastq.gz CROP:$COUNTER"
+                echo $RUN_COMMAND && eval $RUN_COMMAND
+                
                 [ -e $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
                 mkfifo $THISTMP/$SAMPLE$READONE.sai
             
@@ -325,9 +334,9 @@ else
         fi
         
         # merge iterative mapped reads
-        samtools merge -h $OUTDIR/$SAMPLE.$ALN.fullsize.header $THISTMP/$SAMPLE.$ALN.tmp $ITERATIVEINPUT $THISTMP/$SAMPLE.$ALN.*.iterative
+        samtools merge -h $THISTMP/$SAMPLE.$ALN.fullsize.header $THISTMP/$SAMPLE.$ALN.tmp $ITERATIVEINPUT $THISTMP/$SAMPLE.$ALN.*.iterative
         mv $THISTMP/$SAMPLE.$ALN.tmp $OUTDIR/$SAMPLE.$ALN.bam
-        rm $THISTMP/$SAMPLE.$ALN.*.iterative $THISTMP/$SAMPLE.$ALN.fullsize.header $THISTMP/$SAMPLE.$ALN.*.bam
+#        rm $THISTMP/$SAMPLE.$ALN.*.iterative $THISTMP/$SAMPLE.$ALN.fullsize.header $THISTMP/$SAMPLE.$ALN.*.bam $ITERATIVEINPUT
 
         # mark checkpoint
         if [ -f $OUTDIR/$SAMPLE.$ALN.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -356,23 +365,17 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    
-    
     #TODO look at samtools for rmdup
     #val string had to be set to LENIENT (SIlENT) to avoid crash due to a definition dis-
     #agreement between bwa and picard
     #http://seqanswers.com/forums/showthread.php?t=4246
     if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
-#    THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
-#    echo $THISTMP
-#    mkdir -p $THISTMP
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
         INPUT=$OUTDIR/$SAMPLE.ash.bam \
         OUTPUT=$OUTDIR/$SAMPLE.$ASD.bam \
         METRICS_FILE=$OUTDIR/metrices/$SAMPLE.$ASD.bam.dupl AS=true \
         VALIDATION_STRINGENCY=SILENT \
         TMP_DIR=$THISTMP
-#    [ -d $THISTMP ] && rm -r $THISTMP
     samtools index $OUTDIR/$SAMPLE.$ASD.bam
 
     # mark checkpoint
@@ -408,8 +411,6 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
       
     export PATH=$PATH:/usr/bin/
-#    THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
-#    mkdir -p $THISTMP
     java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
         INPUT=$OUTDIR/$SAMPLE.$ASD.bam \
         REFERENCE_SEQUENCE=$FASTA \
@@ -422,7 +423,6 @@ else
     for im in $( ls $OUTDIR/metrices/*.pdf ); do
         convert $im ${im/pdf/jpg}
     done
-#    [ -d $THISTMP ] && rm -r $THISTMP
 
     # mark checkpoint
     if [ -f $OUTDIR/metrices/$SAMPLE.$ASD.bam.alignment_summary_metrics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -454,6 +454,12 @@ else
     echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
     exit 1 
 fi
+
+echo -e "\n********* $CHECKPOINT\n"
+################################################################################
+CHECKPOINT="cleanup" 
+
+[ -d $THISTMP ] && rm -r $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
