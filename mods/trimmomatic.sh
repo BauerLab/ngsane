@@ -121,10 +121,10 @@ else
     # Paired read
     if [ "$PAIRED" = "1" ]
     then
-        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} $o ${o/%$READONE.$FASTQ/${READONE.$FASTQ}_unpaired} ${o/%$READONE.$FASTQ/$READTWO.$FASTQ} ${o/%$READONE.$FASTQ/${READTWO.$FASTQ}_unpaired} $TRIMMOMATICSTEPS -trimlog ${o/%$READONE.$FASTQ/}.log"
+        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC -trimlog ${o/%$READONE.$FASTQ/}.log $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} $o ${o/%$READONE.$FASTQ/${READONE.$FASTQ}_unpaired} ${o/%$READONE.$FASTQ/$READTWO.$FASTQ} ${o/%$READONE.$FASTQ/${READTWO.$FASTQ}_unpaired} $TRIMMOMATICSTEPS"
 
     else
-        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC $f $o $TRIMMOMATICSTEPS -trimlog ${o/%$READONE.$FASTQ/}.log"
+        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC -trimlog ${o/%$READONE.$FASTQ/}.log $f $o $TRIMMOMATICSTEPS"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
