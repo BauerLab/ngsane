@@ -61,7 +61,7 @@ FASTQ_ENCODING=
 # Activate iterative mapping by providing 3 arguments. 
 # 1) maximum read length, 2) negative step size 3) minimum read length
 # e.g. "90 -10 20" for all reads from 100bp to 20bp with step size 10bp
-BWA_ITERATIVE=
+ITERATIVE_MAPPING=
 
 ## additional bwa parameters
 BWAALNADDPARAM=

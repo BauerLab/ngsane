@@ -85,7 +85,7 @@ echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n 1 )
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
-if [ -n "$BWA_ITERATIVE" ]; then 
+if [ -n "$ITERATIVE_MAPPING" ]; then 
     PATH_TRIMMOMATIC=$(dirname $(which trimmomatic.jar))
     echo -e "--trimmomatic --\n " $(which $PATH_TRIMMOMATIC/trimmomatic.jar)
     [ ! -f $PATH_TRIMMOMATIC/trimmomatic.jar ] && echo "[ERROR] no trimmomatic detected" && exit 1
@@ -225,7 +225,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
     # iterative mapping    
-    if [ -z "$BWA_ITERATIVE" ]; then
+    if [ -z "$ITERATIVE_MAPPING" ]; then
         echo "[NOTE] Skip iterative mapping"
         echo -e "\n********* $CHECKPOINT\n"
         
@@ -236,7 +236,7 @@ else
         if [ "$PAIRED" = 1 ]; then
             echo "[NOTE] iterative mapping of paired-end libary"
             
-            for COUNTER in $(seq $BWA_ITERATIVE); do
+            for COUNTER in $(seq $ITERATIVE_MAPPING); do
                 # skip ahead if possible
                 if [ -f $OUTDIR/$SAMPLE.$ALN.$COUNTER.bam ]; then
                     echo "[NOTE] found results for iterative mapping $COUNTER"
@@ -307,7 +307,7 @@ else
         elif [ "$PAIRED" = 0 ]; then
             echo "[NOTE] iterative mapping of single-end libary"
 
-            for COUNTER in $(seq $BWA_ITERATIVE); do
+            for COUNTER in $(seq $ITERATIVE_MAPPING); do
                 # skip ahead if possible
                 if [ -f $OUTDIR/$SAMPLE.$ALN.$COUNTER.bam ]; then
                     echo "[NOTE] found results for iterative mapping $COUNTER"
