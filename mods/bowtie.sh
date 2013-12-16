@@ -92,6 +92,7 @@ fi
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/$READONE.$FASTQ/}
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
@@ -105,9 +106,10 @@ fi
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl
+    [ -e $OUTDIR/$SAMPLE.$ASD.bam ] && rm $OUTDIR/$SAMPLE.$ASD.bam
+    [ -e $OUTDIR/$SAMPLE.$ASD.bam.stats ] && rm $OUTDIR/$SAMPLE.$ASD.bam.stats
+    [ -e $OUTDIR/$SAMPLE.$ASD.bam.dupl ] && rm $OUTDIR/$SAMPLE.$ASD.bam.dupl
+    [ -e $OUTDIR/$SAMPLE.$ALN.bam ] && rm $OUTDIR/$SAMPLE.$ALN.*bam
 fi
 
 #is paired ?                                                                                                      
@@ -122,22 +124,32 @@ ZCAT="zcat"
 if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
 
 # get encoding
-if [ -z "$FASTQ_PHRED" ]; then 
+if [ -z "$FASTQ_ENCODING" ]; then 
+    echo "[NOTE] Detect fastq Phred encoding"
     FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
-    if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
-        FASTQ_PHRED="--phred33-quals"    
-    elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
-        FASTQ_PHRED="--phred64-quals"
-    elif [[ "$FASTQ_ENCODING" == *Solexa* ]]; then
-        FASTQ_PHRED="--solexa1.3-quals"
-    else
-        echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default"
-    fi
     echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 fi
 
-FASTQTMP=$TMP/`whoami`_${n/%$READONE.$FASTQ/} # tmp dir to deposit fastq intermediate files
-mkdir -p $FASTQTMP
+if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
+    FASTQ_PHRED="--phred33-quals"    
+    FASTQ_PHRED_TRIM=" -phred33"
+elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
+    FASTQ_PHRED="--phred64-quals"
+    FASTQ_PHRED_TRIM=" -phred64"
+elif [[ "$FASTQ_ENCODING" == *Solexa* ]]; then
+    FASTQ_PHRED="--solexa1.3-quals"
+    FASTQ_PHRED_TRIM=" -phred64"
+else
+    echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default"
+fi
+
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
+[ -d $THISTMP ] && rm -r $THISTMP
+mkdir -p $THISTMP
+
+#readgroup
+FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
+RG="--sam-RG \"ID:$EXPID\" --sam-RG \"SM:$FULLSAMPLEID\" --sam-RG \"LB:$LIBRARY\" --sam-RG \"PL:$PLATFORM\""
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -164,11 +176,6 @@ else
     let FASTQREADS=$READ1+$READ2
 fi
 
-#readgroup
-FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
-RG="--sam-RG \"ID:$EXPID\" --sam-RG \"SM:$FULLSAMPLEID\" --sam-RG \"LB:$LIBRARY\" --sam-RG \"PL:$PLATFORM\""
-
-
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
@@ -177,38 +184,44 @@ else
 	if [ $PAIRED == "0" ]; then
         echo "[NOTE] SINGLE READS"
 
-        RUN_COMMAND="$ZCAT $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq} --max $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA%.*} - $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam}"
+        RUN_COMMAND="$ZCAT $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $THISTMP/$SAMPLE.$UNM.fastq --max $OUTDIR/$SAMPLE.$MUL.fastq --sam $BOWTIE_OPTIONS ${FASTA%.*} - $THISTMP/$SAMPLE.$ALN.sam"
 
 	#Paired
     else
         echo "[NOTE] PAIRED READS"
         # clever use of named pipes to avoid fastq unzipping
-        [ -e $OUTDIR/${n}_pipe ] && rm $OUTDIR/${n}_pipe
-        [ -e $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe ] && rm $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe
-        mkfifo $OUTDIR/${n}_pipe $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe
+        [ -e $THISTMP/$SAMPLE${READONE}_pipe ] && rm $THISTMP/$SAMPLE${READONE}_pipe
+        [ -e $THISTMP/$SAMPLE${READTWO}_pipe ] && rm $THISTMP/$SAMPLE${READTWO}_pipe
+        mkfifo $THISTMP/$SAMPLE${READONE}_pipe $THISTMP/$SAMPLE${READTWO}_pipe
         
-        $ZCAT $f > $OUTDIR/${n}_pipe &
-        $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe &
+        $ZCAT $f > $THISTMP/$SAMPLE${READONE}_pipe &
+        $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/$SAMPLE${READTWO}_pipe &
         
-		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq} --max $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq} --sam $BOWTIE_OPTIONS ${FASTA%.*} -1 $OUTDIR/${n}_pipe -2 $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam}"
+		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $THISTMP/$SAMPLE.$UNM.fastq --max $OUTDIR/$SAMPLE.$MUL.fastq --sam $BOWTIE_OPTIONS ${FASTA%.*} -1 $THISTMP/$SAMPLE${READONE}_pipe -2 $THISTMP/$SAMPLE${READTWO}_pipe $THISTMP/$SAMPLE.$ALN.sam"
 
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    if [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL*.fq} ] || [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM*.fq} ]; then
-        $GZIP $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL*.fq} $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM*.fq}
+    if [ -e $THISTMP/$SAMPLE.$UNM.fastq ] || $THISTMP/$SAMPLE.$UNM"_1".fastq ; then 
+        $GZIP $THISTMP/$SAMPLE.$UNM*.fastq
+        mv $THISTMP/$SAMPLE.$UNM*.fastq.gz $OUTDIR/
+    fi
+    
+    if [ -e $THISTMP/$SAMPLE.$MUL.fastq ] || $THISTMP/$SAMPLE.$MUL"_1".fastq ; then 
+        $GZIP $THISTMP/$SAMPLE.$MUL*.fastq
+        mv $THISTMP/$SAMPLE.$MUL*.fastq.gz $OUTDIR/
     fi
     
     # bam file conversion                                                                         
-    samtools view -@ $CPU_BOWTIE -Sbt $FASTA.fai $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam} > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
+    samtools view -@ $CPU_BOWTIE -Sbt $FASTA.fai $THISTMP/$SAMPLE.$ALN.sam > $OUTDIR/$SAMPLE.$ALN.bam
     
     # cleanup
-    [ -e $OUTDIR/${n}_pipe ] && rm $OUTDIR/${n}_pipe
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe ] && rm $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe
-    [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam} ] && rm $FASTQTMP/${n/%$READONE.$FASTQ/.$ALN.sam}
+    [ -e $THISTMP/$SAMPLE${READONE}_pipe ] && rm $THISTMP/$SAMPLE${READONE}_pipe
+    [ -e $THISTMP/$SAMPLE${READTWO}_pipe ] && rm $THISTMP/$SAMPLE${READTWO}_pipe
+    [ -e $THISTMP/$SAMPLE.$ALN.sam ] && rm $THISTMP/$SAMPLE.$ALN.sam
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE.$ALN.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
@@ -220,84 +233,57 @@ else
 
     # create bam files for discarded reads and remove fastq files    
     if [ $PAIRED == "1" ]; then
-        if [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.${UNM}_1.fq.gz} ]; then
+        if [ -e $OUTDIR/$SAMPLE.$MUL"_"1.fastq ]; then
             java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
-                FASTQ=$FASTQTMP/${n/%$READONE.$FASTQ/.${UNM}_1.fq.gz} \
-                FASTQ2=$FASTQTMP/${n/%$READONE.$FASTQ/.${UNM}_2.fq.gz} \
-                OUTPUT=$OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam} \
+                FASTQ=$OUTDIR/$SAMPLE.$MUL"_"1.fastq \
+                FASTQ2=$OUTDIR/$SAMPLE.$MUL"_"2.fastq \
+                OUTPUT=$OUTDIR/$SAMPLE.$MUL.bam \
                 QUALITY_FORMAT=Standard \
-                SAMPLE_NAME=${n/%$READONE.$FASTQ/} \
-                READ_GROUP_NAME=null \
-                QUIET=TRUE \
-                VERBOSITY=ERROR
-            samtools sort -@ $CPU_BOWTIE $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.tmp}
-            mv $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam}
-        fi
-        
-        if [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.${MUL}_1.fq.gz} ]; then
-            java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
-                FASTQ=$FASTQTMP/${n/%$READONE.$FASTQ/.${MUL}_1.fq.gz} \
-                FASTQ2=$FASTQTMP/${n/%$READONE.$FASTQ/.${MUL}_2.fq.gz} \
-                OUTPUT=$OUTDIR/${n/%$READONE.$FASTQ/.${MUL}.bam} \
-                QUALITY_FORMAT=Standard \
-                SAMPLE_NAME=${n/%$READONE.$FASTQ/} \
+                SAMPLE_NAME=$SAMPLE} \
                 READ_GROUP_NAME=null \
                 QUIET=TRUE \
                 VERBOSITY=ERROR
         
-            samtools sort -@ $CPU_BOWTIE $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.tmp}
-            mv $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam}
+            samtools sort -@ $CPU_BOWTIE $OUTDIR/$SAMPLE.$MUL.bam $OUTDIR/$SAMPLE.$MUL.tmp
+            mv $OUTDIR/$SAMPLE.$MUL.tmp.bam $OUTDIR/$SAMPLE.$MUL.bam
+            rm $OUTDIR/$SAMPLE.$MUL*.fastq
         fi
     else
-        if [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq.gz} ]; then
-            java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
-                FASTQ=$FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq.gz} \
-                OUTPUT=$OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam} \
-                QUALITY_FORMAT=Standard \
-                SAMPLE_NAME=${n/%$READONE.$FASTQ/} \
-                READ_GROUP_NAME=null \
-                QUIET=TRUE \
-                VERBOSITY=ERROR
-            samtools sort -@ $CPU_BOWTIE $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.tmp}
-            mv $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam}
-        else
-            echo "[NOTE] no unmapped reads: $FASTQTMP/${n/%$READONE.$FASTQ/.$UNM.fq.gz}"
-        fi
     
-        if [ -e $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq.gz} ]; then
+        if [ -e $OUTDIR/$SAMPLE.$MUL.fastq ]; then
             java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
-                FASTQ=$FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq.gz} \
-                OUTPUT=$OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam} \
+                FASTQ=$OUTDIR/$SAMPLE.$MUL.fastq \
+                OUTPUT=$OUTDIR/$SAMPLE.$MUL.bam \
                 QUALITY_FORMAT=Standard \
-                SAMPLE_NAME=${n/%$READONE.$FASTQ/} \
+                SAMPLE_NAME=$SAMPLE \
                 READ_GROUP_NAME=null \
                 QUIET=TRUE \
                 VERBOSITY=ERROR
         
-            samtools sort -@ $CPU_BOWTIE $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.tmp}
-            mv $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$MUL.bam} 
+            samtools sort -@ $CPU_BOWTIE $OUTDIR/$SAMPLE.$MUL.bam $OUTDIR/$SAMPLE.$MUL.tmp
+            mv $OUTDIR/$SAMPLE.$MUL.tmp.bam $OUTDIR/$SAMPLE.$MUL.bam 
+            rm $OUTDIR/$SAMPLE.$MUL.fastq
         else
-            echo "[NOTE] no multi-mapping reads: $FASTQTMP/${n/%$READONE.$FASTQ/.$MUL.fq.gz}"
+            echo "[NOTE] no multi-mapping reads: $OUTDIR/$SAMPLE.$MUL.fastq"
 
         fi
     fi
+    
             
     if [ "$PAIRED" = "1" ]; then
         # fix mates
-        samtools sort -@ $CPU_BOWTIE -n $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} $OUTDIR/${n/%$READONE.$FASTQ/.tmp}
-        samtools fixmate $OUTDIR/${n/%$READONE.$FASTQ/.tmp.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
-        [ -e $OUTDIR/${n/%$READONE.$FASTQ/.tmp.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.tmp.bam}
+        samtools sort -@ $CPU_BOWTIE -n $OUTDIR/$SAMPLE.$ALN.bam $OUTDIR/$SAMPLE.tmp
+        samtools fixmate $OUTDIR/$SAMPLE.tmp.bam $OUTDIR/$SAMPLE.$ALN.bam
+        [ -e $OUTDIR/$SAMPLE.tmp.bam ] && rm $OUTDIR/$SAMPLE.tmp.bam
     fi
     
-    samtools sort -@ $CPU_BOWTIE $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} $OUTDIR/${n/%$READONE.$FASTQ/.ash}
+    samtools sort -@ $CPU_BOWTIE $OUTDIR/$SAMPLE.$ALN.bam $OUTDIR/$SAMPLE.ash
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.ash.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE.ash.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
     # cleanup
-    [ -e $FASTQTMP ] && rm -r $FASTQTMP
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$UNM.bam}
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}
+    [ -e $OUTDIR/$SAMPLE.$ALN.bam ] && rm $OUTDIR/$SAMPLE.$ALN.bam
 fi
 
 ################################################################################
@@ -311,20 +297,20 @@ else
     THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files                                        
     mkdir -p $THISTMP
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
-        INPUT=$OUTDIR/${n/%$READONE.$FASTQ/.ash.bam} \
-        OUTPUT=$OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} \
-        METRICS_FILE=$OUTDIR/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl \
+        INPUT=$OUTDIR/$SAMPLE.ash.bam \
+        OUTPUT=$OUTDIR/$SAMPLE.$ASD.bam \
+        METRICS_FILE=$OUTDIR/metrices/$SAMPLE.$ASD.bam.dupl \
         AS=true \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
     [ -d $THISTMP ] && rm -r $THISTMP
-    samtools index $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}
+    samtools index $OUTDIR/$SAMPLE.$ASD.bam
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE.$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
     # cleanup
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/.ash.bam} ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.ash.bam}
+    [ -e $OUTDIR/$SAMPLE.ash.bam ] && rm $OUTDIR/$SAMPLE.ash.bam
 fi
 
 ################################################################################
@@ -334,13 +320,13 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    STATSOUT=$OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
-    samtools flagstat $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} > $STATSOUT
+    STATSOUT=$OUTDIR/$SAMPLE.$ASD.bam.stats
+    samtools flagstat $OUTDIR/$SAMPLE.$ASD.bam > $STATSOUT
     
     if [ -n "$SEQREG" ]; then
         echo "#custom region" >> $STATSOUT
-        echo $(samtools view -@ $CPU_BOWTIE -c -F 4 $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} $SEQREG )" total reads in region " >> $STATSOUT
-        echo $(samtools view -@ $CPU_BOWTIE -c -f 3 $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} $SEQREG )" properly paired reads in region " >> $STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -F 4 $OUTDIR/$SAMPLE.$ASD.bam $SEQREG )" total reads in region " >> $STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -f 3 $OUTDIR/$SAMPLE.$ASD.bam $SEQREG )" properly paired reads in region " >> $STATSOUT
     fi
 
     # mark checkpoint
@@ -357,9 +343,9 @@ else
     THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
     mkdir $THISTMP
     java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
-        INPUT=$OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} \
+        INPUT=$OUTDIR/$SAMPLE.$ASD.bam \
         REFERENCE_SEQUENCE=$FASTA \
-        OUTPUT=$OUTDIR/metrices/${n/%$READONE.$FASTQ/.$ASD.bam} \
+        OUTPUT=$OUTDIR/metrices/$SAMPLE.$ASD.bam \
         VALIDATION_STRINGENCY=LENIENT \
         PROGRAM=CollectAlignmentSummaryMetrics \
         PROGRAM=CollectInsertSizeMetrics \
@@ -375,7 +361,7 @@ else
     [ -e $THISTMP ] && rm -r $THISTMP
 
     # mark checkpoint
-    [ -f $OUTDIR/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    [ -f $OUTDIR/metrices/$SAMPLE.$ASD.bam.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi
 
 
@@ -386,17 +372,17 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    samstat $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} 2>&1 | tee | grep -v -P "Bad x in routine betai"
+    samstat $OUTDIR/$SAMPLE.$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE.$ASD.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 
 ################################################################################
 CHECKPOINT="verify"    
     
-BAMREADS=`head -n1 $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats | cut -d " " -f 1`
+BAMREADS=`head -n1 $OUTDIR/$SAMPLE.$ASD.bam.stats | cut -d " " -f 1`
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "[NOTE] PASS check mapping: $BAMREADS == $FASTQREADS"
@@ -407,6 +393,6 @@ fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
+[ -e $OUTDIR/$SAMPLE.$ASD.bam.dummy ] && rm $OUTDIR/$SAMPLE.$ASD.bam.dummy
 echo ">>>>> read mapping with bowtie 1 - FINISHED"
 echo ">>>>> enddate "`date`
