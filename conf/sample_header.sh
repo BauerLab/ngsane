@@ -63,6 +63,7 @@ NG_TRINITY=
 NG_MACS2=${NG_PYTHON}
 NG_HTSEQ=${NG_PYTHON}
 NG_CIRCOS=
+NG_BLAT=
 
 ##############################################################
 # Software reference
@@ -103,6 +104,7 @@ NG_CITE_TRINITY="Nat Biotechnol. 2011 May 15;29(7):644-52. doi: 10.1038/nbt.1883
 NG_CITE_MACS2="Genome Biol. 2008;9(9):R137. doi: 10.1186/gb-2008-9-9-r137. Epub 2008 Sep 17. 'Model-based analysis of ChIP-Seq (MACS).'; Zhang Y, Liu T, Meyer CA, Eeckhoute J, Johnson DS, Bernstein BE, Nusbaum C, Myers RM, Brown M, Li W, Liu XS."
 NG_CITE_HTSEQ="Conf Proc IEEE Eng Med Biol Soc. 2013 Jul;2013:647-50. doi: 10.1109/EMBC.2013.6609583. 'Benchmarking RNA-Seq quantification tools.'; Chandramohan R, Wu PY, Phan JH, Wang MD."
 NG_CITE_CIRCOS="Genome Res. 2009 Sep;19(9):1639-45. doi: 10.1101/gr.092759.109. Epub 2009 Jun 18. 'Circos: an information aesthetic for comparative genomics.'; Krzywinski M, Schein J, Birol I, Connors J, Gascoyne R, Horsman D, Jones SJ, Marra MA."
+NG_CITE_BLAT="Genome Res. 2002 Apr;12(4):656-64. 'BLAT--the BLAST-like alignment tool.'; Kent WJ."
 
 ##############################################################
 # PROGRAM PATHS
