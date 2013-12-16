@@ -184,7 +184,7 @@ else
 	if [ $PAIRED == "0" ]; then
         echo "[NOTE] SINGLE READS"
 
-        RUN_COMMAND="$ZCAT $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $THISTMP/$SAMPLE.$UNM.fastq --max $OUTDIR/$SAMPLE.$MUL.fastq --sam $BOWTIE_OPTIONS ${FASTA%.*} - $THISTMP/$SAMPLE.$ALN.sam"
+        RUN_COMMAND="$ZCAT $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --sam $BOWTIE_OPTIONS ${FASTA%.*} - $THISTMP/$SAMPLE.$ALN.sam"
 
 	#Paired
     else
@@ -197,20 +197,10 @@ else
         $ZCAT $f > $THISTMP/$SAMPLE${READONE}_pipe &
         $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/$SAMPLE${READTWO}_pipe &
         
-		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --un $THISTMP/$SAMPLE.$UNM.fastq --max $OUTDIR/$SAMPLE.$MUL.fastq --sam $BOWTIE_OPTIONS ${FASTA%.*} -1 $THISTMP/$SAMPLE${READONE}_pipe -2 $THISTMP/$SAMPLE${READTWO}_pipe $THISTMP/$SAMPLE.$ALN.sam"
+		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --sam $BOWTIE_OPTIONS ${FASTA%.*} -1 $THISTMP/$SAMPLE${READONE}_pipe -2 $THISTMP/$SAMPLE${READTWO}_pipe $THISTMP/$SAMPLE.$ALN.sam"
 
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    
-    if [ -e $THISTMP/$SAMPLE.$UNM.fastq ] || $THISTMP/$SAMPLE.$UNM"_1".fastq ; then 
-        $GZIP $THISTMP/$SAMPLE.$UNM*.fastq
-        mv $THISTMP/$SAMPLE.$UNM*.fastq.gz $OUTDIR/
-    fi
-    
-    if [ -e $THISTMP/$SAMPLE.$MUL.fastq ] || $THISTMP/$SAMPLE.$MUL"_1".fastq ; then 
-        $GZIP $THISTMP/$SAMPLE.$MUL*.fastq
-        mv $THISTMP/$SAMPLE.$MUL*.fastq.gz $OUTDIR/
-    fi
     
     # bam file conversion                                                                         
     samtools view -@ $CPU_BOWTIE -Sbt $FASTA.fai $THISTMP/$SAMPLE.$ALN.sam > $OUTDIR/$SAMPLE.$ALN.bam
@@ -232,43 +222,6 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     # create bam files for discarded reads and remove fastq files    
-    if [ $PAIRED == "1" ]; then
-        if [ -e $OUTDIR/$SAMPLE.$MUL"_"1.fastq ]; then
-            java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
-                FASTQ=$OUTDIR/$SAMPLE.$MUL"_"1.fastq \
-                FASTQ2=$OUTDIR/$SAMPLE.$MUL"_"2.fastq \
-                OUTPUT=$OUTDIR/$SAMPLE.$MUL.bam \
-                QUALITY_FORMAT=Standard \
-                SAMPLE_NAME=$SAMPLE} \
-                READ_GROUP_NAME=null \
-                QUIET=TRUE \
-                VERBOSITY=ERROR
-        
-            samtools sort -@ $CPU_BOWTIE $OUTDIR/$SAMPLE.$MUL.bam $OUTDIR/$SAMPLE.$MUL.tmp
-            mv $OUTDIR/$SAMPLE.$MUL.tmp.bam $OUTDIR/$SAMPLE.$MUL.bam
-            rm $OUTDIR/$SAMPLE.$MUL*.fastq
-        fi
-    else
-    
-        if [ -e $OUTDIR/$SAMPLE.$MUL.fastq ]; then
-            java $JAVAPARAMS -jar $PATH_PICARD/FastqToSam.jar \
-                FASTQ=$OUTDIR/$SAMPLE.$MUL.fastq \
-                OUTPUT=$OUTDIR/$SAMPLE.$MUL.bam \
-                QUALITY_FORMAT=Standard \
-                SAMPLE_NAME=$SAMPLE \
-                READ_GROUP_NAME=null \
-                QUIET=TRUE \
-                VERBOSITY=ERROR
-        
-            samtools sort -@ $CPU_BOWTIE $OUTDIR/$SAMPLE.$MUL.bam $OUTDIR/$SAMPLE.$MUL.tmp
-            mv $OUTDIR/$SAMPLE.$MUL.tmp.bam $OUTDIR/$SAMPLE.$MUL.bam 
-            rm $OUTDIR/$SAMPLE.$MUL.fastq
-        else
-            echo "[NOTE] no multi-mapping reads: $OUTDIR/$SAMPLE.$MUL.fastq"
-
-        fi
-    fi
-    
             
     if [ "$PAIRED" = "1" ]; then
         # fix mates
