@@ -47,7 +47,7 @@ READTWO="_R2"
 FASTA=
 
 # additional parameters to pass to tagdir generation
-# e.g. "-tbp 1 -illuminaPE -genome hg19 -checkGC -restrictionSite AAGCTT -removePEbg -removeSelfLigation -removeRestrictionEnds -removeSpikes 10000 5"
+# e.g. "-genome hg19 -checkGC -restrictionSite AAGCTT -both -removePEbg -removeSelfLigation -removeRestrictionEnds -removeSpikes 10000 5"
 HOMER_HIC_TAGDIR_ADDPARAM=
 
 # additional parameters to pass to background model generation

@@ -77,9 +77,6 @@ if [ "$f" != "${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam}" ] && [ -e ${f/%$READONE
     PAIRED="1"
 else
     PAIRED="0"
-fi
-
-if [ $PAIRED == "0" ]; then 
     echo "[ERROR] paired library required for HIC analysis" && exit 1
 fi
 
@@ -100,19 +97,31 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 
 #homer likes to write in the current directory, so change to target
-CURDIR=$(pwd)
-cd $OUTDIR
+#CURDIR=$(pwd)
+#cd $OUTDIR
 
 ################################################################################
-CHECKPOINT="create tagdirectory"
+CHECKPOINT="create unfiltered tagdirectory"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    RUN_COMMAND="makeTagDirectory $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $f,${f/%$READONE.$FASTQ/$READTWO.$FASTQ} $HOMER_HIC_TAGDIR_ADDPARAM"
+    RUN_COMMAND="makeTagDirectory $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $f,${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} -format sam -illuminaPE -tbp 1"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
+    # mark checkpoint
+    if [ -d $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi
+
+################################################################################
+CHECKPOINT="filter tagdirectory"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else
+
     cp -r $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered}
     
     RUN_COMMAND="makeTagDirectory $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} -update $HOMER_HIC_TAGDIR_ADDPARAM"
@@ -123,6 +132,7 @@ else
 
 fi
 
+exit 1 #TODO remove
 ################################################################################
 CHECKPOINT="create background model"    
 
