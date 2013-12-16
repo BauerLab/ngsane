@@ -117,11 +117,10 @@ CHECKPOINT="trim"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
-else 
-    # Paired read
-    if [ "$PAIRED" = "1" ]
-    then
-        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC -trimlog ${o/%$READONE.$FASTQ/}.log $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} $o ${o}_unpaired ${o/%$READONE.$FASTQ/$READTWO.$FASTQ} ${o/%$READONE.$FASTQ/${READTWO.$FASTQ}_unpaired $TRIMMOMATICSTEPS"
+else
+
+    if [ "$PAIRED" = "1" ]; then
+        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC -trimlog ${o/%$READONE.$FASTQ/}.log $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} $o ${o}_unpaired ${o/%$READONE.$FASTQ/$READTWO.$FASTQ} ${o/%$READONE.$FASTQ/$READTWO.$FASTQ}_unpaired $TRIMMOMATICSTEPS"
 
     else
         RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC -trimlog ${o/%$READONE.$FASTQ/}.log $f $o $TRIMMOMATICSTEPS"
@@ -134,6 +133,6 @@ else
 fi
 
 ################################################################################
-[ -e $FASTQDIRTRIM/${n}.dummy ] && rm $FASTQDIRTRIM/${n}.dummy
+[ -e $FASTQDIRTRIM/$n.dummy ] && rm $FASTQDIRTRIM/$n.dummy
 echo ">>>>> readtrimming with TRIMMOMATIC - FINISHED"
 echo ">>>>> enddate "`date`
