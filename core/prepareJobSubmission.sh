@@ -171,6 +171,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             if [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then
                 echo -e "\e[92m[NOTE]\e[0m Previous $TASK run finished without error - nothing to be done"
                 MYJOBIDS=""
+                rm $D.dummy
                 continue
             else
                 echo "[NOTE] #########################################################################" >> $LOGFILE
