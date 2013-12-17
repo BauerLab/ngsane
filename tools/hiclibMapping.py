@@ -168,7 +168,7 @@ def mapFile(fastq, read):
 	global args
 
 	fileName, fileExtension = os.path.splitext(fastq)
-	bamOutput = options.outputDir+fileName.split(os.sep)[-1]+'_R'+str(read)+'.bam'
+	bamOutput = options.outputDir+fileName.split(os.sep)[-1]+'.bam'
 	
 	if (fileExtension == '.sra'):
 		if (options.verbose):
@@ -179,8 +179,8 @@ def mapFile(fastq, read):
 		    bowtie_index_path=options.index,
 		    fastq_path=fastq,
 		    out_sam_path=bamOutput,
-		    min_seq_len=25,
-		    len_step=5,
+		    min_seq_len=20,
+		    len_step=15,
 		    seq_start=options.readLength*(read-1),
 		    seq_end=options.readLength*(read),
 		    nthreads=options.cpus,

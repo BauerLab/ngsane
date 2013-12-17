@@ -18,7 +18,7 @@ exit
 }
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/${HICLIB_RENZYMES}_<SAMPLE>-mapped_reads.hdf5
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>-mapped_reads.hdf5
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
@@ -59,6 +59,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/$READONE.$FASTQ/}
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
@@ -85,21 +86,9 @@ if [ -z "BOWTIE2INDEX" ]; then
 	echo "[ERROR] bowtie2 index not specified" && exit 1
 fi
 
-READS="$f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
-if [ -f "$OUTDIR/${n/.$FASTQ/_R1.bam.25}"  ]; then
-    echo "[NOTE] using bam files from previous run"
-    LIBONE=${n/.$FASTQ/_R1.bam}
-    LIBTWO=${n/$READONE.$FASTQ/${READTWO}_R2.bam}
-#    LIBTWO=${LIBTWO/.$FASTQ/_R2.bam}
-    READS="$OUTDIR/$LIBONE $OUTDIR/$LIBTWO"
-    FASTQ=bam
-    echo $READS
-else
-    echo "[NOTE] mapping data from scratch"
-fi
-
-#EXPERIMENT=$(echo ${HICLIB_RENZYMES}_${n/%$READONE.$FASTQ/} | sed 's/_*$//g')
-EXPERIMENT=$(echo ${HICLIB_RENZYMES}_${n/%$READONE.$FASTQ/})
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
+[ -d $THISTMP ] && rm -r $THISTMP
+mkdir -p $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -120,8 +109,10 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
+    READS="$f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
+
     PARAMS="--restrictionEnzyme=$HICLIB_RENZYMES \
-       --experimentName=$EXPERIMENT \
+       --experimentName=$SAMPLE \
        --gapFile=$HICLIB_GAPFILE \
        --referenceGenome=$FASTA_CHROMDIR \
        --index=${FASTA%.*}"
@@ -134,28 +125,140 @@ else
     	PARAMS="$PARAMS --inputFormat=fastq"
     fi
     
-    if [ -n "$HICLIB_READLENGTH" ]; then
-    	PARAMS="$PARAMS --readLength $HICLIB_READLENGTH"
-    fi
-    
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie=$(which bowtie2) --cpus=$CPU_HICLIB --outputDir=$OUTDIR --tmpDir=$TMP --verbose $READS &> $OUTDIR/$EXPERIMENT.hiclib.log"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} $HICLIBADDPARAM --bowtie=$(which bowtie2) --cpus=$CPU_HICLIB --outputDir=$OUTDIR --tmpDir=$THISTMP --verbose $READS &> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    RUNSTATS=$OUT/runStats/$TASK_HICLIB
-    mkdir -p $RUNSTATS
-    mv -f $OUTDIR/$EXPERIMENT*.pdf $RUNSTATS
-    mv -f $OUTDIR/$EXPERIMENT.hiclib.log $RUNSTATS
+    # mark checkpoint
+    if [ -e $OUTDIR/${SAMPLE}-mapped_reads.hdf5 ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
-    if [ -z "$HICLIB_KEEPBAM" ]; then 
-        rm $OUTDIR/*$READONE.bam.*  $OUTDIR/*$READTWO.bam.*
-    fi
+fi
+################################################################################
+CHECKPOINT="merge bam"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    # treat read one    
+    samtools merge $OUTDIR/$SAMPLE$READONE.bam $OUTDIR/*$READONE.bam.[0-9]*
+    samtools sort -@ $CPU_HICLIB $OUTDIR/$SAMPLE$READONE.bam $OUTDIR/$SAMPLE$READONE.ash
+    
+
+    # treat read two    
+    samtools merge $OUTDIR/$SAMPLE$READTWO.bam $OUTDIR/*$READTWO.bam.[0-9]*
+    samtools sort -@ $CPU_HICLIB $OUTDIR/$SAMPLE$READTWO.bam $OUTDIR/$SAMPLE$READTWO.ash
+        
+    # mark checkpoint
+    if [ -e $OUTDIR/$SAMPLE$READONE.ash ] && [ -e $OUTDIR/$SAMPLE$READTWO.ash ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    
+    # cleanup
+    [ -e $OUTDIR/$SAMPLE$READONE.bam ] && rm $OUTDIR/$SAMPLE$READONE.bam
+    [ -e $OUTDIR/$SAMPLE$READTWO.bam ] && rm $OUTDIR/$SAMPLE$READTWO.bam
+
+fi
+################################################################################
+CHECKPOINT="mark duplicates"
+# create bam files for discarded reads and remove fastq files
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+   
+    mkdir -p $OUTDIR/metrices
+    java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
+        INPUT=$OUTDIR/$SAMPLE$READONE.ash.bam \
+        OUTPUT=$OUTDIR/$SAMPLE$READONE.$ASD.bam \
+        METRICS_FILE=$OUTDIR/$SAMPLE$READONE.$ASD.bam.dupl \
+        AS=true \
+        VALIDATION_STRINGENCY=LENIENT \
+        TMP_DIR=$THISTMP
+    samtools index $OUTDIR/$SAMPLE$READONE.$ASD.bam
+    
+    java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
+        INPUT=$OUTDIR/$SAMPLE$READTWO.ash.bam \
+        OUTPUT=$OUTDIR/$SAMPLE$READTWO.$ASD.bam \
+        METRICS_FILE=$OUTDIR/$SAMPLE$READTWO.$ASD.bam.dupl \
+        AS=true \
+        VALIDATION_STRINGENCY=LENIENT \
+        TMP_DIR=$THISTMP
+    samtools index $OUTDIR/$SAMPLE$READTWO.$ASD.bam
+    
 
     # mark checkpoint
-    if [ -e $OUTDIR/${EXPERIMENT}-mapped_reads.hdf5 ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
+    if [ -f $OUTDIR/$SAMPLE$READONE.$ASD.bam ] && [ -f $OUTDIR/$SAMPLE$READTWO.$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    
+    # cleanup
+    [ -e $OUTDIR/$SAMPLE$READONE.ash.bam ] && rm $OUTDIR/$SAMPLE$READONE.ash.bam
+    [ -e $OUTDIR/$SAMPLE$READTWO.ash.bam ] && rm $OUTDIR/$SAMPLE$READTWO.ash.bam
 fi
 
 ################################################################################
-[ -e $OUTDIR/${EXPERIMENT}-mapped_reads.hdf5.dummy ] && rm $OUTDIR/${EXPERIMENT}-mapped_reads.hdf5.dummy
+CHECKPOINT="statistics"                                                                                                
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    
+    READ1STATSOUT=$OUTDIR/$OUTDIR/$SAMPLE$READONE.$ASD.bam.stats
+    samtools flagstat $OUTDIR/$OUTDIR/$SAMPLE$READONE.$ASD.bam > $READ1STATSOUT
+    
+    if [ -n "$SEQREG" ]; then
+        echo "#custom region" >> $READ1STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -F 4 $OUTDIR/$SAMPLE$READONE.$ASD.bam $SEQREG )" total reads in region " >> $READ1STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -f 3 $OUTDIR/$SAMPLE$READONE.$ASD.bam $SEQREG )" properly paired reads in region " >> $READ1STATSOUT
+    fi
+    
+    READ2STATSOUT=$OUTDIR/$OUTDIR/$SAMPLE$READTWO.$ASD.bam.stats
+    samtools flagstat $OUTDIR/$OUTDIR/$SAMPLE$READTWO.$ASD.bam > $READ2STATSOUT
+    
+    if [ -n "$SEQREG" ]; then
+        echo "#custom region" >> $READ2STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -F 4 $OUTDIR/$SAMPLE$READTWO.$ASD.bam $SEQREG )" total reads in region " >> $READ2STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -f 3 $OUTDIR/$SAMPLE$READTWO.$ASD.bam $SEQREG )" properly paired reads in region " >> $READ2STATSOUT
+    fi
+
+    # mark checkpoint
+    if [ -f $READ1STATSOUT ] && [ -f $READ2STATSOUT ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi
+################################################################################
+CHECKPOINT="samstat"    
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    
+    samstat $OUTDIR/$SAMPLE$READONE.$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
+    samstat $OUTDIR/$SAMPLE$READTWO.$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
+
+    # mark checkpoint
+    if [ -f $OUTDIR/$SAMPLE$READONE.$ASD.bam.stats ] && [ -f $OUTDIR/$SAMPLE$READTWO.$ASD.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi
+################################################################################
+CHECKPOINT="verify"    
+    
+BAMREAD1=`head -n1 $OUTDIR/$SAMPLE$READONE.$ASD.bam.stats | cut -d " " -f 1`
+BAMREAD2=`head -n1 $OUTDIR/$SAMPLE$READTWO.$ASD.bam.stats | cut -d " " -f 1`
+if [ "$BAMREAD1" = "" ]; then let BAMREAD1="0"; fi
+if [ "$BAMREAD2" = "" ]; then let BAMREAD2="0"; fi
+FASTQREAD1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
+FASTQREAD2=`$ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}' `
+
+if [ $BAMREAD1 -eq $FASTQREAD1 ] && [ $BAMREAD2 -eq $FASTQREAD2 ]; then
+    echo "[NOTE] PASS check mapping: $BAMREAD1 == $FASTQREAD1 and $BAMREAD2 == $FASTQREAD2"
+else
+    echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastqs had $FASTQREAD1 and $FASTQREAD2 Bams has $BAMREAD1 and $BAMREAD2"
+    exit 1
+fi
+
+echo -e "\n********* $CHECKPOINT\n"
+################################################################################
+CHECKPOINT="cleanup"
+
+if [ -n "$HICLIB_KEEPBAM" ]; then
+    rm $OUTDIR/*$READONE.bam.*  $OUTDIR/*$READTWO.bam.*
+fi
+
+echo -e "\n********* $CHECKPOINT\n"
+################################################################################
+[ -e $OUTDIR/${SAMPLE}-mapped_reads.hdf5.dummy ] && rm $OUTDIR/${SAMPLE}-mapped_reads.hdf5.dummy
 echo ">>>>> readmapping with hiclib (Bowtie2) - FINISHED"
 echo ">>>>> enddate "`date`
