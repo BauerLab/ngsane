@@ -708,12 +708,15 @@ rm $SUMMARYTMP
 rm $SUMMARYFILE.tmp
 
 ################################################################################
-# make tar containing all files smaller than 100k
-[ -f Summary_files.tmp ] && rm Summary_files.tmp
-find . -size -80k > Summary_files.tmp
-echo "$SUMMARYFILE" >> Summary_files.tmp
-tar -czf ${SUMMARYFILE%.*}.tar.gz -T Summary_files.tmp --no-recursion
-rm Summary_files.tmp
+# make tar containing all files smaller than 80k
+if [ -n "$SUMMARYTAR" ];then
+
+    [ -f Summary_files.tmp ] && rm Summary_files.tmp
+    find . -size -$SUMMARYTAR"k" > Summary_files.tmp
+    echo "$SUMMARYFILE" >> Summary_files.tmp
+    tar -czf ${SUMMARYFILE%.*}.tar.gz -T Summary_files.tmp --no-recursion
+    rm Summary_files.tmp
+fi
 
 ################################################################################
 echo ">>>>> Generate HTML report - FINISHED"
