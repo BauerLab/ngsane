@@ -777,6 +777,7 @@ wget http://biowhat.ucsd.edu/homer/configureHomer.pl
 mv configureHomer.pl $PACKAGEPATH/$SOFTWARE/$VERSION
 cd $PACKAGEPATH/$SOFTWARE/$VERSION
 perl configureHomer.pl -install
+perl configureHomer.pl -install hg19
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
