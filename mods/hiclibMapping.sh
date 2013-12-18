@@ -140,20 +140,24 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     # treat read one    
-    samtools merge $OUTDIR/$SAMPLE$READONE.bam $OUTDIR/*$READONE.bam.[0-9]*
-    samtools sort -@ $CPU_HICLIB $OUTDIR/$SAMPLE$READONE.bam $OUTDIR/$SAMPLE$READONE.ash
-    
+    samtools merge $THISTMP/$SAMPLE$READONE.bam $OUTDIR/*$READONE.bam.[0-9]*
+    samtools sort -@ $CPU_HICLIB $THISTMP/$SAMPLE$READONE.bam $THISTMP/$SAMPLE$READONE.ash
+    mv $THISTMP/$SAMPLE$READONE.ash $OUTDIR/$SAMPLE$READONE.ash
+    [ -e $THISTMP/$SAMPLE$READONE.bam ] && rm $THISTMP/$SAMPLE$READONE.bam    
 
     # treat read two    
-    samtools merge $OUTDIR/$SAMPLE$READTWO.bam $OUTDIR/*$READTWO.bam.[0-9]*
-    samtools sort -@ $CPU_HICLIB $OUTDIR/$SAMPLE$READTWO.bam $OUTDIR/$SAMPLE$READTWO.ash
-        
+    samtools merge $THISTMP/$SAMPLE$READTWO.bam $OUTDIR/*$READTWO.bam.[0-9]*
+    samtools sort -@ $CPU_HICLIB $THISTMP/$SAMPLE$READTWO.bam $THISTMP/$SAMPLE$READTWO.ash
+    mv $THISTMP/$SAMPLE$READTWO.ash $OUTDIR/$SAMPLE$READONE.ash
+    [ -e $THISTMP/$SAMPLE$READTWO.bam ] && rm $THISTMP/$SAMPLE$READTWO.bam
+            
     # mark checkpoint
     if [ -e $OUTDIR/$SAMPLE$READONE.ash ] && [ -e $OUTDIR/$SAMPLE$READTWO.ash ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
     # cleanup
-    [ -e $OUTDIR/$SAMPLE$READONE.bam ] && rm $OUTDIR/$SAMPLE$READONE.bam
-    [ -e $OUTDIR/$SAMPLE$READTWO.bam ] && rm $OUTDIR/$SAMPLE$READTWO.bam
+    if [ -n "$HICLIB_KEEPBAM" ]; then
+        rm $OUTDIR/$SAMPLE$READONE.bam.[0-9]*  $OUTDIR/$SAMPLE$READTWO.bam.[0-9]*
+    fi
 
 fi
 ################################################################################
@@ -247,14 +251,6 @@ if [ $BAMREAD1 -eq $FASTQREAD1 ] && [ $BAMREAD2 -eq $FASTQREAD2 ]; then
 else
     echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastqs had $FASTQREAD1 and $FASTQREAD2 Bams has $BAMREAD1 and $BAMREAD2"
     exit 1
-fi
-
-echo -e "\n********* $CHECKPOINT\n"
-################################################################################
-CHECKPOINT="cleanup"
-
-if [ -n "$HICLIB_KEEPBAM" ]; then
-    rm $OUTDIR/*$READONE.bam.*  $OUTDIR/*$READTWO.bam.*
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
