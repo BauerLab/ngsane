@@ -142,17 +142,17 @@ else
     # treat read one    
     samtools merge $THISTMP/$SAMPLE$READONE.bam $OUTDIR/*$READONE.bam.[0-9]*
     samtools sort -@ $CPU_HICLIB $THISTMP/$SAMPLE$READONE.bam $THISTMP/$SAMPLE$READONE.ash
-    mv $THISTMP/$SAMPLE$READONE.ash $OUTDIR/$SAMPLE$READONE.ash
+    mv $THISTMP/$SAMPLE$READONE.ash.bam $OUTDIR/$SAMPLE$READONE.ash.bam
     [ -e $THISTMP/$SAMPLE$READONE.bam ] && rm $THISTMP/$SAMPLE$READONE.bam    
 
     # treat read two    
     samtools merge $THISTMP/$SAMPLE$READTWO.bam $OUTDIR/*$READTWO.bam.[0-9]*
     samtools sort -@ $CPU_HICLIB $THISTMP/$SAMPLE$READTWO.bam $THISTMP/$SAMPLE$READTWO.ash
-    mv $THISTMP/$SAMPLE$READTWO.ash $OUTDIR/$SAMPLE$READONE.ash
+    mv $THISTMP/$SAMPLE$READTWO.ash.bam $OUTDIR/$SAMPLE$READONE.ash.bam
     [ -e $THISTMP/$SAMPLE$READTWO.bam ] && rm $THISTMP/$SAMPLE$READTWO.bam
             
     # mark checkpoint
-    if [ -e $OUTDIR/$SAMPLE$READONE.ash ] && [ -e $OUTDIR/$SAMPLE$READTWO.ash ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/$SAMPLE$READONE.ash.bam ] && [ -e $OUTDIR/$SAMPLE$READTWO.ash.bam ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
     # cleanup
     if [ -n "$HICLIB_KEEPBAM" ]; then
