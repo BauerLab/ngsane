@@ -247,8 +247,6 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
    
     if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
-    THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files                                        
-    mkdir -p $THISTMP
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
         INPUT=$OUTDIR/$SAMPLE.ash.bam \
         OUTPUT=$OUTDIR/$SAMPLE.$ASD.bam \
@@ -256,7 +254,6 @@ else
         AS=true \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
-    [ -d $THISTMP ] && rm -r $THISTMP
     samtools index $OUTDIR/$SAMPLE.$ASD.bam
 
     # mark checkpoint
@@ -293,8 +290,6 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
-    mkdir $THISTMP
     java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
         INPUT=$OUTDIR/$SAMPLE.$ASD.bam \
         REFERENCE_SEQUENCE=$FASTA \
@@ -311,7 +306,6 @@ else
             convert $im ${im/pdf/jpg}
         done
     fi
-    [ -e $THISTMP ] && rm -r $THISTMP
 
     # mark checkpoint
     [ -f $OUTDIR/metrices/$SAMPLE.$ASD.bam.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
