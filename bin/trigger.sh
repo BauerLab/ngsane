@@ -1207,6 +1207,8 @@ if [ -n "$RUNPINDEL" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASKPINDEL -i $INPUT_PINDEL -e .$ASD.bam \
         -n $NODES_PINDEL -c $CPU_PINDEL -m $MEMORY_PINDEL"G" -w $WALLTIME_PINDEL \
-        --command "${NGSANE_BASE}/mods/pindel.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKPINDEL"
+        --command "${NGSANE_BASE}/mods/pindel.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKPINDEL" \
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -m $INPUT_PINDEL -v $TASKPINDEL -o $OUT/variant/$INPUT_PINDEL-$TASKPINDEL-<DIR>"
 
 fi
+

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Call variants with samtools
+# Call variants with pindel
 # author: Denis C. Bauer
-# date: Feb.2013
+# date: Dec.2013
 
 # messages to look out for -- relevant for the QC.sh script:
 # 
 
-echo ">>>>> Collect Variants after calling with sam "
+echo ">>>>> Collect Variants after calling with pindel "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
@@ -18,7 +18,7 @@ echo ">>>>> $(basename $0) $*"
 function usage {
 echo -e "usage: $(basename $0) -k CONFIG -f BAM -o OUTDIR [OPTIONS]
 
-Variant calling with sam
+Variant calling with pindel
 
 required:
   -k | --toolkit <path>     config file
