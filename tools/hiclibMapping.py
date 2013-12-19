@@ -42,7 +42,11 @@ Note, read pairs in fastq format (possible gzipped) or bam need to be stated nex
 					help="location of genome index including the basename")
 	parser.add_option("-l", "--readLength", type="int", dest="readLength", default=100, 
 					help="length of the reads [default: %default]")
-	parser.add_option("-f", "--inputFormat", type="string", dest="inputFormat", default="fastq", 
+    parser.add_option("-m", "--minSeqLength", type="int", dest="minSeqLength", default=20,
+                    help="minimum length of the reads when doing iterative mapping [default: %default]")
+    parser.add_option("-n", "--stepSize", type="int", dest="stepSize", default=15,
+                    help="stepsize for iterative mapping [default: %default]")
+	parser.add_option("-f", "--inputFormat", type="string", dest="inputFormat", default="fastq",
 					help="format of the input file, either fastq, sra or bam [default: %default]")
 	parser.add_option("-o", "--outputDir", type="string", dest="outputDir", default="", 
 					help="output directory [default: %default]")
@@ -179,8 +183,8 @@ def mapFile(fastq, read):
 		    bowtie_index_path=options.index,
 		    fastq_path=fastq,
 		    out_sam_path=bamOutput,
-		    min_seq_len=20,
-		    len_step=15,
+		    min_seq_len=options.minSeqLength,
+		    len_step=options.stepSize,
 		    seq_start=options.readLength*(read-1),
 		    seq_end=options.readLength*(read),
 		    nthreads=options.cpus,
@@ -197,8 +201,8 @@ def mapFile(fastq, read):
 		    bowtie_index_path=options.index,
 		    fastq_path=fastq,
 		    out_sam_path=bamOutput,
-		    min_seq_len=25,
-		    len_step=5,
+		    min_seq_len=options.minSeqLength,
+		    len_step=options.stepSize,
 		    nthreads=options.cpus,
 		    temp_dir=options.tmpDir, 
 		    bowtie_flags='--very-sensitive')
