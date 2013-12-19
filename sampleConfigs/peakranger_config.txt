@@ -21,7 +21,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_PEAKRANGER=$TASKBOWTIE
+INPUT_PEAKRANGER=$TASK_BOWTIE
 
 # where to write the output
 OUT=$SOURCE

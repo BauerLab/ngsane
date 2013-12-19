@@ -1,0 +1,5 @@
+##############################################################
+# Defaults for Report Card Summary
+MODULE_SUMMARY="${NG_R} ${NG_PYTHON}"
+PATH_SUMMARY=
+HTMLOUT="Summary"

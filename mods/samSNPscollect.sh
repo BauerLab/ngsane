@@ -97,7 +97,7 @@ if [ ! -d $OUTDIR ]; then mkdir -p $OUTDIR; fi
 VARIANTS=""
 NAMES=""
 for f in $FILES; do
-    i=${f/$TASKBWA/$TASKBWA"-"$TASKSAMVAR} #point to var folder
+    i=${f/$TASK_BWA/$TASK_BWA"-"$TASK_SAMVAR} #point to var folder
     i=${i/bam/"clean.vcf"} # correct ending
     b=$(basename $i)
     arrIN=(${b//./ })
@@ -117,6 +117,7 @@ CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $FILES
+	dmget -a $OUTDIR/*
 fi
     
 echo -e "\n********* $CHECKPOINT\n"

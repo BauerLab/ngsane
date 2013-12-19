@@ -1,0 +1,11 @@
+##############################################################
+# Cufflinks (2.1.1)
+# http://cufflinks.cbcb.umd.edu/
+TASK_CUFFLINKS="cufflinks"
+WALLTIME_CUFFLINKS=192:00:00
+MEMORY_CUFFLINKS=50
+CPU_CUFFLINKS=4
+NODES_CUFFLINKS="nodes=1:ppn=4"
+INPUT_CUFFLINKS=$TASK_TOPHAT
+MODULE_CUFFLINKS="${NG_SAMTOOLS} ${NG_BOOST} ${NG_CUFFLINKS}"
+PATH_CUFFLINKS=

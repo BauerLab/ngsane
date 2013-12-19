@@ -1,6 +1,6 @@
 NGSANE is a framework for advanced production informatics of Next Generation Sequencing libraries.
 
-Version: 0.2
+Version: 0.3
 
 ################################################################################
 # Setup:

@@ -47,7 +47,7 @@ FASTQSCREEN_DBCONF=
 #********************
 
 ## additional fastqscreen parameters
-# e.g. --bowtie
+# e.g. "--subset 500000" (highly recommended)
 FASTQSCREENADDPARAM=
 
 #WALLTIME_FASTQSCREEN=10:00:00

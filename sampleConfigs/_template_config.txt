@@ -1,0 +1,39 @@
+# author: 
+# date: 
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNYourNewTask="1"   
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_YourNewTask=
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+

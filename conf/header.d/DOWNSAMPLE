@@ -1,0 +1,13 @@
+##############################################################
+# downsample
+# 
+TASK_DOWNSAMPLE="downsample"
+WALLTIME_DOWNSAMPLE=5:00:00
+MEMORY_DOWNSAMPLE=20
+CPU_DOWNSAMPLE=1
+NODES_DOWNSAMPLE="nodes=1:ppn=1"
+
+MODULE_DOWNSAMPLE=
+PATH_DOWNSAMPLE=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMTOOLS
+
+

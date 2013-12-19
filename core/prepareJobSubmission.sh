@@ -16,8 +16,6 @@ while [ "$1" != "" ]; do
 	-c | --cpu    )         shift; CPU=$1 ;;       # CPU used
 	-m | --memory )         shift; MEMORY=$1;;     # min Memory required
 	-w | --walltime )       shift; WALLTIME=$1;;
-	# TODO redundant check below
-#    -W | --waitfor )        shift; WAITFOR=$1 ;;    # wait for previous TASK to finish (asumes job names follows std. NGSane rules)
 	-p | --command )        shift; COMMAND=$1;;
 	--postcommand )         shift; POSTCOMMAND=$1;;
 	--postnodes )           shift; POSTNODES=$1;;
@@ -28,9 +26,11 @@ while [ "$1" != "" ]; do
 	-d | --nodir )          NODIR="nodir";;
 	-a | --armed )          ARMED="armed";;
     -W | --wait )           shift; JOBIDS=$1 ;;    # jobids to wait for
+    --commontask )          COMMONTASK="1";;    # a task common to multiple libraries
 	--keep )                KEEP="keep";;
 	--new )                 KEEP="new";;
 	--recover )             RECOVER="recover";;
+	--debug )               DEBUG="debug";;
 	--direct )              DIRECT="direct";;
 	--first )               FIRST="first";;
 	--postonly )            POSTONLY="postonly" ;;
@@ -51,54 +51,58 @@ echo -e "\e[96m[Task]\e[0m $TASK $NODIR"
 if [ ! -d $QOUT/$TASK ]; then mkdir -p $QOUT/$TASK; fi
 
 ## Select files in dir to run 
-if [[ ! -e $QOUT/$TASK/runnow.tmp || "$DIRECT" || "$KEEP" ]]; then
+if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
     echo -e "[NOTE] setup enviroment"
     if [ -e $QOUT/$TASK/runnow.tmp ]; then rm $QOUT/$TASK/runnow.tmp; fi
-    
-    for dir in ${DIR[@]}; do
         
-        #ensure dirs are there
+    for dir in ${DIR[@]}; do
+    
+        # separate folder from sample pattern
+        DIRNAME=${dir%%/*}
+        SAMPLEPATTERN=${dir/$DIRNAME/}
+    
+        # ensure dirs are there
         if [ -z "$NODIR" ]; then
-            if [ ! -d $OUT/$dir/$TASK ]; then mkdir -p $OUT/$dir/$TASK; fi
+            if [ ! -d $OUT/$DIRNAME/$TASK ]; then mkdir -p $OUT/$DIRNAME/$TASK; fi
         fi
         
         # add tasks to runnow.tmp
         # search for real files and dummy files, in case both exist only keep real one
         if [ -n "$REV" ]; then
-            for f in $( ls $SOURCE/$dir/$ORIGIN/*$ENDING* | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
+            for f in $( ls $SOURCE/$DIRNAME/$ORIGIN/$SAMPLEPATTERN*$ENDING* | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
                 n=${f##*/}
                 name=${n/$ENDING/}
-                LOGFILE=$QOUT/$TASK/$dir'_'$name'.out'
+                LOGFILE=$QOUT/$TASK/$DIRNAME'_'$name'.out'
                 if [ "$KEEP" = "new" ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
-                	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$dir/" | sed "s/<TASK>/$TASK/")
+                	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)
-                	if [ -n "$D" ] && [ -f $TASK/$dir/${D##*/} ] && [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then 
-                	   echo -e "\e[34m[SKIP]\e[0m $n (already processed: $dir/${D##*/})"  
+                	if [ -n "$D" ] && [ -f $D ] && [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then 
+                	   echo -e "\e[34m[SKIP]\e[0m $n (already processed: $DIRNAME/${D##*/})"  
                 	   continue
                     fi
                 fi 
-                echo -e "\e[32m[TODO]\e[0m $dir/$n"
+                echo -e "\e[32m[TODO]\e[0m $DIRNAME/$n"
                 echo $f >> $QOUT/$TASK/runnow.tmp
             done
         
         else
-            for f in $( ls $SOURCE/$ORIGIN/$dir/*$ENDING* | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
+            for f in $( ls $SOURCE/$ORIGIN/$DIRNAME/$SAMPLEPATTERN*$ENDING* | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
                 n=${f##*/}
                 name=${n/$ENDING/}
-                LOGFILE=$QOUT/$TASK/$dir'_'$name'.out'
+                LOGFILE=$QOUT/$TASK/$DIRNAME'_'$name'.out'
                 if [ "$KEEP" = "new" ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
-                	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$dir/" | sed "s/<TASK>/$TASK/")
+                	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)
-                	if [ -n "$D" ] && [ -f $D ] && [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]]  ; then
-                	   echo -e "\e[34m[SKIP]\e[0m $n (already processed - $dir/${D##*/})"  
+                	if [ -n "$D" ] && [ -f $D ] && [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]]; then
+                	   echo -e "\e[34m[SKIP]\e[0m $n (already processed - $DIRNAME/${D##*/})"  
                 	   continue
-            	   fi
+                    fi
                 fi 
-                echo -e "\e[32m[TODO]\e[0m $dir/$n"
+                echo -e "\e[32m[TODO]\e[0m $DIRNAME/$n"
                 echo $f >> $QOUT/$TASK/runnow.tmp
             done
         fi
@@ -118,7 +122,7 @@ else
     echo -e "[NOTE] proceeding with job scheduling..."
 fi
 
-MYPBSIDS="" # collect job IDs for postcommand
+MYJOBIDS="" # collect job IDs for postcommand
 DIR=""
 FILES=""
 JOBNUMBER=0
@@ -154,9 +158,9 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
     echo -e "\e[33m[ JOB]\e[0m  $COMMAND2"
 
-    if [ -n "$DIRECT" ]; then eval $COMMAND2; fi
+    if [ -n "$DEBUG" ]; then eval $COMMAND2; fi
 
-    if [ -n "$ARMED" ]; then
+    if [[ -n "$ARMED" || -n "$DIRECT" ]]; then
 
  #       echo $ARMED
 
@@ -166,7 +170,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             
             if [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then
                 echo -e "\e[92m[NOTE]\e[0m Previous $TASK run finished without error - nothing to be done"
-                MYPBSIDS=""
+                MYJOBIDS=""
                 continue
             else
                 echo "[NOTE] #########################################################################" >> $LOGFILE
@@ -182,24 +186,46 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         fi
     
         # record task in log file
-        cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
-        echo "[NOTE] Jobfile: "$QOUT/$TASK/job.$(date "+%Y%m%d").log >> $LOGFILE
+        JOBLOG=$QOUT/$TASK/job.$(date "+%Y%m%d").log
+        cat $CONFIG ${NGSANE_BASE}/conf/header.sh ${NGSANE_BASE}/conf/header.d/* > $JOBLOG
+        echo "[NOTE] Jobfile: "$JOBLOG >> $LOGFILE
+
+        # add citations
+        TASKNAME=$(grep -P "^TASK_[A-Z0-9]+=[\"']?$TASK[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
+        for M in NG_CITE_NGSANE $(grep -P "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g'); do
+
+            CITE=$(grep -P "^$M=" $JOBLOG) || CITE=""
+            if [ -n "$CITE" ]; then
+                echo -e "[CITE] ${CITE/$M=/}" >> $LOGFILE
+            fi 
+        done
+
+		#eval job directly but write to logfile
+	    if [ -n "$DIRECT" ]; then eval $COMMAND2 >> $LOGFILE 2>&1 ; continue; fi
 
         if [ -n "$JOBIDS" ]; then
-			JOBID=$(echo $JOBIDS | cut -d ":" -f $JOBNUMBER)
+            echo "check joids"
+            if [[ $(echo $JOBIDS | sed 's/:*$//g'| awk -F':' '{print NF}') == 1 ]]; then
+                # everyone waits for the same job if only one id was given
+                JOBID=$(echo $JOBIDS | cut -d ":" -f 1)        
+            else
+                # otherwise wait for job in corresponding slot
+                JOBID=$(echo $JOBIDS | cut -d ":" -f $JOBNUMBER)
+            fi
+			
 			echo -e "[NOTE] wait for $JOBID out of $JOBIDS"
             RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$JOBID" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
-        	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
+        	   -j $TASK'_'$dir'_'$name$COMMONTASK -o $LOGFILE --command "$COMMAND2")
         else 
             RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
-        	   -j $TASK'_'$dir'_'$name -o $LOGFILE --command "$COMMAND2")
+        	   -j $TASK'_'$dir'_'$name$COMMONTASK -o $LOGFILE --command "$COMMAND2")
         fi    	
 
         echo -e "Jobnumber $RECIPT"
-        MYPBSIDS=$MYPBSIDS":"$RECIPT
+        MYJOBIDS=$MYJOBIDS":"$RECIPT
     
         # if only the first task should be submitted as test
-        if [ -n "$FIRST" ]; then exit; fi
+        if [[ -n "$FIRST" || -n "$COMMONTASK" ]] ; then exit; fi
     
     fi
 done
@@ -212,11 +238,11 @@ if [ -n "$POSTCOMMAND" ]; then
     POSTCOMMAND2=${POSTCOMMAND//<FILE>/$FILES}
     POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$DIR}
 
-    echo "[NOTE] "$DIR" wait for "$MYPBSIDS
-    echo $POSTCOMMAND2
+    echo "[NOTE] "$DIR" wait for "$MYJOBIDS
+    #echo $POSTCOMMAND2
 
-    if [[ -n "$DIRECT" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi
-    if [[ -n "$ARMED" ||  -n "$POSTONLY" ]]; then
+    if [[ -n "$DEBUG" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi
+    if [[ -n "$ARMED" ||  -n "$POSTONLY" || "$DIRECT" ]]; then
 
     # remove old submission output logs
     if [ -e $QOUT/$TASK/postcommand.out ]; then rm $QOUT/$TASK/postcommand.out; fi
@@ -224,13 +250,16 @@ if [ -n "$POSTCOMMAND" ]; then
     # record task in log file
     cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
 
+	#eval job directly but write to logfile
+	if [ -n "$DIRECT" ]; then eval $POSTCOMMAND2 > $QOUT/$TASK/postcommand.out 2>&1 ; exit; fi
+
     # unless specified otherwise use HPC parameter from main job 
     if [ -z "$POSTNODES" ];    then POSTNODES=$NODES; fi
     if [ -z "$POSTCPU" ];      then POSTCPU=$CPU; fi
     if [ -z "$POSTMEMORY" ];   then POSTMEMORY=$MEMORY; fi
     if [ -z "$POSTWALLTIME" ]; then POSTWALLTIME=$WALLTIME; fi
 
-    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYPBSIDS" -k $CONFIG -m $POSTMEMORY -n $POSTNODES -c $POSTCPU -w $POSTWALLTIME \
+    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYJOBIDS" -k $CONFIG -m $POSTMEMORY -n $POSTNODES -c $POSTCPU -w $POSTWALLTIME \
             -j $TASK'_postcommand' -o $QOUT/$TASK/postcommand.out --command "$POSTCOMMAND2")
 
     echo -e "Jobnumber $RECIPT"
@@ -238,4 +267,5 @@ if [ -n "$POSTCOMMAND" ]; then
     fi
 fi
 
+# remove job list of this rounds files
 if [ ! -n "$KEEP" ] && [ -e $QOUT/$TASK/runnow.tmp ]; then  rm $QOUT/$TASK/runnow.tmp ; fi

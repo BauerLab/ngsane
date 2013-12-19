@@ -1,0 +1,1299 @@
+#!/bin/bash -e 
+# author Fabian Buske 
+# modified by Denis Bauer
+# Nov 2013
+
+############NECTAR
+echo 127.0.0.1 $( cat /etc/hostname) >> /etc/hosts
+sudo -i
+
+
+############STARCLUSTER
+echo "remove already existing eggs -- otherwise yolk will crash"
+rm /usr/lib/python2.7/dist-packages/numpy-1.6.1.egg-info
+rm /usr/lib/pymodules/python2.7/Cython-0.15.1.egg-info
+
+
+################################################################################
+PACKAGEPATH=/packages
+MODULEPATH=/modules
+mkdir $PACKAGEPATH && mkdir $MODULEPATH
+
+################################################################################
+echo "update packages"
+apt-get update
+apt-get upgrade
+
+################################################################################
+echo "install essentials (make)"
+apt-get install -y build-essential 
+
+################################################################################
+echo "install locate"
+apt-get install locate -y
+sudo updatedb
+
+################################################################################
+echo "install cmake"
+apt-get install -y cmake
+
+################################################################################
+echo "install gawk and zip"
+apt-get install -y gawk zip
+
+################################################################################
+echo "install libcurl4 and libxml2"
+apt-get install -y libcurl4-openssl-dev libxml2-dev libbz2-dev libreadline-dev gnustep-base-runtime libpng-dev libmysqlclient-dev
+
+locale-gen en_AU.UTF-8
+
+################################################################################
+echo "install environment modules"
+apt-get install -y tcl tcl8.4-dev
+
+cd /tmp
+wget http://downloads.sourceforge.net/project/modules/Modules/modules-3.2.10/modules-3.2.10.tar.gz
+tar xvf modules-3.2.10.tar.gz
+cd modules-3.2.10/
+./configure --with-module-path=/modules/
+make && make install
+cp etc/global/profile.modules /etc/profile.d/modules.sh
+
+if [ ! -e /usr/local/Modules/default/init/bash ]; then ln -s /usr/local/Modules/3.2.10 /usr/local/Modules/default ; fi
+
+echo -e "#Modules\nsource /etc/profile.d/modules.sh" >> ~/.bashrc
+. ~/.bashrc
+module use /modules/
+
+################################################################################
+echo "install java 7"
+apt-get install -y openjdk-7-jre
+
+################################################################################
+echo "install ImageMagick " && cd /tmp/
+apt-get install -y imagemagick
+
+################################################################################
+VERSION=1.8.12
+SOFTWARE=hdf5
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://www.hdfgroup.org/ftp/HDF5/current/src/$SOFTWARE-$VERSION.tar.bz2
+tar -xf $SOFTWARE-$VERSION.tar.bz2
+cd $SOFTWARE-$VERSION
+./configure --prefix=/packages/$SOFTWARE/$VERSION/
+make && make install 
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+
+prepend-path    HDF5_DIR        $PACKAGEPATH/$SOFTWARE/$VERSION/
+prepend-path    PATH            $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+prepend-path    INCLUDE         $PACKAGEPATH/$SOFTWARE/$VERSION/include/
+prepend-path    LD_LIBRARY_PATH $PACKAGEPATH/$SOFTWARE/$VERSION/lib/
+prepend-path    MANPATH         $PACKAGEPATH/$SOFTWARE/$VERSION/share
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=20131022
+SOFTWARE=parallel
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://ftp.gnu.org/gnu/$SOFTWARE/$SOFTWARE"-"$VERSION.tar.bz2
+tar -xf $SOFTWARE"-"$VERSION.tar.bz2
+cd $SOFTWARE"-"$VERSION
+./configure --prefix $PACKAGEPATH/$SOFTWARE/$VERSION
+make && make install
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH            $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+prepend-path    MANPATH         $PACKAGEPATH/$SOFTWARE/$VERSION/share/man
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=1.53.0
+SOFTWARE=boost
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://downloads.sourceforge.net/project/$SOFTWARE/$SOFTWARE/$VERSION/$SOFTWARE"_"${VERSION//./_}.tar.bz2
+tar -xf $SOFTWARE"_"${VERSION//./_}.tar.bz2
+cd $SOFTWARE"_"${VERSION//./_}
+./bootstrap.sh --prefix=/packages/$SOFTWARE/$VERSION/ --with-python=/usr/bin/python
+./b2 --prefix=/packages/$SOFTWARE/$VERSION/ install
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+
+setenv  BOOST_ROOT  $PACKAGEPATH/$SOFTWARE/$VERSION
+
+prepend-path    LD_LIBRARY_PATH $PACKAGEPATH/$SOFTWARE/$VERSION/lib
+prepend-path    DYLD_LIBRARY_PATH       $PACKAGEPATH/$SOFTWARE/$VERSION/lib
+prepend-path    CPLUS_INCLUDE_PATH      $PACKAGEPATH/$SOFTWARE/$VERSION/include
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+echo "install fortran "
+apt-get install gfortran -y
+apt-get install libgfortran3 -y
+
+################################################################################
+echo "install blas  and lapack"
+apt-get install libblas3gf libblas-doc libblas-dev -y
+apt-get install liblapack3gf liblapack-doc liblapack-dev -y
+
+################################################################################
+VERSION=3.0.2
+SOFTWARE=R
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+# prerequisites
+defaults write org.R-project.R force.LANG en_US.UTF-8
+
+wget http://cran.rstudio.com/src/base/R-3/$SOFTWARE-$VERSION.tar.gz
+tar -xf $SOFTWARE-$VERSION.tar.gz
+cd R-$VERSION/
+
+./configure --prefix=/packages/$SOFTWARE/$VERSION/ --enable-R-shlib --enable-R-static-lib --enable-BLAS-shlib --with-lapack --with-x=no
+make && make install
+
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+
+setenv  R_HOME  $PACKAGEPATH/$SOFTWARE/$VERSION/lib64/R
+prepend-path    PATH $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+prepend-path    LD_LIBRARY_PATH $PACKAGEPATH/$SOFTWARE/$VERSION/lib64/R/lib
+prepend-path    MANPATH         $PACKAGEPATH/$SOFTWARE/$VERSION/share
+
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+
+
+################################################################################
+echo "setting up python libraries"
+apt-get install python2.7-dev -y
+apt-get install python-setuptools -y
+easy_install pip
+pip install yolk
+pip install Numpy
+pip install cython
+pip install numexpr
+pip install HTSeq
+pip install MACS2
+pip install h5py
+pip install tables
+pip install genomedata
+pip install iptools
+pip install segway
+pip install rpy2
+pip install segtools
+pip install pysam
+pip install cutadapt
+pip install bx-python
+pip install joblib
+pip install biopython
+pip install scipy
+
+yolk -l
+
+################################################################################
+VERSION=2.17.0
+SOFTWARE=bedtools
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget https://bedtools.googlecode.com/files/BEDTools.v$VERSION.tar.gz
+tar -xf BEDTools.v$VERSION.tar.gz
+cd $SOFTWARE"-"$VERSION/
+make
+cp -r ./* $PACKAGEPATH/$SOFTWARE/$VERSION/
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+
+prepend-path    PATH $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+
+################################################################################
+echo "install ncurses"
+apt-get install libncurses-dev -y
+
+################################################################################
+VERSION=0.1.19
+SOFTWARE=samtools
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://downloads.sourceforge.net/project/$SOFTWARE/$SOFTWARE/$VERSION/$SOFTWARE-$VERSION.tar.bz2
+tar -xf $SOFTWARE-$VERSION.tar.bz2
+cd $SOFTWARE-$VERSION
+make 
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION/bin/
+cp samtools $PACKAGEPATH/$SOFTWARE/$VERSION/bin/
+cp bcftools/bcftools $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION/include/bam/
+cp *.h $PACKAGEPATH/$SOFTWARE/$VERSION/include/bam/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION/lib/
+cp libbam.a $PACKAGEPATH/$SOFTWARE/$VERSION/lib/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION/share/
+cp samtools.1 $PACKAGEPATH/$SOFTWARE/$VERSION/share/
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+setenv BAM_ROOT $PACKAGEPATH/$SOFTWARE/$VERSION
+prepend-path    PATH            $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+prepend-path    LD_LIBRARY_PATH $PACKAGEPATH/$SOFTWARE/$VERSION/lib
+prepend-path    C_INCLUDE_PATH  $PACKAGEPATH/$SOFTWARE/$VERSION/include
+prepend-path    MANPATH         $PACKAGEPATH/$SOFTWARE/$VERSION/share
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=1.102
+SOFTWARE=picard-tools
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://downloads.sourceforge.net/project/picard/$SOFTWARE/$VERSION/$SOFTWARE-$VERSION.zip
+unzip $SOFTWARE-$VERSION.zip
+cp $SOFTWARE-$VERSION/* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+prepend-path    CLASSPATH  $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
+setenv  PICARD_HOME $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+chmod 777 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=1.09
+SOFTWARE=samstat
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://downloads.sourceforge.net/project/$SOFTWARE/$SOFTWARE".tgz"
+tar -xf $SOFTWARE".tgz"
+cd $SOFTWARE/src
+make
+
+cp samstat $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=2.3.1
+SOFTWARE=pigz
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://zlib.net/pigz/$SOFTWARE-$VERSION.tar.gz
+tar -xf $SOFTWARE-$VERSION.tar.gz
+cd $SOFTWARE-$VERSION
+make
+
+cp pigz $PACKAGEPATH/$SOFTWARE/$VERSION
+cp unpigz $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+
+################################################################################
+VERSION=2.8.2
+SOFTWARE=weblogo
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://weblogo.berkeley.edu/release/$SOFTWARE.$VERSION.tar.gz
+tar -xf $SOFTWARE.$VERSION.tar.gz
+mv $SOFTWARE/* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=291
+SOFTWARE=ucsc_utils
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://hgdownload.cse.ucsc.edu/admin/jksrc.v$VERSION.zip
+unzip jksrc.v$VERSION.zip
+
+export MACHTYPE=x86_64
+mkdir -p ~/bin/$MACHTYPE
+
+cd kent/src
+make libs
+cd utils/
+make
+
+mv ~/bin/$MACHTYPE $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/$MACHTYPE
+DELIM
+
+rm -r /tmp/kent/ /tmp/jksrc.v$VERSION.zip
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=0.7.1
+SOFTWARE=masai
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://packages.seqan.de/$SOFTWARE/$SOFTWARE-$VERSION-Linux-x86_64.tar.bz2
+tar -xf $SOFTWARE-$VERSION-Linux-x86_64.tar.bz2
+mv $SOFTWARE-$VERSION-Linux-x86_64/* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+
+################################################################################
+VERSION=1.0.0
+SOFTWARE=bowtie
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://downloads.sourceforge.net/project/bowtie-bio/bowtie/$VERSION/bowtie-$VERSION-src.zip
+unzip bowtie-$VERSION-src.zip
+cd bowtie-$VERSION/
+make
+cp bowtie $PACKAGEPATH/$SOFTWARE/$VERSION
+cp bowtie-build $PACKAGEPATH/$SOFTWARE/$VERSION
+cp bowtie-inspect $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+
+################################################################################
+VERSION=2.1.0
+SOFTWARE=bowtie
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://downloads.sourceforge.net/project/bowtie-bio/bowtie2/$VERSION/bowtie2-$VERSION-source.zip
+unzip bowtie2-$VERSION-source.zip
+cd bowtie2-$VERSION/
+make
+cp bowtie2* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+#VERSION=2.0.9
+VERSION=2.0.10
+SOFTWARE=tophat
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://tophat.cbcb.umd.edu/downloads/$SOFTWARE-$VERSION.tar.gz
+tar -xf $SOFTWARE-$VERSION.tar.gz
+cd $SOFTWARE-$VERSION/
+./configure --prefix=/packages/$SOFTWARE/$VERSION --with-boost=/packages/boost/1.53.0 --with-bam=/packages/samtools/0.1.19
+make && make install
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+
+################################################################################
+VERSION=3.2.0
+SOFTWARE=eigen
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://bitbucket.org/$SOFTWARE/$SOFTWARE/get/$VERSION.tar.bz2
+tar -xf $VERSION.tar.bz2
+cd $SOFTWARE*
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION/include
+cp -r Eigen $PACKAGEPATH/$SOFTWARE/$VERSION/include
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+
+prepend-path    CPLUS_INCLUDE_PATH      $PACKAGEPATH/$SOFTWARE/$VERSION/include
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+##############
+# needs more memory than ti.micro
+################################################################################
+VERSION=2.1.1
+SOFTWARE=cufflinks
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://cufflinks.cbcb.umd.edu/downloads/$SOFTWARE-$VERSION.tar.gz
+tar -xf $SOFTWARE-$VERSION.tar.gz
+cd $SOFTWARE-$VERSION/
+./configure --prefix=/packages/$SOFTWARE/$VERSION --with-boost=/packages/boost/1.53.0  --with-bam=/packages/samtools/0.1.19 --with-eigen=/packages/eigen/3.2.0
+make && make install
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=1.1.7
+SOFTWAREREAL=RNA-SeQC
+SOFTWARE=RNASEQC
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://www.broadinstitute.org/cancer/cga/sites/default/files/data/tools/rnaseqc/$SOFTWAREREAL"_v"$VERSION.jar
+cp $SOFTWAREREAL"_v"$VERSION.jar $PACKAGEPATH/$SOFTWARE/$VERSION/$SOFTWAREREAL.jar
+chmod 555 $PACKAGEPATH/$SOFTWARE/$VERSION/$SOFTWAREREAL.jar
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+setenv ${SOFTWARE}_HOME    $PACKAGEPATH/$SOFTWARE/$VERSION
+DELIM
+
+module load $SOFTWARE/$VERSION
+################################################################################
+VERSION=0.7.5a
+SOFTWARE=bwa
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://downloads.sourceforge.net/project/bio-$SOFTWARE/$SOFTWARE-$VERSION.tar.bz2
+tar -xf $SOFTWARE-$VERSION.tar.bz2
+cd $SOFTWARE-$VERSION/
+make
+
+cp bwa $PACKAGEPATH/$SOFTWARE/$VERSION
+cp *.pl $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+
+################################################################################
+VERSION=1.16
+SOFTWARE=peakranger
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://downloads.sourceforge.net/project/ranger/Source%20codes/PeakRanger-$VERSION-src.zip
+mkdir -p $SOFTWARE/
+mv PeakRanger-$VERSION-src.zip $SOFTWARE/
+cd $SOFTWARE
+unzip PeakRanger-$VERSION-src.zip
+sed -i 's| = -lboost_unit_test_framework|= -lboost_unit_test_framework -lboost_system|' boost_tests/makefile
+sed -i 's|/Users/xfeng/Downloads/boost_1_47_0/|/packages/boost/1.53.0/include/|' boost_tests/makefile
+sed -i 's|/packages/boost/1.53.0/include/stage/lib|/packages/boost/1.53.0/lib|' boost_tests/makefile
+sed -i 's|/Users/xfeng/Downloads/boost_1_47_0/|/packages/boost/1.53.0/include/|' Makefile
+sed -i 's|/packages/boost/1.53.0/include/stage/lib|/packages/boost/1.53.0/lib|' Makefile
+make
+
+cp bin/peakranger $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=4.9.1
+SOFTWARE=meme
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://ebi.edu.au/ftp/software/MEME/$VERSION/$SOFTWARE"_"$VERSION.tar.gz
+tar -xf $SOFTWARE"_"$VERSION.tar.gz
+cd $SOFTWARE"_"$VERSION
+./configure --prefix=/packages/$SOFTWARE/$VERSION --enable-opt
+make && make test
+make install
+
+# add databases
+wget http://ebi.edu.au/ftp/software/MEME/Databases/motifs/motif_databases.10.3.tgz
+wget http://ebi.edu.au/ftp/software/MEME/Databases/gomo/gomo_databases.3.tgz
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION/db
+tar -xf motif_databases.10.3.tgz
+tar -xf gomo_databases.3.tgz
+mv motif_databases $PACKAGEPATH/$SOFTWARE/$VERSION/db
+mv gomo_databases $PACKAGEPATH/$SOFTWARE/$VERSION/db
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+prepend-path    LD_LIBRARY_PATH $PACKAGEPATH/$SOFTWARE/$VERSION/lib
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=35
+SOFTWARE=blat
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://users.soe.ucsc.edu/~kent/src/${SOFTWARE}Src${VERSION}.zip
+unzip ${SOFTWARE}Src${VERSION}.zip
+cd blatSrc/
+export MACHTYPE=x86_64
+mkdir -p ~/bin/$MACHTYPE
+make
+mv ~/bin/$MACHTYPE $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/$MACHTYPE
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=4.3
+SOFTWARE=homer
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://biowhat.ucsd.edu/homer/configureHomer.pl
+mv configureHomer.pl $PACKAGEPATH/$SOFTWARE/$VERSION
+cd $PACKAGEPATH/$SOFTWARE/$VERSION
+perl configureHomer.pl -install
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/bin/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=0.30
+SOFTWARE=trimmomatic
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-$VERSION.zip
+unzip Trimmomatic-$VERSION.zip
+mv Trimmomatic-$VERSION/* $PACKAGEPATH/$SOFTWARE/$VERSION
+chmod 555 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=0.3.3
+SOFTWARE=trim_galore
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://www.bioinformatics.babraham.ac.uk/projects/$SOFTWARE/$SOFTWARE"_v"$VERSION.zip
+unzip $SOFTWARE"_v"$VERSION.zip
+mv $SOFTWARE $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=0.10.1
+SOFTWARE=fastqc
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/$SOFTWARE"_v"$VERSION.zip
+unzip $SOFTWARE"_v"$VERSION.zip
+mv FastQC/* $PACKAGEPATH/$SOFTWARE/$VERSION
+chmod 555 $PACKAGEPATH/$SOFTWARE/$VERSION/fastqc
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=0.4.2
+SOFTWARE=fastq_screen
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://www.bioinformatics.babraham.ac.uk/projects/$SOFTWARE/$SOFTWARE"_v"$VERSION.tar.gz
+tar -xf $SOFTWARE"_v"$VERSION.tar.gz
+mv $SOFTWARE"_v"$VERSION/* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=0.4.1
+SOFTWARE=hicup
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://www.bioinformatics.babraham.ac.uk/projects/$SOFTWARE/$SOFTWARE"_v"$VERSION.tar.gz
+tar -xf $SOFTWARE"_v"$VERSION.tar.gz
+mv $SOFTWARE"_v"$VERSION/* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=1.0.1
+SOFTWARE=blue
+
+apt-get install -y mono-complete
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://www.bioinformatics.csiro.au/public/files/LinuxBlue101.tar.gz
+mv LinuxBlue101.tar.gz $PACKAGEPATH/$SOFTWARE/$VERSION
+cd $PACKAGEPATH/$SOFTWARE/$VERSION
+tar -xf $PACKAGEPATH/$SOFTWARE/$VERSION/LinuxBlue101.tar.gz
+rm $PACKAGEPATH/$SOFTWARE/$VERSION/LinuxBlue101.tar.gz
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=2013_08_14
+SOFTWARE=trinityrnaseq
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://downloads.sourceforge.net/project/$SOFTWARE/$SOFTWARE"_r"$VERSION.tgz
+
+tar -xf $SOFTWARE"_r"$VERSION.tgz
+cd $SOFTWARE"_r"$VERSION/
+make
+
+mv ./* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+setenv TRINITY_HOME $PACKAGEPATH/$SOFTWARE/$VERSION/
+prepend-path PATH $PACKAGEPATH/$SOFTWARE/$VERSION/:/packages/$SOFTWARE/$VERSION/util/:/packages/$SOFTWARE/$VERSION/util/PBS
+
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=2.3.23
+SOFTWARE=igvtools
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://www.broadinstitute.org/igv/projects/downloads/$SOFTWARE"_"$VERSION.zip
+unzip $SOFTWARE"_"$VERSION.zip
+mv IGVTools/* $PACKAGEPATH/$SOFTWARE/$VERSION
+chmod 777 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH    $PACKAGEPATH/$SOFTWARE/$VERSION/
+setenv IGVTOOLS_HOME    $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+
+################################################################################
+
+VERSION=2.5-2
+SOFTWARE=gatk
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget https://www.dropbox.com/sh/1misjysdehceq4h/tVc5HpAu6X/GenomeAnalysisTK-$VERSION-gf57256b.tar.bz2
+
+tar -xf GenomeAnalysisTK-$VERSION-gf57256b.tar.bz2
+mv GenomeAnalysisTK-$VERSION-gf57256b/* $PACKAGEPATH/$SOFTWARE/$VERSION
+chmod 777 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH            $PACKAGEPATH/$SOFTWARE/$VERSION
+prepend-path    CLASSPATH       $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
+setenv GATK_HOME    $PACKAGEPATH/$SOFTWARE/$VERSION
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+
+VERSION=1.84
+SOFTWARE=fseq
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://fureylab.med.unc.edu/fseq/$SOFTWARE"_"$VERSION.tgz
+
+tar -xf $SOFTWARE"_"$VERSION.tgz
+mv $SOFTWARE/* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH            $PACKAGEPATH/$SOFTWARE/$VERSION:$PACKAGEPATH/$SOFTWARE/$VERSION/bin
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+
+################################################################################
+
+VERSION=2010b
+SOFTWARE=mcr
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+#wget http://www.broadinstitute.org/~anshul/softwareRepo/MCR$VERSION.bin
+wget http://www.mathworks.com.au/supportfiles/MCR_Runtime/R2012b/MCR_R2012b_glnxa64_installer.zip
+chmod 777 MCR$VERSION.bin
+./MCR2010b.bin -console
+# choose "1" then "/packages/mcr/2010b" then "1" "1" "3"
+rm MCR2010b.bin
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+set MCRROOT $PACKAGEPATH/$SOFTWARE/$VERSION/v714
+setenv MCRROOT $PACKAGEPATH/$SOFTWARE/$VERSION/v714
+
+prepend-path    LD_LIBRARY_PATH ${MCRROOT}/runtime/glnxa64
+prepend-path    LD_LIBRARY_PATH ${MCRROOT}/bin/glnxa64
+prepend-path    LD_LIBRARY_PATH ${MCRROOT}/sys/os/glnxa64
+prepend-path    LD_LIBRARY_PATH ${MCRROOT}/sys/java/jre/glnxa64/jre/lib/amd64/native_threads
+prepend-path    LD_LIBRARY_PATH ${MCRROOT}/sys/java/jre/glnxa64/jre/lib/amd64/server
+prepend-path    LD_LIBRARY_PATH ${MCRROOT}/sys/java/jre/glnxa64/jre/lib/amd64
+
+setenv XAPPLRESDIR ${MCRROOT}/X11/app-defaults
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+
+VERSION=2.0
+SOFTWARE=wiggler
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget https://align2rawsignal.googlecode.com/files/align2rawsignal.$VERSION.tgz
+
+tar -xf align2rawsignal.$VERSION.tgz
+mv align2rawsignal/* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH            $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+setenv          MCR_CACHE_ROOT  /tmp
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+
+VERSION=0.64
+SOFTWARE=circos
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+apt-get install -y libgd-gd2-perl
+
+wget http://circos.ca/distribution/$SOFTWARE-$VERSION.tgz
+tar -xf $SOFTWARE-$VERSION.tgz
+cd $SOFTWARE-$VERSION/bin
+./test.modules | grep fail | cut -d ' ' -f 2 | xargs -d"\n" cpan install
+mv /tmp/$SOFTWARE-$VERSION/* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+sed -i 's|^#!/bin/env perl|#!/usr/bin/env perl|' $PACKAGEPATH/$SOFTWARE/$VERSION/bin/circos
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+##############
+# needs more memory than ti.micro
+################################################################################
+
+VERSION=1.3.3
+SOFTWARE=triplexator
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+git clone https://code.google.com/p/triplexator/ triplexator
+cd $SOFTWARE
+git checkout tags/v$VERSION
+mkdir -p build/Release && cd build/Release
+cmake ../.. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ -G "Unix Makefiles" && make
+cd ../.. && ./demos/smoketest_triplexator.sh ./bin/triplexator
+
+mv /tmp/$SOFTWARE/* $PACKAGEPATH/$SOFTWARE/$VERSION/
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/bin:$PACKAGEPATH/$SOFTWARE/$VERSION/triplex_inspector
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+
+NGSANE_VERSION=0.3.0
+NGSANE_SOFTWARE=ngsane
+
+echo "install $NGSANE_SOFTWARE $NGSANE_VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION $MODULEPATH/$NGSANE_SOFTWARE
+
+wget https://github.com/BauerLab/$NGSANE_SOFTWARE/archive/v$NGSANE_VERSION.tar.gz
+tar -xf v$NGSANE_VERSION.tar.gz
+mv $NGSANE_SOFTWARE-$NGSANE_VERSION/* $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION
+cd $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION
+
+cat > $MODULEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $NGSANE_SOFTWARE $NGSANE_VERSION"
+}
+ module-whatis "$NGSANE_SOFTWARE $NGSANE_VERSION"
+conflict $NGSANE_SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/bin:/packages/$NGSANE_SOFTWARE/$NGSANE_VERSION/mods
+setenv NGSANE_BASE      $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/
+setenv SAMPLECONFIGS    $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/sampleConfigs
+DELIM
+
+module load $NGSANE_SOFTWARE/$NGSANE_VERSION
+
+# set default modules
+cp conf/sample_header.sh $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_R=|NG_R=R/3.0.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_PYTHON=|NG_PYTHON=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_GZIP=|NG_GZIP=pigz/2.3.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_JAVA=|NG_JAVA=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_FASTQC=|NG_FASTQC=fastqc/0.10.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_SAMTOOLS=|NG_SAMTOOLS=samtools/0.1.19|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_IGVTOOLS=|NG_IGVTOOLS=igvtools/2.3.23|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_GATK=|NG_GATK=gatk/2.5-2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_BWA=|NG_BWA=bwa/0.7.5a|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_IMAGEMAGIC=|NG_IMAGEMAGIC=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_PICARD=|NG_PICARD=picard-tools/1.102|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_SAMSTAT=|NG_SAMSTAT=samstat/1.09|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_UCSCTOOLS=|NG_UCSCTOOLS=ucsc_utils/291|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_BEDTOOLS=|NG_BEDTOOLS=bedtools/2.17.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_MASAI=|NG_MASAI=masai/0.7.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_FSEQ=|NG_FSEQ=fseq/1.84|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_BOWTIE=|NG_BOWTIE=bowtie/1.0.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_BOWTIE2=|NG_BOWTIE2=bowtie/2.1.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_BOOST=|NG_BOOST=boost/1.53.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_PEAKRANGER=|NG_PEAKRANGER=peakranger/1.16|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_MEME=|NG_MEME=meme/4.9.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_TOPHAT=|NG_TOPHAT=tophat/2.0.10|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_RNASEQC=|NG_RNASEQC=RNA-SeQC/1.1.7|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_CUFFLINKS=|NG_CUFFLINKS=cufflinks/2.1.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_MONO=|NG_MONO=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_BLUE=|NG_BLUE=blue/1.0.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_PERL=|NG_PERL=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_WIGGLER=|NG_WIGGLER=wiggler/2.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_HOMER=|NG_HOMER=homer/4.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_CUTADAPT=|NG_CUTADAPT=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_TRIMGALORE=|NG_TRIMGALORE=trim_galore/0.3.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_TRIMMOMATIC=|NG_TRIMMOMATIC=trimmomatic/0.30|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_HDF5=|NG_HDF5=hdf5/1.8.12|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_HICLIB=|NG_HICLIB=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_HICUP=|NG_HICUP=hicup/0.4.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_FITHIC=|NG_FITHIC=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_FASTQSCREEN=|NG_FASTQSCREEN=fastq_screen/0.4.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_MATLAB=|NG_MATLAB=mcr/2010b|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_CHANCE=|NG_CHANCE=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_PARALLEL=|NG_PARALLEL=parallel/20131022|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_TRINITY=|NG_TRINITY=trinityrnaseq/2013_08_14|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+
+# activate SGE
+sed -i 's|^SUBMISSIONSYSTEM="PBS"|SUBMISSIONSYSTEM="SGE"|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^QUEUEWAIT=" -W depend=afterok:"|#QUEUEWAIT=" -W depend=afterok:"|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^QUEUEWAITSEP=":"|#QUEUEWAITSEP=":"|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^DMGET=""|#DMGET=""|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^#QUEUEWAIT=" -hold_jid "|QUEUEWAIT=" -hold_jid "|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^#QUEUEWAITSEP=","|QUEUEWAITSEP=","|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^#QUEUEPARENV="smp"|QUEUEPARENV="orte"|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^#. /etc/profile.d/modules.sh|. /etc/profile.d/modules.sh|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^TMP=$(pwd)/tmp|TMP=/tmp|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+
+# use pigz
+sed -i 's|^GZIP="gzip -9"|GZIP="pigz -9"|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+
+# add R libaries
+cat $NGSANE_BASE/tools/*.R | grep -w "library" | sed 's|library(||g' | sed 's|)||g' | sed 's|"||g' | sort -u > /tmp/R_packages.list.txt
+
+cat > R_packages.install.R <<DELIM
+source("http://bioconductor.org/biocLite.R")
+biocLite()
+biocLite(readLines("/tmp/R_packages.list.txt"))
+DELIM
+
+Rscript R_packages.install.R
+
+# get smokebox data
+mkdir -p $PACKAGEPATH/$NGSANE_SOFTWARE/referenceData
+cd $PACKAGEPATH/$NGSANE_SOFTWARE/referenceData
+
+wget http://www.hpsc.csiro.au/users/bau04c/datahome/Sandbox/smokebox_ngsane/smokebox/referenceData.tgz
+tar -xf referenceData.tgz
+rm referenceData.tgz
+ln -s ../../referenceData/ $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/smokebox/
+
+# run smoketest
+cd $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/smokebox/
+make
+
+################################################################################
+echo "Final cleanup"
+apt-get autoremove
+apt-get clean
+rm -r /tmp/*

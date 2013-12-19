@@ -1,0 +1,7 @@
+##############################################################
+# variant collect -- collect vcf from individual samples into one file
+WALLTIME_VARCOLLECT=60:00:00
+MEMORY_VARCOLLECT=60
+CPU_VARCOLLECT=1
+NODES_VARCOLLECT="nodes=1:ppn=1"
+MODULE_VARCOLLECT="${NG_JAVA} ${NG_PICARD} ${NG_GATK}"

@@ -19,7 +19,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_REALRECAL=$TASKBWA
+INPUT_REALRECAL=$TASK_BWA
 
 # where to write the output
 OUT=$SOURCE

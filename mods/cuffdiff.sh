@@ -54,7 +54,7 @@ while [ "$1" != "" ]; do
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -b | --basename )       shift; fs=$1 ;; # basename
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
-        -o | --outdir )         shift; OUT=$1 ;; # output dir
+        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
         -a | --annot )          shift; REFSEQGTF=$1 ;; # refseq annotation
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
@@ -88,15 +88,15 @@ CHECKPOINT="parameters"
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    if [ -d $OUT ]; then rm -r $OUT; fi
-    mkdir -p $OUT
+    if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
+    mkdir -p $OUTDIR
 fi
 
 # get basename of f (samplename)
 n=${fs/,/:}
 O=${OUT/$n/}
-CUFOUT=${O/$TASKCUFFDIFF/Run\/$TASKCUFF/}
-TOPHATOUT=${O/$TASKCUFFDIFF/Run\/$TASKTOPHAT/}
+CUFOUT=${O/$TASK_CUFFDIFF/Run\/$TASK_CUFF/}
+TOPHATOUT=${O/$TASK_CUFFDIFF/Run\/$TASK_TOPHAT/}
 
 CUFGTFS=""
 TOPHATBAM=""
@@ -106,7 +106,7 @@ for v in ${fs//,/ }; do
     TOPHATBAM=$TOPHATBAM" "$TOPHATOUT/$f/accepted_hits.bam
 done
 
-cd $OUT/
+cd $OUTDIR/
 GTF=$REFSEQGTF
     
 ################################################################################
@@ -114,6 +114,7 @@ CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a $(dirname $TOPHATOUT)/*
+    dmget -a ${OUTDIR}/*
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -129,10 +130,10 @@ else
         echo "[NOTE] compare to oneanother"
         
         cuffcompare -o comp.txt $CUFGTFS
-        GTF=$OUT/comp.combined.gtf
+        GTF=$OUTDIR/comp.combined.gtf
         
         # mark checkpoint
-        if [ -f $OUT/comp.combined.gtf ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        if [ -f $OUTDIR/comp.combined.gtf ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 
     fi    
@@ -145,7 +146,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    cuffdiff -r $FASTA -p $CPU_CUFFDIFF -o $OUT $GTF $TOPHATBAM
+    cuffdiff -r $FASTA -p $CPU_CUFFDIFF -o $OUTDIR $GTF $TOPHATBAM
 
     # mark checkpoint
     echo -e "\n********* $CHECKPOINT\n"

@@ -9,6 +9,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
+# RESULTFILENAME fastq/<DIR>"_"$TASK_TRIMMOMATIC/<SAMPLE>$READONE.$FASTQ
 
 echo ">>>>> readtrimming with TRIMMOMATIC"
 echo ">>>>> startdate "`date`
@@ -88,7 +89,7 @@ fi
 echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 
 FASTQDIR=$(basename $(dirname $f))
-o=${f/$FASTQDIR/$FASTQDIR"_"$TASKTRIMMOMATIC}
+o=${f/$FASTQDIR/$FASTQDIR"_"$TASK_TRIMMOMATIC}
 FASTQDIRTRIM=$(dirname $o)
 
 echo $FASTQDIRTRIM
@@ -128,6 +129,7 @@ else
 fi
 
 ################################################################################
+[ -e $FASTQDIRTRIM/${n}.dummy ] && rm $FASTQDIRTRIM/${n}.dummy
 echo ">>>>> readtrimming with TRIMMOMATIC - FINISHED"
 echo ">>>>> enddate "`date`
 

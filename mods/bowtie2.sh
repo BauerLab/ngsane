@@ -18,7 +18,7 @@ echo ">>>>> job_id "$JOB_ID
 echo ">>>>> $(basename $0) $*"
 
 function usage {
-echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
+echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -o OUTDIR [OPTIONS]"
 exit
 }
 
@@ -54,7 +54,6 @@ module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 
 echo "[NOTE] set java parameters"
@@ -71,8 +70,6 @@ echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
-echo -e "--igvtools    --\n "$(java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar version 2>&1)
-[ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
 echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
@@ -89,6 +86,11 @@ n=${f##*/}
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
+    exit 1
+fi
+
+if [[ ! -e ${FASTA%.*}.1.bt2 ]]; then
+    echo "[ERROR] Bowtie2 index not detected. Exeute bowtie2Index.sh first"
     exit 1
 fi
 
@@ -151,31 +153,17 @@ CHECKPOINT="recall files from tape"
 if [ -n "$DMGET" ]; then
     dmget -a $FASTA*
 	dmget -a ${f/$READONE/"*"}
+	dmget -a ${OUTDIR}
 fi
     
 echo -e "\n********* $CHECKPOINT\n"
-################################################################################
-CHECKPOINT="generating the index files"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    
-    FASTASUFFIX=${FASTA##*.}
-    if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
-    if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
-
-    # mark checkpoint
-    if [ -f ${FASTA/.${FASTASUFFIX}/}.1.bt2 ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-fi 
-
 ################################################################################
 CHECKPOINT="bowtie2"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM $FASTQ_PHRED -t -x ${FASTA/.${FASTASUFFIX}/} -p $CPU_BOWTIE2 $READS | samtools view -@ $CPU_BOWTIE2 -bS -t $FASTA.fai - > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}"
+    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM $FASTQ_PHRED -t -x ${FASTA%.*} -p $CPU_BOWTIE2 $READS | samtools view -@ $CPU_BOWTIE2 -bS -t $FASTA.fai - > $OUTDIR/${n/%$READONE.$FASTQ/.$ALN.bam}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     if [ "$PAIRED" = "1" ]; then
@@ -265,18 +253,6 @@ else
 
     # mark checkpoint
     if [ -f $OUTDIR/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.alignment_summary_metrics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-fi
-
-################################################################################
-CHECKPOINT="coverage track"    
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    
-    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/}.genome
-    # mark checkpoint
-    [ -f $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi
 
 ################################################################################
