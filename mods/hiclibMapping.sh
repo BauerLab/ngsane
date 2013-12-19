@@ -125,6 +125,11 @@ else
     	PARAMS="$PARAMS --inputFormat=fastq"
     fi
     
+    if [ -n "$HICLIB_READLENGTH" ]; then
+    	PARAMS="$PARAMS --readLength $HICLIB_READLENGTH"
+    fi
+
+    
     RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} $HICLIBADDPARAM --bowtie=$(which bowtie2) --cpus=$CPU_HICLIB --outputDir=$OUTDIR --tmpDir=$THISTMP --verbose $READS &> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 

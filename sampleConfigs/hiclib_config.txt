@@ -55,18 +55,13 @@ HICLIB_GAPFILE=
 # Enzymes, see http://biopython.org/DIST/docs/api/Bio.Restriction-module.html 
 # e.g. "HindIII"
 HICLIB_RENZYMES=
-HICLIB_READLENGTH=
 
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
 
-# uncomment to keep intermediate bam files
-#HICLIB_KEEPBAM=1
+# Readlength of the HiC library
+HICLIB_READLENGTH=
 
-#WALLTIME_HICLIB=60:00:00
-#MEMORY_HICLIB=60
-#CPU_HICLIB=32
-#NODES_HICLIB="nodes=1:ppn=8"
-#MODULE_HICLIB=
-#PATH_HICLIB=
+# uncomment to keep intermediate bam files from iterative mapping
+#HICLIB_KEEPBAM=1
