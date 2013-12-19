@@ -138,7 +138,7 @@ else
 
 fi
 ################################################################################
-CHECKPOINT="merge bam"
+CHECKPOINT="treat read1.bam"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
@@ -147,34 +147,11 @@ else
     # treat read one    
     samtools merge $THISTMP/$SAMPLE$READONE.bam $OUTDIR/*$READONE.bam.[0-9]*
     samtools sort -@ $CPU_HICLIB $THISTMP/$SAMPLE$READONE.bam $THISTMP/$SAMPLE$READONE.ash
-    mv $THISTMP/$SAMPLE$READONE.ash.bam $OUTDIR/$SAMPLE$READONE.ash.bam
-    [ -e $THISTMP/$SAMPLE$READONE.bam ] && rm $THISTMP/$SAMPLE$READONE.bam    
+    rm $THISTMP/$SAMPLE$READONE.bam    
 
-    # treat read two    
-    samtools merge $THISTMP/$SAMPLE$READTWO.bam $OUTDIR/*$READTWO.bam.[0-9]*
-    samtools sort -@ $CPU_HICLIB $THISTMP/$SAMPLE$READTWO.bam $THISTMP/$SAMPLE$READTWO.ash
-    mv $THISTMP/$SAMPLE$READTWO.ash.bam $OUTDIR/$SAMPLE$READONE.ash.bam
-    [ -e $THISTMP/$SAMPLE$READTWO.bam ] && rm $THISTMP/$SAMPLE$READTWO.bam
-            
-    # mark checkpoint
-    if [ -e $OUTDIR/$SAMPLE$READONE.ash.bam ] && [ -e $OUTDIR/$SAMPLE$READTWO.ash.bam ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-    
-    # cleanup
-    if [ -n "$HICLIB_KEEPBAM" ]; then
-        rm $OUTDIR/$SAMPLE$READONE.bam.[0-9]*  $OUTDIR/$SAMPLE$READTWO.bam.[0-9]*
-    fi
-
-fi
-################################################################################
-CHECKPOINT="mark duplicates"
-# create bam files for discarded reads and remove fastq files
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-   
     mkdir -p $OUTDIR/metrices
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
-        INPUT=$OUTDIR/$SAMPLE$READONE.ash.bam \
+        INPUT=$THISTMP/$SAMPLE$READONE.ash.bam \
         OUTPUT=$OUTDIR/$SAMPLE$READONE.$ASD.bam \
         METRICS_FILE=$OUTDIR/$SAMPLE$READONE.$ASD.bam.dupl \
         AS=true \
@@ -182,24 +159,48 @@ else
         TMP_DIR=$THISTMP
     samtools index $OUTDIR/$SAMPLE$READONE.$ASD.bam
     
+    # mark checkpoint
+    if [ -e $OUTDIR/$SAMPLE$READONE.$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    
+    # cleanup
+    [ -f $THISTMP/$SAMPLE$READONE.ash.bam ] && rm $THISTMP/$SAMPLE$READONE.ash.bam
+    if [ -n "$HICLIB_KEEPBAM" ]; then
+        rm $OUTDIR/$SAMPLE$READONE.bam.[0-9]*
+    fi
+
+fi
+
+################################################################################
+CHECKPOINT="treat read2.bam"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    # treat read two    
+    samtools merge $THISTMP/$SAMPLE$READTWO.bam $OUTDIR/*$READTWO.bam.[0-9]*
+    samtools sort -@ $CPU_HICLIB $THISTMP/$SAMPLE$READTWO.bam $THISTMP/$SAMPLE$READTWO.ash
+    rm $THISTMP/$SAMPLE$READTWO.bam
+
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
-        INPUT=$OUTDIR/$SAMPLE$READTWO.ash.bam \
+        INPUT=$THISTMP/$SAMPLE$READTWO.ash.bam \
         OUTPUT=$OUTDIR/$SAMPLE$READTWO.$ASD.bam \
         METRICS_FILE=$OUTDIR/$SAMPLE$READTWO.$ASD.bam.dupl \
         AS=true \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
     samtools index $OUTDIR/$SAMPLE$READTWO.$ASD.bam
-    
 
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE$READONE.$ASD.bam ] && [ -f $OUTDIR/$SAMPLE$READTWO.$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/$SAMPLE$READTWO.$ASD.bam ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
     # cleanup
-    [ -e $OUTDIR/$SAMPLE$READONE.ash.bam ] && rm $OUTDIR/$SAMPLE$READONE.ash.bam
-    [ -e $OUTDIR/$SAMPLE$READTWO.ash.bam ] && rm $OUTDIR/$SAMPLE$READTWO.ash.bam
-fi
+    [ -f $THISTMP/$SAMPLE$READTWO.ash.bam ] && rm $THISTMP/$SAMPLE$READTWO.ash.bam
+    if [ -n "$HICLIB_KEEPBAM" ]; then
+        $OUTDIR/$SAMPLE$READTWO.bam.[0-9]*
+    fi
 
+fi
 ################################################################################
 CHECKPOINT="statistics"                                                                                                
 
