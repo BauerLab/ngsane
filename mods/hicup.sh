@@ -68,6 +68,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$READONE.$FASTQ/}
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
@@ -79,17 +80,14 @@ if [[ ! -e ${FASTA%.*}.1.ebwt ]]; then
     exit 1
 fi
 
-#output for this library
-OUTDIR=${n/%$READONE.$FASTQ/}
-
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    [ -d $OUTDIR/$OUTDIR ] && rm -r $OUTDIR/$OUTDIR
-    [ -e $OUTDIR/${n/%$READONE.$FASTQ/}.spline_pass1.q05.txt ] && rm $OUTDIR/${n/%$READONE.$FASTQ/}*.txt
+    [ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
+    [ -e $OUTDIR/${SAMPLE}.spline_pass1.q05.txt ] && rm $OUTDIR/${SAMPLE}*.txt
 fi
 
 #is paired ?
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     PAIRED="1"
 else
     echo "HiCUP requires paired fastq libraries" && exit 1
@@ -126,23 +124,22 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    FASTASUFFIX=${FASTA##*.}
     FASTABASE=${FASTA##*/}
-    
-    mkdir -p $OUTDIR/$OUTDIR
-    cd $OUTDIR/$OUTDIR
+
+    mkdir -p $OUTDIR/$SAMPLE
+    cd $OUTDIR/$SAMPLE
     if [ ${#ENZYMES[@]} = 1 ]; then
        echo "Restriction Enzyme 1: ${ENZYME1[1]}:${ENZYME1[0]} "
-       DIGESTGENOME=$OUTDIR/${FASTABASE/.$FASTASUFFIX/}_${ENZYME1[1]}_None.txt
+       DIGESTGENOME=${FASTABASE%.*}_${ENZYME1[1]}_None.txt
        hicup_digester -g "${FASTABASE%.*}" -1 ${ENZYME1[0]} $FASTA
-       mv Digest_* ${DIGESTGENOME}
+       mv Digest_* ../${DIGESTGENOME}
     
-    elif [ ${#ENZYMES[@]} = 2 ] && [ ! -e $OUTDIR/${FASTABASE/.$FASTASUFFIX/}_${ENZYME1[1]}_${ENZYME2[2]}.txt ]; then
+    elif [ ${#ENZYMES[@]} = 2 ] && [ ! -e $OUTDIR/${FASTABASE%.*}_${ENZYME1[1]}_${ENZYME2[2]}.txt ]; then
        echo "Restriction Enzyme 1: ${ENZYME1[1]}:${ENZYME1[0]} "
        echo "Restriction Enzyme 2: ${ENZYME2[1]}:${ENZYME2[0]} "
-       DIGESTGENOME=$OUTDIR/${FASTABASE/.$FASTASUFFIX/}_${ENZYME1[1]}_${ENZYME2[2]}.txt
+       DIGESTGENOME=${FASTABASE%.*}_${ENZYME1[1]}_${ENZYME2[2]}.txt
        hicup_digester -g "${FASTABASE%.*}" -1 ${ENZYME1[0]} -2 ${ENZYME2[0]} $FASTA
-       mv Digest_* ${DIGESTGENOME}
+       mv Digest_* ../${DIGESTGENOME}
     else
        echo "[ERROR] Invalid number or pattern of enzyme digest patterns."
        exit 1
@@ -150,7 +147,7 @@ else
     cd $SOURCE
     
     # mark checkpoint
-    if [ -f $DIGESTGENOME ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$DIGESTGENOME ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -161,34 +158,32 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    HICUP_CONF=$OUTDIR/${n/%$READONE.$FASTQ/.conf}
-    
-    cat /dev/null > $HICUP_CONF
-    echo "#Number of threads to use" >> $HICUP_CONF
-    echo "Threads: $CPU_HICUP" >> $HICUP_CONF
-    echo "#Suppress progress updates | 0: off, 1: on" >> $HICUP_CONF
-    echo "Quiet:0" >> $HICUP_CONF
-    echo "#Retain all intermediate pipeline files | 0: off, 1: on" >> $HICUP_CONF
-    echo "Keep:1" >> $HICUP_CONF
-    echo "#Compress outputfiles | 0: off, 1: on" >> $HICUP_CONF
-    echo "Zip:1" >> $HICUP_CONF
-    echo "#Path to the alignment program Bowtie | include the executable Bowtie filename" >> $HICUP_CONF
-    echo "Bowtie:$(which bowtie)" >> $HICUP_CONF
-    echo "#Path to the reference genome indices" >> $HICUP_CONF
-    echo "Index:${FASTA%.*}"  >> $HICUP_CONF
-    echo "#Path to the genome digest file" >> $HICUP_CONF
-    echo "DIGEST:$DIGESTGENOME" >> $HICUP_CONF
-    echo "#FASTQ file format | phred33-quals, phred64-quals, solexa-quals or solexa1.3-quals" >> $HICUP_CONF
-    echo "Format:phred33-quals" >> $HICUP_CONF
-    echo "#Maximum di-tag length | optional parameter" >> $HICUP_CONF
-    echo "#Longest:" >> $HICUP_CONF
-    echo "#Minimum di-tag length | optional parameter" >> $HICUP_CONF
-    echo "#Shortest:" >> $HICUP_CONF
-    echo "#FASTQ files to be analysed, separating file pairs using the pipe '|' character" >> $HICUP_CONF
-    echo "$f | ${f/$READONE/$READTWO} " >> $HICUP_CONF
+    cat /dev/null > $OUTDIR/${SAMPLE}.conf
+    echo "#Number of threads to use" >> $OUTDIR/${SAMPLE}.conf
+    echo "Threads: $CPU_HICUP" >> $OUTDIR/${SAMPLE}.conf
+    echo "#Suppress progress updates | 0: off, 1: on" >> $OUTDIR/${SAMPLE}.conf
+    echo "Quiet:0" >> $OUTDIR/${SAMPLE}.conf
+    echo "#Retain all intermediate pipeline files | 0: off, 1: on" >> $OUTDIR/${SAMPLE}.conf
+    echo "Keep:1" >> $OUTDIR/${SAMPLE}.conf
+    echo "#Compress outputfiles | 0: off, 1: on" >> $OUTDIR/${SAMPLE}.conf
+    echo "Zip:1" >> $OUTDIR/${SAMPLE}.conf
+    echo "#Path to the alignment program Bowtie | include the executable Bowtie filename" >> $OUTDIR/${SAMPLE}.conf
+    echo "Bowtie:$(which bowtie)" >> $OUTDIR/${SAMPLE}.conf
+    echo "#Path to the reference genome indices" >> $OUTDIR/${SAMPLE}.conf
+    echo "Index:${FASTA%.*}"  >> $OUTDIR/${SAMPLE}.conf
+    echo "#Path to the genome digest file" >> $OUTDIR/${SAMPLE}.conf
+    echo "DIGEST:$OUTDIR/$DIGESTGENOME" >> $OUTDIR/${SAMPLE}.conf
+    echo "#FASTQ file format | phred33-quals, phred64-quals, solexa-quals or solexa1.3-quals" >> $OUTDIR/${SAMPLE}.conf
+    echo "Format:phred33-quals" >> $OUTDIR/${SAMPLE}.conf
+    echo "#Maximum di-tag length | optional parameter" >> $OUTDIR/${SAMPLE}.conf
+    echo "#Longest:" >> $OUTDIR/${SAMPLE}.conf
+    echo "#Minimum di-tag length | optional parameter" >> $OUTDIR/${SAMPLE}.conf
+    echo "#Shortest:" >> $OUTDIR/${SAMPLE}.conf
+    echo "#FASTQ files to be analysed, separating file pairs using the pipe '|' character" >> $OUTDIR/${SAMPLE}.conf
+    echo "$f | ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} " >> $OUTDIR/${SAMPLE}.conf
 
     # mark checkpoint
-    if [ -f $HICUP_CONF ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${SAMPLE}.conf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -200,23 +195,22 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     CURDIR=$(pwd)
-    cd $OUTDIR/$OUTDIR
-    RUN_COMMAND="$(which perl) $(which hicup) -c $HICUP_CONF"
+    cd $OUTDIR/$SAMPLE
+    RUN_COMMAND="$(which perl) $(which hicup) -c ../${SAMPLE}.conf"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    
-    cp -f $OUTDIR/$OUTDIR/hicup_deduplicater_summary_results_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_deduplicater_summary_results.txt
-    cp -f $OUTDIR/$OUTDIR/hicup_filter_summary_results_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_filter_summary_results.txt
-    cp -f $OUTDIR/$OUTDIR/hicup_mapper_summary_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_mapper_summary.txt
-    cp -f $OUTDIR/$OUTDIR/hicup_truncater_summary_*.txt $OUTDIR/${n/%$READONE.$FASTQ/}_hicup_truncater_summary.txt
-    ln -f -s $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam $OUTDIR/${n/%$READONE.$FASTQ/}_uniques.bam
-    
     cd $CURDIR
+    
+    cp -f $OUTDIR/$SAMPLE/hicup_deduplicater_summary_results_*.txt $OUTDIR/${SAMPLE}_hicup_deduplicater_summary_results.txt
+    cp -f $OUTDIR/$SAMPLE/hicup_filter_summary_results_*.txt $OUTDIR/${SAMPLE}_hicup_filter_summary_results.txt
+    cp -f $OUTDIR/$SAMPLE/hicup_mapper_summary_*.txt $OUTDIR/${SAMPLE}_hicup_mapper_summary.txt
+    cp -f $OUTDIR/$SAMPLE/hicup_truncater_summary_*.txt $OUTDIR/${SAMPLE}_hicup_truncater_summary.txt
+    ln -f -s $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam $OUTDIR/${SAMPLE}_uniques.bam
 
     # copy piecharts
     RUNSTATS=$OUT/runStats/$TASK_HICUP
     mkdir -p $RUNSTATS
-    cp -f $OUTDIR/$OUTDIR/uniques_*_cis-trans.png $RUNSTATS/${n/%$READONE.$FASTQ/}_uniques_cis-trans.png
-    cp -f $OUTDIR/$OUTDIR/*_ditag_classification.png $RUNSTATS/${n/%$READONE.$FASTQ/}_ditag_classification.png
+    cp -f $OUTDIR/$SAMPLE/uniques_*_cis-trans.png $RUNSTATS/${SAMPLE}_uniques_cis-trans.png
+    cp -f $OUTDIR/$SAMPLE/*_ditag_classification.png $RUNSTATS/${SAMPLE}_ditag_classification.png
 
     # mark checkpoint
     if [ -f $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -230,23 +224,23 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=${DIGESTGENOME} --outputDir=$OUTDIR/  $OUTDIR/${n/%$READONE.$FASTQ/}_uniques.bam
+    python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=${DIGESTGENOME} --outputDir=$OUTDIR/  $OUTDIR/${SAMPLE}_uniques.bam
     cd $OUTDIR
-    python $(which fit-hi-c.py) --mappabilityThres=2 --fragments=$OUTDIR/${n/%$READONE.$FASTQ/}_uniques.bam.fragmentLists --interactions=$OUTDIR/${n/%$READONE.$FASTQ/}_uniques.bam.contactCounts --lib=${n/%$READONE.$FASTQ/}
+    python $(which fit-hi-c.py) --mappabilityThres=2 --fragments=$OUTDIR/${SAMPLE}_uniques.bam.fragmentLists --interactions=$OUTDIR/${SAMPLE}_uniques.bam.contactCounts --lib=${SAMPLE}
     cd $CURDIR
     
-    awk '$7<=0.05' $OUTDIR/${n/%$READONE.$FASTQ/}.spline_pass1.significances.txt | sort -k7g > $OUTDIR/${n/%$READONE.$FASTQ/}.spline_pass1.q05.txt
-    awk '$7<=0.05' $OUTDIR/${n/%$READONE.$FASTQ/}.spline_pass2.significances.txt | sort -k7g > $OUTDIR/${n/%$READONE.$FASTQ/}.spline_pass2.q05.txt
+    awk '$7<=0.05' $OUTDIR/${SAMPLE}.spline_pass1.significances.txt | sort -k7g > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt
+    awk '$7<=0.05' $OUTDIR/${SAMPLE}.spline_pass2.significances.txt | sort -k7g > $OUTDIR/${SAMPLE}.spline_pass2.q05.txt
     
-    $GZIP $OUTDIR/${n/%$READONE.$FASTQ/}*.significances.txt
+    $GZIP $OUTDIR/${SAMPLE}*.significances.txt
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.spline_pass1.significances.txt} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${SAMPLE}.spline_pass1.significances.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/.spline_pass1.significances.txt}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.spline_pass1.significances.txt}.dummy
+[ -e $OUTDIR/${SAMPLE}.spline_pass1.significances.txt.dummy ] && rm $OUTDIR/${SAMPLE}.spline_pass1.significances.txt.dummy
 echo ">>>>> readmapping with hicup (bowtie) - FINISHED"
 echo ">>>>> enddate "`date`
 

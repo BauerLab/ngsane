@@ -262,7 +262,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    samstat $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}
+    samstat $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} 2>&1 | tee | grep -v -P "Bad x in routine betai"
 
     # mark checkpoint
     if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi

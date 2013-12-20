@@ -73,7 +73,7 @@ if [ -z "$FASTA" ]; then
 fi
 
 #is paired ?                                                                                                      
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/%$READONE/$READTWO}" ] && [ -e ${f/%$READONE/$READTWO} ]; then
     PAIRED="1"
 else
     PAIRED="0"
