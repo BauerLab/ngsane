@@ -7,7 +7,7 @@
 # messages to look out for -- relevant for the QC.sh script:
 # 
 
-echo ">>>>> Collect Variants after calling with pindel "
+echo ">>>>> Collect Variants after calling with any variant collection tool "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
@@ -38,7 +38,10 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f             )        shift; FILES=${1//,/ } ;; # bam files
+		-i1			   )		shift; STAGEONEINPUT=${1//,/ } ;; # input dir from prev. stage
+		-i2			   )		shift; STAGETWOINPUT=${1//,/ } ;; # input from stage two
         -o             )        shift; OUTDIR=$1 ;; # outputdir
+#        -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help    )        usage ;;
         * )                     echo "don't understand "$1
@@ -51,11 +54,10 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-
 ################################################################################
 CHECKPOINT="programs"
-for MODULE in $MODULE_SAMVAR; do module load $MODULE; done  # save way to load modules that itself load other modules
-export PATH=$PATH_SAMVAR:$PATH
+for MODULE in $MODULE_VARCOLLECT; do module load $MODULE; done  # save way to load modules that itself load other modules
+export PATH=$PATH_VARCOLLECT:$PATH
 module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
@@ -64,7 +66,7 @@ PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_SAMVAR*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_VARCOLLECT*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -85,11 +87,10 @@ CHECKPOINT="parameters"
 n=${f##*/}
 
 # delete old bam file
-#if [ -z "$RECOVERFROM" ]; then
-#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
-#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
-#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
-#fi
+if [ -z "$RECOVERFROM" ]; then
+    if [ -e $OUTDIR/joined.vcf ]; then rm $OUTDIR/joined.vcf* }; fi
+fi
+
 # ensure dir is there
 if [ ! -d $OUTDIR ]; then mkdir -p $OUTDIR; fi
 
@@ -97,8 +98,8 @@ if [ ! -d $OUTDIR ]; then mkdir -p $OUTDIR; fi
 VARIANTS=""
 NAMES=""
 for f in $FILES; do
-    i=${f/$TASK_BWA/$TASK_BWA"-"$TASK_SAMVAR} #point to var folder
-    i=${i/bam/"clean.vcf"} # correct ending
+    i=${f/$STAGEONEINPUT/$STAGETWOINPUT} #point to var folder
+    i=${i/bam/"vcf"} # correct ending
     b=$(basename $i)
     arrIN=(${b//./ })
     name=${arrIN[0]}
@@ -108,8 +109,8 @@ done
 
 echo $VARIANTS
 
-REGION=""
-if [ -n "$REF" ]; then echo $REF; REGION="-L $REF"; fi
+#REGION=""
+#if [ -n "$REF" ]; then echo $REF; REGION="-L $REF"; fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -117,7 +118,6 @@ CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $FILES
-	dmget -a $OUTDIR/*
 fi
     
 echo -e "\n********* $CHECKPOINT\n"
@@ -134,7 +134,7 @@ else
        $VARIANTS \
        -o $OUTDIR/joined.vcf \
        -genotypeMergeOptions PRIORITIZE \
-       $REGION \
+       $ADDCOLLECTREGIONPARAM \
        -priority $NAMES
 
     # mark checkpoint
@@ -155,7 +155,33 @@ else
     echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi
 
+
 ################################################################################
-echo ">>>>> Join variant after calling with sam - FINISHED"
+CHECKPOINT="evaluate"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    echo "[NOTE] eval variants"
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l INFO \
+            -T VariantEval \
+            -R $FASTA \
+            --dbsnp $DBSNPVCF \
+            --eval $OUTDIR/joined.vcf \
+	       $ADDCOLLECTREGIONPARAM \
+            --evalModule TiTvVariantEvaluator \
+            -o $OUTDIR/joined.eval.txt
+
+    # mark checkpoint
+    if [[ -f $OUTDIR/joined.eval.txt ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi
+
+
+
+
+################################################################################
+echo ">>>>> Join variant after calling with any variant caller - FINISHED"
 echo ">>>>> enddate "`date`
 

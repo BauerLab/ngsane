@@ -88,7 +88,7 @@ function summaryHeader {
     else 
         RESULTLOCATION=""
     fi
-    ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $4 --modscript ${NGSANE_BASE}/mods/$3 --log $QOUT --task $2 $RESULTLOCATION $SUFFIX >> $4    
+    ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $4 --modscript $3 --log $QOUT --task $2 $RESULTLOCATION $SUFFIX >> $4    
     
     grep -r -P '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES
     
@@ -617,7 +617,24 @@ if [ -n "$RUNTRINITY" ] || [ -n "$RUNBUTTERFLY" ];then
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_BUTTERFLY)" .summary.txt "trinity_butterfly" --noSummary  >>$SUMMARYTMP
 
     summaryFooter "$TASK_BUTTERFLY" "$SUMMARYTMP"
-fi  
+fi 
+
+
+################################################################################
+# pindel
+################################################################################
+if [ -n "$RUNPINDEL" ]; then 
+    summaryHeader "Variant calling" "$INPUT_PINDEL-$TASK_PINDEL" "pindel.sh,variantcollect.sh" "$SUMMARYTMP" 
+#$OUT/variant/${INPUT_PINDEL}-${TASK_PINDEL}-$(echo ${DIR[@]}|sed 's/ /_/g')/ "joined.eval.txt"
+
+	vali=$OUT/variant/${INPUT_PINDEL}-${TASK_PINDEL}-$(echo ${DIR[@]}|sed 's/ /_/g')/
+    echo "<h3>Variants</h3>">>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "joined.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
+
+    summaryFooter "$TASK_PINDEL" "$SUMMARYTMP"
+fi
+
+ 
 ################################################################################
 # Old code ...
 ################################################################################

@@ -1300,7 +1300,7 @@ sed -i 's|^QUEUEWAIT=" -W depend=afterok:"|#QUEUEWAIT=" -W depend=afterok:"|' $P
 sed -i 's|^QUEUEWAITSEP=":"|#QUEUEWAITSEP=":"|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^DMGET=""|#DMGET=""|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^#QUEUEWAIT=" -hold_jid "|QUEUEWAIT=" -hold_jid "|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^#QUEUEWAITSEP="," |QUEUEWAITSEP="," |' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^#QUEUEWAITSEP=","|QUEUEWAITSEP=","|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^#QUEUEPARENV="smp"|QUEUEPARENV="orte"|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^#. /etc/profile.d/modules.sh|. /etc/profile.d/modules.sh|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^TMP=$(pwd)/tmp|TMP=/tmp|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh

@@ -314,10 +314,15 @@ fi
 if [ -n "$RUNSAMVAR" ]; then
     if [ -z "$TASK_BWA" ] || [ -z "$NODES_SAMVAR" ] || [ -z "$CPU_SAMVAR" ] || [ -z "$MEMORY_SAMVAR" ] || [ -z "$WALLTIME_SAMVAR" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB -r $ARMED -k $CONFIG -t $TASK_BWA-$TASK_SAMVAR -i $INPUT_SAMVAR -e .$ASD.bam \
+    $QSUB -r $ARMED -k $CONFIG -t $INPUT_SAMVAR-$TASK_SAMVAR -i $INPUT_SAMVAR -e .$ASD.bam \
        -n $NODES_SAMVAR -c $CPU_SAMVAR -m $MEMORY_SAMVAR'G' -w $WALLTIME_SAMVAR \
-       --command "${NGSANE_BASE}/mods/samSNPs.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_BWA-$TASK_SAMVAR" \
-	   --postcommand "${NGSANE_BASE}/mods/samSNPscollect.sh -k $CONFIG -f <FILE> -o $OUT/variant/$TASK_BWA-$TASK_SAMVAR"-"<DIR>"
+		--postnodes $NODES_VARCOLLECT --postcpu $CPU_VARCOLLECT \
+		--postwalltime $WALLTIME_VARCOLLECT --postmemory $MEMORY_VARCOLLECT"G" \
+        --command "${NGSANE_BASE}/mods/samSNPs.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$INPUT_SAMVAR-$TASK_SAMVAR" \
+	    --postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 $INPUT_SAMVAR \
+				-i2 $INPUT_SAMVAR-$TASK_SAMVAR -o $OUT/variant/${INPUT_SAMVAR}-$INPUT_SAMVAR-$TASK_SAMVAR-<DIR> "
+
+	#   --postcommand "${NGSANE_BASE}/mods/samSNPscollect.sh -k $CONFIG -f <FILE> -o $OUT/variant/$TASK_BWA-$TASK_SAMVAR"-"<DIR>"
 fi
 
 ################################################################################
@@ -1228,3 +1233,21 @@ if [ -n "$RUNBUTTERFLY" ] && [ -z "$RUNTRINITY" ]; then
           -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY $JOBIDS \
           --command "${NGSANE_BASE}/mods/trinity_butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_BUTTERFLY" 
 fi
+
+################################################################################ 
+#   Pindel
+################################################################################
+
+if [ -n "$RUNPINDEL" ]; then
+
+    $QSUB $ARMED -r -k $CONFIG -t $INPUT_PINDEL-$TASK_PINDEL -i $INPUT_PINDEL -e .$ASD.bam \
+        -n $NODES_PINDEL -c $CPU_PINDEL -m $MEMORY_PINDEL"G" -w $WALLTIME_PINDEL \
+		--postnodes $NODES_VARCOLLECT --postcpu $CPU_VARCOLLECT \
+		--postwalltime $WALLTIME_VARCOLLECT --postmemory $MEMORY_VARCOLLECT"G" \
+        --command "${NGSANE_BASE}/mods/pindel.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$INPUT_PINDEL-$TASK_PINDEL" \
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 $INPUT_PINDEL \
+				-i2 ${INPUT_PINDEL}-$TASK_PINDEL -o $OUT/variant/${INPUT_PINDEL}-${TASK_PINDEL}-<DIR> "
+
+fi
+
+

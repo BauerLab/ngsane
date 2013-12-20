@@ -162,15 +162,12 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
     if [[ -n "$ARMED" || -n "$DIRECT" ]]; then
 
- #       echo $ARMED
-
         if [ -n "$RECOVER" ] && [ -f $LOGFILE ] ; then
             # add log-file for recovery
             COMMAND2="$COMMAND2 --recover-from $LOGFILE"
             
             if [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then
                 echo -e "\e[92m[NOTE]\e[0m Previous $TASK run finished without error - nothing to be done"
-                MYJOBIDS=""
                 rm $D.dummy
                 continue
             else
@@ -192,8 +189,10 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         echo "[NOTE] Jobfile: "$JOBLOG >> $LOGFILE
 
         # add citations
-        TASKNAME=$(grep -P "^TASK_[A-Z0-9]+=[\"']?$TASK[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
-        for M in NG_CITE_NGSANE $(grep -P "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g'); do
+		TASKCITE=${TASK/*-/}
+        TASKNAME=$(grep -P "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
+		CITED_PROGRAMS=$(grep -P "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g')
+        for M in NG_CITE_NGSANE $CITED_PROGRAMS; do
 
             CITE=$(grep -P "^$M=" $JOBLOG) || CITE=""
             if [ -n "$CITE" ]; then
@@ -202,7 +201,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         done
 
 		#eval job directly but write to logfile
-	    if [ -n "$DIRECT" ]; then eval $COMMAND2 >> $LOGFILE 2>&1 ; continue; fi
+	    if [ -n "$DIRECT" ]; then echo "[NOTE] write $LOGFILE"; eval $COMMAND2 >> $LOGFILE 2>&1; continue; fi
 
         if [ -n "$JOBIDS" ]; then
             echo "check joids"
@@ -223,7 +222,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         fi    	
 
         echo -e "Jobnumber $RECIPT"
-        MYJOBIDS=$MYJOBIDS":"$RECIPT
+        MYJOBIDS=$MYJOBIDS$RECIPT":"
     
         # if only the first task should be submitted as test
         if [[ -n "$FIRST" || -n "$COMMONTASK" ]] ; then exit; fi
@@ -238,21 +237,40 @@ if [ -n "$POSTCOMMAND" ]; then
     FILES=$(echo -e $FILES | sed 's/ /,/g')
     POSTCOMMAND2=${POSTCOMMAND//<FILE>/$FILES}
     POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$DIR}
+	POSTLOGFILE=$QOUT/$TASK/postcommand.out
 
-    echo "[NOTE] "$DIR" wait for "$MYJOBIDS
-    #echo $POSTCOMMAND2
+    echo "[NOTE] "$POSTCOMMAND2
 
     if [[ -n "$DEBUG" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi
     if [[ -n "$ARMED" ||  -n "$POSTONLY" || "$DIRECT" ]]; then
 
     # remove old submission output logs
-    if [ -e $QOUT/$TASK/postcommand.out ]; then rm $QOUT/$TASK/postcommand.out; fi
+
+    if [ -n "$RECOVER" ] && [ -e $POSTLOGFILE ] ; then
+         # add log-file for recovery
+         POSTCOMMAND2="$POSTCOMMAND2 --recover-from $POSTLOGFILE"
+         
+         if [[ $(grep -P "^>{5} .* FINISHED" $POSTLOGFILE | wc -l ) -gt 0 ]] ; then
+             echo -e "\e[92m[NOTE]\e[0m Previous $TASK run finished without error - nothing to be done"
+             MYJOBIDS=""
+			 rm $QOUT/$TASK/runnow.tmp && exit;
+         else
+             echo "[NOTE] #########################################################################" >> $POSTLOGFILE
+             echo "[NOTE] Recover from logfile: $POSTLOGFILE" >> $POSTLOGFILE
+             # mask old errors
+             sed -i "s/^\[ERROR\] /[NOTE][PREVIOUS][ERROR] /g" $POSTLOGFILE
+             echo "[NOTE] Previous errors masked" >> $POSTLOGFILE
+         fi
+	else
+		 if [ -e $POSTLOGFILE ]; then rm $POSTLOGFILE; fi
+	fi
 
     # record task in log file
-    cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
+#    cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
+#	echo "[NOTE] Jobfile: "$JOBLOG >> $POSTLOGFILE
 
 	#eval job directly but write to logfile
-	if [ -n "$DIRECT" ]; then eval $POSTCOMMAND2 > $QOUT/$TASK/postcommand.out 2>&1 ; exit; fi
+	if [ -n "$DIRECT" ]; then eval $POSTCOMMAND2 > $POSTLOGFILE 2>&1 ; exit; fi
 
     # unless specified otherwise use HPC parameter from main job 
     if [ -z "$POSTNODES" ];    then POSTNODES=$NODES; fi
@@ -260,8 +278,15 @@ if [ -n "$POSTCOMMAND" ]; then
     if [ -z "$POSTMEMORY" ];   then POSTMEMORY=$MEMORY; fi
     if [ -z "$POSTWALLTIME" ]; then POSTWALLTIME=$WALLTIME; fi
 
-    RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYJOBIDS" -k $CONFIG -m $POSTMEMORY -n $POSTNODES -c $POSTCPU -w $POSTWALLTIME \
-            -j $TASK'_postcommand' -o $QOUT/$TASK/postcommand.out --command "$POSTCOMMAND2")
+
+    if [ -n "$MYJOBIDS" ]; then
+		echo -e "[NOTE] wait for $MYJOBIDS"
+        RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYJOBIDS" -k $CONFIG -m $POSTMEMORY -n $POSTNODES -c $POSTCPU -w $POSTWALLTIME \
+    	   -j $TASK'_'postcommand -o $POSTLOGFILE --command "$POSTCOMMAND2")
+    else 
+        RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $POSTMEMORY -n $POSTNODES -c $POSTCPU -w $POSTWALLTIME \
+    	   -j $TASK'_'postcommand -o $POSTLOGFILE --command "$POSTCOMMAND2")
+    fi    	
 
     echo -e "Jobnumber $RECIPT"
 
