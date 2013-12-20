@@ -52,6 +52,14 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--Python      --\n" $(python --version)
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 echo -e "--Python libs --\n "$(yolk -l)
+echo -e "--bowtie      --\n "$(bowtie --version)
+[ -z "$(which bowtie)" ] && echo "[ERROR] no bowtie detected" && exit 1
+echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
+echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+[ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
+echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
+[ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
