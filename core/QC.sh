@@ -16,12 +16,12 @@ RESULTSUFFIX=""
 
 while [ "$1" != "" ]; do
     case $1 in
-        -m | --modscript )      shift; SCRIPT=$1 ;; # location of mod script                       
+        -m | --modscript )      shift; SCRIPT=$1 ;; # location of mod script (comma-sep if postcommand)
         -l | --log )            shift; QOUT=$1 ;;   # location of log output
         -t | --task )           shift; TASK=$1 ;;   # task at hand
         -r | --results-dir )    shift; OUTDIR=$1 ;; # location of the output 
         -s | --results-task )   shift; OUTTASK=$1 ;; # task the results are put in 
-        -f | --filesuffix )     shift; RESULTSUFFIX=$1 ;; # suffix of the result file
+        -f | --nrfilesuffix )   shift; RESULTSUFFIX=$1 ;; # suffix of the result file
         -o | --html-file )      shift; HTMLOUTPUT=$1;; # where the output will be place in the end
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -46,55 +46,81 @@ if [ -n "$HTMLOUTPUT" ]; then
     echo "<div id='${TASK}_checklist'><pre>"
 fi
 
-echo "###################################################"
-echo "# NGSANE ${SCRIPT/.sh/} "
-echo "###################################################"
 
-files=$(ls $QOUT/$TASK/*.out | wc -l)
-
-CHECKPOINTS_PASSED=0
-CHECKPOINTS_FAILED=0
-
-# FINISHED ?
-finished=$(grep -P "^>{5} .* FINISHED" $QOUT/$TASK/*.out | cut -d ":" -f 1 | sort -u | wc -l)
-if [ "$finished" = "$files" ]; then
-    echo "QC_PASS .. finished are $finished/$files"
-    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
-else
-    echo "**_FAIL .. finished are $finished/$files"
-    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
+# pack normal and post command in a long string for the subsequent loops
+# file1*file2*file3:task.sh postcommand:posttask.sh
+files=$(ls $QOUT/$TASK/*.out | grep -v "postcommand" | gawk '{ ORS=" "; print; }' | tr " " "*")
+SCRIPTFILES=$files":"${NGSANE_BASE}/mods/${SCRIPT/%,*/}
+if [ -e $QOUT/$TASK/postcommand.out ]; then
+	SCRIPTFILES=$SCRIPTFILES" "$QOUT/$TASK/postcommand.out":"${NGSANE_BASE}/mods/${SCRIPT/*,/}
 fi
 
+#echo $SCRIPTFILES 1>&2
 
-echo ">>>>>>>>>> Errors"
-DEFAULTSEP=$IFS
-IFS=','
-ERROR=$(grep QCVARIABLES $SCRIPT)
-ERROR=${ERROR/"# QCVARIABLES,"/}
-for i in $ERROR; do
-  var=$(grep -i "$i" $QOUT/$TASK/*.out | cut -d ":" -f 1 | sort -u | wc -l)
-  if [ "$var" = "0" ]; then
-    echo "QC_PASS .. $var have $i/$files"
-    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
-  else
-    echo "**_FAIL .. $var have $i/$files"
-    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
-  fi
+#########################################################################################
+# FIRST TAB
+#########################################################################################
+
+for T in $SCRIPTFILES; do
+
+	# unpack script name and files
+	SCRIPT=${T/*:/}
+	files=$(echo ${T/%:*/} | tr "*" " "files=${FILES/*/ })
+	nrfiles=$(echo $files | wc -w)
+
+	echo "###################################################"
+	echo "# NGSANE ${SCRIPT/.sh/} "
+	echo "###################################################"
+
+	CHECKPOINTS_PASSED=0
+	CHECKPOINTS_FAILED=0
+	
+	echo ">>>>>>>>>> Finished"
+	finished=$(grep -P "^>{5} .* FINISHED" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l)
+	if [ "$finished" = "$nrfiles" ]; then
+	    echo "QC_PASS .. finished are $finished/$nrfiles"
+	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
+	else
+	    echo "**_FAIL .. finished are $finished/$nrfiles"
+	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
+	fi
+
+	echo ">>>>>>>>>> Errors"
+	ERROR=$(grep QCVARIABLES $SCRIPT | tr ' ' '_' | tr ',' ' ')
+	ERROR=${ERROR/"# QCVARIABLES"/}
+	for i in $ERROR; do
+	  i=${i//_/ }
+	  var=$(grep -i "$i" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l)
+	  if [ "$var" = "0" ]; then
+	    echo "QC_PASS .. $var have $i/$nrfiles"
+	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
+	  else
+	    echo "**_FAIL .. $var have $i/$nrfiles"
+	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
+	  fi
+	done
+
+	echo ">>>>>>>>>> CheckPoints "
+	PROGRESS=$(grep -P '^CHECKPOINT="' $SCRIPT | awk -F'"' '{print $2}' | tr ' ' '_')
+	for i in $PROGRESS; do
+	  i=${i//_/ }
+	  var=$(grep -P "^\*{9} $i" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l)
+	  if [ ! "$var" = $nrfiles ]; then
+	    echo "**_FAIL .. $var have $i/$nrfiles"
+	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
+	  else
+	    echo "QC_PASS .. $var have $i/$nrfiles"
+	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
+	  fi
+	done
+
+	echo ""
+
 done
 
-
-echo ">>>>>>>>>> CheckPoints "
-PROGRESS=$(grep -P '^CHECKPOINT="' $SCRIPT | awk -F'"' '{print $2}' | tr '\n' ',')
-for i in $PROGRESS; do
-  var=$(grep -P "^\*{9} $i" $QOUT/$TASK/*.out | cut -d ":" -f 1 | sort -u | wc -l)
-  if [ ! "$var" = $files ]; then
-    echo "**_FAIL .. $var have $i/$files"
-    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
-  else
-    echo "QC_PASS .. $var have $i/$files"
-    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
-  fi
-done
+#########################################################################################
+# Second TAB
+#########################################################################################
 
 
 if [ -n "$HTMLOUTPUT" ]; then
@@ -105,12 +131,17 @@ else
 fi
 
 SUMNOTES=0
-for i in $QOUT/$TASK/*.out;do
+for i in $(ls $QOUT/$TASK/*.out) ;do
     echo -e "\n${i/$LOGFOLDER\//}"
     NOTELIST=$(grep -P "^\[NOTE\]" $i)
     echo $NOTELIST
     SUMNOTES=`expr $SUMNOTES + $(echo $NOTELIST | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' )`
 done
+
+
+#########################################################################################
+# Third TAB
+#########################################################################################
 
 if [ -n "$HTMLOUTPUT" ]; then
     echo "</pre></div>"
@@ -120,7 +151,7 @@ else
 fi
 
 SUMERRORS=0
-for i in $QOUT/$TASK/*.out;do
+for i in $( ls $QOUT/$TASK/*.out ) ;do
     echo -e "\n${i/$LOGFOLDER\//}"
     ERRORLIST=$(grep -P "^\[ERROR\]" $i)
     if [ -n "$ERRORLIST" ]; then 
@@ -131,19 +162,22 @@ for i in $QOUT/$TASK/*.out;do
     SUMERRORS=$(expr $SUMERRORS + $(echo $ERRORLIST | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' ))
 done
 
-IFS=$DEFAULTSEP
+
+#########################################################################################
+# Third TAB
+#########################################################################################
 
 if [ -n "$HTMLOUTPUT" ]; then
 
     echo "</pre></div>"
     echo "<div id='${TASK}_logfiles'><div class='box'>"
-    for i in $( ls $QOUT/$TASK/*.out ); do
+    for i in $( ls $QOUT/$TASK/*.out ) ; do
         FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
         echo "<a href='$FN'>${i/$QOUT\/$TASK\//}</a><br/>"
     done
     echo "</div></div>"
     if [ -n "$RESULTSUFFIX" ]; then
-        echo "<div id='${TASK}_files'><div class='box'>"
+        echo "<div id='${TASK}_nrfiles'><div class='box'>"
         for i in $(find $OUTDIR/*/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX ); do
             FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
             echo "<a href='$FN'>${i/$OUTDIR\/*\/$OUTTASK\//}</a><br/>"

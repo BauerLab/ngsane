@@ -38,9 +38,10 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f             )        shift; FILES=${1//,/ } ;; # bam files
-		-m             )        shift; MAPPER=$1 ;;
-		-v             )        shift; VARCALLER=$1 ;;
+		-i1			   )		shift; STAGEONEINPUT=${1//,/ } ;; # input dir from prev. stage
+		-i2			   )		shift; STAGETWOINPUT=${1//,/ } ;; # input from stage two
         -o             )        shift; OUTDIR=$1 ;; # outputdir
+#        -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help    )        usage ;;
         * )                     echo "don't understand "$1
@@ -52,7 +53,6 @@ done
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
-
 
 ################################################################################
 CHECKPOINT="programs"
@@ -87,11 +87,10 @@ CHECKPOINT="parameters"
 n=${f##*/}
 
 # delete old bam file
-#if [ -z "$RECOVERFROM" ]; then
-#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
-#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
-#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
-#fi
+if [ -z "$RECOVERFROM" ]; then
+    if [ -e $OUTDIR/joined.vcf ]; then rm $OUTDIR/joined.vcf* }; fi
+fi
+
 # ensure dir is there
 if [ ! -d $OUTDIR ]; then mkdir -p $OUTDIR; fi
 
@@ -99,7 +98,7 @@ if [ ! -d $OUTDIR ]; then mkdir -p $OUTDIR; fi
 VARIANTS=""
 NAMES=""
 for f in $FILES; do
-    i=${f/$MAPPER/$MAPPER"-"$VARCALLER} #point to var folder
+    i=${f/$STAGEONEINPUT/$STAGETWOINPUT} #point to var folder
     i=${i/bam/"vcf"} # correct ending
     b=$(basename $i)
     arrIN=(${b//./ })
@@ -110,8 +109,8 @@ done
 
 echo $VARIANTS
 
-REGION=""
-if [ -n "$REF" ]; then echo $REF; REGION="-L $REF"; fi
+#REGION=""
+#if [ -n "$REF" ]; then echo $REF; REGION="-L $REF"; fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -135,7 +134,7 @@ else
        $VARIANTS \
        -o $OUTDIR/joined.vcf \
        -genotypeMergeOptions PRIORITIZE \
-       $REGION \
+       $ADDCOLLECTREGIONPARAM \
        -priority $NAMES
 
     # mark checkpoint
@@ -155,6 +154,32 @@ else
     # mark checkpoint
     echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi
+
+
+################################################################################
+CHECKPOINT="evaluate"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    echo "[NOTE] eval variants"
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l INFO \
+            -T VariantEval \
+            -R $FASTA \
+            --dbsnp $DBSNPVCF \
+            --eval $OUTDIR/joined.vcf \
+	       $ADDCOLLECTREGIONPARAM \
+            --evalModule TiTvVariantEvaluator \
+            -o $OUTDIR/joined.eval.txt
+
+    # mark checkpoint
+    if [[ -f $OUTDIR/joined.eval.txt ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi
+
+
+
 
 ################################################################################
 echo ">>>>> Join variant after calling with any variant caller - FINISHED"

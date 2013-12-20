@@ -41,16 +41,28 @@ REFERENCE_DATE="20090201"
 # or ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
 FASTA=
 
+# location of SNP database file dbsnp.vcf (double-check genome assembly)
+# e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/dbsnp_137.hg19.vcf 
+# or   ${NGSANE_REFERENCE}/gatk_resources_1.5/dbsnp_135.b37.vcf
+DBSNPVCF=
+
 #********************
 # PARAMETER (optional)
 #********************
 
 PINDELADDPARAM=
+ADDCOLLECTREGIONPARAM= # gatk variant collect
 
 #WALLTIME_PINDEL=60:00:00
 #MEMORY_PINDEL=50
 #CPU_PINDEL=8
 #NODES_PINDEL="nodes=1:ppn=8" 
-
 #MODULE_PINDEL=
 #PATH_PINDEL=
+
+#WALLTIME_VARCOLLECT=0:20:00
+#MEMORY_VARCOLLECT=8
+#CPU_VARCOLLECT=1
+#NODES_VARCOLLECT="nodes=1:ppn=1"
+#MODULE_VARCOLLECT="${NG_JAVA} ${NG_PICARD} ${NG_GATK} ${NG_IGVTOOLS}"
+

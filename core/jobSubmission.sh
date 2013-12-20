@@ -61,7 +61,7 @@ if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 
 #	echo "********** submit with PBS submission system" 1>&2
 	JOBIDS=$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
-	command="qsub $JOBIDS -V -j oe -o $SOUTPUT -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
+	command="qsub $JOBIDS -V -S /bin/bash -j oe -o $SOUTPUT -w $(pwd) -l $SNODES -l vmem=$SMEMORY \
 		-N $SNAME -l walltime=$SWALLTIME $TMPFILE $SADDITIONAL -l prologue=$SOUTPUT.sh	"
 
 	echo "# $command" >> $TMPFILE

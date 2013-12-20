@@ -5,7 +5,7 @@
 # date: Nov.2013
 
 # messages to look out for -- relevant for the QC.sh script:
-# QCVARIABLES,
+# QCVARIABLES,config not found
 # RESULTFILENAME <DIR>/<TASK>/<SAMPLE>
 
 echo ">>>>> Structural Variant Calling with Pindel"
@@ -126,30 +126,31 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     
 
-	if [ ! -e ${f/$INPUT_PINDEL/$INPUT_PINDEL/metrices}.insert_size_metrics ]; then
+	INDIR=${OUTDIR/-$TASK_PINDEL/}
 
-		echo "[NOTE] ${f/$INPUT_PINDEL/$INPUT_PINDEL/metrices}.insert_size_metrics does not exist: start insert-size calculation"
+	if [ ! -e $INDIR/metrices/$n.insert_size_metrics ]; then
 
-		INDIR=${OUTDIR/$TASKPINDEL/$INPUT_PINDEL}
-		#mkdir $INDIR/metrices
+		echo "[NOTE] $INDIR/metrices/$n.insert_size_metrics does not exist: start insert-size calculation"
+		if [ ! -d $INDIR/metrices ]; then mkdir $INDIR/metrices; fi
 
+
+	    export PATH=$PATH:/usr/bin/
+	    THISTMP=$TMP/$NAME$RANDOM #mk tmp dir because picard writes none-unique files
+	    mkdir -p $THISTMP
 
 		echo "[NOTE] reorder to be conform with reference"
 	    java $JAVAPARAMS -jar $PATH_PICARD/ReorderSam.jar \
 	        INPUT=$f \
 	        REFERENCE=$FASTA \
 			VALIDATION_STRINGENCY=SILENT \
-	        OUTPUT=$TMP/$NAME.bam
+	        OUTPUT=$THISTMP/$NAME.bam
 
 
 		echo "[NOTE] run picard metrices to get insert size"
-	    export PATH=$PATH:/usr/bin/
-	    THISTMP=$TMP/$NAME$RANDOM #mk tmp dir because picard writes none-unique files
-	    mkdir -p $THISTMP
 	    java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
-	        INPUT=$TMP/$NAME.bam  \
+	        INPUT=$THISTMP/$NAME.bam  \
 	        REFERENCE_SEQUENCE=$FASTA \
-	        OUTPUT=${f/$INPUT_PINDEL/$INPUT_PINDEL\/metrices} \
+	        OUTPUT=$INDIR/metrices/$n \
 	        VALIDATION_STRINGENCY=SILENT \
 	        PROGRAM=CollectAlignmentSummaryMetrics \
 	        PROGRAM=CollectInsertSizeMetrics \
@@ -158,7 +159,7 @@ else
 	    for im in $( ls $INDIR/metrices/*.pdf ); do
 	        convert $im ${im/pdf/jpg}
 	    done
-	    [ -d $THISTMP ] && rm -r $THISTMP && rm $TMP/$NAME.bam
+	    [ -d $THISTMP ] && rm -r $THISTMP
 
 		
 	fi
@@ -184,7 +185,7 @@ else
 	fi
 
 	# grep the median insert size for this file from the previously run Picard metrices
-	command="grep MEDIAN_INSERT_SIZE  ${f/$INPUT_PINDEL/$INPUT_PINDEL\/metrices}.insert_size_metrics -A 1 | tail -n 1 | cut -f 1"
+	command="grep MEDIAN_INSERT_SIZE  ${f/$INPUT_PINDEL/$INPUT_PINDEL/metrices}.insert_size_metrics -A 1 | tail -n 1 | cut -f 1"
 	echo $command 
 	INSERT=$(eval $command)
 	
@@ -254,12 +255,12 @@ else
     perl ${NGSANE_BASE}/tools/vcfsorter.pl ${FASTA/$REFERENCE_ENDING/dict} $OUTDIR/$NAME.summary.unsorted.vcf > $OUTDIR/$NAME.summary.sorteduncorr.vcf
 
 	echo "[NOTE] correct END values from pindel2vcf errors (http://www.biostars.org/p/88908/)"
-   	python ${NGSANE_BASE}/tools/checkpindelENDs.py $OUTDIR/$NAME.summary.sorteduncorr.vcf $OUTDIR/$NAME.summary.vcf
+   	python ${NGSANE_BASE}/tools/checkpindelENDs.py $OUTDIR/$NAME.summary.sorteduncorr.vcf $OUTDIR/$NAME.$ASD.vcf
         
     # mark checkpoint
-    if [ -f $OUTDIR/$NAME.summary.vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$NAME.$ASD.vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
-	rm $OUTDIR/$NAME.conf.txt $OUTDIR/$NAME.summary.sorteduncorr.vcf $OUTDIR/$NAME.summary.unsorted.vcf
+	rm $OUTDIR/$NAME.conf.txt $OUTDIR/$NAME.summary.sorteduncorr.vcf $OUTDIR/$NAME.summary.unsorted.vcf*
 	for i in D SI LI INV TD BP ; do rm $OUTDIR/$NAME"_"$i.vcf; done
 
 fi 
