@@ -48,6 +48,15 @@ export PATH=$PATH_HICLIB:$PATH
 module list
 echo "PATH=$PATH"
 
+#this is to get the full path (modules should work but for path we need the full path and this is the\
+# best common denominator)
+PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
+
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_HICLIB*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1"
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
+
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--Python      --\n" $(python --version)
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
