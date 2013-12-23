@@ -4,7 +4,7 @@
 # QC:
 # author: Denis C. Bauer
 # date: May.2013
-
+# RESULTFILENAME <TASK>/<DIR>/<SAMPLE>.filter.vcf
 
 echo ">>>>> call SNPs using GATK"
 echo ">>>>> startdate "`date`
