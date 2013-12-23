@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# the ngsane version to be tested needs to be loaded by hand
+. $NGSANE_BASE/conf/header.sh
+. bin/tmpl/configHIC.txt
+
+if [[ -z "$SB_MODE" ]]; then
+        if hash qsub 2>&- ; then SB_MODE="forcearmed"
+        else
+            SB_MODE="direct";
+        fi
+fi
+echo "[NOTE] run in $SB_MODE mode $(date)"
+################################################################################
+#  HIC
+################################################################################
+
+# modify the template config file to flip the HICLIB switch
+# specify the resulting html file
+echo "[NOTE] Prep and run config file tmp/configHICLIB.txt"
+cat bin/tmpl/configHIC.txt | sed 's/RUNHICLIB=\"\"/RUNHICLIB=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHICLIB\"/g' > tmp/configHICLIB.txt
+
+# submit the HICLIB run to the cluster
+JOBIDSHICLIB=$( trigger.sh tmp/configHICLIB.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSHICLIB)"
+
+################################################################################
+#  HICUP
+################################################################################
+
+# modify the template config file to flip the RUNHICUP switch
+# specify the resulting html file
+echo "[NOTE] Prep and run config file tmp/configHICUP.txt"
+cat bin/tmpl/configHIC.txt | sed 's/RUNHICUP=\"\"/RUNHICUP=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHICUP\"/g' > tmp/configHICUP.txt
+
+# submit the HICUP run to the cluster
+JOBIDHICUP=$( trigger.sh tmp/configHICUP.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDHICUP)"
+
+################################################################################
+#  HOMER HIC
+################################################################################
+
+# modify the template config file to flip the RUNHOMERHIC switch
+# specify the resulting html file
+echo "[NOTE] Prep and run config file tmp/configHOMERHIC.txt"
+cat bin/tmpl/configHIC.txt | sed 's/RUNHOMERHIC=\"\"/RUNHOMERHIC=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHOMERHIC\"/g' > tmp/configHOMERHIC.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSHICLIB//:/$QUEUEWAITSEP}\"" >>tmp/configHOMERHIC.txt
+
+# submit the HOMERHIC run to the cluster
+JOBIDSHOMERHIC=$( trigger.sh tmp/configHOMERHIC.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSHOMERHIC)"
+
+################################################################################
+# TEST
+################################################################################
+JOBIDS="$JOBIDSHICLIB:$JOBIDSHOMERHIC:$JOBIDHICUP" #other things
+
+HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
+cat bin/tmpl/configHIC.txt | \
+    sed 's/RUNHICLIB=\"\"/RUNHICLIB=\"1\"/g' | \
+    sed 's/RUNHICUP=\"\"/RUNHICUP=\"1\"/g' |\
+    sed 's/RUNHOMERHIC=\"\"/RUNHOMERHIC=\"1\"/g' |\
+	sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHIC\"/g' > tmp/configHIC.txt
+
+# Prep and runare the job to generate the html result page and perform the diff 
+echo "[NOTE] Prep and runare evaluation script tmp/testHIC.qsub wait for $HOLDID"
+sed 's/NAME/HIC/g' bin/tmpl/HPCheader.txt > tmp/testHIC.qsub
+echo "trigger.sh tmp/configHIC.txt html" >> tmp/testHIC.qsub
+echo "diff result/SummaryHIC.html result/expected/SummaryHIC.html | \
+       python bin/diffparser.py > result/diffHIC.txt" >> tmp/testHIC.qsub
+#      grep -v \"Last modi\" | grep -v \"\-\-\" | grep -v \"NGSANE\" | \
+#      grep -v \"[NOTE]\" | \
+#      grep -v \"[0-9]c[0-9]\" > result/diffHIC.txt" >> tmp/testHIC.qsub
+
+chmod 777 tmp/testHIC.qsub
+
+#submit evaluation script
+echo "[NOTE] submit or run evaluation script"
+if [[ "$SUBMISSIONSYSTEM" = "SGE" ]]; then unset module; fi
+if [[ "$SB_MODE" = "forcearmed" ]]; then
+    qsub $HOLDID $QSUBEXTRA  tmp/testHIC.qsub
+else
+    eval tmp/testHIC.qsub
+fi
