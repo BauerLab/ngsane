@@ -21,7 +21,7 @@ while [ "$1" != "" ]; do
         -t | --task )           shift; TASK=$1 ;;   # task at hand
         -r | --results-dir )    shift; OUTDIR=$1 ;; # location of the output 
         -s | --results-task )   shift; OUTTASK=$1 ;; # task the results are put in 
-        -f | --nrfilesuffix )   shift; RESULTSUFFIX=$1 ;; # suffix of the result file
+        -f | --filesuffix )     shift; RESULTSUFFIX=$1 ;; # suffix of the result file
         -o | --html-file )      shift; HTMLOUTPUT=$1;; # where the output will be place in the end
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -134,8 +134,8 @@ SUMNOTES=0
 for i in $(ls $QOUT/$TASK/*.out) ;do
     echo -e "\n${i/$LOGFOLDER\//}"
     NOTELIST=$(grep -P "^\[NOTE\]" $i)
-    echo $NOTELIST
-    SUMNOTES=`expr $SUMNOTES + $(echo $NOTELIST | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' )`
+    echo -e "$NOTELIST"
+    SUMNOTES=`expr $SUMNOTES + $(echo -e "$NOTELIST" | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' )`
 done
 
 
@@ -155,11 +155,11 @@ for i in $( ls $QOUT/$TASK/*.out ) ;do
     echo -e "\n${i/$LOGFOLDER\//}"
     ERRORLIST=$(grep -P "^\[ERROR\]" $i)
     if [ -n "$ERRORLIST" ]; then 
-        echo $ERRORLIST
+        echo -e "$ERRORLIST"
     else
         echo "-- all good, no errors"
     fi
-    SUMERRORS=$(expr $SUMERRORS + $(echo $ERRORLIST | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' ))
+    SUMERRORS=$(expr $SUMERRORS + $(echo -e "$ERRORLIST" | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' ))
 done
 
 

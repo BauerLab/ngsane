@@ -142,7 +142,7 @@ function bamAnnotate {
 	BAMANNIMAGE=${BAMANNOUT/ggplot/pdf}
 	if [ ! -f $BAMANNOUT ]; then mkdir -p $( dirname $BAMANNOUT); fi
 	
-	find ${1} -type f -name *anno.stats |  xargs -d"\n" cat | head -n 1 | gawk '{print "type "$0" sample"}' > $BAMANNOUT
+	find ${1} -type f -name *anno.stats | xargs -d"\n" cat | head -n 1 | gawk '{print "type "$0" sample"}' > $BAMANNOUT
     for i in $(find ${1} -type f -name *anno.stats); do
         name=$(basename $i)
         arrIN=(${name//.$ASD/ })
