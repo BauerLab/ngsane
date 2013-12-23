@@ -339,6 +339,36 @@ if [ -n "$RUNVARCALLS" ]; then
                         -H $HAPMAPVCF" #-K $ONEKGVCF"
 fi
 
+
+################################################################################
+#   call indels with GATK -- call one vcf file over all folders but in batches (by chr)
+################################################################################
+
+if [ -n "$RUNVARCALLSBATCH" ]; then
+	if [ ! -e "$FASTA.fai" ] ; then echo -e "\e[91m[ERROR]\e[0m $FASTA.fai missing"; exit 1; fi
+  	BATCHES=$(cut -f 1 /datastore/cci/bau04c/SeqAna/reference/prod/b37/human_g1k_v37.fasta.fai | sort -u)
+
+  	for i in $BATCHES; do
+		echo "[NOTE] Batch $i"
+    	NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
+    	JOBID=$( $QSUB $ARMED -r -d -k $CONFIG -t ${TASK_VAR}batch -i $INPUT_VAR  -e .$ASR.bam -n $NODES_VAR \
+        	-c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
+        	--postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
+                        -i <FILE> -t $CPU_VAR \
+                        -r $FASTA -d $DBROD -o $OUT/variant/$TASK_VAR/$NAME$i -n $NAME$i \
+                        -H $HAPMAPVCF -L $i " 
+		) && echo -e "$JOBID"
+		if [ -n "$(echo $JOBID | grep Jobnumber)" ]; then	JOBIDS=$(waitForJobIds "$JOBID")":"$JOBIDS; fi
+  	done
+
+	echo "[NOTE] wait for jobs $JOBIDS"
+   	$QSUB $ARMED -r -k $CONFIG -t $TASK_VAR -i $OUT/variant/$TASK_VAR/ -e .vcf $JOBIDS \
+		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_VAR}batch \
+				-i2 ${TASK_VAR} -o $OUT/variant/${TASK_VAR}-<DIR> "
+   
+fi	
+	
 ################################################################################
 #   Depth of Coverage
 # IN: */bwa/*.bam
