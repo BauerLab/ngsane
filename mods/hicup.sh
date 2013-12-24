@@ -59,8 +59,11 @@ echo -e "--perl        --\n "$(perl -v | grep "This is perl" )
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
 echo -e "--HiCUP       --\n "$(hicup --version )
 [ -z "$(which hicup)" ] && echo "[ERROR] no hicup detected" && exit 1
+echo -e "--Python      --\n" $(python --version)
+[ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
+echo -e "--Python libs --\n "$(yolk -l)
 echo -e "--fit-hi-c    --\n "$(fit-hi-c.py --version)
-[ -z "$(which fit-hi-c.py)" ] && echo "[ERROR] no fit-hi-c detected" && exit 1
+[ -z "$(which fit-hi-c.py)" ] && echo "[WARN] no fit-hi-c detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -152,12 +155,15 @@ else
 fi
 
 ################################################################################
-CHECKPOINT="create hicup conf script"
+CHECKPOINT="execute hicup"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
+    [ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
+    mkdir -p $OUTDIR/$SAMPLE
+    
     cat /dev/null > $OUTDIR/${SAMPLE}.conf
     echo "#Number of threads to use" >> $OUTDIR/${SAMPLE}.conf
     echo "Threads: $CPU_HICUP" >> $OUTDIR/${SAMPLE}.conf
@@ -182,29 +188,16 @@ else
     echo "#FASTQ files to be analysed, separating file pairs using the pipe '|' character" >> $OUTDIR/${SAMPLE}.conf
     echo "$f | ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} " >> $OUTDIR/${SAMPLE}.conf
 
-    # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}.conf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
-fi
-
-################################################################################
-CHECKPOINT="execute hicup"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-
-    CURDIR=$(pwd)
     cd $OUTDIR/$SAMPLE
     RUN_COMMAND="$(which perl) $(which hicup) -c ../${SAMPLE}.conf"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    cd $CURDIR
+    cd $SOURCE
     
     cp -f $OUTDIR/$SAMPLE/hicup_deduplicater_summary_results_*.txt $OUTDIR/${SAMPLE}_hicup_deduplicater_summary_results.txt
     cp -f $OUTDIR/$SAMPLE/hicup_filter_summary_results_*.txt $OUTDIR/${SAMPLE}_hicup_filter_summary_results.txt
     cp -f $OUTDIR/$SAMPLE/hicup_mapper_summary_*.txt $OUTDIR/${SAMPLE}_hicup_mapper_summary.txt
     cp -f $OUTDIR/$SAMPLE/hicup_truncater_summary_*.txt $OUTDIR/${SAMPLE}_hicup_truncater_summary.txt
-    ln -f -s $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam $OUTDIR/${SAMPLE}_uniques.bam
+    ln -f -s $SAMPLE/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam $OUTDIR/${SAMPLE}_uniques.bam
 
     # copy piecharts
     RUNSTATS=$OUT/runStats/$TASK_HICUP
@@ -213,7 +206,7 @@ else
     cp -f $OUTDIR/$SAMPLE/*_ditag_classification.png $RUNSTATS/${SAMPLE}_ditag_classification.png
 
     # mark checkpoint
-    if [ -f $OUTDIR/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${SAMPLE}_uniques.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -224,19 +217,24 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=${DIGESTGENOME} --outputDir=$OUTDIR/  $OUTDIR/${SAMPLE}_uniques.bam
-    cd $OUTDIR
-    python $(which fit-hi-c.py) --mappabilityThres=2 --fragments=$OUTDIR/${SAMPLE}_uniques.bam.fragmentLists --interactions=$OUTDIR/${SAMPLE}_uniques.bam.contactCounts --lib=${SAMPLE}
-    cd $CURDIR
+    if [ -z "$(which fit-hi-c.py)" ]; then
+        echo "[NOTE] Skip significance testing (fit-hi-c not found)."
+        echo -e "\n********* $CHECKPOINT\n"
+    else
     
-    awk '$7<=0.05' $OUTDIR/${SAMPLE}.spline_pass1.significances.txt | sort -k7g > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt
-    awk '$7<=0.05' $OUTDIR/${SAMPLE}.spline_pass2.significances.txt | sort -k7g > $OUTDIR/${SAMPLE}.spline_pass2.q05.txt
+        python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=$OUTDIR/$DIGESTGENOME --outputDir=$OUTDIR/  $OUTDIR/${SAMPLE}_uniques.bam
+        cd $OUTDIR
+        python $(which fit-hi-c.py) --mappabilityThres=2 --fragments=$OUTDIR/${SAMPLE}_uniques.bam.fragmentLists --interactions=$OUTDIR/${SAMPLE}_uniques.bam.contactCounts --lib=${SAMPLE}
+        cd $SOURCE
+        
+        awk '$7<=0.05' $OUTDIR/${SAMPLE}.spline_pass1.significances.txt | sort -k7g > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt
+        awk '$7<=0.05' $OUTDIR/${SAMPLE}.spline_pass2.significances.txt | sort -k7g > $OUTDIR/${SAMPLE}.spline_pass2.q05.txt
+        
+        $GZIP $OUTDIR/${SAMPLE}*.significances.txt
     
-    $GZIP $OUTDIR/${SAMPLE}*.significances.txt
-
-    # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}.spline_pass1.significances.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
+        # mark checkpoint
+        if [ -f $OUTDIR/${SAMPLE}.spline_pass1.significances.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    fi
 fi
 
 ################################################################################

@@ -146,8 +146,11 @@ else
     	PARAMS="$PARAMS --readLength $HICLIB_READLENGTH"
     fi
 
+    if [ -n "$HICLIB_CHROMOSOME" ]; then
+        PARAMS="$PARAMS --chromosome=$HICLIB_CHROMOSOME"
+    fi
     
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} $HICLIBADDPARAM --bowtie=$(which bowtie2) --cpus=$CPU_HICLIB --outputDir=$OUTDIR --tmpDir=$THISTMP --verbose $READS &> $OUTDIR/$SAMPLE.log"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} $HICLIBADDPARAM --bowtie=$(which bowtie2) --cpus=$CPU_HICLIB --outputDir=$OUTDIR --tmpDir=$THISTMP --quiet $READS | grep -v -P '^Warning: skipping read' &> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint

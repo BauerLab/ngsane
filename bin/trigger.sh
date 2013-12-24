@@ -403,7 +403,7 @@ if [ -n "$RUNHICLIB" ]; then
     $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ \
     	-n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
     	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND $INDEXJOBIDS \
-        --command "${NGSANE_BASE}/mods/hiclibMapping.sh -k $CONFIG --fastq <FILE> --outdir $OUT/<DIR>/$TASK_HICLIB --fastqName <NAME>" \
+        --command "${NGSANE_BASE}/mods/hiclibMapping.sh -k $CONFIG --fastq <FILE> --outdir $OUT/<DIR>/$TASK_HICLIB" \
         --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh -f <FILE> -k $CONFIG --outdir $OUT/hiclib/$TASK_HICLIB-<DIR>"
 fi
 
