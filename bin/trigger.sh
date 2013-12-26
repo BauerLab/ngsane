@@ -366,16 +366,25 @@ if [ -n "$RUNHICUP" ]; then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
             $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
-    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP --commontask \
+    	   -m $MEMORY_HICUP"G" -w $WALLTIME_HICUP --commontask \
             --command "${NGSANE_BASE}/mods/bowtieIndex.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
     else
         INDEXJOBIDS=""
     fi
+    
+    JOBIDS=$( 
+    $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
+    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS --commontask \
+        --command "${NGSANE_BASE}/mods/hicupDigestGenome.sh -k $CONFIG -o $OUT/<DIR>/$TASK_HICUP" 
+    ) && echo -e "$JOBIDS"
+
+    JOBIDS=$(waitForJobIds "$JOBIDS")
+
 
     $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
-    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS \
+    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $JOBIDS \
         --command "${NGSANE_BASE}/mods/hicup.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HICUP"
 fi
 
