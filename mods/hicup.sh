@@ -8,7 +8,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.spline_pass1.significances.txt
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.spline_pass1.q05.txt
 
 echo ">>>>> HiC readmapping with HiCUP "
 echo ">>>>> startdate "`date`
@@ -238,7 +238,7 @@ else
 fi
 
 ################################################################################
-[ -e $OUTDIR/${SAMPLE}.spline_pass1.significances.txt.dummy ] && rm $OUTDIR/${SAMPLE}.spline_pass1.significances.txt.dummy
+[ -e $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.dummy ] && rm $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.dummy
 echo ">>>>> readmapping with hicup (bowtie) - FINISHED"
 echo ">>>>> enddate "`date`
 
