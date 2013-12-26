@@ -155,7 +155,7 @@ else
     echo "$f | ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} " >> $OUTDIR/${SAMPLE}.conf
 
     cd $OUTDIR/$SAMPLE
-    RUN_COMMAND="$(which perl) $(which hicup) -c ../${SAMPLE}.conf"
+    RUN_COMMAND="$(which perl) $(which hicup) --config ../${SAMPLE}.conf"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     cd $SOURCE
     

@@ -117,8 +117,6 @@ else
     fi
     cd $SOURCE
     
-    ls $OUTDIR
-    
     # mark checkpoint
     if [ -f $OUTDIR/$DIGESTGENOME ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
