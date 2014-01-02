@@ -632,7 +632,7 @@ def hicupStats(statsFile):
     	lines = file.split("\n")
     	p1 = lines[1].split("\t")
     	p2 = lines[2].split("\t")    	
-    	names += ["P1 non-trunc reads", "%","P1 trunc reads", "P2 non-trunc reads", "%","%", "P2 trunc reads", "%"]
+    	names += ["P1 non-trunc reads", "%","P1 trunc reads", "%", "P2 non-trunc reads","%", "P2 trunc reads", "%"]
     	values += [float(p1[3]), float(p1[4]), float(p1[1]), float(p1[2]), float(p2[3]), float(p2[4]), float(p2[1]), float(p2[2])]
   
     if (file.find("Total_reads_processed")>-1):
@@ -644,14 +644,15 @@ def hicupStats(statsFile):
 
     if (file.find("Circularised")>-1):
   	lines = file.split("\n")
-    	sig = lines[0].split("\t")[1:]
+  	
+    	sig = re.sub('[_]', ' ', lines[0]).split("\t")[1:]
     	val = lines[1].split("\t")[1:]
     	names += sig
     	values += [float(i) for i in val]
 
     if (file.find("Read_pairs_processed")>-1):
   	lines = file.split("\n")
-    	sig = lines[0].split("\t")[1:]
+    	sig = re.sub('[_]', ' ', lines[0]).split("\t")[1:]
     	val = lines[1].split("\t")[1:]
     	names += sig
     	values += [float(i) for i in val]
