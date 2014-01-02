@@ -107,7 +107,7 @@ ENZYMES=(${HICUP_RENZYMES//;/ })
 ENZYME1=(${ENZYMES[0]//,/ })
 ENZYME2=(${ENZYMES[1]//,/ })
 
-DIGESTGENOME=digested_genome.txt
+DIGESTGENOME=$OUTDIR/digested_genome.txt
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -144,7 +144,7 @@ else
     echo "#Path to the reference genome indices" >> $OUTDIR/${SAMPLE}.conf
     echo "Index:${FASTA%.*}"  >> $OUTDIR/${SAMPLE}.conf
     echo "#Path to the genome digest file" >> $OUTDIR/${SAMPLE}.conf
-    echo "DIGEST:$OUTDIR/$DIGESTGENOME" >> $OUTDIR/${SAMPLE}.conf
+    echo "DIGEST:$DIGESTGENOME" >> $OUTDIR/${SAMPLE}.conf
     echo "#FASTQ file format | phred33-quals, phred64-quals, solexa-quals or solexa1.3-quals" >> $OUTDIR/${SAMPLE}.conf
     echo "Format:phred33-quals" >> $OUTDIR/${SAMPLE}.conf
     echo "#Maximum di-tag length | optional parameter" >> $OUTDIR/${SAMPLE}.conf
@@ -188,7 +188,7 @@ else
         echo -e "\n********* $CHECKPOINT\n"
     else
     
-        python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=$OUTDIR/$DIGESTGENOME --outputDir=$OUTDIR/  $OUTDIR/${SAMPLE}_uniques.bam
+        python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=$DIGESTGENOME --outputDir=$OUTDIR/  $OUTDIR/${SAMPLE}_uniques.bam
         cd $OUTDIR
         python $(which fit-hi-c.py) --mappabilityThres=2 --fragments=$OUTDIR/${SAMPLE}_uniques.bam.fragmentLists --interactions=$OUTDIR/${SAMPLE}_uniques.bam.contactCounts --lib=${SAMPLE}
         cd $SOURCE

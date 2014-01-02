@@ -375,7 +375,7 @@ if [ -n "$RUNHICUP" ]; then
     fi
     
     JOBIDS=$( 
-    $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
+    $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c 1 \
     	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS --commontask \
         --command "${NGSANE_BASE}/mods/hicupDigestGenome.sh -k $CONFIG -o $OUT/<DIR>/$TASK_HICUP" 
     ) && echo -e "$JOBIDS"
