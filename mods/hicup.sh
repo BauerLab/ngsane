@@ -2,9 +2,9 @@
 
 # Script running hicup including reference genome digestion, read mapping for single 
 # and paired DNA reads with bowtie from fastq files
-# It expects a fastq file, pairdend, reference genome and digest pattern  as input.
+# It expects a fastq file, paired-end, reference genome and digest pattern as input.
 # author: Fabian Buske
-# date: Apr 2013
+# date: Jan 2014
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
@@ -190,11 +190,10 @@ else
     
         python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=$DIGESTGENOME --outputDir=$OUTDIR/  $OUTDIR/${SAMPLE}_uniques.bam
         cd $OUTDIR
-        python $(which fit-hi-c.py) --mappabilityThres=2 --fragments=$OUTDIR/${SAMPLE}_uniques.bam.fragmentLists --interactions=$OUTDIR/${SAMPLE}_uniques.bam.contactCounts --lib=${SAMPLE}
+        python $(which fit-hi-c.py) $FITHICADDPARAM --fragments=$OUTDIR/${SAMPLE}_uniques.bam.fragmentLists --interactions=$OUTDIR/${SAMPLE}_uniques.bam.contactCounts --lib=${SAMPLE} 
         cd $SOURCE
         
         awk '$7<=0.05' $OUTDIR/${SAMPLE}.spline_pass1.significances.txt | sort -k7g > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt
-        awk '$7<=0.05' $OUTDIR/${SAMPLE}.spline_pass2.significances.txt | sort -k7g > $OUTDIR/${SAMPLE}.spline_pass2.q05.txt
         
         $GZIP $OUTDIR/${SAMPLE}*.significances.txt
     
