@@ -84,6 +84,10 @@ if [ "$HOMER_HIC_INTERACTIONS" != "all" ] && [ "$HOMER_HIC_INTERACTIONS" != "cis
     echo "[ERROR] HiC interactions not specified (all, cis or trans) : $HOMER_HIC_INTERACTIONS"
 fi
 
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
+[ -d $THISTMP ] && rm -r $THISTMP
+mkdir -p $THISTMP
+
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
@@ -107,12 +111,14 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    RUN_COMMAND="makeTagDirectory $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $f,${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} -format sam -illuminaPE -tbp 1"
+    cp $f ${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} $THISTMP
+    RUN_COMMAND="makeTagDirectory $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $THISTMP/$n,$THISTMP/${n/%$READONE.$ASD.bam/$READTWO.$ASD.bam} -format sam -illuminaPE -tbp 1"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
     if [ -d $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
+    rm $THISTMP/$n $THISTMP/${n/%$READONE.$ASD.bam/$READTWO.$ASD.bam}
 fi
 
 ################################################################################
