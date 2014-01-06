@@ -92,7 +92,7 @@ fi
 
 # get basename of f
 n=${f##*/}
-SAMPLE=${n/$READONE.$FASTQ/}
+SAMPLE=${n/%$READONE.$FASTQ/}
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
