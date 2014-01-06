@@ -128,17 +128,22 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    cp -r $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered}
-    
-    RUN_COMMAND="makeTagDirectory $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} -update $HOMER_HIC_TAGDIR_ADDPARAM"
+    gunzip $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered}/*tags.tsv.gz
+    cp -r $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $THISTMP
+    $GZIP $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered}/*tags.tsv
+        
+    RUN_COMMAND="makeTagDirectory $THISTMP/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} -update $HOMER_HIC_TAGDIR_ADDPARAM"
     echo $RUN_COMMAND && eval $RUN_COMMAND
+       
+    mv $THISTMP/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered}
 
     # mark checkpoint
     if [ -d $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
+    rm -r $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered}
+
 fi
 
-exit 1 #TODO remove
 ################################################################################
 CHECKPOINT="create background model"    
 
