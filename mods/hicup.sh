@@ -62,7 +62,7 @@ echo -e "--HiCUP       --\n "$(hicup --version )
 echo -e "--Python      --\n" $(python --version)
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 echo -e "--Python libs --\n "$(yolk -l)
-echo -e "--fit-hi-c    --\n "$(fit-hi-c.py --version)
+echo -e "--fit-hi-c    --\n "$(python $(which fit-hi-c.py) --version | head -n 1)
 [ -z "$(which fit-hi-c.py)" ] && echo "[WARN] no fit-hi-c detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT\n"
