@@ -17,7 +17,7 @@ rm /usr/lib/pymodules/python2.7/Cython-0.15.1.egg-info
 ################################################################################
 PACKAGEPATH=/packages
 MODULEPATH=/modules
-mkdir $PACKAGEPATH && mkdir $MODULEPATH
+mkdir -p $PACKAGEPATH && mkdir $MODULEPATH
 
 ################################################################################
 echo "update packages"
@@ -171,6 +171,8 @@ apt-get install libgfortran3 -y
 echo "install blas  and lapack"
 apt-get install libblas3gf libblas-doc libblas-dev -y
 apt-get install liblapack3gf liblapack-doc liblapack-dev -y
+apt-get install libatlas3gf-base
+sudo update-alternatives --config libblas.so.3gf # choose /usr/lib/openblas-base/libopenblas.so.0
 
 ################################################################################
 VERSION=3.0.2
@@ -199,12 +201,14 @@ global dotversion
  module-whatis "$SOFTWARE $VERSION"
 conflict $SOFTWARE
 
-setenv  R_HOME  $PACKAGEPATH/$SOFTWARE/$VERSION/lib64/R
+setenv  R_HOME  $PACKAGEPATH/$SOFTWARE/$VERSION/lib/R
 prepend-path    PATH $PACKAGEPATH/$SOFTWARE/$VERSION/bin
-prepend-path    LD_LIBRARY_PATH $PACKAGEPATH/$SOFTWARE/$VERSION/lib64/R/lib
+prepend-path    LD_LIBRARY_PATH $PACKAGEPATH/$SOFTWARE/$VERSION/lib/R/lib
 prepend-path    MANPATH         $PACKAGEPATH/$SOFTWARE/$VERSION/share
 
 DELIM
+
+#NOTE: the library path could also by ../lib64/R... depending on the system
 
 module load $SOFTWARE/$VERSION
 
@@ -1300,7 +1304,7 @@ DELIM
 module load $NGSANE_SOFTWARE/$NGSANE_VERSION
 
 # set default modules
-cp conf/sample_header.sh $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+cp $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/sample_header.sh $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_R=|NG_R=R/3.0.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_PYTHON=|NG_PYTHON=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_GZIP=|NG_GZIP=pigz/2.3.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1338,7 +1342,7 @@ sed -i 's|^NG_TRIMMOMATIC=|NG_TRIMMOMATIC=trimmomatic/0.30|' $PACKAGEPATH/$NGSAN
 sed -i 's|^NG_HDF5=|NG_HDF5=hdf5/1.8.12|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HICLIB=|NG_HICLIB=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HICUP=|NG_HICUP=hicup/0.4.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_FITHIC=|NG_FITHIC=1.0.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_FITHIC=|NG_FITHIC=fit-hi-c/1.0.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_FASTQSCREEN=|NG_FASTQSCREEN=fastq_screen/0.4.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_MATLAB=|NG_MATLAB=mcr/2012b|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CHANCE=|NG_CHANCE=chance/com|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1364,6 +1368,7 @@ sed -i 's|^GZIP="gzip -9"|GZIP="pigz -9"|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE
 
 # add R libaries
 cat $NGSANE_BASE/tools/*.R | grep -w "library" | sed 's|library(||g' | sed 's|)||g' | sed 's|"||g' | sort -u > /tmp/R_packages.list.txt
+echo "fdrtool" >> /tmp/R_packages.list.txt
 
 cat > R_packages.install.R <<DELIM
 source("http://bioconductor.org/biocLite.R")
