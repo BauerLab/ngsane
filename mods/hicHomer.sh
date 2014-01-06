@@ -66,6 +66,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$READONE.$ASD.bam/}
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
@@ -112,13 +113,13 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else
 
     cp $f ${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} $THISTMP
-    RUN_COMMAND="makeTagDirectory $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $THISTMP/$n,$THISTMP/${n/%$READONE.$ASD.bam/$READTWO.$ASD.bam} -format sam -illuminaPE -tbp 1"
+    RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered" $THISTMP/$n,$THISTMP/${n/%$READONE.$ASD.bam/$READTWO.$ASD.bam} -format sam -illuminaPE -tbp 1"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
+    mv $THISTMP/$SAMPLE"_tagdir_unfiltered" $OUTDIR/$SAMPLE"_tagdir_unfiltered"
+    
     # mark checkpoint
-    if [ -d $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
-    rm $THISTMP/$n $THISTMP/${n/%$READONE.$ASD.bam/$READTWO.$ASD.bam}
+    if [ -e $OUTDIR/$SAMPLE"_tagdir_unfiltered"/tagInfo.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
@@ -128,19 +129,23 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    gunzip $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered}/*tags.tsv.gz
-    cp -r $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $THISTMP
-    $GZIP $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered}/*tags.tsv
+    count=`ls -1 $OUTDIR/$SAMPLE"_tagdir_unfiltered"/*tags.tsv.gz 2>/dev/null | wc -l`
+    if [ $count != 0 ]; then
+        gunzip $OUTDIR/$SAMPLE"_tagdir_unfiltered"/*tags.tsv.gz
+    fi
+    
+    cp -r $OUTDIR/$SAMPLE"_tagdir_unfiltered" $THISTMP
+    $GZIP $OUTDIR/$SAMPLE"_tagdir_unfiltered"/*tags.tsv
         
-    RUN_COMMAND="makeTagDirectory $THISTMP/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} -update $HOMER_HIC_TAGDIR_ADDPARAM"
+    RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered" -update $HOMER_HIC_TAGDIR_ADDPARAM"
     echo $RUN_COMMAND && eval $RUN_COMMAND
        
-    mv $THISTMP/${n/%$READONE.$ASD.bam/_tagdir_unfiltered} $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered}
+    mv $THISTMP/$SAMPLE"_tagdir_unfiltered" $OUTDIR/$SAMPLE"_tagdir_filtered"
 
     # mark checkpoint
-    if [ -d $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/$SAMPLE"_tagdir_filtered"/tagInfo.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
-    rm -r $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_unfiltered}
+    rm -r $OUTDIR/$SAMPLE"_tagdir_unfiltered"
 
 fi
 
@@ -151,7 +156,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    RUN_COMMAND="analyzeHiC $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_BACKGROUND_ADDPARAM -createModel $OUTDIR/${n/%$READONE.$ASD.bam/_background.txt} active.model.txt -cpu $CPU_HOMERHIC"
+    RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" $HOMER_HIC_BACKGROUND_ADDPARAM -createModel $OUTDIR/${n/%$READONE.$ASD.bam/_background.txt} active.model.txt -cpu $CPU_HOMERHIC"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
@@ -167,7 +172,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
-        RUN_COMMAND="analyzeHiC $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_ADDPARAM -model $OUTDIR/${n/%$READONE.$ASD.bam/_background.txt}  > $OUTDIR/${n/%$READONE.$ASD.bam/_matrix.txt}"
+        RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" $HOMER_HIC_NORMALIZE_ADDPARAM -model $OUTDIR/${n/%$READONE.$ASD.bam/_background.txt}  > $OUTDIR/${n/%$READONE.$ASD.bam/_matrix.txt}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
     [ ! -f $FASTA.fai ] && samtools faidx $FASTA
@@ -175,7 +180,7 @@ else
     elif [ "$HOMER_HIC_INTERACTIONS" == "cis" ]; then
     
         for CHR in $(awk '{print $1'} $FASTA.fai); do
-    	    RUN_COMMAND="analyzeHiC $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR -model $OUTDIR/${n/%$READONE.$ASD.bam/_background.txt}  > $OUTDIR/${n/%$READONE.$ASD.bam/_${CHR}_matrix.txt}"
+    	    RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR -model $OUTDIR/${n/%$READONE.$ASD.bam/_background.txt}  > $OUTDIR/${n/%$READONE.$ASD.bam/_${CHR}_matrix.txt}"
     	    echo $RUN_COMMAND && eval $RUN_COMMAND
         done
     elif [ "$HOMER_HIC_INTERACTIONS" == "trans" ]; then
@@ -183,7 +188,7 @@ else
         for CHR1 in $(awk '{print $1'} $FASTA.fai); do
             for CHR2 in $(awk '{print $1'} $FASTA.fai); do
                 if [ "$CHR1" != "$CHR2" ]; then
-                    RUN_COMMAND="analyzeHiC $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR1 -chr2 $CHR2 -model $OUTDIR/${n/%$READONE.$ASD.bam/_background.txt}  > $OUTDIR/${n/%$READONE.$ASD.bam/_${CHR1}-${CHR2}_matrix.txt}"
+                    RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR1 -chr2 $CHR2 -model $OUTDIR/${n/%$READONE.$ASD.bam/_background.txt}  > $OUTDIR/${n/%$READONE.$ASD.bam/_${CHR1}-${CHR2}_matrix.txt}"
                     echo $RUN_COMMAND && eval $RUN_COMMAND
                 fi
             done
@@ -201,7 +206,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    RUN_COMMAND="runHiCpca.pl ${n/%$READONE.$ASD.bam/} $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_PCA_ADDPARAM -cpu $CPU_HOMERHIC "
+    RUN_COMMAND="runHiCpca.pl ${n/%$READONE.$ASD.bam/} $OUTDIR/$SAMPLE"_tagdir_filtered" $HOMER_HIC_PCA_ADDPARAM -cpu $CPU_HOMERHIC "
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
@@ -218,13 +223,13 @@ else
     cat /dev/null > $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}
         
     if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
-        RUN_COMMAND="analyzeHiC $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_ADDPARAM -interactions $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $CPU_HOMERHIC "
+        RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" $HOMER_HIC_INTERACTION_ADDPARAM -interactions $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.txt} -nomatrix -cpu $CPU_HOMERHIC "
         echo $RUN_COMMAND && eval $RUN_COMMAND
         echo "$OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.txt} all" >> $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}
     
     elif [ "$HOMER_HIC_INTERACTIONS" == "cis" ]; then
         for CHR in $(awk '{print $1'} $FASTA.fai); do
-            RUN_COMMAND="analyzeHiC $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_ADDPARAM -chr $CHR -interactions $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions_$CHR.txt} -nomatrix -cpu $CPU_HOMERHIC "
+            RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" $HOMER_HIC_INTERACTION_ADDPARAM -chr $CHR -interactions $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions_$CHR.txt} -nomatrix -cpu $CPU_HOMERHIC "
             echo $RUN_COMMAND && eval $RUN_COMMAND
             echo "$OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions_$CHR.txt} $CHR" >> $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}
         done
@@ -233,7 +238,7 @@ else
         for CHR1 in $(awk '{print $1'} $FASTA.fai); do
             for CHR2 in $(awk '{print $1'} $FASTA.fai); do
                 if [ "$CHR1" != "$CHR2" ]; then
-                    RUN_COMMAND="analyzeHiC $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} $HOMER_HIC_INTERACTION_ADDPARAM -chr $CHR1 -chr2 $CHR2 -interactions $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions_$CHR1-$CHR2.txt} -nomatrix -cpu $CPU_HOMERHIC "
+                    RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" $HOMER_HIC_INTERACTION_ADDPARAM -chr $CHR1 -chr2 $CHR2 -interactions $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions_$CHR1-$CHR2.txt} -nomatrix -cpu $CPU_HOMERHIC "
                     echo $RUN_COMMAND && eval $RUN_COMMAND
                     echo "$OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions_$CHR1-$CHR2.txt} $CHR1-$CHR2" >> $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}
                 fi
@@ -272,7 +277,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     if hash ${CIRCOS} 2>&- ; then
         echo "********* Circos plots"
-        RUN_COMMAND="analyzeHiC $OUTDIR/${n/%$READONE.$ASD.bam/_tagdir_filtered} -res 1000000 -pvalue 1e-7 -cpu $CPU_HOMERHIC -circos ${n/%$READONE.$ASD.bam/} -minDist 2000000000 -nomatrix"
+        RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" -res 1000000 -pvalue 1e-7 -cpu $CPU_HOMERHIC -circos ${n/%$READONE.$ASD.bam/} -minDist 2000000000 -nomatrix"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     fi
 
