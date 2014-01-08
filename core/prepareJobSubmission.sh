@@ -73,7 +73,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                 n=${f##*/}
                 name=${n/$ENDING/}
                 LOGFILE=$QOUT/$TASK/$DIRNAME'_'$name'.out'
-                if [ "$KEEP" = "new" ]; then
+                if [ "$KEEP" = "new" ] && [ -f $LOGFILE ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
                 	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
@@ -92,7 +92,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                 n=${f##*/}
                 name=${n/$ENDING/}
                 LOGFILE=$QOUT/$TASK/$DIRNAME'_'$name'.out'
-                if [ "$KEEP" = "new" ]; then
+                if [ "$KEEP" = "new" ] && [ -f $LOGFILE ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
                 	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
