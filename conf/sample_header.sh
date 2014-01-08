@@ -70,7 +70,7 @@ NG_SEQLOGO=
 ##############################################################
 # Software reference
 ##############################################################
-NG_CITE_NGSANE="(in review); 'NGSANE: A Lightweight Production Informatics Framework for High Throughput Data Analysis; Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC"
+NG_CITE_NGSANE="(accepted); 'NGSANE: A Lightweight Production Informatics Framework for High Throughput Data Analysis; Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC"
 NG_CITE_R="R: A language and environment for statistical computing; R Core Team. R Foundation for Statistical Computing, Vienna, Austria, (2013)"
 NG_CITE_PYTHON="Guido van Rossum, Jelke de Boer: Linking a Stub Generator (AIL) to a Prototyping Language (Python). Spring 1991 EurOpen Conference Proceedings (May 20-24, 1991) Tromso, Norway."
 NG_CITE_FASTQC="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/"
