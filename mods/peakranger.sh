@@ -100,6 +100,8 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
     
+    [ -f $OUTDIR/$SAMPLE-$CONTROL.summary.txt ] && rm $OUTDIR/$SAMPLE-$CONTROL.summary.txt
+    
     echo "[NOTE] data quality"
     RUN_COMMAND="peakranger nr --format bam --data $f --control $CHIPINPUT > $OUTDIR/$SAMPLE-$CONTROL.summary.txt"
     echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -133,7 +135,7 @@ else
     grep -v "#" $OUTDIR/$SAMPLE-$CONTROL"_region.bed" > $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
     mv $OUTDIR/$SAMPLE-$CONTROL"_region.tmp" $OUTDIR/$SAMPLE-$CONTROL"_region.bed"
     
-    grep -v "#" $OUTDIR/$SAMPLE-$CONTROL_summit.bed > $OUTDIR/$SAMPLE-$CONTROL"_summit.tmp" 
+    grep -v "#" $OUTDIR/$SAMPLE-$CONTROL"_summit.bed" > $OUTDIR/$SAMPLE-$CONTROL"_summit.tmp" 
     mv $OUTDIR/$SAMPLE-$CONTROL"_summit.tmp" $OUTDIR/$SAMPLE-$CONTROL"_summit.bed"
     
     echo "Peaks: $(wc -l $OUTDIR/$SAMPLE-$CONTROL"_region.bed" | awk '{print $1}')" >> $OUTDIR/$SAMPLE-$CONTROL.summary.txt
