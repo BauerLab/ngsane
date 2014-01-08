@@ -154,7 +154,7 @@ else
         echo "[NOTE] Sample has negative fragment length, adjusting shiftsize with alternatives if available"
 
         if [ "$(grep '#2 alternative fragment length(s) may be' $SAMPLE.summary.txt | egrep -o '(-[0-9]{2,4},[0-9]{2,4})' | cut -d ',' -f 2)" > 0 ]; then
-            $SHIFTSIZE="--shiftsize $(grep '#2 alternative fragment length(s) may be' $SAMPLE.summary.txt | egrep -o '(-[0-9]{2,4},[0-9]{2,4})' | cut -d ',' -f 2)"           
+            SHIFTSIZE="--shiftsize $(grep '#2 alternative fragment length(s) may be' $SAMPLE.summary.txt | egrep -o '(-[0-9]{2,4},[0-9]{2,4})' | cut -d ',' -f 2)"           
         fi
         
         RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED $MAKEBEDGRAPH --nomodel $SHIFTSIZE --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name $SAMPLE > $SAMPLE.summary.txt 2>&1"    
