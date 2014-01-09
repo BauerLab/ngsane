@@ -141,11 +141,9 @@ else
     # mark checkpoint
     if [ -f $SAMPLE"_"peaks.xls ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
-echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="macs 2 - check fragment length "
 
-cd $OUTDIR
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
