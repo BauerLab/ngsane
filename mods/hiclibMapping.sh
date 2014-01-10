@@ -180,6 +180,8 @@ else
         OUTPUT=$OUTDIR/$SAMPLE$READONE.$ASD.bam \
         METRICS_FILE=$OUTDIR/$SAMPLE$READONE.$ASD.bam.dupl \
         AS=true \
+        CREATE_MD5_FILE=true \
+        COMPRESSION_LEVEL=9 \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
     samtools index $OUTDIR/$SAMPLE$READONE.$ASD.bam
@@ -217,6 +219,8 @@ else
         OUTPUT=$OUTDIR/$SAMPLE$READTWO.$ASD.bam \
         METRICS_FILE=$OUTDIR/$SAMPLE$READTWO.$ASD.bam.dupl \
         AS=true \
+        CREATE_MD5_FILE=true \
+        COMPRESSION_LEVEL=9 \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
     samtools index $OUTDIR/$SAMPLE$READTWO.$ASD.bam
