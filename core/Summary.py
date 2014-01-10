@@ -743,13 +743,26 @@ def macs2Stats(logFile):
         tmp=file.split("#2 number of paired peaks:")[1].strip().split()[0]
         PP=float(tmp.strip())
         values.append(PP)
-    
+    except:
+        values.append(0)
+
+    tryalternative=False
+    try:
         tmp=file.split("#2 predicted fragment length is")[1].strip().split("bps")[0]
         PF=float(tmp.strip())
         values.append(PF)
+        
     except:
-        values.append(0)
-        values.append(0)
+        tryalternative=True
+
+    if (tryalternative):
+        try:
+            tmp=file.split(" as fragment length")[0].strip().split("#2 Use ")[1]
+            PF=float(tmp.strip())
+            values.append(PF)
+    
+        except:
+            values.append(0)
      
     tmp=file.split("Final number of refined peaks:")[1].strip().split()[0]
     RP=float(tmp.strip())
