@@ -290,6 +290,8 @@ else
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
         I=$BAMFILE.rg \
         O=$BAMFILE \
+        CREATE_MD5_FILE=true \
+        COMPRESSION_LEVEL=9 \
         VALIDATION_STRINGENCY=SILENT \
         TMP_DIR=$THISTMP"
     echo $RUN_COMMAND && eval $RUN_COMMAND

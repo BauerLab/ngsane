@@ -163,7 +163,7 @@ fi
     
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-CHECKPOINT="bowtie"
+CHECKPOINT="map with bowtie"
 
 if [ $PAIRED == "0" ]; then 
     READS="$f"
@@ -240,6 +240,27 @@ else
 fi
 
 ################################################################################
+CHECKPOINT="clean sam"
+# create bam files for discarded reads and remove fastq files
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+   
+    if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
+    java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
+        INPUT=$OUTDIR/$SAMPLE.ash.bam \
+        OUTPUT=$OUTDIR/$SAMPLE.cleaned.bam \
+        VALIDATION_STRINGENCY=LENIENT \
+        TMP_DIR=$THISTMP
+
+    # mark checkpoint
+    if [ -f $OUTDIR/$SAMPLE.cleaned.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    
+    # cleanup
+    [ -e $OUTDIR/$SAMPLE.ash.bam ] && rm $OUTDIR/$SAMPLE.ash.bam
+fi
+
+################################################################################
 CHECKPOINT="mark duplicates"
 # create bam files for discarded reads and remove fastq files
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -248,19 +269,20 @@ else
    
     if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
-        INPUT=$OUTDIR/$SAMPLE.ash.bam \
+        INPUT=$OUTDIR/$SAMPLE.cleaned.bam \
         OUTPUT=$OUTDIR/$SAMPLE.$ASD.bam \
         METRICS_FILE=$OUTDIR/metrices/$SAMPLE.$ASD.bam.dupl \
         AS=true \
+        CREATE_MD5_FILE=true \
+        COMPRESSION_LEVEL=9 \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
-    samtools index $OUTDIR/$SAMPLE.$ASD.bam
 
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE.$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
     # cleanup
-    [ -e $OUTDIR/$SAMPLE.ash.bam ] && rm $OUTDIR/$SAMPLE.ash.bam
+    [ -e $OUTDIR/$SAMPLE.cleaned.bam ] && rm $OUTDIR/$SAMPLE.cleaned.bam
 fi
 
 ################################################################################

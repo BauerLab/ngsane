@@ -404,7 +404,10 @@ else
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
         INPUT=$OUTDIR/$SAMPLE.ash.bam \
         OUTPUT=$OUTDIR/$SAMPLE.$ASD.bam \
-        METRICS_FILE=$OUTDIR/metrices/$SAMPLE.$ASD.bam.dupl AS=true \
+        METRICS_FILE=$OUTDIR/metrices/$SAMPLE.$ASD.bam.dupl \
+        AS=true \
+        CREATE_MD5_FILE=true \
+        COMPRESSION_LEVEL=9 \
         VALIDATION_STRINGENCY=SILENT \
         TMP_DIR=$THISTMP
     samtools index $OUTDIR/$SAMPLE.$ASD.bam
