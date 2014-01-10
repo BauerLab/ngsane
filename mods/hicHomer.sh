@@ -224,7 +224,7 @@ else
     RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" $HOMER_HIC_LOWRESINTERACTIONS_ADDPARAM -interactions $OUTDIR/"$SAMPLE"_significantInteractions.txt -nomatrix -cpu $CPU_HOMERHIC "
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    echo "$OUTDIR/${SAMPLE}_significantInteractions.txt all" >> $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}
+    echo "$OUTDIR/${SAMPLE}_significantInteractions.txt all" > $OUTDIR/${SAMPLE}_significantInteractions.log
 
     # mark checkpoint
     if [[ $(wc -l $OUTDIR/${SAMPLE}_significantInteractions.log) -ge 1 ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -240,12 +240,12 @@ else
     while IFS=$' ' read -r -a INTERACTIONS
     do
         SUFFIX=${echo $LINE | cut -d' ' -f 1}
-        RUN_COMMAND="annotateInteractions.pl ${INTERACTIONS[0]} $HOMER_HIC_ANNOTATE_ADDPARAM $OUTDIR/${n/%$READONE.$ASD.bam/_annotations_${INTERACTIONS[1]}"
+        RUN_COMMAND="annotateInteractions.pl ${INTERACTIONS[0]} $HOMER_HIC_ANNOTATE_ADDPARAM $OUTDIR/${SAMPLE}_annotations_${INTERACTIONS[1]}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
-    done < $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}
+    done < $OUTDIR/${SAMPLE}_significantInteractions.log
 
     # mark checkpoint
-    if [ -d $OUTDIR/${n/%$READONE.$ASD.bam/_annotations} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -d $OUTDIR/${SAMPLE}_annotations ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -257,7 +257,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     if hash ${CIRCOS} 2>&- ; then
         echo "********* Circos plots"
-        RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" -res 1000000 -pvalue 1e-7 -cpu $CPU_HOMERHIC -circos ${n/%$READONE.$ASD.bam/} -minDist 2000000000 -nomatrix"
+        RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" -res 1000000 -pvalue 1e-7 -cpu $CPU_HOMERHIC -circos $SAMPLE -minDist 2000000000 -nomatrix"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     fi
 
@@ -270,7 +270,7 @@ fi
 cd $CURDIR
 
 ################################################################################
-[ -e $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}.dummy ] && rm $OUTDIR/${n/%$READONE.$ASD.bam/_significantInteractions.log}.dummy
+[ -e $OUTDIR/${SAMPLE}_significantInteractions.log.dummy ] && rm $OUTDIR/${SAMPLE}_significantInteractions.log.dummy
 echo ">>>>> HiC analysis with homer - FINISHED"
 echo ">>>>> enddate "`date`
 
