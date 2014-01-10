@@ -87,7 +87,7 @@ CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f}
-	dmls -l ${f}
+	dmget -a $OUTDIR/*
 fi
 
 echo -e "\n********* $CHECKPOINT\n"

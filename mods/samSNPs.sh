@@ -6,6 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>
 
 echo ">>>>> Variant calling with sam "
 echo ">>>>> startdate "`date`
@@ -76,7 +77,8 @@ echo -e "\n********* $CHECKPOINT\n"
 CHECKPOINT="recall files from tape"
 
 if [ -n $DMGET ]; then 
-    dmget -a $f; 
+    dmget -a $f
+	dmget -a $OUTDIR/*
 fi
     
 echo -e "\n********* $CHECKPOINT\n"    

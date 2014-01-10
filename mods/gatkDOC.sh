@@ -67,7 +67,7 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_GATK; do module load $MODULE; done  # save way to load modules that itself load other modules
+for MODULE in $MODULE_GATKDOC; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_GATK:$PATH
 module list
 echo "PATH=$PATH"

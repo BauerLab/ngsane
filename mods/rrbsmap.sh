@@ -154,6 +154,7 @@ CHECKPOINT="recall files from tape"
 if [ -n "$DMGET" ]; then
 	dmget -a $(dirname $FASTA)/*
 	dmget -a ${f/$READONE/"*"}
+	dmget -a $OUTDIR/*
 fi
     
 echo -e "\n********* $CHECKPOINT\n"    

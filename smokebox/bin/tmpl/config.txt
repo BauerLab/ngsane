@@ -73,7 +73,7 @@ RUNPEAKRANGER=""     # Peakranger
 
 
 #ASR="asd" # change default because we are not running from recal but bwa
-#TASKRCA=$TASKBWA # change default because we are not running from recal but bwa
+#TASK_RECAL=$TASK_BWA # change default because we are not running from recal but bwa
 
 HTMLOUT="Summary"
 

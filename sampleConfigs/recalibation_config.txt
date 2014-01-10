@@ -19,7 +19,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_REALRECAL=$TASKBWA
+INPUT_REALRECAL=$TASK_BWA
 
 # where to write the output
 OUT=$SOURCE
@@ -30,6 +30,11 @@ QOUT=$OUT/qout
 #********************
 # PARAMETER (mandatory)
 #********************
+
+# reference genome
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+# or ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=
 
 # location of SNP database file dbsnp.vcf
 # e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/dbsnp_137.hg19.vcf 

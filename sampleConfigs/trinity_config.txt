@@ -85,7 +85,7 @@ READTWO="_R2"
 SS_LIBRARY_TYPE="RF"
 
 # fastq file suffix
-FASTQ="fq.gz"
+FASTQ="fastq.gz"
 
 ########################################################################
 #				Resources 

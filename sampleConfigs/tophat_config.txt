@@ -32,7 +32,7 @@ QOUT=$OUT/qout
 ##********************
 
 # fastq file suffix
-FASTQ="fq.gz"
+FASTQ="fastq.gz"
 
 # read indicator immediately preceding the fastq file suffix
 READONE="_R1"
@@ -60,6 +60,11 @@ PLATFORM="Illumina"
 # e.g. "--phred64-quals"
 FASTQ_PHRED=
 
+# tophat transcriptome search 
+# eg --transcriptome-index=transcriptome_data/known 
+# eg /share/ClusterShare/biodata/contrib/hugfre/Transcriptome/Ensembl/GRCh37/transcriptome_data/known
+TOPHATTRANSCRIPTOMEINDEX=
+
 # additional parameters for tophat, see http://tophat.cbcb.umd.edu/manual.shtml
 TOPHATADDPARAM=
 
@@ -69,7 +74,7 @@ RNASEQCADDPARAM=
 # ATTENTION: make sure the GTF file matches your genome assembly (chr naming)
 # see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
 # conversion scripts
-# e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_14/gencode.v14.annotation.gtf
+# e.g. /share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.gtf
 # or   ${NGSANE_REFERENCE}/b37/annotation/gencode.v14.annotation.b37.gtf
 GTF=
 

@@ -21,13 +21,13 @@ declare -a DIR; DIR=( sample1 sample2 )
 INPUT_TOPHAT="fastq"
 
 # folder/task containing the data this task operates on
-INPUT_CUFFLINKS=$TASKTOPHAT
+INPUT_CUFFLINKS=$TASK_TOPHAT
 
 # folder/task containing the data this task operates on
-INPUT_HTSEQCOUNT=$TASKTOPHAT
+INPUT_HTSEQCOUNT=$TASK_TOPHAT
 
 # folder/task containing the data this task operates on
-INPUT_BAMANN=$TASKTOPHAT
+INPUT_BAMANN=$TASK_TOPHAT
 
 # where to write the output
 OUT=$SOURCE
@@ -40,7 +40,7 @@ QOUT=$OUT/qout
 ##********************
 
 # fastq file suffix
-FASTQ="fq.gz"
+FASTQ="fastq.gz"
 
 # read indicator immediately preceding the fastq file suffix
 READONE="_R1"
@@ -69,12 +69,12 @@ HTSEQCOUNT_ATTRIBUTES=
 # ATTENTION: make sure the GTF file matches your genome assembly (chr naming)
 # see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
 # conversion scripts
-# e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_14/gencode.v14.annotation.gtf
+# e.g. /share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.gtf
 # or   ${NGSANE_REFERENCE}/b37/annotation/gencode.v14.annotation.b37.gtf
 GTF=
 
 # folder containing multiple gtf files for integration
-# e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_17/BAM_ANNOTATE
+# e.g. /share/ClusterShare/biodata/contrib/GENCODE/release_14/BAM_ANNOTATE
 # or   ${NGSANE_REFERENCE}/b37/bamann
 BAMANNLIB=
 
@@ -97,6 +97,9 @@ CUFFLINKSADDPARAM=
 
 # additional parameters for HTSEQ-count call
 HTSEQCOUNT_ADDPARAMS=
+
+# uniquely mapping reads used for ht-seq-count
+HTSEQCOUNT_UNIQUE=
 
 # activate to use doctored GTF file for RNA-SeQC (provides additional info)
 # assumes the doctored GTF is at the same location as the original one but

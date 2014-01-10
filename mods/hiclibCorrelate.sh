@@ -55,7 +55,7 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
-PARAMS="--gapFile=$HICLIB_GAPFILE --referenceGenome=$FASTA"
+PARAMS="--gapFile=$HICLIB_GAPFILE --referenceGenome=$FASTA_CHROMDIR"
 
 echo "[NOTE] Files: $FILES"
 OLDFS=$IFS
@@ -95,7 +95,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    python ${NGSANE_BASE}/tools/hiclibCorrelate.py ${PARAMS} --outputDir=$OUT/runStats/$TASKHICLIB --tmpDir=$TMP --verbose $DATASETS
+    python ${NGSANE_BASE}/tools/hiclibCorrelate.py ${PARAMS} --outputDir=$OUT/runStats/$TASK_HICLIB --tmpDir=$TMP --verbose $DATASETS
     
     # mark checkpoint
     echo -e "\n********* $CHECKPOINT\n"

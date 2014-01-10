@@ -91,6 +91,7 @@ CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f}
+	dmget -a ${OUTDIR}
 	[ -n $CHIPINPUT ] && dmget -a $CHIPINPUT
 fi
 

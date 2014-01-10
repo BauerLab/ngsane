@@ -33,7 +33,7 @@ QOUT=$OUT/qout
 #********************
 
 # fastq file suffix
-FASTQ="fq.gz"
+FASTQ="fastq.gz"
 
 # read indicator immediately preceding the fastq file suffix
 READONE="_R1"
@@ -47,7 +47,7 @@ FASTQSCREEN_DBCONF=
 #********************
 
 ## additional fastqscreen parameters
-# e.g. --bowtie
+# e.g. "--subset 500000" (highly recommended)
 FASTQSCREENADDPARAM=
 
 #WALLTIME_FASTQSCREEN=10:00:00

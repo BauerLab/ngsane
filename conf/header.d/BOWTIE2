@@ -1,0 +1,11 @@
+##############################################################
+# Bowtie2 (2.1.0) 
+# http://bowtie-bio.sourceforge.net/index.shtml
+TASK_BOWTIE2="bowtie2"
+WALLTIME_BOWTIE2=72:00:00
+MEMORY_BOWTIE2=60
+CPU_BOWTIE2=8
+NODES_BOWTIE2="nodes=1:ppn=8"
+INPUT_BOWTIE2="fastq"
+MODULE_BOWTIE2="${NG_JAVA} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_R} ${NG_IMAGEMAGIC} ${NG_PICARD} ${NG_SAMSTAT} ${NG_UCSCTOOLS} ${NG_BEDTOOLS} ${NG_BOWTIE2}"
+PATH_BOWTIE2=$PATH_IGVTOOLS:$PATH_PICARD:$PATH_SAMSTAT
