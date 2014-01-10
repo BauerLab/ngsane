@@ -228,10 +228,10 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     [ -e $SAMPLE"_"peaks.bed ] && rm $SAMPLE"_"peaks.bed    
 
-    echo "Final number of refined peaks: $(wc -l $SAMPLE"_"refinepeak.bed )" >> $SAMPLE.summary.txt
+    echo "Final number of refined peaks: $(wc -l ${SAMPLE}_refinepeak.bed )" >> $SAMPLE.summary.txt
  
     # mark checkpoint
-    if [ -f $SAMPLE"_"refinepeak.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTPUT/$SAMPLE"_"refinepeak.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 ################################################################################
 # back to where we came from
