@@ -78,13 +78,13 @@ function summaryHeader {
             <h2 id='$2_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>" >> $4
     if [ -n "$5" ]; then 
         SUFFIX="--filesuffix $5"; 
-        echo "<h2 id='$2_h_files' class='sub inactive' rel='files'>Result files</h2>" >> $4
+        echo "<h2 id='$2_h_nrfiles' class='sub inactive' rel='files'>Primary result files</h2>" >> $4
     fi
     echo "</div><div class='wrapper'><div class='hidden'>" >> $4
     echo "QC - $2"
     #check of resultfiles are redirected into to a different folder
     if [ -n "$6" ]; then 
-       RESULTLOCATION="--results-task $6"
+        RESULTLOCATION="--results-task $6"
     else 
         RESULTLOCATION=""
     fi
