@@ -339,6 +339,56 @@ if [ -n "$RUNVARCALLS" ]; then
                         -H $HAPMAPVCF" #-K $ONEKGVCF"
 fi
 
+
+################################################################################
+#   call indels with GATK -- call one vcf file over all folders but in batches (by chr)
+################################################################################
+
+if [ -n "$RUNVARCALLSBATCH" ]; then
+	if [ ! -e "$FASTA.fai" ] ; then echo -e "\e[91m[ERROR]\e[0m $FASTA.fai missing"; exit 1; fi
+  	BATCHES=$(cut -f 1 $FASTA.fai | grep -v GL | sort -u)
+	NAME=$(echo ${DIR[@]} | sort -u |sed 's/ /_/g')
+	export QUEUEWAIT=${QUEUEWAIT/afterok/afterany}
+
+	if [ ! "$ARMED"="postonly" ]; then
+	  	for i in $BATCHES; do
+			echo "[NOTE] Batch $i"
+			export ADDDUMMY=$i
+	    	JOBID=$( $QSUB $ARMED --postname postcommand$i -r -d -k $CONFIG -t ${TASK_VAR}batch -i $INPUT_VAR  \
+				-e .$ASR.bam -n $NODES_VAR -c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
+	        	--postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
+	                        -i <FILE> -t $CPU_VAR \
+	                        -r $FASTA -d $DBROD -o $OUT/${TASK_VAR}batch/$NAME -n $NAME$ADDDUMMY \
+	                        -H $HAPMAPVCF -L $i " 
+			) && echo -e "$JOBID"
+			if [ -n "$(echo $JOBID | grep Jobnumber)" ]; then	JOBIDS=$(waitForJobIds "$JOBID")":"$JOBIDS; fi
+	  	done
+		JOBIDS=${JOBIDS//-W /}
+		JOBIDS=${JOBIDS//::/:}
+		JOBIDS="-W $JOBIDS"
+	fi
+
+	echo "[NOTE] filtered SNPs"
+   	$QSUB $ARMED --postname joinedSNP --givenDirs $NAME -d -k $CONFIG -t ${TASK_VAR}batch -i ${TASK_VAR}batch -e filter.snps.vcf $JOBIDS \
+		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_VAR}batch \
+				-i2 ${TASK_VAR}batch -o $OUT/${TASK_VAR}batch/$NAME --dummy filter.snps.vcf --target filter.snps.vcf"
+
+	echo "[NOTE] filtered INDELs"
+   	$QSUB $ARMED --postname joinedINDEL --givenDirs $NAME -d -k $CONFIG -t ${TASK_VAR}batch -i ${TASK_VAR}batch -e filter.snps.vcf $JOBIDS \
+		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_VAR}batch \
+				-i2 ${TASK_VAR}batch -o $OUT/${TASK_VAR}batch/$NAME --dummy filter.snps.vcf --target filter.indel.vcf"
+
+	echo "[NOTE] recal Vars"
+   	$QSUB $ARMED --postname joinedRECAL --givenDirs $NAME -d -k $CONFIG -t ${TASK_VAR}batch -i ${TASK_VAR}batch -e filter.snps.vcf $JOBIDS \
+		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_VAR}batch \
+				-i2 ${TASK_VAR}batch -o $OUT/${TASK_VAR}batch/$NAME --dummy filter.snps.vcf --target recalfilt.vcf"
+   
+fi	
+
+	
 ################################################################################
 #   Depth of Coverage
 # IN: */bwa/*.bam
