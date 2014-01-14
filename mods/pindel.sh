@@ -229,26 +229,42 @@ fi
 
 
 ################################################################################
-CHECKPOINT="convert to vcf and join"
+CHECKPOINT="convert to vcf"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+#    echo "[NOTE] $CHECKPOINT"
+#
+#	if [ ! -e ${FASTA/REFERENCE_ENDING/fa} ]; then echo "[ERROR] pindel2vcf needs fasta file with .fa ending - please create a symbolic link"; exit -1; fi 
+#
+#	echo "[NOTE] convert to vcf"
+#	for i in D SI LI INV TD BP ; do 
+#		pindel2vcf -G -p $OUTDIR/$NAME"_"$i -r ${FASTA/fasta/fa} -d $REFERENCE_DATE -R $REFERENCE_NAME -v $OUTDIR/$NAME"_"$i.vcf 
+#	done
+#
+    # mark checkpoint
+	if [ -f $OUTDIR/$NAME"_BP".vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+
+
+################################################################################
+CHECKPOINT="join vcf files"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     echo "[NOTE] $CHECKPOINT"
 
-	if [ ! -e ${FASTA/REFERENCE_ENDING/fa} ]; then echo "[ERROR] pindel2vcf needs fasta file with .fa ending - please create a symbolic link"; exit -1; fi 
+	if [ ! -e ${FASTA/REFERENCE_ENDING/fasta} ]; then echo "[ERROR] GenomeAnalysisTK.jar needs fasta file with .fasta ending - please create a symbolic link"; exit -1; fi 
 
-	echo "[NOTE] convert to vcf"
 	VAR=""
-	for i in D SI LI INV TD BP ; do 
-		pindel2vcf -G -p $OUTDIR/$NAME"_"$i -r ${FASTA/fasta/fa} -d $REFERENCE_DATE -R $REFERENCE_NAME -v $OUTDIR/$NAME"_"$i.vcf 
-		VAR=$VAR" -V "$OUTDIR"/"$NAME"_"$i".vcf"
-	done
-
+	for i in D SI LI INV TD BP ; do  VAR=$VAR" -V "$OUTDIR"/"$NAME"_"$i".vcf"; done
 
 	echo "[NOTE] join to single vcf"
    	command="java $JAVAPARAMS -cp $PATH_GATK/GenomeAnalysisTK.jar org.broadinstitute.sting.tools.CatVariants \
-		-R $FASTA $VAR -out $OUTDIR/$NAME.summary.unsorted.vcf"
+		-R ${FASTA/fa/fasta} $VAR -out $OUTDIR/$NAME.summary.unsorted.vcf"
     echo $command && eval $command
 
 	echo "[NOTE] order to reference"

@@ -345,12 +345,10 @@ fi
 # OUT: */bwa_var/*.clean.vcf
 ################################################################################
 
-if [ -n "$DEPTHOFCOVERAGE2" ]; then
-
+if [ -n "$RUNDEPTHOFCOVERAGE" ]; then
     $QSUB $ARMED -r -k $CONFIG -t $TASK_GATKDOC -i $INPUT_GATKDOC -e .$ASR.bam \
 	-n $NODES_GATKDOC -c $CPU_GATKDOC -m $MEMORY_GATKDOC"G" -w $WALLTIME_GATKDOC \
-	--command "${NGSANE_BASE}/mods/gatkDOC.sh -k ${NGSANE_BASE} -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASK_GATKDOC -t $CPU_GATKDOC"
-
+	--command "${NGSANE_BASE}/mods/gatkDOC.sh -k $CONFIG -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASK_GATKDOC -t $CPU_GATKDOC"
 fi
 
 ################################################################################
@@ -823,54 +821,6 @@ if [ -n "$mergeReCalbams" ]; then
     ${NGSANE_BASE}/mods/merge.sh ${NGSANE_BASE} $OUT/combined/mergeguide/combineAll.txt $OUT/combined/ DISC1_all.bam bam qout/merged/
 fi
 
-
-
-################################################################################
-# DepthOfCoverage
-# expects to be run fom <dir>/<TASK_RECAL>/<name>.<ASR>.bam
-# e.g. Run/reCalAln/name.ashrr.bam
-# change that by setting TASK_RECAL=TASK_BWA and ASR=ASD
-################################################################################
-
-if [ -n "$DEPTHOFCOVERAGE" ]
-then
-    CPUS=24
-
-    echo -e "********* $TASK_GATKDOC"
-
-    if [ ! -d $QOUT/$TASK_GATKDOC ]; then mkdir -p $QOUT/$TASK_GATKDOC; fi
-
-    for dir in ${DIR[@]}
-      do
-
-      for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
-	do
-	
-	n=`basename $f`
-	n2=${n/%$READONE.$FASTQ/.$ASR.bam}
-	name=${n/%$READONE.$FASTQ/}
-	echo -e ">>>>>"$dir/$TASK_RECAL/$n2
-
-	if [ ! -d $OUT/$dir/$TASK_GATKDOC ]; then mkdir -p $OUT/$dir/$TASK_GATKDOC; fi
-
-	# remove old pbs output
-	if [ -e $QOUT/$TASK_GATKDOC/$dir'_'$name'.out' ]; then rm $QOUT/$TASK_GATKDOC/$dir'_'$name'.out'; fi
-
-	#check if this is part of the pipe and jobsubmission needs to wait
-#	if [ -n "$$RUNREALRECAL" ]; then HOLD="-hold_jid "$TASK_RECAL"_"$dir"_"$name; fi
-
-	#Submit
-	if [ -n "$ARMED" ]; then
-	    qsub $PRIORITY -j y -o $QOUT/$TASK_GATKDOC/$dir'_'$name'.out' -cwd -b y -pe mpich $CPUS \
-		-l mem_free=11G -l h_vmem=11G -l vf=500K -N $TASK_GATKDOC'_'$dir'_'$name $HOLD\
-		${NGSANE_BASE}/mods/gatkDOC.sh -k ${NGSANE_BASE} -f $OUT/$dir/$TASK_RECAL/$n2 -r $FASTA \
-		-o $OUT/$dir/$TASK_GATKDOC -t $CPUS
-	fi
-
-      done
-    done
-
-fi
 
 ################################################################################
 # downsample

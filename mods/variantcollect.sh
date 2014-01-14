@@ -96,10 +96,12 @@ if [ ! -d $OUTDIR ]; then mkdir -p $OUTDIR; fi
 
 # prep for joining
 VARIANTS=""
+VARFILES=""
 NAMES=""
 for f in $FILES; do
     i=${f/$STAGEONEINPUT/$STAGETWOINPUT} #point to var folder
-    i=${i/bam/"vcf"} # correct ending
+    i=$(echo $i | sed 's/bam$/vcf/g') #${i/bam/"vcf"} # correct ending
+	VARFILES=$i
     b=$(basename $i)
     arrIN=(${b//./ })
     name=${arrIN[0]}
@@ -117,7 +119,7 @@ echo -e "\n********* $CHECKPOINT\n"
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
-	dmget -a $FILES
+	dmget -a $VARFILES
 fi
     
 echo -e "\n********* $CHECKPOINT\n"
