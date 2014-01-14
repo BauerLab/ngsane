@@ -155,9 +155,11 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 	COMMANDARR=(${COMMAND// / })
 	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$dir/" | sed "s/<TASK>/$TASK/")
 	D=$(eval $DUMMY)
-	echo "[NOTE] make $D.dummy"
-	[ ! -e $(dirname $D) ] && mkdir -p $(dirname $D)
-	touch $D.dummy
+	if [ -n "$D" ]; then
+		echo "[NOTE] make $D.dummy"
+		[ ! -e $(dirname $D) ] && mkdir -p $(dirname $D)
+		touch $D.dummy
+	fi
 
     echo -e "\e[33m[ JOB]\e[0m  $COMMAND2"
 
