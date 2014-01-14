@@ -12,7 +12,7 @@ if [[ -z "$SB_MODE" ]]; then
 fi
 echo "[NOTE] run in $SB_MODE mode $(date)"
 ################################################################################
-#  HIC
+#  HICLIB
 ################################################################################
 
 # modify the template config file to flip the HICLIB switch
@@ -40,30 +40,14 @@ JOBIDHICUP=$( trigger.sh tmp/configHICUP.txt $SB_MODE | grep "Jobnumber" | cut -
 echo "[NOTE] submitted jobs $(echo -n $JOBIDHICUP)"
 
 ################################################################################
-#  HOMER HIC
-################################################################################
-
-# modify the template config file to flip the RUNHOMERHIC switch
-# specify the resulting html file
-echo "[NOTE] Prep and run config file tmp/configHOMERHIC.txt"
-cat bin/tmpl/configHIC.txt | sed 's/RUNHOMERHIC=\"\"/RUNHOMERHIC=\"1\"/g' | \
-    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHOMERHIC\"/g' > tmp/configHOMERHIC.txt
-echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSHICLIB//:/$QUEUEWAITSEP}\"" >>tmp/configHOMERHIC.txt
-
-# submit the HOMERHIC run to the cluster
-JOBIDSHOMERHIC=$( trigger.sh tmp/configHOMERHIC.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] submitted jobs $(echo -n $JOBIDSHOMERHIC)"
-
-################################################################################
 # TEST
 ################################################################################
-JOBIDS="$JOBIDSHICLIB:$JOBIDSHOMERHIC:$JOBIDHICUP" #other things
+JOBIDS="$JOBIDSHICLIB:$JOBIDHICUP" #other things
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configHIC.txt | \
     sed 's/RUNHICLIB=\"\"/RUNHICLIB=\"1\"/g' | \
     sed 's/RUNHICUP=\"\"/RUNHICUP=\"1\"/g' |\
-    sed 's/RUNHOMERHIC=\"\"/RUNHOMERHIC=\"1\"/g' |\
 	sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHIC\"/g' > tmp/configHIC.txt
 
 # Prep and runare the job to generate the html result page and perform the diff 

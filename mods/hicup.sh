@@ -130,7 +130,11 @@ else
     [ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
     mkdir -p $OUTDIR/$SAMPLE
     
+    RELPATH=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$(dirname $f)'),'$(pwd -P)')")
+    echo "RELPATH:"$RELPATH
+    
     cat /dev/null > $OUTDIR/${SAMPLE}.conf
+    echo "Outdir: $OUTDIR/$SAMPLE/" >> $OUTDIR/${SAMPLE}.conf
     echo "#Number of threads to use" >> $OUTDIR/${SAMPLE}.conf
     echo "Threads: $CPU_HICUP" >> $OUTDIR/${SAMPLE}.conf
     echo "#Suppress progress updates | 0: off, 1: on" >> $OUTDIR/${SAMPLE}.conf
@@ -144,7 +148,7 @@ else
     echo "#Path to the reference genome indices" >> $OUTDIR/${SAMPLE}.conf
     echo "Index:${FASTA%.*}"  >> $OUTDIR/${SAMPLE}.conf
     echo "#Path to the genome digest file" >> $OUTDIR/${SAMPLE}.conf
-    echo "DIGEST:$DIGESTGENOME" >> $OUTDIR/${SAMPLE}.conf
+    echo "Digest:$DIGESTGENOME" >> $OUTDIR/${SAMPLE}.conf
     echo "#FASTQ file format | phred33-quals, phred64-quals, solexa-quals or solexa1.3-quals" >> $OUTDIR/${SAMPLE}.conf
     echo "Format:phred33-quals" >> $OUTDIR/${SAMPLE}.conf
     echo "#Maximum di-tag length | optional parameter" >> $OUTDIR/${SAMPLE}.conf
@@ -152,15 +156,13 @@ else
     echo "#Minimum di-tag length | optional parameter" >> $OUTDIR/${SAMPLE}.conf
     echo "#Shortest:" >> $OUTDIR/${SAMPLE}.conf
     echo "#FASTQ files to be analysed, separating file pairs using the pipe '|' character" >> $OUTDIR/${SAMPLE}.conf
-    echo "$f | ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} " >> $OUTDIR/${SAMPLE}.conf
+    echo "$RELPATH/$n | $RELPATH/${n/%$READONE.$FASTQ/$READTWO.$FASTQ} " >> $OUTDIR/${SAMPLE}.conf
 
-    cd $OUTDIR/$SAMPLE
     RUN_COMMAND="$(which perl) $(which hicup) --config $OUTDIR/${SAMPLE}.conf"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    cd $SOURCE
     
-    cp -f $OUTDIR/$SAMPLE/hicup_deduplicater_summary_results_*.txt $OUTDIR/${SAMPLE}_hicup_deduplicater_summary_results.txt
-    cp -f $OUTDIR/$SAMPLE/hicup_filter_summary_results_*.txt $OUTDIR/${SAMPLE}_hicup_filter_summary_results.txt
+    cp -f $OUTDIR/$SAMPLE/hicup_deduplicator_summary_*.txt $OUTDIR/${SAMPLE}_hicup_deduplicator_summary.txt
+    cp -f $OUTDIR/$SAMPLE/hicup_filter_summary_*.txt $OUTDIR/${SAMPLE}_hicup_filter_summary.txt
     cp -f $OUTDIR/$SAMPLE/hicup_mapper_summary_*.txt $OUTDIR/${SAMPLE}_hicup_mapper_summary.txt
     cp -f $OUTDIR/$SAMPLE/hicup_truncater_summary_*.txt $OUTDIR/${SAMPLE}_hicup_truncater_summary.txt
     ln -f -s $SAMPLE/uniques_${n/.$FASTQ/}_trunc_${n/%$READONE.$FASTQ/$READTWO}_trunc.bam $OUTDIR/${SAMPLE}_uniques.bam
@@ -177,6 +179,23 @@ else
 fi
 
 ################################################################################
+CHECKPOINT="count Interactions"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=$DIGESTGENOME --outputDir=$OUTDIR/  $OUTDIR/${SAMPLE}_uniques.bam"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+
+    $GZIP $OUTDIR/${SAMPLE}_uniques.bam.fragmentLists $OUTDIR/${SAMPLE}_uniques.bam.contactCounts
+    
+    # mark checkpoint
+    if [ -f $OUTDIR/${SAMPLE}_uniques.bam.fragmentLists.gz ] && [ -f $OUTDIR/${SAMPLE}_uniques.bam.contactCounts.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi
+
+################################################################################
 CHECKPOINT="run fit-hi-c"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -188,17 +207,13 @@ else
         echo -e "\n********* $CHECKPOINT\n"
     else
     
-        python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=$DIGESTGENOME --outputDir=$OUTDIR/  $OUTDIR/${SAMPLE}_uniques.bam
-        cd $OUTDIR
-        python $(which fit-hi-c.py) $FITHICADDPARAM --fragments=$OUTDIR/${SAMPLE}_uniques.bam.fragmentLists --interactions=$OUTDIR/${SAMPLE}_uniques.bam.contactCounts --lib=${SAMPLE} 
-        cd $SOURCE
+        RUN_COMMAND="python $(which fit-hi-c.py) $FITHICADDPARAM --outdir $OUTDIR --fragments=$OUTDIR/${SAMPLE}_uniques.bam.fragmentLists.gz --interactions=$OUTDIR/${SAMPLE}_uniques.bam.contactCounts.gz --lib=${SAMPLE}"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
         
-        awk '$7<=0.05' $OUTDIR/${SAMPLE}.spline_pass1.significances.txt | sort -k7g > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt
-        
-        $GZIP $OUTDIR/${SAMPLE}*.significances.txt
+        zcat $OUTDIR/${SAMPLE}.spline_pass1.pvals.txt.gz | awk '$7<=0.05' | sort -k7g | gzip > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz
     
         # mark checkpoint
-        if [ -f $OUTDIR/${SAMPLE}.spline_pass1.significances.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        if [ -f $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     fi
 fi
 
