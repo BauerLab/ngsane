@@ -1,5 +1,5 @@
-# author: Fabian Buske
-# date: September 2013
+# author: Denis Bauer
+# date: December 2013
 
 #####################################
 # Resources
@@ -10,6 +10,7 @@
 #********************
 
 RUNVARCALLS="1"     # variance  calling with GATK
+QUEUEWAIT=" -W depend=afterany:" # PBS - SGE does not neeed a change
 
 #********************
 # Paths
@@ -65,3 +66,9 @@ ADDRECAL=
 #CPU_VAR=1
 #NODES_VAR="nodes=1:ppn=1"
 #MODULE_GATK=
+
+#WALLTIME_VARCOLLECT=0:20:00
+#MEMORY_VARCOLLECT=8
+#CPU_VARCOLLECT=1
+#NODES_VARCOLLECT="nodes=1:ppn=1"
+#MODULE_VARCOLLECT="${NG_JAVA} ${NG_PICARD} ${NG_GATK} ${NG_IGVTOOLS}"

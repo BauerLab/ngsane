@@ -193,6 +193,7 @@ else
     THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files                                        
     mkdir -p $THISTMP
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
+	$MARKDUPLICATESADDPARAM \
         INPUT=$OUTDIR/${n/%$READONE.$FASTQ/.ash.bam} \
         OUTPUT=$OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} \
         METRICS_FILE=$OUTDIR/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \

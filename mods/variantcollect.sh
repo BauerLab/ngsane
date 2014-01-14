@@ -32,6 +32,7 @@ exit
 if [ ! $# -gt 3 ]; then usage ; fi
 
 #DEFAULTS
+TARGET="vcf"
 
 #INPUTS
 while [ "$1" != "" ]; do
@@ -41,6 +42,8 @@ while [ "$1" != "" ]; do
 		-i1			   )		shift; STAGEONEINPUT=${1//,/ } ;; # input dir from prev. stage
 		-i2			   )		shift; STAGETWOINPUT=${1//,/ } ;; # input from stage two
         -o             )        shift; OUTDIR=$1 ;; # outputdir
+		--dummy		   )		shift; DUMMY=$1 ;; # ending of dummy -- only necessary if target is different
+		--target	   )		shift; TARGET=$1 ;; # ending of target
 #        -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help    )        usage ;;
@@ -53,6 +56,7 @@ done
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
+
 
 ################################################################################
 CHECKPOINT="programs"
@@ -83,12 +87,16 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
-# get basename of f
-n=${f##*/}
+FILES=${FILES//$DUMMY/$TARGET}
+
+if [ ! $CPU_VARCOLLECT -eq 1 ]; then
+	echo "[NOTE] parallele"
+	PARALLELE="-nt $CPU_VARCOLLECT"
+fi
 
 # delete old bam file
 if [ -z "$RECOVERFROM" ]; then
-    if [ -e $OUTDIR/joined.vcf ]; then rm $OUTDIR/joined.vcf* }; fi
+    if [ -e $OUTDIR/joined.$TARGET ]; then rm $OUTDIR/joined.$TARGET* ; fi
 fi
 
 # ensure dir is there
@@ -99,6 +107,7 @@ VARIANTS=""
 VARFILES=""
 NAMES=""
 for f in $FILES; do
+	[ ! -e "$f" ] && echo "[NOTE] missing file $f (skipped)" && continue 
     i=${f/$STAGEONEINPUT/$STAGETWOINPUT} #point to var folder
     i=$(echo $i | sed 's/bam$/vcf/g') #${i/bam/"vcf"} # correct ending
 	VARFILES=$i
@@ -134,13 +143,14 @@ else
        -R $FASTA \
        -T CombineVariants \
        $VARIANTS \
-       -o $OUTDIR/joined.vcf \
+       -o $OUTDIR/joined.$TARGET \
        -genotypeMergeOptions PRIORITIZE \
        $ADDCOLLECTREGIONPARAM \
-       -priority $NAMES
+   	   $PARALLELE \
+       -priority $NAMES 
 
     # mark checkpoint
-    if [ -f $OUTDIR/joined.vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/joined.$TARGET ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
@@ -151,7 +161,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/joined.vcf
+    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/joined.$TARGET
 
     # mark checkpoint
     echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
@@ -170,13 +180,13 @@ else
             -T VariantEval \
             -R $FASTA \
             --dbsnp $DBSNPVCF \
-            --eval $OUTDIR/joined.vcf \
+            --eval $OUTDIR/joined.$TARGET \
 	       $ADDCOLLECTREGIONPARAM \
             --evalModule TiTvVariantEvaluator \
-            -o $OUTDIR/joined.eval.txt
+            -o $OUTDIR/joined.$TARGET.eval.txt
 
     # mark checkpoint
-    if [[ -f $OUTDIR/joined.eval.txt ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [[ -f $OUTDIR/joined.$TARGET.eval.txt ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
