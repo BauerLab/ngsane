@@ -335,7 +335,7 @@ if [ -n "$RUNVARCALLS" ]; then
         -c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
         --postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
                         -i <FILE> -t $CPU_VAR \
-                        -r $FASTA -d $DBROD -o $OUT/$TASK_VAR/$NAME -n $NAME \
+                        -r $FASTA -d $DBSNPVCF -o $OUT/$TASK_VAR/$NAME -n $NAME \
                         -H $HAPMAPVCF" #-K $ONEKGVCF"
 fi
 
@@ -358,7 +358,7 @@ if [ -n "$RUNVARCALLSBATCH" ]; then
 				-e .$ASR.bam -n $NODES_VAR -c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
 	        	--postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
 	                        -i <FILE> -t $CPU_VAR \
-	                        -r $FASTA -d $DBROD -o $OUT/${TASK_VAR}batch/$NAME -n $NAME$ADDDUMMY \
+	                        -r $FASTA -d $DBSNPVCF -o $OUT/${TASK_VAR}batch/$NAME -n $NAME$ADDDUMMY \
 	                        -H $HAPMAPVCF -L $i " 
 			) && echo -e "$JOBID"
 			if [ -n "$(echo $JOBID | grep Jobnumber)" ]; then	JOBIDS=$(waitForJobIds "$JOBID")":"$JOBIDS; fi
@@ -791,7 +791,7 @@ if [ -n "$RUNREALRECAL" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASK_RECAL -i $INPUT_REALRECAL -e .$ASD.bam \
         -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
-        --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASK_RECAL"
+        --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBSNPVCF -o $OUT/<DIR>/$TASK_RECAL"
 
 fi
 
@@ -1009,7 +1009,7 @@ then
 	if [ -n "$ARMED" ]; then
 	    qsub $PRIORITY -j y -o $QOUT/$TASK_GATKIND/$dir'_'$name'.out' -cwd -b y \
 		-l h_vmem=12G -N $TASK_GATKIND'_'$dir'_'$name $HOLD\
-		${NGSANE_BASE}/mods/gatkIndel.sh ${NGSANE_BASE} $OUT/$dir/$TASK_RECAL/$n2 $FASTA $DBROD \
+		${NGSANE_BASE}/mods/gatkIndel.sh ${NGSANE_BASE} $OUT/$dir/$TASK_RECAL/$n2 $FASTA $DBSNPVCF \
 		$REFSEQROD $OUT/$dir/$TASK_GATKIND
 	fi
 
@@ -1067,7 +1067,7 @@ then
     if [ -n "$ARMED" ]; then
 	qsub -j y -o $QOUT/$TASK_GATKIND/$NAME.out -cwd -b y \
 	    -l mem_free=20G -l h_vmem=20G -N $TASK_GATKIND"_"$NAME.out $HOLD\
-	    ${NGSANE_BASE}/mods/gatkIndelV2.sh ${NGSANE_BASE} $TASK_GATKIND"bamfiles.tmp" $FASTA $DBROD \
+	    ${NGSANE_BASE}/mods/gatkIndelV2.sh ${NGSANE_BASE} $TASK_GATKIND"bamfiles.tmp" $FASTA $DBSNPVCF \
 	    $REFSEQROD $OUT/genotype $SEQREG
     fi
 

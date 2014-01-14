@@ -40,6 +40,12 @@ MEMORY_BAMANN=8
 CPU_BAMANN=1
 NODES_BAMANN="nodes=1:ppn=1"
 
+WALLTIME_PINDEL=00:20:00
+MEMORY_PINDEL=8
+CPU_PINDEL=8
+NODES_PINDEL="nodes=1:ppn=8" 
+
+
 #********************
 # Tasks
 #********************
@@ -52,6 +58,7 @@ RUNVARCALLS=""       # SNP/Variant detection
 RUNANNOTATINGBAM=""  # annotate bam file with Gencode
 RUNSAMVAR=""         # run variant call 
 RUNANNOTATINGBAM=""  # run bam file annotation
+RUNPINDEL=""
 
 HTMLOUT="Summary"
 
@@ -72,9 +79,13 @@ FASTQ=fastq
 #FASTQ=fastq.gz
 BAMANNLIB=$(pwd)/referenceData/bamann/
 TASK_BAMANN="bamann_bwa"
+INPUT_IS_BWA="false" # if the aligner was not bwa you also have to specify the library type
+INPUT_TYPE="Illumina-PairEnd" # or (Illumina-MatePair)
+REFERENCE_DATE="20090201"
+
 
 FASTA=$(pwd)/referenceData/chr16.fasta
-DBROD=$(pwd)/referenceData/dbsnp_135.chr16.vcf
+DBSNPVCF=$(pwd)/referenceData/dbsnp_135.chr16.vcf
 HAPMAPVCF=$(pwd)/referenceData/hapmap_3.3.chr16.vcf
 ONEKGVCF=$(pwd)/referenceData/1000G_omni2.5.chr16.vcf
 REFSEQGTF=$(pwd)/referenceData/UCSC_GencodeV12.gtf
