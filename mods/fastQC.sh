@@ -80,7 +80,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    RUN_COMMAND="fastqc --nogroup -t $CPU_FASTQC --outdir $OUTDIR $INPUTFILE"
+    RUN_COMMAND="fastqc $FASTQCADDPARAM -t $CPU_FASTQC --outdir $OUTDIR $INPUTFILE"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     # check for ".fastq.gz" suffix as FASTQC removes both suffixes then
     if [ "$FASTQ" != "fastq.gz" ];then 
@@ -100,7 +100,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     if [ "$PAIRED" = "1" ];then
-        RUN_COMMAND="fastqc --nogroup -t $CPU_FASTQC --outdir $OUTDIR ${INPUTFILE/%$READONE.$FASTQ/$READTWO.$FASTQ}"
+        RUN_COMMAND="fastqc $FASTQCADDPARAM -t $CPU_FASTQC --outdir $OUTDIR ${INPUTFILE/%$READONE.$FASTQ/$READTWO.$FASTQ}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         R2=${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.$FASTQ}
         if [ "$FASTQ" != "fastq.gz" ];then 
