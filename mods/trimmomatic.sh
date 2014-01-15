@@ -9,6 +9,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
+# RESULTFILENAME fastq/<DIR>"_"$TASK_TRIMMOMATIC/<SAMPLE>$READONE.$FASTQ
 
 echo ">>>>> readtrimming with TRIMMOMATIC"
 echo ">>>>> startdate "`date`
@@ -63,7 +64,7 @@ CHECKPOINT="parameters"
 n=${f##*/}
 
 #is paired ?
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     echo "[NOTE] PAIRED library"
     PAIRED="1"
 else
@@ -88,13 +89,13 @@ fi
 echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 
 FASTQDIR=$(basename $(dirname $f))
-o=${f/$FASTQDIR/$FASTQDIR"_"$TASKTRIMMOMATIC}
+o=${f/$FASTQDIR/$FASTQDIR"_"$TASK_TRIMMOMATIC}
 FASTQDIRTRIM=$(dirname $o)
 
 echo $FASTQDIRTRIM
 if [ ! -d $FASTQDIRTRIM ]; then mkdir -p $FASTQDIRTRIM; fi
 echo $f "->" $o
-if [ "$PAIRED" = "1" ]; then echo ${f/$READONE/$READTWO} "->" ${o/$READONE/$READTWO} ; fi
+if [ "$PAIRED" = "1" ]; then echo ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} "->" ${o/%$READON.$FASTQE/$READTWO.$FASTQ} ; fi
 
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -115,10 +116,10 @@ else
     # Paired read
     if [ "$PAIRED" = "1" ]
     then
-        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC $f ${f/$READONE/$READTWO} $o ${o/$READONE/${READONE}_unpaired} ${o/$READONE/$READTWO} ${o/$READONE/${READTWO}_unpaired} $TRIMMOMATICSTEPS &>  ${o/%$READONE.$FASTQ/}.log"
+        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} $o ${o/%$READONE.$FASTQ/$READONE.$FASTQ_unpaired} ${o/%$READONE.$FASTQ/$READTWO.$FASTQ} ${o/%$READONE.$FASTQ/$READTWO.$FASTQ_unpaired} $TRIMMOMATICSTEPS -trimlog ${o/%$READONE.$FASTQ/}.log"
 
     else
-        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC $f $o $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
+        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC $f $o $TRIMMOMATICSTEPS -trimlog ${o/%$READONE.$FASTQ/}.log"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
@@ -128,6 +129,7 @@ else
 fi
 
 ################################################################################
+[ -e $FASTQDIRTRIM/${n}.dummy ] && rm $FASTQDIRTRIM/${n}.dummy
 echo ">>>>> readtrimming with TRIMMOMATIC - FINISHED"
 echo ">>>>> enddate "`date`
 

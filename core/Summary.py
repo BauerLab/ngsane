@@ -183,7 +183,7 @@ def samstats(statsfile):
 
 
 
-# sam statiscis for initial aligment
+# blue statiscis for initial aligment
 def blue(statsfile):
     names=["Total reads","Reads OK","Reads OK%","healed","healed%","not healed", "not healed %","discarded", "discarded %","subs","dels","ins"]
     values=[]
@@ -439,8 +439,10 @@ def variant(variantFile):
 	names=["Total","known", "SNPdb Conc", "variantRatePerBp", "hetHomRatio", "novel", "variantRatePerBp","hetHomRatio"]
 	values=[]
 	file=open(variantFile).read()
-	CO=re.split("[ \t\n]+", file.split("CompOverlap")[3])
-	values.append(int(CO[5])) #total
+#	CO=re.split("[ \t\n]+", file.split("CompOverlap")[3])
+#	values.append(int(CO[5])) #total
+	CO=re.split("[ \t\n]+", file.split("CountVariants")[3])
+	values.append(int(CO[6])) #total
 	CO=re.split("[ \t\n]+", file.split("CompOverlap")[4])
 	values.append(int(CO[5])) #known
 	values.append(float(CO[10])) #SNPconc
@@ -883,6 +885,25 @@ def butterflyStats(logFile):
     
     return names, values
 
+def bigwigStats(logFile):
+    names=["Library Size", "Normalized to", "Scale factor"]
+    values=[]
+    file=open(logFile).read()
+    # populate
+    tmp=file.split("library size:")[1].strip().split()[0]
+    LS=float(tmp.strip())
+    values.append(LS)
+
+    tmp=file.split("normalize to:")[1].strip().split()[0]
+    NT=float(tmp.strip())
+    values.append(NT)
+
+    tmp=file.split("scale factor:")[1].strip().split()[0]
+    SF=float(tmp.strip())
+    values.append(SF)
+
+    return names, values
+
 #################33
 # TEMP
 
@@ -1088,7 +1109,9 @@ for d in dir:
                 names,values=chrysalisStats(f)
             if (type=="trinity_butterfly"):
                 names,values=butterflyStats(f)
-
+            if (type=="bigwig"):
+				names,values=bigwigStats(f)
+            
             result=addValues(result,values)
 
             # only list file structure from current root
@@ -1098,7 +1121,7 @@ for d in dir:
             psresult.append([values,filename])
             oaresult=addValues(oaresult,values)
                 
-        except :
+        except:
             sys.stderr.write("error with "+f+"\n")
             traceback.print_exc()
             #sys.exit()

@@ -4,7 +4,7 @@
 # QC:
 # author: Denis C. Bauer
 # date: May.2013
-
+# RESULTFILENAME <TASK>/<DIR>/<DIR><ADDDUMMY>.filter.snps.vcf
 
 echo ">>>>> call SNPs using GATK"
 echo ">>>>> startdate "`date`
@@ -131,7 +131,8 @@ echo -e "\n********* $CHECKPOINT\n"
 CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then 
-    dmget -a ${FILES//,/ }; 
+    dmget -a ${FILES//,/ };
+	dmget -a $OUTDIR/*
 fi
     
 echo -e "\n********* $CHECKPOINT\n"    
@@ -143,10 +144,12 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     echo "[NOTE] $CHECKPOINT"
     
+	for f in ${FILES//,/ }; do LIST=$LIST"-I $f " ; done
+	
     # -nt $THREADS <- it is not parallele (2012)
     # from new versions add --computeSLOD
     # http://seqanswers.com/forums/showthread.php?t=14836
-    echo "java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l INFO \
+    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l INFO \
             -T UnifiedGenotyper \
             -glm BOTH \
             -R $FASTA \
@@ -164,16 +167,9 @@ else
             --out $OUTDIR/$NAME.raw.vcf \
             -stand_call_conf 30.0 \
             $REGION \
-            -stand_emit_conf 10.0 \\" > $OUTDIR/gatkVarcall.tmp
-            
-    for f in ${FILES//,/ }; do echo "-I $f \\" >>$OUTDIR/gatkVarcall.tmp ; done
-    echo " -dcov 1000 " >> $OUTDIR/gatkVarcall.tmp
-
-    # set up to execute
-    echo "rm $OUTDIR/gatkVarcall.tmp" >> $OUTDIR/gatkVarcall.tmp
-    chmod -u=rwx $OUTDIR/gatkVarcall.tmp
-    $OUTDIR/gatkVarcall.tmp
-
+            -stand_emit_conf 10.0 \
+			$LIST \
+			-dcov 1000
 
     echo "[NOTE] get snps only"
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
@@ -360,7 +356,7 @@ else
                 -T VariantEval \
                 -R $FASTA \
                 --dbsnp $DBSNPVCF \
-                --eval $OUTDIR/$NAME.recalfilt.snps.vcf \
+                --eval $OUTDIR/$NAME.recalfilt.vcf \
                 --evalModule TiTvVariantEvaluator \
                 -o $OUTDIR/$NAME.recalfilt.eval.txt
     
@@ -371,5 +367,6 @@ else
 fi 
 
 ################################################################################
+[ -e $OUTDIR/$NAME.filter.snps.vcf.dummy ] && rm $OUTDIR/$NAME.filter.snps.vcf.dummy
 echo ">>>>> call SNPs using GATK - FINISHED"
 echo ">>>>> enddate "`date`

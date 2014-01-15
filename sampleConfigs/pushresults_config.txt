@@ -34,7 +34,7 @@ READONE="_R1"
 READTWO="_R2"
 
 # fastq file suffix
-FASTQ="fq.gz"
+FASTQ="fastq.gz"
 
 #********************
 # PARAMETER (mandatory)

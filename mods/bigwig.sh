@@ -99,6 +99,7 @@ CHECKPOINT="recall files from tape"
 if [ -n "$DMGET" ]; then
 	dmget -a $(dirname $FASTA)/*
 	dmget -a ${f}*
+	dmget -a ${OUTDIR}
 fi
     
 echo -e "\n********* $CHECKPOINT\n"
@@ -120,12 +121,17 @@ else
         echo "[NOTE] single-end library detected"
     fi
 
-    NORMALIZETO=1000000
+	if [ -z "$NORMALIZETO" ]; then NORMALIZETO=1000000; fi
     NUMBEROFREADS=$(samtools view -c -F 1028 $f )
-    SCALEFACTOR=`echo "scale=3; $NORMALIZETO/$NUMBEROFREADS" | bc`
+	if [ -z "$SCALEFACTOR" ]; then 
+		SCALEFACTOR=`echo "scale=3; $NORMALIZETO/$NUMBEROFREADS" | bc`; 
+	else
+		NORMALIZETO="NA"
+	fi
     
-    echo "[NOTE] library size (mapped reads): $NUMBEROFREADS" 
-    echo "[NOTE] normalize to $NORMALIZETO, scale factor: $SCALEFACTOR"
+    echo "library size: $NUMBEROFREADS" > $OUTDIR/${n/%.$ASD.bam/.bw.stats}
+    echo "normalize to: $NORMALIZETO" >> $OUTDIR/${n/%.$ASD.bam/.bw.stats}
+    echo "scale factor: $SCALEFACTOR" >> $OUTDIR/${n/%.$ASD.bam/.bw.stats}
         
     if [ "$PAIRED" = "1" ]; then 
     	echo "[NOTE] Paired end libaray detected, ignore fragment length parameter"

@@ -5,7 +5,7 @@
 # date: Nov.2013
 
 # messages to look out for -- relevant for the QC.sh script:
-# QCVARIABLES,
+# QCVARIABLES,config not found
 # RESULTFILENAME <DIR>/<TASK>/<SAMPLE>
 
 echo ">>>>> Structural Variant Calling with Pindel"
@@ -63,23 +63,25 @@ module list
 echo $PATH
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
+PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
+PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 
-#echo "[NOTE] set java parameters"
-#JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_RECAL*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
-#unset _JAVA_OPTIONS
-#echo "JAVAPARAMS "$JAVAPARAMS
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_PINDEL*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-#echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
-#[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
+echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
+[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 #echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 #[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--Pindel       --\n "$(pindel --v | grep version)
 [ -z "$(pindel)" ] && echo "[ERROR] no pindel detected" && exit 1
-#echo -e "--igvtools    --\n "$(java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar version 2>&1)
-#[ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
-#echo -e "--GATK        --\n "$(java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar --version)
-#[ ! -f $PATH_GATK/GenomeAnalysisTK.jar ] && echo "[ERROR] no GATK detected" && exit 1
+echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+[ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
+echo -e "--GATK        --\n "$(java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar --version)
+[ ! -f $PATH_GATK/GenomeAnalysisTK.jar ] && echo "[ERROR] no GATK detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -89,27 +91,19 @@ CHECKPOINT="parameters"
 f=${f/%.dummy/} #if input came from pipe
 n=${f##*/}
 
-#BAMREADS=`head -n1 $f.stats | cut -d " " -f 1`
-
-#if [ -n "$SEQREG" ]; then REGION="-L $SEQREG"; fi
-
-#is paired ?
-p=`grep "paired in " $f.stats | cut -d " " -f 1`
-if [ ! "$p" -eq "0" ]; then
-    PAIRED="1"
-    echo "[NOTE] PAIRED"
-else
-    echo "[NOTE] SINGLE"
-    PAIRED="0"
-fi
-
 NAME=$(basename $f)
 NAME=${NAME/.$ASD.bam/}
+
+REFERENCE_NAME=$(basename $FASTA)
+REFERENCE_NAME=${REFERENCE_NAME/%.*/}
+REFERENCE_ENDING=${FASTA/*./}
+
+echo $REFERENCE_ENDING" "$REFERENCE_DATE" "$REFERENCE_NAME
 
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    [ -e $OUTDIR/$NAME.summary.txt ] && rm $OUTDIR/$NAME*
+    [ -e $OUTDIR/$NAME"_"BD ] && rm $OUTDIR/$NAME*
 fi
 
 
@@ -123,6 +117,60 @@ fi
     
 echo -e "\n********* $CHECKPOINT\n"    
 
+
+################################################################################
+CHECKPOINT="calculate inner distance"                                                                                                
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    
+
+	INDIR=${OUTDIR/-$TASK_PINDEL/}
+
+	if [ ! -e $INDIR/metrices/$n.insert_size_metrics ]; then
+
+		echo "[NOTE] $INDIR/metrices/$n.insert_size_metrics does not exist: start insert-size calculation"
+		if [ ! -d $INDIR/metrices ]; then mkdir -p $INDIR/metrices; fi
+
+
+	    export PATH=$PATH:/usr/bin/
+	    THISTMP=$TMP/$NAME$RANDOM #mk tmp dir because picard writes none-unique files
+	    mkdir -p $THISTMP
+
+		echo "[NOTE] reorder to be conform with reference"
+	    java $JAVAPARAMS -jar $PATH_PICARD/ReorderSam.jar \
+	        INPUT=$f \
+	        REFERENCE=$FASTA \
+			VALIDATION_STRINGENCY=SILENT \
+	        OUTPUT=$THISTMP/$NAME.bam
+
+
+		echo "[NOTE] run picard metrices to get insert size"
+	    java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
+	        INPUT=$THISTMP/$NAME.bam  \
+	        REFERENCE_SEQUENCE=$FASTA \
+	        OUTPUT=$INDIR/metrices/$n \
+	        VALIDATION_STRINGENCY=SILENT \
+	        PROGRAM=CollectAlignmentSummaryMetrics \
+	        PROGRAM=CollectInsertSizeMetrics \
+	        PROGRAM=QualityScoreDistribution \
+	        TMP_DIR=$THISTMP
+	    for im in $( ls $INDIR/metrices/*.pdf ); do
+	        convert $im ${im/pdf/jpg}
+	    done
+	    [ -d $THISTMP ] && rm -r $THISTMP
+
+		
+	fi
+
+    # mark checkpoint
+    if [ -f ${f/$INPUT_PINDEL/$INPUT_PINDEL/metrices}.insert_size_metrics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi
+
+
+
+
 ################################################################################
 CHECKPOINT="create bam config file"
 
@@ -131,10 +179,17 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     echo "[NOTE] $CHECKPOINT"
 
+	if [ ! -e $f.bai ]; then
+		echo "[NOTE] create index for bam file"
+		samtools index $f
+	fi
+
 	# grep the median insert size for this file from the previously run Picard metrices
-	command="grep MEDIAN_INSERT_SIZE  ${f/$INPUT_PINDEL/$INPUT_PINDEL\/metrices}.insert_size_metrics -A 1 | tail -n 1 | cut -f 1"
-	echo $command 
-	INSERT=$(eval $command)
+	if [ -z "$INSERT" ]; then # sometimes Picard insert size calculation is wrong...
+		command="grep MEDIAN_INSERT_SIZE  ${f/$INPUT_PINDEL/$INPUT_PINDEL/metrices}.insert_size_metrics -A 1 | tail -n 1 | cut -f 1"
+		echo $command 
+		INSERT=$(eval $command)
+	fi
 	
 	echo -e "$f\t$INSERT\t$NAME" > $OUTDIR/$NAME.conf.txt
         
@@ -142,6 +197,7 @@ else
     if [ -f $OUTDIR/$NAME.conf.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
+
 
 ################################################################################
 CHECKPOINT="pindel"
@@ -151,18 +207,84 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     echo "[NOTE] $CHECKPOINT"
 
-	command="pindel $PINDELADDPARAM -f $FASTA -i $OUTDIR/$NAME.conf.txt -c ALL -o $OUTDIR/$NAME -T $CPU_PINDEL"
-	echo $command && eval $command
 
+	if [[ ${INPUT_IS_BWA}="false" ]]; then
 
-	for i in D SI LI INV TD BP ; do 
-		grep "#" $OUTDIR/$NAME"_"$i -A 1 | grep -v "#" | grep -v "\-\-" ;
-	done | sort -k8,8 -k 10,10n > $OUTDIR/$NAME.summary.txt
-        
-	rm $OUTDIR/$NAME.conf.txt
+		if [ -z "$INSERT" ]; then # sometimes Picard insert size calculation is wrong...
+			INSERT=$(grep MEDIAN_INSERT_SIZE  ${f/$INPUT_PINDEL/$INPUT_PINDEL/metrices}.insert_size_metrics -A 1 | tail -n 1 | cut -f 1)
+		fi
+
+		echo "[NOTE] need to convert non-bwa input"
+		command="samtools view $f | sam2pindel - $OUTDIR/$NAME.s2b.txt $INSERT $NAME 0 $INPUT_TYPE"
+		echo $command && eval $command
+
+		echo "[NOTE] run Pindel witn non-bwa alignment"
+		command="pindel $PINDELADDPARAM -f $FASTA -p $OUTDIR/$NAME.s2b.txt -c ALL -o $OUTDIR/$NAME -T $CPU_PINDEL"
+		echo $command && eval $command
+
+	else
+		echo "[NOTE] run Pindel with bwa alignment"
+		command="pindel $PINDELADDPARAM -f $FASTA -i $OUTDIR/$NAME.conf.txt -c ALL -o $OUTDIR/$NAME -T $CPU_PINDEL"
+		echo $command && eval $command
+
+	fi
 
     # mark checkpoint
-    if [ -f $OUTDIR/$NAME.summary.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$NAME"_"BP ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+
+
+################################################################################
+CHECKPOINT="convert to vcf"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    echo "[NOTE] $CHECKPOINT"
+
+	if [ ! -e ${FASTA/$REFERENCE_ENDING/fa} ]; then echo "[ERROR] pindel2vcf needs fasta file with .fa ending - please create a symbolic link"; exit -1; fi 
+
+	echo "[NOTE] convert to vcf"
+	for i in D SI LI INV TD BP ; do 
+		pindel2vcf -G -p $OUTDIR/$NAME"_"$i -r ${FASTA/$REFERENCE_ENDING/fa} -d $REFERENCE_DATE -R $REFERENCE_NAME -v $OUTDIR/$NAME"_"$i.vcf 
+	done
+
+    # mark checkpoint
+	if [ -f $OUTDIR/$NAME"_BP".vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+
+
+################################################################################
+CHECKPOINT="join vcf files"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    echo "[NOTE] $CHECKPOINT"
+
+	if [ ! -e ${FASTA/$REFERENCE_ENDING/fasta} ]; then echo "[ERROR] GenomeAnalysisTK.jar needs fasta file with .fasta ending - please create a symbolic link"; exit -1; fi 
+
+	VAR=""
+	for i in D SI LI INV TD BP ; do  VAR=$VAR" -V "$OUTDIR"/"$NAME"_"$i".vcf"; done
+
+	echo "[NOTE] join to single vcf"
+   	command="java $JAVAPARAMS -cp $PATH_GATK/GenomeAnalysisTK.jar org.broadinstitute.sting.tools.CatVariants \
+		-R ${FASTA/$REFERENCE_ENDING/fasta} $VAR -out $OUTDIR/$NAME.summary.unsorted.vcf"
+    echo $command && eval $command
+
+	echo "[NOTE] order to reference"
+    perl ${NGSANE_BASE}/tools/vcfsorter.pl ${FASTA/$REFERENCE_ENDING/dict} $OUTDIR/$NAME.summary.unsorted.vcf > $OUTDIR/$NAME.summary.sorteduncorr.vcf
+
+	echo "[NOTE] correct END values from pindel2vcf errors (http://www.biostars.org/p/88908/)"
+   	python ${NGSANE_BASE}/tools/checkpindelENDs.py $OUTDIR/$NAME.summary.sorteduncorr.vcf $OUTDIR/$NAME.$ASD.vcf
+        
+    # mark checkpoint
+    if [ -f $OUTDIR/$NAME.$ASD.vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+	rm $OUTDIR/$NAME.conf.txt $OUTDIR/$NAME.summary.sorteduncorr.vcf $OUTDIR/$NAME.summary.unsorted.vcf*
+	for i in D SI LI INV TD BP ; do rm $OUTDIR/$NAME"_"$i.vcf; done
 
 fi 
 

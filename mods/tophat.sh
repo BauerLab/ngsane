@@ -26,8 +26,7 @@ echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -o OUTDIR [OPTIONS]
 
 Script running read mapping for single and paired DNA reads from fastq files
 It expects a fastq file, pairdend, reference genome  as input and 
-It runs tophat, converts the output to .bam files, adds header information and
-writes the coverage information for IGV.
+It runs tophat, converts the output to .bam files, adds header information.
 
 required:
   -k | --toolkit <path>     location of the NGSANE repository 
@@ -62,7 +61,6 @@ while [ "$1" != "" ]; do
 	shift
 done
 
-#PROGRAMS (note, both configs are necessary to overwrite the default, here:e.g.  TASKTOPHAT)
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
@@ -76,7 +74,6 @@ module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 PATH_RNASEQC=$(dirname $(which RNA-SeQC.jar))
 
@@ -96,8 +93,6 @@ echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
-echo -e "--igvtools    --\n "$(java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar version 2>&1)
-[ ! -f $PATH_IGVTOOLS/igvtools.jar ] && echo "[ERROR] no igvtools detected" && exit 1
 echo -e "--picard      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
@@ -117,8 +112,12 @@ CHECKPOINT="parameters"
 # get basename of f (samplename)
 n=${f##*/}
 
+if [[ ! -e ${FASTA%.*}.1.bt2 ]]; then
+    echo "[ERROR] Bowtie2 index not detected. Exeute bowtieIndex.sh first"
+    exit 1
+fi
+
 # get info about input file
-FASTASUFFIX=${FASTA##*.}
 BAMFILE=$OUTDIR/../${n/%$READONE.$FASTQ/.$ASD.bam}
 
 #remove old files
@@ -127,7 +126,7 @@ if [ -z "$RECOVERFROM" ]; then
 fi
 
 
-if [ "$READONE" == "$READTWO" ]; then
+if [ -n "$READONE" ] && [ "$READONE" == "$READTWO" ]; then
 	echo "[ERROR] read1 == read2 " 1>&2 && exit 1
 elif [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
@@ -214,6 +213,16 @@ BIGWIGSDIR=$OUTDIR/../
 
 mkdir -p $OUTDIR
 
+if [ -n "$TOPHATTRANSCRIPTOMEINDEX" ]; then
+    echo "[NOTE] RNAseq --transcriptome-index specified: ${TOPHATTRANSCRIPTOMEINDEX}"
+    TOPHAT_TRANSCRIPTOME_PARAM="--transcriptome-index=${TOPHATTRANSCRIPTOMEINDEX}"
+    PICARD_REFERENCE=${TOPHATTRANSCRIPTOMEINDEX}.fa
+else
+    echo "[NOTE] no --transcriptome-index specified."
+    TOPHAT_TRANSCRIPTOME_PARAM=
+    PICARD_REFERENCE=$FASTA
+fi
+
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
@@ -221,6 +230,7 @@ CHECKPOINT="recall files from tape"
 if [ -n "$DMGET" ]; then
     dmget -a $(dirname $FASTA)/*
     dmget -a ${f/$READONE/"*"}
+    dmget -a $OUTDIR/*
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -232,11 +242,8 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     echo "[NOTE] tophat $(date)"
-    ## generating the index files
-    if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
-    if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
     
-    RUN_COMMAND="tophat $TOPHATADDPARAM $FASTQ_PHRED --keep-fasta-order --num-threads $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
+    RUN_COMMAND="tophat $TOPHATADDPARAM $TOPHAT_TRANSCRIPTOME_PARAM $FASTQ_PHRED --keep-fasta-order --num-threads $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA%.*} $f $f2"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     echo "[NOTE] tophat end $(date)"
 
@@ -271,14 +278,24 @@ else
     THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
     mkdir -p  $THISTMP
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
-         I=${BAMFILE/.bam/.samtools}.bam \
-         O=$BAMFILE \
-         LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID \
-         VALIDATION_STRINGENCY=SILENT \
+        I=${BAMFILE/.bam/.samtools}.bam \
+        O=$BAMFILE.rg \
+        LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID \
+        VALIDATION_STRINGENCY=SILENT \
         TMP_DIR=$THISTMP"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    rm -r $THISTMP
+    
     rm ${BAMFILE/.bam/.samtools}.bam
+        
+    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
+        I=$BAMFILE.rg \
+        O=$BAMFILE \
+        VALIDATION_STRINGENCY=SILENT \
+        TMP_DIR=$THISTMP"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+
+    rm $BAMFILE.rg
+    rm -r $THISTMP
 
     # mark checkpoint
     if [ -f $BAMFILE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -322,7 +339,6 @@ CHECKPOINT="index and calculate inner distance"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-
     echo "[NOTE] samtools index"
     samtools index $BAMFILE
 
@@ -333,7 +349,7 @@ else
     mkdir -p  $THISTMP
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
         INPUT=$BAMFILE \
-        REFERENCE_SEQUENCE=$FASTA \
+        REFERENCE_SEQUENCE=$PICARD_REFERENCE \
         OUTPUT=$OUTDIR/../metrices/$(basename $BAMFILE) \
         VALIDATION_STRINGENCY=SILENT \
         PROGRAM=CollectAlignmentSummaryMetrics \
@@ -353,22 +369,6 @@ else
 fi 
 
 ################################################################################
-CHECKPOINT="coverage track"    
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-
-    echo "[NOTE] igvtools"
-    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $BAMFILE \
-        $BAMFILE.cov.tdf ${FASTA/$FASTASUFFIX/}genome
-
-    # mark checkpoint
-    if [ -f $BAMFILE.cov.tdf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
-fi
-
-################################################################################
 CHECKPOINT="samstat"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -376,7 +376,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     echo "[NOTE] samstat"
-    samstat $BAMFILE
+    samstat $BAMFILE 2>&1 | tee | grep -v -P "Bad x in routine betai"
   
     # mark checkpoint
     if [ -f $BAMFILE.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -409,6 +409,17 @@ CHECKPOINT="RNA-SeQC"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+	## ensure bam is properly ordered for GATK
+	#reheader bam
+	java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=$BAMFILE O=${BAMFILE}_unsorted.bam R=$FASTA VALIDATION_STRINGENCY=SILENT
+
+	#sort
+	samtools sort ${BAMFILE}_unsorted.bam ${BAMFILE}_sorted
+	
+	#index
+	samtools index ${BAMFILE}_sorted.bam
+	
+	rm ${BAMFILE}_unsorted.bam
     
     # take doctored GTF if available
     if [ -n "$DOCTOREDGTFSUFFIX" ]; then 
@@ -426,9 +437,13 @@ else
         RNASeQCDIR=$OUTDIR/../${n/%$READONE.$FASTQ/_RNASeQC}
         mkdir -p $RNASeQCDIR
     
-        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE/.$ASD/.$ALN}|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
+        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE}_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG  2>&1 | tee | grep -v 'Ignoring SAM validation error: ERROR:'"
+        # TODO: find a way to fix the bamfile reg. the SAM error
+        # http://seqanswers.com/forums/showthread.php?t=28155
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
+    	rm ${BAMFILE}_sorted.bam
+    	rm ${BAMFILE}_sorted.bam.bai
     fi
 
     # mark checkpoint
@@ -455,10 +470,12 @@ fi
 ###############################################################################
 CHECKPOINT="cleanup"
 
-[ -e ${BAMFILE/.$ASD/.$ALN} ] && rm ${BAMFILE/.$ASD/.$ALN}
+[ -e ${BAMFILE/.$ASD/.$ALN} ] && rm ${BAMFILE/.$ASD/.$ALN} 
+
+[ -e ${BAMFILE/.$ASD/.$ALN}.bai ] && rm ${BAMFILE/.$ASD/.$ALN}.bai
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
+[ -e ${BAMFILE}.dummy ] && rm ${BAMFILE}.dummy
 echo ">>>>> alignment with TopHat - FINISHED"
 echo ">>>>> enddate "`date`

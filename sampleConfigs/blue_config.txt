@@ -1,5 +1,5 @@
 # author: Fabian Buske
-# date: May 2013
+# date: Oktober 2013
 
 #####################################
 # Resources
@@ -8,7 +8,7 @@
 #********************
 # Tasks
 #********************
-RUNFASTQSCREEN="1"    # 
+RUNBLUE="1"    # 
 
 #********************
 # Paths
@@ -33,17 +33,28 @@ QOUT=$OUT/qout
 #********************
 
 # fastq file suffix
-FASTQ="fq.gz"
+FASTQ="fastq.gz"
 
 # read indicator immediately preceding the fastq file suffix
 READONE="_R1"
 READTWO="_R2"
 
+# kmer size
+BLUE_KMER=25
+
+# approx. size of the reference genome
+# e.g. 3000000000 for human
+GENOMESIZE=3000000000
+
+# 
+BLUE_MINREPS=10
+
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
 
-# additional parameters for teasel
+# additional parameters for tessel
+# e.g. 
 TESSELADDPARAM=
 # additional parameters for blue 
 BLUEADDPARAM=

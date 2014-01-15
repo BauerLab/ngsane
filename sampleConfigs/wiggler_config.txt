@@ -1,5 +1,5 @@
 # author: Fabian Buske
-# date: June 2013
+# date: November 2013
 
 #####################################
 # Resources
@@ -19,7 +19,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_WIGGLER=$TASKBWA
+INPUT_WIGGLER=$TASK_BOWTIE
 
 # where to write the output
 OUT=$SOURCE
@@ -32,24 +32,21 @@ QOUT=$OUT/qout
 #********************
 
 # reference by chromosomes
-# e.g. /share/ClusterShare/biodata/contrib/fabbus/encodeDCC/maleByChrom/
+# e.g. /share/ClusterShare/biodata/contrib/ENCODE/encodeDCC/referenceSequences/maleByChrom/
 FASTA_CHROMDIR=
 
 # umap directory for reference
 # e.g. /share/ClusterShare/biodata/contrib/fabbus/umap/hg19_male/globalmap_k20tok54/
 WIGGLER_UMAPDIR=
 
-# Where wiggler puts its output
-WIGGLER_OUTPUTDIR=
-
-# wiggler output format (one of bg, wig, mat)
-WIGGLER_OUTPUTFORMAT=wig
+# wiggler output format (one of “bg”, “wig”)
+WIGGLER_OUTPUTFORMAT=
 
 #********************
 # PARAMETER (optional)
 #********************
 
-#additional wiggler parameters (smoothing etc)
+# additional wiggler parameters (smoothing etc)
 # e.g. "-k=tukey -w=300"
 WIGGLERADDPARAMS=
 
