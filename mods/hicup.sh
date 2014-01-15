@@ -218,7 +218,7 @@ else
 fi
 
 ################################################################################
-[ -e $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.dummy ] && rm $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.dummy
+[ -e $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz.dummy ] && rm $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz.dummy
 echo ">>>>> readmapping with hicup (bowtie) - FINISHED"
 echo ">>>>> enddate "`date`
 
