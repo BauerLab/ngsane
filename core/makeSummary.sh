@@ -624,14 +624,14 @@ fi
 # pindel
 ################################################################################
 if [ -n "$RUNPINDEL" ]; then 
-    summaryHeader "Variant calling" "$INPUT_PINDEL-$TASK_PINDEL" "pindel.sh,variantcollect.sh" "$SUMMARYTMP" 
+    summaryHeader "Structural Variants" "$INPUT_PINDEL-$TASK_PINDEL" "pindel.sh,variantcollect.sh" "$SUMMARYTMP" 
 #$OUT/variant/${INPUT_PINDEL}-${TASK_PINDEL}-$(echo ${DIR[@]}|sed 's/ /_/g')/ "joined.eval.txt"
 
 	vali=$OUT/variant/${INPUT_PINDEL}-${TASK_PINDEL}-$(echo ${DIR[@]}|sed 's/ /_/g')/
     echo "<h3>Variants</h3>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "joined.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
 
-    summaryFooter "$TASK_PINDEL" "$SUMMARYTMP"
+    summaryFooter "$INPUT_PINDEL-$TASK_PINDEL" "$SUMMARYTMP"
 fi
 
  

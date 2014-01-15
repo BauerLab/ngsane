@@ -339,54 +339,55 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
 </div><div class='wrapper'><div class='hidden'>
 <div id='fastQC_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/fastQC 
+# NGSANE /apps/gi/ngsane/devel_master//mods/fastQC 
 ###################################################
+>>>>>>>>>> Finished
 QC_PASS .. finished are 3/3
 >>>>>>>>>> Errors
+QC_PASS .. 0 have # QCVARIABLES/3
 QC_PASS .. 0 have Resource temporarily unavailable/3
 >>>>>>>>>> CheckPoints 
 QC_PASS .. 3 have programs/3
 QC_PASS .. 3 have parameters/3
 QC_PASS .. 3 have recall files from tape/3
-QC_PASS .. 3 have fastqc/3
+QC_PASS .. 3 have fastqc read 1/3
+QC_PASS .. 3 have fastqc read 2/3
+
 </pre></div>
 <div id='fastQC_notes'><pre>
 
 qout/fastQC/ChIPseq_Histone_H3k9me3_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/fastQC/job.20131121.log
-[NOTE] set java parameters
-
-qout/fastQC/ChIPseq_input_Input_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/fastQC/job.20131121.log
-[NOTE] set java parameters
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/fastQC/job.20140115.log [NOTE] set java parameters [NOTE] Single-end pair library detected. No second read to process.
 
 qout/fastQC/ChIPseq_TF_CTCF_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/fastQC/job.20131121.log
-[NOTE] set java parameters
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/fastQC/job.20140115.log [NOTE] set java parameters [NOTE] Single-end pair library detected. No second read to process.
+
+qout/fastQC/ChIPseq_input_Input_chr16.out
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/fastQC/job.20140115.log [NOTE] set java parameters [NOTE] Single-end pair library detected. No second read to process.
 </pre></div>
 <div id='fastQC_errors'><pre>
 
 qout/fastQC/ChIPseq_Histone_H3k9me3_chr16.out
 -- all good, no errors
 
-qout/fastQC/ChIPseq_input_Input_chr16.out
+qout/fastQC/ChIPseq_TF_CTCF_chr16.out
 -- all good, no errors
 
-qout/fastQC/ChIPseq_TF_CTCF_chr16.out
+qout/fastQC/ChIPseq_input_Input_chr16.out
 -- all good, no errors
 </pre></div>
 <div id='fastQC_logfiles'><div class='box'>
 <a href='../qout/fastQC/ChIPseq_Histone_H3k9me3_chr16.out'>ChIPseq_Histone_H3k9me3_chr16.out</a><br/>
-<a href='../qout/fastQC/ChIPseq_input_Input_chr16.out'>ChIPseq_input_Input_chr16.out</a><br/>
 <a href='../qout/fastQC/ChIPseq_TF_CTCF_chr16.out'>ChIPseq_TF_CTCF_chr16.out</a><br/>
+<a href='../qout/fastQC/ChIPseq_input_Input_chr16.out'>ChIPseq_input_Input_chr16.out</a><br/>
 </div></div>
 <script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#fastQC_counter_notes').text('6');
+            $('#fastQC_counter_notes').text('3');
             $('#fastQC_counter_errors').text('0');
-            $('#fastQC_counter_checkpoints_passed').text('6');
+            $('#fastQC_counter_checkpoints_passed').text('8');
             $('#fastQC_counter_checkpoints_failed').text('0'); 
             if (0==0){
                 $('#fastQC_counter_errors').toggleClass('errors neutral');
@@ -443,12 +444,16 @@ qout/fastQC/ChIPseq_TF_CTCF_chr16.out
             <h2 id='bowtie2_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>
 <h2 id='bowtie2_h_files' class='sub inactive' rel='files'>Result files</h2>
 </div><div class='wrapper'><div class='hidden'>
+don't understand --filesuffix
+don't understand .asd.bam
 <div id='bowtie2_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/bowtie2 
+# NGSANE /apps/gi/ngsane/devel_master//mods/bowtie2 
 ###################################################
+>>>>>>>>>> Finished
 QC_PASS .. finished are 3/3
 >>>>>>>>>> Errors
+QC_PASS .. 0 have # QCVARIABLES/3
 QC_PASS .. 0 have Resource temporarily unavailable/3
 >>>>>>>>>> CheckPoints 
 QC_PASS .. 3 have programs/3
@@ -460,58 +465,42 @@ QC_PASS .. 3 have statistics/3
 QC_PASS .. 3 have calculate inner distance/3
 QC_PASS .. 3 have samstat/3
 QC_PASS .. 3 have verify/3
+
 </pre></div>
 <div id='bowtie2_notes'><pre>
 
 qout/bowtie2/ChIPseq_Histone_H3k9me3_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/bowtie2/job.20131121.log
-[NOTE] set java parameters
-[NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
-[NOTE] Sanger Phred33	(34  66) fastq format detected
-[NOTE] PASS check mapping: 1942 == 1942
-
-qout/bowtie2/ChIPseq_input_Input_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/bowtie2/job.20131121.log
-[NOTE] set java parameters
-[NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
-[NOTE] Sanger Phred33	Illumina 1.8 Phred33	(35  67) fastq format detected
-[NOTE] PASS check mapping: 1491 == 1491
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/bowtie2/job.20140115.log [NOTE] set java parameters [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina [NOTE] Sanger Phred33 (34, 66) fastq format detected [NOTE] PASS check mapping: 1942 == 1942
 
 qout/bowtie2/ChIPseq_TF_CTCF_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/bowtie2/job.20131121.log
-[NOTE] set java parameters
-[NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
-[NOTE] Sanger Phred33	Illumina 1.8 Phred33	(35  67) fastq format detected
-[NOTE] PASS check mapping: 2095 == 2095
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/bowtie2/job.20140115.log [NOTE] set java parameters [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina [NOTE] Sanger Phred33 Illumina 1.8 Phred33 (35, 67) fastq format detected [NOTE] PASS check mapping: 2095 == 2095
+
+qout/bowtie2/ChIPseq_input_Input_chr16.out
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/bowtie2/job.20140115.log [NOTE] set java parameters [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina [NOTE] Sanger Phred33 Illumina 1.8 Phred33 (35, 67) fastq format detected [NOTE] PASS check mapping: 1491 == 1491
 </pre></div>
 <div id='bowtie2_errors'><pre>
 
 qout/bowtie2/ChIPseq_Histone_H3k9me3_chr16.out
 -- all good, no errors
 
-qout/bowtie2/ChIPseq_input_Input_chr16.out
+qout/bowtie2/ChIPseq_TF_CTCF_chr16.out
 -- all good, no errors
 
-qout/bowtie2/ChIPseq_TF_CTCF_chr16.out
+qout/bowtie2/ChIPseq_input_Input_chr16.out
 -- all good, no errors
 </pre></div>
 <div id='bowtie2_logfiles'><div class='box'>
 <a href='../qout/bowtie2/ChIPseq_Histone_H3k9me3_chr16.out'>ChIPseq_Histone_H3k9me3_chr16.out</a><br/>
-<a href='../qout/bowtie2/ChIPseq_input_Input_chr16.out'>ChIPseq_input_Input_chr16.out</a><br/>
 <a href='../qout/bowtie2/ChIPseq_TF_CTCF_chr16.out'>ChIPseq_TF_CTCF_chr16.out</a><br/>
-</div></div>
-<div id='bowtie2_files'><div class='box'>
-<a href='../ChIPseq_Histone/bowtie2/H3k9me3_chr16.asd.bam'>H3k9me3_chr16.asd.bam</a><br/>
-<a href='../ChIPseq_input/bowtie2/Input_chr16.asd.bam'>Input_chr16.asd.bam</a><br/>
-<a href='../ChIPseq_TF/bowtie2/CTCF_chr16.asd.bam'>CTCF_chr16.asd.bam</a><br/>
+<a href='../qout/bowtie2/ChIPseq_input_Input_chr16.out'>ChIPseq_input_Input_chr16.out</a><br/>
 </div></div>
 <script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#bowtie2_counter_notes').text('15');
+            $('#bowtie2_counter_notes').text('3');
             $('#bowtie2_counter_errors').text('0');
-            $('#bowtie2_counter_checkpoints_passed').text('11');
+            $('#bowtie2_counter_checkpoints_passed').text('12');
             $('#bowtie2_counter_checkpoints_failed').text('0'); 
             if (0==0){
                 $('#bowtie2_counter_errors').toggleClass('errors neutral');
@@ -575,73 +564,58 @@ qout/bowtie2/ChIPseq_TF_CTCF_chr16.out
             <h2 id='bigwig_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>
 <h2 id='bigwig_h_files' class='sub inactive' rel='files'>Result files</h2>
 </div><div class='wrapper'><div class='hidden'>
+don't understand --filesuffix
+don't understand .bw
 <div id='bigwig_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/bigwig 
+# NGSANE /apps/gi/ngsane/devel_master//mods/bigwig 
 ###################################################
+>>>>>>>>>> Finished
 QC_PASS .. finished are 3/3
 >>>>>>>>>> Errors
+QC_PASS .. 0 have # QCVARIABLES/3
 QC_PASS .. 0 have Resource temporarily unavailable/3
 >>>>>>>>>> CheckPoints 
 QC_PASS .. 3 have programs/3
 QC_PASS .. 3 have parameters/3
 QC_PASS .. 3 have recall files from tape/3
 QC_PASS .. 3 have generate bigwigs/3
+
 </pre></div>
 <div id='bigwig_notes'><pre>
 
 qout/bigwig/ChIPseq_Histone_H3k9me3_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/bigwig/job.20131121.log
-[NOTE] Reference: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/chr16.fasta
-[NOTE] Chromosome size: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/chr16.chrom.sizes
-[NOTE] single-end library detected
-[NOTE] fragment length: 300
-[NOTE] generate bigwig
-
-qout/bigwig/ChIPseq_input_Input_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/bigwig/job.20131121.log
-[NOTE] Reference: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/chr16.fasta
-[NOTE] Chromosome size: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/chr16.chrom.sizes
-[NOTE] single-end library detected
-[NOTE] fragment length: 300
-[NOTE] generate bigwig
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/bigwig/job.20140115.log [NOTE] Reference: /apps/gi/ngsane/devel_master/smokebox/referenceData/chr16.fasta [NOTE] Chromosome size: /apps/gi/ngsane/devel_master/smokebox/referenceData/chr16.chrom.sizes [NOTE] single-end library detected [NOTE] fragment length: 300 [NOTE] generate bigwig
 
 qout/bigwig/ChIPseq_TF_CTCF_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/bigwig/job.20131121.log
-[NOTE] Reference: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/chr16.fasta
-[NOTE] Chromosome size: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/chr16.chrom.sizes
-[NOTE] single-end library detected
-[NOTE] fragment length: 300
-[NOTE] generate bigwig
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/bigwig/job.20140115.log [NOTE] Reference: /apps/gi/ngsane/devel_master/smokebox/referenceData/chr16.fasta [NOTE] Chromosome size: /apps/gi/ngsane/devel_master/smokebox/referenceData/chr16.chrom.sizes [NOTE] single-end library detected [NOTE] fragment length: 300 [NOTE] generate bigwig
+
+qout/bigwig/ChIPseq_input_Input_chr16.out
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/bigwig/job.20140115.log [NOTE] Reference: /apps/gi/ngsane/devel_master/smokebox/referenceData/chr16.fasta [NOTE] Chromosome size: /apps/gi/ngsane/devel_master/smokebox/referenceData/chr16.chrom.sizes [NOTE] single-end library detected [NOTE] fragment length: 300 [NOTE] generate bigwig
 </pre></div>
 <div id='bigwig_errors'><pre>
 
 qout/bigwig/ChIPseq_Histone_H3k9me3_chr16.out
 -- all good, no errors
 
-qout/bigwig/ChIPseq_input_Input_chr16.out
+qout/bigwig/ChIPseq_TF_CTCF_chr16.out
 -- all good, no errors
 
-qout/bigwig/ChIPseq_TF_CTCF_chr16.out
+qout/bigwig/ChIPseq_input_Input_chr16.out
 -- all good, no errors
 </pre></div>
 <div id='bigwig_logfiles'><div class='box'>
 <a href='../qout/bigwig/ChIPseq_Histone_H3k9me3_chr16.out'>ChIPseq_Histone_H3k9me3_chr16.out</a><br/>
-<a href='../qout/bigwig/ChIPseq_input_Input_chr16.out'>ChIPseq_input_Input_chr16.out</a><br/>
 <a href='../qout/bigwig/ChIPseq_TF_CTCF_chr16.out'>ChIPseq_TF_CTCF_chr16.out</a><br/>
-</div></div>
-<div id='bigwig_files'><div class='box'>
-<a href='../ChIPseq_Histone/bowtie2/H3k9me3_chr16.bw'>H3k9me3_chr16.bw</a><br/>
-<a href='../ChIPseq_input/bowtie2/Input_chr16.bw'>Input_chr16.bw</a><br/>
-<a href='../ChIPseq_TF/bowtie2/CTCF_chr16.bw'>CTCF_chr16.bw</a><br/>
+<a href='../qout/bigwig/ChIPseq_input_Input_chr16.out'>ChIPseq_input_Input_chr16.out</a><br/>
 </div></div>
 <script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#bigwig_counter_notes').text('18');
+            $('#bigwig_counter_notes').text('3');
             $('#bigwig_counter_errors').text('0');
-            $('#bigwig_counter_checkpoints_passed').text('6');
+            $('#bigwig_counter_checkpoints_passed').text('7');
             $('#bigwig_counter_checkpoints_failed').text('0'); 
             if (0==0){
                 $('#bigwig_counter_errors').toggleClass('errors neutral');
@@ -695,12 +669,16 @@ qout/bigwig/ChIPseq_TF_CTCF_chr16.out
             <h2 id='peakranger_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>
 <h2 id='peakranger_h_files' class='sub inactive' rel='files'>Result files</h2>
 </div><div class='wrapper'><div class='hidden'>
+don't understand --filesuffix
+don't understand _region.bed
 <div id='peakranger_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/peakranger 
+# NGSANE /apps/gi/ngsane/devel_master//mods/peakranger 
 ###################################################
+>>>>>>>>>> Finished
 QC_PASS .. finished are 1/1
 >>>>>>>>>> Errors
+QC_PASS .. 0 have # QCVARIABLES/1
 QC_PASS .. 0 have Resource temporarily unavailable/1
 >>>>>>>>>> CheckPoints 
 QC_PASS .. 1 have programs/1
@@ -708,14 +686,12 @@ QC_PASS .. 1 have parameters/1
 QC_PASS .. 1 have recall files from tape/1
 QC_PASS .. 1 have peakranger/1
 QC_PASS .. 1 have zip/1
+
 </pre></div>
 <div id='peakranger_notes'><pre>
 
 qout/peakranger/ChIPseq_Histone_H3k9me3_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/peakranger/job.20131121.log
-[NOTE] data quality
-[NOTE] library complexity
-[NOTE] calling broad peaks
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/peakranger/job.20140115.log [NOTE] data quality [NOTE] library complexity [NOTE] calling broad peaks
 </pre></div>
 <div id='peakranger_errors'><pre>
 
@@ -725,16 +701,13 @@ qout/peakranger/ChIPseq_Histone_H3k9me3_chr16.out
 <div id='peakranger_logfiles'><div class='box'>
 <a href='../qout/peakranger/ChIPseq_Histone_H3k9me3_chr16.out'>ChIPseq_Histone_H3k9me3_chr16.out</a><br/>
 </div></div>
-<div id='peakranger_files'><div class='box'>
-<a href='../ChIPseq_Histone/peakranger/H3k9me3_chr16-Input_chr16_region.bed'>H3k9me3_chr16-Input_chr16_region.bed</a><br/>
-</div></div>
 <script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#peakranger_counter_notes').text('4');
+            $('#peakranger_counter_notes').text('1');
             $('#peakranger_counter_errors').text('0');
-            $('#peakranger_counter_checkpoints_passed').text('7');
+            $('#peakranger_counter_checkpoints_passed').text('8');
             $('#peakranger_counter_checkpoints_failed').text('0'); 
             if (0==0){
                 $('#peakranger_counter_errors').toggleClass('errors neutral');
@@ -786,12 +759,16 @@ qout/peakranger/ChIPseq_Histone_H3k9me3_chr16.out
             <h2 id='macs2_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>
 <h2 id='macs2_h_files' class='sub inactive' rel='files'>Result files</h2>
 </div><div class='wrapper'><div class='hidden'>
+don't understand --filesuffix
+don't understand _refinepeak.bed
 <div id='macs2_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/macs2 
+# NGSANE /apps/gi/ngsane/devel_master//mods/macs2 
 ###################################################
+>>>>>>>>>> Finished
 QC_PASS .. finished are 1/1
 >>>>>>>>>> Errors
+QC_PASS .. 0 have # QCVARIABLES/1
 QC_PASS .. 0 have Resource temporarily unavailable/1
 >>>>>>>>>> CheckPoints 
 QC_PASS .. 1 have programs/1
@@ -800,16 +777,12 @@ QC_PASS .. 1 have recall files from tape/1
 QC_PASS .. 1 have macs 2 - call peaks /1
 QC_PASS .. 1 have macs 2 - convert bedgraph to bigbed/1
 QC_PASS .. 1 have macs 2 - refine peaks /1
+
 </pre></div>
 <div id='macs2_notes'><pre>
 
 qout/macs2/ChIPseq_TF_CTCF_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/macs2/job.20131121.log
-[NOTE] Reference: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/chr16.fasta
-[NOTE] Chromosome size: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/chr16.chrom.sizes
-[NOTE] CHIPINPUT ChIPseq_input/bowtie2/Input_chr16.asd.bam
-[NOTE] skipping bigbed generation
-[NOTE] convert narrowpeaks to 6 bed file for refining
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/macs2/job.20140115.log [NOTE] Reference: /apps/gi/ngsane/devel_master/smokebox/referenceData/chr16.fasta [NOTE] Chromosome size: /apps/gi/ngsane/devel_master/smokebox/referenceData/chr16.chrom.sizes [NOTE] CHIPINPUT ChIPseq_input/bowtie2/Input_chr16.asd.bam [NOTE] skipping bigbed generation [NOTE] convert narrowpeaks to 6 bed file for refining
 </pre></div>
 <div id='macs2_errors'><pre>
 
@@ -819,16 +792,13 @@ qout/macs2/ChIPseq_TF_CTCF_chr16.out
 <div id='macs2_logfiles'><div class='box'>
 <a href='../qout/macs2/ChIPseq_TF_CTCF_chr16.out'>ChIPseq_TF_CTCF_chr16.out</a><br/>
 </div></div>
-<div id='macs2_files'><div class='box'>
-<a href='../ChIPseq_TF/macs2/CTCF_chr16_refinepeak.bed'>CTCF_chr16_refinepeak.bed</a><br/>
-</div></div>
 <script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#macs2_counter_notes').text('6');
+            $('#macs2_counter_notes').text('1');
             $('#macs2_counter_errors').text('0');
-            $('#macs2_counter_checkpoints_passed').text('8');
+            $('#macs2_counter_checkpoints_passed').text('9');
             $('#macs2_counter_checkpoints_failed').text('0'); 
             if (0==0){
                 $('#macs2_counter_errors').toggleClass('errors neutral');
@@ -880,12 +850,16 @@ qout/macs2/ChIPseq_TF_CTCF_chr16.out
             <h2 id='memechip_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='memechip_counter_errors'></span></span></h2>
             <h2 id='memechip_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>
 </div><div class='wrapper'><div class='hidden'>
+don't understand --filesuffix
+don't understand _refinepeak.bed
 <div id='memechip_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/memechip 
+# NGSANE /apps/gi/ngsane/devel_master//mods/memechip 
 ###################################################
+>>>>>>>>>> Finished
 QC_PASS .. finished are 1/1
 >>>>>>>>>> Errors
+QC_PASS .. 0 have # QCVARIABLES/1
 QC_PASS .. 0 have Resource temporarily unavailable/1
 >>>>>>>>>> CheckPoints 
 QC_PASS .. 1 have programs/1
@@ -896,15 +870,12 @@ QC_PASS .. 1 have create background model/1
 QC_PASS .. 1 have meme-chip/1
 QC_PASS .. 1 have classify bound regions/1
 QC_PASS .. 1 have cleanup/1
+
 </pre></div>
 <div id='memechip_notes'><pre>
 
 qout/memechip/ChIPseq_TF_CTCF_chr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/memechip/job.20131121.log
-[NOTE] Reference: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/chr16.fasta
-[NOTE] Chromosome size: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/chr16.chrom.sizes
-[NOTE] extend bed regions: 
-[NOTE] Motif: 0
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/memechip/job.20140115.log [NOTE] Reference: /apps/gi/ngsane/devel_master/smokebox/referenceData/chr16.fasta [NOTE] Chromosome size: /apps/gi/ngsane/devel_master/smokebox/referenceData/chr16.chrom.sizes [NOTE] extend bed regions: [NOTE] Motif: 0
 </pre></div>
 <div id='memechip_errors'><pre>
 
@@ -914,16 +885,13 @@ qout/memechip/ChIPseq_TF_CTCF_chr16.out
 <div id='memechip_logfiles'><div class='box'>
 <a href='../qout/memechip/ChIPseq_TF_CTCF_chr16.out'>ChIPseq_TF_CTCF_chr16.out</a><br/>
 </div></div>
-<div id='memechip_files'><div class='box'>
-<a href='../ChIPseq_TF/memechip/CTCF_chr16_refinepeak.bed'>CTCF_chr16_refinepeak.bed</a><br/>
-</div></div>
 <script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#memechip_counter_notes').text('5');
+            $('#memechip_counter_notes').text('1');
             $('#memechip_counter_errors').text('0');
-            $('#memechip_counter_checkpoints_passed').text('10');
+            $('#memechip_counter_checkpoints_passed').text('11');
             $('#memechip_counter_checkpoints_failed').text('0'); 
             if (0==0){
                 $('#memechip_counter_errors').toggleClass('errors neutral');
@@ -947,7 +915,7 @@ qout/memechip/ChIPseq_TF_CTCF_chr16.out
 <thead><tr><th><div style='width:200px'>Logo</div></th><th><div style='width:140px'>Consensus motif</div></th><th><div style='width:80px'>q-value</div></th><th><div style='width:100px'>Similar to</div></th><th><div style='width:120px'>Peaks</div></th><th><div style='width:120px'>With strong sites</div></th><th><div style='width:40px'>%</div></th><th><div style='width:120px'>With weak sites</div><th><div style='width:40px'>%</div></th><th class='left'>Library</th></thead><tbody>
 <tr style='vertical-align: middle;'>
 <td><a href='../ChIPseq_TF/memechip/CTCF_chr16/index.html'><img src='../ChIPseq_TF/memechip/CTCF_chr16/meme_out/logo1.png' height=75 alt='Meme Motif LOGO'/></a></td>
-<td> AGCTGCTGGT</td><td> 0.713963</td><td> Ascl2_DBD</td><td> 10</td><td> 10</td><td>100.00</td><td> 0</td><td>0</td><td class='left'><a href='../ChIPseq_TF/memechip/CTCF_chr16/index.html'>CTCF_chr16</a></td></tr>
+<td> AGCTGCTGGT</td><td> 0.67997</td><td> Ascl2_DBD</td><td> 10</td><td> 10</td><td>100.00</td><td> 0</td><td>0</td><td class='left'><a href='../ChIPseq_TF/memechip/CTCF_chr16/index.html'>CTCF_chr16</a></td></tr>
 </tbody></table>
 </div></div><div class='display'></div></div></div>
 <script type='text/javascript'> 
@@ -960,20 +928,20 @@ qout/memechip/ChIPseq_TF_CTCF_chr16.out
 <div class='panel'><div class='headbagb'><a name='References'><h2 class='sub'>References</h2></a></div>
 <h3>Please cite the following publications/resources</h3>
 <table class="data"><thead><tr><th><div style="width:10px"></div></th><th><div></div></th></tr></thead><tbody>
-<tr><td>[1]</td><td class='left'>Bioinformatics. 2009 Aug 15;25(16):2078-9. doi: 10.1093/bioinformatics/btp352. Epub 2009 Jun 8. 'The Sequence Alignment/Map format and SAMtools.'; Li H, Handsaker B, Wysoker A, Fennell T, Ruan J, Homer N, Marth G, Abecasis G, Durbin R; 1000 Genome Project Data Processing Subgroup.</td></tr>
-<tr><td>[2]</td><td class='left'>Bioinformatics. 2010 Mar 15;26(6):841-2. doi: 10.1093/bioinformatics/btq033. Epub 2010 Jan 28. 'BEDTools: a flexible suite of utilities for comparing genomic features.; Quinlan AR, Hall IM.</td></tr>
-<tr><td>[3]</td><td class='left'>Bioinformatics. 2011 Jan 1;27(1):130-1. doi: 10.1093/bioinformatics/btq614. Epub 2010 Nov 18. 'SAMStat: monitoring biases in next generation sequencing data.'; Lassmann T, Hayashizaki Y, Daub CO.</td></tr>
-<tr><td>[4]</td><td class='left'>BMC Bioinformatics. 2011 May 9;12:139. doi: 10.1186/1471-2105-12-139. 'PeakRanger: a cloud-enabled peak caller for ChIP-seq data.'; Feng X, Grossman R, Stein L.</td></tr>
-<tr><td>[5]</td><td class='left'>Brief Bioinform. 2013 Mar;14(2):144-61. doi: 10.1093/bib/bbs038. Epub 2012 Aug 20. 'The UCSC genome browser and associated tools.'; Kuhn RM, Haussler D, Kent WJ.</td></tr>
-<tr><td>[6]</td><td class='left'>Brief Bioinform. 2013 Mar;14(2):178-92. doi: 10.1093/bib/bbs017. Epub 2012 Apr 19. 'Integrative Genomics Viewer (IGV): high-performance genomics data visualization and exploration.'; Thorvaldsdóttir H, Robinson JT, Mesirov JP.</td></tr>
-<tr><td>[7]</td><td class='left'>Genome Biol. 2008;9(9):R137. doi: 10.1186/gb-2008-9-9-r137. Epub 2008 Sep 17. 'Model-based analysis of ChIP-Seq (MACS).'; Zhang Y, Liu T, Meyer CA, Eeckhoute J, Johnson DS, Bernstein BE, Nusbaum C, Myers RM, Brown M, Li W, Liu XS.</td></tr>
-<tr><td>[8]</td><td class='left'>http://picard.sourceforge.net.</td></tr>
-<tr><td>[9]</td><td class='left'>http://www.bioinformatics.babraham.ac.uk/projects/fastqc/</td></tr>
-<tr><td>[10]</td><td class='left'>(in review); 'NGSANE: A Lightweight Production Informatics Framework for High Throughput Data Analysis; Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC</td></tr>
-<tr><td>[11]</td><td class='left'>Nat Methods. 2012 Mar 4;9(4):357-9. doi: 10.1038/nmeth.1923. 'Fast gapped-read alignment with Bowtie 2.';Langmead B, Salzberg SL.</td></tr>
-<tr><td>[12]</td><td class='left'>Nucleic Acids Res. 2009 Jul;37(Web Server issue):W202-8. doi: 10.1093/nar/gkp335. Epub 2009 May 20. 'MEME SUITE: tools for motif discovery and searching.';Bailey TL, Boden M, Buske FA, Frith M, Grant CE, Clementi L, Ren J, Li WW, Noble WS.</td></tr>
-<tr><td>[13]</td><td class='left'>R: A language and environment for statistical computing; R Core Team. R Foundation for Statistical Computing, Vienna, Austria, (2013)</td></tr>
+<tr><td>[1]</td><td class='left'>(in review); 'NGSANE: A Lightweight Production Informatics Framework for High Throughput Data Analysis; Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC</td></tr>
+<tr><td>[2]</td><td class='left'>BMC Bioinformatics. 2011 May 9;12:139. doi: 10.1186/1471-2105-12-139. 'PeakRanger: a cloud-enabled peak caller for ChIP-seq data.'; Feng X, Grossman R, Stein L.</td></tr>
+<tr><td>[3]</td><td class='left'>Bioinformatics. 2009 Aug 15;25(16):2078-9. doi: 10.1093/bioinformatics/btp352. Epub 2009 Jun 8. 'The Sequence Alignment/Map format and SAMtools.'; Li H, Handsaker B, Wysoker A, Fennell T, Ruan J, Homer N, Marth G, Abecasis G, Durbin R; 1000 Genome Project Data Processing Subgroup.</td></tr>
+<tr><td>[4]</td><td class='left'>Bioinformatics. 2010 Mar 15;26(6):841-2. doi: 10.1093/bioinformatics/btq033. Epub 2010 Jan 28. 'BEDTools: a flexible suite of utilities for comparing genomic features.; Quinlan AR, Hall IM.</td></tr>
+<tr><td>[5]</td><td class='left'>Bioinformatics. 2011 Jan 1;27(1):130-1. doi: 10.1093/bioinformatics/btq614. Epub 2010 Nov 18. 'SAMStat: monitoring biases in next generation sequencing data.'; Lassmann T, Hayashizaki Y, Daub CO.</td></tr>
+<tr><td>[6]</td><td class='left'>Brief Bioinform. 2013 Mar;14(2):144-61. doi: 10.1093/bib/bbs038. Epub 2012 Aug 20. 'The UCSC genome browser and associated tools.'; Kuhn RM, Haussler D, Kent WJ.</td></tr>
+<tr><td>[7]</td><td class='left'>Brief Bioinform. 2013 Mar;14(2):178-92. doi: 10.1093/bib/bbs017. Epub 2012 Apr 19. 'Integrative Genomics Viewer (IGV): high-performance genomics data visualization and exploration.'; Thorvaldsdóttir H, Robinson JT, Mesirov JP.</td></tr>
+<tr><td>[8]</td><td class='left'>Genome Biol. 2008;9(9):R137. doi: 10.1186/gb-2008-9-9-r137. Epub 2008 Sep 17. 'Model-based analysis of ChIP-Seq (MACS).'; Zhang Y, Liu T, Meyer CA, Eeckhoute J, Johnson DS, Bernstein BE, Nusbaum C, Myers RM, Brown M, Li W, Liu XS.</td></tr>
+<tr><td>[9]</td><td class='left'>Nat Methods. 2012 Mar 4;9(4):357-9. doi: 10.1038/nmeth.1923. 'Fast gapped-read alignment with Bowtie 2.';Langmead B, Salzberg SL.</td></tr>
+<tr><td>[10]</td><td class='left'>Nucleic Acids Res. 2009 Jul;37(Web Server issue):W202-8. doi: 10.1093/nar/gkp335. Epub 2009 May 20. 'MEME SUITE: tools for motif discovery and searching.';Bailey TL, Boden M, Buske FA, Frith M, Grant CE, Clementi L, Ren J, Li WW, Noble WS.</td></tr>
+<tr><td>[11]</td><td class='left'>R: A language and environment for statistical computing; R Core Team. R Foundation for Statistical Computing, Vienna, Austria, (2013)</td></tr>
+<tr><td>[12]</td><td class='left'>http://picard.sourceforge.net.</td></tr>
+<tr><td>[13]</td><td class='left'>http://www.bioinformatics.babraham.ac.uk/projects/fastqc/</td></tr>
 </tbody></table>
 </div></div>
-<hr><span>Report generated with NGSANE version: 26eb9da47e95d8ba217885d3d8a21646ce083446 (git hash)</span><span style='float:right;'>Last modified: Thu Nov 21 12:20:10 EST 2013</span>
+<hr><span>Report generated with NGSANE version: b9903989d6d942b31828cc2ebe8c420fbc362de7 (git hash)</span><span style='float:right;'>Last modified: Wed Jan 15 19:09:08 EST 2014</span>
 </div><!-- center --></body></html>

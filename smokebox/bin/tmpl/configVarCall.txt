@@ -15,10 +15,10 @@ MEMORY_BOWTIE=8
 CPU_BOWTIE=8
 NODES_BOWTIE="nodes=1:ppn=8"
 
-WALLTIME_BOWTIE=00:30:00
-MEMORY_BOWTIE=8
-CPU_BOWTIE=2
-NODES_BOWTIE="nodes=1:ppn=2"
+WALLTIME_BOWTIE2=00:30:00
+MEMORY_BOWTIE2=8
+CPU_BOWTIE2=2
+NODES_BOWTIE2="nodes=1:ppn=2"
 
 WALLTIME_VAR=00:30:00
 MEMORY_VAR=10
@@ -71,14 +71,14 @@ declare -a DIR; DIR=( Transcript )
 OUT=$SOURCE
 QOUT=$OUT/qout
 
-#READONE="_R1"
-#READTWO="_R2"
+ASD="asd"
+ASR="asd"
 READONE="_read1"
 READTWO="_read2"
 FASTQ=fastq
-#FASTQ=fastq.gz
 BAMANNLIB=$(pwd)/referenceData/bamann/
 TASK_BAMANN="bamann_bwa"
+INPUT_PINDEL=${TASK_RECAL}
 INPUT_IS_BWA="false" # if the aligner was not bwa you also have to specify the library type
 INPUT_TYPE="Illumina-PairEnd" # or (Illumina-MatePair)
 REFERENCE_DATE="20090201"
@@ -97,6 +97,9 @@ GTF=$(pwd)/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 #DOCADDPARAM="-L $REF"
 #VARADDPARAM="-L $REF"
 # --maxGaussians 3 --percentBadVariants 0.05"
+#PINDELADDPARAM=" --max_range_index 9 --min_NT_size 1 --min_inversion_size 1 --maximum_allowed_mismatch_rate 0.5"
+#INSERT=321
+#BWASAMPLEADDPARAM=" -a 321"
 
 #********************
 # PARAMETER

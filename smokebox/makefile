@@ -43,7 +43,7 @@ clean:
 	rm -f result/*.html
 	rm -f result/diff*.txt
 	rm -f result/*.tar.gz
-	rm -fr Transcript ChIPseq_TF ChIPseq_Histone ChIPseq_input
+	rm -fr Transcript ChIPseq_TF ChIPseq_Histone ChIPseq_input WGS
 	rm -fr variant
 	rm -fr qout
 	rm -fr tmp/*

@@ -121,9 +121,9 @@ else
         echo "[NOTE] single-end library detected"
     fi
 
-	if [ -z "NORMALIZETO" ]; then NORMALIZETO=1000000; fi
+	if [ -z "$NORMALIZETO" ]; then NORMALIZETO=1000000; fi
     NUMBEROFREADS=$(samtools view -c -F 1028 $f )
-	if [ -z "SCALEFACTOR" ]; then 
+	if [ -z "$SCALEFACTOR" ]; then 
 		SCALEFACTOR=`echo "scale=3; $NORMALIZETO/$NUMBEROFREADS" | bc`; 
 	else
 		NORMALIZETO="NA"
