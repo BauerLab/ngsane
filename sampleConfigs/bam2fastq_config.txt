@@ -1,0 +1,55 @@
+# author: Fabian Buske
+# date: May 2013
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNBAM2FASTQ="1"    # 
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_BAM2FASTQ=$TASKBWA
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# fastq file suffix
+FASTQ="fq.gz"
+
+# read indicator immediately preceding the fastq file suffix
+READONE="_R1"
+READTWO="_R2"
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+## additional fastqscreen parameters
+# e.g. --bowtie
+BAM2FASTQADDPARAM=
+
+#WALLTIME_BAM2FASTQ=10:00:00
+#MEMORY_BAM2FASTQ=60
+#CPU_BAM2FASTQ=8
+#NODES_BAM2FASTQ="nodes=1:ppn=8"
+#MODULE_BAM2FASTQ=
+#PATH_BAM2FASTQ=
