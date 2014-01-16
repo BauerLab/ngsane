@@ -17,13 +17,13 @@ echo "[NOTE] run in $SB_MODE mode $(date)"
 
 # modify the template config file to flip the HICLIB switch
 # specify the resulting html file
-echo "[NOTE] Prep and run config file tmp/configHICLIB.txt"
+#echo "[NOTE] Prep and run config file tmp/configHICLIB.txt"
 cat bin/tmpl/configHIC.txt | sed 's/RUNHICLIB=\"\"/RUNHICLIB=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHICLIB\"/g' > tmp/configHICLIB.txt
 
 # submit the HICLIB run to the cluster
-JOBIDSHICLIB=$( trigger.sh tmp/configHICLIB.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] submitted jobs $(echo -n $JOBIDSHICLIB)"
+#JOBIDSHICLIB=$( trigger.sh tmp/configHICLIB.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+#echo "[NOTE] submitted jobs $(echo -n $JOBIDSHICLIB)"
 
 ################################################################################
 #  HICUP
@@ -59,11 +59,10 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDFITHIC)"
 ################################################################################
 # TEST
 ################################################################################
-JOBIDS="$JOBIDSHICLIB:$JOBIDHICUP:JOBIDFITHIC" #other things
+JOBIDS="$JOBIDHICUP:$JOBIDFITHIC" #other things
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configHIC.txt | \
-    sed 's/RUNHICLIB=\"\"/RUNHICLIB=\"1\"/g' | \
     sed 's/RUNHICUP=\"\"/RUNHICUP=\"1\"/g' |\
     sed 's/RUNFITHIC=\"\"/RUNFITHIC=\"1\"/g' |\
 	sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHIC\"/g' > tmp/configHIC.txt
