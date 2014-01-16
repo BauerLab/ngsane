@@ -8,7 +8,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.spline_pass1.q05.txt
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.fragmentLists.gz
 
 echo ">>>>> HiC readmapping with HiCUP "
 echo ">>>>> startdate "`date`
@@ -59,11 +59,6 @@ echo -e "--perl        --\n "$(perl -v | grep "This is perl" )
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
 echo -e "--HiCUP       --\n "$(hicup --version )
 [ -z "$(which hicup)" ] && echo "[ERROR] no hicup detected" && exit 1
-echo -e "--Python      --\n" $(python --version)
-[ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
-echo -e "--Python libs --\n "$(yolk -l)
-echo -e "--fit-hi-c    --\n "$(python $(which fit-hi-c.py) --version | head -n 1)
-[ -z "$(which fit-hi-c.py)" ] && echo "[WARN] no fit-hi-c detected"
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -86,7 +81,6 @@ fi
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
     [ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
-    [ -e $OUTDIR/${SAMPLE}.spline_pass1.q05.txt ] && rm $OUTDIR/${SAMPLE}*.txt
 fi
 
 #is paired ?
@@ -185,40 +179,21 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=$DIGESTGENOME --outputDir=$OUTDIR/  $OUTDIR/${SAMPLE}_uniques.bam"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=$DIGESTGENOME --outputDir=$OUTDIR/ $OUTDIR/${SAMPLE}_uniques.bam"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    $GZIP $OUTDIR/${SAMPLE}_uniques.bam.fragmentLists $OUTDIR/${SAMPLE}_uniques.bam.contactCounts
+    [ -e $OUTDIR/${SAMPLE}_uniques.bam.fragmentLists ] && mv $OUTDIR/${SAMPLE}_uniques.bam.fragmentLists $OUTDIR/${SAMPLE}.fragmentLists
+    [ -e $OUTDIR/${SAMPLE}_uniques.bam.contactCounts ] && mv $OUTDIR/${SAMPLE}_uniques.bam.contactCounts $OUTDIR/${SAMPLE}.contactCounts
+    
+    $GZIP $OUTDIR/${SAMPLE}.fragmentLists $OUTDIR/${SAMPLE}.contactCounts
     
     # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}_uniques.bam.fragmentLists.gz ] && [ -f $OUTDIR/${SAMPLE}_uniques.bam.contactCounts.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${SAMPLE}.fragmentLists.gz ] && [ -f $OUTDIR/${SAMPLE}.contactCounts.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
-CHECKPOINT="run fit-hi-c"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-
-    if [ -z "$(which fit-hi-c.py)" ]; then
-        echo "[NOTE] Skip significance testing (fit-hi-c not found)."
-        echo -e "\n********* $CHECKPOINT\n"
-    else
-    
-        RUN_COMMAND="python $(which fit-hi-c.py) $FITHICADDPARAM --outdir $OUTDIR --fragments=$OUTDIR/${SAMPLE}_uniques.bam.fragmentLists.gz --interactions=$OUTDIR/${SAMPLE}_uniques.bam.contactCounts.gz --lib=${SAMPLE}"
-        echo $RUN_COMMAND && eval $RUN_COMMAND
-        
-        zcat $OUTDIR/${SAMPLE}.spline_pass1.pvals.txt.gz | awk '$7<=0.05' | sort -k7g | gzip > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz
-    
-        # mark checkpoint
-        if [ -f $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-    fi
-fi
-
-################################################################################
-[ -e $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz.dummy ] && rm $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz.dummy
+[ -e $OUTDIR/${SAMPLE}.fragmentLists.gz.dummy ] && rm $OUTDIR/${SAMPLE}.fragmentLists.gz.dummy
 echo ">>>>> readmapping with hicup (bowtie) - FINISHED"
 echo ">>>>> enddate "`date`
 

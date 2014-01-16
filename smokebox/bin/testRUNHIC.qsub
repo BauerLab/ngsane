@@ -22,7 +22,7 @@ cat bin/tmpl/configHIC.txt | sed 's/RUNHICLIB=\"\"/RUNHICLIB=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHICLIB\"/g' > tmp/configHICLIB.txt
 
 # submit the HICLIB run to the cluster
-JOBIDSHICLIB=$( trigger.sh tmp/configHICLIB.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+# JOBIDSHICLIB=$( trigger.sh tmp/configHICLIB.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] submitted jobs $(echo -n $JOBIDSHICLIB)"
 
 ################################################################################
@@ -39,10 +39,27 @@ cat bin/tmpl/configHIC.txt | sed 's/RUNHICUP=\"\"/RUNHICUP=\"1\"/g' | \
 JOBIDHICUP=$( trigger.sh tmp/configHICUP.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] submitted jobs $(echo -n $JOBIDHICUP)"
 
+
+################################################################################
+#  fit-hi-c
+################################################################################
+
+# modify the template config file to flip the RUNFITHIC switch
+# specify the resulting html file
+echo "[NOTE] Prep and run config file tmp/configFITHIC.txt"
+cat bin/tmpl/configHIC.txt | sed 's/RUNFITHIC=\"\"/RUNFITHIC=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryFITHIC\"/g' > tmp/configFITHIC.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDHICUP//:/$QUEUEWAITSEP}\"" >>tmp/configFITHIC.txt
+
+# submit the FITHIC run to the cluster
+JOBIDFITHIC=$( trigger.sh tmp/configFITHIC.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDFITHIC)"
+
+
 ################################################################################
 # TEST
 ################################################################################
-JOBIDS="$JOBIDSHICLIB:$JOBIDHICUP" #other things
+JOBIDS="$JOBIDSHICLIB:$JOBIDHICUP:JOBIDFITHIC" #other things
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configHIC.txt | \

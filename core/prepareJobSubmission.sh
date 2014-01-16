@@ -4,6 +4,7 @@
 # General template for submitting a job 
 #
 
+
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
@@ -47,7 +48,6 @@ done
 . $CONFIG
 
 echo -e "\e[96m[Task]\e[0m $TASK $NODIR"
-
 if [ ! -d $QOUT/$TASK ]; then mkdir -p $QOUT/$TASK; fi
 
 ## Select files in dir to run 

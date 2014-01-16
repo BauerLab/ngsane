@@ -355,8 +355,8 @@ fi
 
 ################################################################################
 #   Mapping using HiCUP
-# IN : $SOURCE/fastq/$dir/*read1.fastq
-# OUT: $OUT/$dir/hicup/*.$ASD.bam
+# IN : $SOURCE/fastq/$dir/*$READONE$FASTQ
+# OUT: $OUT/$dir/hicup/*_uniques.bam
 ################################################################################
 
 if [ -n "$RUNHICUP" ]; then
@@ -382,10 +382,25 @@ if [ -n "$RUNHICUP" ]; then
 
     JOBIDS=$(waitForJobIds "$JOBIDS")
 
-
     $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
     	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $JOBIDS \
         --command "${NGSANE_BASE}/mods/hicup.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HICUP"
+
+fi
+
+################################################################################
+#   Assessing chromatin interactions with fit-hi-c
+# IN : $SOURCE/$dir/hicup/*$FRAGMENTLIST
+# OUT: $OUT/$dir/hicup/*.spline_pass1.q05.txt.gz
+################################################################################
+
+if [ -n "$RUNFITHIC" ]; then
+    if [ -z "$TASK_FITHIC" ] || [ -z "$NODES_FITHIC" ] || [ -z "$CPU_FITHIC" ] || [ -z "$MEMORY_FITHIC" ] || [ -z "$WALLTIME_FITHIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $FRAGMENTLIST -n $NODES_FITHIC -c $CPU_FITHIC \
+    	-m $MEMORY_FITHIC"G" -w $WALLTIME_FITHIC \
+        --command "${NGSANE_BASE}/mods/fithic.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FITHIC"
+
 fi
 
 ################################################################################
