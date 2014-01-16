@@ -335,22 +335,70 @@ if [ -n "$RUNVARCALLS" ]; then
         -c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
         --postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
                         -i <FILE> -t $CPU_VAR \
-                        -r $FASTA -d $DBROD -o $OUT/$TASK_VAR/$NAME -n $NAME \
+                        -r $FASTA -d $DBSNPVCF -o $OUT/$TASK_VAR/$NAME -n $NAME \
                         -H $HAPMAPVCF" #-K $ONEKGVCF"
 fi
 
+
+################################################################################
+#   call indels with GATK -- call one vcf file over all folders but in batches (by chr)
+################################################################################
+
+if [ -n "$RUNVARCALLSBATCH" ]; then
+	if [ ! -e "$FASTA.fai" ] ; then echo -e "\e[91m[ERROR]\e[0m $FASTA.fai missing"; exit 1; fi
+  	BATCHES=$(cut -f 1 $FASTA.fai | grep -v GL | sort -u)
+	NAME=$(echo ${DIR[@]} | sort -u |sed 's/ /_/g')
+	export QUEUEWAIT=${QUEUEWAIT/afterok/afterany}
+
+	if [ ! "$ARMED"="postonly" ]; then
+	  	for i in $BATCHES; do
+			echo "[NOTE] Batch $i"
+			export ADDDUMMY=$i
+	    	JOBID=$( $QSUB $ARMED --postname postcommand$i -r -d -k $CONFIG -t ${TASK_VAR}batch -i $INPUT_VAR  \
+				-e .$ASR.bam -n $NODES_VAR -c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
+	        	--postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
+	                        -i <FILE> -t $CPU_VAR \
+	                        -r $FASTA -d $DBSNPVCF -o $OUT/${TASK_VAR}batch/$NAME -n $NAME$ADDDUMMY \
+	                        -H $HAPMAPVCF -L $i " 
+			) && echo -e "$JOBID"
+			if [ -n "$(echo $JOBID | grep Jobnumber)" ]; then	JOBIDS=$(waitForJobIds "$JOBID")":"$JOBIDS; fi
+	  	done
+		JOBIDS=${JOBIDS//-W /}
+		JOBIDS=${JOBIDS//::/:}
+		JOBIDS="-W $JOBIDS"
+	fi
+
+	echo "[NOTE] filtered SNPs"
+   	$QSUB $ARMED --postname joinedSNP --givenDirs $NAME -d -k $CONFIG -t ${TASK_VAR}batch -i ${TASK_VAR}batch -e filter.snps.vcf $JOBIDS \
+		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_VAR}batch \
+				-i2 ${TASK_VAR}batch -o $OUT/${TASK_VAR}batch/$NAME --dummy filter.snps.vcf --target filter.snps.vcf"
+
+	echo "[NOTE] filtered INDELs"
+   	$QSUB $ARMED --postname joinedINDEL --givenDirs $NAME -d -k $CONFIG -t ${TASK_VAR}batch -i ${TASK_VAR}batch -e filter.snps.vcf $JOBIDS \
+		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_VAR}batch \
+				-i2 ${TASK_VAR}batch -o $OUT/${TASK_VAR}batch/$NAME --dummy filter.snps.vcf --target filter.indel.vcf"
+
+	echo "[NOTE] recal Vars"
+   	$QSUB $ARMED --postname joinedRECAL --givenDirs $NAME -d -k $CONFIG -t ${TASK_VAR}batch -i ${TASK_VAR}batch -e filter.snps.vcf $JOBIDS \
+		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_VAR}batch \
+				-i2 ${TASK_VAR}batch -o $OUT/${TASK_VAR}batch/$NAME --dummy filter.snps.vcf --target recalfilt.vcf"
+   
+fi	
+
+	
 ################################################################################
 #   Depth of Coverage
 # IN: */bwa/*.bam
 # OUT: */bwa_var/*.clean.vcf
 ################################################################################
 
-if [ -n "$DEPTHOFCOVERAGE2" ]; then
-
+if [ -n "$RUNDEPTHOFCOVERAGE" ]; then
     $QSUB $ARMED -r -k $CONFIG -t $TASK_GATKDOC -i $INPUT_GATKDOC -e .$ASR.bam \
 	-n $NODES_GATKDOC -c $CPU_GATKDOC -m $MEMORY_GATKDOC"G" -w $WALLTIME_GATKDOC \
-	--command "${NGSANE_BASE}/mods/gatkDOC.sh -k ${NGSANE_BASE} -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASK_GATKDOC -t $CPU_GATKDOC"
-
+	--command "${NGSANE_BASE}/mods/gatkDOC.sh -k $CONFIG -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASK_GATKDOC -t $CPU_GATKDOC"
 fi
 
 ################################################################################
@@ -765,7 +813,7 @@ if [ -n "$RUNREALRECAL" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASK_RECAL -i $INPUT_REALRECAL -e .$ASD.bam \
         -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
-        --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASK_RECAL"
+        --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBSNPVCF -o $OUT/<DIR>/$TASK_RECAL"
 
 fi
 
@@ -847,54 +895,6 @@ if [ -n "$mergeReCalbams" ]; then
     ${NGSANE_BASE}/mods/merge.sh ${NGSANE_BASE} $OUT/combined/mergeguide/combineAll.txt $OUT/combined/ DISC1_all.bam bam qout/merged/
 fi
 
-
-
-################################################################################
-# DepthOfCoverage
-# expects to be run fom <dir>/<TASK_RECAL>/<name>.<ASR>.bam
-# e.g. Run/reCalAln/name.ashrr.bam
-# change that by setting TASK_RECAL=TASK_BWA and ASR=ASD
-################################################################################
-
-if [ -n "$DEPTHOFCOVERAGE" ]
-then
-    CPUS=24
-
-    echo -e "********* $TASK_GATKDOC"
-
-    if [ ! -d $QOUT/$TASK_GATKDOC ]; then mkdir -p $QOUT/$TASK_GATKDOC; fi
-
-    for dir in ${DIR[@]}
-      do
-
-      for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
-	do
-	
-	n=`basename $f`
-	n2=${n/%$READONE.$FASTQ/.$ASR.bam}
-	name=${n/%$READONE.$FASTQ/}
-	echo -e ">>>>>"$dir/$TASK_RECAL/$n2
-
-	if [ ! -d $OUT/$dir/$TASK_GATKDOC ]; then mkdir -p $OUT/$dir/$TASK_GATKDOC; fi
-
-	# remove old pbs output
-	if [ -e $QOUT/$TASK_GATKDOC/$dir'_'$name'.out' ]; then rm $QOUT/$TASK_GATKDOC/$dir'_'$name'.out'; fi
-
-	#check if this is part of the pipe and jobsubmission needs to wait
-#	if [ -n "$$RUNREALRECAL" ]; then HOLD="-hold_jid "$TASK_RECAL"_"$dir"_"$name; fi
-
-	#Submit
-	if [ -n "$ARMED" ]; then
-	    qsub $PRIORITY -j y -o $QOUT/$TASK_GATKDOC/$dir'_'$name'.out' -cwd -b y -pe mpich $CPUS \
-		-l mem_free=11G -l h_vmem=11G -l vf=500K -N $TASK_GATKDOC'_'$dir'_'$name $HOLD\
-		${NGSANE_BASE}/mods/gatkDOC.sh -k ${NGSANE_BASE} -f $OUT/$dir/$TASK_RECAL/$n2 -r $FASTA \
-		-o $OUT/$dir/$TASK_GATKDOC -t $CPUS
-	fi
-
-      done
-    done
-
-fi
 
 ################################################################################
 # downsample
@@ -983,7 +983,7 @@ then
 	if [ -n "$ARMED" ]; then
 	    qsub $PRIORITY -j y -o $QOUT/$TASK_GATKIND/$dir'_'$name'.out' -cwd -b y \
 		-l h_vmem=12G -N $TASK_GATKIND'_'$dir'_'$name $HOLD\
-		${NGSANE_BASE}/mods/gatkIndel.sh ${NGSANE_BASE} $OUT/$dir/$TASK_RECAL/$n2 $FASTA $DBROD \
+		${NGSANE_BASE}/mods/gatkIndel.sh ${NGSANE_BASE} $OUT/$dir/$TASK_RECAL/$n2 $FASTA $DBSNPVCF \
 		$REFSEQROD $OUT/$dir/$TASK_GATKIND
 	fi
 
@@ -1041,7 +1041,7 @@ then
     if [ -n "$ARMED" ]; then
 	qsub -j y -o $QOUT/$TASK_GATKIND/$NAME.out -cwd -b y \
 	    -l mem_free=20G -l h_vmem=20G -N $TASK_GATKIND"_"$NAME.out $HOLD\
-	    ${NGSANE_BASE}/mods/gatkIndelV2.sh ${NGSANE_BASE} $TASK_GATKIND"bamfiles.tmp" $FASTA $DBROD \
+	    ${NGSANE_BASE}/mods/gatkIndelV2.sh ${NGSANE_BASE} $TASK_GATKIND"bamfiles.tmp" $FASTA $DBSNPVCF \
 	    $REFSEQROD $OUT/genotype $SEQREG
     fi
 

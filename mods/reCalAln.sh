@@ -44,7 +44,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --bam )            shift; f=$1 ;; # bam file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
-        -d | --snpdb )          shift; DBROD=$1 ;; # snpdb
+        -d | --snpdb )          shift; DBSNPVCF=$1 ;; # snpdb
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
         -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
@@ -114,8 +114,8 @@ if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats ] && rm $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
 fi
 
-if [ -z "$DBROD" ] || [ ! -e $DBROD ] ; then
-    echo "[ERROR] DBROD parameter not set or data not found"
+if [ -z "$DBSNPVCF" ] || [ ! -e $DBSNPVCF ] ; then
+    echo "[ERROR] DBSNPVCF parameter not set or data not found"
     exit 1
 fi
 
@@ -147,7 +147,7 @@ else
         -I $f \
         -R $FASTA \
         -o $f2.intervals \
-        -known $DBROD \
+        -known $DBSNPVCF \
         $REGION \
         -nt $CPU_RECAL
         
@@ -170,7 +170,7 @@ else
         -R $FASTA \
         -targetIntervals $f2.intervals \
         --out ${f2/bam/real.bam} \
-        -known $DBROD \
+        -known $DBSNPVCF \
         -compress 0 
     #    -nt $CPU_RECAL
 
@@ -194,7 +194,7 @@ else
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
         -T BaseRecalibrator \
         -R $FASTA \
-        -knownSites $DBROD \
+        -knownSites $DBSNPVCF \
         -I $f3 \
         -dcov 1000 \
         -cov ReadGroupCovariate \
@@ -265,7 +265,7 @@ else
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar  -l WARN \
         -T BaseRecalibrator \
         -R $FASTA \
-        -knownSites $DBROD \
+        -knownSites $DBSNPVCF \
         -I ${f3/.bam/.recal.bam}  \
         -dcov 1000 \
         -cov ReadGroupCovariate \

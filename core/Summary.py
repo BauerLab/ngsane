@@ -439,8 +439,10 @@ def variant(variantFile):
 	names=["Total","known", "SNPdb Conc", "variantRatePerBp", "hetHomRatio", "novel", "variantRatePerBp","hetHomRatio"]
 	values=[]
 	file=open(variantFile).read()
-	CO=re.split("[ \t\n]+", file.split("CompOverlap")[3])
-	values.append(int(CO[5])) #total
+#	CO=re.split("[ \t\n]+", file.split("CompOverlap")[3])
+#	values.append(int(CO[5])) #total
+	CO=re.split("[ \t\n]+", file.split("CountVariants")[3])
+	values.append(int(CO[6])) #total
 	CO=re.split("[ \t\n]+", file.split("CompOverlap")[4])
 	values.append(int(CO[5])) #known
 	values.append(float(CO[10])) #SNPconc
