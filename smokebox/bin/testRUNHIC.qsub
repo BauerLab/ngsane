@@ -22,7 +22,7 @@ cat bin/tmpl/configHIC.txt | sed 's/RUNHICLIB=\"\"/RUNHICLIB=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHICLIB\"/g' > tmp/configHICLIB.txt
 
 # submit the HICLIB run to the cluster
-# JOBIDSHICLIB=$( trigger.sh tmp/configHICLIB.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+JOBIDSHICLIB=$( trigger.sh tmp/configHICLIB.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] submitted jobs $(echo -n $JOBIDSHICLIB)"
 
 ################################################################################
@@ -65,6 +65,7 @@ HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configHIC.txt | \
     sed 's/RUNHICLIB=\"\"/RUNHICLIB=\"1\"/g' | \
     sed 's/RUNHICUP=\"\"/RUNHICUP=\"1\"/g' |\
+    sed 's/RUNFITHIC=\"\"/RUNFITHIC=\"1\"/g' |\
 	sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHIC\"/g' > tmp/configHIC.txt
 
 # Prep and runare the job to generate the html result page and perform the diff 

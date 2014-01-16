@@ -41,7 +41,7 @@ CONTACTCOUNTS=".contactCounts.gz"
 #********************
 
 # additional parameters for fit-hi-c
-# e.g. "--visual --noInters --nobinning --lowerbound 500 --upperbound 5000000"
+# e.g. "--noInters --lowerbound 5000 --upperbound 5000000"
 FITHICADDPARAM=
 
 #WALLTIME_FITHIC=10:00:00

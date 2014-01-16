@@ -1,0 +1,96 @@
+# author: Fabian Buske
+# date: Dec 2013
+
+######################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNHICLIB=""        # map HiC data with hiclib
+RUNHICUP=""         # map HiC data with hicup
+RUNFITHIC=""        # call significant chromatin interactions
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( HiC )
+
+# folder/task containing the data this task operates on
+INPUT_HICLIB="fastq"
+INPUT_HICUP="fastq"
+INPUT_FITHIC=$TASK_HICUP
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+# Summary file name
+HTMLOUT="Summary"
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# fastq file suffix
+FASTQ="fastq.gz"
+
+# read indicator immediately preceding the fastq file suffix
+READONE="_R1"
+READTWO="_R2"
+
+# file suffix of the fragment list and contact counts
+FRAGMENTLIST=".fragmentLists.gz"
+CONTACTCOUNTS=".contactCounts.gz"
+
+# reference as single chromosomes
+FASTA_CHROMDIR=$(pwd)/referenceData/
+
+# bowtie v2.0 index including basename
+FASTA=$(pwd)/referenceData/chr16.fasta
+
+HICLIB_GAPFILE=$(pwd)/referenceData/hg19_chr16.gap.txt
+
+# Enzymes, see http://biopython.org/DIST/docs/api/Bio.Restriction-module.html 
+HICLIB_RENZYMES="NcoI"
+
+# restriction enzymes
+HICUP_RENZYMES=C^CATGG,Ncol
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+HICLIB_READLENGTH=
+HICLIB_CHROMOSOME=16
+
+# uncomment to keep intermediate bam files from iterative mapping
+#HICLIB_KEEPBAM=1
+
+FITHICADDPARAM="--noInters --lowerbound 5000 --upperbound 5000000"
+
+
+#********************
+# Resources
+#********************
+WALLTIME_HICLIB=00:30:00
+MEMORY_HICLIB=10
+CPU_HICLIB=4
+NODES_HICLIB="nodes=1:ppn=4"
+
+WALLTIME_HICUP=00:30:00
+MEMORY_HICUP=10
+CPU_HICUP=4
+NODES_HICUP="nodes=1:ppn=4"
+
+WALLTIME_FITHIC=0:30:00
+MEMORY_FITHIC=5
+CPU_FITHIC=1
+NODES_FITHIC="nodes=1:ppn=1"

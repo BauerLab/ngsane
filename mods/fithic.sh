@@ -92,8 +92,9 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    RUN_COMMAND="python $(which fit-hi-c.py) $FITHICADDPARAM --outdir $OUTDIR --fragments=$f --interactions=${f/%$FRAGMENTLIST/$CONTACTCOUNTS} --lib=${SAMPLE}"
+    RUN_COMMAND="python $(which fit-hi-c.py) $FITHICADDPARAM --outdir $OUTDIR --fragments=$f --interactions=${f/%$FRAGMENTLIST/$CONTACTCOUNTS} --lib=${SAMPLE} &> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
+    cat $OUTDIR/$SAMPLE.log # put into qout log too
     
     zcat $OUTDIR/${SAMPLE}.spline_pass1.pvals.txt.gz | awk '$7<=0.05' | sort -k7g | gzip > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz
 

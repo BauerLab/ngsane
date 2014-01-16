@@ -466,17 +466,17 @@ fi
 
 ################################################################################
 if [ -n "$RUNHICUP" ];then
-    summaryHeader "HiCUP + fit-hi-C" "$TASK_HICUP" "hicup.sh" "$SUMMARYTMP"
+    summaryHeader "HiCUP" "$TASK_HICUP" "hicup.sh" "$SUMMARYTMP"
 
     vali=$(gatherDirs $TASK_HICUP)
     echo "<h4>truncater</h4>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "hicup_truncater_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "_hicup_truncater_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     echo "<h4>mapper</h4>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "hicup_mapper_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "_hicup_mapper_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     echo "<h4>filter</h4>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "hicup_filter_summary_results.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "_hicup_filter_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     echo "<h4>deduplicator</h4>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "hicup_deduplicater_summary_results.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "_hicup_deduplicator_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     
     imgs=""
     for dir in ${DIR[@]}; do
@@ -491,6 +491,14 @@ if [ -n "$RUNHICUP" ];then
     summaryFooter "$TASK_HICUP" "$SUMMARYTMP"
 fi
 
+################################################################################
+if [ -n "$RUNFITHIC" ];then
+    summaryHeader "Fit-hi-c" "$TASK_FITHIC" "fithic.sh" "$SUMMARYTMP"
+
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_FITHIC)" ".log" fithic >> $SUMMARYTMP
+    
+    summaryFooter "$TASK_FITHIC" "$SUMMARYTMP"
+fi
 
 ################################################################################
 if [ -n "$RUNCHANCE" ];then
