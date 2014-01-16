@@ -222,12 +222,12 @@ else
     cat /dev/null > "$SAMPLE"_significantInteractions.txt
         
     RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" $HOMER_HIC_LOWRESINTERACTIONS_ADDPARAM -interactions $OUTDIR/"$SAMPLE"_significantInteractions.txt -nomatrix -cpu $CPU_HOMERHIC "
-    echo $RUN_COMMAND && eval $RUN_COMMAND
+#    echo $RUN_COMMAND && eval $RUN_COMMAND
 
     echo "$OUTDIR/${SAMPLE}_significantInteractions.txt all" > $OUTDIR/${SAMPLE}_significantInteractions.log
 
     # mark checkpoint
-    if [[ $(wc -l $OUTDIR/${SAMPLE}_significantInteractions.log) -ge 1 ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [[ $(wc -l $OUTDIR/${SAMPLE}_significantInteractions.log | cut -d' ' -f 1) -ge 1 ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
@@ -237,15 +237,11 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    while IFS=$' ' read -r -a INTERACTIONS
-    do
-        SUFFIX=${echo $LINE | cut -d' ' -f 1}
-        RUN_COMMAND="annotateInteractions.pl ${INTERACTIONS[0]} $HOMER_HIC_ANNOTATE_ADDPARAM $OUTDIR/${SAMPLE}_annotations_${INTERACTIONS[1]}"
-        echo $RUN_COMMAND && eval $RUN_COMMAND
-    done < $OUTDIR/${SAMPLE}_significantInteractions.log
+    RUN_COMMAND="annotateInteractions.pl $OUTDIR/${SAMPLE}_significantCisInteractions.txt $HOMER_HIC_ANNOTATE_ADDPARAM $OUTDIR/${SAMPLE}_annotations_cisInteractions"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -d $OUTDIR/${SAMPLE}_annotations ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -d $OUTDIR/${SAMPLE}_annotations ]; then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
