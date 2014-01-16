@@ -1251,3 +1251,18 @@ if [ -n "$RUNPINDEL" ]; then
 fi
 
 
+################################################################################ 
+#   Breakdancer
+################################################################################
+
+if [ -n "$RUNBREAKDANCER" ]; then
+
+    $QSUB $ARMED -r -k $CONFIG -t $INPUT_BREAKDANCER-$TASK_BREAKDANCER -i $INPUT_BREAKDANCER -e .$ASD.bam \
+        -n $NODES_BREAKDANCER -c $CPU_BREAKDANCER -m $MEMORY_BREAKDANCER"G" -w $WALLTIME_BREAKDANCER \
+		--postnodes $NODES_VARCOLLECT --postcpu $CPU_VARCOLLECT \
+		--postwalltime $WALLTIME_VARCOLLECT --postmemory $MEMORY_VARCOLLECT"G" \
+        --command "${NGSANE_BASE}/mods/breakdancer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$INPUT_BREAKDANCER-$TASK_BREAKDANCER" \
+#		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 $INPUT_BREAKDANCER \
+#				-i2 ${INPUT_BREAKDANCER}-$TASK_BREAKDANCER -o $OUT/variant/${INPUT_BREAKDANCER}-${TASK_BREAKDANCER}-<DIR> "
+
+fi
