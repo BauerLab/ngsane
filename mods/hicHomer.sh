@@ -222,7 +222,7 @@ else
     cat /dev/null > "$SAMPLE"_significantInteractions.txt
         
     RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" $HOMER_HIC_LOWRESINTERACTIONS_ADDPARAM -interactions $OUTDIR/"$SAMPLE"_significantInteractions.txt -nomatrix -cpu $CPU_HOMERHIC "
-#    echo $RUN_COMMAND && eval $RUN_COMMAND
+    echo $RUN_COMMAND && eval $RUN_COMMAND
 
     echo "$OUTDIR/${SAMPLE}_significantInteractions.txt all" > $OUTDIR/${SAMPLE}_significantInteractions.log
 
@@ -241,7 +241,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -d $OUTDIR/${SAMPLE}_annotations ]; then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -d $OUTDIR/${SAMPLE}/interactionAnnotation.txt ]; then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
