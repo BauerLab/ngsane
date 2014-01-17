@@ -81,10 +81,6 @@ else
     echo "[ERROR] paired library required for HIC analysis" && exit 1
 fi
 
-if [ "$HOMER_HIC_INTERACTIONS" != "all" ] && [ "$HOMER_HIC_INTERACTIONS" != "cis" ] && [ "$HOMER_HIC_INTERACTIONS" != "trans" ]; then
-    echo "[ERROR] HiC interactions not specified (all, cis or trans) : $HOMER_HIC_INTERACTIONS"
-fi
-
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
 mkdir -p $THISTMP
@@ -191,7 +187,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    RUN_COMMAND="runHiCpca.pl $SAMPLE $OUTDIR/$SAMPLE"_tagdir_filtered" $HOMER_HIC_PCA_ADDPARAM -cpu $CPU_HOMERHIC "
+    RUN_COMMAND="runHiCpca.pl $SAMPLE $OUTDIR/${SAMPLE}_tagdir_filtered $HOMER_HIC_PCA_ADDPARAM -cpu $CPU_HOMERHIC"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
@@ -206,7 +202,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    RUN_COMMAND="findHiCInteractionsByChr.pl $OUTDIR/${SAMPLE}_tagdir_filtered $HOMER_HIC_CISINTERACTIONS_ADDPARAM -cpu $CPU_HOMERHIC > $OUTDIR/"$SAMPLE"_significantCisInteractions.txt"
+    RUN_COMMAND="findHiCInteractionsByChr.pl $OUTDIR/${SAMPLE}_tagdir_filtered $HOMER_HIC_CISINTERACTIONS_ADDPARAM -cpu $CPU_HOMERHIC > $OUTDIR/${SAMPLE}_significantCisInteractions.txt"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
@@ -221,7 +217,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     cat /dev/null > "$SAMPLE"_significantInteractions.txt
         
-    RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" $HOMER_HIC_LOWRESINTERACTIONS_ADDPARAM -interactions $OUTDIR/"$SAMPLE"_significantInteractions.txt -nomatrix -cpu $CPU_HOMERHIC "
+    RUN_COMMAND="analyzeHiC $OUTDIR/${SAMPLE}_tagdir_filtered $HOMER_HIC_LOWRESINTERACTIONS_ADDPARAM -interactions $OUTDIR/${SAMPLE}_significantInteractions.txt -nomatrix -cpu $CPU_HOMERHIC "
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     echo "$OUTDIR/${SAMPLE}_significantInteractions.txt all" > $OUTDIR/${SAMPLE}_significantInteractions.log
@@ -253,7 +249,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     if hash ${CIRCOS} 2>&- ; then
         echo "********* Circos plots"
-        RUN_COMMAND="analyzeHiC $OUTDIR/$SAMPLE"_tagdir_filtered" -res 1000000 -pvalue 1e-7 -cpu $CPU_HOMERHIC -circos $SAMPLE -minDist 2000000000 -nomatrix"
+        RUN_COMMAND="analyzeHiC $OUTDIR/${SAMPLE}_tagdir_filtered -res 1000000 -pvalue 1e-7 -cpu $CPU_HOMERHIC -circos $SAMPLE -minDist 2000000000 -nomatrix"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     fi
 
