@@ -350,14 +350,19 @@ QC_PASS .. 0 have Resource temporarily unavailable/1
 QC_PASS .. 1 have programs/1
 QC_PASS .. 1 have parameters/1
 QC_PASS .. 1 have recall files from tape/1
-QC_PASS .. 1 have execute hicup/1
-QC_PASS .. 1 have count Interactions/1
+QC_PASS .. 1 have truncate/1
+QC_PASS .. 1 have map/1
+QC_PASS .. 1 have filter/1
+**_FAIL .. 0 have de-duplicate/1
+**_FAIL .. 0 have count Interactions/1
 
 </pre></div>
 <div id='hicup_notes'><pre>
 
 qout/hicup/HiC_GMall_Ncol.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/hicup/job.20140116.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/hicup/job.20140117.log
+[NOTE] Detect fastq Phred encoding
+[NOTE] Sanger Phred33	(33, 67) fastq format detected
 </pre></div>
 <div id='hicup_errors'><pre>
 
@@ -371,14 +376,14 @@ qout/hicup/HiC_GMall_Ncol.out
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#hicup_counter_notes').text('1');
+            $('#hicup_counter_notes').text('3');
             $('#hicup_counter_errors').text('0');
-            $('#hicup_counter_checkpoints_passed').text('8');
-            $('#hicup_counter_checkpoints_failed').text('0'); 
+            $('#hicup_counter_checkpoints_passed').text('9');
+            $('#hicup_counter_checkpoints_failed').text('2'); 
             if (0==0){
                 $('#hicup_counter_errors').toggleClass('errors neutral');
             }; 
-            if(0==0){
+            if(2==0){
                 $('#hicup_counter_checkpoints_failed').toggleClass('failed nofailed');
             };
 
@@ -456,7 +461,7 @@ QC_PASS .. 1 have run fit-hi-c/1
 <div id='fithic_notes'><pre>
 
 qout/fithic/HiC_GMall_Ncol.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/fithic/job.20140116.log
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/fithic/job.20140117.log
 </pre></div>
 <div id='fithic_errors'><pre>
 
@@ -494,16 +499,16 @@ qout/fithic/HiC_GMall_Ncol.out
 <h3>smokebox/HiC/fithic/</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>Intra In Range Count</div></th><th><div>Intra Out Of Range Count</div></th><th><div>Intra Very Proximal Count</div></th><th><div>      Inter Count</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>          7660.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td class='left'>GMall_Ncol</td></tr>
+<tr><td></td><td>          7663.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td class='left'>GMall_Ncol</td></tr>
 </tbody>
 </table>
 <h3 class='overall'>Aggregation over all libraries</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>Intra In Range Count</div></th><th><div>Intra Out Of Range Count</div></th><th><div>Intra Very Proximal Count</div></th><th><div>      Inter Count</div></th><th class='left'>File</th></tr></thead>
 <tfoot>
-<tr><td class='left'>sum</td><td>          7660.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>          7660.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>          7660.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>          7660.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>sum</td><td>          7663.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>          7663.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>          7663.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>          7663.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
@@ -527,5 +532,5 @@ qout/fithic/HiC_GMall_Ncol.out
 <tr><td>[7]</td><td class='left'>R: A language and environment for statistical computing; R Core Team. R Foundation for Statistical Computing, Vienna, Austria, (2013)</td></tr>
 </tbody></table>
 </div></div>
-<hr><span>Report generated with NGSANE version: 744ea3993cbe681e8f00937918b8fb19df314a58 (git hash)</span><span style='float:right;'>Last modified: Thu Jan 16 17:55:48 EST 2014</span>
+<hr><span>Report generated with NGSANE version: aa2d4f18d979610af39697e967c401124ab9f07a (git hash)</span><span style='float:right;'>Last modified: Fri Jan 17 16:56:05 EST 2014</span>
 </div><!-- center --></body></html>
