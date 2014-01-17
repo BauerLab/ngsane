@@ -56,9 +56,9 @@ HICUP_RENZYMES=
 # PARAMETER (optional overwriting defaults)
 #********************
 
-# additional parameters for fit-hi-c
-# e.g. "--visual --mappabilityThres=2 --noInters --nobinning"
-FITHICADDPARAM=
+# FASTQ encoding (Phred score), leave empty to detect automatically
+# e.g. "Phred33" (Sanger, Illumina 1.8+), "Phred64" (Solexa, Illumina 1.5)
+FASTQ_ENCODING=
 
 #WALLTIME_HICUP=10:00:00
 #MEMORY_HICUP=60

@@ -470,13 +470,13 @@ if [ -n "$RUNHICUP" ];then
 
     vali=$(gatherDirs $TASK_HICUP)
     echo "<h4>truncater</h4>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "_hicup_truncater_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "_truncater_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     echo "<h4>mapper</h4>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "_hicup_mapper_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "_mapper_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     echo "<h4>filter</h4>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "_hicup_filter_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "_filter_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     echo "<h4>deduplicator</h4>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "_hicup_deduplicator_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "_deduplicator_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     
     imgs=""
     for dir in ${DIR[@]}; do
