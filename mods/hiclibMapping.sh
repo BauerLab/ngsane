@@ -192,7 +192,7 @@ else
     # cleanup
     [ -f $THISTMP/$SAMPLE$READONE.ash.bam ] && rm $THISTMP/$SAMPLE$READONE.ash.bam
     if [ -z "$HICLIB_KEEPBAM" ]; then
-        rm $OUTDIR/$SAMPLE$READONE.bam.[0-9]*
+        rm $OUTDIR/$SAMPLE$READONE*.bam.[0-9]*
     fi
 
 fi
@@ -231,7 +231,7 @@ else
     # cleanup
     [ -f $THISTMP/$SAMPLE$READTWO.ash.bam ] && rm $THISTMP/$SAMPLE$READTWO.ash.bam
     if [ -z "$HICLIB_KEEPBAM" ]; then
-        rm $OUTDIR/$SAMPLE$READTWO.bam.[0-9]*
+        rm $OUTDIR/$SAMPLE$READTWO*.bam.[0-9]*
     fi
 
 fi
