@@ -56,13 +56,20 @@ FASTA_CHROMDIR=$(pwd)/referenceData/
 # bowtie v2.0 index including basename
 FASTA=$(pwd)/referenceData/chr16.fasta
 
+# genome assembly
+# e.g. hg19
+REFERENCE_NAME="hg19"
+
 HICLIB_GAPFILE=$(pwd)/referenceData/hg19_chr16.gap.txt
 
 # Enzymes, see http://biopython.org/DIST/docs/api/Bio.Restriction-module.html 
 HICLIB_RENZYMES="NcoI"
 
 # restriction enzymes
-HICUP_RENZYMES=C^CATGG,Ncol
+HICUP_RENZYME1="Ncol"
+HICUP_RCUTSITE1="C^CATGG"
+HICUP_RENZYME2="none"
+HICUP_RCUTSITE2=
 
 #********************
 # PARAMETER (optional overwriting defaults)

@@ -8,7 +8,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/digested_genome.txt
+# RESULTFILENAME <DIR>/<TASK>/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt
 
 echo ">>>>> Digest genome with HiCUP "
 echo ">>>>> startdate "`date`
@@ -61,24 +61,32 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
-DIGESTGENOME="digested_genome.txt"
-
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
     exit 1
 fi
 
+if [ -z "$HICUP_RENZYME1" ] || [ "${HICUP_RENZYME1,,}" == "none" ]; then
+   echo "[ERROR] No restriction enzyme given!" && exit 1
+elif [ -z "$HICUP_RCUTSITE1" ]; then
+   echo "[ERROR] Restriction enzyme 1 lacks cutsite pattern!" && exit 1
+fi
+if [ -n "$HICUP_RENZYME2" ] && [ "${HICUP_RENZYME2,,}" != "none" ] && [ -z "$HICUP_RCUTSITE2" ]; then
+   echo "[ERROR] Restriction enzyme 2 lacks cutsite pattern!" && exit 1
+else
+    HICUP_RENZYME2="none"
+fi
+
+if [ -z "$REFERENCE_NAME" ]; then
+    echo "[ERROR] Reference assembly name not detected" && exit 1
+fi
+
+DIGESTGENOME="Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt"
+
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/$DIGESTGENOME ] && rm $OUTDIR/$DIGESTGENOME
 fi
-
-if [ -z "$HICUP_RENZYMES" ]; then
-   echo "[ERROR] No restriction enzyme given!" && exit 1
-fi
-ENZYMES=(${HICUP_RENZYMES//;/ })
-ENZYME1=(${ENZYMES[0]//,/ })
-ENZYME2=(${ENZYMES[1]//,/ })
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -97,25 +105,20 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    FASTABASE=${FASTA##*/}
-
     rm -f $OUTDIR/Digest_*
-    cd $OUTDIR
-    if [ ${#ENZYMES[@]} = 1 ]; then
-       echo "Restriction Enzyme 1: ${ENZYME1[1]}:${ENZYME1[0]} "
-       hicup_digester -g "${FASTABASE%.*}" -1 ${ENZYME1[0]} $FASTA
-       mv Digest_* ${DIGESTGENOME}
+    if [ -z "$HICUP_RENZYME2" ] || [ "${HICUP_RENZYME2,,}" == "none" ]; then
+       echo "Restriction Enzyme 1: $HICUP_RENZYME1:$HICUP_RCUTSITE1"
+       RUN_COMMAND="$(which perl) $(which hicup_digester) --outdir $OUTDIR --genome $REFERENCE_NAME -1 $HICUP_RCUTSITE1,$HICUP_RENZYME1 $FASTA"
+       echo $RUN_COMMAND && eval $RUN_COMMAND
+       mv $OUTDIR/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_*.txt $OUTDIR/${DIGESTGENOME}
     
-    elif [ ${#ENZYMES[@]} = 2 ] && [ ! -e $OUTDIR/${FASTABASE%.*}_${ENZYME1[1]}_${ENZYME2[2]}.txt ]; then
-       echo "Restriction Enzyme 1: ${ENZYME1[1]}:${ENZYME1[0]} "
-       echo "Restriction Enzyme 2: ${ENZYME2[1]}:${ENZYME2[0]} "
-       hicup_digester -g "${FASTABASE%.*}" -1 ${ENZYME1[0]} -2 ${ENZYME2[0]} $FASTA
-       mv Digest_* ${DIGESTGENOME}
     else
-       echo "[ERROR] Invalid number or pattern of enzyme digest patterns."
-       exit 1
+       echo "Restriction Enzyme 1: $HICUP_RENZYME1:$HICUP_RCUTSITE1 "
+       echo "Restriction Enzyme 2: $HICUP_RENZYME2:$HICUP_RCUTSITE2 "
+       RUN_COMMAND="$(which perl) $(which hicup_digester) --outdiroutdir $OUTDIR --genome $REFERENCE_NAME -1 $HICUP_RCUTSITE1,$HICUP_RENZYME1 -2 $HICUP_RCUTSITE2,$HICUP_RENZYME2 $FASTA"
+       echo $RUN_COMMAND && eval $RUN_COMMAND
+       mv $OUTDIR/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_*.txt $OUTDIR/${DIGESTGENOME}
     fi
-    cd $SOURCE
     
     # mark checkpoint
     if [ -f $OUTDIR/$DIGESTGENOME ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi

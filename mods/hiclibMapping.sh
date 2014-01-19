@@ -166,7 +166,7 @@ else
 
     # treat read one    
     # merge
-    samtools merge $THISTMP/$SAMPLE$READONE.bam $OUTDIR/$SAMPLE*$READONE.bam.[0-9]*
+    samtools merge $THISTMP/$SAMPLE$READONE.bam $OUTDIR/$SAMPLE$READONE*.bam.[0-9]*
     # keep mapped
     samtools view -bh -F 4 $THISTMP/$SAMPLE$READONE.bam > $THISTMP/$SAMPLE$READONE.$ALN.bam
     rm $THISTMP/$SAMPLE$READONE.bam 
@@ -206,7 +206,7 @@ else
 
     # treat read two
     # merge
-    samtools merge $THISTMP/$SAMPLE$READTWO.bam $OUTDIR/$SAMPLE*$READTWO.bam.[0-9]*
+    samtools merge $THISTMP/$SAMPLE$READTWO.bam $OUTDIR/$SAMPLE$READTWO*.bam.[0-9]*
     # keep mapped
     samtools view -bh -F 4 $THISTMP/$SAMPLE$READTWO.bam > $THISTMP/$SAMPLE$READTWO.$ALN.bam
     rm $THISTMP/$SAMPLE$READTWO.bam
