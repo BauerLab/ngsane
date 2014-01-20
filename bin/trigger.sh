@@ -422,13 +422,17 @@ if [ -n "$RUNHICUP" ]; then
         INDEXJOBIDS=""
     fi
     
-    JOBIDS=$( 
-    $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c 1 \
-    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS --commontask \
-        --command "${NGSANE_BASE}/mods/hicupDigestGenome.sh -k $CONFIG -o $OUT/<DIR>/$TASK_HICUP" 
-    ) && echo -e "$JOBIDS"
+    if [ ! -f $OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt ];then
+        JOBIDS=$( 
+        $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c 1 \
+        	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS --commontask \
+            --command "${NGSANE_BASE}/mods/hicupDigestGenome.sh -k $CONFIG" 
+        ) && echo -e "$JOBIDS"
+        JOBIDS=$(waitForJobIds "$JOBIDS")
 
-    JOBIDS=$(waitForJobIds "$JOBIDS")
+    else
+        JOBIDS=""
+    fi
 
     $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
     	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $JOBIDS \

@@ -28,7 +28,7 @@ while [ "$1" != "" ]; do
 	-d | --nodir )          NODIR="nodir";;
 	-a | --armed )          ARMED="armed";;
     -W | --wait )           shift; JOBIDS=$1 ;;    # jobids to wait for
-    --commontask )          COMMONTASK="1";;    # a task common to multiple libraries
+    --commontask )          COMMONTASK="common";;    # a task common to multiple libraries
 	--keep )                KEEP="keep";;
 	--new )                 KEEP="new";;
 	--recover )             RECOVER="recover";;
@@ -66,8 +66,14 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
         SAMPLEPATTERN=${dir/$DIRNAME/}
     
         # ensure dirs are there
-        if [ -z "$NODIR" ]; then
-            if [ ! -d $OUT/$DIRNAME/$TASK ]; then mkdir -p $OUT/$DIRNAME/$TASK; fi
+        if [ -n "$COMMONTASK" ]; then 
+            mkdir -p $OUT/common/$TASK
+            COMMAND="$COMMAND -o $OUT/common/$TASK"
+        elif [ -z "$NODIR" ]; then
+            if [ ! -d $OUT/$DIRNAME/$TASK ]; then 
+                mkdir -p $OUT/$DIRNAME/$TASK; 
+                echo "DIR created $OUT/$DIRNAME/$TASK"
+            fi
         fi
         
         # add tasks to runnow.tmp
@@ -112,7 +118,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
         fi
     done
 else
-    echo -e "[NOTE] previous enviroment setup detected"
+    echo -e "[NOTE] previous environment setup detected"
 fi
 
 if [ -n "$KEEP" ]; then 
@@ -127,7 +133,6 @@ else
 fi
 
 MYJOBIDS="" # collect job IDs for postcommand
-#DIR=""
 FILES=""
 JOBNUMBER=0
 for i in $(cat $QOUT/$TASK/runnow.tmp); do
@@ -144,8 +149,12 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     COMMAND2=${COMMAND2//<DIR>/$dir} # insert output dir
     COMMAND2=${COMMAND2//<NAME>/$name} # insert ??
 
-    LOGFILE=$QOUT/$TASK/$dir'_'$name'.out'
-    #DIR=$DIR" $dir"
+    if [ -n "$COMMONTASK" ]; then 
+        LOGFILE=$QOUT/$TASK/$dir"_"$COMMONTASK".log"    
+    else
+        LOGFILE=$QOUT/$TASK/$dir"_"$name".out"
+    fi
+
     FILES=$FILES" $i"
 
     # only postcommand 
