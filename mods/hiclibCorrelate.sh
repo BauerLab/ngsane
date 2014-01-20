@@ -55,7 +55,7 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
-PARAMS="--gapFile=$HICLIB_GAPFILE --referenceGenome=$FASTA"
+PARAMS="--gapFile=$HICLIB_GAPFILE --referenceGenome=$FASTA_CHROMDIR"
 
 echo "[NOTE] Files: $FILES"
 OLDFS=$IFS

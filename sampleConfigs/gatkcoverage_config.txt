@@ -1,0 +1,56 @@
+# author: Denis Bauer
+# date: December 2013
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+
+RUNDEPTHOFCOVERAGE="1"     # variance  calling with GATK
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_VAR=$TASK_RECAL
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# reference genome
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+# or ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# additional commands for variant recalibrator
+ADDPARAMGATKDOC=
+LIST= #region of specific interest, e.g. targeted reseq
+GENE= #gene list
+
+#TASK_GATKDOC="coverage"
+#WALLTIME_GATKDOC=50:00:00
+#MEMORY_GATKDOC=50
+#CPU_GATKDOC=1
+#NODES_GATKDOC="nodes=1:ppn=1"
+#INPUT_GATKDOC=$TASK_RECAL
+#MODULE_GATKDOC="${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_GATK}"

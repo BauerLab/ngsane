@@ -64,7 +64,7 @@ CHECKPOINT="parameters"
 n=${f##*/}
 
 #is paired ?
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     echo "[NOTE] PAIRED library"
     PAIRED="1"
 else
@@ -78,7 +78,11 @@ if [ -z "$TRIMMOMATICSTEPS" ]; then
 fi
 
 # get encoding
-FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+if [ -z $FASTQ_ENCODING ]; then
+    echo "[NOTE] Detect fastq Phred encoding"
+    FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+    echo "[NOTE] $FASTQ_ENCODING fastq format detected"
+fi
 if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
     FASTQ_PHRED=" -phred33"    
 elif [[ "$FASTQ_ENCODING" == *Phred64* ]]; then
@@ -95,7 +99,7 @@ FASTQDIRTRIM=$(dirname $o)
 echo $FASTQDIRTRIM
 if [ ! -d $FASTQDIRTRIM ]; then mkdir -p $FASTQDIRTRIM; fi
 echo $f "->" $o
-if [ "$PAIRED" = "1" ]; then echo ${f/$READONE/$READTWO} "->" ${o/$READONE/$READTWO} ; fi
+if [ "$PAIRED" = "1" ]; then echo ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} "->" ${o/%$READON.$FASTQE/$READTWO.$FASTQ} ; fi
 
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -104,6 +108,7 @@ CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
+    dmget -a ${o/$READONE/"*"}
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -112,14 +117,13 @@ CHECKPOINT="trim"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
-else 
-    # Paired read
-    if [ "$PAIRED" = "1" ]
-    then
-        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC $f ${f/$READONE/$READTWO} $o ${o/$READONE/${READONE}_unpaired} ${o/$READONE/$READTWO} ${o/$READONE/${READTWO}_unpaired} $TRIMMOMATICSTEPS &>  ${o/%$READONE.$FASTQ/}.log"
+else
+
+    if [ "$PAIRED" = "1" ]; then
+        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} $o ${o}_unpaired ${o/%$READONE.$FASTQ/$READTWO.$FASTQ} ${o/%$READONE.$FASTQ/$READTWO.$FASTQ}_unpaired $TRIMMOMATICSTEPS > ${o/%$READONE.$FASTQ/}.log 2>&1"
 
     else
-        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC $f $o $TRIMMOMATICSTEPS &> ${o/%$READONE.$FASTQ/}.log"
+        RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC $f $o $TRIMMOMATICSTEPS > ${o/%$READONE.$FASTQ/}.log 2>&1"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
@@ -129,7 +133,6 @@ else
 fi
 
 ################################################################################
-[ -e $FASTQDIRTRIM/${n}.dummy ] && rm $FASTQDIRTRIM/${n}.dummy
+[ -e $FASTQDIRTRIM/$n.dummy ] && rm $FASTQDIRTRIM/$n.dummy
 echo ">>>>> readtrimming with TRIMMOMATIC - FINISHED"
 echo ">>>>> enddate "`date`
-

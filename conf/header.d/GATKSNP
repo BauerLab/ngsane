@@ -1,4 +1,3 @@
-#!/bin/bash -e
 ##############################################################
 # Snp calling with GATK
 # http://www.broadinstitute.org/gatk/

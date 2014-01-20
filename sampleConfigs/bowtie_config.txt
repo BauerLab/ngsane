@@ -33,7 +33,7 @@ QOUT=$OUT/qout
 #********************
 
 # fastq file suffix
-FASTQ="fq.gz"
+FASTQ="fastq.gz"
 
 # read indicator immediately preceding the fastq file suffix
 READONE="_R1"
@@ -54,8 +54,8 @@ PLATFORM="Illumina"
 #********************
 
 # FASTQ encoding (Phred score), leave empty to detect automatically
-# e.g. "--phred33-quals", "--phred64-quals"
-FASTQ_PHRED=
+# e.g. "Phred33" (Sanger, Illumina 1.8+), "Phred64" (Solexa, Illumina 1.5)
+FASTQ_ENCODING=
 
 # additional bowtie parameters
 # e.g. "-v 3 -m 1 --tryhard --best --strata --time"

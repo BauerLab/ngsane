@@ -39,7 +39,7 @@ function version {
     if [ -e ${NGSANE_VERSION/bin\/trigger.sh/}/.git ]; then 
 	    NGSANE_VERSION=`cd ${NGSANE_VERSION/bin\/trigger.sh/}/ && git rev-parse HEAD `" (git hash)"
     else
-        NGSANE_VERSION="v0.3.0"
+        NGSANE_VERSION="v0.4.0"
     fi
     echo -e "NGSANE version: $NGSANE_VERSION"
     exit
@@ -314,10 +314,15 @@ fi
 if [ -n "$RUNSAMVAR" ]; then
     if [ -z "$TASK_BWA" ] || [ -z "$NODES_SAMVAR" ] || [ -z "$CPU_SAMVAR" ] || [ -z "$MEMORY_SAMVAR" ] || [ -z "$WALLTIME_SAMVAR" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB -r $ARMED -k $CONFIG -t $TASK_BWA-$TASK_SAMVAR -i $INPUT_SAMVAR -e .$ASD.bam \
+    $QSUB -r $ARMED -k $CONFIG -t $INPUT_SAMVAR-$TASK_SAMVAR -i $INPUT_SAMVAR -e .$ASD.bam \
        -n $NODES_SAMVAR -c $CPU_SAMVAR -m $MEMORY_SAMVAR'G' -w $WALLTIME_SAMVAR \
-       --command "${NGSANE_BASE}/mods/samSNPs.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_BWA-$TASK_SAMVAR" \
-	   --postcommand "${NGSANE_BASE}/mods/samSNPscollect.sh -k $CONFIG -f <FILE> -o $OUT/variant/$TASK_BWA-$TASK_SAMVAR"-"<DIR>"
+		--postnodes $NODES_VARCOLLECT --postcpu $CPU_VARCOLLECT \
+		--postwalltime $WALLTIME_VARCOLLECT --postmemory $MEMORY_VARCOLLECT"G" \
+        --command "${NGSANE_BASE}/mods/samSNPs.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$INPUT_SAMVAR-$TASK_SAMVAR" \
+	    --postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 $INPUT_SAMVAR \
+				-i2 $INPUT_SAMVAR-$TASK_SAMVAR -o $OUT/variant/${INPUT_SAMVAR}-$INPUT_SAMVAR-$TASK_SAMVAR-<DIR> "
+
+	#   --postcommand "${NGSANE_BASE}/mods/samSNPscollect.sh -k $CONFIG -f <FILE> -o $OUT/variant/$TASK_BWA-$TASK_SAMVAR"-"<DIR>"
 fi
 
 ################################################################################
@@ -330,36 +335,124 @@ if [ -n "$RUNVARCALLS" ]; then
         -c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
         --postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
                         -i <FILE> -t $CPU_VAR \
-                        -r $FASTA -d $DBROD -o $OUT/$TASK_VAR/$NAME -n $NAME \
+                        -r $FASTA -d $DBSNPVCF -o $OUT/$TASK_VAR/$NAME -n $NAME \
                         -H $HAPMAPVCF" #-K $ONEKGVCF"
 fi
 
+
+################################################################################
+#   call indels with GATK -- call one vcf file over all folders but in batches (by chr)
+################################################################################
+
+if [ -n "$RUNVARCALLSBATCH" ]; then
+	if [ ! -e "$FASTA.fai" ] ; then echo -e "\e[91m[ERROR]\e[0m $FASTA.fai missing"; exit 1; fi
+  	BATCHES=$(cut -f 1 $FASTA.fai | grep -v GL | sort -u)
+	NAME=$(echo ${DIR[@]} | sort -u |sed 's/ /_/g')
+	export QUEUEWAIT=${QUEUEWAIT/afterok/afterany}
+
+	if [ ! "$ARMED"="postonly" ]; then
+	  	for i in $BATCHES; do
+			echo "[NOTE] Batch $i"
+			export ADDDUMMY=$i
+	    	JOBID=$( $QSUB $ARMED --postname postcommand$i -r -d -k $CONFIG -t ${TASK_VAR}batch -i $INPUT_VAR  \
+				-e .$ASR.bam -n $NODES_VAR -c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
+	        	--postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
+	                        -i <FILE> -t $CPU_VAR \
+	                        -r $FASTA -d $DBSNPVCF -o $OUT/${TASK_VAR}batch/$NAME -n $NAME$ADDDUMMY \
+	                        -H $HAPMAPVCF -L $i " 
+			) && echo -e "$JOBID"
+			if [ -n "$(echo $JOBID | grep Jobnumber)" ]; then	JOBIDS=$(waitForJobIds "$JOBID")":"$JOBIDS; fi
+	  	done
+		JOBIDS=${JOBIDS//-W /}
+		JOBIDS=${JOBIDS//::/:}
+		JOBIDS="-W $JOBIDS"
+	fi
+
+	echo "[NOTE] filtered SNPs"
+   	$QSUB $ARMED --postname joinedSNP --givenDirs $NAME -d -k $CONFIG -t ${TASK_VAR}batch -i ${TASK_VAR}batch -e filter.snps.vcf $JOBIDS \
+		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_VAR}batch \
+				-i2 ${TASK_VAR}batch -o $OUT/${TASK_VAR}batch/$NAME --dummy filter.snps.vcf --target filter.snps.vcf"
+
+	echo "[NOTE] filtered INDELs"
+   	$QSUB $ARMED --postname joinedINDEL --givenDirs $NAME -d -k $CONFIG -t ${TASK_VAR}batch -i ${TASK_VAR}batch -e filter.snps.vcf $JOBIDS \
+		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_VAR}batch \
+				-i2 ${TASK_VAR}batch -o $OUT/${TASK_VAR}batch/$NAME --dummy filter.snps.vcf --target filter.indel.vcf"
+
+	echo "[NOTE] recal Vars"
+   	$QSUB $ARMED --postname joinedRECAL --givenDirs $NAME -d -k $CONFIG -t ${TASK_VAR}batch -i ${TASK_VAR}batch -e filter.snps.vcf $JOBIDS \
+		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_VAR}batch \
+				-i2 ${TASK_VAR}batch -o $OUT/${TASK_VAR}batch/$NAME --dummy filter.snps.vcf --target recalfilt.vcf"
+   
+fi	
+
+	
 ################################################################################
 #   Depth of Coverage
 # IN: */bwa/*.bam
 # OUT: */bwa_var/*.clean.vcf
 ################################################################################
 
-if [ -n "$DEPTHOFCOVERAGE2" ]; then
-
+if [ -n "$RUNDEPTHOFCOVERAGE" ]; then
     $QSUB $ARMED -r -k $CONFIG -t $TASK_GATKDOC -i $INPUT_GATKDOC -e .$ASR.bam \
 	-n $NODES_GATKDOC -c $CPU_GATKDOC -m $MEMORY_GATKDOC"G" -w $WALLTIME_GATKDOC \
-	--command "${NGSANE_BASE}/mods/gatkDOC.sh -k ${NGSANE_BASE} -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASK_GATKDOC -t $CPU_GATKDOC"
-
+	--command "${NGSANE_BASE}/mods/gatkDOC.sh -k $CONFIG -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASK_GATKDOC -t $CPU_GATKDOC"
 fi
 
 ################################################################################
 #   Mapping using HiCUP
-# IN : $SOURCE/fastq/$dir/*read1.fastq
-# OUT: $OUT/$dir/hicup/*.$ASD.bam
+# IN : $SOURCE/fastq/$dir/*$READONE$FASTQ
+# OUT: $OUT/$dir/hicup/*_uniques.bam
 ################################################################################
 
 if [ -n "$RUNHICUP" ]; then
     if [ -z "$TASK_HICUP" ] || [ -z "$NODES_HICUP" ] || [ -z "$CPU_HICUP" ] || [ -z "$MEMORY_HICUP" ] || [ -z "$WALLTIME_HICUP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
+    if [ ! -f ${FASTA%.*}.1.ebwt ];then
+        # submit job for index generation if necessary
+        INDEXJOBIDS=$(
+            $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
+    	   -m $MEMORY_HICUP"G" -w $WALLTIME_HICUP --commontask \
+            --command "${NGSANE_BASE}/mods/bowtieIndex.sh -k $CONFIG"
+        ) && echo -e "$INDEXJOBIDS"
+        INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+    else
+        INDEXJOBIDS=""
+    fi
+    
+    if [ ! -f $OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt ];then
+        JOBIDS=$( 
+        $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c 1 \
+        	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS --commontask \
+            --command "${NGSANE_BASE}/mods/hicupDigestGenome.sh -k $CONFIG" 
+        ) && echo -e "$JOBIDS"
+        JOBIDS=$(waitForJobIds "$JOBIDS")
+
+    else
+        JOBIDS=""
+    fi
+
     $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
-    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP \
+    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $JOBIDS \
         --command "${NGSANE_BASE}/mods/hicup.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HICUP"
+
+fi
+
+################################################################################
+#   Assessing chromatin interactions with fit-hi-c
+# IN : $SOURCE/$dir/hicup/*$FRAGMENTLIST
+# OUT: $OUT/$dir/hicup/*.spline_pass1.q05.txt.gz
+################################################################################
+
+if [ -n "$RUNFITHIC" ]; then
+    if [ -z "$TASK_FITHIC" ] || [ -z "$NODES_FITHIC" ] || [ -z "$CPU_FITHIC" ] || [ -z "$MEMORY_FITHIC" ] || [ -z "$WALLTIME_FITHIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $FRAGMENTLIST -n $NODES_FITHIC -c $CPU_FITHIC \
+    	-m $MEMORY_FITHIC"G" -w $WALLTIME_FITHIC \
+        --command "${NGSANE_BASE}/mods/fithic.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FITHIC"
+
 fi
 
 ################################################################################
@@ -372,10 +465,21 @@ fi
 if [ -n "$RUNHICLIB" ]; then
     if [ -z "$TASK_HICLIB" ] || [ -z "$NODES_HICLIB" ] || [ -z "$CPU_HICLIB" ] || [ -z "$MEMORY_HICLIB" ] || [ -z "$WALLTIME_HICLIB" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
+    if [ ! -f ${FASTA%.*}.1.bt2 ];then
+        # submit job for index generation if necessary
+        INDEXJOBIDS=$(
+            $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ -n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB --commontask \
+            --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
+        ) && echo -e "$INDEXJOBIDS"
+        INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+    else
+        INDEXJOBIDS=""
+    fi
+    
     $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ \
     	-n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
-    	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND \
-        --command "${NGSANE_BASE}/mods/hiclibMapping.sh -k $CONFIG --fastq <FILE> --outdir $OUT/<DIR>/$TASK_HICLIB --fastqName <NAME>" \
+    	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND $INDEXJOBIDS \
+        --command "${NGSANE_BASE}/mods/hiclibMapping.sh -k $CONFIG --fastq <FILE> --outdir $OUT/<DIR>/$TASK_HICLIB" \
         --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh -f <FILE> -k $CONFIG --outdir $OUT/hiclib/$TASK_HICLIB-<DIR>"
 fi
 
@@ -628,7 +732,7 @@ fi
 if [ -n "$RUNHOMERHIC" ]; then
     if [ -z "$TASK_HOMERHIC" ] || [ -z "$NODES_HOMERHIC" ] || [ -z "$CPU_HOMERHIC" ] || [ -z "$MEMORY_HOMERHIC" ] || [ -z "$WALLTIME_HOMERHIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERHIC -i $INPUT_HOMERHIC -e .$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERHIC -i $INPUT_HOMERHIC -e $READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
 	   --command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERHIC"
 fi
 
@@ -727,7 +831,7 @@ if [ -n "$RUNREALRECAL" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASK_RECAL -i $INPUT_REALRECAL -e .$ASD.bam \
         -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
-        --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBROD -o $OUT/<DIR>/$TASK_RECAL"
+        --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBSNPVCF -o $OUT/<DIR>/$TASK_RECAL"
 
 fi
 
@@ -809,54 +913,6 @@ if [ -n "$mergeReCalbams" ]; then
     ${NGSANE_BASE}/mods/merge.sh ${NGSANE_BASE} $OUT/combined/mergeguide/combineAll.txt $OUT/combined/ DISC1_all.bam bam qout/merged/
 fi
 
-
-
-################################################################################
-# DepthOfCoverage
-# expects to be run fom <dir>/<TASK_RECAL>/<name>.<ASR>.bam
-# e.g. Run/reCalAln/name.ashrr.bam
-# change that by setting TASK_RECAL=TASK_BWA and ASR=ASD
-################################################################################
-
-if [ -n "$DEPTHOFCOVERAGE" ]
-then
-    CPUS=24
-
-    echo -e "********* $TASK_GATKDOC"
-
-    if [ ! -d $QOUT/$TASK_GATKDOC ]; then mkdir -p $QOUT/$TASK_GATKDOC; fi
-
-    for dir in ${DIR[@]}
-      do
-
-      for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
-	do
-	
-	n=`basename $f`
-	n2=${n/%$READONE.$FASTQ/.$ASR.bam}
-	name=${n/%$READONE.$FASTQ/}
-	echo -e ">>>>>"$dir/$TASK_RECAL/$n2
-
-	if [ ! -d $OUT/$dir/$TASK_GATKDOC ]; then mkdir -p $OUT/$dir/$TASK_GATKDOC; fi
-
-	# remove old pbs output
-	if [ -e $QOUT/$TASK_GATKDOC/$dir'_'$name'.out' ]; then rm $QOUT/$TASK_GATKDOC/$dir'_'$name'.out'; fi
-
-	#check if this is part of the pipe and jobsubmission needs to wait
-#	if [ -n "$$RUNREALRECAL" ]; then HOLD="-hold_jid "$TASK_RECAL"_"$dir"_"$name; fi
-
-	#Submit
-	if [ -n "$ARMED" ]; then
-	    qsub $PRIORITY -j y -o $QOUT/$TASK_GATKDOC/$dir'_'$name'.out' -cwd -b y -pe mpich $CPUS \
-		-l mem_free=11G -l h_vmem=11G -l vf=500K -N $TASK_GATKDOC'_'$dir'_'$name $HOLD\
-		${NGSANE_BASE}/mods/gatkDOC.sh -k ${NGSANE_BASE} -f $OUT/$dir/$TASK_RECAL/$n2 -r $FASTA \
-		-o $OUT/$dir/$TASK_GATKDOC -t $CPUS
-	fi
-
-      done
-    done
-
-fi
 
 ################################################################################
 # downsample
@@ -945,7 +1001,7 @@ then
 	if [ -n "$ARMED" ]; then
 	    qsub $PRIORITY -j y -o $QOUT/$TASK_GATKIND/$dir'_'$name'.out' -cwd -b y \
 		-l h_vmem=12G -N $TASK_GATKIND'_'$dir'_'$name $HOLD\
-		${NGSANE_BASE}/mods/gatkIndel.sh ${NGSANE_BASE} $OUT/$dir/$TASK_RECAL/$n2 $FASTA $DBROD \
+		${NGSANE_BASE}/mods/gatkIndel.sh ${NGSANE_BASE} $OUT/$dir/$TASK_RECAL/$n2 $FASTA $DBSNPVCF \
 		$REFSEQROD $OUT/$dir/$TASK_GATKIND
 	fi
 
@@ -1003,7 +1059,7 @@ then
     if [ -n "$ARMED" ]; then
 	qsub -j y -o $QOUT/$TASK_GATKIND/$NAME.out -cwd -b y \
 	    -l mem_free=20G -l h_vmem=20G -N $TASK_GATKIND"_"$NAME.out $HOLD\
-	    ${NGSANE_BASE}/mods/gatkIndelV2.sh ${NGSANE_BASE} $TASK_GATKIND"bamfiles.tmp" $FASTA $DBROD \
+	    ${NGSANE_BASE}/mods/gatkIndelV2.sh ${NGSANE_BASE} $TASK_GATKIND"bamfiles.tmp" $FASTA $DBSNPVCF \
 	    $REFSEQROD $OUT/genotype $SEQREG
     fi
 
@@ -1219,4 +1275,21 @@ if [ -n "$RUNBUTTERFLY" ] && [ -z "$RUNTRINITY" ]; then
           -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY $JOBIDS \
           --command "${NGSANE_BASE}/mods/trinity_butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_BUTTERFLY" 
 fi
+
+################################################################################ 
+#   Pindel
+################################################################################
+
+if [ -n "$RUNPINDEL" ]; then
+
+    $QSUB $ARMED -r -k $CONFIG -t $INPUT_PINDEL-$TASK_PINDEL -i $INPUT_PINDEL -e .$ASD.bam \
+        -n $NODES_PINDEL -c $CPU_PINDEL -m $MEMORY_PINDEL"G" -w $WALLTIME_PINDEL \
+		--postnodes $NODES_VARCOLLECT --postcpu $CPU_VARCOLLECT \
+		--postwalltime $WALLTIME_VARCOLLECT --postmemory $MEMORY_VARCOLLECT"G" \
+        --command "${NGSANE_BASE}/mods/pindel.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$INPUT_PINDEL-$TASK_PINDEL" \
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 $INPUT_PINDEL \
+				-i2 ${INPUT_PINDEL}-$TASK_PINDEL -o $OUT/variant/${INPUT_PINDEL}-${TASK_PINDEL}-<DIR> "
+
+fi
+
 

@@ -32,7 +32,7 @@ QOUT=$OUT/qout
 #********************
 
 # fastq file suffix
-FASTQ="fq.gz"
+FASTQ="fastq.gz"
 
 # read indicator immediately preceding the fastq file suffix
 READONE="_R1"
@@ -42,10 +42,13 @@ READTWO="_R2"
 # PARAMETER (optional)
 #********************
 
+# additional parameter passed onto fastqc
+# e.g. "--nogroup" or "--kmers 10"
+FASTQCADDPARAM
+
 #WALLTIME_FASTQC=10:00:00
 #MEMORY_FASTQC=20
-#CPU_FASTQC=16
-#NODES_FASTQC="nodes=2:ppn=8"
-#
+#CPU_FASTQC=2
+#NODES_FASTQC="nodes=1:ppn=2"
 #MODULE_FASTQC="gi/fastqc/0.10.1"
 #PATH_FASTQC=

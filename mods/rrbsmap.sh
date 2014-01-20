@@ -133,10 +133,10 @@ if [ -z "$RECOVERFROM" ]; then
 fi
 
 #is paired ?
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
     READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-    READ2=`$ZCAT ${f/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}' `
+    READ2=`$ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}' `
     let FASTQREADS=$READ1+$READ2
 
 else
@@ -167,7 +167,7 @@ else
 
     if [ "$PAIRED" = "1" ]; then
         echo "[NOTE] PAIRED READS"
-        $RRBSMAP -a $f -b ${f/$READONE/$READTWO} -d $FASTA -o $OUT/${n/%$READONE.$FASTQ/$ALN.bam} \
+        $RRBSMAP -a $f -b ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} -d $FASTA -o $OUT/${n/%$READONE.$FASTQ/$ALN.bam} \
     	$ADAPTER -D $RSITE -p $CPU_RRBSMAP -2 $OUT/${n/%$READONE.$FASTQ/$UNM.bam}
     else
     

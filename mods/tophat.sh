@@ -112,8 +112,12 @@ CHECKPOINT="parameters"
 # get basename of f (samplename)
 n=${f##*/}
 
+if [[ ! -e ${FASTA%.*}.1.bt2 ]]; then
+    echo "[ERROR] Bowtie2 index not detected. Exeute bowtieIndex.sh first"
+    exit 1
+fi
+
 # get info about input file
-FASTASUFFIX=${FASTA##*.}
 BAMFILE=$OUTDIR/../${n/%$READONE.$FASTQ/.$ASD.bam}
 
 #remove old files
@@ -124,9 +128,9 @@ fi
 
 if [ -n "$READONE" ] && [ "$READONE" == "$READTWO" ]; then
 	echo "[ERROR] read1 == read2 " 1>&2 && exit 1
-elif [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+elif [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
-    f2=${f/$READONE/$READTWO}
+    f2=${f/%$READONE.$FASTQ/$READTWO.$FASTQ}
     BAM2BW_OPTION_ISPAIRED="True"
     echo "[NOTE] Paired library detected"
 else
@@ -209,8 +213,6 @@ BIGWIGSDIR=$OUTDIR/../
 
 mkdir -p $OUTDIR
 
-
-
 if [ -n "$TOPHATTRANSCRIPTOMEINDEX" ]; then
     echo "[NOTE] RNAseq --transcriptome-index specified: ${TOPHATTRANSCRIPTOMEINDEX}"
     TOPHAT_TRANSCRIPTOME_PARAM="--transcriptome-index=${TOPHATTRANSCRIPTOMEINDEX}"
@@ -220,8 +222,6 @@ else
     TOPHAT_TRANSCRIPTOME_PARAM=
     PICARD_REFERENCE=$FASTA
 fi
-
-
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -242,11 +242,8 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     echo "[NOTE] tophat $(date)"
-    ## generating the index files
-    if [ ! -e ${FASTA/.${FASTASUFFIX}/}.1.bt2 ]; then echo ">>>>> make .bt2"; bowtie2-build $FASTA ${FASTA/.${FASTASUFFIX}/}; fi
-    if [ ! -e $FASTA.fai ]; then echo ">>>>> make .fai"; samtools faidx $FASTA; fi
     
-    RUN_COMMAND="tophat $TOPHATADDPARAM $TOPHAT_TRANSCRIPTOME_PARAM $FASTQ_PHRED --keep-fasta-order --num-threads $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA/.${FASTASUFFIX}/} $f $f2"
+    RUN_COMMAND="tophat $TOPHATADDPARAM $TOPHAT_TRANSCRIPTOME_PARAM $FASTQ_PHRED --keep-fasta-order --num-threads $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA%.*} $f $f2"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     echo "[NOTE] tophat end $(date)"
 
@@ -281,14 +278,26 @@ else
     THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
     mkdir -p  $THISTMP
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
-         I=${BAMFILE/.bam/.samtools}.bam \
-         O=$BAMFILE \
-         LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID \
-         VALIDATION_STRINGENCY=SILENT \
+        I=${BAMFILE/.bam/.samtools}.bam \
+        O=$BAMFILE.rg \
+        LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID \
+        VALIDATION_STRINGENCY=SILENT \
         TMP_DIR=$THISTMP"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    rm -r $THISTMP
+    
     rm ${BAMFILE/.bam/.samtools}.bam
+        
+    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
+        I=$BAMFILE.rg \
+        O=$BAMFILE \
+        CREATE_MD5_FILE=true \
+        COMPRESSION_LEVEL=9 \
+        VALIDATION_STRINGENCY=SILENT \
+        TMP_DIR=$THISTMP"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+
+    rm $BAMFILE.rg
+    rm -r $THISTMP
 
     # mark checkpoint
     if [ -f $BAMFILE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -332,10 +341,6 @@ CHECKPOINT="index and calculate inner distance"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-
-
-
-
     echo "[NOTE] samtools index"
     samtools index $BAMFILE
 
@@ -373,7 +378,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     echo "[NOTE] samstat"
-    samstat $BAMFILE
+    samstat $BAMFILE 2>&1 | tee | grep -v -P "Bad x in routine betai"
   
     # mark checkpoint
     if [ -f $BAMFILE.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -406,10 +411,7 @@ CHECKPOINT="RNA-SeQC"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-
-
 	## ensure bam is properly ordered for GATK
-
 	#reheader bam
 	java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=$BAMFILE O=${BAMFILE}_unsorted.bam R=$FASTA VALIDATION_STRINGENCY=SILENT
 
@@ -418,7 +420,6 @@ else
 	
 	#index
 	samtools index ${BAMFILE}_sorted.bam
-	
 	
 	rm ${BAMFILE}_unsorted.bam
     
@@ -438,7 +439,9 @@ else
         RNASeQCDIR=$OUTDIR/../${n/%$READONE.$FASTQ/_RNASeQC}
         mkdir -p $RNASeQCDIR
     
-        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE}_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG"
+        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE}_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG  2>&1 | tee | grep -v 'Ignoring SAM validation error: ERROR:'"
+        # TODO: find a way to fix the bamfile reg. the SAM error
+        # http://seqanswers.com/forums/showthread.php?t=28155
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
     	rm ${BAMFILE}_sorted.bam
@@ -469,10 +472,12 @@ fi
 ###############################################################################
 CHECKPOINT="cleanup"
 
-[ -e ${BAMFILE/.$ASD/.$ALN} ] && rm ${BAMFILE/.$ASD/.$ALN}
+[ -e ${BAMFILE/.$ASD/.$ALN} ] && rm ${BAMFILE/.$ASD/.$ALN} 
+
+[ -e ${BAMFILE/.$ASD/.$ALN}.bai ] && rm ${BAMFILE/.$ASD/.$ALN}.bai
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dummy
+[ -e ${BAMFILE}.dummy ] && rm ${BAMFILE}.dummy
 echo ">>>>> alignment with TopHat - FINISHED"
 echo ">>>>> enddate "`date`

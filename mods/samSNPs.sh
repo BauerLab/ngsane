@@ -6,6 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>
 
 echo ">>>>> Variant calling with sam "
 echo ">>>>> startdate "`date`

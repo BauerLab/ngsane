@@ -1,4 +1,3 @@
-#!/bin/bash -r
 ##############################################################
 # Trimming with TRIMMOMATIC
 # http://www.usadellab.org/cms/index.php?page=trimmomatic

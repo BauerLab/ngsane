@@ -74,13 +74,13 @@ fi
     
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-CHECKPOINT="fastqc"
+CHECKPOINT="fastqc read 1"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    RUN_COMMAND="fastqc --nogroup -t $CPU_FASTQC --outdir $OUTDIR $INPUTFILE"
+    RUN_COMMAND="fastqc $FASTQCADDPARAM -t $CPU_FASTQC --outdir $OUTDIR $INPUTFILE"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     # check for ".fastq.gz" suffix as FASTQC removes both suffixes then
     if [ "$FASTQ" != "fastq.gz" ];then 
@@ -88,14 +88,27 @@ else
         mv $OUTDIR/${INPUTFILENAME%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc}
     fi
 
+    chmod -R a+rx $OUTDIR/
+    
+    if [ -f $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi
+################################################################################
+CHECKPOINT="fastqc read 2"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
     if [ "$PAIRED" = "1" ];then
-        RUN_COMMAND="fastqc --nogroup -t $CPU_FASTQC --outdir $OUTDIR ${INPUTFILE/%$READONE.$FASTQ/$READTWO.$FASTQ}"
+        RUN_COMMAND="fastqc $FASTQCADDPARAM -t $CPU_FASTQC --outdir $OUTDIR ${INPUTFILE/%$READONE.$FASTQ/$READTWO.$FASTQ}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         R2=${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.$FASTQ}
         if [ "$FASTQ" != "fastq.gz" ];then 
             mv $OUTDIR/${R2%.*}"_"fastqc.zip $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc.zip}; 
             mv $OUTDIR/${R2%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc}; 
         fi
+    else
+        echo "[NOTE] Single-end pair library detected. No second read to process."
     fi
     
     chmod -R a+rx $OUTDIR/

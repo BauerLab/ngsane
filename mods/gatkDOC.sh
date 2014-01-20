@@ -6,6 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
+# RESULTFILENAME <DIR>/$TASK_GATKDOC/<SAMPLE>.doc
 
 echo ">>>>> determine the depth of coverage with GATK"
 echo ">>>>> startdate "`date`
@@ -49,7 +50,7 @@ while [ "$1" != "" ]; do
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
-        -o | --outdir )         shift; OUT=$1 ;; # output dir  +++ THIS DOES NOT USE CONFIG OVERWRITE !! +++
+        -o | --outdir )         shift; OUTDIR=$1 ;; # output dir  +++ THIS DOES NOT USE CONFIG OVERWRITE !! +++
         -G | --gene )           shift; GENE=$1 ;; # gene list
         -L | --list )           shift; LIST=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
@@ -76,7 +77,7 @@ echo "PATH=$PATH"
 PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_GATK*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_GATKDOC*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -119,12 +120,13 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar \
+		$ADDPARAMGATKDOC \
         -T DepthOfCoverage \
         --minMappingQuality 10 \
         --minBaseQuality 10 \
         -R $FASTA \
         -I $f \
-        -o $OUT/$n.doc \
+        -o $OUTDIR/$n.doc \
         $TASK --omitDepthOutputAtEachBase \
         -ct 10 -ct 20 -ct 50 -ct 100 -ct 500 \
         --start 1 \
@@ -138,7 +140,7 @@ else
     #    --minBaseQuality 20 \
     
     # mark checkpoint
-    if [ -f $OUT/$n.doc ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$n.doc ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
@@ -151,28 +153,30 @@ else
 
     #statistics for on target proportion
     if [ -n "$LIST" ]; then
+		FASTAEND=${$FASTA/*./}
         # get reads overlapping exons+100 and get statistics
         # get how many reads where there to begin with
-        slopBed -i $LIST -b 100 -g ${FASTA/fasta/bedtools.genome} | intersectBed \
-    	-abam $f -b stdin -u | $SAMTOOLS flagstat - > $OUT/$n.stats
+        slopBed -i $LIST -b 100 -g ${FASTA/FASTAEND/chrom.sizes} | intersectBed \
+    	-abam $f -b stdin -u | $SAMTOOLS flagstat - > $OUTDIR/$n.stats
     
-        #windowBed -abam $f -b $LIST -w 100 -u | $SAMTOOLS flagstat - > $OUT/$n.stats
-        echo "# overall" >> $OUT/$n.stats
-        grep "in total (QC-passed reads + QC-failed reads)" $f.stats >> $OUT/$n.stats
-        grep "properly paired (" $f.stats >> $OUT/$n.stats
+        #windowBed -abam $f -b $LIST -w 100 -u | $SAMTOOLS flagstat - > $OUTDIR/$n.stats
+        echo "# overall" >> $OUTDIR/$n.stats
+        grep "in total (QC-passed reads + QC-failed reads)" $f.stats >> $OUTDIR/$n.stats
+        grep "properly paired (" $f.stats >> $OUTDIR/$n.stats
     
-        echo "# on target 0" >> $OUT/$n.stats
-        intersectBed -abam $f -b $LIST  -u | $SAMTOOLS flagstat - >> $OUT/$n.stats
-        echo "# on target 200" >> $OUT/$n.stats
-        slopBed -i $LIST -b 100 -g ${FASTA/fasta/bedtools.genome} | intersectBed \
-    	-abam $f -b stdin -u | $SAMTOOLS flagstat - >> $OUT/$n.stats
+        echo "# on target 0" >> $OUTDIR/$n.stats
+        intersectBed -abam $f -b $LIST  -u | $SAMTOOLS flagstat - >> $OUTDIR/$n.stats
+        echo "# on target 200" >> $OUTDIR/$n.stats
+        slopBed -i $LIST -b 100 -g ${FASTA/FASTAEND/chrom.sizes} | intersectBed \
+    	-abam $f -b stdin -u | $SAMTOOLS flagstat - >> $OUTDIR/$n.stats
 
         # mark checkpoint
-        if [ -f $OUT/$n.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        if [ -f $OUTDIR/$n.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
     fi
 fi
 
 ################################################################################
+[ -e $OUTDIR/$n.doc.dummy ] && rm $OUTDIR/$n.doc.dummy
 echo ">>>>> determine the depth of coverage with GATK - FINISHED"
 echo ">>>>> enddate "`date`

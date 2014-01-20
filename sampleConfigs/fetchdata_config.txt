@@ -37,7 +37,7 @@ OUT=$SOURCE
 QOUT=$OUT/qout
 
 # fastq file suffix (which files to run on)
-FASTQ="fq.gz"
+FASTQ="fastq.gz"
 
 # read indicator  immediately preceding the file suffixes
 READONE="_R1"

@@ -33,10 +33,15 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
+# reference genome
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+# or ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=
+
 # location of SNP database file dbsnp.vcf (double-check genome assembly)
 # e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/dbsnp_137.hg19.vcf 
 # or   $NGSANE_REFERENCE/gatk_resources_1.5/dbsnp_135.b37.vcf
-DBROD=
+DBSNPVCF=
 
 # location of HapMap vcf file (double-check genome assembly)
 # e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/hapmap_3.3.hg19.vcf

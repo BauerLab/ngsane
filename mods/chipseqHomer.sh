@@ -8,7 +8,7 @@ echo ">>>>> job_id "$JOB_ID
 echo ">>>>> $(basename $0) $*"
 
 function usage {
-echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
+echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -o OUTDIR [OPTIONS]"
 exit
 }
 
@@ -66,6 +66,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%.$ASD.bam/}
 c=${CHIPINPUT##*/}
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -74,6 +75,7 @@ CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a $f
+    dmget -a ${CHIPINPUT##*/}
     dmget -a $OUTDIR/*
 fi
 
@@ -85,19 +87,20 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
     
-    TAGDIRECTORY=$OUTDIR/${n/%.$ASD.bam/_homer}
+    TAGDIRECTORY=$OUTDIR/${SAMPLE}_homer
     mkdir -p $TAGDIRECTORY
-    RUN_COMMAND="makeTagDirectory $TAGDIRECTORY $f $HOMER_CHIPSEQ_TAGDIR_ADDPARAM"
+    RUN_COMMAND="makeTagDirectory $TAGDIRECTORY $f $HOMER_CHIPSEQ_TAGDIR_ADDPARAM &> $OUTDIR/${SAMPLE}.tagdirIP.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    
+    cat $OUTDIR/${SAMPLE}.tagdirIP.log # put into qout log too
     
     if [ -n "$CHIPINPUT" ];then
-        TAGDIRECTORY=$OUTDIR/${n/%.$ASD.bam/_homer}
+        TAGDIRECTORY=$OUTDIR/${SAMPLE}_homer
         mkdir -p ${TAGDIRECTORY}_input
         # copy input to prevent interfering concurrent processing by homer
         cp $CHIPINPUT ${TAGDIRECTORY}
         RUN_COMMAND="makeTagDirectory ${TAGDIRECTORY}_input ${TAGDIRECTORY}/$c $HOMER_CHIPSEQ_TAGDIR_ADDPARAM"
         echo $RUN_COMMAND && eval $RUN_COMMAND
+        
         rm $TAGDIRECTORY/$c
         INPUT=${c/.$ASD.bam/}
     else
@@ -116,26 +119,44 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    RUN_COMMAND="findPeaks $TAGDIRECTORY -style $HOMER_CHIPSEQ_STYLE  $HOMER_CHIPSEQ_FINDPEAKS_ADDPARAM -o auto"
+    RUN_COMMAND="findPeaks $TAGDIRECTORY -style $HOMER_CHIPSEQ_STYLE  $HOMER_CHIPSEQ_FINDPEAKS_ADDPARAM -o auto "
     if [ -n "$CHIPINPUT" ];then
       RUN_COMMAND="$RUN_COMMAND -i ${TAGDIRECTORY}_input"  
     fi
+    RUN_COMMAND="$RUN_COMMAND &> $OUTDIR/${SAMPLE}.findpeaks.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
+    cat $OUTDIR/${SAMPLE}.findpeaks.log # put into qout log too
     
     if [ "$HOMER_CHIPSEQ_STYLE" == "factor" ]; then
-        pos2bed.pl $OUTDIR/${n/.$ASD.bam/_homer}/peaks.txt > $OUTDIR/${n/.$ASD.bam/}-${INPUT}_peaks.bed
-        grep "^#" $OUTDIR/${n/.$ASD.bam/_homer}/peaks.txt > $OUTDIR/${n/.$ASD.bam/}.summary.txt
-    
+        pos2bed.pl $OUTDIR/${SAMPLE}_homer/peaks.txt > $OUTDIR/${SAMPLE}-${INPUT}_peaks.bed
     elif [ "$HOMER_CHIPSEQ_STYLE" == "histone" ]; then
-        pos2bed.pl $OUTDIR/${n/.$ASD.bam/_homer}/regions.txt > $OUTDIR/${n/.$ASD.bam/}-${INPUT}_regions.bed
-        grep "^#" $OUTDIR/${n/.$ASD.bam/_homer}/regions.txt > $OUTDIR/${n/.$ASD.bam/}.summary.txt
+        pos2bed.pl $OUTDIR/${SAMPLE}_homer/regions.txt > $OUTDIR/${SAMPLE}-${INPUT}_regions.bed
     fi
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/.$ASD.bam/}.summary.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${SAMPLE}.findpeaks.log ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
+################################################################################
+CHECKPOINT="summarize"
 
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    cat $OUTDIR/${SAMPLE}.tagdirIP.log $OUTDIR/${SAMPLE}.findpeaks.log > $OUTDIR/${SAMPLE}.summary.txt
+    
+
+    if [ "$HOMER_CHIPSEQ_STYLE" == "factor" ]; then
+        grep "^#" $OUTDIR/${SAMPLE}_homer/peaks.txt >> $OUTDIR/${SAMPLE}.summary.txt
+    
+    elif [ "$HOMER_CHIPSEQ_STYLE" == "histone" ]; then
+        grep "^#" $OUTDIR/${SAMPLE}_homer/regions.txt >> $OUTDIR/${SAMPLE}.summary.txt
+    fi
+    # mark checkpoint
+    if [ -f $OUTDIR/${SAMPLE}.summary.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi
 ################################################################################
 CHECKPOINT="cleanup"
 
@@ -143,13 +164,16 @@ if [ -z "$HOMER_KEEPTAGDIRECTORY" ]; then
    rm $TAGDIRECTORY/*.tags.tsv
 fi
 
+[ -f $OUTDIR/${SAMPLE}.tagdirIP.log ] && rm $OUTDIR/${SAMPLE}.tagdirIP.log
+[ -f $OUTDIR/${SAMPLE}.findpeaks.log ] && rm $OUTDIR/${SAMPLE}.findpeaks.log
+
 if [ -n "$CHIPINPUT" ] && [ -d ${TAGDIRECTORY}_input ]; then
     rm -r ${TAGDIRECTORY}_input
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e $OUTDIR/${n/.$ASD.bam/.summary.txt}.dummy ] && rm $OUTDIR/${n/.$ASD.bam/.summary.txt}.dummy
+[ -e $OUTDIR/${SAMPLE}.summary.txt.dummy ] && rm $OUTDIR/${SAMPLE}.summary.txt.dummy
 echo ">>>>> ChIPseq analysis with Homer - FINISHED"
 echo ">>>>> enddate "`date`
 

@@ -1,16 +1,15 @@
-#!/bin/bash -e
 ##############################################################
 # HICLIB 
 # https://bitbucket.org/mirnylab/hiclib
 TASK_HICLIB="hiclib"
 WALLTIME_HICLIB=50:00:00
-MEMORY_HICLIB=60
-CPU_HICLIB=16
+MEMORY_HICLIB=50
+CPU_HICLIB=8
 NODES_HICLIB="nodes=1:ppn=8"
 CPU_HICLIB_POSTCOMMAND=1
 NODES_HICLIB_POSTCOMMAND="nodes=1:ppn=1"
 INPUT_HICLIB="fastq"
-MODULE_HICLIB="${NG_BOWTIE2} ${NG_SAMTOOLS} ${NG_HDF5} ${NG_PICARD} ${NG_HICLIB}"
+MODULE_HICLIB="${NG_JAVA} ${NG_PICARD} ${NG_SAMSTAT} ${NG_SAMTOOLS} ${NG_BOWTIE2} ${NG_HDF5} ${NG_HICLIB}"
 PATH_HICLIB=
-HICLIB_GAPFILE=
+
 

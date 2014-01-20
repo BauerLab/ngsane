@@ -1,4 +1,3 @@
-#!/bin/bash -e
 ##############################################################
 # demultiplex with Fastxtoolkit
 # http://hannonlab.cshl.edu/fastx_toolkit/
