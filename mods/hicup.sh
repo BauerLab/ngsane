@@ -131,7 +131,12 @@ else
     ENZYME2PARAM="-re1 $HICUP_RCUTSITE2"
 fi
 
-DIGESTGENOME="$OUTDIR/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt"
+DIGESTGENOME="$OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt"
+if [ ! -f $DIGESTGENOME ]; then
+    echo "[ERROR] digested genome not found: $DIGESTGENOME"; 
+    exit 1
+fi
+
 mkdir -p $OUTDIR/$SAMPLE
 
 
