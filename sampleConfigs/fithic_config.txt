@@ -1,5 +1,5 @@
 # author: Fabian Buske
-# date: Mai 2013
+# date: January 2014
 
 #####################################
 # Resources
@@ -8,18 +8,19 @@
 #********************
 # Tasks
 #********************
-RUNFASTQC="1"
+RUNFITHIC="1"        # call significant chromatin interactions
 
 #********************
 # Paths
 #********************
+
 SOURCE=$(pwd)
 
 # which folder to run on (i.e. folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_FASTQC="fastq"
+INPUT_FITHIC=$TASKHICUP
 
 # where to write the output
 OUT=$SOURCE
@@ -31,24 +32,19 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
-# fastq file suffix
-FASTQ="fastq.gz"
-
-# read indicator immediately preceding the fastq file suffix
-READONE="_R1"
-READTWO="_R2"
+# file suffix of the fragment list and contact counts
+FRAGMENTLIST=".fragmentLists.gz"
+CONTACTCOUNTS=".contactCounts.gz"
 
 #********************
-# PARAMETER (optional)
+# PARAMETER (optional overwriting defaults)
 #********************
 
-# additional parameter passed onto fastqc
-# e.g. "--nogroup" or "--kmers 10"
-FASTQCADDPARAM
+# additional parameters for fit-hi-c
+# e.g. "--visual --lowerbound 5000 --upperbound 5000000"
+FITHICADDPARAM=
 
-#WALLTIME_FASTQC=10:00:00
-#MEMORY_FASTQC=20
-#CPU_FASTQC=2
-#NODES_FASTQC="nodes=1:ppn=2"
-#MODULE_FASTQC="gi/fastqc/0.10.1"
-#PATH_FASTQC=
+#WALLTIME_FITHIC=10:00:00
+#MEMORY_FITHIC=20
+#CPU_FITHIC=1
+#NODES_FITHIC="nodes=1:ppn=1"

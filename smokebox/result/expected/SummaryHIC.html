@@ -327,426 +327,189 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
 <div id="center">
 
 <div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>
-<a href='#tophat'>tophat</a>|<a href='#cufflinks'>cufflinks</a>|<a href='#htseqcount'>htseqcount</a>|<a href='#References'>References</a>
+<a href='#hicup'>hicup</a>|<a href='#fithic'>fithic</a>|<a href='#References'>References</a>
 </div><!-- Links --></div><!-- panel -->
-<div class='panel' id='tophat_panel'>
-        <div class='headbagb' id='tophat_panelback'><a name='tophat'></a>
-            <h2 id='tophat_h_results' class='sub'>Tophat</h2>
-            <h2 id='tophat_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='tophat_counter_checkpoints_passed'></span><span class='failed' id='tophat_counter_checkpoints_failed'></span></span></h2>
-            <h2 id='tophat_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='tophat_counter_notes'></span></span></span></h2>
-            <h2 id='tophat_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='tophat_counter_errors'></span></span></h2>
-            <h2 id='tophat_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>
-<h2 id='tophat_h_nrfiles' class='sub inactive' rel='files'>Primary result files</h2>
+<div class='panel' id='hicup_panel'>
+        <div class='headbagb' id='hicup_panelback'><a name='hicup'></a>
+            <h2 id='hicup_h_results' class='sub'>HiCUP</h2>
+            <h2 id='hicup_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='hicup_counter_checkpoints_passed'></span><span class='failed' id='hicup_counter_checkpoints_failed'></span></span></h2>
+            <h2 id='hicup_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='hicup_counter_notes'></span></span></span></h2>
+            <h2 id='hicup_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='hicup_counter_errors'></span></span></h2>
+            <h2 id='hicup_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>
 </div><div class='wrapper'><div class='hidden'>
-<div id='tophat_checklist'><pre>
+<div id='hicup_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/tophat 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/hicup 
 ###################################################
 >>>>>>>>>> Finished
-QC_PASS .. finished are 2/2
+QC_PASS .. finished are 1/1
 >>>>>>>>>> Errors
-QC_PASS .. 0 have # QCVARIABLES/2
-QC_PASS .. 0 have truncated file/2
+QC_PASS .. 0 have # QCVARIABLES/1
+QC_PASS .. 0 have Resource temporarily unavailable/1
 >>>>>>>>>> CheckPoints 
-QC_PASS .. 2 have programs/2
-QC_PASS .. 2 have parameters/2
-QC_PASS .. 2 have recall files from tape/2
-QC_PASS .. 2 have run tophat/2
-QC_PASS .. 2 have merge mapped and unmapped/2
-QC_PASS .. 2 have flagstat/2
-QC_PASS .. 2 have index and calculate inner distance/2
-QC_PASS .. 2 have samstat/2
-QC_PASS .. 2 have extract mapped reads/2
-QC_PASS .. 2 have RNA-SeQC/2
-QC_PASS .. 2 have create bigwigs/2
-QC_PASS .. 2 have cleanup/2
+QC_PASS .. 1 have programs/1
+QC_PASS .. 1 have parameters/1
+QC_PASS .. 1 have recall files from tape/1
+QC_PASS .. 1 have truncate/1
+QC_PASS .. 1 have map/1
+QC_PASS .. 1 have filter/1
+QC_PASS .. 1 have de-duplicate/1
+QC_PASS .. 1 have count Interactions/1
 
 </pre></div>
-<div id='tophat_notes'><pre>
+<div id='hicup_notes'><pre>
 
-qout/tophat/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/tophat/job.20140116.log
-[NOTE] set java parameters
-[NOTE] Paired library detected
-[NOTE] Illumina 1.8 Phred33	(41, 74) fastq format detected
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
-[NOTE] RNAseq library type: fr-firststrand
-[NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
-[NOTE] make bigwigs; library is fr-firststrand 
-[NOTE] no --transcriptome-index specified.
-[NOTE] tophat Thu Jan 16 13:15:41 EST 2014
-[NOTE] tophat end Thu Jan 16 13:16:21 EST 2014
-[NOTE] samtools merge
-[NOTE] samtools fixmate
-[NOTE] samtools sort
-[NOTE] add read group
-[NOTE] samtools flagstat
-[NOTE] samtools index
-[NOTE] picard CollectMultipleMetrics
-[NOTE] samstat
-[NOTE] extract mapped reads
-[NOTE] Read gapped aligment paired
-[NOTE] Stranded
-
-qout/tophat/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/tophat/job.20140116.log
-[NOTE] set java parameters
-[NOTE] Paired library detected
-[NOTE] Illumina 1.8 Phred33	(41, 74) fastq format detected
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
-[NOTE] RNAseq library type: fr-firststrand
-[NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
-[NOTE] make bigwigs; library is fr-firststrand 
-[NOTE] no --transcriptome-index specified.
-[NOTE] tophat Thu Jan 16 13:15:41 EST 2014
-[NOTE] tophat end Thu Jan 16 13:16:21 EST 2014
-[NOTE] samtools merge
-[NOTE] samtools fixmate
-[NOTE] samtools sort
-[NOTE] add read group
-[NOTE] samtools flagstat
-[NOTE] samtools index
-[NOTE] picard CollectMultipleMetrics
-[NOTE] samstat
-[NOTE] extract mapped reads
-[NOTE] Read gapped aligment paired
-[NOTE] Stranded
+qout/hicup/HiC_GMall_Ncol.out
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/hicup/job.20140120.log
+[NOTE] Detect fastq Phred encoding
+[NOTE] Sanger Phred33	(33, 67) fastq format detected
+[NOTE] Restriction enzyme 2 not defined
 </pre></div>
-<div id='tophat_errors'><pre>
+<div id='hicup_errors'><pre>
 
-qout/tophat/Transcript_RNA3kChr16.out
--- all good, no errors
-
-qout/tophat/Transcript_RNA3kChr16rep.out
+qout/hicup/HiC_GMall_Ncol.out
 -- all good, no errors
 </pre></div>
-<div id='tophat_logfiles'><div class='box'>
-<a href='../qout/tophat/Transcript_RNA3kChr16.out'>Transcript_RNA3kChr16.out</a><br/>
-<a href='../qout/tophat/Transcript_RNA3kChr16rep.out'>Transcript_RNA3kChr16rep.out</a><br/>
-</div></div>
-<div id='tophat_nrfiles'><div class='box'>
-<a href='../Transcript/tophat/RNA3kChr16.asd.bam'>RNA3kChr16.asd.bam</a><br/>
-<a href='../Transcript/tophat/RNA3kChr16rep.asd.bam'>RNA3kChr16rep.asd.bam</a><br/>
+<div id='hicup_logfiles'><div class='box'>
+<a href='../qout/hicup/HiC_GMall_Ncol.out'>HiC_GMall_Ncol.out</a><br/>
 </div></div>
 <script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#tophat_counter_notes').text('44');
-            $('#tophat_counter_errors').text('0');
-            $('#tophat_counter_checkpoints_passed').text('15');
-            $('#tophat_counter_checkpoints_failed').text('0'); 
+            $('#hicup_counter_notes').text('4');
+            $('#hicup_counter_errors').text('0');
+            $('#hicup_counter_checkpoints_passed').text('11');
+            $('#hicup_counter_checkpoints_failed').text('0'); 
             if (0==0){
-                $('#tophat_counter_errors').toggleClass('errors neutral');
+                $('#hicup_counter_errors').toggleClass('errors neutral');
             }; 
             if(0==0){
-                $('#tophat_counter_checkpoints_failed').toggleClass('failed nofailed');
+                $('#hicup_counter_checkpoints_failed').toggleClass('failed nofailed');
             };
 
-            $('#tophat_panelback h2').click(function() {
+            $('#hicup_panelback h2').click(function() {
                 $(this).parent().children().addClass('inactive');
                 $(this).removeClass('inactive');
                 console.log();
                 var panel=$(this).attr('id').replace('_h_','_');
-                $('#tophat_panel div.wrapper div.display').html($('#'+ panel).html());
+                $('#hicup_panel div.wrapper div.display').html($('#'+ panel).html());
             });
         }
     </script>
-<div id='tophat_results'>
-<br>Note, the duplication rate is not calculated by tophat and hence zero.<br>
-<a href="../Transcript/tophat/RNA3kChr16rep_RNASeQC/index.html">RNAseq-QC for Transcript/RNA3kChr16rep_RNASeQC</a><br/>
-<a href="../Transcript/tophat/RNA3kChr16_RNASeQC/index.html">RNAseq-QC for Transcript/RNA3kChr16_RNASeQC</a><br/>
-<h3>smokebox/Transcript/tophat/</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>         Accepted</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th><div>         Junction</div></th><th><div>       Junction %</div></th><th><div>    Jnct over GTF</div></th><th><div>  Jnct over GTF %</div></th><th class='left'>File</th></tr></thead>
+<div id='hicup_results'>
+<h4>truncater</h4>
+<h3>smokebox/HiC/hicup/</h3>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>P1 non-trunc reads</div></th><th><div>                %</div></th><th><div>   P1 trunc reads</div></th><th><div>                %</div></th><th><div>P2 non-trunc reads</div></th><th><div>                %</div></th><th><div>   P2 trunc reads</div></th><th><div>                %</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td class='left'>RNA3kChr16</td></tr>
-<tr><td></td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td class='left'>RNA3kChr16rep</td></tr>
+<tr><td></td><td>         17695.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td>         17695.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td class='left'>GMall_Ncol</td></tr>
 </tbody>
-<tfoot>
-<tr><td class='left'>sum</td><td>         14060.00</td><td>         14312.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>         14192.00</td><td>           198.32</td><td>         14100.00</td><td>           197.04</td><td>            84.00</td><td>            82.00</td><td>             1.15</td><td>            80.00</td><td>           195.12</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
-<tr><td class='left'>max</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
-<tr><td class='left'>av</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
-<tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-</tfoot>
 </table>
-<h3 class='overall'>Aggregation over all libraries</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>         Accepted</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th><div>         Junction</div></th><th><div>       Junction %</div></th><th><div>    Jnct over GTF</div></th><th><div>  Jnct over GTF %</div></th><th class='left'>File</th></tr></thead>
-<tfoot>
-<tr><td class='left'>sum</td><td>         14060.00</td><td>         14312.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>         14192.00</td><td>           198.32</td><td>         14100.00</td><td>           197.04</td><td>            84.00</td><td>            82.00</td><td>             1.15</td><td>            80.00</td><td>           195.12</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
-<tr><td class='left'>max</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
-<tr><td class='left'>av</td><td>          7030.00</td><td>          7156.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>          7096.00</td><td>            99.16</td><td>          7050.00</td><td>            98.52</td><td>            42.00</td><td>            41.00</td><td>             0.57</td><td>            40.00</td><td>            97.56</td><td></td></tr>
-<tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-</tfoot>
-</table>
-<h3 class='overall'>Reads overlapping annotated regions</h3>
-<h3>smokebox/Transcript/tophat/</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>        UCSC_rRNA</div></th><th><div>             exon</div></th><th><div>           intron</div></th><th><div>          lincRNA</div></th><th><div>      small_ncRNA</div></th><th><div>             tRNA</div></th><th><div>      unannotated</div></th><th class='left'>File</th></tr></thead>
+<h4>mapper</h4>
+<h3>smokebox/HiC/hicup/</h3>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>         P1 reads</div></th><th><div>         P2 reads</div></th><th><div>  Unique Align P1</div></th><th><div>                %</div></th><th><div>  Unique Align P2</div></th><th><div>                %</div></th><th><div>  Multi mapper P1</div></th><th><div>                %</div></th><th><div>  Multi mapper P2</div></th><th><div>                %</div></th><th><div>    Nonaligned P1</div></th><th><div>                %</div></th><th><div>    Nonaligned P2</div></th><th><div>                %</div></th><th><div>        Paired P1</div></th><th><div>                %</div></th><th><div>        Paired P2</div></th><th><div>                %</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>             0.00</td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td class='left'>RNA3kChr16.asd.bam</td></tr>
-<tr><td></td><td>             0.00</td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td class='left'>RNA3kChr16rep.asd.bam</td></tr>
+<tr><td></td><td>         17695.00</td><td>         17695.00</td><td>         17695.00</td><td>           100.00</td><td>         17695.00</td><td>           100.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>         17695.00</td><td>           100.00</td><td>         17695.00</td><td>           100.00</td><td class='left'>GMall_Ncol</td></tr>
 </tbody>
-<tfoot>
-<tr><td class='left'>sum</td><td>             0.00</td><td>         14060.00</td><td>         13620.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            84.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>             0.00</td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>             0.00</td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>             0.00</td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
-<tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-</tfoot>
 </table>
-<h3 class='overall'>Aggregation over all libraries</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>        UCSC_rRNA</div></th><th><div>             exon</div></th><th><div>           intron</div></th><th><div>          lincRNA</div></th><th><div>      small_ncRNA</div></th><th><div>             tRNA</div></th><th><div>      unannotated</div></th><th class='left'>File</th></tr></thead>
-<tfoot>
-<tr><td class='left'>sum</td><td>             0.00</td><td>         14060.00</td><td>         13620.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            84.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>             0.00</td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>             0.00</td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>             0.00</td><td>          7030.00</td><td>          6810.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
-<tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-</tfoot>
+<h4>filter</h4>
+<h3>smokebox/HiC/hicup/</h3>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total pairs</div></th><th><div>      Valid pairs</div></th><th><div>       Cis <10kbp</div></th><th><div>       Cis >10kbp</div></th><th><div>            Trans</div></th><th><div>    Invalid pairs</div></th><th><div>Same circularised</div></th><th><div>Same dangling ends</div></th><th><div>    Same internal</div></th><th><div>      Re-ligation</div></th><th><div>Contiguous sequence</div></th><th><div>       Wrong size</div></th><th class='left'>File</th></tr></thead>
+<tbody>
+<tr><td></td><td>         17695.00</td><td>         17695.00</td><td>          2045.00</td><td>         15650.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td class='left'>GMall_Ncol</td></tr>
+</tbody>
 </table>
-<h3>Annotation of mapped reads</h3>
-<div><a href=../runStats/bamann/Transcript_tophat.pdf><img src="../runStats/bamann/Transcript_tophat-0.jpg" width='250px' style='float:left;'><img src="../runStats/bamann/Transcript_tophat-1.jpg" width='250px' style='float:left;'></a></div>
+<h4>deduplicator</h4>
+<h3>smokebox/HiC/hicup/</h3>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>Read pairs processed</div></th><th><div>   Unique di-tags</div></th><th><div>Cis <10kbp of uniques</div></th><th><div>Cis >10kbp of uniques</div></th><th><div> Trans of uniques</div></th><th class='left'>File</th></tr></thead>
+<tbody>
+<tr><td></td><td>         17695.00</td><td>         17693.00</td><td>          2045.00</td><td>         15648.00</td><td>             0.00</td><td class='left'>GMall_Ncol</td></tr>
+</tbody>
+</table>
+<div></div>
 </div></div><div class='display'></div></div></div>
 <script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#tophat_panel div.wrapper div.display').html($('#tophat_results').html());
+            $('#hicup_panel div.wrapper div.display').html($('#hicup_results').html());
         }
         </script>
-<div class='panel' id='cufflinks_panel'>
-        <div class='headbagb' id='cufflinks_panelback'><a name='cufflinks'></a>
-            <h2 id='cufflinks_h_results' class='sub'>Cufflinks</h2>
-            <h2 id='cufflinks_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='cufflinks_counter_checkpoints_passed'></span><span class='failed' id='cufflinks_counter_checkpoints_failed'></span></span></h2>
-            <h2 id='cufflinks_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='cufflinks_counter_notes'></span></span></span></h2>
-            <h2 id='cufflinks_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='cufflinks_counter_errors'></span></span></h2>
-            <h2 id='cufflinks_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>
-<h2 id='cufflinks_h_nrfiles' class='sub inactive' rel='files'>Primary result files</h2>
+<div class='panel' id='fithic_panel'>
+        <div class='headbagb' id='fithic_panelback'><a name='fithic'></a>
+            <h2 id='fithic_h_results' class='sub'>Fit-hi-c</h2>
+            <h2 id='fithic_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='fithic_counter_checkpoints_passed'></span><span class='failed' id='fithic_counter_checkpoints_failed'></span></span></h2>
+            <h2 id='fithic_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='fithic_counter_notes'></span></span></span></h2>
+            <h2 id='fithic_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='fithic_counter_errors'></span></span></h2>
+            <h2 id='fithic_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>
 </div><div class='wrapper'><div class='hidden'>
-<div id='cufflinks_checklist'><pre>
+<div id='fithic_checklist'><pre>
 ###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/cufflinks 
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/fithic 
 ###################################################
 >>>>>>>>>> Finished
-QC_PASS .. finished are 2/2
+QC_PASS .. finished are 1/1
 >>>>>>>>>> Errors
-QC_PASS .. 0 have # QCVARIABLES/2
-QC_PASS .. 0 have truncated file/2
+QC_PASS .. 0 have # QCVARIABLES/1
+QC_PASS .. 0 have Resource temporarily unavailable/1
 >>>>>>>>>> CheckPoints 
-QC_PASS .. 2 have programs/2
-QC_PASS .. 2 have parameters/2
-QC_PASS .. 2 have recall files from tape/2
-QC_PASS .. 2 have run cufflinks/2
-QC_PASS .. 2 have statistics/2
+QC_PASS .. 1 have programs/1
+QC_PASS .. 1 have parameters/1
+QC_PASS .. 1 have recall files from tape/1
+QC_PASS .. 1 have run fit-hi-c/1
 
 </pre></div>
-<div id='cufflinks_notes'><pre>
+<div id='fithic_notes'><pre>
 
-qout/cufflinks/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/cufflinks/job.20140116.log
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
-[NOTE] RNAseq library type: fr-firststrand
-[NOTE] cufflinks Thu Jan 16 13:18:02 EST 2014
-[NOTE] execute cufflinks with guide (GTF provided)
-[NOTE] cufflinks end Thu Jan 16 13:18:28 EST 2014
-
-qout/cufflinks/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/cufflinks/job.20140116.log
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
-[NOTE] RNAseq library type: fr-firststrand
-[NOTE] cufflinks Thu Jan 16 13:18:02 EST 2014
-[NOTE] execute cufflinks with guide (GTF provided)
-[NOTE] cufflinks end Thu Jan 16 13:18:28 EST 2014
+qout/fithic/HiC_GMall_Ncol.out
+[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/fithic/job.20140120.log
 </pre></div>
-<div id='cufflinks_errors'><pre>
+<div id='fithic_errors'><pre>
 
-qout/cufflinks/Transcript_RNA3kChr16.out
--- all good, no errors
-
-qout/cufflinks/Transcript_RNA3kChr16rep.out
+qout/fithic/HiC_GMall_Ncol.out
 -- all good, no errors
 </pre></div>
-<div id='cufflinks_logfiles'><div class='box'>
-<a href='../qout/cufflinks/Transcript_RNA3kChr16.out'>Transcript_RNA3kChr16.out</a><br/>
-<a href='../qout/cufflinks/Transcript_RNA3kChr16rep.out'>Transcript_RNA3kChr16rep.out</a><br/>
-</div></div>
-<div id='cufflinks_nrfiles'><div class='box'>
+<div id='fithic_logfiles'><div class='box'>
+<a href='../qout/fithic/HiC_GMall_Ncol.out'>HiC_GMall_Ncol.out</a><br/>
 </div></div>
 <script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#cufflinks_counter_notes').text('12');
-            $('#cufflinks_counter_errors').text('0');
-            $('#cufflinks_counter_checkpoints_passed').text('8');
-            $('#cufflinks_counter_checkpoints_failed').text('0'); 
+            $('#fithic_counter_notes').text('1');
+            $('#fithic_counter_errors').text('0');
+            $('#fithic_counter_checkpoints_passed').text('7');
+            $('#fithic_counter_checkpoints_failed').text('0'); 
             if (0==0){
-                $('#cufflinks_counter_errors').toggleClass('errors neutral');
+                $('#fithic_counter_errors').toggleClass('errors neutral');
             }; 
             if(0==0){
-                $('#cufflinks_counter_checkpoints_failed').toggleClass('failed nofailed');
+                $('#fithic_counter_checkpoints_failed').toggleClass('failed nofailed');
             };
 
-            $('#cufflinks_panelback h2').click(function() {
+            $('#fithic_panelback h2').click(function() {
                 $(this).parent().children().addClass('inactive');
                 $(this).removeClass('inactive');
                 console.log();
                 var panel=$(this).attr('id').replace('_h_','_');
-                $('#cufflinks_panel div.wrapper div.display').html($('#'+ panel).html());
+                $('#fithic_panel div.wrapper div.display').html($('#'+ panel).html());
             });
         }
     </script>
-<div id='cufflinks_results'>
-<h3>smokebox/Transcript/cufflinks/</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Transcripts</div></th><th><div>          Skipped</div></th><th><div>       Genes FPKM</div></th><th><div>             % OK</div></th><th><div>        % Lowdata</div></th><th><div>    Isoforms FPKM</div></th><th><div>             % OK</div></th><th><div>        % Lowdata</div></th><th class='left'>File</th></tr></thead>
+<div id='fithic_results'>
+<h3>smokebox/HiC/fithic/</h3>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>Intra In Range Count</div></th><th><div>Intra Out Of Range Count</div></th><th><div>Intra Very Proximal Count</div></th><th><div>      Inter Count</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td class='left'>RNA3kChr16</td></tr>
-<tr><td></td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td class='left'>RNA3kChr16rep</td></tr>
+<tr><td></td><td>          7666.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td class='left'>GMall_Ncol</td></tr>
 </tbody>
-<tfoot>
-<tr><td class='left'>sum</td><td>        140470.00</td><td>             0.00</td><td>          3630.00</td><td>           200.00</td><td>             0.00</td><td>         22464.00</td><td>           186.09</td><td>            13.91</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td></td></tr>
-<tr><td class='left'>max</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td></td></tr>
-<tr><td class='left'>av</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td></td></tr>
-<tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-</tfoot>
 </table>
 <h3 class='overall'>Aggregation over all libraries</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Transcripts</div></th><th><div>          Skipped</div></th><th><div>       Genes FPKM</div></th><th><div>             % OK</div></th><th><div>        % Lowdata</div></th><th><div>    Isoforms FPKM</div></th><th><div>             % OK</div></th><th><div>        % Lowdata</div></th><th class='left'>File</th></tr></thead>
+<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>Intra In Range Count</div></th><th><div>Intra Out Of Range Count</div></th><th><div>Intra Very Proximal Count</div></th><th><div>      Inter Count</div></th><th class='left'>File</th></tr></thead>
 <tfoot>
-<tr><td class='left'>sum</td><td>        140470.00</td><td>             0.00</td><td>          3630.00</td><td>           200.00</td><td>             0.00</td><td>         22464.00</td><td>           186.09</td><td>            13.91</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td></td></tr>
-<tr><td class='left'>max</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td></td></tr>
-<tr><td class='left'>av</td><td>         70235.00</td><td>             0.00</td><td>          1815.00</td><td>           100.00</td><td>             0.00</td><td>         11232.00</td><td>            93.05</td><td>             6.95</td><td></td></tr>
-<tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-</tfoot>
-</table>
-</div></div><div class='display'></div></div></div>
-<script type='text/javascript'> 
-        if (typeof jQuery === 'undefined') {
-            console.log('jquery not loaded');
-        } else {
-            $('#cufflinks_panel div.wrapper div.display').html($('#cufflinks_results').html());
-        }
-        </script>
-<div class='panel' id='htseqcount_panel'>
-        <div class='headbagb' id='htseqcount_panelback'><a name='htseqcount'></a>
-            <h2 id='htseqcount_h_results' class='sub'>Htseq-count</h2>
-            <h2 id='htseqcount_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='htseqcount_counter_checkpoints_passed'></span><span class='failed' id='htseqcount_counter_checkpoints_failed'></span></span></h2>
-            <h2 id='htseqcount_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='htseqcount_counter_notes'></span></span></span></h2>
-            <h2 id='htseqcount_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='htseqcount_counter_errors'></span></span></h2>
-            <h2 id='htseqcount_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>
-<h2 id='htseqcount_h_nrfiles' class='sub inactive' rel='files'>Primary result files</h2>
-</div><div class='wrapper'><div class='hidden'>
-<div id='htseqcount_checklist'><pre>
-###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/htseqcount 
-###################################################
->>>>>>>>>> Finished
-QC_PASS .. finished are 2/2
->>>>>>>>>> Errors
-QC_PASS .. 0 have # QCVARIABLES/2
-QC_PASS .. 0 have truncated file/2
->>>>>>>>>> CheckPoints 
-QC_PASS .. 2 have programs/2
-QC_PASS .. 2 have recall files from tape/2
-QC_PASS .. 2 have parameters/2
-QC_PASS .. 2 have mask GTF/2
-QC_PASS .. 2 have calculate RPKMs/2
-QC_PASS .. 2 have calculate masked RPKMs/2
-QC_PASS .. 2 have summarize/2
-QC_PASS .. 2 have cleanup/2
-
-</pre></div>
-<div id='htseqcount_notes'><pre>
-
-qout/htseqcount/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/htseqcount/job.20140116.log
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
-[NOTE] RNAseq library type: fr-firststrand
-[NOTE] paired library detected
-[NOTE] library is fr-firststrand; run htseq-count stranded
-[NOTE] fixmates
-[NOTE] Create filtered bamfile (removed: rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene RNA18S5 RNA28S5)
-[NOTE] processing gene_id union
-[NOTE] processing gene_id union
-
-qout/htseqcount/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/htseqcount/job.20140116.log
-[NOTE] GTF: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/gencode.v14.annotation.chr16.doctored.gtf
-[NOTE] RNAseq library type: fr-firststrand
-[NOTE] paired library detected
-[NOTE] library is fr-firststrand; run htseq-count stranded
-[NOTE] fixmates
-[NOTE] Create filtered bamfile (removed: rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene RNA18S5 RNA28S5)
-[NOTE] processing gene_id union
-[NOTE] processing gene_id union
-</pre></div>
-<div id='htseqcount_errors'><pre>
-
-qout/htseqcount/Transcript_RNA3kChr16.out
--- all good, no errors
-
-qout/htseqcount/Transcript_RNA3kChr16rep.out
--- all good, no errors
-</pre></div>
-<div id='htseqcount_logfiles'><div class='box'>
-<a href='../qout/htseqcount/Transcript_RNA3kChr16.out'>Transcript_RNA3kChr16.out</a><br/>
-<a href='../qout/htseqcount/Transcript_RNA3kChr16rep.out'>Transcript_RNA3kChr16rep.out</a><br/>
-</div></div>
-<div id='htseqcount_nrfiles'><div class='box'>
-<a href='../Transcript/htseqcount/RNA3kChr16rep.union.gene_id.RPKM.csv'>RNA3kChr16rep.union.gene_id.RPKM.csv</a><br/>
-<a href='../Transcript/htseqcount/RNA3kChr16.union.gene_id.RPKM.csv'>RNA3kChr16.union.gene_id.RPKM.csv</a><br/>
-<a href='../Transcript/htseqcount/RNA3kChr16rep_masked.union.gene_id.RPKM.csv'>RNA3kChr16rep_masked.union.gene_id.RPKM.csv</a><br/>
-<a href='../Transcript/htseqcount/RNA3kChr16_masked.union.gene_id.RPKM.csv'>RNA3kChr16_masked.union.gene_id.RPKM.csv</a><br/>
-</div></div>
-<script type='text/javascript'> 
-        if (typeof jQuery === 'undefined') {
-            console.log('jquery not loaded');
-        } else {
-            $('#htseqcount_counter_notes').text('18');
-            $('#htseqcount_counter_errors').text('0');
-            $('#htseqcount_counter_checkpoints_passed').text('11');
-            $('#htseqcount_counter_checkpoints_failed').text('0'); 
-            if (0==0){
-                $('#htseqcount_counter_errors').toggleClass('errors neutral');
-            }; 
-            if(0==0){
-                $('#htseqcount_counter_checkpoints_failed').toggleClass('failed nofailed');
-            };
-
-            $('#htseqcount_panelback h2').click(function() {
-                $(this).parent().children().addClass('inactive');
-                $(this).removeClass('inactive');
-                console.log();
-                var panel=$(this).attr('id').replace('_h_','_');
-                $('#htseqcount_panel div.wrapper div.display').html($('#'+ panel).html());
-            });
-        }
-    </script>
-<div id='htseqcount_results'>
-<h3>smokebox/Transcript/htseqcount/</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>all gene_id union no_feature</div></th><th><div>all gene_id union ambiguous</div></th><th><div>masked gene_id union no_feature</div></th><th><div>masked gene_id union ambiguous</div></th><th class='left'>File</th></tr></thead>
-<tbody>
-<tr><td></td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td class='left'>RNA3kChr16.asd.bam.</td></tr>
-<tr><td></td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td class='left'>RNA3kChr16rep.asd.bam.</td></tr>
-</tbody>
-<tfoot>
-<tr><td class='left'>sum</td><td>          3596.00</td><td>             0.00</td><td>          3596.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
-</tfoot>
-</table>
-<h3 class='overall'>Aggregation over all libraries</h3>
-<table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>all gene_id union no_feature</div></th><th><div>all gene_id union ambiguous</div></th><th><div>masked gene_id union no_feature</div></th><th><div>masked gene_id union ambiguous</div></th><th class='left'>File</th></tr></thead>
-<tfoot>
-<tr><td class='left'>sum</td><td>          3596.00</td><td>             0.00</td><td>          3596.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>          1798.00</td><td>             0.00</td><td>          1798.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>sum</td><td>          7666.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>          7666.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>          7666.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>          7666.00</td><td>           642.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
@@ -755,26 +518,20 @@ qout/htseqcount/Transcript_RNA3kChr16rep.out
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#htseqcount_panel div.wrapper div.display').html($('#htseqcount_results').html());
+            $('#fithic_panel div.wrapper div.display').html($('#fithic_results').html());
         }
         </script>
 <div class='panel'><div class='headbagb'><a name='References'><h2 class='sub'>References</h2></a></div>
 <h3>Please cite the following publications/resources</h3>
 <table class="data"><thead><tr><th><div style="width:10px"></div></th><th><div></div></th></tr></thead><tbody>
-<tr><td>[1]</td><td class='left'>(accepted); 'NGSANE: A Lightweight Production Informatics Framework for High Throughput Data Analysis; Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC</td></tr>
-<tr><td>[2]</td><td class='left'>Bioinformatics. 2009 Aug 15;25(16):2078-9. doi: 10.1093/bioinformatics/btp352. Epub 2009 Jun 8. 'The Sequence Alignment/Map format and SAMtools.'; Li H, Handsaker B, Wysoker A, Fennell T, Ruan J, Homer N, Marth G, Abecasis G, Durbin R; 1000 Genome Project Data Processing Subgroup.</td></tr>
-<tr><td>[3]</td><td class='left'>Bioinformatics. 2009 May 1;25(9):1105-11. doi: 10.1093/bioinformatics/btp120. Epub 2009 Mar 16. 'TopHat: discovering splice junctions with RNA-Seq.'; Trapnell C, Pachter L, Salzberg SL.</td></tr>
-<tr><td>[4]</td><td class='left'>Bioinformatics. 2010 Mar 15;26(6):841-2. doi: 10.1093/bioinformatics/btq033. Epub 2010 Jan 28. 'BEDTools: a flexible suite of utilities for comparing genomic features.; Quinlan AR, Hall IM.</td></tr>
-<tr><td>[5]</td><td class='left'>Bioinformatics. 2011 Jan 1;27(1):130-1. doi: 10.1093/bioinformatics/btq614. Epub 2010 Nov 18. 'SAMStat: monitoring biases in next generation sequencing data.'; Lassmann T, Hayashizaki Y, Daub CO.</td></tr>
-<tr><td>[6]</td><td class='left'>Bioinformatics. 2012 Jun 1;28(11):1530-2. doi: 10.1093/bioinformatics/bts196. Epub 2012 Apr 25.; 'RNA-SeQC: RNA-seq metrics for quality control and process optimization.'; DeLuca DS, Levin JZ, Sivachenko A, Fennell T, Nazaire MD, Williams C, Reich M, Winckler W, Getz G.</td></tr>
-<tr><td>[7]</td><td class='left'>Brief Bioinform. 2013 Mar;14(2):178-92. doi: 10.1093/bib/bbs017. Epub 2012 Apr 19. 'Integrative Genomics Viewer (IGV): high-performance genomics data visualization and exploration.'; Thorvaldsdóttir H, Robinson JT, Mesirov JP.</td></tr>
-<tr><td>[8]</td><td class='left'>Conf Proc IEEE Eng Med Biol Soc. 2013 Jul;2013:647-50. doi: 10.1109/EMBC.2013.6609583. 'Benchmarking RNA-Seq quantification tools.'; Chandramohan R, Wu PY, Phan JH, Wang MD.</td></tr>
-<tr><td>[9]</td><td class='left'>Guido van Rossum, Jelke de Boer: Linking a Stub Generator (AIL) to a Prototyping Language (Python). Spring 1991 EurOpen Conference Proceedings (May 20-24, 1991) Tromso, Norway.</td></tr>
-<tr><td>[10]</td><td class='left'>http://picard.sourceforge.net.</td></tr>
-<tr><td>[11]</td><td class='left'>Nat Biotechnol. 2010 May;28(5):511-5. doi: 10.1038/nbt.1621. Epub 2010 May 2. 'Transcript assembly and quantification by RNA-Seq reveals unannotated transcripts and isoform switching during cell differentiation.'; Trapnell C, Williams BA, Pertea G, Mortazavi A, Kwan G, van Baren MJ, Salzberg SL, Wold BJ, Pachter L</td></tr>
-<tr><td>[12]</td><td class='left'>Nat Methods. 2012 Mar 4;9(4):357-9. doi: 10.1038/nmeth.1923. 'Fast gapped-read alignment with Bowtie 2.';Langmead B, Salzberg SL.</td></tr>
-<tr><td>[13]</td><td class='left'>R: A language and environment for statistical computing; R Core Team. R Foundation for Statistical Computing, Vienna, Austria, (2013)</td></tr>
+<tr><td>[1]</td><td class='left'></td></tr>
+<tr><td>[2]</td><td class='left'>(accepted); 'NGSANE: A Lightweight Production Informatics Framework for High Throughput Data Analysis; Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC</td></tr>
+<tr><td>[3]</td><td class='left'>Bioinformatics. 2009 Aug 15;25(16):2078-9. doi: 10.1093/bioinformatics/btp352. Epub 2009 Jun 8. 'The Sequence Alignment/Map format and SAMtools.'; Li H, Handsaker B, Wysoker A, Fennell T, Ruan J, Homer N, Marth G, Abecasis G, Durbin R; 1000 Genome Project Data Processing Subgroup.</td></tr>
+<tr><td>[4]</td><td class='left'>Genome Biol. 2009;10(3):R25. doi: 10.1186/gb-2009-10-3-r25. Epub 2009 Mar 4. 'Ultrafast and memory-efficient alignment of short DNA sequences to the human genome.'; Langmead B, Trapnell C, Pop M, Salzberg SL.</td></tr>
+<tr><td>[5]</td><td class='left'>Guido van Rossum, Jelke de Boer: Linking a Stub Generator (AIL) to a Prototyping Language (Python). Spring 1991 EurOpen Conference Proceedings (May 20-24, 1991) Tromso, Norway.</td></tr>
+<tr><td>[6]</td><td class='left'>http://www.bioinformatics.babraham.ac.uk/projects/hicup/</td></tr>
+<tr><td>[7]</td><td class='left'>R: A language and environment for statistical computing; R Core Team. R Foundation for Statistical Computing, Vienna, Austria, (2013)</td></tr>
 </tbody></table>
 </div></div>
-<hr><span>Report generated with NGSANE version: 9b15cc8f353c405455391c2c32809f2a2a4d0fc6 (git hash)</span><span style='float:right;'>Last modified: Thu Jan 16 13:23:26 EST 2014</span>
+<hr><span>Report generated with NGSANE version: cfb9b40d60c781ff42f812f790857d92f7aeee24 (git hash)</span><span style='float:right;'>Last modified: Mon Jan 20 12:46:05 EST 2014</span>
 </div><!-- center --></body></html>

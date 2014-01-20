@@ -1,25 +1,25 @@
 # author: Fabian Buske
-# date: Mai 2013
+# date: August 2013
 
 #####################################
 # Resources
 #####################################
 
 #********************
-# Tasks
+# Tasks 
 #********************
-RUNFASTQC="1"
+
+# list of task to put into report
+# e.g. RUNMACS2="1"   
 
 #********************
 # Paths
 #********************
+
 SOURCE=$(pwd)
 
 # which folder to run on (i.e. folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
-
-# folder/task containing the data this task operates on
-INPUT_FASTQC="fastq"
 
 # where to write the output
 OUT=$SOURCE
@@ -31,24 +31,14 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
-# fastq file suffix
-FASTQ="fastq.gz"
+# Summary file name
+HTMLOUT="Summary"
 
-# read indicator immediately preceding the fastq file suffix
-READONE="_R1"
-READTWO="_R2"
+# Whether to make a tar.gz file
+# set kb files filter, only files smaller than this filter will be put in the tar.gz
+# e.g. "80"
+SUMMARYTAR=
 
 #********************
-# PARAMETER (optional)
+# PARAMETER (optional overwriting defaults)
 #********************
-
-# additional parameter passed onto fastqc
-# e.g. "--nogroup" or "--kmers 10"
-FASTQCADDPARAM
-
-#WALLTIME_FASTQC=10:00:00
-#MEMORY_FASTQC=20
-#CPU_FASTQC=2
-#NODES_FASTQC="nodes=1:ppn=2"
-#MODULE_FASTQC="gi/fastqc/0.10.1"
-#PATH_FASTQC=

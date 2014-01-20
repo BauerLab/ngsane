@@ -18,7 +18,7 @@ exit
 }
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/${HICLIB_RENZYMES}_<SAMPLE>-mapped_reads.hdf5
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>-mapped_reads.hdf5
 
 if [ ! $# -gt 3 ]; then usage ; fi
 
@@ -48,10 +48,27 @@ export PATH=$PATH_HICLIB:$PATH
 module list
 echo "PATH=$PATH"
 
+#this is to get the full path (modules should work but for path we need the full path and this is the\
+# best common denominator)
+PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
+
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_HICLIB*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1"
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
+
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--Python      --\n" $(python --version)
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 echo -e "--Python libs --\n "$(yolk -l)
+echo -e "--bowtie2     --\n "$(bowtie2 --version)
+[ -z "$(which bowtie2)" ] && echo "[ERROR] no bowtie2 detected" && exit 1
+echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
+echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+[ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
+echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
+[ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -59,6 +76,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/$READONE.$FASTQ/}
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
@@ -71,10 +89,10 @@ if [[ ! -e ${FASTA%.*}.1.bt2 ]]; then
 fi
 
 #is paired ?                                                                                                      
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     PAIRED="1"
 else
-    echo "[ERROR] hiclib requires paired-end fastq files. Could not find ${f/$READONE/$READTWO}" && exit 1
+    echo "[ERROR] hiclib requires paired-end fastq files. Could not find ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" && exit 1
 fi
 
 if [ -z "$HICLIB_RENZYMES" ]; then
@@ -85,21 +103,9 @@ if [ -z "BOWTIE2INDEX" ]; then
 	echo "[ERROR] bowtie2 index not specified" && exit 1
 fi
 
-READS="$f ${f/$READONE/$READTWO}"
-if [ -f "$OUTDIR/${n/.$FASTQ/_R1.bam.25}"  ]; then
-    echo "[NOTE] using bam files from previous run"
-    LIBONE=${n/.$FASTQ/_R1.bam}
-    LIBTWO=${n/$READONE.$FASTQ/${READTWO}_R2.bam}
-#    LIBTWO=${LIBTWO/.$FASTQ/_R2.bam}
-    READS="$OUTDIR/$LIBONE $OUTDIR/$LIBTWO"
-    FASTQ=bam
-    echo $READS
-else
-    echo "[NOTE] mapping data from scratch"
-fi
-
-#EXPERIMENT=$(echo ${HICLIB_RENZYMES}_${n/%$READONE.$FASTQ/} | sed 's/_*$//g')
-EXPERIMENT=$(echo ${HICLIB_RENZYMES}_${n/%$READONE.$FASTQ/})
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
+[ -d $THISTMP ] && rm -r $THISTMP
+mkdir -p $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -120,8 +126,10 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
+    READS="$f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
+
     PARAMS="--restrictionEnzyme=$HICLIB_RENZYMES \
-       --experimentName=$EXPERIMENT \
+       --experimentName=$SAMPLE \
        --gapFile=$HICLIB_GAPFILE \
        --referenceGenome=$FASTA_CHROMDIR \
        --index=${FASTA%.*}"
@@ -137,25 +145,138 @@ else
     if [ -n "$HICLIB_READLENGTH" ]; then
     	PARAMS="$PARAMS --readLength $HICLIB_READLENGTH"
     fi
+
+    if [ -n "$HICLIB_CHROMOSOME" ]; then
+        PARAMS="$PARAMS --chromosome=$HICLIB_CHROMOSOME"
+    fi
     
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} --bowtie=$(which bowtie2) --cpus=$CPU_HICLIB --outputDir=$OUTDIR --tmpDir=$TMP --verbose $READS &> $OUTDIR/$EXPERIMENT.hiclib.log"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/hiclibMapping.py ${PARAMS} $HICLIBADDPARAM --bowtie=$(which bowtie2) --cpus=$CPU_HICLIB --outputDir=$OUTDIR --tmpDir=$THISTMP --quiet $READS | grep -v -P '^Warning: skipping read' &> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    RUNSTATS=$OUT/runStats/$TASK_HICLIB
-    mkdir -p $RUNSTATS
-    mv -f $OUTDIR/$EXPERIMENT*.pdf $RUNSTATS
-    mv -f $OUTDIR/$EXPERIMENT.hiclib.log $RUNSTATS
-
-    if [ -z "$HICLIB_KEEPBAM" ]; then 
-        rm $OUTDIR/*$READONE.bam.*  $OUTDIR/*$READTWO.bam.*
-    fi
-
     # mark checkpoint
-    if [ -e $OUTDIR/${EXPERIMENT}-mapped_reads.hdf5 ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/${SAMPLE}-mapped_reads.hdf5 ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi
+################################################################################
+CHECKPOINT="treat read1.bam"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    # treat read one    
+    # merge
+    samtools merge $THISTMP/$SAMPLE$READONE.bam $OUTDIR/$SAMPLE$READONE*.bam.[0-9]*
+    # keep mapped
+    samtools view -bh -F 4 $THISTMP/$SAMPLE$READONE.bam > $THISTMP/$SAMPLE$READONE.$ALN.bam
+    rm $THISTMP/$SAMPLE$READONE.bam 
+    # sort
+    samtools sort -@ $CPU_HICLIB $THISTMP/$SAMPLE$READONE.$ALN.bam $THISTMP/$SAMPLE$READONE.ash
+    rm $THISTMP/$SAMPLE$READONE.$ALN.bam
+
+    mkdir -p $OUTDIR/metrices
+    java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
+        INPUT=$THISTMP/$SAMPLE$READONE.ash.bam \
+        OUTPUT=$OUTDIR/$SAMPLE$READONE.$ASD.bam \
+        METRICS_FILE=$OUTDIR/$SAMPLE$READONE.$ASD.bam.dupl \
+        AS=true \
+        CREATE_MD5_FILE=true \
+        COMPRESSION_LEVEL=9 \
+        VALIDATION_STRINGENCY=LENIENT \
+        TMP_DIR=$THISTMP
+    samtools index $OUTDIR/$SAMPLE$READONE.$ASD.bam
+    
+    # mark checkpoint
+    if [ -e $OUTDIR/$SAMPLE$READONE.$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    
+    # cleanup
+    [ -f $THISTMP/$SAMPLE$READONE.ash.bam ] && rm $THISTMP/$SAMPLE$READONE.ash.bam
+    if [ -z "$HICLIB_KEEPBAM" ]; then
+        rm $OUTDIR/$SAMPLE$READONE*.bam.[0-9]*
+    fi
 
 fi
 
 ################################################################################
-[ -e $OUTDIR/${EXPERIMENT}-mapped_reads.hdf5.dummy ] && rm $OUTDIR/${EXPERIMENT}-mapped_reads.hdf5.dummy
+CHECKPOINT="treat read2.bam"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    # treat read two
+    # merge
+    samtools merge $THISTMP/$SAMPLE$READTWO.bam $OUTDIR/$SAMPLE$READTWO*.bam.[0-9]*
+    # keep mapped
+    samtools view -bh -F 4 $THISTMP/$SAMPLE$READTWO.bam > $THISTMP/$SAMPLE$READTWO.$ALN.bam
+    rm $THISTMP/$SAMPLE$READTWO.bam
+    # sort
+    samtools sort -@ $CPU_HICLIB $THISTMP/$SAMPLE$READTWO.$ALN.bam $THISTMP/$SAMPLE$READTWO.ash
+    rm $THISTMP/$SAMPLE$READTWO.$ALN.bam
+
+    java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
+        INPUT=$THISTMP/$SAMPLE$READTWO.ash.bam \
+        OUTPUT=$OUTDIR/$SAMPLE$READTWO.$ASD.bam \
+        METRICS_FILE=$OUTDIR/$SAMPLE$READTWO.$ASD.bam.dupl \
+        AS=true \
+        CREATE_MD5_FILE=true \
+        COMPRESSION_LEVEL=9 \
+        VALIDATION_STRINGENCY=LENIENT \
+        TMP_DIR=$THISTMP
+    samtools index $OUTDIR/$SAMPLE$READTWO.$ASD.bam
+
+    # mark checkpoint
+    if [ -e $OUTDIR/$SAMPLE$READTWO.$ASD.bam ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    
+    # cleanup
+    [ -f $THISTMP/$SAMPLE$READTWO.ash.bam ] && rm $THISTMP/$SAMPLE$READTWO.ash.bam
+    if [ -z "$HICLIB_KEEPBAM" ]; then
+        rm $OUTDIR/$SAMPLE$READTWO*.bam.[0-9]*
+    fi
+
+fi
+################################################################################
+CHECKPOINT="statistics"                                                                                                
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    
+    READ1STATSOUT=$OUTDIR/$OUTDIR/$SAMPLE$READONE.$ASD.bam.stats
+    samtools flagstat $OUTDIR/$OUTDIR/$SAMPLE$READONE.$ASD.bam > $READ1STATSOUT
+    
+    if [ -n "$SEQREG" ]; then
+        echo "#custom region" >> $READ1STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -F 4 $OUTDIR/$SAMPLE$READONE.$ASD.bam $SEQREG )" total reads in region " >> $READ1STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -f 3 $OUTDIR/$SAMPLE$READONE.$ASD.bam $SEQREG )" properly paired reads in region " >> $READ1STATSOUT
+    fi
+    
+    READ2STATSOUT=$OUTDIR/$OUTDIR/$SAMPLE$READTWO.$ASD.bam.stats
+    samtools flagstat $OUTDIR/$OUTDIR/$SAMPLE$READTWO.$ASD.bam > $READ2STATSOUT
+    
+    if [ -n "$SEQREG" ]; then
+        echo "#custom region" >> $READ2STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -F 4 $OUTDIR/$SAMPLE$READTWO.$ASD.bam $SEQREG )" total reads in region " >> $READ2STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -f 3 $OUTDIR/$SAMPLE$READTWO.$ASD.bam $SEQREG )" properly paired reads in region " >> $READ2STATSOUT
+    fi
+
+    # mark checkpoint
+    if [ -f $READ1STATSOUT ] && [ -f $READ2STATSOUT ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi
+################################################################################
+CHECKPOINT="samstat"    
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    
+    samstat $OUTDIR/$SAMPLE$READONE.$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
+    samstat $OUTDIR/$SAMPLE$READTWO.$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
+
+    # mark checkpoint
+    if [ -f $OUTDIR/$SAMPLE$READONE.$ASD.bam.stats ] && [ -f $OUTDIR/$SAMPLE$READTWO.$ASD.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi
+################################################################################
+[ -e $OUTDIR/${SAMPLE}-mapped_reads.hdf5.dummy ] && rm $OUTDIR/${SAMPLE}-mapped_reads.hdf5.dummy
 echo ">>>>> readmapping with hiclib (Bowtie2) - FINISHED"
 echo ">>>>> enddate "`date`

@@ -12,10 +12,6 @@
 # QCVARIABLES,
 # RESULTFILENAME fastq/<DIR>"_"$TASK_CUTADAPT/<SAMPLE>$READONE.$FASTQ
 
-
-# TODO: for paired end reads the pairs need to be cleaned up (removed)
-# with PICARD...
-
 echo ">>>>> readtrimming with CUTADAPT "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
@@ -57,7 +53,7 @@ CHECKPOINT="parameters"
 n=${f##*/}
 
 #is paired ?
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] ; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ] ; then
     echo "[NOTE] PAIRED library"
     echo "[WARN] paired end library detected - consider using trimmomatic or trimgalore"
     PAIRED="1"
@@ -73,7 +69,7 @@ FASTQDIRTRIM=$(dirname $o)
 echo $FASTQDIRTRIM
 if [ ! -d $FASTQDIRTRIM ]; then mkdir -p $FASTQDIRTRIM; fi
 echo $f "->" $o
-if [ "$PAIRED" = 1 ]; then echo ${f/$READONE/$READTWO} "->" ${o/$READONE/$READTWO} ; fi
+if [ "$PAIRED" = 1 ]; then echo ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} "->" ${o/%$READONE.$FASTQ/$READTWO.$FASTQ} ; fi
 
 echo "[NOTE] contaminants: "$CONTAMINANTS
 [ ! -n "$CONTAMINANTS" ] && echo "[ERROR] need variable CONTAMINANTS defined in $CONFIG" && exit 1
@@ -87,6 +83,7 @@ CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
+    dmget -a ${o/$READONE/"*"}
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -102,10 +99,10 @@ else
     cat $o.stats
     
     if [ "$PAIRED" = 1 ]; then
-        RUN_COMMAND="cutadapt $CUTADAPTADDPARAM $CONTAM ${f/$READONE/$READTWO} -o ${o/$READONE/$READTWO} > ${o/$READONE/$READTWO}.stats"
+        RUN_COMMAND="cutadapt $CUTADAPTADDPARAM $CONTAM ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} -o ${o/%$READONE.$FASTQ/$READTWO.$FASTQ} > ${o/%$READONE.$FASTQ/$READTWO.$FASTQ}.stats"
         echo $RUN_COMMAND
         eval $RUN_COMMAND
-        cat ${o/$READONE/$READTWO}.stats
+        cat ${o/%$READONE.$FASTQ/$READTWO.$FASTQ}.stats
         #TODO: clean up unmached pairs
     fi
     
@@ -125,7 +122,7 @@ else
     if [[ $? -ne 0 ]]; then
         $GZIP -f $o
         if [ "$PAIRED" = "1" ]; then
-            $GZIP -f ${o/$READONE/$READTWO}
+            $GZIP -f ${o/%$READONE.$FASTQ/$READTWO.$FASTQ}
         fi
     fi
 
@@ -139,8 +136,8 @@ CHECKPOINT="count remaining reads"
 echo "=== Remaining reads ===" >> $FASTQDIRTRIM/${n}.stats
 echo "remaining reads "$(zcat $FASTQDIRTRIM/$n | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n}.stats
 if [ "$PAIRED" = "1" ]; then
-    echo "=== Remaining reads ===" >> $FASTQDIRTRIM/${n/$READONE/$READTWO}.stats
-    echo "remaining reads "$(zcat $FASTQDIRTRIM/${n/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n/$READONE/$READTWO}.stats
+    echo "=== Remaining reads ===" >> $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}.stats
+    echo "remaining reads "$(zcat $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}.stats
 fi
 
 echo -e "\n********* $CHECKPOINT\n"

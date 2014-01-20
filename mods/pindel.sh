@@ -131,7 +131,7 @@ else
 	if [ ! -e $INDIR/metrices/$n.insert_size_metrics ]; then
 
 		echo "[NOTE] $INDIR/metrices/$n.insert_size_metrics does not exist: start insert-size calculation"
-		if [ ! -d $INDIR/metrices ]; then mkdir $INDIR/metrices; fi
+		if [ ! -d $INDIR/metrices ]; then mkdir -p $INDIR/metrices; fi
 
 
 	    export PATH=$PATH:/usr/bin/
@@ -185,9 +185,11 @@ else
 	fi
 
 	# grep the median insert size for this file from the previously run Picard metrices
-	command="grep MEDIAN_INSERT_SIZE  ${f/$INPUT_PINDEL/$INPUT_PINDEL/metrices}.insert_size_metrics -A 1 | tail -n 1 | cut -f 1"
-	echo $command 
-	INSERT=$(eval $command)
+	if [ -z "$INSERT" ]; then # sometimes Picard insert size calculation is wrong...
+		command="grep MEDIAN_INSERT_SIZE  ${f/$INPUT_PINDEL/$INPUT_PINDEL/metrices}.insert_size_metrics -A 1 | tail -n 1 | cut -f 1"
+		echo $command 
+		INSERT=$(eval $command)
+	fi
 	
 	echo -e "$f\t$INSERT\t$NAME" > $OUTDIR/$NAME.conf.txt
         
@@ -206,7 +208,12 @@ else
     echo "[NOTE] $CHECKPOINT"
 
 
-	if [ "$INPUT_IS_BWA"=="false" ]; then
+	if [[ ${INPUT_IS_BWA}="false" ]]; then
+
+		if [ -z "$INSERT" ]; then # sometimes Picard insert size calculation is wrong...
+			INSERT=$(grep MEDIAN_INSERT_SIZE  ${f/$INPUT_PINDEL/$INPUT_PINDEL/metrices}.insert_size_metrics -A 1 | tail -n 1 | cut -f 1)
+		fi
+
 		echo "[NOTE] need to convert non-bwa input"
 		command="samtools view $f | sam2pindel - $OUTDIR/$NAME.s2b.txt $INSERT $NAME 0 $INPUT_TYPE"
 		echo $command && eval $command
@@ -229,26 +236,42 @@ fi
 
 
 ################################################################################
-CHECKPOINT="convert to vcf and join"
+CHECKPOINT="convert to vcf"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
     echo "[NOTE] $CHECKPOINT"
 
-	if [ ! -e ${FASTA/REFERENCE_ENDING/fa} ]; then echo "[ERROR] pindel2vcf needs fasta file with .fa ending - please create a symbolic link"; exit -1; fi 
+	if [ ! -e ${FASTA/$REFERENCE_ENDING/fa} ]; then echo "[ERROR] pindel2vcf needs fasta file with .fa ending - please create a symbolic link"; exit -1; fi 
 
 	echo "[NOTE] convert to vcf"
-	VAR=""
 	for i in D SI LI INV TD BP ; do 
-		pindel2vcf -G -p $OUTDIR/$NAME"_"$i -r ${FASTA/fasta/fa} -d $REFERENCE_DATE -R $REFERENCE_NAME -v $OUTDIR/$NAME"_"$i.vcf 
-		VAR=$VAR" -V "$OUTDIR"/"$NAME"_"$i".vcf"
+		pindel2vcf -G -p $OUTDIR/$NAME"_"$i -r ${FASTA/$REFERENCE_ENDING/fa} -d $REFERENCE_DATE -R $REFERENCE_NAME -v $OUTDIR/$NAME"_"$i.vcf 
 	done
 
+    # mark checkpoint
+	if [ -f $OUTDIR/$NAME"_BP".vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+
+
+################################################################################
+CHECKPOINT="join vcf files"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    echo "[NOTE] $CHECKPOINT"
+
+	if [ ! -e ${FASTA/$REFERENCE_ENDING/fasta} ]; then echo "[ERROR] GenomeAnalysisTK.jar needs fasta file with .fasta ending - please create a symbolic link"; exit -1; fi 
+
+	VAR=""
+	for i in D SI LI INV TD BP ; do  VAR=$VAR" -V "$OUTDIR"/"$NAME"_"$i".vcf"; done
 
 	echo "[NOTE] join to single vcf"
    	command="java $JAVAPARAMS -cp $PATH_GATK/GenomeAnalysisTK.jar org.broadinstitute.sting.tools.CatVariants \
-		-R $FASTA $VAR -out $OUTDIR/$NAME.summary.unsorted.vcf"
+		-R ${FASTA/$REFERENCE_ENDING/fasta} $VAR -out $OUTDIR/$NAME.summary.unsorted.vcf"
     echo $command && eval $command
 
 	echo "[NOTE] order to reference"

@@ -44,6 +44,12 @@ FASTA=
 # Fragment length of -1 will use the genomic fragment covered by the read-mates if the input is a paired read library
 FRAGMENTLENGTH=0
 
+# Normalize to 1000000 reads
+NORMALIZETO=1000000
+
+# Scale by a specific value (0<x<1)
+#SCALEFACTOR=
+
 # uncomment to generate strand-specific bigwig files
 #BIGWIGSTRANDS=strand-specific
 

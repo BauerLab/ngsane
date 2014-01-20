@@ -75,9 +75,26 @@ echo "[NOTE] sumitted jobs $(echo -n $JOBIDSVARCALL)"
 
 
 ################################################################################
+#  PINDEL
+################################################################################
+
+# modify the template config file to flip the RUNVARCALLS switch
+# specify the resulting html file
+echo "[NOTE] Prep and run config file tmp/configPINDEL.txt"
+cat bin/tmpl/configVarCall.txt | sed 's/RUNPINDEL=\"\"/RUNPINDEL=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryPINDEL\"/g' > tmp/configPINDEL.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSRECAL//:/$QUEUEWAITSEP}\"" >>tmp/configPINDEL.txt
+
+# submit the VARCALLS run to the cluster
+JOBIDSPINDEL=$( trigger.sh tmp/configPINDEL.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] sumitted jobs $(echo -n $JOBIDSPINDEL)"
+
+
+
+################################################################################
 # TEST
 ################################################################################
-JOBIDS="$JOBIDSBAMANN:$JOBIDSVARCALL" #other things
+JOBIDS="$JOBIDSBAMANN:$JOBIDSVARCALL:$JOBIDSPINDEL" #other things
 
 #PBS: Varcall does not complete the recalibration hence only after
 QUEUEWAIT=${QUEUEWAIT/afterok/afterany}
@@ -87,6 +104,7 @@ cat bin/tmpl/configVarCall.txt | sed 's/RUNVARCALLS=\"\"/RUNVARCALLS=\"1\"/g' | 
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryVARCALLS\"/g' | \
     sed 's/RUNMAPPINGBWA=\"\"/RUNMAPPINGBWA=\"1\"/g' | \
 	sed 's/RUNANNOTATINGBAM=\"\"/RUNANNOTATINGBAM=\"1\"/g' | \
+	sed 's/RUNPINDEL=\"\"/RUNPINDEL=\"1\"/g' | \
     sed 's/RUNREALRECAL=\"\"/RUNREALRECAL=\"1\"/g' > tmp/configVARCALLS.txt
 
 # Prep and runare the job to generate the html result page and perform the diff 

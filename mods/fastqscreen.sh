@@ -57,7 +57,7 @@ CHECKPOINT="parameters"
 n=${f##*/}
 
 #is paired ?
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     echo "[NOTE] PAIRED library"
     PAIRED="1"
 else
@@ -91,7 +91,7 @@ else
 
     # Paired read
     if [ "$PAIRED" = "1" ]; then
-        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --paired --threads $CPU_FASTQSCREEN $f ${f/$READONE/$READTWO}"
+        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --paired --threads $CPU_FASTQSCREEN $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
     else
         RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --threads $CPU_FASTQSCREEN $f"
     fi

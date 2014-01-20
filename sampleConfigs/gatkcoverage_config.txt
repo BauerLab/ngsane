@@ -1,5 +1,5 @@
-# author: Fabian Buske
-# date: September 2013
+# author: Denis Bauer
+# date: December 2013
 
 #####################################
 # Resources
@@ -9,7 +9,7 @@
 # Tasks
 #********************
 
-RUNVARCALLS="1"     # variance  calling with GATK
+RUNDEPTHOFCOVERAGE="1"     # variance  calling with GATK
 
 #********************
 # Paths
@@ -38,30 +38,19 @@ QOUT=$OUT/qout
 # or ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
 FASTA=
 
-# location of SNP database file dbsnp.vcf (double-check genome assembly)
-# e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/dbsnp_137.hg19.vcf 
-# or   $NGSANE_REFERENCE/gatk_resources_1.5/dbsnp_135.b37.vcf
-DBSNPVCF=
-
-# location of HapMap vcf file (double-check genome assembly)
-# e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/hapmap_3.3.hg19.vcf
-# or   $NGSANE_REFERENCE/gatk_resources_1.5/hapmap_3.3.b37.vcf
-HAPMAPVCF=
-
-# location of 1k Genome vcf file (double-check genome assembly)
-# e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/1000G_omni2.5.hg19.vcf
-# or   $NGSANE_REFERENCE/gatk_resources_1.5/1000G_omni2.5.b37.vcf
-ONEKGVCF=
-
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
 
 # additional commands for variant recalibrator
-ADDRECAL=
+ADDPARAMGATKDOC=
+LIST= #region of specific interest, e.g. targeted reseq
+GENE= #gene list
 
-#WALLTIME_VAR=100:00:00
-#MEMORY_VAR=20
-#CPU_VAR=1
-#NODES_VAR="nodes=1:ppn=1"
-#MODULE_GATK=
+#TASK_GATKDOC="coverage"
+#WALLTIME_GATKDOC=50:00:00
+#MEMORY_GATKDOC=50
+#CPU_GATKDOC=1
+#NODES_GATKDOC="nodes=1:ppn=1"
+#INPUT_GATKDOC=$TASK_RECAL
+#MODULE_GATKDOC="${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_GATK}"

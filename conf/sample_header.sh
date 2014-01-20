@@ -62,13 +62,15 @@ NG_PARALLEL=
 NG_TRINITY=
 NG_MACS2=${NG_PYTHON}
 NG_HTSEQ=${NG_PYTHON}
+NG_CIRCOS=
+NG_BLAT=
 NG_PINDEL=
-
+NG_SEQLOGO=
 
 ##############################################################
 # Software reference
 ##############################################################
-NG_CITE_NGSANE="(in review); 'NGSANE: A Lightweight Production Informatics Framework for High Throughput Data Analysis; Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC"
+NG_CITE_NGSANE="(accepted); 'NGSANE: A Lightweight Production Informatics Framework for High Throughput Data Analysis; Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC"
 NG_CITE_R="R: A language and environment for statistical computing; R Core Team. R Foundation for Statistical Computing, Vienna, Austria, (2013)"
 NG_CITE_PYTHON="Guido van Rossum, Jelke de Boer: Linking a Stub Generator (AIL) to a Prototyping Language (Python). Spring 1991 EurOpen Conference Proceedings (May 20-24, 1991) Tromso, Norway."
 NG_CITE_FASTQC="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/"
@@ -103,7 +105,10 @@ NG_CITE_PARALLEL="http://www.gnu.org/s/parallel"
 NG_CITE_TRINITY="Nat Biotechnol. 2011 May 15;29(7):644-52. doi: 10.1038/nbt.1883. 'Full-length transcriptome assembly from RNA-Seq data without a reference genome.'; Grabherr MG, Haas BJ, Yassour M, Levin JZ, Thompson DA, Amit I, Adiconis X, Fan L, Raychowdhury R, Zeng Q, Chen Z, Mauceli E, Hacohen N, Gnirke A, Rhind N, di Palma F, Birren BW, Nusbaum C, Lindblad-Toh K, Friedman N, Regev A."
 NG_CITE_MACS2="Genome Biol. 2008;9(9):R137. doi: 10.1186/gb-2008-9-9-r137. Epub 2008 Sep 17. 'Model-based analysis of ChIP-Seq (MACS).'; Zhang Y, Liu T, Meyer CA, Eeckhoute J, Johnson DS, Bernstein BE, Nusbaum C, Myers RM, Brown M, Li W, Liu XS."
 NG_CITE_HTSEQ="Conf Proc IEEE Eng Med Biol Soc. 2013 Jul;2013:647-50. doi: 10.1109/EMBC.2013.6609583. 'Benchmarking RNA-Seq quantification tools.'; Chandramohan R, Wu PY, Phan JH, Wang MD."
+NG_CITE_CIRCOS="Genome Res. 2009 Sep;19(9):1639-45. doi: 10.1101/gr.092759.109. Epub 2009 Jun 18. 'Circos: an information aesthetic for comparative genomics.'; Krzywinski M, Schein J, Birol I, Connors J, Gascoyne R, Horsman D, Jones SJ, Marra MA."
+NG_CITE_BLAT="Genome Res. 2002 Apr;12(4):656-64. 'BLAT--the BLAST-like alignment tool.'; Kent WJ."
 NG_CITE_PINDEL="Ye K, Schulz MH, Long Q, Apweiler R, Ning Z. Pindel: a pattern growth approach to detect break points of large deletions and medium sized insertions from paired-end short reads. Bioinformatics. 2009 Nov 1;25(21):2865-71. Epub 2009 Jun 26."
+NG_CITE_SEQLOGO="Nucleic Acids Res. 1990 Oct 25;18(20):6097-100.; 'Sequence logos: a new way to display consensus sequences.'; Schneider TD, Stephens RM."
 
 ##############################################################
 # PROGRAM PATHS

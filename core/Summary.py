@@ -439,8 +439,10 @@ def variant(variantFile):
 	names=["Total","known", "SNPdb Conc", "variantRatePerBp", "hetHomRatio", "novel", "variantRatePerBp","hetHomRatio"]
 	values=[]
 	file=open(variantFile).read()
-	CO=re.split("[ \t\n]+", file.split("CompOverlap")[3])
-	values.append(int(CO[5])) #total
+#	CO=re.split("[ \t\n]+", file.split("CompOverlap")[3])
+#	values.append(int(CO[5])) #total
+	CO=re.split("[ \t\n]+", file.split("CountVariants")[3])
+	values.append(int(CO[6])) #total
 	CO=re.split("[ \t\n]+", file.split("CompOverlap")[4])
 	values.append(int(CO[5])) #known
 	values.append(float(CO[10])) #SNPconc
@@ -632,37 +634,78 @@ def hicupStats(statsFile):
     	lines = file.split("\n")
     	p1 = lines[1].split("\t")
     	p2 = lines[2].split("\t")    	
-    	names += ["P1 non-trunc reads", "%","P1 trunc reads", "P2 non-trunc reads", "%","%", "P2 trunc reads", "%"]
-    	values += [float(p1[3]), float(p1[4]), float(p1[1]), float(p1[2]), float(p2[3]), float(p2[4]), float(p2[1]), float(p2[2])]
+    	names += ["P1 non-trunc reads", "%","P1 trunc reads", "%", "P2 non-trunc reads","%", "P2 trunc reads", "%"]
+    	values += [float(p1[4]), float(p1[5]), float(p1[2]), float(p1[3]), float(p2[4]), float(p2[5]), float(p2[2]), float(p2[3])]
   
     if (file.find("Total_reads_processed")>-1):
     	lines = file.split("\n")
     	names += ["P1 reads", "P2 reads", "Unique Align P1", "%", "Unique Align P2", "%", "Multi mapper P1", "%", "Multi mapper P2", "%", "Nonaligned P1", "%", "Nonaligned P2", "%", "Paired P1", "%", "Paired P2", "%" ]
     	p1 = lines[1].split("\t")
     	p2 = lines[2].split("\t")
-    	values += [float(p1[1]), float(p2[1]), float(p1[2]), float(p1[3]), float(p2[2]), float(p2[3]), float(p1[4]), float(p1[5]), float(p2[4]), float(p2[5]), float(p1[6]), float(p1[7]), float(p2[6]), float(p2[7]), float(p1[8]), float(p1[9]), float(p2[8]), float(p2[9])] 	
+    	values += [float(p1[1]), float(p2[1]), float(p1[4]), float(p1[5]), float(p2[4]), float(p2[5]), float(p1[6]), float(p1[7]), float(p2[6]), float(p2[7]), float(p1[8]), float(p1[9]), float(p2[8]), float(p2[9]), float(p1[10]), float(p1[11]), float(p2[10]), float(p2[11])] 	
 
-    if (file.find("Circularised")>-1):
-  	lines = file.split("\n")
-    	sig = lines[0].split("\t")[1:]
+    if (file.find("Same_circularised")>-1):
+    	lines = file.split("\n")
+  	
+    	sig = re.sub('[_]', ' ', lines[0]).split("\t")[1:]
     	val = lines[1].split("\t")[1:]
     	names += sig
     	values += [float(i) for i in val]
 
     if (file.find("Read_pairs_processed")>-1):
-  	lines = file.split("\n")
-    	sig = lines[0].split("\t")[1:]
+    	lines = file.split("\n")
+    	sig = re.sub('[_]', ' ', lines[0]).split("\t")[1:]
     	val = lines[1].split("\t")[1:]
     	names += sig
     	values += [float(i) for i in val]
 
     return names,values
-   
+
+def fithicStats(statsFile):
+    names=["Intra In Range Count", "Intra Out Of Range Count", "Intra Very Proximal Count","Inter Count" ]
+    values=[]
+    file=open(statsFile).read()
+
+    # populate
+    tmp=file.split("intraInRangeCount ")[1].split()[0]
+    IR=float(tmp.strip())
+    values.append(IR)
+
+    tmp=file.split("intraOutOfRangeCount ")[1].split()[0]
+    RC=float(tmp.strip())
+    values.append(RC)
+
+    tmp=file.split("intraVeryProximalCount ")[1].split()[0]
+    PC=float(tmp.strip())
+    values.append(PC)
+
+    tmp=file.split("interCount ")[1].split()[0]
+    IC=float(tmp.strip())
+    values.append(IC)
+
+    return names,values
+
 def homerchipseqStats(logFile):
-    names=["peaks","peak size","IP efficiency (%)"]
+    names=["Est. fragment length","Autocorr. same strand", "Autocorr. diff. strand", "Autocorr. same/diff", "# Peaks","Peak size","IP efficiency (%)"]
     values=[]
     file=open(logFile).read()
     # populate
+    tmp=file.split("# fragment length =")[1].strip().split()[0]
+    FL=float(tmp.strip())
+    values.append(FL)
+
+    tmp=file.split("Same strand fold enrichment:")[1].strip().split()[0]
+    AS=float(tmp.strip())
+    values.append(AS)
+    
+    tmp=file.split("Diff strand fold enrichment:")[1].strip().split()[0]
+    AD=float(tmp.strip())
+    values.append(AD)
+
+    tmp=file.split("Same / Diff fold enrichment:")[1].strip().split()[0]
+    AF=float(tmp.strip())
+    values.append(AF)
+    
     tmp=file.split("# total peaks =")[1].strip().split()[0]
     TP=float(tmp.strip())
     values.append(TP)
@@ -742,13 +785,26 @@ def macs2Stats(logFile):
         tmp=file.split("#2 number of paired peaks:")[1].strip().split()[0]
         PP=float(tmp.strip())
         values.append(PP)
-    
+    except:
+        values.append(0)
+
+    tryalternative=False
+    try:
         tmp=file.split("#2 predicted fragment length is")[1].strip().split("bps")[0]
         PF=float(tmp.strip())
         values.append(PF)
+        
     except:
-        values.append(0)
-        values.append(0)
+        tryalternative=True
+
+    if (tryalternative):
+        try:
+            tmp=file.split(" as fragment length")[0].strip().split("#2 Use ")[1]
+            PF=float(tmp.strip())
+            values.append(PF)
+    
+        except:
+            values.append(0)
      
     tmp=file.split("Final number of refined peaks:")[1].strip().split()[0]
     RP=float(tmp.strip())
@@ -1087,6 +1143,8 @@ for d in dir:
                 names,values=hiclibStats(f)
             if (type=="hicup"):
                 names,values=hicupStats(f)
+            if (type=="fithic"):
+                names,values=fithicStats(f)
             if (type=="homerchipseq"):
                 names,values=homerchipseqStats(f)
             if (type=="peakranger"):
