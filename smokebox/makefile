@@ -1,7 +1,6 @@
 NGSANE := $(shell trigger.sh -v 2>/dev/null)
 
-all: checkNGSANE result/SummaryHIC.html
-#all: checkNGSANE result/SummaryCHIPSEQ.html result/SummaryTOPHATCUFFHTSEQ.html  result/SummaryVARCALLS.html result/SummaryHIC.html
+all: checkNGSANE result/SummaryCHIPSEQ.html result/SummaryTOPHATCUFFHTSEQ.html  result/SummaryVARCALLS.html result/SummaryHIC.html
 
 checkNGSANE:
 ifdef NGSANE
@@ -55,3 +54,4 @@ clean:
 	rm -fr runStats
 	rm -f igv.*
 	rm -f core*
+	rm -fr common
