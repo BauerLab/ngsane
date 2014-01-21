@@ -93,8 +93,8 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
     
-    mkdir -p $$OUTDIR/${SAMPLE}_homer
-    RUN_COMMAND="makeTagDirectory $$OUTDIR/${SAMPLE}_homer $f $HOMER_CHIPSEQ_TAGDIR_ADDPARAM &> $OUTDIR/${SAMPLE}.tagdirIP.log"
+    mkdir -p $OUTDIR/${SAMPLE}_homer
+    RUN_COMMAND="makeTagDirectory $OUTDIR/${SAMPLE}_homer $f $HOMER_CHIPSEQ_TAGDIR_ADDPARAM &> $OUTDIR/${SAMPLE}.tagdirIP.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     cat $OUTDIR/${SAMPLE}.tagdirIP.log # put into qout log too
 
