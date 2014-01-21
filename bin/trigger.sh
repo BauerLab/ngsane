@@ -414,7 +414,7 @@ if [ -n "$RUNHICUP" ]; then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
             $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
-    	   -m $MEMORY_HICUP"G" -w $WALLTIME_HICUP --commontask \
+    	   -m $MEMORY_HICUP"G" -w $WALLTIME_HICUP --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/bowtieIndex.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
@@ -425,7 +425,7 @@ if [ -n "$RUNHICUP" ]; then
     if [ ! -f $OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt ];then
         JOBIDS=$( 
         $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c 1 \
-        	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS --commontask \
+        	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS --commontask digestGenome \
             --command "${NGSANE_BASE}/mods/hicupDigestGenome.sh -k $CONFIG" 
         ) && echo -e "$JOBIDS"
         JOBIDS=$(waitForJobIds "$JOBIDS")
@@ -468,7 +468,8 @@ if [ -n "$RUNHICLIB" ]; then
     if [ ! -f ${FASTA%.*}.1.bt2 ];then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ -n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB --commontask \
+            $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ -n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" \
+            -w $WALLTIME_HICLIB --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
@@ -496,7 +497,8 @@ if [ -n "$RUNMAPPINGBWA" ]; then
     if [ ! -f $FASTA.bwt ];then
         # submit job for index generation if necessary
         JOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_BWA -i $INPUT_BWA -e $READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA --commontask  \
+            $QSUB $ARMED -k $CONFIG -t $TASK_BWA -i $INPUT_BWA -e $READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" \
+            -w $WALLTIME_BWA --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/bwaIndex.sh -k $CONFIG"
         ) && echo -e "$JOBIDS"
         JOBIDS=$(waitForJobIds "$JOBIDS")
@@ -521,7 +523,8 @@ if [ -n "$RUNMAPPINGBOWTIE" ]; then
     if [ ! -f ${FASTA%.*}.1.ebwt ];then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE -i $INPUT_BOWTIE -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE --commontask \
+            $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE -i $INPUT_BOWTIE -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" \
+            -w $WALLTIME_BOWTIE --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/bowtieIndex.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
@@ -546,7 +549,8 @@ if [ -n "$RUNMAPPINGBOWTIE2" ]; then
     if [ ! -f ${FASTA%.*}.1.bt2 ];then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE2 -i $INPUT_BOWTIE2 -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" -w $WALLTIME_BOWTIE2 --commontask \
+            $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE2 -i $INPUT_BOWTIE2 -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" \
+            -w $WALLTIME_BOWTIE2 --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
@@ -603,7 +607,8 @@ if [ -n "$RUNTOPHAT" ]; then
     if [ ! -f ${FASTA%.*}.1.bt2 ];then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT --commontask \
+            $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" \
+            -w $WALLTIME_TOPHAT --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
@@ -679,7 +684,8 @@ if [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
     if [ ! -f ${FASTA%.*}.1.bt2 ];then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT --commontask \
+            $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" \
+            -w $WALLTIME_TOPHAT --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
@@ -763,7 +769,7 @@ if [ -n "$RUNHOMERCHIPSEQ" ]; then
     if  [ -n "$CHIPINPUT" ];then
         JOBIDS=$( 
         $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e .$ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ \
-        	-m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ --commontask \
+        	-m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ --commontask ${CONFIG##*/} \
             --command "${NGSANE_BASE}/mods/chipseqHomerInput.sh -k $CONFIG" 
         ) && echo -e "$JOBIDS"
         JOBIDS=$(waitForJobIds "$JOBIDS")

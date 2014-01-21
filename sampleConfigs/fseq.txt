@@ -1,0 +1,46 @@
+# author: Fabian Buske
+# date: 20/01/2014
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNFSEQ="1"   
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_FSEQ=$TASK_BOWTIE
+
+# reference genome, 
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+# or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# additional parameters passed to fseq
+# e.g. "-f 0 -b /share/ClusterShare/biodata/contrib/fabbus/bff_hg19/bff_35 -p /share/ClusterShare/biodata/contrib/fabbus/iff_hg19/iff_generic_male"
+FSEQADDPARAM=""
