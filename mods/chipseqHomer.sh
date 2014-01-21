@@ -67,7 +67,13 @@ CHECKPOINT="parameters"
 # get basename of f
 n=${f##*/}
 SAMPLE=${n/%.$ASD.bam/}
-c=${CHIPINPUT##*/}
+
+if [ -n "$CHIPINPUT" ];then
+    c=${CHIPINPUT##*/}
+    INPUT=${c/.$ASD.bam/}
+else
+    INPUT="NONE"
+fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -87,28 +93,13 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
     
-    TAGDIRECTORY=$OUTDIR/${SAMPLE}_homer
-    mkdir -p $TAGDIRECTORY
-    RUN_COMMAND="makeTagDirectory $TAGDIRECTORY $f $HOMER_CHIPSEQ_TAGDIR_ADDPARAM &> $OUTDIR/${SAMPLE}.tagdirIP.log"
+    mkdir -p $$OUTDIR/${SAMPLE}_homer
+    RUN_COMMAND="makeTagDirectory $$OUTDIR/${SAMPLE}_homer $f $HOMER_CHIPSEQ_TAGDIR_ADDPARAM &> $OUTDIR/${SAMPLE}.tagdirIP.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     cat $OUTDIR/${SAMPLE}.tagdirIP.log # put into qout log too
-    
-    if [ -n "$CHIPINPUT" ];then
-        TAGDIRECTORY=$OUTDIR/${SAMPLE}_homer
-        mkdir -p ${TAGDIRECTORY}_input
-        # copy input to prevent interfering concurrent processing by homer
-        cp $CHIPINPUT ${TAGDIRECTORY}
-        RUN_COMMAND="makeTagDirectory ${TAGDIRECTORY}_input ${TAGDIRECTORY}/$c $HOMER_CHIPSEQ_TAGDIR_ADDPARAM"
-        echo $RUN_COMMAND && eval $RUN_COMMAND
-        
-        rm $TAGDIRECTORY/$c
-        INPUT=${c/.$ASD.bam/}
-    else
-        INPUT="NONE"
-    fi
 
     # mark checkpoint
-    if [ -e $TAGDIRECTORY/tagLengthDistribution.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/${SAMPLE}_homer/tagLengthDistribution.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -119,9 +110,9 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    RUN_COMMAND="findPeaks $TAGDIRECTORY -style $HOMER_CHIPSEQ_STYLE  $HOMER_CHIPSEQ_FINDPEAKS_ADDPARAM -o auto "
+    RUN_COMMAND="findPeaks $OUTDIR/${SAMPLE}_homer -style $HOMER_CHIPSEQ_STYLE  $HOMER_CHIPSEQ_FINDPEAKS_ADDPARAM -o auto "
     if [ -n "$CHIPINPUT" ];then
-      RUN_COMMAND="$RUN_COMMAND -i ${TAGDIRECTORY}_input"  
+      RUN_COMMAND="$RUN_COMMAND -i $OUT/common/$TASK_HOMERCHIPSEQ/$SAMPLE/"  
     fi
     RUN_COMMAND="$RUN_COMMAND &> $OUTDIR/${SAMPLE}.findpeaks.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -161,15 +152,11 @@ fi
 CHECKPOINT="cleanup"
 
 if [ -z "$HOMER_KEEPTAGDIRECTORY" ]; then
-   rm $TAGDIRECTORY/*.tags.tsv
+   rm -f $OUTDIR/${SAMPLE}_homer/*.tags.tsv
 fi
 
 [ -f $OUTDIR/${SAMPLE}.tagdirIP.log ] && rm $OUTDIR/${SAMPLE}.tagdirIP.log
 [ -f $OUTDIR/${SAMPLE}.findpeaks.log ] && rm $OUTDIR/${SAMPLE}.findpeaks.log
-
-if [ -n "$CHIPINPUT" ] && [ -d ${TAGDIRECTORY}_input ]; then
-    rm -r ${TAGDIRECTORY}_input
-fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
