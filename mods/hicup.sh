@@ -96,6 +96,27 @@ fi
 ZCAT="zcat"
 if [[ $f != *.gz ]]; then ZCAT="cat"; fi
 
+
+
+if [ -z "$HICUP_RENZYME1" ] || [ "${HICUP_RENZYME1,,}" == "none" ] || [ -z "$HICUP_RCUTSITE1" ]; then
+    echo "[ERROR] Restriction enzyme 1 not defined" && exit 1
+else
+    ENZYME1PARAM="-re1 $HICUP_RCUTSITE1"
+fi
+if [ -z "$HICUP_RENZYME2" ] || [ "${HICUP_RENZYME2,,}" == "none" ] || [ -z "$HICUP_RCUTSITE2" ]; then
+    echo "[NOTE] Restriction enzyme 2 not defined"
+    HICUP_RENZYME2="none"
+else
+    ENZYME2PARAM="-re1 $HICUP_RCUTSITE2"
+fi
+
+DIGESTGENOME="$OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt"
+if [ ! -f $DIGESTGENOME ]; then
+    echo "[ERROR] digested genome not found: $DIGESTGENOME"; 
+    exit 1
+fi
+
+
 # get encoding
 if [ -z "$FASTQ_ENCODING" ]; then 
     echo "[NOTE] Detect fastq Phred encoding"
@@ -117,25 +138,6 @@ fi
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
 mkdir -p $THISTMP
-
-
-if [ -z "$HICUP_RENZYME1" ] || [ "${HICUP_RENZYME1,,}" == "none" ] || [ -z "$HICUP_RCUTSITE1" ]; then
-    echo "[ERROR] Restriction enzyme 1 not defined" && exit 1
-else
-    ENZYME1PARAM="-re1 $HICUP_RCUTSITE1"
-fi
-if [ -z "$HICUP_RENZYME2" ] || [ "${HICUP_RENZYME2,,}" == "none" ] || [ -z "$HICUP_RCUTSITE2" ]; then
-    echo "[NOTE] Restriction enzyme 2 not defined"
-    HICUP_RENZYME2="none"
-else
-    ENZYME2PARAM="-re1 $HICUP_RCUTSITE2"
-fi
-
-DIGESTGENOME="$OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt"
-if [ ! -f $DIGESTGENOME ]; then
-    echo "[ERROR] digested genome not found: $DIGESTGENOME"; 
-    exit 1
-fi
 
 mkdir -p $OUTDIR/$SAMPLE
 
