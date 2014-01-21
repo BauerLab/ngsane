@@ -1,0 +1,75 @@
+# author: Fabian Buske
+# date: Nov 2013
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNMASAI="1"    # mapping with masai
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_MASAI="fastq"
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# fastq file suffix
+FASTQ="fq.gz"
+
+# read indicator immediately preceding the fastq file suffix
+READONE="_R1"
+READTWO="_R2"
+
+# reference genome
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/MasaiIndex/genome.fa
+# or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=
+
+# library tags
+EXPID="Celltype"
+LIBRARY="RNAseq"
+PLATFORM="Illumina"
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# additional parameters passed to masai_mapper 
+MASAI_MAPPERADDPARAM=
+
+# additional parameters passed to masai_output_se / masai_output_pe
+# use appropriate seed and error setting, default is optimized for 100bp
+# Illumina reads
+# e.g. "--seed-length 20 --errors 3" for 35 bp reads
+MASAI_OUTPUTADDPARAM=
+
+# Index data structure for the mapping. 
+# The index will be generated on demand in case its not contained in the FASTA reference
+# e.g. fm (recommended for mapping via GP-GPU)
+MASAI_INDEX=
+
+#WALLTIME_MASAI=10:00:00
+#MEMORY_MASAI=60
+#CPU_MASAI=1
+#NODES_MASAI="nodes=1:ppn=1”
+#MODULE_MASAI=
+#PATH_MASAI=

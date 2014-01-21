@@ -559,6 +559,20 @@ if [ -n "$RUNMAPPINGBOWTIE2" ]; then
       
 fi
 
+################################################################################
+#   Mapping using Masai
+#
+# IN:$SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/bowtie/*.bam
+################################################################################
+
+if [ -n "$RUNMASAI" ]; then
+    if [ -z "$TASKMASAI" ] || [ -z "$NODES_MASAI" ] || [ -z "$CPU_MASAI" ] || [ -z "$MEMORY_MASAI" ] || [ -z "$WALLTIME_MASAI" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -k $CONFIG -t $TASKMASAI -i $INPUT_MASAI -e $READONE.$FASTQ -n $NODES_MASAI -c $CPU_MASAI -m $MEMORY_MASAI"G" -w $WALLTIME_MASAI \
+        --command "${NGSANE_BASE}/mods/masai.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKMASAI --rgsi <DIR>"        
+fi
+
 
 ################################################################################
 #   Mapping using rrbsmap
@@ -745,9 +759,22 @@ fi
 ################################################################################
 if [ -n "$RUNHOMERCHIPSEQ" ]; then
     if [ -z "$TASK_HOMERCHIPSEQ" ] || [ -z "$NODES_HOMERCHIPSEQ" ] || [ -z "$CPU_HOMERCHIPSEQ" ] || [ -z "$MEMORY_HOMERCHIPSEQ" ] || [ -z "$WALLTIME_HOMERCHIPSEQ" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    if  [ -n "$CHIPINPUT" ];then
+        JOBIDS=$( 
+        $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e .$ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ \
+        	-m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ --commontask \
+            --command "${NGSANE_BASE}/mods/chipseqHomerInput.sh -k $CONFIG" 
+        ) && echo -e "$JOBIDS"
+        JOBIDS=$(waitForJobIds "$JOBIDS")
+
+    else
+        JOBIDS=""
+    fi
     
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e .$ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ \
-	   --command "${NGSANE_BASE}/mods/chipseqHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERCHIPSEQ"
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e .$ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m \
+        $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ $JOBIDS \
+        --command "${NGSANE_BASE}/mods/chipseqHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERCHIPSEQ"
 fi
 
 ################################################################################

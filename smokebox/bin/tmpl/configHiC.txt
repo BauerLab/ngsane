@@ -1,0 +1,48 @@
+
+# author: Fabian Buske
+# date: September 2013
+
+######################################
+# Resources
+#####################################
+
+WALLTIME_BOWTIE=00:30:00
+MEMORY_BOWTIE=8
+CPU_BOWTIE=8
+NODES_BOWTIE="nodes=1:ppn=8"
+
+WALLTIME_BOWTIE2=00:30:00
+MEMORY_BOWTIE2=8
+CPU_BOWTIE2=8
+NODES_BOWTIE2="nodes=1:ppn=8"
+
+#********************
+# Tasks
+#********************
+RUNMAPPINGBOWTIE2=""  # mapping with bowtie2
+
+TASK_BOWTIE=$TASK_BOWTIE2
+
+HTMLOUT="Summary"
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+declare -a DIR; DIR=( Transcript ) 
+OUT=$SOURCE
+QOUT=$OUT/qout
+
+READONE="_R1"
+READTWO="_R2"
+FASTQ=fq.gz
+
+#********************
+# PARAMETER
+#********************
+EXPID="OmicsRNA"
+LIBRARY="AGRF"
+PLATFORM="Illumina"
+
+
