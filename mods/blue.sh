@@ -77,7 +77,7 @@ if [ -z ${BLUE_MINREPS} ]; then
 fi
 
 #is paired ?
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     PAIRED="1"
 else
     PAIRED="0"
@@ -100,7 +100,7 @@ else
     zcat $f > $THISTMP/${n/.$FASTQ/.unzipped}
     FILES="$THISTMP/${n/.$FASTQ/.unzipped}"
     if [ $PAIRED = "1" ]; then 
-        zcat ${f/$READONE/$READTWO} > $THISTMP/$SAMPLE$READTWO.unzipped
+        zcat ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/$SAMPLE$READTWO.unzipped
         FILES="$FILES $THISTMP/$SAMPLE$READTWO.unzipped"
     fi
 fi

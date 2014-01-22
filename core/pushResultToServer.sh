@@ -74,15 +74,20 @@ CHECKPOINT="write results to REMOTE server"
 for f in $(ls $SOURCE); do
 	fn="${f##*/}" # basename
    	# don't copy the raw files or the tmp folder
-   	if [ "$fn" != "fastq" ] && [ "$fn" != "tmp" ]; then 
- 		if [ -f  ~/.smbclient ]; then
-		   RUN_COMMAND="smbclient ${TARGET_SERVER} -A ~/.smbclient -c \"prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}\""
-		else
-		   RUN_COMMAND="smbclient ${TARGET_SERVER} -U `whoami` -c \"prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}\""
-		fi
-		echo $RUN_COMMAND
-		eval $RUN_COMMAND
+   	if [ -n "$COPYFASTQ" ] && [ "$fn" == "fastq" ]; then
+       	continue
+   	fi   	 
+    # skip tmp folder
+   	if [ "$fn" == "tmp" ]; then 
+       	continue
+   	fi 
+   	
+    if [ -f  ~/.smbclient ]; then
+	   RUN_COMMAND="smbclient ${TARGET_SERVER} -A ~/.smbclient -c \"prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}\""
+	else
+	   RUN_COMMAND="smbclient ${TARGET_SERVER} -U `whoami` -c \"prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}\""
 	fi
+	echo $RUN_COMMAND && eval $RUN_COMMAND
 done
 
 ################################################################################

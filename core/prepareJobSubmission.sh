@@ -4,6 +4,7 @@
 # General template for submitting a job 
 #
 
+
 #INPUTS
 while [ "$1" != "" ]; do
     case $1 in
@@ -27,7 +28,7 @@ while [ "$1" != "" ]; do
 	-d | --nodir )          NODIR="nodir";;
 	-a | --armed )          ARMED="armed";;
     -W | --wait )           shift; JOBIDS=$1 ;;    # jobids to wait for
-    --commontask )          COMMONTASK="1";;    # a task common to multiple libraries
+    --commontask )          COMMONTASK="common";;    # a task common to multiple libraries
 	--keep )                KEEP="keep";;
 	--new )                 KEEP="new";;
 	--recover )             RECOVER="recover";;
@@ -49,7 +50,6 @@ done
 . $CONFIG
 
 echo -e "\e[96m[Task]\e[0m $TASK $NODIR"
-
 if [ -n "$GIVENDIRS" ]; then declare -a DIR; DIR=( $GIVENDIRS ); fi
 if [ ! -d $QOUT/$TASK ]; then mkdir -p $QOUT/$TASK; fi
 if [ -z "$POSTNAME" ]; then POSTNAME="postcommand"; fi
@@ -66,8 +66,14 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
         SAMPLEPATTERN=${dir/$DIRNAME/}
     
         # ensure dirs are there
-        if [ -z "$NODIR" ]; then
-            if [ ! -d $OUT/$DIRNAME/$TASK ]; then mkdir -p $OUT/$DIRNAME/$TASK; fi
+        if [ -n "$COMMONTASK" ]; then 
+            mkdir -p $OUT/common/$TASK
+            COMMAND="$COMMAND -o $OUT/common/$TASK"
+        elif [ -z "$NODIR" ]; then
+            if [ ! -d $OUT/$DIRNAME/$TASK ]; then 
+                mkdir -p $OUT/$DIRNAME/$TASK; 
+                echo "DIR created $OUT/$DIRNAME/$TASK"
+            fi
         fi
         
         # add tasks to runnow.tmp
@@ -77,7 +83,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                 n=${f##*/}
                 name=${n/$ENDING/}
                 LOGFILE=$QOUT/$TASK/$DIRNAME'_'$name'.out'
-                if [ "$KEEP" = "new" ]; then
+                if [ "$KEEP" = "new" ] && [ -f $LOGFILE ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
                 	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
@@ -96,7 +102,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                 n=${f##*/}
                 name=${n/$ENDING/}
                 LOGFILE=$QOUT/$TASK/$DIRNAME'_'$name'.out'
-                if [ "$KEEP" = "new" ]; then
+                if [ "$KEEP" = "new" ] && [ -f $LOGFILE ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
                 	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
@@ -112,7 +118,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
         fi
     done
 else
-    echo -e "[NOTE] previous enviroment setup detected"
+    echo -e "[NOTE] previous environment setup detected"
 fi
 
 if [ -n "$KEEP" ]; then 
@@ -126,8 +132,12 @@ else
     echo -e "[NOTE] proceeding with job scheduling..."
 fi
 
+# record task in log file
+JOBLOG=$QOUT/$TASK/job.$(date "+%Y%m%d").log
+cat $CONFIG ${NGSANE_BASE}/conf/header.sh ${NGSANE_BASE}/conf/header.d/* > $JOBLOG
+
+
 MYJOBIDS="" # collect job IDs for postcommand
-#DIR=""
 FILES=""
 JOBNUMBER=0
 for i in $(cat $QOUT/$TASK/runnow.tmp); do
@@ -144,8 +154,12 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     COMMAND2=${COMMAND2//<DIR>/$dir} # insert output dir
     COMMAND2=${COMMAND2//<NAME>/$name} # insert ??
 
-    LOGFILE=$QOUT/$TASK/$dir'_'$name'.out'
-    #DIR=$DIR" $dir"
+    if [ -n "$COMMONTASK" ]; then 
+        LOGFILE=$QOUT/$TASK/$dir"_"$COMMONTASK".log"    
+    else
+        LOGFILE=$QOUT/$TASK/$dir"_"$name".out"
+    fi
+
     FILES=$FILES" $i"
 
     # only postcommand 
@@ -173,7 +187,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             
             if [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then
                 echo -e "\e[92m[NOTE]\e[0m Previous $TASK run finished without error - nothing to be done"
-#                MYJOBIDS=""
+                rm $D.dummy
                 continue
             else
                 echo "[NOTE] #########################################################################" >> $LOGFILE
@@ -188,11 +202,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
         fi
     
-        # record task in log file
-        JOBLOG=$QOUT/$TASK/job.$(date "+%Y%m%d").log
-        cat $CONFIG ${NGSANE_BASE}/conf/header.sh ${NGSANE_BASE}/conf/header.d/* > $JOBLOG
         echo "[NOTE] Jobfile: "$JOBLOG >> $LOGFILE
-
         # add citations
 		TASKCITE=${TASK/*-/}
         TASKNAME=$(grep -P "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
@@ -258,8 +268,6 @@ if [ -n "$POSTCOMMAND" ]; then
 		touch $D.dummy
 	fi
 
-
-
     if [[ -n "$DEBUG" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi
     if [[ -n "$ARMED" ||  -n "$POSTONLY" || "$DIRECT" ]]; then
 
@@ -287,6 +295,18 @@ if [ -n "$POSTCOMMAND" ]; then
     # record task in log file
 #    cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
 #	echo "[NOTE] Jobfile: "$JOBLOG >> $POSTLOGFILE
+
+    echo "[NOTE] Jobfile: "$JOBLOG >> $POSTLOGFILE
+    # add citations
+	TASKCITE=${TASK/*-/}
+    TASKNAME=$(grep -P "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
+	CITED_PROGRAMS=$(grep -P "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g')
+    for M in NG_CITE_NGSANE $CITED_PROGRAMS; do
+    	CITE=$(grep -P "^$M=" $JOBLOG) || CITE=""
+      	if [ -n "$CITE" ]; then
+    	    echo -e "[CITE] ${CITE/$M=/}" >> $POSTLOGFILE
+        fi 
+    done
 
 	#eval job directly but write to logfile
 	if [ -n "$DIRECT" ]; then eval $POSTCOMMAND2 > $POSTLOGFILE 2>&1 ; exit; fi

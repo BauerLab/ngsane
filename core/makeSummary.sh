@@ -78,16 +78,17 @@ function summaryHeader {
             <h2 id='$2_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>" >> $4
     if [ -n "$5" ]; then 
         SUFFIX="--filesuffix $5"; 
-        echo "<h2 id='$2_h_files' class='sub inactive' rel='files'>Result files</h2>" >> $4
+        echo "<h2 id='$2_h_nrfiles' class='sub inactive' rel='files'>Primary result files</h2>" >> $4
     fi
     echo "</div><div class='wrapper'><div class='hidden'>" >> $4
     echo "QC - $2"
     #check of resultfiles are redirected into to a different folder
     if [ -n "$6" ]; then 
-       RESULTLOCATION="--results-task $6"
+        RESULTLOCATION="--results-task $6"
     else 
         RESULTLOCATION=""
     fi
+
     ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $4 --modscript $3 --log $QOUT --task $2 $RESULTLOCATION $SUFFIX >> $4    
     
     grep -r -P '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES
@@ -142,7 +143,7 @@ function bamAnnotate {
 	BAMANNIMAGE=${BAMANNOUT/ggplot/pdf}
 	if [ ! -f $BAMANNOUT ]; then mkdir -p $( dirname $BAMANNOUT); fi
 	
-	find ${1} -type f -name *anno.stats |  xargs -d"\n" cat | head -n 1 | gawk '{print "type "$0" sample"}' > $BAMANNOUT
+	find ${1} -type f -name *anno.stats | xargs -d"\n" cat | head -n 1 | gawk '{print "type "$0" sample"}' > $BAMANNOUT
     for i in $(find ${1} -type f -name *anno.stats); do
         name=$(basename $i)
         arrIN=(${name//.$ASD/ })
@@ -417,16 +418,16 @@ fi
 
 ################################################################################
 if [ -n "$RUNVARCALLS" ]; then 
-    summaryHeader "Variant calling" "$TASK_VAR" "gatkSNPs.sh" "$SUMMARYTMP"
+    summaryHeader "Variant calling" "$TASK_GATKVAR" "gatkVARs.sh" "$SUMMARYTMP"
 
-	vali=$OUT/$TASK_VAR/$(echo ${DIR[@]}|sed 's/ /_/g')/
+	vali=$OUT/$TASK_GATKVAR/$(echo ${DIR[@]}|sed 's/ /_/g')/
     echo "<h3>SNPs</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.snps.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$vali" "recalfilt.snps.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
     echo "<h3>INDELs</h3>" >>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
 
-    summaryFooter "$TASK_VAR" "$SUMMARYTMP"
+    summaryFooter "$TASK_GATKVAR" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -466,17 +467,17 @@ fi
 
 ################################################################################
 if [ -n "$RUNHICUP" ];then
-    summaryHeader "HiCUP + fit-hi-C" "$TASK_HICUP" "hicup.sh" "$SUMMARYTMP"
+    summaryHeader "HiCUP" "$TASK_HICUP" "hicup.sh" "$SUMMARYTMP"
 
     vali=$(gatherDirs $TASK_HICUP)
     echo "<h4>truncater</h4>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "hicup_truncater_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "_truncater_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     echo "<h4>mapper</h4>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "hicup_mapper_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "_mapper_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     echo "<h4>filter</h4>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "hicup_filter_summary_results.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "_filter_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     echo "<h4>deduplicator</h4>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" "hicup_deduplicater_summary_results.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "_deduplicator_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     
     imgs=""
     for dir in ${DIR[@]}; do
@@ -491,6 +492,14 @@ if [ -n "$RUNHICUP" ];then
     summaryFooter "$TASK_HICUP" "$SUMMARYTMP"
 fi
 
+################################################################################
+if [ -n "$RUNFITHIC" ];then
+    summaryHeader "Fit-hi-c" "$TASK_FITHIC" "fithic.sh" "$SUMMARYTMP"
+
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_FITHIC)" ".log" fithic >> $SUMMARYTMP
+    
+    summaryFooter "$TASK_FITHIC" "$SUMMARYTMP"
+fi
 
 ################################################################################
 if [ -n "$RUNCHANCE" ];then
@@ -688,7 +697,7 @@ echo '<table class="data"><thead><tr><th><div style="width:10px"></div></th><th>
 
 COUNT=1
 while read -r line; do
-    echo "<tr><td>[$COUNT]</td><td class='left'>${line//\"/}</td></tr>" >>$SUMMARYTMP
+    echo "<tr class='citation'><td>[$COUNT]</td><td class='left' >${line//\"/}</td></tr>" >>$SUMMARYTMP
     COUNT=$(( $COUNT + 1 ))
 done <<< "$(cat $SUMMARYCITES | cut -d']' -f 2 | sort -u )"
 
@@ -725,12 +734,15 @@ rm $SUMMARYTMP
 rm $SUMMARYFILE.tmp
 
 ################################################################################
-# make tar containing all files smaller than 100k
-[ -f Summary_files.tmp ] && rm Summary_files.tmp
-find . -size -80k > Summary_files.tmp
-echo "$SUMMARYFILE" >> Summary_files.tmp
-tar -czf ${SUMMARYFILE%.*}.tar.gz -T Summary_files.tmp --no-recursion
-rm Summary_files.tmp
+# make tar containing all files smaller than 80k
+if [ -n "$SUMMARYTAR" ];then
+
+    [ -f Summary_files.tmp ] && rm Summary_files.tmp
+    find . -size -$SUMMARYTAR"k" > Summary_files.tmp
+    echo "$SUMMARYFILE" >> Summary_files.tmp
+    tar -czf ${SUMMARYFILE%.*}.tar.gz -T Summary_files.tmp --no-recursion
+    rm Summary_files.tmp
+fi
 
 ################################################################################
 echo ">>>>> Generate HTML report - FINISHED"

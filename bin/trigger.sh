@@ -39,7 +39,7 @@ function version {
     if [ -e ${NGSANE_VERSION/bin\/trigger.sh/}/.git ]; then 
 	    NGSANE_VERSION=`cd ${NGSANE_VERSION/bin\/trigger.sh/}/ && git rev-parse HEAD `" (git hash)"
     else
-        NGSANE_VERSION="v0.3.0"
+        NGSANE_VERSION="v0.4.0"
     fi
     echo -e "NGSANE version: $NGSANE_VERSION"
     exit
@@ -331,11 +331,11 @@ fi
 
 if [ -n "$RUNVARCALLS" ]; then
     NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
-    $QSUB $ARMED -r -d -k $CONFIG -t $TASK_VAR -i $INPUT_VAR  -e .$ASR.bam -n $NODES_VAR \
-        -c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
-        --postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
-                        -i <FILE> -t $CPU_VAR \
-                        -r $FASTA -d $DBSNPVCF -o $OUT/$TASK_VAR/$NAME -n $NAME \
+    $QSUB $ARMED -r -d -k $CONFIG -t $TASK_GATKVAR -i $INPUT_GATKVAR  -e .$ASR.bam -n $NODES_GATKVAR \
+        -c $CPU_GATKVAR -m $MEMORY_GATKVAR"G" -w $WALLTIME_GATKVAR \
+        --postcommand "${NGSANE_BASE}/mods/gatkVARs.sh -k $CONFIG \
+                        -i <FILE> -t $CPU_GATKVAR \
+                        -r $FASTA -d $DBSNPVCF -o $OUT/$TASK_GATKVAR/$NAME -n $NAME \
                         -H $HAPMAPVCF" #-K $ONEKGVCF"
 fi
 
@@ -403,8 +403,8 @@ fi
 
 ################################################################################
 #   Mapping using HiCUP
-# IN : $SOURCE/fastq/$dir/*read1.fastq
-# OUT: $OUT/$dir/hicup/*.$ASD.bam
+# IN : $SOURCE/fastq/$dir/*$READONE$FASTQ
+# OUT: $OUT/$dir/hicup/*_uniques.bam
 ################################################################################
 
 if [ -n "$RUNHICUP" ]; then
@@ -414,17 +414,45 @@ if [ -n "$RUNHICUP" ]; then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
             $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
-    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP --commontask \
+    	   -m $MEMORY_HICUP"G" -w $WALLTIME_HICUP --commontask \
             --command "${NGSANE_BASE}/mods/bowtieIndex.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
     else
         INDEXJOBIDS=""
     fi
+    
+    if [ ! -f $OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt ];then
+        JOBIDS=$( 
+        $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c 1 \
+        	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS --commontask \
+            --command "${NGSANE_BASE}/mods/hicupDigestGenome.sh -k $CONFIG" 
+        ) && echo -e "$JOBIDS"
+        JOBIDS=$(waitForJobIds "$JOBIDS")
+
+    else
+        JOBIDS=""
+    fi
 
     $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
-    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS \
+    	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $JOBIDS \
         --command "${NGSANE_BASE}/mods/hicup.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HICUP"
+
+fi
+
+################################################################################
+#   Assessing chromatin interactions with fit-hi-c
+# IN : $SOURCE/$dir/hicup/*$FRAGMENTLIST
+# OUT: $OUT/$dir/hicup/*.spline_pass1.q05.txt.gz
+################################################################################
+
+if [ -n "$RUNFITHIC" ]; then
+    if [ -z "$TASK_FITHIC" ] || [ -z "$NODES_FITHIC" ] || [ -z "$CPU_FITHIC" ] || [ -z "$MEMORY_FITHIC" ] || [ -z "$WALLTIME_FITHIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $FRAGMENTLIST -n $NODES_FITHIC -c $CPU_FITHIC \
+    	-m $MEMORY_FITHIC"G" -w $WALLTIME_FITHIC \
+        --command "${NGSANE_BASE}/mods/fithic.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FITHIC"
+
 fi
 
 ################################################################################
@@ -451,7 +479,7 @@ if [ -n "$RUNHICLIB" ]; then
     $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ \
     	-n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
     	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND $INDEXJOBIDS \
-        --command "${NGSANE_BASE}/mods/hiclibMapping.sh -k $CONFIG --fastq <FILE> --outdir $OUT/<DIR>/$TASK_HICLIB --fastqName <NAME>" \
+        --command "${NGSANE_BASE}/mods/hiclibMapping.sh -k $CONFIG --fastq <FILE> --outdir $OUT/<DIR>/$TASK_HICLIB" \
         --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh -f <FILE> -k $CONFIG --outdir $OUT/hiclib/$TASK_HICLIB-<DIR>"
 fi
 

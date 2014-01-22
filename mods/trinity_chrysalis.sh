@@ -70,9 +70,9 @@ n=${f##*/}
 SAMPLE=${n/%$READONE.$FASTQ/}
 
 ## is paired ?                                                                                                      
-if [ -e ${f/$READONE/$READTWO} ]; then
+if [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     PAIRED="1"
-    f2=${f/$READONE/$READTWO}
+    f2=${f/%$READONE.$FASTQ/$READTWO.$FASTQ}
     echo "[NOTE] Paired library detected: "$f" + "$f2
 else
     PAIRED="0"

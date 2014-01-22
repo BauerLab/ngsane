@@ -17,7 +17,7 @@ rm /usr/lib/pymodules/python2.7/Cython-0.15.1.egg-info
 ################################################################################
 PACKAGEPATH=/packages
 MODULEPATH=/modules
-mkdir $PACKAGEPATH && mkdir $MODULEPATH
+mkdir -p $PACKAGEPATH && mkdir $MODULEPATH
 
 ################################################################################
 echo "update packages"
@@ -171,6 +171,8 @@ apt-get install libgfortran3 -y
 echo "install blas  and lapack"
 apt-get install libblas3gf libblas-doc libblas-dev -y
 apt-get install liblapack3gf liblapack-doc liblapack-dev -y
+apt-get install libatlas3gf-base
+sudo update-alternatives --config libblas.so.3gf # choose /usr/lib/openblas-base/libopenblas.so.0
 
 ################################################################################
 VERSION=3.0.2
@@ -199,12 +201,14 @@ global dotversion
  module-whatis "$SOFTWARE $VERSION"
 conflict $SOFTWARE
 
-setenv  R_HOME  $PACKAGEPATH/$SOFTWARE/$VERSION/lib64/R
+setenv  R_HOME  $PACKAGEPATH/$SOFTWARE/$VERSION/lib/R
 prepend-path    PATH $PACKAGEPATH/$SOFTWARE/$VERSION/bin
-prepend-path    LD_LIBRARY_PATH $PACKAGEPATH/$SOFTWARE/$VERSION/lib64/R/lib
+prepend-path    LD_LIBRARY_PATH $PACKAGEPATH/$SOFTWARE/$VERSION/lib/R/lib
 prepend-path    MANPATH         $PACKAGEPATH/$SOFTWARE/$VERSION/share
 
 DELIM
+
+#NOTE: the library path could also by ../lib64/R... depending on the system
 
 module load $SOFTWARE/$VERSION
 
@@ -767,6 +771,33 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
+VERSION=2.8.2
+SOFTWARE=seqlogo
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://weblogo.berkeley.edu/release/weblogo.$VERSION.tar.gz
+tar -xf weblogo.$VERSION.tar.gz
+cp weblogo/seqlogo $PACKAGEPATH/$SOFTWARE/$VERSION
+cp weblogo/*.pm $PACKAGEPATH/$SOFTWARE/$VERSION
+
+chmod 555 $PACKAGEPATH/$SOFTWARE/$VERSION/seqlogo
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
 VERSION=4.3
 SOFTWARE=homer
 
@@ -777,6 +808,7 @@ wget http://biowhat.ucsd.edu/homer/configureHomer.pl
 mv configureHomer.pl $PACKAGEPATH/$SOFTWARE/$VERSION
 cd $PACKAGEPATH/$SOFTWARE/$VERSION
 perl configureHomer.pl -install
+perl configureHomer.pl -install hg19
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
@@ -909,6 +941,31 @@ global dotversion
  module-whatis "$SOFTWARE $VERSION"
 conflict $SOFTWARE
 prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
+VERSION=1.0.0
+SOFTWARE=fit-hi-c
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget https://www.dropbox.com/s/y0j61bhwkxprg5q/fithic_$VERSION.tgz
+tar -xf fithic_$VERSION.tgz*
+mv $SOFTWARE/* $PACKAGEPATH/$SOFTWARE/$VERSION
+chmod 555 $PACKAGEPATH/$SOFTWARE/$VERSION/bin/*
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/bin
 DELIM
 
 module load $SOFTWARE/$VERSION
@@ -1247,7 +1304,7 @@ DELIM
 module load $NGSANE_SOFTWARE/$NGSANE_VERSION
 
 # set default modules
-cp conf/sample_header.sh $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+cp $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/sample_header.sh $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_R=|NG_R=R/3.0.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_PYTHON=|NG_PYTHON=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_GZIP=|NG_GZIP=pigz/2.3.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1275,6 +1332,8 @@ sed -i 's|^NG_CUFFLINKS=|NG_CUFFLINKS=cufflinks/2.1.1|' $PACKAGEPATH/$NGSANE_SOF
 sed -i 's|^NG_MONO=|NG_MONO=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BLUE=|NG_BLUE=blue/1.0.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_PERL=|NG_PERL=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_SEQLOGO=|NG_SEQLOGO=2.8.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_BLAT=|NG_BLAT=blat/35|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_WIGGLER=|NG_WIGGLER=wiggler/2.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HOMER=|NG_HOMER=homer/4.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CUTADAPT=|NG_CUTADAPT=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1283,7 +1342,7 @@ sed -i 's|^NG_TRIMMOMATIC=|NG_TRIMMOMATIC=trimmomatic/0.30|' $PACKAGEPATH/$NGSAN
 sed -i 's|^NG_HDF5=|NG_HDF5=hdf5/1.8.12|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HICLIB=|NG_HICLIB=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HICUP=|NG_HICUP=hicup/0.4.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_FITHIC=|NG_FITHIC=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_FITHIC=|NG_FITHIC=fit-hi-c/1.0.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_FASTQSCREEN=|NG_FASTQSCREEN=fastq_screen/0.4.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_MATLAB=|NG_MATLAB=mcr/2012b|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CHANCE=|NG_CHANCE=chance/com|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1309,6 +1368,7 @@ sed -i 's|^GZIP="gzip -9"|GZIP="pigz -9"|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE
 
 # add R libaries
 cat $NGSANE_BASE/tools/*.R | grep -w "library" | sed 's|library(||g' | sed 's|)||g' | sed 's|"||g' | sort -u > /tmp/R_packages.list.txt
+echo "fdrtool" >> /tmp/R_packages.list.txt
 
 cat > R_packages.install.R <<DELIM
 source("http://bioconductor.org/biocLite.R")

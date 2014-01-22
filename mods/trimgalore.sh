@@ -55,7 +55,7 @@ CHECKPOINT="parameters"
 n=${f##*/}
 
 #is paired ?
-if [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ]; then
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     echo "[NOTE] PAIRED library"
     PAIRED="1"
 else
@@ -70,7 +70,7 @@ FASTQDIRTRIM=$(dirname $o)
 echo $FASTQDIRTRIM
 if [ ! -d $FASTQDIRTRIM ]; then mkdir -p $FASTQDIRTRIM; fi
 echo $f "->" $o
-if [ "$PAIRED" = "1" ]; then echo ${f/$READONE/$READTWO} "->" ${o/$READONE/$READTWO} ; fi
+if [ "$PAIRED" = "1" ]; then echo ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} "->" ${o/%$READONE.$FASTQ/$READTWO.$FASTQ} ; fi
 
 echo "********** get contaminators"
 
@@ -90,6 +90,7 @@ CHECKPOINT="recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
+    dmget -a ${o/$READONE/"*"}
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -103,9 +104,9 @@ else
     # Paired read
     if [ "$PAIRED" = "1" ]
     then
-        trim_galore $TRIMGALOREADDPARAM $CONTAM --paired --output_dir $FASTQDIRTRIM $f ${f/$READONE/$READTWO}
+        trim_galore $TRIMGALOREADDPARAM $CONTAM --paired --output_dir $FASTQDIRTRIM $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}
         mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READONE"_val_1".fq.gz} $FASTQDIRTRIM/$n
-        mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READTWO"_val_2".fq.gz} $FASTQDIRTRIM/${n/$READONE/$READTWO}
+        mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READTWO"_val_2".fq.gz} $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}
     else
         trim_galore $TRIMGALOREADDPARAM $CONTAM --output_dir $FASTQDIRTRIM $f
         mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READONE"_trimmed".fq.gz} $FASTQDIRTRIM/$n
@@ -127,8 +128,8 @@ else
         $GZIP -f $FASTQDIRTRIM/$n
         mv $FASTQDIRTRIM/$n.gz $FASTQDIRTRIM/$n
         if [ "$PAIRED" = "1" ]; then
-            $GZIP -f $FASTQDIRTRIM/${n/$READONE/$READTWO}
-            mv $FASTQDIRTRIM/${n/$READONE/$READTWO}.gz $FASTQDIRTRIM/${n/$READONE/$READTWO}
+            $GZIP -f $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}
+            mv $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}.gz $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}
         fi
     fi
     # mark checkpoint
@@ -141,8 +142,8 @@ CHECKPOINT="count remaining reads"
 echo "=== Remaining reads ===" >> $FASTQDIRTRIM/${n}_trimming_report.txt
 echo "remaining reads "$(zcat $FASTQDIRTRIM/$n | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n}_trimming_report.txt
 if [ "$PAIRED" = "1" ]; then
-    echo "=== Remaining reads ===" >> $FASTQDIRTRIM/${n/$READONE/$READTWO}_trimming_report.txt
-    echo "remaining reads "$(zcat $FASTQDIRTRIM/${n/$READONE/$READTWO} | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n/$READONE/$READTWO}_trimming_report.txt
+    echo "=== Remaining reads ===" >> $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_trimming_report.txt
+    echo "remaining reads "$(zcat $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_trimming_report.txt
 fi
 
 echo -e "\n********* $CHECKPOINT\n"

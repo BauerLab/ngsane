@@ -1,6 +1,6 @@
 NGSANE := $(shell trigger.sh -v 2>/dev/null)
 
-all: checkNGSANE result/SummaryCHIPSEQ.html result/SummaryTOPHATCUFFHTSEQ.html  result/SummaryVARCALLS.html
+all: checkNGSANE result/SummaryCHIPSEQ.html result/SummaryTOPHATCUFFHTSEQ.html  result/SummaryVARCALLS.html result/SummaryHIC.html
 
 checkNGSANE:
 ifdef NGSANE
@@ -33,6 +33,10 @@ result/SummaryCHIPSEQ.html:
 	@echo "##############################################"
 	./bin/testRUNCHIPSEQ.qsub
 
+result/SummaryHIC.html:
+	@echo "##############################################"
+	./bin/testRUNHIC.qsub
+	
 test:
 	@chmod a+r result/*
 	@chmod 777 qout/*
@@ -43,10 +47,11 @@ clean:
 	rm -f result/*.html
 	rm -f result/diff*.txt
 	rm -f result/*.tar.gz
-	rm -fr Transcript ChIPseq_TF ChIPseq_Histone ChIPseq_input WGS
+	rm -fr Transcript ChIPseq_TF ChIPseq_Histone ChIPseq_input HiC
 	rm -fr variant
 	rm -fr qout
 	rm -fr tmp/*
 	rm -fr runStats
 	rm -f igv.*
 	rm -f core*
+	rm -fr common

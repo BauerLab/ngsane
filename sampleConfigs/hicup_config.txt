@@ -43,22 +43,36 @@ READTWO="_R2"
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
 FASTA=
 
+# genome assembly
+# e.g. hg19
+REFERENCE_NAME=""
+
 # library tags
 EXPID="LnCap"
 LIBRARY="HiC"
 PLATFORM="Illumina"
 
-# restriction enzymes
-# e.g."A^GATCT,BglII"
-HICUP_RENZYMES=
+# restriction enzyme 1 and cut site pattern
+# e.g. "BglII" and "A^GATCT"
+HICUP_RENZYME1=
+HICUP_RCUTSITE1=
+
+# restriction enzyme 2 and cut site pattern
+# e.g. "NcolII" and "C^CATGG" otherwise leave "none"
+HICUP_RENZYME2="none"
+HICUP_RCUTSITE2=
 
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
 
+# FASTQ encoding (Phred score), leave empty to detect automatically
+# e.g. "Phred33" (Sanger, Illumina 1.8+), "Phred64" (Solexa, Illumina 1.5)
+FASTQ_ENCODING=
+
 #WALLTIME_HICUP=10:00:00
 #MEMORY_HICUP=60
-#CPU_HICUP=32
+#CPU_HICUP=8
 #NODES_HICUP="nodes=1:ppn=8"
 #MODULE_HICUP="fabbus/hicup/0.3.0"
 #PATH_HICUP=

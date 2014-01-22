@@ -119,6 +119,15 @@ if [ -z "$DBSNPVCF" ] || [ ! -e $DBSNPVCF ] ; then
     exit 1
 fi
 
+# parallelization supported (2013): http://gatkforums.broadinstitute.org/discussion/1975/recommendations-for-parallelizing-gatk-tools
+if [[ $(which GenomeAnalysisTK.jar) =~ "2.8" ]]; then 
+        echo "[NOTE] new GATK parallele"
+        PARALLELENCT="-nct $CPU_RECAL"
+		PARALLELENT="-nt $CPU_RECAL"
+fi
+
+
+
 # bwa/name.$ASD.bam -> /reCalAln/name.$ASD.bam
 f2=${f/$INPUT_REALRECAL/$TASK_RECAL}
 # /reCalAln/name.$ASD.bam -> /reCalAln/name.$ASD.real
@@ -133,6 +142,7 @@ if [ -n "$DMGET" ]; then
 	dmget -a $OUTDIR/*
 fi
     
+
 echo -e "\n********* $CHECKPOINT\n"    
 ################################################################################
 CHECKPOINT="find intervals to improve"
@@ -164,6 +174,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     echo "[NOTE] $CHECKPOINT"
 
+	# parallelization not supported (2013): http://gatkforums.broadinstitute.org/discussion/1975/recommendations-for-parallelizing-gatk-tools
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
         -T IndelRealigner \
         -I $f \
@@ -172,7 +183,6 @@ else
         --out ${f2/bam/real.bam} \
         -known $DBSNPVCF \
         -compress 0 
-    #    -nt $CPU_RECAL
 
     #samtools sort ${f2/bam/real.fix.bam} $OUTDIR/${n/$ASD.bam/$ASR}
     samtools index $f3
@@ -183,7 +193,7 @@ else
 fi 
 
 ################################################################################
-CHECKPOINT="count covariantes"
+CHECKPOINT="count covariantes "
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
@@ -200,14 +210,16 @@ else
         -cov ReadGroupCovariate \
         -cov QualityScoreCovariate \
         -cov CycleCovariate \
-        --plot_pdf_file $OUTDIR/GATKorig.pdf \
-        -o ${f3/.bam/.covar.grp} 
-    #    -nt $CPU_RECAL
+		$PARALLELENCT \
+        -o ${f3/.bam/.covar.grp}
+	#   --plot_pdf_file $OUTDIR/GATKorig.pdf \
+
 
     # mark checkpoint
     if [ -f ${f3/.bam/.covar.grp} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
+
 
 ################################################################################
 CHECKPOINT="adjust score"
@@ -224,7 +236,7 @@ else
         -o ${f3/.bam/.recal.bam} \
         -BQSR ${f3/.bam/.covar.grp} \
         -nct $CPU_RECAL
-        
+       
     samtools index ${f3/.bam/.recal.bam}
 
     # mark checkpoint
@@ -252,6 +264,8 @@ else
 
 fi 
 
+
+
 ################################################################################
 CHECKPOINT="count covariantes after recalibration"
 
@@ -259,6 +273,10 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     echo "[NOTE] $CHECKPOINT"
+
+
+	if [[ $(which GenomeAnalysisTK.jar) =~ "2.5" ]]; then 
+	echo "[NOTE] old GATK plotting "
 
     # TODO remove the below once it is not experimental anymore
     echo "********* counting covariantes after recalibration"
@@ -274,6 +292,10 @@ else
         --plot_pdf_file $OUTDIR/GATKrecal.pdf \
         -o ${f3/.bam/.recal.covar.grp} 
     #    -nt $CPU_RECAL
+
+	else
+		touch ${f3/.bam/.recal.covar.grp}
+	fi
     
     #echo " plotting both"
     #java $JAVAPARAMS -jar $PATH_GATK/AnalyzeCovariates.jar \
