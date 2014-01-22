@@ -105,7 +105,7 @@ echo $REFERENCE_ENDING" "$REFERENCE_DATE" "$REFERENCE_NAME
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    [ -e $OUTDIR/$NAME.SV ] && rm $OUTDIR/$NAME*
+    [ -e $OUTDIR/$NAME.SV ] && rm $OUTDIR/$NAME.*
 fi
 
 
@@ -134,7 +134,7 @@ else
 #	fi
 
 	cd $OUTDIR
-	command="perl ${PATH_BREAKDANCER}/bam2cfg.pl -g -h ${f} > $OUTDIR/$NAME.cfg"
+	command="perl ${PATH_BREAKDANCER}/bam2cfg.pl $BREAKDANCERCONFIGADDPARAM -g -h ${f} > $OUTDIR/$NAME.cfg"
 	echo $command && eval $command 
 	cd ../
 	

@@ -40,7 +40,8 @@ FASTA=
 # PARAMETER (optional)
 #********************
 
-BREAKDANCERADDPARAM=
+BREAKDANCERCONFIGADDPARAM= # bam2cfg paramters
+BREAKDANCERADDPARAM= # breakdancer-max parameters
 ADDCOLLECTREGIONPARAM= # gatk variant collect
 
 
