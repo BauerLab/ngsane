@@ -331,11 +331,11 @@ fi
 
 if [ -n "$RUNVARCALLS" ]; then
     NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
-    $QSUB $ARMED -r -d -k $CONFIG -t $TASK_VAR -i $INPUT_VAR  -e .$ASR.bam -n $NODES_VAR \
-        -c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
-        --postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
-                        -i <FILE> -t $CPU_VAR \
-                        -r $FASTA -d $DBSNPVCF -o $OUT/$TASK_VAR/$NAME -n $NAME \
+    $QSUB $ARMED -r -d -k $CONFIG -t $TASK_GATKVAR -i $INPUT_GATKVAR  -e .$ASR.bam -n $NODES_GATKVAR \
+        -c $CPU_GATKVAR -m $MEMORY_GATKVAR"G" -w $WALLTIME_GATKVAR \
+        --postcommand "${NGSANE_BASE}/mods/gatkVARs.sh -k $CONFIG \
+                        -i <FILE> -t $CPU_GATKVAR \
+                        -r $FASTA -d $DBSNPVCF -o $OUT/$TASK_GATKVAR/$NAME -n $NAME \
                         -H $HAPMAPVCF" #-K $ONEKGVCF"
 fi
 

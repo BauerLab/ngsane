@@ -132,6 +132,11 @@ else
     echo -e "[NOTE] proceeding with job scheduling..."
 fi
 
+# record task in log file
+JOBLOG=$QOUT/$TASK/job.$(date "+%Y%m%d").log
+cat $CONFIG ${NGSANE_BASE}/conf/header.sh ${NGSANE_BASE}/conf/header.d/* > $JOBLOG
+
+
 MYJOBIDS="" # collect job IDs for postcommand
 FILES=""
 JOBNUMBER=0
@@ -197,11 +202,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
         fi
     
-        # record task in log file
-        JOBLOG=$QOUT/$TASK/job.$(date "+%Y%m%d").log
-        cat $CONFIG ${NGSANE_BASE}/conf/header.sh ${NGSANE_BASE}/conf/header.d/* > $JOBLOG
         echo "[NOTE] Jobfile: "$JOBLOG >> $LOGFILE
-
         # add citations
 		TASKCITE=${TASK/*-/}
         TASKNAME=$(grep -P "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
@@ -267,8 +268,6 @@ if [ -n "$POSTCOMMAND" ]; then
 		touch $D.dummy
 	fi
 
-
-
     if [[ -n "$DEBUG" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi
     if [[ -n "$ARMED" ||  -n "$POSTONLY" || "$DIRECT" ]]; then
 
@@ -296,6 +295,18 @@ if [ -n "$POSTCOMMAND" ]; then
     # record task in log file
 #    cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
 #	echo "[NOTE] Jobfile: "$JOBLOG >> $POSTLOGFILE
+
+    echo "[NOTE] Jobfile: "$JOBLOG >> $POSTLOGFILE
+    # add citations
+	TASKCITE=${TASK/*-/}
+    TASKNAME=$(grep -P "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
+	CITED_PROGRAMS=$(grep -P "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g')
+    for M in NG_CITE_NGSANE $CITED_PROGRAMS; do
+    	CITE=$(grep -P "^$M=" $JOBLOG) || CITE=""
+      	if [ -n "$CITE" ]; then
+    	    echo -e "[CITE] ${CITE/$M=/}" >> $POSTLOGFILE
+        fi 
+    done
 
 	#eval job directly but write to logfile
 	if [ -n "$DIRECT" ]; then eval $POSTCOMMAND2 > $POSTLOGFILE 2>&1 ; exit; fi
