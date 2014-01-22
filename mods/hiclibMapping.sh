@@ -242,8 +242,8 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    READ1STATSOUT=$OUTDIR/$OUTDIR/$SAMPLE$READONE.$ASD.bam.stats
-    samtools flagstat $OUTDIR/$OUTDIR/$SAMPLE$READONE.$ASD.bam > $READ1STATSOUT
+    READ1STATSOUT=$OUTDIR/$SAMPLE$READONE.$ASD.bam.stats
+    samtools flagstat $OUTDIR/$SAMPLE$READONE.$ASD.bam > $READ1STATSOUT
     
     if [ -n "$SEQREG" ]; then
         echo "#custom region" >> $READ1STATSOUT
@@ -251,8 +251,8 @@ else
         echo $(samtools view -@ $CPU_BOWTIE -c -f 3 $OUTDIR/$SAMPLE$READONE.$ASD.bam $SEQREG )" properly paired reads in region " >> $READ1STATSOUT
     fi
     
-    READ2STATSOUT=$OUTDIR/$OUTDIR/$SAMPLE$READTWO.$ASD.bam.stats
-    samtools flagstat $OUTDIR/$OUTDIR/$SAMPLE$READTWO.$ASD.bam > $READ2STATSOUT
+    READ2STATSOUT=$OUTDIR/$SAMPLE$READTWO.$ASD.bam.stats
+    samtools flagstat $OUTDIR/$SAMPLE$READTWO.$ASD.bam > $READ2STATSOUT
     
     if [ -n "$SEQREG" ]; then
         echo "#custom region" >> $READ2STATSOUT

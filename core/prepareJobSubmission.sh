@@ -28,7 +28,7 @@ while [ "$1" != "" ]; do
 	-d | --nodir )          NODIR="nodir";;
 	-a | --armed )          ARMED="armed";;
     -W | --wait )           shift; JOBIDS=$1 ;;    # jobids to wait for
-    --commontask )          COMMONTASK="common";;    # a task common to multiple libraries
+    --commontask )          shift; COMMONTASK=$1;; # name of a task common to multiple libraries
 	--keep )                KEEP="keep";;
 	--new )                 KEEP="new";;
 	--recover )             RECOVER="recover";;
@@ -54,6 +54,11 @@ if [ -n "$GIVENDIRS" ]; then declare -a DIR; DIR=( $GIVENDIRS ); fi
 if [ ! -d $QOUT/$TASK ]; then mkdir -p $QOUT/$TASK; fi
 if [ -z "$POSTNAME" ]; then POSTNAME="postcommand"; fi
 
+if [ -n "$COMMONTASK" ]; then 
+    mkdir -p $OUT/common/$TASK
+    COMMAND="$COMMAND -o $OUT/common/$TASK"
+fi
+        
 ## Select files in dir to run 
 if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
     echo -e "[NOTE] setup enviroment"
@@ -66,10 +71,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
         SAMPLEPATTERN=${dir/$DIRNAME/}
     
         # ensure dirs are there
-        if [ -n "$COMMONTASK" ]; then 
-            mkdir -p $OUT/common/$TASK
-            COMMAND="$COMMAND -o $OUT/common/$TASK"
-        elif [ -z "$NODIR" ]; then
+        if [ -z "$NODIR" ]; then
             if [ ! -d $OUT/$DIRNAME/$TASK ]; then 
                 mkdir -p $OUT/$DIRNAME/$TASK; 
                 echo "DIR created $OUT/$DIRNAME/$TASK"
@@ -116,11 +118,11 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                 echo $f >> $QOUT/$TASK/runnow.tmp
             done
         fi
+        
     done
 else
     echo -e "[NOTE] previous environment setup detected"
 fi
-
 if [ -n "$KEEP" ]; then 
     if [ "$KEEP" = "new" ]; then
         echo -e "[NOTE] Data setup finished. Please, start trigger in \e[4marmed\e[24m or \e[4mdirect\e[24m mode."

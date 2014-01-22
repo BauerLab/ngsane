@@ -22,10 +22,7 @@ echo -e "usage: $(basename $0) -k NGSANE -f INPUTFILE -o OUTDIR [OPTIONS]"
 exit
 }
 
-
 if [ ! $# -gt 3 ]; then usage ; fi
-
-FORCESINGLE=0
 
 #INPUTS                                                                                                           
 while [ "$1" != "" ]; do

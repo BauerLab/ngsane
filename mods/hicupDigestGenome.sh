@@ -8,7 +8,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt
+# RESULTFILENAME common/<TASK>/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt
 
 echo ">>>>> Digest genome with HiCUP "
 echo ">>>>> startdate "`date`
@@ -18,11 +18,11 @@ echo ">>>>> job_id "$JOB_ID
 echo ">>>>> $(basename $0) $*"
 
 function usage {
-echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -r REFERENCE -o OUTDIR [OPTIONS]"
+echo -e "usage: $(basename $0) -k NGSANE -o OUTDIR [OPTIONS]"
 exit
 }
 
-if [ ! $# -gt 3 ]; then usage ; fi
+if [ ! $# -gt 2 ]; then usage ; fi
 
 #INPUTS
 while [ "$1" != "" ]; do
