@@ -42,15 +42,21 @@ Note, read pairs in fastq format (possible gzipped) or bam need to be stated nex
 					help="location of genome index including the basename")
 	parser.add_option("-l", "--readLength", type="int", dest="readLength", default=100, 
 					help="length of the reads [default: %default]")
-	parser.add_option("-f", "--inputFormat", type="string", dest="inputFormat", default="fastq", 
+	parser.add_option("-m", "--minSeqLength", type="int", dest="minSeqLength", default=20,
+					help="minimum length of the reads when doing iterative mapping [default: %default]")
+	parser.add_option("-x", "--stepSize", type="int", dest="stepSize", default=15,
+					help="stepsize for iterative mapping [default: %default]")
+	parser.add_option("-c", "--chromosome", type="string", dest="chromosome", default="",
+					help="focus on specific chromosome, e.g. 16, X or Y [default: %default]")
+	parser.add_option("-F", "--inputFormat", type="string", dest="inputFormat", default="fastq",
 					help="format of the input file, either fastq, sra or bam [default: %default]")
-	parser.add_option("-o", "--outputDir", type="string", dest="outputDir", default="", 
+	parser.add_option("-O", "--outputDir", type="string", dest="outputDir", default="", 
 					help="output directory [default: %default]")
-	parser.add_option("-c", "--cpus", type="int", dest="cpus", default=1, 
+	parser.add_option("-C", "--cpus", type="int", dest="cpus", default=1, 
 					help="number of cpus to use [default: %default]")
-	parser.add_option("-t", "--tmpDir", type="string", dest="tmpDir", default="/tmp", 
+	parser.add_option("-T", "--tmpDir", type="string", dest="tmpDir", default="/tmp", 
 					help="directory for temp files [default: %default]")
-	parser.add_option("-s", "--sra-reader", type="string", dest="sra", default="fastq-dump", 
+	parser.add_option("-S", "--sra-reader", type="string", dest="sra", default="fastq-dump", 
 					help="location of sra reader fastq-dump in case input is SRA [default: %default]")
 	
 	(options, args) = parser.parse_args()
@@ -168,7 +174,7 @@ def mapFile(fastq, read):
 	global args
 
 	fileName, fileExtension = os.path.splitext(fastq)
-	bamOutput = options.outputDir+fileName.split(os.sep)[-1]+'_R'+str(read)+'.bam'
+	bamOutput = options.outputDir+fileName.split(os.sep)[-1]+'.bam'
 	
 	if (fileExtension == '.sra'):
 		if (options.verbose):
@@ -179,8 +185,8 @@ def mapFile(fastq, read):
 		    bowtie_index_path=options.index,
 		    fastq_path=fastq,
 		    out_sam_path=bamOutput,
-		    min_seq_len=25,
-		    len_step=5,
+		    min_seq_len=options.minSeqLength,
+		    len_step=options.stepSize,
 		    seq_start=options.readLength*(read-1),
 		    seq_end=options.readLength*(read),
 		    nthreads=options.cpus,
@@ -197,8 +203,8 @@ def mapFile(fastq, read):
 		    bowtie_index_path=options.index,
 		    fastq_path=fastq,
 		    out_sam_path=bamOutput,
-		    min_seq_len=25,
-		    len_step=5,
+		    min_seq_len=options.minSeqLength,
+		    len_step=options.stepSize,
 		    nthreads=options.cpus,
 		    temp_dir=options.tmpDir, 
 		    bowtie_flags='--very-sensitive')
@@ -369,7 +375,10 @@ def process():
 		print >> sys.stdout, "**  Create data objects"
 
 	mapped_reads = h5dict.h5dict(options.outputDir+options.experiment+'-mapped_reads.hdf5')
-	genome_db    = genome.Genome(options.genome, gapFile=options.gapFile, readChrms=['#', 'X', 'Y'])
+	if options.chromosome != "":
+		genome_db    = genome.Genome(options.genome, gapFile=options.gapFile, readChrms=[options.chromosome])
+	else:
+		genome_db    = genome.Genome(options.genome, gapFile=options.gapFile, readChrms=['#', 'X', 'Y'])
 	genome_db.setEnzyme(options.enzyme)
 
 	bams = []

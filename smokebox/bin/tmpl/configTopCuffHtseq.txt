@@ -76,7 +76,7 @@ FASTQ=fastq
 #FASTQ=fastq.gz
 
 
-FASTA=$(pwd)/referenceData/chr16.fasta
+FASTA=$(pwd)/referenceData/chr16_RNAseqcopy.fasta
 REFSEQGTF=$(pwd)/referenceData/UCSC_GencodeV12.gtf
 GTF=$(pwd)/referenceData/gencode.v14.annotation.chr16.doctored.gtf
 BAMANNLIB=$(pwd)/referenceData/bamann/

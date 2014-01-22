@@ -356,21 +356,37 @@ QC_PASS .. 2 have programs/2
 QC_PASS .. 2 have parameters/2
 QC_PASS .. 2 have recall files from tape/2
 QC_PASS .. 2 have BWA/2
+QC_PASS .. 2 have Iterative Mapping/2
 QC_PASS .. 2 have bam conversion and sorting/2
 QC_PASS .. 2 have mark duplicates/2
 QC_PASS .. 2 have statistics/2
 QC_PASS .. 2 have calculate inner distance/2
 QC_PASS .. 2 have samstat/2
 QC_PASS .. 2 have verify/2
+QC_PASS .. 2 have cleanup/2
 
 </pre></div>
 <div id='bwa_notes'><pre>
 
 qout/bwa/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/bwa/job.20140115.log [NOTE] set java parameters [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina [NOTE] Detect fastq Phred encoding [NOTE] Illumina 1.8 Phred33 (41, 74) fastq format detected [NOTE] cannot detect/don't understand fastq format: Illumina 1.8 Phred33 (41, 74) - using default [NOTE] PAIRED READS [NOTE] PASS check mapping: 7030 == 7030
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/bwa/job.20140122.log
+[NOTE] set java parameters
+[NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
+[NOTE] Detect fastq Phred encoding
+[NOTE] Illumina 1.8 Phred33	(41, 74) fastq format detected
+[NOTE] PAIRED READS
+[NOTE] Skip iterative mapping
+[NOTE] PASS check mapping: 7030 == 7030
 
 qout/bwa/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/bwa/job.20140115.log [NOTE] set java parameters [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina [NOTE] Detect fastq Phred encoding [NOTE] Illumina 1.8 Phred33 (41, 74) fastq format detected [NOTE] cannot detect/don't understand fastq format: Illumina 1.8 Phred33 (41, 74) - using default [NOTE] PAIRED READS [NOTE] PASS check mapping: 7030 == 7030
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/bwa/job.20140122.log
+[NOTE] set java parameters
+[NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
+[NOTE] Detect fastq Phred encoding
+[NOTE] Illumina 1.8 Phred33	(41, 74) fastq format detected
+[NOTE] PAIRED READS
+[NOTE] Skip iterative mapping
+[NOTE] PASS check mapping: 7030 == 7030
 </pre></div>
 <div id='bwa_errors'><pre>
 
@@ -388,9 +404,9 @@ qout/bwa/Transcript_RNA3kChr16rep.out
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#bwa_counter_notes').text('2');
+            $('#bwa_counter_notes').text('16');
             $('#bwa_counter_errors').text('0');
-            $('#bwa_counter_checkpoints_passed').text('18');
+            $('#bwa_counter_checkpoints_passed').text('20');
             $('#bwa_counter_checkpoints_failed').text('0'); 
             if (0==0){
                 $('#bwa_counter_errors').toggleClass('errors neutral');
@@ -412,24 +428,24 @@ qout/bwa/Transcript_RNA3kChr16rep.out
 <h3>smokebox/Transcript/bwa/</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td class='left'>RNA3kChr16</td></tr>
-<tr><td></td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td class='left'>RNA3kChr16rep</td></tr>
+<tr><td></td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td class='left'>RNA3kChr16</td></tr>
+<tr><td></td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td class='left'>RNA3kChr16rep</td></tr>
 </tbody>
 <tfoot>
-<tr><td class='left'>sum</td><td>         14060.00</td><td>             0.00</td><td>           850.00</td><td>            12.09</td><td>         11302.00</td><td>           160.77</td><td>         10512.00</td><td>           149.53</td><td>           682.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td></td></tr>
+<tr><td class='left'>sum</td><td>         14060.00</td><td>             0.00</td><td>           866.00</td><td>            12.32</td><td>         11276.00</td><td>           160.40</td><td>         10460.00</td><td>           148.79</td><td>           708.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td></td></tr>
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
 <h3 class='overall'>Aggregation over all libraries</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th class='left'>File</th></tr></thead>
 <tfoot>
-<tr><td class='left'>sum</td><td>         14060.00</td><td>             0.00</td><td>           850.00</td><td>            12.09</td><td>         11302.00</td><td>           160.77</td><td>         10512.00</td><td>           149.53</td><td>           682.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td></td></tr>
+<tr><td class='left'>sum</td><td>         14060.00</td><td>             0.00</td><td>           866.00</td><td>            12.32</td><td>         11276.00</td><td>           160.40</td><td>         10460.00</td><td>           148.79</td><td>           708.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td></td></tr>
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
@@ -437,24 +453,24 @@ qout/bwa/Transcript_RNA3kChr16rep.out
 <h3>smokebox/Transcript/bwa/</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>        UCSC_rRNA</div></th><th><div>             exon</div></th><th><div>           intron</div></th><th><div>          lincRNA</div></th><th><div>      small_ncRNA</div></th><th><div>             tRNA</div></th><th><div>      unannotated</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>             0.00</td><td>          5270.00</td><td>          5330.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td class='left'>RNA3kChr16.asd.bam</td></tr>
-<tr><td></td><td>             0.00</td><td>          5270.00</td><td>          5330.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td class='left'>RNA3kChr16rep.asd.bam</td></tr>
+<tr><td></td><td>             0.00</td><td>          5260.00</td><td>          5320.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td class='left'>RNA3kChr16.asd.bam</td></tr>
+<tr><td></td><td>             0.00</td><td>          5260.00</td><td>          5320.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td class='left'>RNA3kChr16rep.asd.bam</td></tr>
 </tbody>
 <tfoot>
-<tr><td class='left'>sum</td><td>             0.00</td><td>         10540.00</td><td>         10660.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            84.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>             0.00</td><td>          5270.00</td><td>          5330.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>             0.00</td><td>          5270.00</td><td>          5330.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>             0.00</td><td>          5270.00</td><td>          5330.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
+<tr><td class='left'>sum</td><td>             0.00</td><td>         10520.00</td><td>         10640.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            84.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>             0.00</td><td>          5260.00</td><td>          5320.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>             0.00</td><td>          5260.00</td><td>          5320.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>             0.00</td><td>          5260.00</td><td>          5320.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
 <h3 class='overall'>Aggregation over all libraries</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>        UCSC_rRNA</div></th><th><div>             exon</div></th><th><div>           intron</div></th><th><div>          lincRNA</div></th><th><div>      small_ncRNA</div></th><th><div>             tRNA</div></th><th><div>      unannotated</div></th><th class='left'>File</th></tr></thead>
 <tfoot>
-<tr><td class='left'>sum</td><td>             0.00</td><td>         10540.00</td><td>         10660.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            84.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>             0.00</td><td>          5270.00</td><td>          5330.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>             0.00</td><td>          5270.00</td><td>          5330.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>             0.00</td><td>          5270.00</td><td>          5330.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
+<tr><td class='left'>sum</td><td>             0.00</td><td>         10520.00</td><td>         10640.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            84.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>             0.00</td><td>          5260.00</td><td>          5320.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>             0.00</td><td>          5260.00</td><td>          5320.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>             0.00</td><td>          5260.00</td><td>          5320.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>            42.00</td><td></td></tr>
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
@@ -495,7 +511,7 @@ QC_PASS .. 2 have parameters/2
 QC_PASS .. 2 have recall files from tape/2
 QC_PASS .. 2 have find intervals to improve/2
 QC_PASS .. 2 have realign/2
-QC_PASS .. 2 have count covariantes/2
+QC_PASS .. 2 have count covariantes /2
 QC_PASS .. 2 have adjust score/2
 QC_PASS .. 2 have evaluate performace/2
 QC_PASS .. 2 have count covariantes after recalibration/2
@@ -506,10 +522,34 @@ QC_PASS .. 2 have statistics/2
 <div id='reCalAln_notes'><pre>
 
 qout/reCalAln/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/reCalAln/job.20140115.log [NOTE] set java parameters [NOTE] PAIRED [NOTE] find intervals to improve [NOTE] realign [NOTE] count covariantes [NOTE] adjust score [NOTE] evaluate performace [NOTE] count covariantes after recalibration [NOTE] sort/index [NOTE] statistics [NOTE] PASS check recalibration and realignment: 7030 == 7030
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/reCalAln/job.20140122.log
+[NOTE] set java parameters
+[NOTE] PAIRED
+[NOTE] new GATK parallele
+[NOTE] find intervals to improve
+[NOTE] realign
+[NOTE] count covariantes 
+[NOTE] adjust score
+[NOTE] evaluate performace
+[NOTE] count covariantes after recalibration
+[NOTE] sort/index
+[NOTE] statistics
+[NOTE] PASS check recalibration and realignment: 7030 == 7030
 
 qout/reCalAln/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/reCalAln/job.20140115.log [NOTE] set java parameters [NOTE] PAIRED [NOTE] find intervals to improve [NOTE] realign [NOTE] count covariantes [NOTE] adjust score [NOTE] evaluate performace [NOTE] count covariantes after recalibration [NOTE] sort/index [NOTE] statistics [NOTE] PASS check recalibration and realignment: 7030 == 7030
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/reCalAln/job.20140122.log
+[NOTE] set java parameters
+[NOTE] PAIRED
+[NOTE] new GATK parallele
+[NOTE] find intervals to improve
+[NOTE] realign
+[NOTE] count covariantes 
+[NOTE] adjust score
+[NOTE] evaluate performace
+[NOTE] count covariantes after recalibration
+[NOTE] sort/index
+[NOTE] statistics
+[NOTE] PASS check recalibration and realignment: 7030 == 7030
 </pre></div>
 <div id='reCalAln_errors'><pre>
 
@@ -527,7 +567,7 @@ qout/reCalAln/Transcript_RNA3kChr16rep.out
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#reCalAln_counter_notes').text('2');
+            $('#reCalAln_counter_notes').text('26');
             $('#reCalAln_counter_errors').text('0');
             $('#reCalAln_counter_checkpoints_passed').text('18');
             $('#reCalAln_counter_checkpoints_failed').text('0'); 
@@ -551,24 +591,24 @@ qout/reCalAln/Transcript_RNA3kChr16rep.out
 <h3>smokebox/Transcript/reCalAln/</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th><div>       imprpaired</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td>             0.00</td><td class='left'>RNA3kChr16</td></tr>
-<tr><td></td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td>             0.00</td><td class='left'>RNA3kChr16rep</td></tr>
+<tr><td></td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td>             0.00</td><td class='left'>RNA3kChr16</td></tr>
+<tr><td></td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td>             0.00</td><td class='left'>RNA3kChr16rep</td></tr>
 </tbody>
 <tfoot>
-<tr><td class='left'>sum</td><td>         14060.00</td><td>             0.00</td><td>           850.00</td><td>            12.09</td><td>         11302.00</td><td>           160.77</td><td>         10512.00</td><td>           149.53</td><td>           682.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>sum</td><td>         14060.00</td><td>             0.00</td><td>           866.00</td><td>            12.32</td><td>         11276.00</td><td>           160.40</td><td>         10460.00</td><td>           148.79</td><td>           708.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td>             0.00</td><td></td></tr>
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
 <h3 class='overall'>Aggregation over all libraries</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>      Total reads</div></th><th><div>           QCfail</div></th><th><div>       Duplicates</div></th><th><div>     Duplicates %</div></th><th><div>           Mapped</div></th><th><div>         Mapped %</div></th><th><div>           Paired</div></th><th><div>         Paired %</div></th><th><div>       Singletons</div></th><th><div>       imprpaired</div></th><th class='left'>File</th></tr></thead>
 <tfoot>
-<tr><td class='left'>sum</td><td>         14060.00</td><td>             0.00</td><td>           850.00</td><td>            12.09</td><td>         11302.00</td><td>           160.77</td><td>         10512.00</td><td>           149.53</td><td>           682.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
-<tr><td class='left'>min</td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>max</td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td>             0.00</td><td></td></tr>
-<tr><td class='left'>av</td><td>          7030.00</td><td>             0.00</td><td>           425.00</td><td>             6.05</td><td>          5651.00</td><td>            80.38</td><td>          5256.00</td><td>            74.77</td><td>           341.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>sum</td><td>         14060.00</td><td>             0.00</td><td>           866.00</td><td>            12.32</td><td>         11276.00</td><td>           160.40</td><td>         10460.00</td><td>           148.79</td><td>           708.00</td><td>             0.00</td><td class='left'><i>aggregation</i></td></tr>
+<tr><td class='left'>min</td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>max</td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td>             0.00</td><td></td></tr>
+<tr><td class='left'>av</td><td>          7030.00</td><td>             0.00</td><td>           433.00</td><td>             6.16</td><td>          5638.00</td><td>            80.20</td><td>          5230.00</td><td>            74.40</td><td>           354.00</td><td>             0.00</td><td></td></tr>
 <tr><td class='left'>ste</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td></td></tr>
 </tfoot>
 </table>
@@ -590,26 +630,39 @@ qout/reCalAln/Transcript_RNA3kChr16rep.out
 </div><div class='wrapper'><div class='hidden'>
 <div id='variant_checklist'><pre>
 ###################################################
-# NGSANE /apps/gi/ngsane/devel_master//mods/gatkSNPs 
-###################################################
->>>>>>>>>> Finished
-QC_PASS .. finished are 0/0
->>>>>>>>>> Errors
->>>>>>>>>> CheckPoints 
-
-###################################################
-# NGSANE /apps/gi/ngsane/devel_master//mods/gatkSNPs 
+# NGSANE /apps/gi/ngsane/devel_master//mods/gatkVARs 
 ###################################################
 >>>>>>>>>> Finished
 **_FAIL .. finished are 0/1
 >>>>>>>>>> Errors
 >>>>>>>>>> CheckPoints 
+QC_PASS .. 1 have programs/1
+QC_PASS .. 1 have parameters/1
+QC_PASS .. 1 have recall files from tape/1
+QC_PASS .. 1 have call snps/1
+QC_PASS .. 1 have hardfilter/1
+QC_PASS .. 1 have index for IGV/1
+QC_PASS .. 1 have evaluate/1
+**_FAIL .. 0 have re-calibrate/1
 
 </pre></div>
 <div id='variant_notes'><pre>
 
 qout/variant/postcommand.out
-[NOTE] set java parameters [NOTE] call snps [NOTE] get snps only [NOTE] get indels only [NOTE] SNP call done Wed Jan 15 19:53:16 EST 2014 [NOTE] hardfilter [NOTE] hard filter INDELs [NOTE] index for IGV [NOTE] Hard filter eval SNPs [NOTE] Hard filter eval INDELs [NOTE] re-calibrate [NOTE] train
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/variant/job.20140122.log
+[NOTE] set java parameters
+[NOTE] new GATK parallele
+[NOTE] call snps
+[NOTE] get snps only
+[NOTE] get indels only
+[NOTE] SNP call done Wed Jan 22 15:40:53 EST 2014
+[NOTE] hardfilter
+[NOTE] hard filter INDELs
+[NOTE] index for IGV
+[NOTE] Hard filter eval SNPs
+[NOTE] Hard filter eval INDELs
+[NOTE] re-calibrate
+[NOTE] train
 </pre></div>
 <div id='variant_errors'><pre>
 
@@ -623,14 +676,14 @@ qout/variant/postcommand.out
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#variant_counter_notes').text('1');
+            $('#variant_counter_notes').text('14');
             $('#variant_counter_errors').text('0');
-            $('#variant_counter_checkpoints_passed').text('0');
-            $('#variant_counter_checkpoints_failed').text('1'); 
+            $('#variant_counter_checkpoints_passed').text('7');
+            $('#variant_counter_checkpoints_failed').text('2'); 
             if (0==0){
                 $('#variant_counter_errors').toggleClass('errors neutral');
             }; 
-            if(1==0){
+            if(2==0){
                 $('#variant_counter_checkpoints_failed').toggleClass('failed nofailed');
             };
 
@@ -648,7 +701,7 @@ qout/variant/postcommand.out
 <h3>smokebox/variant/Transcript/</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>            Total</div></th><th><div>            known</div></th><th><div>       SNPdb Conc</div></th><th><div> variantRatePerBp</div></th><th><div>      hetHomRatio</div></th><th><div>            novel</div></th><th><div> variantRatePerBp</div></th><th><div>      hetHomRatio</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>            95.00</td><td>            44.00</td><td>            97.73</td><td>       2053517.00</td><td>             0.33</td><td>            51.00</td><td>       1771661.00</td><td>             0.06</td><td class='left'><a href="../../smokebox/variant/Transcript/Transcript.filter.snps.eval.txt">smokebox/variant/Transcript/Transcript.filter.snps.eval.txt</a></td></tr>
+<tr><td></td><td>            92.00</td><td>            44.00</td><td>            97.73</td><td>       2053517.00</td><td>             0.33</td><td>            48.00</td><td>       1882390.00</td><td>             0.07</td><td class='left'><a href="../../smokebox/variant/Transcript/Transcript.filter.snps.eval.txt">smokebox/variant/Transcript/Transcript.filter.snps.eval.txt</a></td></tr>
 </tbody>
 </table>
 <h3>smokebox/variant/Transcript/</h3>
@@ -657,7 +710,7 @@ qout/variant/postcommand.out
 <h3>smokebox/variant/Transcript/</h3>
 <table class='data'><thead><tr><th><div style='width:25px'><div></th><th><div>            Total</div></th><th><div>            known</div></th><th><div>       SNPdb Conc</div></th><th><div> variantRatePerBp</div></th><th><div>      hetHomRatio</div></th><th><div>            novel</div></th><th><div> variantRatePerBp</div></th><th><div>      hetHomRatio</div></th><th class='left'>File</th></tr></thead>
 <tbody>
-<tr><td></td><td>             4.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             4.00</td><td>      22588688.00</td><td>             1.00</td><td class='left'><a href="../../smokebox/variant/Transcript/Transcript.filter.indel.eval.txt">smokebox/variant/Transcript/Transcript.filter.indel.eval.txt</a></td></tr>
+<tr><td></td><td>             5.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             0.00</td><td>             5.00</td><td>      18070950.00</td><td>             0.67</td><td class='left'><a href="../../smokebox/variant/Transcript/Transcript.filter.indel.eval.txt">smokebox/variant/Transcript/Transcript.filter.indel.eval.txt</a></td></tr>
 </tbody>
 </table>
 </div></div><div class='display'></div></div></div>
@@ -713,13 +766,43 @@ QC_PASS .. 1 have evaluate/1
 <div id='reCalAln-pindel_notes'><pre>
 
 qout/reCalAln-pindel/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/reCalAln-pindel/job.20140115.log [NOTE] set java parameters [NOTE] create bam config file [NOTE] pindel [NOTE] need to convert non-bwa input [NOTE] run Pindel witn non-bwa alignment [NOTE] convert to vcf [NOTE] convert to vcf [NOTE] join vcf files [NOTE] join to single vcf [NOTE] order to reference [NOTE] correct END values from pindel2vcf errors (http://www.biostars.org/p/88908/)
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/reCalAln-pindel/job.20140122.log
+[NOTE] set java parameters
+[NOTE] /apps/gi/ngsane/devel_master/smokebox/Transcript/reCalAln/metrices/RNA3kChr16.asd.bam.insert_size_metrics does not exist: start insert-size calculation
+[NOTE] reorder to be conform with reference
+[NOTE] run picard metrices to get insert size
+[NOTE] create bam config file
+[NOTE] pindel
+[NOTE] need to convert non-bwa input
+[NOTE] run Pindel witn non-bwa alignment
+[NOTE] convert to vcf
+[NOTE] convert to vcf
+[NOTE] join vcf files
+[NOTE] join to single vcf
+[NOTE] order to reference
+[NOTE] correct END values from pindel2vcf errors (http://www.biostars.org/p/88908/)
 
 qout/reCalAln-pindel/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/reCalAln-pindel/job.20140115.log [NOTE] set java parameters [NOTE] create bam config file [NOTE] pindel [NOTE] need to convert non-bwa input [NOTE] run Pindel witn non-bwa alignment [NOTE] convert to vcf [NOTE] convert to vcf [NOTE] join vcf files [NOTE] join to single vcf [NOTE] order to reference [NOTE] correct END values from pindel2vcf errors (http://www.biostars.org/p/88908/)
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/reCalAln-pindel/job.20140122.log
+[NOTE] set java parameters
+[NOTE] /apps/gi/ngsane/devel_master/smokebox/Transcript/reCalAln/metrices/RNA3kChr16rep.asd.bam.insert_size_metrics does not exist: start insert-size calculation
+[NOTE] reorder to be conform with reference
+[NOTE] run picard metrices to get insert size
+[NOTE] create bam config file
+[NOTE] pindel
+[NOTE] need to convert non-bwa input
+[NOTE] run Pindel witn non-bwa alignment
+[NOTE] convert to vcf
+[NOTE] convert to vcf
+[NOTE] join vcf files
+[NOTE] join to single vcf
+[NOTE] order to reference
+[NOTE] correct END values from pindel2vcf errors (http://www.biostars.org/p/88908/)
 
 qout/reCalAln-pindel/postcommand.out
-[NOTE] set java parameters [NOTE] eval variants
+[NOTE] Jobfile: /apps/gi/ngsane/devel_master/smokebox/qout/reCalAln-pindel/job.20140122.log
+[NOTE] set java parameters
+[NOTE] eval variants
 </pre></div>
 <div id='reCalAln-pindel_errors'><pre>
 
@@ -741,7 +824,7 @@ qout/reCalAln-pindel/postcommand.out
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            $('#reCalAln-pindel_counter_notes').text('3');
+            $('#reCalAln-pindel_counter_notes').text('33');
             $('#reCalAln-pindel_counter_errors').text('0');
             $('#reCalAln-pindel_counter_checkpoints_passed').text('7');
             $('#reCalAln-pindel_counter_checkpoints_failed').text('0'); 
@@ -780,18 +863,19 @@ qout/reCalAln-pindel/postcommand.out
 <div class='panel'><div class='headbagb'><a name='References'><h2 class='sub'>References</h2></a></div>
 <h3>Please cite the following publications/resources</h3>
 <table class="data"><thead><tr><th><div style="width:10px"></div></th><th><div></div></th></tr></thead><tbody>
-<tr><td>[1]</td><td class='left'>(in review); 'NGSANE: A Lightweight Production Informatics Framework for High Throughput Data Analysis; Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC</td></tr>
-<tr><td>[2]</td><td class='left'>Bioinformatics. 2009 Aug 15;25(16):2078-9. doi: 10.1093/bioinformatics/btp352. Epub 2009 Jun 8. 'The Sequence Alignment/Map format and SAMtools.'; Li H, Handsaker B, Wysoker A, Fennell T, Ruan J, Homer N, Marth G, Abecasis G, Durbin R; 1000 Genome Project Data Processing Subgroup.</td></tr>
-<tr><td>[3]</td><td class='left'>Bioinformatics. 2010 Mar 15;26(6):841-2. doi: 10.1093/bioinformatics/btq033. Epub 2010 Jan 28. 'BEDTools: a flexible suite of utilities for comparing genomic features.; Quinlan AR, Hall IM.</td></tr>
-<tr><td>[4]</td><td class='left'>Bioinformatics. 2010 Mar 1;26(5):589-95. doi: 10.1093/bioinformatics/btp698. Epub 2010 Jan 15. 'Fast and accurate long-read alignment with Burrows-Wheeler transform.'; Li H, Durbin R.</td></tr>
-<tr><td>[5]</td><td class='left'>Bioinformatics. 2011 Jan 1;27(1):130-1. doi: 10.1093/bioinformatics/btq614. Epub 2010 Nov 18. 'SAMStat: monitoring biases in next generation sequencing data.'; Lassmann T, Hayashizaki Y, Daub CO.</td></tr>
-<tr><td>[6]</td><td class='left'>Brief Bioinform. 2013 Mar;14(2):144-61. doi: 10.1093/bib/bbs038. Epub 2012 Aug 20. 'The UCSC genome browser and associated tools.'; Kuhn RM, Haussler D, Kent WJ.</td></tr>
-<tr><td>[7]</td><td class='left'>Brief Bioinform. 2013 Mar;14(2):178-92. doi: 10.1093/bib/bbs017. Epub 2012 Apr 19. 'Integrative Genomics Viewer (IGV): high-performance genomics data visualization and exploration.'; Thorvaldsdóttir H, Robinson JT, Mesirov JP.</td></tr>
-<tr><td>[8]</td><td class='left'>Genome Res. 2010 Sep;20(9):1297-303. doi: 10.1101/gr.107524.110. Epub 2010 Jul 19. 'The Genome Analysis Toolkit: a MapReduce framework for analyzing next-generation DNA sequencing data. McKenna A, Hanna M, Banks E, Sivachenko A, Cibulskis K, Kernytsky A, Garimella K, Altshuler D, Gabriel S, Daly M, DePristo MA.</td></tr>
-<tr><td>[9]</td><td class='left'>R: A language and environment for statistical computing; R Core Team. R Foundation for Statistical Computing, Vienna, Austria, (2013)</td></tr>
-<tr><td>[10]</td><td class='left'>Ye K, Schulz MH, Long Q, Apweiler R, Ning Z. Pindel: a pattern growth approach to detect break points of large deletions and medium sized insertions from paired-end short reads. Bioinformatics. 2009 Nov 1;25(21):2865-71. Epub 2009 Jun 26.</td></tr>
-<tr><td>[11]</td><td class='left'>http://picard.sourceforge.net.</td></tr>
+<tr class='citation'><td>[1]</td><td class='left' >(accepted); 'NGSANE: A Lightweight Production Informatics Framework for High Throughput Data Analysis; Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC</td></tr>
+<tr class='citation'><td>[2]</td><td class='left' >Bioinformatics. 2009 Aug 15;25(16):2078-9. doi: 10.1093/bioinformatics/btp352. Epub 2009 Jun 8. 'The Sequence Alignment/Map format and SAMtools.'; Li H, Handsaker B, Wysoker A, Fennell T, Ruan J, Homer N, Marth G, Abecasis G, Durbin R; 1000 Genome Project Data Processing Subgroup.</td></tr>
+<tr class='citation'><td>[3]</td><td class='left' >Bioinformatics. 2010 Mar 15;26(6):841-2. doi: 10.1093/bioinformatics/btq033. Epub 2010 Jan 28. 'BEDTools: a flexible suite of utilities for comparing genomic features.; Quinlan AR, Hall IM.</td></tr>
+<tr class='citation'><td>[4]</td><td class='left' >Bioinformatics. 2010 Mar 1;26(5):589-95. doi: 10.1093/bioinformatics/btp698. Epub 2010 Jan 15. 'Fast and accurate long-read alignment with Burrows-Wheeler transform.'; Li H, Durbin R.</td></tr>
+<tr class='citation'><td>[5]</td><td class='left' >Bioinformatics. 2011 Jan 1;27(1):130-1. doi: 10.1093/bioinformatics/btq614. Epub 2010 Nov 18. 'SAMStat: monitoring biases in next generation sequencing data.'; Lassmann T, Hayashizaki Y, Daub CO.</td></tr>
+<tr class='citation'><td>[6]</td><td class='left' >Brief Bioinform. 2013 Mar;14(2):144-61. doi: 10.1093/bib/bbs038. Epub 2012 Aug 20. 'The UCSC genome browser and associated tools.'; Kuhn RM, Haussler D, Kent WJ.</td></tr>
+<tr class='citation'><td>[7]</td><td class='left' >Brief Bioinform. 2013 Mar;14(2):178-92. doi: 10.1093/bib/bbs017. Epub 2012 Apr 19. 'Integrative Genomics Viewer (IGV): high-performance genomics data visualization and exploration.'; Thorvaldsdóttir H, Robinson JT, Mesirov JP.</td></tr>
+<tr class='citation'><td>[8]</td><td class='left' >Genome Res. 2010 Sep;20(9):1297-303. doi: 10.1101/gr.107524.110. Epub 2010 Jul 19. 'The Genome Analysis Toolkit: a MapReduce framework for analyzing next-generation DNA sequencing data. McKenna A, Hanna M, Banks E, Sivachenko A, Cibulskis K, Kernytsky A, Garimella K, Altshuler D, Gabriel S, Daly M, DePristo MA.</td></tr>
+<tr class='citation'><td>[9]</td><td class='left' >Nucleic Acids Res. 2012 Jul;40(Web Server issue):W622-7. doi: 10.1093/nar/gks540. Epub 2012 Jun 8. 'RobiNA: a user-friendly, integrated software solution for RNA-Seq-based transcriptomics.'; Lohse M, Bolger AM, Nagel A, Fernie AR, Lunn JE, Stitt M, Usadel B.</td></tr>
+<tr class='citation'><td>[10]</td><td class='left' >R: A language and environment for statistical computing; R Core Team. R Foundation for Statistical Computing, Vienna, Austria, (2013)</td></tr>
+<tr class='citation'><td>[11]</td><td class='left' >Ye K, Schulz MH, Long Q, Apweiler R, Ning Z. Pindel: a pattern growth approach to detect break points of large deletions and medium sized insertions from paired-end short reads. Bioinformatics. 2009 Nov 1;25(21):2865-71. Epub 2009 Jun 26.</td></tr>
+<tr class='citation'><td>[12]</td><td class='left' >http://picard.sourceforge.net.</td></tr>
 </tbody></table>
 </div></div>
-<hr><span>Report generated with NGSANE version: b9903989d6d942b31828cc2ebe8c420fbc362de7 (git hash)</span><span style='float:right;'>Last modified: Wed Jan 15 19:54:58 EST 2014</span>
+<hr><span>Report generated with NGSANE version: ce117f48b7ac7f3153962971df14f116d902d409 (git hash)</span><span style='float:right;'>Last modified: Wed Jan 22 15:41:57 EST 2014</span>
 </div><!-- center --></body></html>

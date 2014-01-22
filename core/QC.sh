@@ -21,7 +21,7 @@ while [ "$1" != "" ]; do
         -t | --task )           shift; TASK=$1 ;;   # task at hand
         -r | --results-dir )    shift; OUTDIR=$1 ;; # location of the output 
         -s | --results-task )   shift; OUTTASK=$1 ;; # task the results are put in 
-        -f | --nrfilesuffix )   shift; RESULTSUFFIX=$1 ;; # suffix of the result file
+        -f | --filesuffix )     shift; RESULTSUFFIX=$1 ;; # suffix of the result file
         -o | --html-file )      shift; HTMLOUTPUT=$1;; # where the output will be place in the end
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -50,7 +50,10 @@ fi
 # pack normal and post command in a long string for the subsequent loops
 # file1*file2*file3:task.sh postcommand:posttask.sh
 files=$(ls $QOUT/$TASK/*.out | grep -v "postcommand" | gawk '{ ORS=" "; print; }' | tr " " "*")
-SCRIPTFILES=$files":"${NGSANE_BASE}/mods/${SCRIPT/%,*/}
+if [ ! -z $files ]; then # if there is really more than just the postcommand
+	SCRIPTFILES=$files":"${NGSANE_BASE}/mods/${SCRIPT/%,*/}
+fi
+# normal postcommand
 if [ -e $QOUT/$TASK/postcommand.out ]; then
 	SCRIPTFILES=$SCRIPTFILES" "$QOUT/$TASK/postcommand.out":"${NGSANE_BASE}/mods/${SCRIPT/*,/}
 fi
@@ -134,8 +137,8 @@ SUMNOTES=0
 for i in $(ls $QOUT/$TASK/*.out) ;do
     echo -e "\n${i/$LOGFOLDER\//}"
     NOTELIST=$(grep -P "^\[NOTE\]" $i)
-    echo $NOTELIST
-    SUMNOTES=`expr $SUMNOTES + $(echo $NOTELIST | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' )`
+    echo -e "$NOTELIST"
+    SUMNOTES=`expr $SUMNOTES + $(echo -e "$NOTELIST" | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' )`
 done
 
 
@@ -155,11 +158,11 @@ for i in $( ls $QOUT/$TASK/*.out ) ;do
     echo -e "\n${i/$LOGFOLDER\//}"
     ERRORLIST=$(grep -P "^\[ERROR\]" $i)
     if [ -n "$ERRORLIST" ]; then 
-        echo $ERRORLIST
+        echo -e "$ERRORLIST"
     else
         echo "-- all good, no errors"
     fi
-    SUMERRORS=$(expr $SUMERRORS + $(echo $ERRORLIST | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' ))
+    SUMERRORS=$(expr $SUMERRORS + $(echo -e "$ERRORLIST" | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' ))
 done
 
 
@@ -178,7 +181,7 @@ if [ -n "$HTMLOUTPUT" ]; then
     echo "</div></div>"
     if [ -n "$RESULTSUFFIX" ]; then
         echo "<div id='${TASK}_nrfiles'><div class='box'>"
-        for i in $(find $OUTDIR/*/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX ); do
+        for i in $(find $OUTDIR/*/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX | sort -n ); do
             FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
             echo "<a href='$FN'>${i/$OUTDIR\/*\/$OUTTASK\//}</a><br/>"
         done

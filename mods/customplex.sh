@@ -82,7 +82,7 @@ if [[ ${f##*.} == "gz" ]]; then
     echo "[NOTE] unzip first"
     f=${f/.gz/}
     if [ ! -e $f ]; then gunzip -c $f.gz >$f; fi
-    if [ ! -e ${f/$READONE/$READTWO} ]; then gunzip -c ${f/$READONE/$READTWO}.gz >${f/$READONE/$READTWO} ; fi
+    if [ ! -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then gunzip -c ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}.gz >${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ; fi
 fi
 
 # get basename of f
@@ -97,7 +97,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     # put read1 and read2 side by side
-    perl ${NGSANE_BASE}/bin/shuffleSequences_fastq_sidebyside.pl $f ${f/$READONE/$READTWO} \
+    perl ${NGSANE_BASE}/bin/shuffleSequences_fastq_sidebyside.pl $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} \
         $OUTDIR/${n/$READONE/"sidebyside$READONE"}
 
     # mark checkpoint

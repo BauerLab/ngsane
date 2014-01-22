@@ -128,9 +128,9 @@ fi
 
 if [ -n "$READONE" ] && [ "$READONE" == "$READTWO" ]; then
 	echo "[ERROR] read1 == read2 " 1>&2 && exit 1
-elif [ "$f" != "${f/$READONE/$READTWO}" ] && [ -e ${f/$READONE/$READTWO} ] && [ "$FORCESINGLE" = 0 ]; then
+elif [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
-    f2=${f/$READONE/$READTWO}
+    f2=${f/%$READONE.$FASTQ/$READTWO.$FASTQ}
     BAM2BW_OPTION_ISPAIRED="True"
     echo "[NOTE] Paired library detected"
 else
@@ -290,6 +290,8 @@ else
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
         I=$BAMFILE.rg \
         O=$BAMFILE \
+        CREATE_MD5_FILE=true \
+        COMPRESSION_LEVEL=9 \
         VALIDATION_STRINGENCY=SILENT \
         TMP_DIR=$THISTMP"
     echo $RUN_COMMAND && eval $RUN_COMMAND

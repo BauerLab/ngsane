@@ -47,15 +47,8 @@ READTWO="_R2"
 FASTA=
 
 # additional parameters to pass to tagdir generation
-# e.g. "-tbp 1 -illuminaPE -genome hg19 -checkGC -restrictionSite AAGCTT -removePEbg -removeSelfLigation -removeRestrictionEnds -removeSpikes 10000 5"
+# e.g. "-genome hg19 -checkGC -restrictionSite AAGCTT -both -removePEbg -removeSelfLigation -removeRestrictionEnds -removeSpikes 10000 5"
 HOMER_HIC_TAGDIR_ADDPARAM=
-
-# additional parameters to pass to background model generation
-# e.g. "-bgonly -res 100000"
-HOMER_HIC_BACKGROUND_ADDPARAM=
-
-# either "all", "trans" or "cis"
-HOMER_HIC_INTERACTIONS="all"
 
 # additional parameters to pass to normalization process
 # e.g. "-res 100000 -superRes 200000"
@@ -66,8 +59,12 @@ HOMER_HIC_NORMALIZE_ADDPARAM=
 HOMER_HIC_PCA_ADDPARAM=
 
 # additional parameters to pass to interaction calculation 
-# e.g. "-res 100000 -center"
-HOMER_HIC_INTERACTION_ADDPARAM=
+# e.g. "-res 1000000 -maxDist 10000000 -center"
+HOMER_HIC_LOWRESINTERACTIONS_ADDPARAM=
+
+# additional parameters to pass to interaction calculation 
+# e.g. "-res 2000 -superRes 10000 -minDist 500 -maxDist 1000000"
+HOMER_HIC_CISINTERACTIONS_ADDPARAM=
 
 # additional parameter to pass to annotation process
 # e.g. "hg19"

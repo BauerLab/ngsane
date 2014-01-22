@@ -17,10 +17,11 @@ SOURCE=$(pwd)
 # leave empty, as all data except the raw data (fastq folder) will be copied 
 declare -a DIR; DIR=(  )
 
-# server location e.g. '//gagri/GRIW'
+# server location e.g. '//gagri/diverse’
 TARGET_SERVER=
 
 # location (folder) on the target server to put the result into (should already exist)
+# e.g. ‘Cancer-Epigenetics-Disco/Public/GEO/GSE43070’
 TARGET_LOCATION=
 
 # where to write the output
@@ -33,9 +34,6 @@ QOUT=$OUT/qout
 READONE="_R1"
 READTWO="_R2"
 
-# fastq file suffix
-FASTQ="fastq.gz"
-
 #********************
 # PARAMETER (mandatory)
 #********************
@@ -43,3 +41,6 @@ FASTQ="fastq.gz"
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
+
+# set to one to copy the fastq folder too
+COPYFASTQ=
