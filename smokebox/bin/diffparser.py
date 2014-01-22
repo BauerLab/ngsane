@@ -3,8 +3,6 @@ import os, re, sys
 def parser(l,r):
     rn=re.findall("[0-9.]+",r)
     ln=re.findall("[0-9.,]+",l)
-#    print rn
-#    print ln
     for i,j in zip(rn,ln):
         if (i[0]=="." or j[0]==","):
             continue

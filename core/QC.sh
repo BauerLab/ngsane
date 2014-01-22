@@ -181,7 +181,7 @@ if [ -n "$HTMLOUTPUT" ]; then
     echo "</div></div>"
     if [ -n "$RESULTSUFFIX" ]; then
         echo "<div id='${TASK}_nrfiles'><div class='box'>"
-        for i in $(find $OUTDIR/*/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX ); do
+        for i in $(find $OUTDIR/*/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX | sort -n ); do
             FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
             echo "<a href='$FN'>${i/$OUTDIR\/*\/$OUTTASK\//}</a><br/>"
         done
