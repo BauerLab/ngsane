@@ -55,3 +55,8 @@ clean:
 	rm -f igv.*
 	rm -f core*
 	rm -fr common
+	rm -f referenceData/chr16.*.bwt
+	rm -f referenceData/chr16.*.ebwt
+	rm -f referenceData/chr16.*.bt2
+	rm -f referenceData/chr16_HiCcopy.*
+	rm -f referenceData/chr16_RNAseqcopy.*
