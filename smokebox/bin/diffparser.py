@@ -9,7 +9,7 @@ def parser(l,r):
         if (i[0]=="." or j[0]==","):
             continue
         elif(float(i)*0.8>float(j) or float(i)*1.2<float(j)):
-            print "Too different %s %s" % (i,j)
+            print "Too different %s vs %s with context\n%svs\n%s-----REST------" % (i,j,l,r)
             return -1
     return 0
 
