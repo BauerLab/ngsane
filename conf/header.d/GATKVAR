@@ -1,0 +1,13 @@
+##############################################################
+# Snp and indel calling with GATK
+# http://www.broadinstitute.org/gatk/
+# GATK VARCALL
+TASK_GATKVAR="variant"
+WALLTIME_GATKVAR=100:00:00
+MEMORY_GATKVAR=20
+CPU_GATKVAR=1
+NODES_GATKVAR="nodes=1:ppn=1"
+INPUT_GATKVAR=$TASK_RECAL
+MODULE_GATKVAR="${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_GATK}"
+
+

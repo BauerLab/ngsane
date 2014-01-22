@@ -50,7 +50,10 @@ fi
 # pack normal and post command in a long string for the subsequent loops
 # file1*file2*file3:task.sh postcommand:posttask.sh
 files=$(ls $QOUT/$TASK/*.out | grep -v "postcommand" | gawk '{ ORS=" "; print; }' | tr " " "*")
-SCRIPTFILES=$files":"${NGSANE_BASE}/mods/${SCRIPT/%,*/}
+if [ ! -z $files ]; then # if there is really more than just the postcommand
+	SCRIPTFILES=$files":"${NGSANE_BASE}/mods/${SCRIPT/%,*/}
+fi
+# normal postcommand
 if [ -e $QOUT/$TASK/postcommand.out ]; then
 	SCRIPTFILES=$SCRIPTFILES" "$QOUT/$TASK/postcommand.out":"${NGSANE_BASE}/mods/${SCRIPT/*,/}
 fi
