@@ -3,13 +3,11 @@ import os, re, sys
 def parser(l,r):
     rn=re.findall("[0-9.]+",r)
     ln=re.findall("[0-9.,]+",l)
-#    print rn
-#    print ln
     for i,j in zip(rn,ln):
         if (i[0]=="." or j[0]==","):
             continue
         elif(float(i)*0.8>float(j) or float(i)*1.2<float(j)):
-            print "Too different %s %s" % (i,j)
+            print "Too different %s vs %s with context\n%svs\n%s-----REST------" % (i,j,l,r)
             return -1
     return 0
 
@@ -19,7 +17,7 @@ remote=[]
 content=""
 for line in sys.stdin:
     content+=line
-    if line.find("Last modi")>-1 or line.find("NGSANE")>-1 or line.find("[NOTE]")>-1 :
+    if line.find("Last modi")>-1 or line.find("NGSANE")>-1 or line.find("[NOTE]")>-1 or line.find("class='citation'")>-1:
         continue
     if line[0]=="<" :
         local.append(line)

@@ -72,8 +72,8 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_GATKSNP; do module load $MODULE; done  # save way to load modules that itself load other modules
-export PATH=$PATH_GATKSNP:$PATH
+for MODULE in $MODULE_GATKVAR; do module load $MODULE; done  # save way to load modules that itself load other modules
+export PATH=$PATH_GATKVAR:$PATH
 module list
 echo $PATH
 #this is to get the full path (modules should work but for path we need the full path and this is the\
@@ -82,7 +82,7 @@ PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_VAR*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_GATKVAR*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -125,6 +125,14 @@ fi
 #fi
         
 if [ -n "$SEQREG" ]; then REGION="-L $SEQREG"; fi
+
+
+if [[ $(which GenomeAnalysisTK.jar) =~ "2.8" ]]; then 
+        echo "[NOTE] new GATK parallele"
+        PARALLELENCT="-nct $CPU_RECAL"
+		PARALLELENT="-nt $CPU_RECAL"
+fi
+
         
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -167,6 +175,7 @@ else
             --out $OUTDIR/$NAME.raw.vcf \
             -stand_call_conf 30.0 \
             $REGION \
+			$PARALLELENT \
             -stand_emit_conf 10.0 \
 			$LIST \
 			-dcov 1000
@@ -177,6 +186,7 @@ else
 	-R $FASTA \
 	--variant  $OUTDIR/$NAME.raw.vcf \
 	--selectTypeToInclude SNP \
+	$PARALLELENT \
 	-o $OUTDIR/$NAME.raw.snps.vcf
 
     echo "[NOTE] get indels only"
@@ -185,6 +195,7 @@ else
 	-R $FASTA \
 	--variant  $OUTDIR/$NAME.raw.vcf \
 	--selectTypeToInclude INDEL \
+	$PARALLELENT \
 	-o $OUTDIR/$NAME.raw.indel.vcf
 
     echo "[NOTE] SNP call done "`date`
@@ -276,6 +287,7 @@ else
             --eval $OUTDIR/$NAME.filter.snps.vcf \
 	       $REGION \
             --evalModule TiTvVariantEvaluator \
+			$PARALLELENT \
             -o $OUTDIR/$NAME.filter.snps.eval.txt
 
     echo "[NOTE] Hard filter eval INDELs"
@@ -286,6 +298,7 @@ else
             --eval $OUTDIR/$NAME.filter.indel.vcf \
 	       $REGION \
             --evalModule TiTvVariantEvaluator \
+			$PARALLELENT \
             -o $OUTDIR/$NAME.filter.indel.eval.txt
 
     # mark checkpoint
@@ -334,6 +347,7 @@ else
     	    -recalFile $OUTDIR/$NAME.raw.recal \
     	    -tranchesFile $OUTDIR/$NAME.raw.tranches \
     	    $ADDRECAL \
+			$PARALLELENT \
     	    -rscriptFile $OUTDIR/R/output.plots.R \
     
     #	    -nt $THREADS <- is notparallele
@@ -348,6 +362,7 @@ else
     	    --ts_filter_level 99.0 \
     	    -tranchesFile $OUTDIR/$NAME.raw.tranches \
     	    -recalFile $OUTDIR/$NAME.raw.recal \
+			$PARALLELENT \
     	    -o $OUTDIR/$NAME.recalfilt.vcf
     
     
@@ -358,6 +373,7 @@ else
                 --dbsnp $DBSNPVCF \
                 --eval $OUTDIR/$NAME.recalfilt.vcf \
                 --evalModule TiTvVariantEvaluator \
+				$PARALLELENT \
                 -o $OUTDIR/$NAME.recalfilt.eval.txt
     
         # mark checkpoint

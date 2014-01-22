@@ -54,6 +54,11 @@ if [ -n "$GIVENDIRS" ]; then declare -a DIR; DIR=( $GIVENDIRS ); fi
 if [ ! -d $QOUT/$TASK ]; then mkdir -p $QOUT/$TASK; fi
 if [ -z "$POSTNAME" ]; then POSTNAME="postcommand"; fi
 
+if [ -n "$COMMONTASK" ]; then 
+    mkdir -p $OUT/common/$TASK
+    COMMAND="$COMMAND -o $OUT/common/$TASK"
+fi
+        
 ## Select files in dir to run 
 if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
     echo -e "[NOTE] setup enviroment"
@@ -66,10 +71,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
         SAMPLEPATTERN=${dir/$DIRNAME/}
     
         # ensure dirs are there
-        if [ -n "$COMMONTASK" ]; then 
-            mkdir -p $OUT/common/$TASK
-            COMMAND="$COMMAND -o $OUT/common/$TASK"
-        elif [ -z "$NODIR" ]; then
+        if [ -z "$NODIR" ]; then
             if [ ! -d $OUT/$DIRNAME/$TASK ]; then 
                 mkdir -p $OUT/$DIRNAME/$TASK; 
                 echo "DIR created $OUT/$DIRNAME/$TASK"
@@ -116,11 +118,11 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                 echo $f >> $QOUT/$TASK/runnow.tmp
             done
         fi
+        
     done
 else
     echo -e "[NOTE] previous environment setup detected"
 fi
-
 if [ -n "$KEEP" ]; then 
     if [ "$KEEP" = "new" ]; then
         echo -e "[NOTE] Data setup finished. Please, start trigger in \e[4marmed\e[24m or \e[4mdirect\e[24m mode."
@@ -131,6 +133,11 @@ if [ -n "$KEEP" ]; then
 else
     echo -e "[NOTE] proceeding with job scheduling..."
 fi
+
+# record task in log file
+JOBLOG=$QOUT/$TASK/job.$(date "+%Y%m%d").log
+cat $CONFIG ${NGSANE_BASE}/conf/header.sh ${NGSANE_BASE}/conf/header.d/* > $JOBLOG
+
 
 MYJOBIDS="" # collect job IDs for postcommand
 FILES=""
@@ -197,11 +204,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
         fi
     
-        # record task in log file
-        JOBLOG=$QOUT/$TASK/job.$(date "+%Y%m%d").log
-        cat $CONFIG ${NGSANE_BASE}/conf/header.sh ${NGSANE_BASE}/conf/header.d/* > $JOBLOG
         echo "[NOTE] Jobfile: "$JOBLOG >> $LOGFILE
-
         # add citations
 		TASKCITE=${TASK/*-/}
         TASKNAME=$(grep -P "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
@@ -267,8 +270,6 @@ if [ -n "$POSTCOMMAND" ]; then
 		touch $D.dummy
 	fi
 
-
-
     if [[ -n "$DEBUG" || -n "$FIRST" ]]; then eval $POSTCOMMAND2; exit; fi
     if [[ -n "$ARMED" ||  -n "$POSTONLY" || "$DIRECT" ]]; then
 
@@ -296,6 +297,18 @@ if [ -n "$POSTCOMMAND" ]; then
     # record task in log file
 #    cat $CONFIG ${NGSANE_BASE}/conf/header.sh > $QOUT/$TASK/job.$(date "+%Y%m%d").log
 #	echo "[NOTE] Jobfile: "$JOBLOG >> $POSTLOGFILE
+
+    echo "[NOTE] Jobfile: "$JOBLOG >> $POSTLOGFILE
+    # add citations
+	TASKCITE=${TASK/*-/}
+    TASKNAME=$(grep -P "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
+	CITED_PROGRAMS=$(grep -P "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g')
+    for M in NG_CITE_NGSANE $CITED_PROGRAMS; do
+    	CITE=$(grep -P "^$M=" $JOBLOG) || CITE=""
+      	if [ -n "$CITE" ]; then
+    	    echo -e "[CITE] ${CITE/$M=/}" >> $POSTLOGFILE
+        fi 
+    done
 
 	#eval job directly but write to logfile
 	if [ -n "$DIRECT" ]; then eval $POSTCOMMAND2 > $POSTLOGFILE 2>&1 ; exit; fi

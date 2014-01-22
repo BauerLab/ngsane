@@ -88,6 +88,7 @@ function summaryHeader {
     else 
         RESULTLOCATION=""
     fi
+
     ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $4 --modscript $3 --log $QOUT --task $2 $RESULTLOCATION $SUFFIX >> $4    
     
     grep -r -P '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES
@@ -417,16 +418,16 @@ fi
 
 ################################################################################
 if [ -n "$RUNVARCALLS" ]; then 
-    summaryHeader "Variant calling" "$TASK_VAR" "gatkSNPs.sh" "$SUMMARYTMP"
+    summaryHeader "Variant calling" "$TASK_GATKVAR" "gatkVARs.sh" "$SUMMARYTMP"
 
-	vali=$OUT/$TASK_VAR/$(echo ${DIR[@]}|sed 's/ /_/g')/
+	vali=$OUT/$TASK_GATKVAR/$(echo ${DIR[@]}|sed 's/ /_/g')/
     echo "<h3>SNPs</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.snps.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$vali" "recalfilt.snps.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
     echo "<h3>INDELs</h3>" >>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
 
-    summaryFooter "$TASK_VAR" "$SUMMARYTMP"
+    summaryFooter "$TASK_GATKVAR" "$SUMMARYTMP"
 fi
 
 ################################################################################
@@ -696,7 +697,7 @@ echo '<table class="data"><thead><tr><th><div style="width:10px"></div></th><th>
 
 COUNT=1
 while read -r line; do
-    echo "<tr><td>[$COUNT]</td><td class='left'>${line//\"/}</td></tr>" >>$SUMMARYTMP
+    echo "<tr class='citation'><td>[$COUNT]</td><td class='left' >${line//\"/}</td></tr>" >>$SUMMARYTMP
     COUNT=$(( $COUNT + 1 ))
 done <<< "$(cat $SUMMARYCITES | cut -d']' -f 2 | sort -u )"
 
