@@ -112,7 +112,7 @@ else
 
     RUN_COMMAND="findPeaks $OUTDIR/${SAMPLE}_homer -style $HOMER_CHIPSEQ_STYLE  $HOMER_CHIPSEQ_FINDPEAKS_ADDPARAM -o auto "
     if [ -n "$CHIPINPUT" ];then
-      RUN_COMMAND="$RUN_COMMAND -i $OUT/common/$TASK_HOMERCHIPSEQ/$SAMPLE/"  
+      RUN_COMMAND="$RUN_COMMAND -i $OUT/common/$TASK_HOMERCHIPSEQ/$INPUT/"  
     fi
     RUN_COMMAND="$RUN_COMMAND &> $OUTDIR/${SAMPLE}.findpeaks.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
