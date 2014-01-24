@@ -946,14 +946,14 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=1.0.0
+VERSION=1.0.1
 SOFTWARE=fit-hi-c
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
 mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 
-wget https://www.dropbox.com/s/y0j61bhwkxprg5q/fithic_$VERSION.tgz
-tar -xf fithic_$VERSION.tgz*
+wget http://noble.gs.washington.edu/proj/fit-hi-c/software/fithic_$VERSION.tgz
+tar -xf fithic_$VERSION.tgz
 mv $SOFTWARE/* $PACKAGEPATH/$SOFTWARE/$VERSION
 chmod 555 $PACKAGEPATH/$SOFTWARE/$VERSION/bin/*
 
