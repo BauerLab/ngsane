@@ -10,7 +10,7 @@
 # QCVARIABLES,
 # RESULTFILENAME fastq/<DIR>/<SAMPLE>$READONE.$FASTQ
 
-echo ">>>>> read screening with FASTQSCREEN"
+echo ">>>>> bam2fastq"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
@@ -44,7 +44,7 @@ echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
-PATH_RESOLVEPAIR=$(dirname $(which resolvepair))
+#PATH_RESOLVEPAIR=$(dirname $(which resolvepair))
 
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_BAM2FASTQ*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
@@ -66,7 +66,8 @@ n=${f##*/}
 
 #DIR=$(basename $(basename $(dirname $f)))
 #mkdir -p $OUTDIR/fastq/$DIR
-f2=$OUTDIR/${n/.bam/$READONE.$FASTQ}
+f2=$OUTDIR/${n/.$ASD.bam/$READONE.$FASTQ}
+GZEND="."${FASTQ/*./}
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
@@ -84,10 +85,10 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-	if [ ! -e $f.stats ]; then	samtools flagstat $f > $f.stats; fi
+	if [[ ! -e $f.stats ||  -z $(cat $f.stats) ]]; then	echo "[NOTE] generate stats file"; samtools flagstat $f > $f.stats; fi
 	
 	#is paired ?
-	p=`grep "paired in " $f.stats | cut -d " " -f 1`
+	p=$(grep "paired in " $f.stats | cut -d " " -f 1)
 	if [ ! "$p" -eq "0" ]; then
 	    PAIRED="1"
 	    echo "[NOTE] PAIRED"
@@ -107,21 +108,59 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-	if [ -n "$PAIRED" ]; then SECONDREAD="SECOND_END_FASTQ=${f2/$READONE/$READTWO}"; fi
-
+	if [ -n "$PAIRED" ]; then 
+#		SECONDREAD="SECOND_END_FASTQ=${f2/$READONE/$READTWO}";
+		SECONDREAD="${f2/$READONE/$READTWO}"; 
+	fi
 
 	#TODO : resolvpair just gives unique IDs to reads, however, they were multimappers and all but one instance of them should be removed. 
-
-	RUN_COMMAND="samtools view -h $f | head -n 1000 | samtools sort -o -n - $f | python ${PATH_RESOLVEPAIR}/resolvepair | java $JAVAPARAMS -jar ${PATH_PICARD}/SamToFastq.jar $BAM2FASTQADDPARAM VALIDATION_STRINGENCY=SILENT INPUT=/dev/stdin FASTQ=$f2 $SECONDREAD"
-
-    echo $RUN_COMMAND && eval $RUN_COMMAND
+	#python ${PATH_RESOLVEPAIR}/resolvepair
+	
+	# note $f needs to be there eventhough it is ignored because of -o
+	#RUN_COMMAND="samtools view -h $f | head -n 1000 | samtools view -S -b - | samtools sort -o -n - $f | java $JAVAPARAMS -jar ${PATH_PICARD}/SamToFastq.jar $BAM2FASTQADDPARAM VALIDATION_STRINGENCY=SILENT INPUT=/dev/stdin INCLUDE_NON_PF_READS=true FASTQ=$f2 $SECONDREAD"
+	#RUN_COMMAND="samtools sort -o -n $f $f | java $JAVAPARAMS -jar ${PATH_PICARD}/SamToFastq.jar $BAM2FASTQADDPARAM VALIDATION_STRINGENCY=SILENT INPUT=/dev/stdin INCLUDE_NON_PF_READS=true FASTQ=$f2 $SECONDREAD"
+	#RUN_COMMAND="
+	THISTMP=$TMP/$n$RANDOM
+	mkdir -p $THISTMP
+	htscmd bamshuf -uOn 128 $f $THISTMP | htscmd bam2fq -aO - | gawk -v F0=${f2/$GZEND/} -v F1=${SECONDREAD/$GZEND/} 'NR%4==1{if ($0 ~ "/1$"){x=F0}else{x=F1}}{print > x}'
+	#| awk 'NR%4==1{x="F"i++%2}{print > x}' 
+    #echo $RUN_COMMAND && eval $RUN_COMMAND
+	$GZIP -c ${f2/$GZEND/} > $f2
+	[ -e ${SECONDREAD/$GZEND/} ] && $GZIP -c ${SECONDREAD/$GZEND/} > ${SECONDREAD}
 
     # mark checkpoint
     if [ -f $f2 ]; then echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+	rm -f ${f2/$GZEND/} ${SECONDREAD/$GZEND/}
 fi
+
+
+################################################################################
+CHECKPOINT="check"    
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+	# no singletons
+	#BAMREADS=$(grep "with itself and mate mapped" $f.stats | cut -f 1 -d " " )
+	# all reads
+	BAMREADS=$( cat $f.stats | head -n 1 | cut -f 1 -d " " ) 
+	FASTQREADS=$( echo $(zcat ${f2/$READONE.$FASTQ/}*$FASTQ | wc -l | cut -f 1 -d " ")" / 4" | bc)
+
+	if [ $BAMREADS -eq $FASTQREADS ]; then
+	    echo "[NOTE] PASS check mapping: $BAMREADS == $FASTQREADS"
+	else
+	    echo -e "[ERROR] We are loosing reads from .bam -> .fastq in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
+	    exit 1 
+	fi
+	echo -e "\n********* $CHECKPOINT\n"
+fi
+
+
+
 
 ################################################################################
 [ -e $f2.dummy ] && rm $f2.dummy
-echo ">>>>> read correction with Blue - FINISHED"
+echo ">>>>> bam2fastq - FINISHED"
 echo ">>>>> enddate "`date`
 

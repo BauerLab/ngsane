@@ -32,7 +32,7 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
-# fastq file suffix
+# fastq file suffix (needs to be zipped )
 FASTQ="fq.gz"
 
 # read indicator immediately preceding the fastq file suffix

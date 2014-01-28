@@ -159,6 +159,19 @@ function bamAnnotate {
 
 }
 
+
+################################################################################
+# bam2fastq
+################################################################################
+if [ -n "$RUNBAM2FASTQ" ]; then 
+    summaryHeader "Bam2Fastq" "$TASK_BAM2FASTQ" "bam2fastq.sh" "$SUMMARYTMP"
+	vali=$(gatherDirs $INPUT_BAM2FASTQ)
+	python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASD.bam.stats fastqstats >>$SUMMARYTMP
+
+    summaryFooter "$TASK_BAM2FASTQ" "$SUMMARYTMP"
+fi
+
+
 ################################################################################
 if [ -n "$RUNFASTQC" ]; then
     summaryHeader "FASTQC" "$TASK_FASTQC" "fastQC.sh" "$SUMMARYTMP"

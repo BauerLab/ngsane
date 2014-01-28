@@ -181,6 +181,9 @@ def samstats(statsfile):
     return names,values
 
 
+def fastqstats(statsfile):
+	names,values=samstats(statsfile)
+	return [names[0]],[values[0]]
 
 
 # blue statiscis for initial aligment
@@ -1111,6 +1114,8 @@ for d in dir:
         try:
             if (type=="samstats"):
                 names,values=samstats(f)
+            if (type=="fastqstats"):
+                names,values=fastqstats(f)
             if (type=="samstatsrecal"):
                 names,values=samstatsrecal(f)
             if (type=="bamdistMapped"):

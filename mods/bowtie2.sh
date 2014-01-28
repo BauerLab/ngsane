@@ -7,7 +7,7 @@
 # date: June 2012
 # modified: August 2013 Fabian Buske
 
-# QCVARIABLES,Resource temporarily unavailable
+# QCVARIABLES,Resource temporarily unavailable,fewer reads in file specified with -2 than in file specified with -1
 # RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
 
 echo ">>>>> readmapping with Bowtie2 "
