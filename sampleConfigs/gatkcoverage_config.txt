@@ -21,7 +21,8 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_VAR=$TASK_RECAL
+INPUT_GATKDOC=$TASK_RECAL
+#ASR=
 
 # where to write the output
 OUT=$SOURCE
@@ -46,6 +47,7 @@ FASTA=
 ADDPARAMGATKDOC=
 LIST= #region of specific interest, e.g. targeted reseq
 GENE= #gene list
+FORCEINTERVALS= # boolean - if this is empty AND it is parallele --omitIntervalStatistic is 
 
 #TASK_GATKDOC="coverage"
 #WALLTIME_GATKDOC=50:00:00
