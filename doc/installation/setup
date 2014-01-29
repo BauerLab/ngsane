@@ -17,7 +17,7 @@ rm /usr/lib/pymodules/python2.7/Cython-0.15.1.egg-info
 ################################################################################
 PACKAGEPATH=/packages
 MODULEPATH=/modules
-mkdir -p $PACKAGEPATH && mkdir $MODULEPATH
+mkdir -p $PACKAGEPATH && mkdir -p $MODULEPATH
 
 ################################################################################
 echo "update packages"
@@ -712,8 +712,8 @@ SOFTWARE=meme
 echo "install $SOFTWARE $VERSION " && cd /tmp/
 mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 
-wget http://ebi.edu.au/ftp/software/MEME/$VERSION/$SOFTWARE"_"$VERSION.tar.gz
-tar -xf $SOFTWARE"_"$VERSION.tar.gz
+wget http://ebi.edu.au/ftp/software/MEME/$VERSION/$SOFTWARE"_"$VERSION"_1".tar.gz
+tar -xf $SOFTWARE"_"$VERSION"_1".tar.gz
 cd $SOFTWARE"_"$VERSION
 ./configure --prefix=/packages/$SOFTWARE/$VERSION --enable-opt
 make && make test
@@ -922,7 +922,7 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=0.4.1
+VERSION=0.4.2
 SOFTWARE=hicup
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -946,14 +946,14 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=1.0.0
+VERSION=1.0.1
 SOFTWARE=fit-hi-c
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
 mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 
-wget https://www.dropbox.com/s/y0j61bhwkxprg5q/fithic_$VERSION.tgz
-tar -xf fithic_$VERSION.tgz*
+wget http://noble.gs.washington.edu/proj/$SOFTWARE/software/fithic_$VERSION.tgz
+tar -xf fithic_$VERSION.tgz
 mv $SOFTWARE/* $PACKAGEPATH/$SOFTWARE/$VERSION
 chmod 555 $PACKAGEPATH/$SOFTWARE/$VERSION/bin/*
 
@@ -1057,16 +1057,19 @@ module load $SOFTWARE/$VERSION
 
 ################################################################################
 
-VERSION=2.5-2
+VERSION=2.8-1
 SOFTWARE=gatk
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
 mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 
-wget https://www.dropbox.com/sh/1misjysdehceq4h/tVc5HpAu6X/GenomeAnalysisTK-$VERSION-gf57256b.tar.bz2
+# download from http://www.broadinstitute.org/gatk/auth?package=GATK after registering
 
-tar -xf GenomeAnalysisTK-$VERSION-gf57256b.tar.bz2
-mv GenomeAnalysisTK-$VERSION-gf57256b/* $PACKAGEPATH/$SOFTWARE/$VERSION
+tar -xf GenomeAnalysisTK-$VERSION.tar.bz2
+mv GenomeAnalysisTK-$VERSION-*/* $PACKAGEPATH/$SOFTWARE/$VERSION
+tar -xf Queue-$VERSION.tar.bz2
+cp -r Queue-$VERSION-*/* $PACKAGEPATH/$SOFTWARE/$VERSION
+
 chmod 777 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
@@ -1243,6 +1246,36 @@ DELIM
 
 module load $SOFTWARE/$VERSION
 
+################################################################################
+VERSION=0.2.5
+SOFTWARE=pindel
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget wget https://github.com/genome/$SOFTWARE/archive/v$VERSION.tar.gz
+tar -xf v$VERSION.tar.gz
+cd $SOFTWARE-$VERSION
+# workaround for install
+./INSTALL $PACKAGEPATH/samtools/0.1.19/include/bam/
+./INSTALL $PACKAGEPATH/samtools/0.1.19/lib/
+
+mv /tmp/$SOFTWARE-$VERSION $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+
 ##############
 # needs more memory than ti.micro
 ################################################################################
@@ -1277,7 +1310,7 @@ module load $SOFTWARE/$VERSION
 
 ################################################################################
 
-NGSANE_VERSION=0.3.0
+NGSANE_VERSION=0.4.0.1
 NGSANE_SOFTWARE=ngsane
 
 echo "install $NGSANE_SOFTWARE $NGSANE_VERSION " && cd /tmp/
@@ -1312,7 +1345,7 @@ sed -i 's|^NG_JAVA=|NG_JAVA=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/con
 sed -i 's|^NG_FASTQC=|NG_FASTQC=fastqc/0.10.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_SAMTOOLS=|NG_SAMTOOLS=samtools/0.1.19|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_IGVTOOLS=|NG_IGVTOOLS=igvtools/2.3.23|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_GATK=|NG_GATK=gatk/2.5-2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_GATK=|NG_GATK=gatk/2.8-1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BWA=|NG_BWA=bwa/0.7.5a|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_IMAGEMAGIC=|NG_IMAGEMAGIC=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_PICARD=|NG_PICARD=picard-tools/1.102|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1332,22 +1365,24 @@ sed -i 's|^NG_CUFFLINKS=|NG_CUFFLINKS=cufflinks/2.1.1|' $PACKAGEPATH/$NGSANE_SOF
 sed -i 's|^NG_MONO=|NG_MONO=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BLUE=|NG_BLUE=blue/1.0.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_PERL=|NG_PERL=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_SEQLOGO=|NG_SEQLOGO=2.8.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_SEQLOGO=|NG_SEQLOGO=seqlogo/2.8.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BLAT=|NG_BLAT=blat/35|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_WIGGLER=|NG_WIGGLER=wiggler/2.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HOMER=|NG_HOMER=homer/4.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_CUTADAPT=|NG_CUTADAPT=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_CUTADAPT=|NG_CUTADAPT=${NG_PYTHON}|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_TRIMGALORE=|NG_TRIMGALORE=trim_galore/0.3.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_TRIMMOMATIC=|NG_TRIMMOMATIC=trimmomatic/0.30|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HDF5=|NG_HDF5=hdf5/1.8.12|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HICLIB=|NG_HICLIB=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_HICUP=|NG_HICUP=hicup/0.4.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_FITHIC=|NG_FITHIC=fit-hi-c/1.0.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_HICUP=|NG_HICUP=hicup/0.4.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_FITHIC=|NG_FITHIC=fit-hi-c/1.0.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_FASTQSCREEN=|NG_FASTQSCREEN=fastq_screen/0.4.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_MATLAB=|NG_MATLAB=mcr/2012b|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CHANCE=|NG_CHANCE=chance/com|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_PARALLEL=|NG_PARALLEL=parallel/20131022|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_TRINITY=|NG_TRINITY=trinityrnaseq/2013_08_14|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_PINDEL=|NG_PINDEL=pindel/0.2.5|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_CIRCOS=|NG_CIRCOS=circos/0.64|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 
 # databases
 sed -i 's|^MEMECHIPDATABASES=|MEMECHIPDATABASES=/packages/meme/4.9.1/db/motif_databases/jolma2013.meme|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
