@@ -57,6 +57,8 @@ echo -e "--R          --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--peakranger --\n "$(peakranger | head -n 3 | tail -n 1)
 [ -z "$(which peakranger)" ] && echo "[ERROR] peakranger not detected" && exit 1
+echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
+[ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress bedgraphs"
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -73,6 +75,13 @@ n=${f##*/}
 SAMPLE=${n/%.$ASD.bam/}
 c=${CHIPINPUT##*/}
 CONTROL=${c/%.$ASD.bam/}
+
+GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
+if [ ! -f $GENOME_CHROMSIZES ]; then
+    echo "[WARN] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES. Will not create bigBed file"
+else
+    echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
+fi
 
 if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/$SAMPLE-$CONTROL"_region.bed" ] && rm $OUTDIR/$SAMPLE-$CONTROL*
@@ -131,15 +140,22 @@ else
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    # remove comments from bed files
-    grep -v "#" $OUTDIR/$SAMPLE-$CONTROL"_region.bed" > $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
+    # keep only peaks that pass the FDR
+    awk '{if($0~"fdrPassed"){print $0}}' $OUTDIR/$SAMPLE-$CONTROL"_region.bed" > $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
     mv $OUTDIR/$SAMPLE-$CONTROL"_region.tmp" $OUTDIR/$SAMPLE-$CONTROL"_region.bed"
-    
-    grep -v "#" $OUTDIR/$SAMPLE-$CONTROL"_summit.bed" > $OUTDIR/$SAMPLE-$CONTROL"_summit.tmp" 
+
+    awk '{if($0~"fdrPassed"){print $0}}' $OUTDIR/$SAMPLE-$CONTROL"_summit.bed" > $OUTDIR/$SAMPLE-$CONTROL"_summit.tmp"
     mv $OUTDIR/$SAMPLE-$CONTROL"_summit.tmp" $OUTDIR/$SAMPLE-$CONTROL"_summit.bed"
     
     echo "Peaks: $(wc -l $OUTDIR/$SAMPLE-$CONTROL"_region.bed" | awk '{print $1}')" >> $OUTDIR/$SAMPLE-$CONTROL.summary.txt
 
+    # make bigbed
+	if hash bedToBigBed && [ -f $GENOME_CHROMSIZES ] && [ -s $OUTDIR/$SAMPLE-$CONTROL"_region.bed" ] ; then
+        bedtools intersect -a <(cut -f1-3 $OUTDIR/$SAMPLE-$CONTROL"_region.bed" | sort -k1,1 -k2,2n) -b <( awk '{OFS="\t"; print $1,1,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
+        bedToBigBed -type=bed3 $OUTDIR/$SAMPLE-$CONTROL"_region.tmp" $GENOME_CHROMSIZES $OUTDIR/$SAMPLE-$CONTROL"_region.bb"
+        rm $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
+    fi
+    
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE-$CONTROL"_region.bed" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
