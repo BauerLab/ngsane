@@ -90,7 +90,6 @@ function summaryHeader {
         RESULTLOCATION=""
     fi
 
-    echo "${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $4 --modscript $3 --log $QOUT --toolkit $CONFIG --task $2 $RESULTLOCATION $SUFFIX"
     ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $4 --modscript $3 --log $QOUT --toolkit $CONFIG --task $2 $RESULTLOCATION $SUFFIX >> $4    
     
     grep -r -P '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES
