@@ -1,6 +1,15 @@
-NGSANE is a framework for advanced production informatics of Next Generation Sequencing libraries.
+NGSANE is a framework for advanced production informatics of Next Generation 
+Sequencing libraries.
 
-Version: 0.4
+Version: 0.4.0.1
+
+
+################################################################################
+# Associated publication
+
+"NGSANE: A Lightweight Production Informatics Framework for High Throughput 
+Data Analysis"
+Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC, Bioinformatics (accepted)
 
 ################################################################################
 # Setup:
@@ -55,10 +64,10 @@ Make a new folder for your project and create the following folder structure:
 <PROJECT>
 - fastq
 - - <EXPERIMENT1>
-- - - <LIBRARY1_READ1>.fq[.gz]
-- - - <LIBRARY1_READ2>.fq[.gz] (if paired library)
-- - - <LIBRARY2_READ1>.fq[.gz]
-- - - <LIBRARY2_READ2>.fq[.gz] (if paired library)
+- - - <LIBRARY1_READ1>.fastq[.gz]
+- - - <LIBRARY1_READ2>.fastq[.gz] (if paired library)
+- - - <LIBRARY2_READ1>.fastq[.gz]
+- - - <LIBRARY2_READ2>.fastq[.gz] (if paired library)
 - config.txt
 
 Here <PROJECT> is your project name. The fastq folder contains all raw data
@@ -66,7 +75,7 @@ grouped by EXPERIMENT (or any other meaningful way). Each EXPERIMENT folder
 can contain multiple sequencing libraries. You probably want them gzipped to
 save space. You can add additional EXPERIMENT folders if you like. However, 
 all libraries should have the same ending as well as the same read-pair 
-identification (e.g. have the suffix _R1.fq.gz for read1 of a zipped fastq).
+identification (e.g. have the suffix _R1.fastq.gz for read1 of a zipped fastq).
 for examples of config files for different pipelines look in the 
 ngsane/sampleConfigs/.
 

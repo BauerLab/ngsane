@@ -27,6 +27,10 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
+# read indicator immediately preceding the fastq file suffix
+READONE=
+READTWO=
+
 #********************
 # PARAMETER (mandatory)
 #********************
