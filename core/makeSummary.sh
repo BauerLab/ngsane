@@ -480,12 +480,10 @@ if [ -n "$RUNHICUP" ];then
     python ${NGSANE_BASE}/core/Summary.py "$vali" "_deduplicator_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     
     imgs=""
-    for dir in ${DIR[@]}; do
-        for f in $(ls ${dir%%/*}/$TASK_HICUP/*_ditag_classification.png 2> /dev/null); do
-            n=${f##*/}
-            n=${n/"_ditag_classification.png"/}
-            imgs+="<div class='inset_image'>$n<br/><a href=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_ditag_classification.png\"><img src=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_ditag_classification.png\" width=\"200px\"/></a><br/><a href=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_uniques_cis-trans.png\"><img src=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_uniques_cis-trans.png\" width=\"200px\"/></a></div>"
-        done
+    for f in $(ls runStats/$TASK_HICUP/*_ditag_classification.png 2> /dev/null); do
+        n=${f##*/}
+        n=${n/"_ditag_classification.png"/}
+        imgs+="<div class='inset_image'>$n<br/><a href=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_ditag_classification.png\"><img src=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_ditag_classification.png\" width=\"200px\"/></a><br/><a href=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_uniques_cis-trans.png\"><img src=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_uniques_cis-trans.png\" width=\"200px\"/></a><br/><a href=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_ditag_size_distribution.png\"><img src=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_ditag_size_distribution.png\" width=\"200px\"/></a></div>"
     done
     echo "<div>$imgs</div>" >> $SUMMARYTMP
     
