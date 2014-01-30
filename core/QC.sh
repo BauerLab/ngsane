@@ -56,8 +56,6 @@ fi
 # pack normal and post command in a long string for the subsequent loops
 # file1*file2*file3:task.sh postcommand:posttask.sh
 for dir in ${DIR[@]}; do
-#    for file in $(ls $QOUT/$TASK/$dir*.out | grep -v "postcommand" | gawk '{ ORS=" "; print; }' | tr " " "*"); do
-    echo ${dir%%/*}
     for file in $(ls $QOUT/$TASK/${dir%%/*}*.out | grep -v "postcommand"); do
         LOGFILES="${LOGFILES} ${file}"
     done
