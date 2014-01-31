@@ -56,7 +56,7 @@ FASTAGETMARKOVADDPARAM=
 MEMECHIPADDPARAM="-nmeme 1000 -meme-nmotifs 1 -dreme-m 3 -centrimo-local -centrimo-noseq -meme-mod zoops"
 
 # additional parameters to pass to fimo
-FIMOADDPARAM="--qv-thresh --thresh 0.05 --motif 0"
+FIMOADDPARAM="--qv-thresh --thresh 0.05"
 
 # folder containing the memechip databases 
 # MEMECHIPDATABASES=
