@@ -44,7 +44,7 @@ READTWO="_R2"
 
 # additional parameter passed onto fastqc
 # e.g. "--nogroup" or "--kmers 10"
-FASTQCADDPARAM
+FASTQCADDPARAM=
 
 #WALLTIME_FASTQC=10:00:00
 #MEMORY_FASTQC=20
