@@ -160,7 +160,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    echo "Peak regions: $(wc -l $f |  cut -d' ' -f 1))" > $OUTDIR/$SAMPLE.summary.txt
+    echo "Peak regions: $(wc -l $f |  cut -d' ' -f 1)" > $OUTDIR/$SAMPLE.summary.txt
     
     # take longest motif that clusters with the top motif (avoid running fimo on dreme results
     MOTIFNUM=$(grep -P "^0" $OUTDIR/$SAMPLE/motif_alignment.txt | awk '{OFS="\t";print $0,length($9)}' | sort -k11,11gr | cut -f 2 | head -n 1)
