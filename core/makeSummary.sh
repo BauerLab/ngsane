@@ -167,11 +167,12 @@ if [ -n "$RUNFASTQC" ]; then
     echo "<h3>${OUT##*/}/fastq/${dir%%/*}/</h3>" >>$SUMMARYTMP
         echo "<table class='data'>" >>$SUMMARYTMP
         echo "<thead><tr><th><div style='width:100px'>Chart</div></th><th><div style='width:140px'>Encoding</div></th><th><div style='width:120px'>Library size</div></th><th><div style='width:50px'>Read</div></th><th><div style='width:80px'>Read length</div></th><th><div style='width:50px'>%GC</div></th><th><div style='width:120px'>Read qualities</th><th class='left'>Library</th></tr></thead><tbody>" >>$SUMMARYTMP
-        
+ 
         if [[ -e ${dir%%/*}/$TASK_FASTQC/ ]]; then
-            for fasta in $(ls $OUT/fastq/${dir%%/*}/*.$FASTQ); do
-                fastan=${fasta##*/}
-                f="${dir%%/*}/$TASK_FASTQC/${fastan/.$FASTQ/}_fastqc.zip"
+             for librarylog in $(ls $QOUT/$TASK_FASTQC/${dir%%/*}_*.out); do           
+                libraryfile=${librarylog/$QOUT\/$TASK_FASTQC\/${dir%%/*}_/}
+                library=${libraryfile/%.out/}
+                f="${dir%%/*}/$TASK_FASTQC/${library}_fastqc.zip"
                 # get basename of f
                 n=${f##*/}
                 n=${n/"_fastqc.zip"/}
@@ -206,7 +207,7 @@ if [ -n "$RUNFASTQC" ]; then
         		else
         			echo "[ERROR] no fastq files $f"
                 fi
-                echo "</td><td class='left'><a href='$PROJECT_RELPATH/${dir%%/*}/$TASK_FASTQC/"$n"_fastqc/fastqc_report.html'>${fastan/.$FASTQ/}</a></td></tr>" >>$SUMMARYTMP
+                echo "</td><td class='left'><a href='$PROJECT_RELPATH/${dir%%/*}/$TASK_FASTQC/"$n"_fastqc/fastqc_report.html'>${library}</a></td></tr>" >>$SUMMARYTMP
             done
         fi
         echo "</tbody></table>">>$SUMMARYTMP
@@ -588,9 +589,9 @@ if [ -n "$RUNMEMECHIP" ]; then
             TOMTOMKNOWNMOTIF=$(grep "Most similar known motif:" $summary | cut -d':' -f 2)
             PEAKS=$(grep "Peak regions:" $summary | cut -d':' -f 2)
             FIMODIRECT=$(grep "bound directly" $summary | cut -d':' -f 2)
-            FIMODIRECTP=$(echo "scale=2;100 * $FIMODIRECT / $PEAKS" | bc)
+            [ -n "$FIMODIRECT" ] && FIMODIRECTP=$(echo "scale=2;100 * $FIMODIRECT / $PEAKS" | bc)
             FIMOINDIRECT=$(grep "bound indirectly" $summary | cut -d':' -f 2)
-            FIMOINDIRECTP=$(echo "scale=2;100 * $FIMOINDIRECT / $PEAKS" | bc)
+            [ -n "$FIMOINDIRECT" ] && FIMOINDIRECTP=$(echo "scale=2;100 * $FIMOINDIRECT / $PEAKS" | bc)
             echo "<tr style='vertical-align: middle;'>"  >>$SUMMARYTMP
             echo "<td><a href='$PROJECT_RELPATH/${dir/$OUT/}/$TASK_MEMECHIP/$SAMPLE/index.html'><img src='$PROJECT_RELPATH/${dir/$OUT/}/$TASK_MEMECHIP/$SAMPLE/meme_out/logo1.png' height=75 alt='Meme Motif LOGO'/></a></td>" >>$SUMMARYTMP            
             echo "<td>$MEMEMOTIF</td><td>$MEMEQVALUE</td><td>$TOMTOMKNOWNMOTIF</td><td>$PEAKS</td><td>$FIMODIRECT</td><td>$FIMODIRECTP</td><td>$FIMOINDIRECT</td><td>$FIMOINDIRECTP</td><td class='left'><a href='$PROJECT_RELPATH/${dir/$OUT/}/$TASK_MEMECHIP/$SAMPLE/index.html'>$SAMPLE</a></td></tr>" >>$SUMMARYTMP
