@@ -162,8 +162,24 @@ else
 
     echo "Peak regions: $(wc -l $f |  cut -d' ' -f 1)" > $OUTDIR/$SAMPLE.summary.txt
     
-    # take longest motif that clusters with the top motif (avoid running fimo on dreme results
-    MOTIFNUM=$(grep -P "^0" $OUTDIR/$SAMPLE/motif_alignment.txt | awk '{OFS="\t";print $0,length($9)}' | sort -k11,11gr | cut -f 2 | head -n 1)
+    # extract top motif from combined motif
+    sed -n '/MEME/,/MOTIF 1/p'  $OUTDIR/$SAMPLE/combined.meme | head -n-1 >  $OUTDIR/$SAMPLE/topmotif.meme
+    # get motif from meme that best matches top hit
+    RUN_COMMAND="tomtom -verbosity 1 -text -thresh 0.01 $OUTDIR/$SAMPLE/topmotif.meme $OUTDIR/$SAMPLE/meme_out/meme.xml | tail -n+2 1> $OUTDIR/$SAMPLE/topmotif_memehit.txt 2> /dev/null"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+    
+    if [ -s $OUTDIR/$SAMPLE/topmotif_memehit.txt ]; then
+        # get target id motif from hit
+        MEMEMOTIFNUM=$(cut -f 2 $OUTDIR/$SAMPLE/topmotif_memehit.txt)
+        MEMECONSENSUS=$(cut -f 9 $OUTDIR/$SAMPLE/topmotif_memehit.txt)
+        MOTIFNUM=$(awk -v CONS=$MEMECONSENSUS  '{if ($1 == 0 && $9 == CONS){print $0}}' $OUTDIR/$SAMPLE/motif_alignment.txt | cut -f 2)
+        echo "MEME motif:$MEMEMOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
+        echo "Combined motif: $MOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
+    else
+        # otherwise take longest motif that clusters with the top motif (avoid running fimo on dreme results
+        MOTIFNUM=$(awk '{if ($1==0 && $6<0.01){OFS="\t";print $0,length($9)}}' $OUTDIR/$SAMPLE/motif_alignment.txt | sort -k11,11gr | cut -f 2 | head -n 1)
+        echo "Combined motif: $MOTIFNUM"
+    fi
        
     RUN_COMMAND="fimo $FIMOADDPARAM --motif $MOTIFNUM --bgfile $MEMEBACKGROUND --oc $OUTDIR/$SAMPLE"_"fimo $OUTDIR/$SAMPLE/combined.meme $OUTDIR/$SAMPLE.fasta"
     echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -172,6 +188,7 @@ else
         echo "[NOTE] no motif occurences enriched using fimo with given cutoff"
     
     else
+
         for PATTERN in $(tail -n+2 $OUTDIR/$SAMPLE"_"fimo/fimo.txt | awk '{print $1}' | sort -u); do
             echo "[NOTE] Motif: $PATTERN"
 
@@ -186,11 +203,14 @@ else
             
             echo "Motif $PATTERN bound directly (strong site): $(cat $OUTDIR/${n/$BED/_motif}_${PATTERN}.direct.bed | awk '{print $4}' | sort -u | wc -l | awk '{print $1}')" >> $OUTDIR/$SAMPLE.summary.txt
             echo "Motif $PATTERN bound indirectly (weak or no site): $(cat $OUTDIR/${n/$BED/_motif}_${PATTERN}.indirect.bed | awk '{print $4}' | sort -u | wc -l | awk '{print $1}')" >> $OUTDIR/$SAMPLE.summary.txt
-            
-            echo "Most similar known motif: "$(cat $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 2) >> $OUTDIR/$SAMPLE.summary.txt
-            echo "Q-value: "$(cat $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 6) >> $OUTDIR/$SAMPLE.summary.txt
-            echo "Query consensus: "$(cat $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 8) >> $OUTDIR/$SAMPLE.summary.txt
-            echo "Target consensus: "$(cat $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt | head -n 2 | tail -n 1 | cut -f 9) >> $OUTDIR/$SAMPLE.summary.txt
+            EVALUE=$(grep "letter-probability matrix" $OUTDIR/$SAMPLE/combined.meme | awk -v MOTIF=`expr $MOTIFNUM + 1` '{;if (NR==MOTIF){IFS="=";print $10}}')
+            echo "E-value: $EVALUE">> $OUTDIR/$SAMPLE.summary.txt
+#            echo "E-value: $(grep -A 2 'MOTIF $MOTIFNUM' $OUTDIR/$SAMPLE/combined.meme | tail -n 1 | cut -d'=' -f5)" >> $OUTDIR/$SAMPLE.summary.txt
+                        
+            echo "Most similar known motif: "$(cat $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt | tail -n +2 | head -n 1 | cut -f 2) >> $OUTDIR/$SAMPLE.summary.txt
+            echo "Q-value: "$(cat $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt | tail -n +2 | head -n 1 | cut -f 6) >> $OUTDIR/$SAMPLE.summary.txt
+            echo "Query consensus: "$(cat $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt | tail -n +2 | head -n 1 | cut -f 8) >> $OUTDIR/$SAMPLE.summary.txt
+            echo "Target consensus: "$(cat $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt | tail -n +2 | head -n 1 | cut -f 9) >> $OUTDIR/$SAMPLE.summary.txt
         done
         
         [ -e $OUTDIR/$SAMPLE"_"sorted.bed ] && rm $OUTDIR/$SAMPLE"_"sorted.bed
@@ -204,9 +224,10 @@ fi
 ################################################################################
 CHECKPOINT="cleanup"    
 
-[ -e $OUTDIR/$SAMPLE.fasta ] && rm $OUTDIR/$SAMPLE.fasta
-[ -d $OUTDIR/$SAMPLE"_"fimo ] && rm -r $OUTDIR/$SAMPLE"_"fimo
-[ -e $OUTDIR/$SAMPLE.bg ] && rm $OUTDIR/$SAMPLE.bg 
+#[ -e $OUTDIR/$SAMPLE.fasta ] && rm $OUTDIR/$SAMPLE.fasta
+#[ -e $OUTDIR/$SAMPLE.bg ] && rm $OUTDIR/$SAMPLE.bg 
+#[ -d $OUTDIR/$SAMPLE"_"fimo ] && rm -r $OUTDIR/$SAMPLE"_"fimo
+#[ -f $OUTDIR/$SAMPLE/topmotif.meme ] && rm $OUTDIR/$SAMPLE/topmotif.meme
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
