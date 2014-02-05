@@ -224,10 +224,10 @@ fi
 ################################################################################
 CHECKPOINT="cleanup"    
 
-#[ -e $OUTDIR/$SAMPLE.fasta ] && rm $OUTDIR/$SAMPLE.fasta
-#[ -e $OUTDIR/$SAMPLE.bg ] && rm $OUTDIR/$SAMPLE.bg 
-#[ -d $OUTDIR/$SAMPLE"_"fimo ] && rm -r $OUTDIR/$SAMPLE"_"fimo
-#[ -f $OUTDIR/$SAMPLE/topmotif.meme ] && rm $OUTDIR/$SAMPLE/topmotif.meme
+[ -e $OUTDIR/$SAMPLE.fasta ] && rm $OUTDIR/$SAMPLE.fasta
+[ -e $OUTDIR/$SAMPLE.bg ] && rm $OUTDIR/$SAMPLE.bg 
+[ -d $OUTDIR/$SAMPLE"_"fimo ] && rm -r $OUTDIR/$SAMPLE"_"fimo
+[ -f $OUTDIR/$SAMPLE/topmotif.meme ] && rm $OUTDIR/$SAMPLE/topmotif.meme $OUTDIR/$SAMPLE/topmotif_memehit.txt
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
