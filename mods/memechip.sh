@@ -197,7 +197,6 @@ else
     else
 
         for PATTERN in $(tail -n+2 $OUTDIR/$SAMPLE"_"fimo/fimo.txt | awk '{print $1}' | sort -u); do
-            echo "[NOTE] Motif: $PATTERN"
 
             sort -k4,4 -k1,1 -k2,2g $f > $OUTDIR/$SAMPLE"_"sorted.bed
             grep -P "^${PATTERN}\t" $OUTDIR/$SAMPLE"_"fimo/fimo.txt | cut -f2-4,6 | tail -n+2 | sort -k1,1 > $OUTDIR/$SAMPLE"_"fimo/$PATTERN.txt
@@ -212,12 +211,10 @@ else
             echo "Motif $PATTERN bound indirectly (weak or no site): $(cat $OUTDIR/${n/$BED/_motif}_${PATTERN}.indirect.bed | awk '{print $4}' | sort -u | wc -l | awk '{print $1}')" >> $OUTDIR/$SAMPLE.summary.txt
             EVALUE=$(grep "letter-probability matrix" $OUTDIR/$SAMPLE/combined.meme | awk -v MOTIF=`expr $MOTIFNUM + 1` '{;if (NR==MOTIF){IFS="=";print $10}}')
             echo "E-value: $EVALUE">> $OUTDIR/$SAMPLE.summary.txt
-#            echo "E-value: $(grep -A 2 'MOTIF $MOTIFNUM' $OUTDIR/$SAMPLE/combined.meme | tail -n 1 | cut -d'=' -f5)" >> $OUTDIR/$SAMPLE.summary.txt
-                        
-            TOMTOM="$(awk -v MEME=$MEMEMOTIFNUM '{if ($1 == MEME){print $0; exit 1}}' $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt)"
-            echo "Most similar known motif: "$(echo $TOMTOM | cut -d" " -f 2) >> $OUTDIR/$SAMPLE.summary.txt
-            echo "Q-value: "$(echo $TOMTOM | cut -d" " -f 6) >> $OUTDIR/$SAMPLE.summary.txt
-            echo "Target consensus: "$(echo $TOMTOM | cut -d" " -f 9) >> $OUTDIR/$SAMPLE.summary.txt
+            TOMTOM=$(awk -v MEME=$MEMEMOTIFNUM '{if ($1 == MEME){print $0; exit}}' $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt)
+            echo "Most similar known motif: "$(echo "$TOMTOM" | awk '{print $2}') >> $OUTDIR/$SAMPLE.summary.txt
+            echo "Q-value: "$(echo "$TOMTOM" | awk '{print $6}') >> $OUTDIR/$SAMPLE.summary.txt
+            echo "Target consensus: "$(echo "$TOMTOM" | awk '{print $9}') >> $OUTDIR/$SAMPLE.summary.txt
         done
         
         [ -e $OUTDIR/$SAMPLE"_"sorted.bed ] && rm $OUTDIR/$SAMPLE"_"sorted.bed
