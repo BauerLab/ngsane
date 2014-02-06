@@ -214,10 +214,10 @@ else
             echo "E-value: $EVALUE">> $OUTDIR/$SAMPLE.summary.txt
 #            echo "E-value: $(grep -A 2 'MOTIF $MOTIFNUM' $OUTDIR/$SAMPLE/combined.meme | tail -n 1 | cut -d'=' -f5)" >> $OUTDIR/$SAMPLE.summary.txt
                         
-            TOMTOM=$(awk -v MEME=$MEMEMOTIFNUM '{if ($1 == MEME){print $0; exit 1}}' $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt)
-            echo "Most similar known motif: "$(echo $TOMTOM | cut -f 2) >> $OUTDIR/$SAMPLE.summary.txt
-            echo "Q-value: "$(echo $TOMTOM | cut -f 6) >> $OUTDIR/$SAMPLE.summary.txt
-            echo "Target consensus: "$(echo $TOMTOM | cut -f 9) >> $OUTDIR/$SAMPLE.summary.txt
+            TOMTOM="$(awk -v MEME=$MEMEMOTIFNUM '{if ($1 == MEME){print $0; exit 1}}' $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt)"
+            echo "Most similar known motif: "$(echo $TOMTOM | cut -d" " -f 2) >> $OUTDIR/$SAMPLE.summary.txt
+            echo "Q-value: "$(echo $TOMTOM | cut -d" " -f 6) >> $OUTDIR/$SAMPLE.summary.txt
+            echo "Target consensus: "$(echo $TOMTOM | cut -d" " -f 9) >> $OUTDIR/$SAMPLE.summary.txt
         done
         
         [ -e $OUTDIR/$SAMPLE"_"sorted.bed ] && rm $OUTDIR/$SAMPLE"_"sorted.bed
