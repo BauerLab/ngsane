@@ -865,8 +865,8 @@ def fastqscreenStats(logFile):
 
     # populate
     for s in species:
-        values.append(float(s.split()[2]))
-        values.append(float(s.split()[3]))
+        values.append(float(s.split()[5]))
+        values.append(float(s.split()[7]))
 
     tmp=file.split("%Hit_no_libraries:")[1].strip().split()[0]
     
