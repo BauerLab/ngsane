@@ -172,13 +172,20 @@ else
         # get target id motif from hit
         MEMEMOTIFNUM=$(cut -f 2 $OUTDIR/$SAMPLE/topmotif_memehit.txt)
         MEMECONSENSUS=$(cut -f 9 $OUTDIR/$SAMPLE/topmotif_memehit.txt)
-        MOTIFNUM=$(awk -v CONS=$MEMECONSENSUS  '{if ($1 == 0 && $9 == CONS){print $0}}' $OUTDIR/$SAMPLE/motif_alignment.txt | cut -f 2)
+        MOTIFNUM=$(awk -v CONS=$MEMECONSENSUS  '{if ($9 == CONS){print $0; exit 1}}' $OUTDIR/$SAMPLE/motif_alignment.txt | cut -f 2)
+        if [ -z "$MOTIFNUM" ]; then 
+            # try reverse complement
+            MEMECONSENSUS=$(echo "$MEMECONSENSUS" | tr [GCTAgcta] [CGATcgat] | rev)
+            MOTIFNUM=$(awk -v CONS="$MEMECONSENSUS"  '{if ($9 == CONS){print $0; exit 1}}' $OUTDIR/$SAMPLE/motif_alignment.txt | cut -f 2)
+        fi
+        
         echo "MEME motif:$MEMEMOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
         echo "Combined motif: $MOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
+        echo "Query consensus: $MEMECONSENSUS" >> $OUTDIR/$SAMPLE.summary.txt
     else
         # otherwise take longest motif that clusters with the top motif (avoid running fimo on dreme results
         MOTIFNUM=$(awk '{if ($1==0 && $6<0.01){OFS="\t";print $0,length($9)}}' $OUTDIR/$SAMPLE/motif_alignment.txt | sort -k11,11gr | cut -f 2 | head -n 1)
-        echo "Combined motif: $MOTIFNUM"
+        echo "Combined motif: $MOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
     fi
        
     RUN_COMMAND="fimo $FIMOADDPARAM --motif $MOTIFNUM --bgfile $MEMEBACKGROUND --oc $OUTDIR/$SAMPLE"_"fimo $OUTDIR/$SAMPLE/combined.meme $OUTDIR/$SAMPLE.fasta"
@@ -207,10 +214,10 @@ else
             echo "E-value: $EVALUE">> $OUTDIR/$SAMPLE.summary.txt
 #            echo "E-value: $(grep -A 2 'MOTIF $MOTIFNUM' $OUTDIR/$SAMPLE/combined.meme | tail -n 1 | cut -d'=' -f5)" >> $OUTDIR/$SAMPLE.summary.txt
                         
-            echo "Most similar known motif: "$(cat $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt | tail -n +2 | head -n 1 | cut -f 2) >> $OUTDIR/$SAMPLE.summary.txt
-            echo "Q-value: "$(cat $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt | tail -n +2 | head -n 1 | cut -f 6) >> $OUTDIR/$SAMPLE.summary.txt
-            echo "Query consensus: "$(cat $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt | tail -n +2 | head -n 1 | cut -f 8) >> $OUTDIR/$SAMPLE.summary.txt
-            echo "Target consensus: "$(cat $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt | tail -n +2 | head -n 1 | cut -f 9) >> $OUTDIR/$SAMPLE.summary.txt
+            TOMTOM=$(awk -v MEME=$MEMEMOTIFNUM '{if ($1 == MEME){print $0; exit 1}}' $OUTDIR/$SAMPLE/meme_tomtom_out/tomtom.txt)
+            echo "Most similar known motif: "$(echo $TOMTOM | cut -f 2) >> $OUTDIR/$SAMPLE.summary.txt
+            echo "Q-value: "$(echo $TOMTOM | cut -f 6) >> $OUTDIR/$SAMPLE.summary.txt
+            echo "Target consensus: "$(echo $TOMTOM | cut -f 9) >> $OUTDIR/$SAMPLE.summary.txt
         done
         
         [ -e $OUTDIR/$SAMPLE"_"sorted.bed ] && rm $OUTDIR/$SAMPLE"_"sorted.bed
