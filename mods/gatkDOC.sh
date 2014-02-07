@@ -6,7 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
-# RESULTFILENAME <DIR>/$TASK_GATKDOC/<SAMPLE>.doc
+# RESULTFILENAME <DIR>/$TASK_GATKDOC/<SAMPLE>.$ASR.bam.doc
 
 echo ">>>>> determine the depth of coverage with GATK"
 echo ">>>>> startdate "`date`
@@ -108,6 +108,12 @@ if [ -z "$RECOVERFROM" ]; then
     if [ -e $QOUT/$n.doc ]; then rm $QOUT/$n.doc* ]; fi
 fi
 
+if [[ $(which GenomeAnalysisTK.jar) =~ "2.8" && -z "$FORCEINTERVALS" ]]; then 
+        echo "[NOTE] new GATK parallele, this will not generate IntervalStatistics"
+        PARALLELENCT="-nct $CPU_GATKDOC"
+		PARALLELENT="--omitIntervalStatistics -nt $CPU_GATKDOC"
+fi
+
 #java -jar /datastore/cmis/bau04c/SeqAna/apps/prod/Picard_svn/dist/CreateSequenceDictionary.jar R=/datastore/cmis/bau04c//SeqAna/reference/prod/GRCm38/GRCm38_chr.fasta O=/datastore/cmis/bau04c//SeqAna/reference/prod/GRCm38/GRCm38_chr.dict
 # BEDtools has it's own genome index file
 
@@ -131,6 +137,7 @@ else
         -ct 10 -ct 20 -ct 50 -ct 100 -ct 500 \
         --start 1 \
         --stop 100 \
+		$PARALLELENT \
         --nBins 10
     
     
@@ -140,7 +147,7 @@ else
     #    --minBaseQuality 20 \
     
     # mark checkpoint
-    if [ -f $OUTDIR/$n.doc ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$n.doc.sample_statistics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 

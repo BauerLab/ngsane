@@ -5,7 +5,7 @@
 # modified by Fabian Buske, Aug 2013
 
 function usage {
-echo -e "usage: $(basename $0) [OPTIONS] -m MOD.SCRIPT -l QOUT -t TASK"
+echo -e "usage: $(basename $0) [OPTIONS] -m MOD.SCRIPT -l QOUT -t TASK -k CONFIG"
 exit
 }
 
@@ -23,11 +23,17 @@ while [ "$1" != "" ]; do
         -s | --results-task )   shift; OUTTASK=$1 ;; # task the results are put in 
         -f | --filesuffix )     shift; RESULTSUFFIX=$1 ;; # suffix of the result file
         -o | --html-file )      shift; HTMLOUTPUT=$1;; # where the output will be place in the end
+        -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
     shift
 done
+
+#PROGRAMS
+. $CONFIG
+. ${NGSANE_BASE}/conf/header.sh
+. $CONFIG
 
 # default output location corresponds to the task at hand
 if [ -z "$OUTTASK" ]; then
@@ -49,9 +55,15 @@ fi
 
 # pack normal and post command in a long string for the subsequent loops
 # file1*file2*file3:task.sh postcommand:posttask.sh
-files=$(ls $QOUT/$TASK/*.out | grep -v "postcommand" | gawk '{ ORS=" "; print; }' | tr " " "*")
-if [ ! -z $files ]; then # if there is really more than just the postcommand
-	SCRIPTFILES=$files":"${NGSANE_BASE}/mods/${SCRIPT/%,*/}
+for dir in ${DIR[@]}; do
+    for file in $(ls $QOUT/$TASK/${dir%%/*}*.out | grep -v "postcommand"); do
+        LOGFILES="${LOGFILES} ${file}"
+    done
+done
+echo $LOGFILES
+
+if [ ! -z "$LOGFILES" ]; then # if there is really more than just the postcommand
+	SCRIPTFILES=$(echo $LOGFILES | tr ' ' '*')":"${NGSANE_BASE}/mods/${SCRIPT/%,*/}
 fi
 # normal postcommand
 if [ -e $QOUT/$TASK/postcommand.out ]; then
@@ -59,6 +71,7 @@ if [ -e $QOUT/$TASK/postcommand.out ]; then
 fi
 
 #echo $SCRIPTFILES 1>&2
+
 
 #########################################################################################
 # FIRST TAB
@@ -134,7 +147,8 @@ else
 fi
 
 SUMNOTES=0
-for i in $(ls $QOUT/$TASK/*.out) ;do
+#for i in $( ls $QOUT/$TASK/*.out ) ; do
+for i in $LOGFILES ;do
     echo -e "\n${i/$LOGFOLDER\//}"
     NOTELIST=$(grep -P "^\[NOTE\]" $i)
     echo -e "$NOTELIST"
@@ -154,7 +168,7 @@ else
 fi
 
 SUMERRORS=0
-for i in $( ls $QOUT/$TASK/*.out ) ;do
+for i in $LOGFILES ;do
     echo -e "\n${i/$LOGFOLDER\//}"
     ERRORLIST=$(grep -P "^\[ERROR\]" $i)
     if [ -n "$ERRORLIST" ]; then 
@@ -174,16 +188,18 @@ if [ -n "$HTMLOUTPUT" ]; then
 
     echo "</pre></div>"
     echo "<div id='${TASK}_logfiles'><div class='box'>"
-    for i in $( ls $QOUT/$TASK/*.out ) ; do
+    for i in $LOGFILES ;do
         FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
         echo "<a href='$FN'>${i/$QOUT\/$TASK\//}</a><br/>"
     done
     echo "</div></div>"
     if [ -n "$RESULTSUFFIX" ]; then
         echo "<div id='${TASK}_nrfiles'><div class='box'>"
-        for i in $(find $OUTDIR/*/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX | sort -n ); do
-            FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
-            echo "<a href='$FN'>${i/$OUTDIR\/*\/$OUTTASK\//}</a><br/>"
+        for dir in ${DIR[@]}; do
+            for i in $(find $OUTDIR/${dir%%/*}/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX | sort -n ); do
+                FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
+                echo "<a href='$FN'>${i/$OUTDIR\/*\/$OUTTASK\//}</a><br/>"
+            done
         done
         echo "</div></div>"
     fi

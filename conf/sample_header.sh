@@ -71,7 +71,7 @@ NG_MASAI=
 ##############################################################
 # Software reference
 ##############################################################
-NG_CITE_NGSANE="(accepted); 'NGSANE: A Lightweight Production Informatics Framework for High Throughput Data Analysis; Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC"
+NG_CITE_NGSANE="Bioinformatics 2014; doi: 10.1093/bioinformatics/btu036 'NGSANE: A Lightweight Production Informatics Framework for High Throughput Data Analysis; Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC"
 NG_CITE_R="R: A language and environment for statistical computing; R Core Team. R Foundation for Statistical Computing, Vienna, Austria, (2013)"
 NG_CITE_PYTHON="Guido van Rossum, Jelke de Boer: Linking a Stub Generator (AIL) to a Prototyping Language (Python). Spring 1991 EurOpen Conference Proceedings (May 20-24, 1991) Tromso, Norway."
 NG_CITE_FASTQC="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/"
@@ -98,7 +98,7 @@ NG_CITE_TRIMGALORE="http://www.bioinformatics.babraham.ac.uk/projects/trim_galor
 NG_CITE_TRIMMOMATIC="Nucleic Acids Res. 2012 Jul;40(Web Server issue):W622-7. doi: 10.1093/nar/gks540. Epub 2012 Jun 8. 'RobiNA: a user-friendly, integrated software solution for RNA-Seq-based transcriptomics.'; Lohse M, Bolger AM, Nagel A, Fernie AR, Lunn JE, Stitt M, Usadel B."
 NG_CITE_HICLIB="Nat Methods. 2012 Oct;9(10):999-1003. doi: 10.1038/nmeth.2148. Epub 2012 Sep 2. 'Iterative correction of Hi-C data reveals hallmarks of chromosome organization.'; Imakaev M, Fudenberg G, McCord RP, Naumova N, Goloborodko A, Lajoie BR, Dekker J, Mirny LA."
 NG_CITE_HICUP="http://www.bioinformatics.babraham.ac.uk/projects/hicup/"
-NG_CITE_FITHIC=
+NG_CITE_FITHIC="Genome Res February 5, 2014, doi:10.1101/gr.160374.113; 'Statistical confidence estimation for Hi-C data reveals regulatory chromatin contacts'; Ay F, Bailey TL, Noble WS"
 NG_CITE_FASTQSCREEN="http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/"
 NG_CITE_MATLAB="MathWorks, (2012). Bioinformatics Toolbox: User's Guide (R2012a). Retrieved July 14, 2012 from www.mathworks.com/help/pdf_doc/bioinfo/bioinfo_ug.pdf"
 NG_CITE_CHANCE="Genome Biol. 2012 Oct 15;13(10):R98. [Epub ahead of print] 'CHANCE: comprehensive software for quality control and validation of ChIP-seq data.'; Diaz A, Nellore A, Song JS."

@@ -1,6 +1,6 @@
 ##############################################################
 # fit-hi-c
-# 
+# http://noble.gs.washington.edu/proj/fit-hi-c/
 TASK_FITHIC="fithic"
 WALLTIME_FITHIC=10:00:00
 MEMORY_FITHIC=20
