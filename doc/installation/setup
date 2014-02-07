@@ -339,6 +339,7 @@ chmod 777 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
 
 module load $SOFTWARE/$VERSION
 
+
 ################################################################################
 VERSION=1.09
 SOFTWARE=samstat
@@ -1275,6 +1276,33 @@ DELIM
 
 module load $SOFTWARE/$VERSION
 
+
+################################################################################
+VERSION=2.0
+SOFTWARE=cramtools
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget https://github.com/enasequence/cramtools/blob/master/$SOFTWARE-$VERSION.jar?raw=true
+mv $SOFTWARE-$VERSION.jar $PACKAGEPATH/$SOFTWARE/$VERSION/$SOFTWARE.jar
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+prepend-path    CLASSPATH  $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
+setenv  CRAM_HOME $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+chmod 777 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
+
+module load $SOFTWARE/$VERSION
 
 ##############
 # needs more memory than ti.micro
