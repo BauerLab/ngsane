@@ -148,12 +148,12 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    if [ "$(grep '#2 predicted fragment length is -' $SAMPLE.summary.txt)" > 0 ]; then
+    if [ "$(grep '#2 predicted fragment length is -' $SAMPLE.summary.txt)" -gt 0 ]; then
         echo "[NOTE] Sample has negative fragment length, adjusting shiftsize with alternatives if available"
 
         [ -f $SAMPLE"_"peaks.xls ] && rm $SAMPLE"_"peaks.xls
     
-        if [ "$(grep '#2 alternative fragment length(s) may be' $SAMPLE.summary.txt | egrep -o '(-[0-9]{2,4},[0-9]{2,4})' | cut -d ',' -f 2)" > 0 ]; then
+        if [ "$(grep '#2 alternative fragment length(s) may be' $SAMPLE.summary.txt | egrep -o '(-[0-9]{2,4},[0-9]{2,4})' | cut -d ',' -f 2)" -gt 0 ]; then
             SHIFTSIZE="--shiftsize $(grep '#2 alternative fragment length(s) may be' $SAMPLE.summary.txt | egrep -o '(-[0-9]{2,4},[0-9]{2,4})' | cut -d ',' -f 2)"           
         fi
         
