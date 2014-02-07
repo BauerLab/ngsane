@@ -81,7 +81,7 @@ fi
 
 GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
 if [ ! -f $GENOME_CHROMSIZES ]; then
-    echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES"
+    echo "[ERROR] GENOME_CHROMSIZES not found. Expected at $GENOME_CHROMSIZES"
     exit 1
 else
     echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
