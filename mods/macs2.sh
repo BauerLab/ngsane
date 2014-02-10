@@ -148,7 +148,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    if [ "$(grep '#2 predicted fragment length is -' $SAMPLE.summary.txt)" -gt 0 ]; then
+    if [ "$(awk '{if ($0 ~ "#2 predicted fragment length is "){print $0}}' Kidney1_Input.summary.txt) | wc -l " -gt 0 ]; then
         echo "[NOTE] Sample has negative fragment length, adjusting shiftsize with alternatives if available"
 
         [ -f $SAMPLE"_"peaks.xls ] && rm $SAMPLE"_"peaks.xls
