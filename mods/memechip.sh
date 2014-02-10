@@ -183,7 +183,7 @@ else
         MOTIFNUM=$(awk '{if ($1==0 && $6<0.01){OFS="\t";print $0,length($9)}}' $OUTDIR/$SAMPLE/motif_alignment.txt | sort -k11,11gr | cut -f 2 | head -n 1)
         MEMECONSENSUS=$(sed -n '2,2p' $OUTDIR/$SAMPLE/motif_alignment.txt | cut -f 8)
     fi
-    echo "MEME motif:$MEMEMOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
+    echo "MEME motif: $MEMEMOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
     echo "Combined motif: $MOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
     echo "Query consensus: $MEMECONSENSUS" >> $OUTDIR/$SAMPLE.summary.txt
        

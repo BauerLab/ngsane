@@ -602,20 +602,21 @@ if [ -n "$RUNMEMECHIP" ]; then
             SAMPLE=${summary##*/}
             SAMPLE=${SAMPLE/.summary.txt/}
 
-            CONSENSUSMOTIF=$(grep "Query consensus:" $summary | cut -d':' -f 2)
-            MEMEEVALUE=$(grep "E-value:" $summary | cut -d':' -f 2)
+            CONSENSUSMOTIF=$(grep "Query consensus:" $summary | cut -d':' -f 2 | tr -d ' ')
+            MEMEEVALUE=$(grep "E-value:" $summary | cut -d':' -f 2 | tr -d ' ')
             
-            TOMTOMQVALUE=$(grep "Q-value:" $summary | cut -d':' -f 2)
+            TOMTOMQVALUE=$(grep "Q-value:" $summary | cut -d':' -f 2 | tr -d ' ')
             TOMTOMKNOWNMOTIF=$(grep "Most similar known motif:" $summary | cut -d':' -f 2)
             PEAKS=$(grep "Peak regions:" $summary | cut -d':' -f 2)
-            FIMODIRECT=$(grep "bound directly" $summary | cut -d':' -f 2)
+            FIMODIRECT=$(grep "bound directly" $summary | cut -d':' -f 2 | tr -d ' ')
             [ -n "$FIMODIRECT" ] && FIMODIRECTP=$(echo "scale=2;100 * $FIMODIRECT / $PEAKS" | bc) || FIMODIRECTP=""
-            FIMOINDIRECT=$(grep "bound indirectly" $summary | cut -d':' -f 2)
+            FIMOINDIRECT=$(grep "bound indirectly" $summary | cut -d':' -f 2 | tr -d ' ')
             [ -n "$FIMOINDIRECT" ] && FIMOINDIRECTP=$(echo "scale=2;100 * $FIMOINDIRECT / $PEAKS" | bc) || FIMOINDIRECTP=""
-            MEMEMOTIF=$(grep "MEME motif:" $summary | cut -d':' -f 2)
+            MEMEMOTIF=$(grep "MEME motif:" $summary | cut -d':' -f 2 | tr -d ' ')
             echo "<tr style='vertical-align: middle;'>"  >>$SUMMARYTMP
             
             if [ -n "$MEMEMOTIF" ]; then
+                echo "-$MEMEMOTIF-"
                 echo "<td><a href='$PROJECT_RELPATH/${dir/$OUT/}/$TASK_MEMECHIP/$SAMPLE/index.html'><img src='$PROJECT_RELPATH/${dir/$OUT/}/$TASK_MEMECHIP/$SAMPLE/meme_out/logo$MEMEMOTIF.png' height=75 alt='Meme Motif LOGO'/></a></td>" >>$SUMMARYTMP
             else
                 echo "<td><a href='$PROJECT_RELPATH/${dir/$OUT/}/$TASK_MEMECHIP/$SAMPLE/index.html'><div style='height:75px; width:150px; background-color:#ffffff;border: 1px dotted #999999; '></div></a></td>" >>$SUMMARYTMP
