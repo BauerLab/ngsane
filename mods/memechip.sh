@@ -170,8 +170,8 @@ else
     
     if [ -s $OUTDIR/$SAMPLE/topmotif_memehit.txt ]; then
         # get target id motif from hit
-        MEMEMOTIFNUM=$(cut -f 2 $OUTDIR/$SAMPLE/topmotif_memehit.txt)
-        MEMECONSENSUS=$(cut -f 9 $OUTDIR/$SAMPLE/topmotif_memehit.txt)
+        MEMEMOTIFNUM=$(cut -f 2 $OUTDIR/$SAMPLE/topmotif_memehit.txt | head -n 1)
+        MEMECONSENSUS=$(cut -f 9 $OUTDIR/$SAMPLE/topmotif_memehit.txt | head -n 1)
         MOTIFNUM=$(awk -v CONS=$MEMECONSENSUS  '{if ($9 == CONS){print $0; exit 1}}' $OUTDIR/$SAMPLE/motif_alignment.txt | cut -f 2)
         if [ -z "$MOTIFNUM" ]; then 
             # try reverse complement
@@ -185,6 +185,7 @@ else
     else
         # otherwise take longest motif that clusters with the top motif (avoid running fimo on dreme results
         MOTIFNUM=$(awk '{if ($1==0 && $6<0.01){OFS="\t";print $0,length($9)}}' $OUTDIR/$SAMPLE/motif_alignment.txt | sort -k11,11gr | cut -f 2 | head -n 1)
+        MEMECONSENSUS=$(sed -n '2,2p' $OUTDIR/$SAMPLE/motif_alignment.txt | cut -f 8)
         echo "Combined motif: $MOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
     fi
        
