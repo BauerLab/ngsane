@@ -178,16 +178,14 @@ else
             MEMECONSENSUS=$(echo "$MEMECONSENSUS" | tr [GCTAgcta] [CGATcgat] | rev)
             MOTIFNUM=$(awk -v CONS="$MEMECONSENSUS"  '{if ($9 == CONS){print $0; exit 1}}' $OUTDIR/$SAMPLE/motif_alignment.txt | cut -f 2)
         fi
-        
-        echo "MEME motif:$MEMEMOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
-        echo "Combined motif: $MOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
-        echo "Query consensus: $MEMECONSENSUS" >> $OUTDIR/$SAMPLE.summary.txt
     else
         # otherwise take longest motif that clusters with the top motif (avoid running fimo on dreme results
         MOTIFNUM=$(awk '{if ($1==0 && $6<0.01){OFS="\t";print $0,length($9)}}' $OUTDIR/$SAMPLE/motif_alignment.txt | sort -k11,11gr | cut -f 2 | head -n 1)
         MEMECONSENSUS=$(sed -n '2,2p' $OUTDIR/$SAMPLE/motif_alignment.txt | cut -f 8)
-        echo "Combined motif: $MOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
     fi
+    echo "MEME motif:$MEMEMOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
+    echo "Combined motif: $MOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
+    echo "Query consensus: $MEMECONSENSUS" >> $OUTDIR/$SAMPLE.summary.txt
        
     RUN_COMMAND="fimo $FIMOADDPARAM --motif $MOTIFNUM --bgfile $MEMEBACKGROUND --oc $OUTDIR/$SAMPLE"_"fimo $OUTDIR/$SAMPLE/combined.meme $OUTDIR/$SAMPLE.fasta"
     echo $RUN_COMMAND && eval $RUN_COMMAND
