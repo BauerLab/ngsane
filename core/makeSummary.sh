@@ -616,7 +616,6 @@ if [ -n "$RUNMEMECHIP" ]; then
             echo "<tr style='vertical-align: middle;'>"  >>$SUMMARYTMP
             
             if [ -n "$MEMEMOTIF" ]; then
-                echo "-$MEMEMOTIF-"
                 echo "<td><a href='$PROJECT_RELPATH/${dir/$OUT/}/$TASK_MEMECHIP/$SAMPLE/index.html'><img src='$PROJECT_RELPATH/${dir/$OUT/}/$TASK_MEMECHIP/$SAMPLE/meme_out/logo$MEMEMOTIF.png' height=75 alt='Meme Motif LOGO'/></a></td>" >>$SUMMARYTMP
             else
                 echo "<td><a href='$PROJECT_RELPATH/${dir/$OUT/}/$TASK_MEMECHIP/$SAMPLE/index.html'><div style='height:75px; width:150px; background-color:#ffffff;border: 1px dotted #999999; '></div></a></td>" >>$SUMMARYTMP
