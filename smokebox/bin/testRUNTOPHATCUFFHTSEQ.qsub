@@ -47,7 +47,7 @@ HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 
 # prepare the job to generate the html result page and perform the diff 
 echo "[NOTE] prepare evaluation script tmp/testTOPHATCUFFHTSEQ.qsub wait for $HOLDID"
-sed 's/NAME/TOPHATCUFFHTSEQ/g' bin/tmpl/HPCheader.txt >tmp/testTOPHATCUFFHTSEQ.qsub
+sed 's/NAME/NGs_TOPHATCUFFHTSEQ/g' bin/tmpl/HPCheader.txt >tmp/testTOPHATCUFFHTSEQ.qsub
 echo "trigger.sh tmp/configTOPHATCUFFHTSEQ.txt html" >> tmp/testTOPHATCUFFHTSEQ.qsub
 echo "diff result/SummaryTOPHATCUFFHTSEQ.html result/expected/SummaryTOPHATCUFFHTSEQ.html | \
 	   python bin/diffparser.py  > result/diffTOPHATCUFFHTSEQ.txt" >> tmp/testTOPHATCUFFHTSEQ.qsub
