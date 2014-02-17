@@ -784,6 +784,7 @@ wget http://weblogo.berkeley.edu/release/weblogo.$VERSION.tar.gz
 tar -xf weblogo.$VERSION.tar.gz
 cp weblogo/seqlogo $PACKAGEPATH/$SOFTWARE/$VERSION
 cp weblogo/*.pm $PACKAGEPATH/$SOFTWARE/$VERSION
+cp weblogo/template.* $PACKAGEPATH/$SOFTWARE/$VERSION
 
 chmod 555 $PACKAGEPATH/$SOFTWARE/$VERSION/seqlogo
 
