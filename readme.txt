@@ -9,7 +9,8 @@ Version: 0.4.0.2
 
 "NGSANE: A Lightweight Production Informatics Framework for High Throughput 
 Data Analysis"
-Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC, Bioinformatics (accepted)
+Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC, Bioinformatics. 2014 
+Jan 26. [Epub ahead of print]
 
 ################################################################################
 # Setup:

@@ -109,7 +109,7 @@ cat bin/tmpl/configVarCall.txt | sed 's/RUNVARCALLS=\"\"/RUNVARCALLS=\"1\"/g' | 
 
 # Prep and runare the job to generate the html result page and perform the diff 
 echo "[NOTE] Prep and runare evaluation script tmp/testVARCALLS.qsub wait for $HOLDID"
-sed 's/NAME/VARCALL/g' bin/tmpl/HPCheader.txt > tmp/testVARCALLS.qsub
+sed 's/NAME/NGs_VARCALL/g' bin/tmpl/HPCheader.txt > tmp/testVARCALLS.qsub
 echo "trigger.sh tmp/configVARCALLS.txt html" >> tmp/testVARCALLS.qsub
 echo "diff result/SummaryVARCALLS.html result/expected/SummaryVARCALLS.html | \
 	   python bin/diffparser.py > result/diffVARCALLS.txt" >> tmp/testVARCALLS.qsub

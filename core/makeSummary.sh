@@ -168,41 +168,41 @@ if [ -n "$RUNFASTQC" ]; then
         echo "<table class='data'>" >>$SUMMARYTMP
         echo "<thead><tr><th><div style='width:100px'>Chart</div></th><th><div style='width:140px'>Encoding</div></th><th><div style='width:120px'>Library size</div></th><th><div style='width:50px'>Read</div></th><th><div style='width:80px'>Read length</div></th><th><div style='width:50px'>%GC</div></th><th><div style='width:120px'>Read qualities</th><th class='left'>Library</th></tr></thead><tbody>" >>$SUMMARYTMP
  
- 
-        if [[ -e ${dir%%/*}/$TASK_FASTQC/ ]]; then
-             for librarylog in $(ls $QOUT/$TASK_FASTQC/${dir%%/*}_*.out); do           
-                libraryfile=${librarylog/$QOUT\/$TASK_FASTQC\/${dir%%/*}_/}
+        SAMPLE=${dir%%/*}
+        if [[ -e $SAMPLE/$TASK_FASTQC/ ]]; then
+             for librarylog in $(ls $QOUT/$TASK_FASTQC/$SAMPLE"_"*.out); do           
+                libraryfile=${librarylog/$QOUT\/$TASK_FASTQC\/$SAMPLE"_"/}
                 library=${libraryfile/%.out/}
-                f="${dir%%/*}/$TASK_FASTQC/${library}${READONE}_fastqc.zip"
+                f="$SAMPLE/$TASK_FASTQC/${library}${READONE}_fastqc.zip"
                 # get basename of f
                 n1=${f##*/}
                 n1=${n1/"_fastqc.zip"/}
-                ICO=" <img height='15px' class='noborder' style='vertical-align:middle' src='$PROJECT_RELPATH/${dir%%/*}/$TASK_FASTQC/"$n1"_fastqc/Icons/"
-                P1=$(grep "PASS" -c ${dir%%/*}/$TASK_FASTQC/$n1"_fastqc/summary.txt")
-                W1=$(grep "WARN" -c ${dir%%/*}/$TASK_FASTQC/$n1"_fastqc/summary.txt")
-                F1=$(grep "FAIL" -c ${dir%%/*}/$TASK_FASTQC/$n1"_fastqc/summary.txt")
+                ICO=" <img height='15px' class='noborder' style='vertical-align:middle' src='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/"$n1"_fastqc/Icons/"
+                P1=$(grep "PASS" -c $SAMPLE/$TASK_FASTQC/$n1"_fastqc/summary.txt")
+                W1=$(grep "WARN" -c $SAMPLE/$TASK_FASTQC/$n1"_fastqc/summary.txt")
+                F1=$(grep "FAIL" -c $SAMPLE/$TASK_FASTQC/$n1"_fastqc/summary.txt")
                 CHART1=$ICO"tick.png' title='$P1'\>$P1"
                 if [ "$W1" -ne "0" ]; then CHART1=$CHART1""$ICO"warning.png'\>"$W1; fi
                 if [ "$F1" -ne "0" ]; then CHART1=$CHART1""$ICO"error.png'\>"$F1; fi
-                ENCODING1=$(grep "Encoding" ${dir%%/*}/$TASK_FASTQC/$n1"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                LIBRARYSIZE1=$(grep "Total Sequences" ${dir%%/*}/$TASK_FASTQC/$n1"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                READLENGTH1=$(grep "Sequence length" ${dir%%/*}/$TASK_FASTQC/$n1"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                GCCONTENT1=$(grep "\%GC" ${dir%%/*}/$TASK_FASTQC/$n1"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+                ENCODING1=$(grep "Encoding" $SAMPLE/$TASK_FASTQC/$n1"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+                LIBRARYSIZE1=$(grep "Total Sequences" $SAMPLE/$TASK_FASTQC/$n1"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+                READLENGTH1=$(grep "Sequence length" $SAMPLE/$TASK_FASTQC/$n1"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+                GCCONTENT1=$(grep "\%GC" $SAMPLE/$TASK_FASTQC/$n1"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
                 
                 
                 if [[ "$f" == *$READTWO* ]] && [ "$f" != "${f/$READTWO/$READONE}" ]; then
                     n2=${n1/%$READONE/$READTWO}
-                    ICO=" <img height='15px' class='noborder' style='vertical-align:middle' src='$PROJECT_RELPATH/${dir%%/*}/$TASK_FASTQC/"$n2"_fastqc/Icons/"
-                    P2=$(grep "PASS" -c ${dir%%/*}/$TASK_FASTQC/$n2"_fastqc/summary.txt")
-                    W2=$(grep "WARN" -c ${dir%%/*}/$TASK_FASTQC/$n2"_fastqc/summary.txt")
-                    F2=$(grep "FAIL" -c ${dir%%/*}/$TASK_FASTQC/$n2"_fastqc/summary.txt")
+                    ICO=" <img height='15px' class='noborder' style='vertical-align:middle' src='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/"$n2"_fastqc/Icons/"
+                    P2=$(grep "PASS" -c $SAMPLE/$TASK_FASTQC/$n2"_fastqc/summary.txt")
+                    W2=$(grep "WARN" -c $SAMPLE/$TASK_FASTQC/$n2"_fastqc/summary.txt")
+                    F2=$(grep "FAIL" -c $SAMPLE/$TASK_FASTQC/$n2"_fastqc/summary.txt")
                     CHART2=$ICO"tick.png' title='$P2'\>$P2"
                     if [ "$W2" -ne "0" ]; then CHART2=$CHART2""$ICO"warning.png'\>"$W2; fi
                     if [ "$F2" -ne "0" ]; then CHART2=$CHART2""$ICO"error.png'\>"$F2; fi
-                    ENCODING2=$(grep "Encoding" ${dir%%/*}/$TASK_FASTQC/$n2"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                    LIBRARYSIZE2=$(grep "Total Sequences" ${dir%%/*}/$TASK_FASTQC/$n2"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                    READLENGTH2=$(grep "Sequence length" ${dir%%/*}/$TASK_FASTQC/$n2"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                    GCCONTENT2=$(grep "\%GC" ${dir%%/*}/$TASK_FASTQC/$n2"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+                    ENCODING2=$(grep "Encoding" $SAMPLE/$TASK_FASTQC/$n2"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+                    LIBRARYSIZE2=$(grep "Total Sequences" $SAMPLE/$TASK_FASTQC/$n2"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+                    READLENGTH2=$(grep "Sequence length" $SAMPLE/$TASK_FASTQC/$n2"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
+                    GCCONTENT2=$(grep "\%GC" $SAMPLE/$TASK_FASTQC/$n2"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
                     READ="2"
 
                 else
@@ -215,14 +215,14 @@ if [ -n "$RUNFASTQC" ]; then
                 fi
                 echo "<tr style='vertical-align: middle;'><td>$CHART1<br/>$CHART2</td><td>$ENCODING1<br/>$ENCODING2</td><td>$LIBRARYSIZE1<br/>$LIBRARYSIZE2</td><td>1<br/>$READ</td><td>$READLENGTH1<br/>$READLENGTH2</td><td>$GCCONTENT1<br/>$GCCONTENT2</td><td>" >>$SUMMARYTMP
                 
-                echo "<a href='$PROJECT_RELPATH/${dir%%/*}/$TASK_FASTQC/${n1}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/${dir%%/*}/$TASK_FASTQC/${n1}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all first reads'/></a>" >>$SUMMARYTMP                   
+                echo "<a href='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/${n1}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/${n1}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all first reads'/></a>" >>$SUMMARYTMP                   
                 if [ -n "$READ" ]; then
-                    echo "<a href='$PROJECT_RELPATH/${dir%%/*}/$TASK_FASTQC/${n2/$READONE/$READTWO}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/${dir%%/*}/$TASK_FASTQC/${n2/$READONE/$READTWO}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all second reads'/></a>" >>$SUMMARYTMP
+                    echo "<a href='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/${n2/$READONE/$READTWO}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/${n2/$READONE/$READTWO}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all second reads'/></a>" >>$SUMMARYTMP
                 fi
                
-                echo "</td><td class='left'><a href='$PROJECT_RELPATH/${dir%%/*}/$TASK_FASTQC/"$n1"_fastqc/fastqc_report.html'>${library}$READONE</a><br/>" >>$SUMMARYTMP
+                echo "</td><td class='left'><a href='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/"$n1"_fastqc/fastqc_report.html'>${library}$READONE</a><br/>" >>$SUMMARYTMP
                 if [ -n "$READ" ]; then
-                    echo "<a href='$PROJECT_RELPATH/${dir%%/*}/$TASK_FASTQC/"$n2"_fastqc/fastqc_report.html'>${library}$READTWO</a>" >>$SUMMARYTMP
+                    echo "<a href='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/"$n2"_fastqc/fastqc_report.html'>${library}$READTWO</a>" >>$SUMMARYTMP
                 fi
                 
                 echo "</td></tr>" >>$SUMMARYTMP
@@ -602,17 +602,17 @@ if [ -n "$RUNMEMECHIP" ]; then
             SAMPLE=${summary##*/}
             SAMPLE=${SAMPLE/.summary.txt/}
 
-            CONSENSUSMOTIF=$(grep "Query consensus:" $summary | cut -d':' -f 2)
-            MEMEEVALUE=$(grep "E-value:" $summary | cut -d':' -f 2)
+            CONSENSUSMOTIF=$(grep "Query consensus:" $summary | cut -d':' -f 2 | tr -d ' ')
+            MEMEEVALUE=$(grep "E-value:" $summary | cut -d':' -f 2 | tr -d ' ')
             
-            TOMTOMQVALUE=$(grep "Q-value:" $summary | cut -d':' -f 2)
+            TOMTOMQVALUE=$(grep "Q-value:" $summary | cut -d':' -f 2 | tr -d ' ')
             TOMTOMKNOWNMOTIF=$(grep "Most similar known motif:" $summary | cut -d':' -f 2)
             PEAKS=$(grep "Peak regions:" $summary | cut -d':' -f 2)
-            FIMODIRECT=$(grep "bound directly" $summary | cut -d':' -f 2)
+            FIMODIRECT=$(grep "bound directly" $summary | cut -d':' -f 2 | tr -d ' ')
             [ -n "$FIMODIRECT" ] && FIMODIRECTP=$(echo "scale=2;100 * $FIMODIRECT / $PEAKS" | bc) || FIMODIRECTP=""
-            FIMOINDIRECT=$(grep "bound indirectly" $summary | cut -d':' -f 2)
+            FIMOINDIRECT=$(grep "bound indirectly" $summary | cut -d':' -f 2 | tr -d ' ')
             [ -n "$FIMOINDIRECT" ] && FIMOINDIRECTP=$(echo "scale=2;100 * $FIMOINDIRECT / $PEAKS" | bc) || FIMOINDIRECTP=""
-            MEMEMOTIF=$(grep "MEME motif:" $summary | cut -d':' -f 2)
+            MEMEMOTIF=$(grep "MEME motif:" $summary | cut -d':' -f 2 | tr -d ' ')
             echo "<tr style='vertical-align: middle;'>"  >>$SUMMARYTMP
             
             if [ -n "$MEMEMOTIF" ]; then
