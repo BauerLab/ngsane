@@ -263,7 +263,8 @@ if [ -n "$POSTCOMMAND" ]; then
 	# create dummy files for the pipe
 	COMMANDARR=(${POSTCOMMAND// / })
 	if [ -n "$(grep RESULTFILENAME ${COMMANDARR[0]})" ]; then
-		DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<DIR>/$dir/g" | sed "s/<TASK>/$TASK/g" | sed "s/<ADDDUMMY>/$ADDDUMMY/g")
+		DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$POOLED_DATA_NAME/" | sed "s/<DIR>/$dir/g" | sed "s/<TASK>/$TASK/g" | sed "s/<ADDDUMMY>/$ADDDUMMY/g")
+
 		D=$(eval $DUMMY)
 		echo "[NOTE] make $D.dummy"
 		[ ! -e $(dirname $D) ] && mkdir -p $(dirname $D)
