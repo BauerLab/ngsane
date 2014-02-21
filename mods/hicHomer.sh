@@ -130,7 +130,7 @@ else
         RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered
         array=(${f//,/ })
         for i in "${!array[@]}"; do
-            cp $f ${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} $THISTMP
+            cp ${array[i]} ${array[i]/%$READONE.$ASD.bam/$READTWO.$ASD.bam} $THISTMP
             n=${array[i]##*/} 
             RUN_COMMAND="$RUN_COMMAND $THISTMP/$n,$THISTMP/${n/%$READONE.$ASD.bam/$READTWO.$ASD.bam}"
         done
@@ -144,6 +144,7 @@ else
     if [ -e $OUTDIR/$SAMPLE"_tagdir_unfiltered"/tagInfo.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
+exit 1
 ################################################################################
 CHECKPOINT="filter tagdirectory"
 
