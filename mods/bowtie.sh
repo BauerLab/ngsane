@@ -189,15 +189,7 @@ else
 	#Paired
     else
         echo "[NOTE] PAIRED READS"
-        # clever use of named pipes to avoid fastq unzipping
-        [ -e $THISTMP/$SAMPLE${READONE}_pipe ] && rm $THISTMP/$SAMPLE${READONE}_pipe
-        [ -e $THISTMP/$SAMPLE${READTWO}_pipe ] && rm $THISTMP/$SAMPLE${READTWO}_pipe
-        mkfifo $THISTMP/$SAMPLE${READONE}_pipe $THISTMP/$SAMPLE${READTWO}_pipe
-        
-        $ZCAT $f > $THISTMP/$SAMPLE${READONE}_pipe &
-        $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/$SAMPLE${READTWO}_pipe &
-        
-		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --sam $BOWTIE_OPTIONS ${FASTA%.*} -1 $THISTMP/$SAMPLE${READONE}_pipe -2 $THISTMP/$SAMPLE${READTWO}_pipe $THISTMP/$SAMPLE.$ALN.sam"
+		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --sam $BOWTIE_OPTIONS ${FASTA%.*} -1 <($ZCAT $f) -2 <($ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}) $THISTMP/$SAMPLE.$ALN.sam"
 
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -206,8 +198,6 @@ else
     samtools view -@ $CPU_BOWTIE -Sbt $FASTA.fai $THISTMP/$SAMPLE.$ALN.sam > $OUTDIR/$SAMPLE.$ALN.bam
     
     # cleanup
-    [ -e $THISTMP/$SAMPLE${READONE}_pipe ] && rm $THISTMP/$SAMPLE${READONE}_pipe
-    [ -e $THISTMP/$SAMPLE${READTWO}_pipe ] && rm $THISTMP/$SAMPLE${READTWO}_pipe
     [ -e $THISTMP/$SAMPLE.$ALN.sam ] && rm $THISTMP/$SAMPLE.$ALN.sam
 
     # mark checkpoint
