@@ -737,6 +737,7 @@ cat ${NGSANE_BASE}/core/Summary.css >> $SUMMARYFILE.tmp
 
 echo "<script type='text/javascript'>" >> $SUMMARYFILE.tmp
 cat ${NGSANE_BASE}/core/jquery-1.9.1.min.js >> $SUMMARYFILE.tmp
+cat ${NGSANE_BASE}/core/jquery.dataTables.min.js >> $SUMMARYFILE.tmp
 echo '''</script></head><body>
 
 <div id="center">

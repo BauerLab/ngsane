@@ -109,7 +109,7 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix, modname):
     
     for c in xrange(len(arrV)):
         string+=["<div>%17s</div>" % arrN[c]]
-        jsonTitle+=['{"sTitle": "%17s"}' % arrN[c]]
+        jsonTitle+=['{"sTitle": "'+arrN[c]+'"}']
         formatString="%17.2f"
         if (min(arrV[c]) > 0.0 and min(arrV[c])<0.009):
             formatString="%17.2e"
@@ -132,7 +132,7 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix, modname):
                 if (e > 0.0 and e<0.009):
                     formatString="%17.2e"
                 resultPerS+=[ formatString % e ]
-                jsonDataRow=+= [ formatString % e ]
+                jsonDataRow+= [ formatString % e ]
             jsonData+= [ "[" + ",".join(jsonDataRow) + "]" ]
             print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+ removeSuffix(removePrefix(l[1], filestructure), filesuffix)+"</td></tr>"
         print "</tbody>"
@@ -160,12 +160,8 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix, modname):
 //]]>
 </script>
 """
-            
-    if(noSummary):
-        print "</table>"
-        return
-        
-    elif(arrS==0 or len(arrS)>1):
+                  
+    if(not noSummary and (arrS==0 or len(arrS)>1)):
 
         print "<tfoot>"
         print "<tr><td class='left'>sum</td><td>"+("</td><td>").join(out[5])+"</td><td class='left'><i>aggregation</i></td></tr>"
@@ -176,10 +172,12 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix, modname):
         if (percent):
             print "<tr><td>av%</td><td>"+"</td><td>".join(out[4])+"</td><td></td></tr>"
         print "</tfoot>"
+
     print "</table>"
-    
+
     # print json
     print json
+    
 
 # sam statiscis for initial aligment
 def samstats(statsfile):
