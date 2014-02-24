@@ -737,9 +737,12 @@ cat ${NGSANE_BASE}/core/Summary.css >> $SUMMARYFILE.tmp
 
 echo "<script type='text/javascript'>" >> $SUMMARYFILE.tmp
 cat ${NGSANE_BASE}/core/jquery-1.9.1.min.js >> $SUMMARYFILE.tmp
+echo "</script>" >> $SUMMARYFILE.tmp
+echo "<script type='text/javascript'>" >> $SUMMARYFILE.tmp
 cat ${NGSANE_BASE}/core/jquery.dataTables.min.js >> $SUMMARYFILE.tmp
-echo '''</script></head><body>
+echo "</script>" >> $SUMMARYFILE.tmp
 
+echo '''</head><body>
 <div id="center">
 ''' >> $SUMMARYFILE.tmp
 echo "<div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>" >> $SUMMARYFILE.tmp
@@ -751,7 +754,7 @@ echo $(IFS='|' ; echo "${LINKSET[*]}") >> $SUMMARYFILE.tmp
 
 echo "</div><!-- Links --></div><!-- panel -->" >>$SUMMARYFILE.tmp
 
-echo "<hr><span>Report generated with "`trigger.sh -v`"</span><span style='float:right;'>Last modified: "`date`"</span>" >> $SUMMARYTMP
+echo "<hr><span>Report generated with "`which trigger.sh -v`"</span><span style='float:right;'>Last modified: "`date`"</span>" >> $SUMMARYTMP
 echo "</div><!-- center --></body></html>" >> $SUMMARYTMP
 ################################################################################
 cat $SUMMARYFILE.tmp $SUMMARYTMP > $SUMMARYFILE
