@@ -732,15 +732,14 @@ echo "</div></div>">>$SUMMARYTMP
 rm $SUMMARYCITES
     
 ################################################################################
-echo '<!DOCTYPE html><html><head><meta charset="utf-8"> <title>NGSANE project card</title>' > $SUMMARYFILE.tmp
-cat ${NGSANE_BASE}/core/Summary.css >> $SUMMARYFILE.tmp
-
-echo "<script type='text/javascript'>" >> $SUMMARYFILE.tmp
-cat ${NGSANE_BASE}/core/jquery-1.9.1.min.js >> $SUMMARYFILE.tmp
-echo "</script>" >> $SUMMARYFILE.tmp
-echo "<script type='text/javascript'>" >> $SUMMARYFILE.tmp
-cat ${NGSANE_BASE}/core/jquery.dataTables.min.js >> $SUMMARYFILE.tmp
-echo "</script>" >> $SUMMARYFILE.tmp
+echo '''
+<!DOCTYPE html><html>
+<head><meta charset="utf-8"><title>NGSANE project card</title>
+<link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
+<link rel="stylesheet" type="text/css" href="includes/css/jquery.dataTables.css">
+<script type='text/javascript' src="includes/js/jquery.js"></script>
+<script type='text/javascript' src="includes/js/jquery.dataTables.min.js"></script>
+''' > $SUMMARYFILE.tmp
 
 echo '''</head><body>
 <div id="center">
@@ -756,6 +755,8 @@ echo "</div><!-- Links --></div><!-- panel -->" >>$SUMMARYFILE.tmp
 
 echo "<hr><span>Report generated with "`which trigger.sh -v`"</span><span style='float:right;'>Last modified: "`date`"</span>" >> $SUMMARYTMP
 echo "</div><!-- center --></body></html>" >> $SUMMARYTMP
+
+cp -r $NGSANE_BASE/core/includes $(dirname $SUMMARYTMP)
 ################################################################################
 cat $SUMMARYFILE.tmp $SUMMARYTMP > $SUMMARYFILE
 
