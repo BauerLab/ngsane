@@ -753,7 +753,7 @@ echo $(IFS='|' ; echo "${LINKSET[*]}") >> $SUMMARYFILE.tmp
 
 echo "</div><!-- Links --></div><!-- panel -->" >>$SUMMARYFILE.tmp
 
-echo "<hr><span>Report generated with "`which trigger.sh -v`"</span><span style='float:right;'>Last modified: "`date`"</span>" >> $SUMMARYTMP
+echo "<hr><span>Report generated with "`trigger.sh -v`"</span><span style='float:right;'>Last modified: "`date`"</span>" >> $SUMMARYTMP
 echo "</div><!-- center --></body></html>" >> $SUMMARYTMP
 
 cp -r $NGSANE_BASE/core/includes $(dirname $SUMMARYTMP)
