@@ -17,7 +17,7 @@ if (len(sys.argv)==1 or sys.argv[0].find("help")>-1):
 
 dir=re.split("[ \n]",sys.argv[1])
 ext=sys.argv[2]
-type=sys.argv[3]
+mod=sys.argv[3]
 printing=True
 percent=False
 noSummary=False
@@ -55,7 +55,7 @@ if (dir == ["all"]):
     dir=[]
     for f in os.listdir('.'):
         if(f[-5::]=="_seqs"):
-            if(type=="snpFilter"):
+            if(mod=="snpFilter"):
                 dir.append(f+"/snp")
             else:
                 dir.append(f+"/aln")
@@ -95,7 +95,7 @@ def per(max,arr):
     return sum
 
 
-def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix):
+def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix, modname):
 
     if (len(arrV)==0):
         print " <i> - No result files detected</i>"
@@ -103,8 +103,13 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix):
     
     out=[[],[],[],[],[],[]]
     string=[]
+
+    jsonTitle=[]
+    jsonData=[]
+    
     for c in xrange(len(arrV)):
         string+=["<div>%17s</div>" % arrN[c]]
+        jsonTitle+=['{"sTitle": "%17s"}' % arrN[c]]
         formatString="%17.2f"
         if (min(arrV[c]) > 0.0 and min(arrV[c])<0.009):
             formatString="%17.2e"
@@ -121,14 +126,40 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix):
         print "<tbody>"
         for l in arrS:
             resultPerS=[]
+            jsonDataRow=[]
             for e in l[0]:
                 formatString="%17.2f"
                 if (e > 0.0 and e<0.009):
                     formatString="%17.2e"
                 resultPerS+=[ formatString % e ]
-            
+                jsonDataRow=+= [ formatString % e ]
+            jsonData+= [ "[" + ",".join(jsonDataRow) + "]" ]
             print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+ removeSuffix(removePrefix(l[1], filestructure), filesuffix)+"</td></tr>"
         print "</tbody>"
+
+    # Add JSON object
+    json="""<script type="text/javascript">
+//<![CDATA[
+""" + modname + """={
+	"bPaginate": true,
+	"bProcessing": true,
+	"bAutoWidth": false,
+	"bInfo": true,
+	"bLengthChange": true,
+    "bFilter": false,
+	"iDisplayLength": 10,
+	"bJQueryUI": true,
+	"aLengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]],
+	"aoColumns": [
+""" + ",\n".join(jsonTitle) + """
+	],	
+	"aaData": [
+""" + ",\n".join(jsonData) + """
+	]
+}
+//]]>
+</script>
+"""
             
     if(noSummary):
         print "</table>"
@@ -146,6 +177,9 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix):
             print "<tr><td>av%</td><td>"+"</td><td>".join(out[4])+"</td><td></td></tr>"
         print "</tfoot>"
     print "</table>"
+    
+    # print json
+    print json
 
 # sam statiscis for initial aligment
 def samstats(statsfile):
@@ -1109,63 +1143,63 @@ for d in dir:
     name.sort()
     for f in name:
         try:
-            if (type=="samstats"):
+            if (mod=="samstats"):
                 names,values=samstats(f)
-            if (type=="samstatsrecal"):
+            if (mod=="samstatsrecal"):
                 names,values=samstatsrecal(f)
-            if (type=="bamdistMapped"):
+            if (mod=="bamdistMapped"):
                 names,values=bamDist(f, 5)
-            if (type=="coverage"):
+            if (mod=="coverage"):
                 names,values=coverage(f)                    
-            if (type=="variant"):
+            if (mod=="variant"):
                 names,values=variant(f)
-            if (type=="tophat"):
+            if (mod=="tophat"):
                 names,values=tophat(f)
-            if (type=="cufflinks"):
+            if (mod=="cufflinks"):
                 names,values=cufflinksStats(f)
-            if (type=="htseqcount"):
+            if (mod=="htseqcount"):
                 names,values=htseqcountStats(f)
-            if (type=="times"):
+            if (mod=="times"):
                 names,values=time(f)
-            if (type=="target"):
+            if (mod=="target"):
                 names,values=onTarget(f)
-            if (type=="intersection"):
+            if (mod=="intersection"):
                 names,values=intersection(f)     
-            if (type=="annostats"):
+            if (mod=="annostats"):
                 names,values=annoStats(f)
-            if (type=="trimgalore"):
+            if (mod=="trimgalore"):
                 names,values=trimgaloreStats(f)
-            if (type=="trimmomatic"):
+            if (mod=="trimmomatic"):
                 names,values=trimmomaticStats(f)
-            if (type=="cutadapt"):
+            if (mod=="cutadapt"):
                 names,values=cutadaptStats(f)
-            if (type=="hiclibMapping"):
+            if (mod=="hiclibMapping"):
                 names,values=hiclibStats(f)
-            if (type=="hicup"):
+            if (mod=="hicup"):
                 names,values=hicupStats(f)
-            if (type=="fithic"):
+            if (mod=="fithic"):
                 names,values=fithicStats(f)
-            if (type=="homerchipseq"):
+            if (mod=="homerchipseq"):
                 names,values=homerchipseqStats(f)
-            if (type=="peakranger"):
+            if (mod=="peakranger"):
                 names,values=peakrangerStats(f)
-            if (type=="macs2"):
+            if (mod=="macs2"):
                 names,values=macs2Stats(f)
-            if (type=="chance"):
+            if (mod=="chance"):
                 names,values=chanceStats(f)
-            if (type=="memechip"):
+            if (mod=="memechip"):
                 names,values=memechipStats(f)
-            if (type=="fastqscreen"):
+            if (mod=="fastqscreen"):
                 names,values=fastqscreenStats(f)
-            if (type=="blue"):
+            if (mod=="blue"):
 				names,values=blue(f)
-            if (type=="trinity_inchworm"):
+            if (mod=="trinity_inchworm"):
                 names,values=inchwormStats(f)
-            if (type=="trinity_chrysalis"):
+            if (mod=="trinity_chrysalis"):
                 names,values=chrysalisStats(f)
-            if (type=="trinity_butterfly"):
+            if (mod=="trinity_butterfly"):
                 names,values=butterflyStats(f)
-            if (type=="bigwig"):
+            if (mod=="bigwig"):
 				names,values=bigwigStats(f)
             
             result=addValues(result,values)
@@ -1184,8 +1218,8 @@ for d in dir:
 
     filestructure="/".join(d.split("/")[-4::]) # only list file structure from current root
     print "<h3>"+ filestructure +"</h3>" 
-    printStats(result,names,psresult,noSummary,filestructure, ext)
+    printStats(result,names,psresult,noSummary,filestructure, ext, mod)
 
 if (not noOverallSummary and overAll):
     print "<h3 class='overall'>Aggregation over all libraries</h3>"
-    printStats(oaresult,names,0,noOverallSummary,"","")
+    printStats(oaresult,names,0,noOverallSummary,"","",mod)
