@@ -1216,8 +1216,8 @@ for d in dir:
 
     filestructure="/".join(d.split("/")[-4::]) # only list file structure from current root
     print "<h3>"+ filestructure +"</h3>" 
-    printStats(result,names,psresult,noSummary,filestructure, ext, mod)
+    printStats(result,names,psresult,noSummary,filestructure, ext, re.sub("[\\\/-]","_",filestructure)+mod)
 
 if (not noOverallSummary and overAll):
     print "<h3 class='overall'>Aggregation over all libraries</h3>"
-    printStats(oaresult,names,0,noOverallSummary,"","",mod)
+    printStats(oaresult,names,0,noOverallSummary,"","","aggregation_"+mod)
