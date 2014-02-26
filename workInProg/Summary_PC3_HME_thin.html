@@ -1,0 +1,340 @@
+<!DOCTYPE html><html>
+
+<head><meta charset="utf-8"> <title>NGSANE project card</title>
+<link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
+<link rel="stylesheet" type="text/css" href="includes/css/jquery.dataTables.css">
+<script type='text/javascript' src="includes/js/jquery.js"></script>
+<script type='text/javascript' src="includes/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="dataTables.htmlColumnFilter.js"></script>
+
+</head>
+<body>
+
+<script type="text/javascript">
+
+$.fn.dataTableExt.afnFiltering.push(
+    function( oSettings, aData, iDataIndex ) {
+        var iMin = document.getElementById('min').value * 1;
+        var iMax = document.getElementById('max').value * 1;
+        var iVersion = aData[3] == "-" ? 0 : aData[3]*1;
+        if ( iMin == "" && iMax == "" )
+        {
+            return true;
+        }
+        else if ( iMin == "" && iVersion < iMax )
+        {
+            return true;
+        }
+        else if ( iMin < iVersion && "" == iMax )
+        {
+            return true;
+        }
+        else if ( iMin < iVersion && iVersion < iMax )
+        {
+            return true;
+        }
+        return false;
+    }
+);
+
+$(document).ready(function() {
+    
+
+
+    var oTable = $("#ChIP-Seq_Level_2_PC3_bowtie").dataTable(
+        
+        asamstats
+     );
+
+    $('#search').keyup(function(){
+      oTable.fnFilter( $(this).val() );
+      dTable.fnFilter( $(this).val() );
+      pTable.fnFilter( $(this).val() );
+      qTable.fnFilter( $(this).val() );
+    });
+    
+    var dTable = $("#ChIP_Seq_Level_2_HMEC_bowtie").dataTable( 
+    samstats 
+    );
+    
+
+
+    var qTable = $("#ChIP-Seq_Level_2_PC3_bowtie_part").dataTable(
+    abigwig
+     );
+    var pTable = $("#ChIP-Seq_Level_2_HMEC_bowtie_part").dataTable(
+    bigwig
+    );
+    /* Add event listeners to the two range filtering inputs */
+    $('#min').keyup( function() { oTable.fnDraw(); } );
+    $('#max').keyup( function() { oTable.fnDraw(); } );
+
+    
+} );
+
+
+</script>
+
+<script type="text/javascript">
+
+//<![CDATA[
+asamstats={
+	"bPaginate": true,
+	"bProcessing": true,
+	"bAutoWidth": false,
+	"bInfo": true,
+	"bLengthChange": true,
+    "bFilter": true,
+	"iDisplayLength": 10,
+	"bJQueryUI": true,
+	"aLengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]],
+	"aoColumns": [
+{"sTitle": "Total reads"},
+{"sTitle": "QCfail"},
+{"sTitle": "Duplicates"},
+{"sTitle": "Duplicates %"},
+{"sTitle": "Mapped"},
+{"sTitle": "Mapped %"},
+{"sTitle": "Paired"},
+{"sTitle": "Paired %"},
+{"sTitle": "Singletons"}
+	],	
+	"aaData": [
+[      19507414.00,             0.00,       2089052.00,            10.71,      16516423.00,            84.67,             0.00,             0.00,             0.00],
+[      19189776.00,             0.00,        351690.00,             1.83,      15068088.00,            78.52,             0.00,             0.00,             0.00],
+[      25205973.00,             0.00,       2456463.00,             9.75,      16062100.00,            63.72,             0.00,             0.00,             0.00],
+[      46032945.00,             0.00,       4809711.00,            10.45,      32402180.00,            70.39,             0.00,             0.00,             0.00],
+[      38153050.00,             0.00,        739135.00,             1.94,      22140587.00,            58.03,             0.00,             0.00,             0.00],
+[      32337002.00,             0.00,       8024143.00,            24.81,      22665428.00,            70.09,             0.00,             0.00,             0.00],
+[      34620441.00,             0.00,       6619681.00,            19.12,      28672195.00,            82.82,             0.00,             0.00,             0.00],
+[      37364739.00,             0.00,        622667.00,             1.67,      31548119.00,            84.43,             0.00,             0.00,             0.00],
+[      26141484.00,             0.00,       2699077.00,            10.32,      20310936.00,            77.70,             0.00,             0.00,             0.00]
+	]
+}
+//]]>
+</script>
+
+<div id="center">
+
+<div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>
+<a href='#bowtie'>bowtie</a>|<a href='#bigwig'>bigwig</a>
+</div><!-- Links --></div><!-- panel -->
+<div class='panel' id='bowtie_panel'>
+        <div class='headbagb' id='bowtie_panelback'><a name='bowtie'></a>
+            <h2 id='bowtie_h_results' class='sub'>Bowtie v1 mapping</h2>
+            <h2 id='bowtie_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='bowtie_counter_checkpoints_passed'></span><span class='failed' id='bowtie_counter_checkpoints_failed'></span></span></h2>
+            <h2 id='bowtie_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='bowtie_counter_notes'></span></span></span></h2>
+            <h2 id='bowtie_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='bowtie_counter_errors'></span></span></h2>
+            <h2 id='bowtie_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>
+<h2 id='bowtie_h_nrfiles' class='sub inactive' rel='files'>Primary result files</h2>
+</div><div class='wrapper'><div class='hidden'>
+<div id='bowtie_checklist'><pre></pre></div>
+<div id='bowtie_notes'><pre></pre></div>
+<div id='bowtie_errors'><pre></pre></div>
+<div id='bowtie_logfiles'><div class='box'></div></div>
+<div id='bowtie_nrfiles'><div class='box'></div></div>
+<script type='text/javascript'> 
+        if (typeof jQuery === 'undefined') {
+            console.log('jquery not loaded');
+        } else {
+            $('#bowtie_counter_notes').text('0');
+            $('#bowtie_counter_errors').text('0');
+            $('#bowtie_counter_checkpoints_passed').text('0');
+            $('#bowtie_counter_checkpoints_failed').text('3'); 
+            if (0==0){
+                $('#bowtie_counter_errors').toggleClass('errors neutral');
+            }; 
+            if(3==0){
+                $('#bowtie_counter_checkpoints_failed').toggleClass('failed nofailed');
+            };
+
+            $('#bowtie_panelback h2').click(function() {
+                $(this).parent().children().addClass('inactive');
+                $(this).removeClass('inactive');
+                console.log();
+                var panel=$(this).attr('id').replace('_h_','_');
+                var olddisplay=$('#bowtie_panel div.wrapper div.display').html();
+                $('#bowtie_panel div.wrapper div.display').html($('#'+ panel).html());
+                //$('#'+ panel).html("<br/>")
+                
+            });
+        }
+    </script>
+</div>
+<div id='bowtie_results'>
+Search: <input type="text" id="search">
+Min: <input type="text" id="min">
+Max: <input type="text" id="max">
+
+<table id="ChIP-Seq_Level_2_PC3_bowtie"></table>
+
+
+<table id="ChIP_Seq_Level_2_HMEC_bowtie"></table>
+<script type="text/javascript">
+//<![CDATA[
+samstats={
+	"bPaginate": true,
+	"bProcessing": true,
+	"bAutoWidth": false,
+	"bInfo": true,
+	"bLengthChange": true,
+    "bFilter": true,
+	"iDisplayLength": 10,
+	"bJQueryUI": true,
+	"aLengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]],
+	"aoColumns": [
+{"sTitle": "Total reads"},
+{"sTitle": "QCfail"},
+{"sTitle": "Duplicates"},
+{"sTitle": "Duplicates %"},
+{"sTitle": "Mapped"},
+{"sTitle": "Mapped %"},
+{"sTitle": "Paired"},
+{"sTitle": "Paired %"},
+{"sTitle": "Singletons"}
+	],	
+	"aaData": [
+[      34127843.00,             0.00,       6506933.00,            19.07,      25485342.00,            74.68,             0.00,             0.00,             0.00],
+[      33598087.00,             0.00,       1235108.00,             3.68,      24915279.00,            74.16,             0.00,             0.00,             0.00],
+[      35135428.00,             0.00,       6788853.00,            19.32,      22555466.00,            64.20,             0.00,             0.00,             0.00],
+[      32763790.00,             0.00,       2324311.00,             7.09,      22344898.00,            68.20,             0.00,             0.00,             0.00],
+[      26546992.00,             0.00,        386436.00,             1.46,       6978109.00,            26.29,             0.00,             0.00,             0.00],
+[      13750994.00,             0.00,       3308617.00,            24.06,       5375034.00,            39.09,             0.00,             0.00,             0.00]
+	]
+}
+//]]>
+</script>
+</div></div><div class='display'></div></div>
+<script type='text/javascript'> 
+        if (typeof jQuery === 'undefined') {
+            console.log('jquery not loaded');
+        } else {
+            if ($('#bowtie_results') =~ /br/") {
+			$('#bowtie_results').html($('#bowtie_panel div.wrapper div.display').html());
+	    }
+            $('#bowtie_panel div.wrapper div.display').html($('#bowtie_results').html());
+        }
+        </script>
+<div class='panel' id='bigwig_panel'>
+        <div class='headbagb' id='bigwig_panelback'><a name='bigwig'></a>
+            <h2 id='bigwig_h_results' class='sub'>BigWig</h2>
+            <h2 id='bigwig_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='bigwig_counter_checkpoints_passed'></span><span class='failed' id='bigwig_counter_checkpoints_failed'></span></span></h2>
+            <h2 id='bigwig_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='bigwig_counter_notes'></span></span></span></h2>
+            <h2 id='bigwig_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='bigwig_counter_errors'></span></span></h2>
+            <h2 id='bigwig_h_logfiles' class='sub inactive' rel='errors'>Log files</h2>
+<h2 id='bigwig_h_nrfiles' class='sub inactive' rel='files'>Primary result files</h2>
+</div><div class='wrapper'><div class='hidden'>
+<div id='bigwig_checklist'><pre>
+</pre></div>
+<div id='bigwig_notes'><pre></pre></div>
+<div id='bigwig_errors'><pre></pre></div>
+<div id='bigwig_logfiles'><div class='box'>
+</div></div>
+<div id='bigwig_nrfiles'><div class='box'>
+</div></div>
+<script type='text/javascript'> 
+        if (typeof jQuery === 'undefined') {
+            console.log('jquery not loaded');
+        } else {
+            $('#bigwig_counter_notes').text('0');
+            $('#bigwig_counter_errors').text('0');
+            $('#bigwig_counter_checkpoints_passed').text('0');
+            $('#bigwig_counter_checkpoints_failed').text('3'); 
+            if (0==0){
+                $('#bigwig_counter_errors').toggleClass('errors neutral');
+            }; 
+            if(3==0){
+                $('#bigwig_counter_checkpoints_failed').toggleClass('failed nofailed');
+            };
+
+            $('#bigwig_panelback h2').click(function() {
+                $(this).parent().children().addClass('inactive');
+                $(this).removeClass('inactive');
+                console.log();
+                var panel=$(this).attr('id').replace('_h_','_');
+                $('#bigwig_panel div.wrapper div.display').html($('#'+ panel).html());
+            });
+        }
+</script>
+</div> 
+
+   
+<div id='bigwig_results'>
+<h3>ChIP-Seq_Level_2/PC3/bowtie/</h3>
+<table id="ChIP-Seq_Level_2_PC3_bowtie_part"></table>
+<script type="text/javascript">
+//<![CDATA[
+abigwig={
+	"bPaginate": true,
+	"bProcessing": true,
+	"bAutoWidth": false,
+	"bInfo": true,
+	"bLengthChange": true,
+    "bFilter": true,
+	"iDisplayLength": 10,
+	"bJQueryUI": true,
+	"aLengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]],
+	"aoColumns": [
+{"sTitle": "Library Size"},
+{"sTitle": "Normalized to"},
+{"sTitle": "Scale factor"}
+	],	
+	"aaData": [
+[      14427371.00,       1000000.00,             0.07],
+[      14716398.00,       1000000.00,             0.07],
+[      13605637.00,       1000000.00,             0.07],
+[      27592469.00,       1000000.00,             0.04],
+[      21401452.00,       1000000.00,             0.05],
+[      14641285.00,       1000000.00,             0.07],
+[      22052514.00,       1000000.00,             0.04],
+[      30925452.00,       1000000.00,             0.03],
+[      17611859.00,       1000000.00,             0.06]
+	]
+}
+//]]>
+</script>
+
+<h3>ChIP-Seq_Level_2/HMEC/bowtie/</h3>
+<table id="ChIP-Seq_Level_2_HMEC_bowtie_part"></table>
+<script type="text/javascript">
+//<![CDATA[
+bigwig={
+	"bPaginate": true,
+	"bProcessing": true,
+	"bAutoWidth": false,
+	"bInfo": true,
+	"bLengthChange": true,
+    "bFilter": true,
+	"iDisplayLength": 10,
+	"bJQueryUI": true,
+	"aLengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]],
+	"aoColumns": [
+{"sTitle": "Library Size"},
+{"sTitle": "Normalized to"},
+{"sTitle": "Scale factor"}
+	],	
+	"aaData": [
+[      18978409.00,       1000000.00,             0.05],
+[      23680171.00,       1000000.00,             0.04],
+[      15766613.00,       1000000.00,             0.06],
+[      20020587.00,       1000000.00,             0.05],
+[       6591673.00,       1000000.00,             0.15],
+[       2066417.00,       1000000.00,             0.48]
+	]
+}
+//]]>
+</script>
+
+
+
+</div></div><div class='display'></div></div></div>
+<script type='text/javascript'> 
+        if (typeof jQuery === 'undefined') {
+            console.log('jquery not loaded');
+        } else {
+            $('#peakranger_panel div.wrapper div.display').html($('#peakranger_results').html());
+        }
+        </script>
+<hr><span>Report generated with </span><span style='float:right;'>Last modified: Mon 24 Feb 2014 11:49:04 EST</span>
+</div><!-- center --></body></html>
+
