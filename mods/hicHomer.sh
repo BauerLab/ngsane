@@ -138,13 +138,12 @@ else
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    mv $THISTMP/$SAMPLE"_tagdir_unfiltered" $OUTDIR/$SAMPLE"_tagdir_unfiltered"
+    mv $THISTMP/$SAMPLE"_tagdir_unfiltered" $OUTDIR
     
     # mark checkpoint
     if [ -e $OUTDIR/$SAMPLE"_tagdir_unfiltered"/tagInfo.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
-exit 1
 ################################################################################
 CHECKPOINT="filter tagdirectory"
 
