@@ -1,53 +1,124 @@
 <!DOCTYPE html><html>
 
-<head><meta charset="utf-8"> <title>NGSANE project card</title>
+<head><meta charset="windows-1252"> <title>NGSANE project card</title>
+<link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+
+<link href="jquery.datatables.yadcf.css" rel="stylesheet" type="text/css" />
 <link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
 <link rel="stylesheet" type="text/css" href="includes/css/jquery.dataTables.css">
 <script type='text/javascript' src="includes/js/jquery.js"></script>
 <script type='text/javascript' src="includes/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" src="dataTables.htmlColumnFilter.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+<script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
+<script src="jquery.dataTables.yadcf.js"></script>
+
+<style>
+.label {
+  padding: 0px 10px 0px 10px;
+	border: 1px solid #ccc;
+	-moz-border-radius: 1em; /* for mozilla-based browsers */
+	-webkit-border-radius: 1em; /* for webkit-based browsers */
+	border-radius: 1em; /* theoretically for *all* browsers*/
+}
+
+.label.lightblue {
+	background-color: #99CCFF;
+}
+
+#external_filter_container_wrapper {
+  margin-bottom: 20px;
+}
+
+#external_filter_container {
+  display: inline-block;
+}
+</style>
 
 </head>
 <body>
 
 <script type="text/javascript">
 
+// add filtering for invalid rows
+
 $.fn.dataTableExt.afnFiltering.push(
-    function( oSettings, aData, iDataIndex ) {
-        var iMin = document.getElementById('min').value * 1;
-        var iMax = document.getElementById('max').value * 1;
-        var iVersion = aData[3] == "-" ? 0 : aData[3]*1;
-        if ( iMin == "" && iMax == "" )
-        {
-            return true;
-        }
-        else if ( iMin == "" && iVersion < iMax )
-        {
-            return true;
-        }
-        else if ( iMin < iVersion && "" == iMax )
-        {
-            return true;
-        }
-        else if ( iMin < iVersion && iVersion < iMax )
-        {
-            return true;
-        }
-        return false;
-    }
+	function( oSettings, aData, iDataIndex ) {
+		
+		var search = document.getElementById("search");
+		if (search.value.length == 0) {
+			return true;
+		} else {
+		
+			var searchArray = search.value.split(/\s+/);
+			console.log(searchArray);
+			var sArrayLength = searchArray.length;
+			var numColumns = oSettings.aoColumns.length;
+			//check relevant columns using 
+			// cycle through columns
+			var display = 0;
+			//document.write(searchArray[0]);
+			
+			//document.write(sArrayLength);
+			//document.write(numColumns);
+			var iColumn = 0;
+			while (iColumn < numColumns && display == 0) {
+						
+				//go through search array and check if cell regex matches any search items..
+				for (isTerm = 0; isTerm < sArrayLength; isTerm++) {
+					//alert (
+					//document.write(searchArray[isTerm].length);
+					if (searchArray[isTerm].length != 0) {
+						var patt1=new RegExp(searchArray[isTerm]);
+						//document.write(patt1);
+						if(patt1.test(aData[iColumn])) {
+							display = 1;
+						}
+					}
+
+				}
+				iColumn++;
+			}
+			if (display == 1) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		
+				        
+	    
+	    //return true if row passes filter criteria
+	   //otherwise return false
+	}
 );
+
+
+
+
+    
+
+
 
 $(document).ready(function() {
     
 
-
     var oTable = $("#ChIP-Seq_Level_2_PC3_bowtie").dataTable(
         
         asamstats
-     );
+     ).yadcf([
+		{column_number : 0,  filter_type: "range_number_slider"},
+	    
+            {column_number : 3,  filter_type: "range_number_slider"},
+            {column_number : 5,  filter_type: "range_number_slider"}]);
+
 
     $('#search').keyup(function(){
-      oTable.fnFilter( $(this).val() );
+	
+      oTable.fnDraw();
+     
       dTable.fnFilter( $(this).val() );
       pTable.fnFilter( $(this).val() );
       qTable.fnFilter( $(this).val() );
@@ -57,7 +128,7 @@ $(document).ready(function() {
     samstats 
     );
     
-
+ 
 
     var qTable = $("#ChIP-Seq_Level_2_PC3_bowtie_part").dataTable(
     abigwig
@@ -84,9 +155,10 @@ asamstats={
 	"bAutoWidth": false,
 	"bInfo": true,
 	"bLengthChange": true,
-    "bFilter": true,
+    	"bFilter": true,
 	"iDisplayLength": 10,
 	"bJQueryUI": true,
+	"bStateSave": true,
 	"aLengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]],
 	"aoColumns": [
 {"sTitle": "Total reads"},
@@ -163,12 +235,12 @@ asamstats={
 </div>
 <div id='bowtie_results'>
 Search: <input type="text" id="search">
-Min: <input type="text" id="min">
-Max: <input type="text" id="max">
 
+
+<h3>ChIP-Seq_Level_2/PC3/bowtie/</h3>
 <table id="ChIP-Seq_Level_2_PC3_bowtie"></table>
 
-
+<h3>ChIP-Seq_Level_2/HMEC/bowtie/</h3>
 <table id="ChIP_Seq_Level_2_HMEC_bowtie"></table>
 <script type="text/javascript">
 //<![CDATA[
@@ -178,9 +250,10 @@ samstats={
 	"bAutoWidth": false,
 	"bInfo": true,
 	"bLengthChange": true,
-    "bFilter": true,
+    	"bFilter": true,
 	"iDisplayLength": 10,
 	"bJQueryUI": true,
+        "bStateSave": true,
 	"aLengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]],
 	"aoColumns": [
 {"sTitle": "Total reads"},
@@ -209,9 +282,7 @@ samstats={
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
         } else {
-            if ($('#bowtie_results') =~ /br/") {
-			$('#bowtie_results').html($('#bowtie_panel div.wrapper div.display').html());
-	    }
+            
             $('#bowtie_panel div.wrapper div.display').html($('#bowtie_results').html());
         }
         </script>
@@ -260,7 +331,7 @@ samstats={
 
    
 <div id='bigwig_results'>
-<h3>ChIP-Seq_Level_2/PC3/bowtie/</h3>
+<h3>ChIP-Seq_Level_2/PC3/bigwig/</h3>
 <table id="ChIP-Seq_Level_2_PC3_bowtie_part"></table>
 <script type="text/javascript">
 //<![CDATA[
@@ -294,7 +365,7 @@ abigwig={
 //]]>
 </script>
 
-<h3>ChIP-Seq_Level_2/HMEC/bowtie/</h3>
+<h3>ChIP-Seq_Level_2/HMEC/bigwig/</h3>
 <table id="ChIP-Seq_Level_2_HMEC_bowtie_part"></table>
 <script type="text/javascript">
 //<![CDATA[
@@ -331,7 +402,7 @@ bigwig={
 <script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
             console.log('jquery not loaded');
-        } else {a
+        } else {
             $('#peakranger_panel div.wrapper div.display').html($('#peakranger_results').html());
         }
         </script>
