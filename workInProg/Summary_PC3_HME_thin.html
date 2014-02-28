@@ -115,14 +115,7 @@ $(document).ready(function() {
             {column_number : 5,  filter_type: "range_number_slider"}]);
 
 
-    $('#search').keyup(function(){
-	
-      oTable.fnDraw();
-     
-      dTable.fnFilter( $(this).val() );
-      pTable.fnFilter( $(this).val() );
-      qTable.fnFilter( $(this).val() );
-    });
+   
     
     var dTable = $("#ChIP_Seq_Level_2_HMEC_bowtie").dataTable( 
     samstats 
@@ -136,6 +129,14 @@ $(document).ready(function() {
     var pTable = $("#ChIP-Seq_Level_2_HMEC_bowtie_part").dataTable(
     bigwig
     );
+
+	$('#search').keyup(function(){
+	
+      		oTable.fnDraw();
+     		dTable.fnDraw();
+		qTable.fnDraw();
+		pTable.fnDraw();
+    	});
     /* Add event listeners to the two range filtering inputs */
     $('#min').keyup( function() { oTable.fnDraw(); } );
     $('#max').keyup( function() { oTable.fnDraw(); } );
@@ -190,7 +191,14 @@ asamstats={
 
 <div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>
 <a href='#bowtie'>bowtie</a>|<a href='#bigwig'>bigwig</a>
+
+	<div id ="Right" style="float:right;width:250px;padding:2px 2px 2px 2px;">
+
+	Search: <input type="text" id="search" >
+	</div>
+
 </div><!-- Links --></div><!-- panel -->
+
 <div class='panel' id='bowtie_panel'>
         <div class='headbagb' id='bowtie_panelback'><a name='bowtie'></a>
             <h2 id='bowtie_h_results' class='sub'>Bowtie v1 mapping</h2>
@@ -234,7 +242,6 @@ asamstats={
     </script>
 </div>
 <div id='bowtie_results'>
-Search: <input type="text" id="search">
 
 
 <h3>ChIP-Seq_Level_2/PC3/bowtie/</h3>
