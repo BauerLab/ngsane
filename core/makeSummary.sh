@@ -189,7 +189,7 @@ if [ -n "$RUNFASTQC" ]; then
                 READLENGTH1=$(grep "Sequence length" $SAMPLE/$TASK_FASTQC/$n1"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
                 GCCONTENT1=$(grep "\%GC" $SAMPLE/$TASK_FASTQC/$n1"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
                 
-                if [[ -n "$READTWO" ]] && [ "$f" != "${f/$READONE/$READTWO}" ]; then
+                if [ -n "$READTWO" ] && [ "$f" != "${f/$READONE/$READTWO}" ] && [ -f "${f/$READONE/$READTWO}" ]; then
                     n2=${n1/%$READONE/$READTWO}
                     ICO=" <img height='15px' class='noborder' style='vertical-align:middle' src='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/"$n2"_fastqc/Icons/"
                     P2=$(grep "PASS" -c $SAMPLE/$TASK_FASTQC/$n2"_fastqc/summary.txt")
