@@ -282,8 +282,10 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="cleanup"    
 
-#[ -e $OUTDIR/${n} ] && rm $OUTDIR/${n}
-#[ -e $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} ] && rm $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam}
+if [ -z "$HTSEQCOUNT_KEEPBAMS"]; then
+    [ -e $OUTDIR/${n} ] && rm $OUTDIR/${n}
+    [ -e $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam} ] && rm $OUTDIR/${n/%.$ASD.bam/.$ASD.masked.bam}
+fi
 #[ -e $OUTDIR/GTF.summary.txt ] && rm $OUTDIR/GTF.summary.txt
 #[ -e $OUTDIR/GTF_masked.summary.txt ] && rm $OUTDIR/GTF_masked.summary.txt
 
