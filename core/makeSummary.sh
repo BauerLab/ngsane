@@ -139,8 +139,8 @@ function gatherDirsAggregate {
 function bamAnnotate {
 	echo "<h3 class='overall'>Reads overlapping annotated regions</h3>" >>$3
 	python ${NGSANE_BASE}/core/Summary.py ${1} .anno.stats annostats >> $3
-	BAMANNOUT=runStats/bamann/$(echo ${DIR[@]}|sed 's/ /_/g')_${2}.ggplot
-	BAMANNIMAGE=${BAMANNOUT/ggplot/pdf}
+	BAMANNOUT=runStats/bamann/$(echo ${DIR[@]} | sed 's/ /_/g' | cut -c 1-10 )_${2}.ggplot
+	BAMANNIMAGE=${BAMANNOUT/%ggplot/pdf}
 	if [ ! -f $BAMANNOUT ]; then mkdir -p $( dirname $BAMANNOUT); fi
 	
 	find ${1} -type f -name *anno.stats | xargs -d"\n" cat | head -n 1 | gawk '{print "type "$0" sample"}' > $BAMANNOUT
