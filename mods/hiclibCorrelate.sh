@@ -69,13 +69,17 @@ for f in $FILES; do
     d=$(dirname $f)
     d=${d##*/}
     # get hdf5 file
-    FILE=$(ls $SOURCE/$d/hiclib/*_$n-fragment_dataset.hdf5)
+    FILE=$(ls $SOURCE/$d/hiclib/$n-fragment_dataset.hdf5)
     # add to dataset
     if [ -n "$FILE" ]; then 
     	DATASETS="${DATASETS[@]} ${FILE[@]}"
     fi
 done
 IFS=$OLDFS
+
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
+[ -d $THISTMP ] && rm -r $THISTMP
+mkdir -p $THISTMP
 
 echo "[NOTE] Datasets: $DATASETS"
 
@@ -95,10 +99,16 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    python ${NGSANE_BASE}/tools/hiclibCorrelate.py ${PARAMS} --outputDir=$OUT/runStats/$TASK_HICLIB --tmpDir=$TMP --verbose $DATASETS
+    python ${NGSANE_BASE}/tools/hiclibCorrelate.py ${PARAMS} --outputDir=$OUT/runStats/$TASK_HICLIB --tmpDir=$THISTMP --verbose $DATASETS
     
     # mark checkpoint
     echo -e "\n********* $CHECKPOINT\n"
+fi
+################################################################################
+CHECKPOINT="cleanup"
+
+[ -d $THISTMP ] && rm -r $THISTMP
+
 fi
 ################################################################################
 echo ">>>>> HiC correlation analysis with hiclib - FINISHED"
