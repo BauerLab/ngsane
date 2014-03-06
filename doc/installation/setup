@@ -68,6 +68,8 @@ module use /modules/
 ################################################################################
 echo "install java 7"
 apt-get install -y openjdk-7-jre
+update-alternatives --config java
+# select /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
 
 ################################################################################
 echo "install ImageMagick " && cd /tmp/
@@ -724,7 +726,7 @@ make install
 wget http://ebi.edu.au/ftp/software/MEME/Databases/motifs/motif_databases.10.3.tgz
 wget http://ebi.edu.au/ftp/software/MEME/Databases/gomo/gomo_databases.3.tgz
 mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION/db
-tar -xf motif_databases.10.3.tgz
+tar -xf motif_databases.11.tgz
 tar -xf gomo_databases.3.tgz
 mv motif_databases $PACKAGEPATH/$SOFTWARE/$VERSION/db
 mv gomo_databases $PACKAGEPATH/$SOFTWARE/$VERSION/db
@@ -782,6 +784,7 @@ wget http://weblogo.berkeley.edu/release/weblogo.$VERSION.tar.gz
 tar -xf weblogo.$VERSION.tar.gz
 cp weblogo/seqlogo $PACKAGEPATH/$SOFTWARE/$VERSION
 cp weblogo/*.pm $PACKAGEPATH/$SOFTWARE/$VERSION
+cp weblogo/template.* $PACKAGEPATH/$SOFTWARE/$VERSION
 
 chmod 555 $PACKAGEPATH/$SOFTWARE/$VERSION/seqlogo
 
@@ -1261,7 +1264,7 @@ cd $SOFTWARE-$VERSION
 ./INSTALL $PACKAGEPATH/samtools/0.1.19/include/bam/
 ./INSTALL $PACKAGEPATH/samtools/0.1.19/lib/
 
-mv /tmp/$SOFTWARE-$VERSION $PACKAGEPATH/$SOFTWARE/$VERSION
+mv /tmp/$SOFTWARE-$VERSION/* $PACKAGEPATH/$SOFTWARE/$VERSION
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
@@ -1285,7 +1288,7 @@ echo "install $SOFTWARE $VERSION " && cd /tmp/
 mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 
 wget https://github.com/enasequence/cramtools/blob/master/$SOFTWARE-$VERSION.jar?raw=true
-mv $SOFTWARE-$VERSION.jar $PACKAGEPATH/$SOFTWARE/$VERSION/$SOFTWARE.jar
+mv $SOFTWARE-$VERSION.jar?raw=true $PACKAGEPATH/$SOFTWARE/$VERSION/$SOFTWARE.jar
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
@@ -1338,7 +1341,7 @@ module load $SOFTWARE/$VERSION
 
 ################################################################################
 
-NGSANE_VERSION=0.4.0.1
+NGSANE_VERSION=0.4.0.2
 NGSANE_SOFTWARE=ngsane
 
 echo "install $NGSANE_SOFTWARE $NGSANE_VERSION " && cd /tmp/

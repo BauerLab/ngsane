@@ -14,9 +14,9 @@ fi
 
 # use chr16 copy to not interfere with other tasks
 [ -e referenceData/chr16_RNAseqcopy.fasta ] && rm referenceData/chr16_RNAseqcopy.fasta
-ln -s chr16.fasta referenceData/chr16_RNAseqcopy.fasta
-ln -s chr16.chrom.sizes referenceData/chr16_RNAseqcopy.chrom.sizes
-ln -s chr16.dict referenceData/chr16_RNAseqcopy.dict
+[ ! -e referenceData/chr16_RNAseqcopy.fasta ] && ln -s chr16.fasta referenceData/chr16_RNAseqcopy.fasta
+[ ! -e referenceData/chr16_RNAseqcopy.chrom.sizes ] && ln -s chr16.chrom.sizes referenceData/chr16_RNAseqcopy.chrom.sizes
+[ ! -e referenceData/chr16_RNAseqcopy.dict ] && ln -s chr16.dict referenceData/chr16_RNAseqcopy.dict
 
 echo "[NOTE] run in $SB_MODE mode $(date)"
 ################################################################################
@@ -47,7 +47,7 @@ HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 
 # prepare the job to generate the html result page and perform the diff 
 echo "[NOTE] prepare evaluation script tmp/testTOPHATCUFFHTSEQ.qsub wait for $HOLDID"
-sed 's/NAME/TOPHATCUFFHTSEQ/g' bin/tmpl/HPCheader.txt >tmp/testTOPHATCUFFHTSEQ.qsub
+sed 's/NAME/NGs_TOPHATCUFFHTSEQ/g' bin/tmpl/HPCheader.txt >tmp/testTOPHATCUFFHTSEQ.qsub
 echo "trigger.sh tmp/configTOPHATCUFFHTSEQ.txt html" >> tmp/testTOPHATCUFFHTSEQ.qsub
 echo "diff result/SummaryTOPHATCUFFHTSEQ.html result/expected/SummaryTOPHATCUFFHTSEQ.html | \
 	   python bin/diffparser.py  > result/diffTOPHATCUFFHTSEQ.txt" >> tmp/testTOPHATCUFFHTSEQ.qsub

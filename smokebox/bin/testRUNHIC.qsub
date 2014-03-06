@@ -13,8 +13,8 @@ fi
 
 # use chr16 copy to not interfere with other tasks
 [ -e referenceData/chr16_HiCcopy.fasta ] && rm referenceData/chr16_HiCcopy.fasta
-ln -s chr16.fasta referenceData/chr16_HiCcopy.fasta
-ln -s chr16.chrom.sizes referenceData/chr16_HiCcopy.chrom.sizes
+[ ! -e referenceData/chr16_HiCcopy.fasta ] && ln -s chr16.fasta referenceData/chr16_HiCcopy.fasta
+[ ! -e referenceData/chr16_HiCcopy.chrom.sizes ] && ln -s chr16.chrom.sizes referenceData/chr16_HiCcopy.chrom.sizes
 
 echo "[NOTE] run in $SB_MODE mode $(date)"
 ################################################################################
@@ -75,7 +75,7 @@ cat bin/tmpl/configHiC.txt | \
 
 # Prep and runare the job to generate the html result page and perform the diff 
 echo "[NOTE] Prep and runare evaluation script tmp/testHIC.qsub wait for $HOLDID"
-sed 's/NAME/HIC/g' bin/tmpl/HPCheader.txt > tmp/testHIC.qsub
+sed 's/NAME/NGs_HIC/g' bin/tmpl/HPCheader.txt > tmp/testHIC.qsub
 echo "trigger.sh tmp/configHiC.txt html" >> tmp/testHIC.qsub
 echo "diff result/SummaryHIC.html result/expected/SummaryHIC.html | \
        python bin/diffparser.py > result/diffHIC.txt" >> tmp/testHIC.qsub

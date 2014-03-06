@@ -125,7 +125,7 @@ cat bin/tmpl/configChIPseq.txt | \
 
 # Prep and runare the job to generate the html result page and perform the diff 
 echo "[NOTE] Prep and runare evaluation script tmp/testCHIPSEQPR.qsub wait for $HOLDID"
-sed 's/NAME/CHIPSEQ/g' bin/tmpl/HPCheader.txt > tmp/testCHIPSEQ.qsub
+sed 's/NAME/NGs_CHIPSEQ/g' bin/tmpl/HPCheader.txt > tmp/testCHIPSEQ.qsub
 echo "trigger.sh tmp/configCHIPSEQ.txt html" >> tmp/testCHIPSEQ.qsub
 echo "diff result/SummaryCHIPSEQ.html result/expected/SummaryCHIPSEQ.html | \
        python bin/diffparser.py > result/diffCHIPSEQ.txt" >> tmp/testCHIPSEQ.qsub
