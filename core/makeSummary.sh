@@ -92,7 +92,7 @@ function summaryHeader {
 
     ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $4 --modscript $3 --log $QOUT --toolkit $CONFIG --task $2 $RESULTLOCATION $SUFFIX >> $4    
     
-    grep -r -P '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES
+    grep -r '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES
     
     echo "<div id='$2_results'>" >> $4
 } 
