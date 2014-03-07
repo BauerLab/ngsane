@@ -92,7 +92,7 @@ function summaryHeader {
 
     ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $4 --modscript $3 --log $QOUT --toolkit $CONFIG --task $2 $RESULTLOCATION $SUFFIX >> $4    
     
-    grep -r -P '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES
+    grep -r '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES
     
     echo "<div id='$2_results'>" >> $4
 } 
@@ -749,7 +749,7 @@ echo $(IFS='|' ; echo "${LINKSET[*]}") >> $SUMMARYFILE.tmp
 
 echo "</div><!-- Links --></div><!-- panel -->" >>$SUMMARYFILE.tmp
 
-echo "<hr><span>Report generated with "`trigger.sh -v`"</span><span style='float:right;'>Last modified: "`date`"</span>" >> $SUMMARYTMP
+echo "<hr><span>Report generated with "`$NGSANE_BASE/bin/trigger.sh -v`"</span><span style='float:right;'>Last modified: "`date`"</span>" >> $SUMMARYTMP
 echo "</div><!-- center --></body></html>" >> $SUMMARYTMP
 ################################################################################
 cat $SUMMARYFILE.tmp $SUMMARYTMP > $SUMMARYFILE

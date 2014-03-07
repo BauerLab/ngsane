@@ -35,7 +35,7 @@ exit
 
 function version {
 
-    NGSANE_VERSION=`which trigger.sh`
+    NGSANE_VERSION=$0
     if [ -e ${NGSANE_VERSION/bin\/trigger.sh/}/.git ]; then 
 	    NGSANE_VERSION=`cd ${NGSANE_VERSION/bin\/trigger.sh/}/ && git rev-parse HEAD `" (git hash)"
     else
@@ -481,7 +481,7 @@ if [ -n "$RUNHICLIB" ]; then
     	-n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
     	--postnodes $NODES_HICLIB_POSTCOMMAND --postcpu $CPU_HICLIB_POSTCOMMAND $INDEXJOBIDS \
         --command "${NGSANE_BASE}/mods/hiclibMapping.sh -k $CONFIG --fastq <FILE> --outdir $OUT/<DIR>/$TASK_HICLIB" \
-        --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh -f <FILE> -k $CONFIG --outdir $OUT/hiclib/$TASK_HICLIB-<DIR>"
+        --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh -f <FILE> -k $CONFIG --outdir $OUT/$TASK_HICLIB/$TASK_HICLIB-<DIR>"
 fi
 
 ################################################################################
