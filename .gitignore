@@ -8,3 +8,5 @@ doc/publications/appNote/ngsane.bib.bak
 *.orig
 
 *.orig
+
+conf/header.sh
