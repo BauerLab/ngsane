@@ -35,7 +35,7 @@ exit
 
 function version {
 
-    NGSANE_VERSION=`which trigger.sh`
+    NGSANE_VERSION=$0
     if [ -e ${NGSANE_VERSION/bin\/trigger.sh/}/.git ]; then 
 	    NGSANE_VERSION=`cd ${NGSANE_VERSION/bin\/trigger.sh/}/ && git rev-parse HEAD `" (git hash)"
     else
