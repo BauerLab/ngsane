@@ -57,7 +57,7 @@ echo "PATH=$PATH"
 # best common denominator)
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--wiggler  --\n "$(align2rawsignal 2>&1 | head -n 3 | tail -n 1)
+echo -e "--wiggler     --\n "$(align2rawsignal 2>&1 | head -n 3 | tail -n 1)
 [ -z "$(which align2rawsignal)" ] && echo "[ERROR] wiggler not detected (align2rawsignal)" && exit 1
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -66,6 +66,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$.ASD.bam/}
 
 # check UMAP folder exist
 if [ -z "$WIGGLER_UMAPDIR" ] || [ ! -d ${WIGGLER_UMAPDIR} ]; then
@@ -86,7 +87,7 @@ elif [ "$WIGGLER_OUTPUTFORMAT" != "bg" ] && [ "$WIGGLER_OUTPUTFORMAT" != "wig" ]
     echo "[ERROR] wiggler output format not known" && exit 1
 fi
 
-THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$n | md5sum | cut -d' ' -f1)
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 mkdir -p $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -106,26 +107,14 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    RUN_COMMAND="align2rawsignal $WIGGLERADDPARAMS -of=$WIGGLER_OUTPUTFORMAT -i=$f -s=${FASTA_CHROMDIR} -u=${WIGGLER_UMAPDIR} -v=${OUTDIR}/${n//.$ASD.bam/.log} -o=${THISTMP}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT} -mm=$MEMORY_WIGGLER"
+    RUN_COMMAND="align2rawsignal $WIGGLERADDPARAMS -of=$WIGGLER_OUTPUTFORMAT -i=$f -s=${FASTA_CHROMDIR} -u=${WIGGLER_UMAPDIR} -v=$OUTDIR/$SAMPLE.log -o=$THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT -mm=$MEMORY_WIGGLER"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    # mark checkpoint
-    if [ -f ${THISTMP}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
-fi 
-
-################################################################################
-CHECKPOINT="gzip"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-
-    $GZIP -c ${THISTMP}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT} > ${OUTDIR}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT}.gz
+    $GZIP -c $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT > $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz
         
     # mark checkpoint
-    if [ -f ${OUTDIR}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT}.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
+    if [ -f $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    
 fi 
 ################################################################################
 CHECKPOINT="cleanup"
@@ -134,6 +123,6 @@ if [ -d $THISTMP ]; then rm -r $THISTMP; fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e $OUTDIR/${n//.$ASD.bam/$WIGGLER_OUTPUTFORMAT}.dummy ] && rm $OUTDIR/${n//.$ASD.bam/$WIGGLER_OUTPUTFORMAT}.dummy
+[ -e $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz.dummy ] && rm $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz.dummy
 echo ">>>>> wiggler - FINISHED"
 echo ">>>>> enddate "`date`
