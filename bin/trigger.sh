@@ -745,7 +745,7 @@ if [ -n "$RUNHOMERHIC" ]; then
 	   --command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERHIC"
     else
         # pool data
-        $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERHIC -i $INPUT_HOMERHIC -e $READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
+        $QSUB $ARMED --postname $POOLED_DATA_NAME -r -k $CONFIG -t $TASK_HOMERHIC -i $INPUT_HOMERHIC -e $READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
 	   --postcommand "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERHIC"
    
     fi
