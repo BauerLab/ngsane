@@ -69,7 +69,7 @@ CHECKPOINT="parameters"
 # get basename of input file f
 INPUTFILENAME=${INPUTFILE##*/}
 # get sample prefix
-SAMPLE=${INPUTFILENAME/%$ASD.bam/}
+SAMPLE=${INPUTFILENAME/%.$ASD.bam/}
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
@@ -92,7 +92,7 @@ else
 fi
 
 # unique temp folder that should be used to store temporary files
-THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 mkdir -p $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -136,7 +136,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.narrowPeak ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE.npf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 ###############################################################################
 CHECKPOINT="cleanup"
