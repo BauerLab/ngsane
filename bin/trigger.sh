@@ -572,10 +572,10 @@ fi
 
 # TODO: finish pipeline
 #if [ -n "$RUNMASAI" ]; then
-#    if [ -z "$TASKMASAI" ] || [ -z "$NODES_MASAI" ] || [ -z "$CPU_MASAI" ] || [ -z "$MEMORY_MASAI" ] || [ -z "$WALLTIME_MASAI" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+#    if [ -z "$TASK_MASAI" ] || [ -z "$NODES_MASAI" ] || [ -z "$CPU_MASAI" ] || [ -z "$MEMORY_MASAI" ] || [ -z "$WALLTIME_MASAI" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 #
-#    $QSUB $ARMED -k $CONFIG -t $TASKMASAI -i $INPUT_MASAI -e $READONE.$FASTQ -n $NODES_MASAI -c $CPU_MASAI -m $MEMORY_MASAI"G" -w $WALLTIME_MASAI \
-#        --command "${NGSANE_BASE}/mods/masai.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASKMASAI --rgsi <DIR>"        
+#    $QSUB $ARMED -k $CONFIG -t $TASK_MASAI -i $INPUT_MASAI -e $READONE.$FASTQ -n $NODES_MASAI -c $CPU_MASAI -m $MEMORY_MASAI"G" -w $WALLTIME_MASAI \
+#        --command "${NGSANE_BASE}/mods/masai.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_MASAI --rgsi <DIR>"        
 #fi
 
 
@@ -1318,6 +1318,20 @@ if [ -n "$RUNPINDEL" ]; then
 		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 $INPUT_PINDEL \
 				-i2 ${INPUT_PINDEL}-$TASK_PINDEL -o $OUT/variant/${INPUT_PINDEL}-${TASK_PINDEL}-<DIR> "
 
+fi
+
+################################################################################
+#   Bigwig generation using fseq
+#
+# IN:$SOURCE/$dir/$INPUT_FSEQ/*asd.bam
+# OUT: $OUT/$dir/fseq/*.bw
+################################################################################
+
+if [ -n "$RUNFSEQ" ]; then
+    if [ -z "$TASK_FSEQ" ] || [ -z "$NODES_FSEQ" ] || [ -z "$CPU_FSEQ" ] || [ -z "$MEMORY_FSEQ" ] || [ -z "$WALLTIME_FSEQ" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_FSEQ -i $INPUT_FSEQ -e .$ASD.bam -n $NODES_FSEQ -c $CPU_FSEQ -m $MEMORY_FSEQ"G" -w $WALLTIME_FSEQ \
+        --command "${NGSANE_BASE}/mods/fseq.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FSEQ"
 fi
 
 

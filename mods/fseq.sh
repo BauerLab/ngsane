@@ -60,7 +60,7 @@ echo -e "--bedtools --\n "$(bedtools --version)
 echo -e "--wigToBigWig --\n "$(wigToBigWig 2>&1 | tee | head -n 1)
 [ -z "$(which wigToBigWig)" ] && echo "[ERROR] wigToBigWig not detected" && exit 1
 echo -e "--fseq        --\n "$(fseq -v | head -n 1)
-[ -z "$(which | head -n 1)" ] && echo "[ERROR] no | head -n 1 detected" && exit 1
+[ -z "$(which fseq)" ] && echo "[ERROR] no fseq detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -69,11 +69,11 @@ CHECKPOINT="parameters"
 # get basename of input file f
 INPUTFILENAME=${INPUTFILE##*/}
 # get sample prefix
-SAMPLE=${INPUTFILENAME/%$bam/}
+SAMPLE=${INPUTFILENAME/%$ASD.bam/}
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    ## TODO remove primary result files from pervious runs
+    [ -f $OUTDIR/$SAMPLE.bw ] && rm $OUTDIR/$SAMPLE.bw
 fi
 
 if [ -z "$FASTA" ] || [ ! -f $FASTA ]; then
@@ -89,11 +89,6 @@ if [ ! -f $GENOME_CHROMSIZES ]; then
     exit 1
 else
     echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
-fi
-
-
-if [ -n "$FSEQ_PLOIDY" ]; then
-    FSEQ_PLOIDY_PARAM="-p $FSEQ_PLOIDY"
 fi
 
 # unique temp folder that should be used to store temporary files
@@ -113,7 +108,7 @@ fi
 echo -e "\n********* $CHECKPOINT\n"
 
 ################################################################################
-CHECKPOINT="fseq"
+CHECKPOINT="fseq bw"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
@@ -121,16 +116,27 @@ else
 
     rm -f $THISTMP/*wig
 
-#    RUN_COMMAND="bedtools bamtobed -i $f | fseq $FSEQADDPARAM $FSEQ_PLOIDY_PARAM -b $FSEQ_BACKGROUNDDIR -o $THISTMP -of wig "
-    RUN_COMMAND="bedtools bamtobed -i $f | java $JAVAOPTS -cp $CLASSPATH edu.duke.igsp.gkde.Main $FSEQADDPARAM $FSEQ_PLOIDY_PARAM -b $FSEQ_BACKGROUNDDIR -o $THISTMP -of wig "
-
+    RUN_COMMAND="java $JAVAPARAMS -cp $CLASSPATH edu.duke.igsp.gkde.Main $FSEQADDPARAM -o $THISTMP -of wig <(bedtools bamtobed -i $INPUTFILE )"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    RUN_COMMAND="cat $THISTMP/*.wig | wigToBigWig stdin ${GENOME_CHROMSIZES} $OUTDIR/SAMPLE.bw"
+    RUN_COMMAND="cat $THISTMP/*.wig | wigToBigWig stdin ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.bw"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE.bw ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi
+################################################################################
+CHECKPOINT="fseq narrowpeak"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else
+
+    RUN_COMMAND="java $JAVAPARAMS -cp $CLASSPATH edu.duke.igsp.gkde.Main $FSEQADDPARAM -o $THISTMP -of npf <(bedtools bamtobed -i $INPUTFILE )"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+
+    # mark checkpoint
+    if [ -f $OUTDIR/$SAMPLE.narrowPeak ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 ###############################################################################
 CHECKPOINT="cleanup"
