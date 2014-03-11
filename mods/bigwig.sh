@@ -66,7 +66,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
-SAMPLE=${n/%.$ASD.$FASTQ/}
+SAMPLE=${n/%.$ASD.bam/}
 
 # delete old bw files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
@@ -146,7 +146,7 @@ else
                 echo "[NOTE] generate strand-specific bigwigs too"
                 samtools view -@ $CPU_BIGWIG -b -F 1028 -f 0x2 $OUTDIR/$SAMPLE.tmp.bam | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | sort -k1,1 -k2,3g | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.+.bw
                 
-                samtools view -@ $CPU_BIGWIG -b -F 1028 -f 0x2 $OUTDIR/$SAMPLE.tmp.bam | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | sort -k1,1 -k2,3g | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$$SAMPLE.-.bw
+                samtools view -@ $CPU_BIGWIG -b -F 1028 -f 0x2 $OUTDIR/$SAMPLE.tmp.bam | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | sort -k1,1 -k2,3g | genomeCoverageBed -strand "-" -scale -$SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.-.bw
         	fi
             
         [ -e $OUTDIR/$SAMPLE.tmp.bam ] && rm $OUTDIR/$SAMPLE.tmp.bam
@@ -155,17 +155,29 @@ else
         echo "[NOTE] fragment length: $FRAGMENTLENGTH"
 
         if [[ $FRAGMENTLENGTH -lt 0 ]]; then
-        	echo "[NOTE] Fragment length must be greater than 0, was: $FRAGMENTLENGTH"
-        else
-            echo "[NOTE] generate bigwig"
-        
-            samtools view -@ $CPU_BIGWIG -b -F 1028 $f | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.bw
+    	   # leave fragments as is
+            echo "[NOTE] generate bigwig from original reads."
+
+            samtools view -@ $CPU_BIGWIG -b -F 1028 $f | bamToBed | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.bw
 
             if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
                 echo "[NOTE] generate strand-specific bigwigs too"
-                samtools view -@ $CPU_BIGWIG -b -F 1028 $f | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.+.bw
+                samtools view -@ $CPU_BIGWIG -b -F 1028 $f | bamToBed | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.+.bw
                 
-                samtools view -@ $CPU_BIGWIG -b -F 1028 $f | bamToBed | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$$SAMPLE.-.bw
+                samtools view -@ $CPU_BIGWIG -b -F 1028 $f | bamToBed | genomeCoverageBed -strand "-" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.-.bw   
+            fi
+            	
+        else
+            # adjust fragment length to given size
+            echo "[NOTE] generate bigwig with specified fragment length"
+        
+            samtools view -@ $CPU_BIGWIG -b -F 1028 $f | bamToBed | awk 'BEGIN{OFS="\t"}{if($6=="+"){print $1,$2,$2+1,$4,$5,$6}else if($6=="-"){print $1,$3-1,$3,$4,$5,$6}else{print $0}}' | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.bw
+
+            if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
+                echo "[NOTE] generate strand-specific bigwigs too"
+                samtools view -@ $CPU_BIGWIG -b -F 1028 $f | bamToBed | awk 'BEGIN{OFS="\t";}{if($6=="+"){print $1,$2,$2+1,$4,$5,$6}}' | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.+.bw
+                
+                samtools view -@ $CPU_BIGWIG -b -F 1028 $f | bamToBed | awk 'BEGIN{OFS="\t";}{if($6=="-"){print $1,$3-1,$3,$4,$5,$6}}' | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale -$SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.-.bw
         	fi
     	fi
     fi 
