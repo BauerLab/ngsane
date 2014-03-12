@@ -135,8 +135,11 @@ else
     RUN_COMMAND="java $JAVAPARAMS -cp $CLASSPATH edu.duke.igsp.gkde.Main $FSEQADDPARAM -o $THISTMP -of npf <(bedtools bamtobed -i $INPUTFILE )"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
+    RUN_COMMAND="cat $THISTMP/*.npf > $OUTDIR/$SAMPLE.narrowPeak"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.npf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE.narrowPeak ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 ###############################################################################
 CHECKPOINT="cleanup"
