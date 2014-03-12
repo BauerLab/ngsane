@@ -56,6 +56,10 @@ NORMALIZETO=1000000
 # e.g. BIGWIGSTRANDS=strand-specific 
 BIGWIGSTRANDS=
 
+# whether to keep duplicates for example in CAGE-seq
+# eg KEEPDUPLICATES="1" to put all duplicates into the bw
+KEEPDUPLICATES=
+
 #WALLTIME_BIGWIG=10:00:00
 #MEMORY_BIGWIG=60
 #CPU_BIGWIG=1
