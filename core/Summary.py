@@ -690,7 +690,7 @@ def homerchipseqStats(logFile):
     values=[]
     file=open(logFile).read()
     # populate
-    tmp=file.split("# fragment length =")[1].strip().split()[0]
+    tmp=file.split("Fragment Length Estimate:")[1].strip().split()[0]
     FL=float(tmp.strip())
     values.append(FL)
 

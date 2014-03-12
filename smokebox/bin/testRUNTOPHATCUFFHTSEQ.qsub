@@ -14,9 +14,9 @@ fi
 
 # use chr16 copy to not interfere with other tasks
 [ -e referenceData/chr16_RNAseqcopy.fasta ] && rm referenceData/chr16_RNAseqcopy.fasta
-ln -s chr16.fasta referenceData/chr16_RNAseqcopy.fasta
-ln -s chr16.chrom.sizes referenceData/chr16_RNAseqcopy.chrom.sizes
-ln -s chr16.dict referenceData/chr16_RNAseqcopy.dict
+[ ! -e referenceData/chr16_RNAseqcopy.fasta ] && ln -s chr16.fasta referenceData/chr16_RNAseqcopy.fasta
+[ ! -e referenceData/chr16_RNAseqcopy.chrom.sizes ] && ln -s chr16.chrom.sizes referenceData/chr16_RNAseqcopy.chrom.sizes
+[ ! -e referenceData/chr16_RNAseqcopy.dict ] && ln -s chr16.dict referenceData/chr16_RNAseqcopy.dict
 
 echo "[NOTE] run in $SB_MODE mode $(date)"
 ################################################################################
