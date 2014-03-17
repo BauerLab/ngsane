@@ -161,7 +161,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM $FASTQ_PHRED -t -x ${FASTA%.*} -p $CPU_BOWTIE2 $READS | samtools view -@ $CPU_BOWTIE2 -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE.$ALN.bam"
+    RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM $FASTQ_PHRED -t -x ${FASTA%.*} -p $CPU_BOWTIE2 $READS | samtools view -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE.$ALN.bam"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     if [ "$PAIRED" = "1" ]; then

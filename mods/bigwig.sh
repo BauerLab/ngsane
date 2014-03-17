@@ -93,9 +93,9 @@ if [ -z "$FRAGMENTLENGTH" ]; then
     FRAGMENTLENGTH=0
 fi
 
-DUPLICATEFILTERFLAG=1028
-[ -n "$KEEPDUPLICATES" ]; then
-    DUPLICATEFILTERFLAG=4
+DUPLICATEFILTERFLAG=1028  # filter unmapped and duplicate reads
+if [ -n "$KEEPDUPLICATES" ]; then
+    DUPLICATEFILTERFLAG=4 # filter unmapped reads only
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -147,12 +147,12 @@ else
             
         samtools view -@ $CPU_BIGWIG -b -F $DUPLICATEFILTERFLAG -f 0x2 $OUTDIR/$SAMPLE.tmp.bam | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | sort -k1,1 -k2,3g | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.bw
 
-            if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
-                echo "[NOTE] generate strand-specific bigwigs too"
-                samtools view -@ $CPU_BIGWIG -b -F $DUPLICATEFILTERFLAG -f 0x2 $OUTDIR/$SAMPLE.tmp.bam | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | sort -k1,1 -k2,3g | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.+.bw
-                
-                samtools view -@ $CPU_BIGWIG -b -F $DUPLICATEFILTERFLAG -f 0x2 $OUTDIR/$SAMPLE.tmp.bam | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | sort -k1,1 -k2,3g | genomeCoverageBed -strand "-" -scale -$SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.-.bw
-        	fi
+        if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
+            echo "[NOTE] generate strand-specific bigwigs too"
+            samtools view -@ $CPU_BIGWIG -b -F $DUPLICATEFILTERFLAG -f 0x2 $OUTDIR/$SAMPLE.tmp.bam | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | sort -k1,1 -k2,3g | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.+.bw
+            
+            samtools view -@ $CPU_BIGWIG -b -F $DUPLICATEFILTERFLAG -f 0x2 $OUTDIR/$SAMPLE.tmp.bam | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | sort -k1,1 -k2,3g | genomeCoverageBed -strand "-" -scale -$SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.-.bw
+    	fi
             
         [ -e $OUTDIR/$SAMPLE.tmp.bam ] && rm $OUTDIR/$SAMPLE.tmp.bam
 
@@ -180,7 +180,7 @@ else
 
             if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
                 echo "[NOTE] generate strand-specific bigwigs too"
-                samtools view -@ $CPU_BIGWIG -b -F $DUPLICATEFILTERFLAG $f | bamToBed | c | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.+.bw
+                samtools view -@ $CPU_BIGWIG -b -F $DUPLICATEFILTERFLAG $f | bamToBed | awk 'BEGIN{OFS="\t";}{if($6=="+"){print $1,$2,$2+1,$4,$5,$6}}' | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "+" -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.+.bw
                 
                 samtools view -@ $CPU_BIGWIG -b -F $DUPLICATEFILTERFLAG $f | bamToBed | awk 'BEGIN{OFS="\t";}{if($6=="-"){print $1,$3-1,$3,$4,$5,$6}}' | slopBed -s -r $FRAGMENTLENGTH -l 0 -i stdin -g ${GENOME_CHROMSIZES}  | genomeCoverageBed -strand "-" -scale -$SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.-.bw
         	fi

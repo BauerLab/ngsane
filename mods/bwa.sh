@@ -194,7 +194,7 @@ else
         
         bwa sampe $FASTA $OUTDIR/$SAMPLE$READONE.sai $OUTDIR/$SAMPLE$READTWO.sai\
     	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-	       $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | samtools view -@ $CPU_BWA -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE.$ALN.bam
+	       $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | samtools view -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE.$ALN.bam
 
         [ -e $OUTDIR/$SAMPLE$READONE.sai ] && rm $OUTDIR/$SAMPLE$READONE.sai
         [ -e $OUTDIR/$SAMPLE$READTWO.sai ] && rm $OUTDIR/$SAMPLE$READTWO.sai
@@ -209,7 +209,7 @@ else
     
         bwa samse $FASTA $OUTDIR/$SAMPLE$READONE.sai \
             $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-        	$f | samtools view -@ $CPU_BWA -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE.$ALN.bam
+        	$f | samtools view -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE.$ALN.bam
     
         [ -e $OUTDIR/$SAMPLE$READONE.sai ] && rm $OUTDIR/$SAMPLE$READONE.sai
     fi
@@ -292,7 +292,7 @@ else
                     
                     bwa sampe $FASTA $THISTMP/$SAMPLE$READONE.sai $THISTMP/$SAMPLE$READTWO.sai\
             	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-            	       $THISTMP/$SAMPLE$READONE.cropped.fastq.gz $THISTMP/$SAMPLE$READTWO.cropped.fastq.gz | samtools view -@ $CPU_BWA -bS -t $FASTA.fai - > $THISTMP/$SAMPLE.$ALN.$COUNTER.bam
+            	       $THISTMP/$SAMPLE$READONE.cropped.fastq.gz $THISTMP/$SAMPLE$READTWO.cropped.fastq.gz | samtools -bS -t $FASTA.fai - > $THISTMP/$SAMPLE.$ALN.$COUNTER.bam
             
                     [ -e $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
                     [ -e $THISTMP/$SAMPLE$READTWO.sai ] && rm $THISTMP/$SAMPLE$READTWO.sai
@@ -351,7 +351,7 @@ else
                     
                     bwa samse $FASTA $THISTMP/$SAMPLE$READONE.sai \
             	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-            	       $THISTMP/$SAMPLE$READONE.cropped.fastq.gz | samtools view -@ $CPU_BWA -bS -t $FASTA.fai - > $THISTMP/$SAMPLE.$ALN.$COUNTER.bam
+            	       $THISTMP/$SAMPLE$READONE.cropped.fastq.gz | samtools view -bS -t $FASTA.fai - > $THISTMP/$SAMPLE.$ALN.$COUNTER.bam
             
                     [ -e $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
                         
