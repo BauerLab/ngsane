@@ -78,7 +78,7 @@ done
 IFS=$OLDFS
 
 echo "$DATASETS"
-exit 1
+
 
 
 
