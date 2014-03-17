@@ -649,7 +649,7 @@ if [ -n "$RUNHTSEQCOUNT" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASK_HTSEQCOUNT -i $INPUT_HTSEQCOUNT -e .$ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT \
         --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HTSEQCOUNT/<NAME>"
-
+        --postcommand "${NGSANE_BASE}/mods/countsTable.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_HTSEQCOUNT-<DIR>"
 fi
 
 
