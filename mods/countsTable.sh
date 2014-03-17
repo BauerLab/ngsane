@@ -25,7 +25,7 @@ if [ ! $# -gt 3 ]; then usage ; fi
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;;     # location of the NGSANE repository                       
-        -f | --file )           shift; INPUTFILE=$1 ;;  # input file                                                       
+        -f | --file )           shift; FILES=$1 ;;  # input file                                                       
         -o | --outdir )         shift; OUTDIR=$1 ;;     # output dir                                                     
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
@@ -51,16 +51,37 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
-echo ${INPUTFILE} 
 
+
+
+
+
+echo "[NOTE] Files: $FILES"
+OLDFS=$IFS
+IFS=","
+DATASETS=""
+for f in $FILES; do
+    # get basename of f
+
+    n=${f/%.$ASD.bam/}
+    FILE=${n/$TASK_TOPHAT/$TASK_HTSEQCOUNT}
+    # get directory
+    d=$(dirname $f)
+    d=${d##*/}
+
+
+    # add to dataset
+    if [ -n "$FILE" ]; then 
+    	DATASETS="${DATASETS[@]} ${FILE[@]}"
+    fi
+done
+IFS=$OLDFS
+
+echo "$DATASETS"
 exit 1
 
 
 
-# get basename of input file f
-INPUTFILENAME=${INPUTFILE##*/}
-# get sample prefix
-SAMPLE=${INPUTFILENAME/%$READONE.$FASTQ/}
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
@@ -117,7 +138,7 @@ for GTF in  "GTF" "GTF_masked"
                [ -f ${THISTMP}/files.txt ] &&  rm ${THISTMP}/files.txt
                touch ${THISTMP}/files.txt
                
-                for FILE in  ${FILES}${GTF}.${MODE}.${ATTR}
+                for FILE in  ${DATASETS}${GTF}.${MODE}.${ATTR}
                   do
                   [ -f $FILE ] && echo $FILE "Found" >> ${THISTMP}/files.txt || echo "Not found" >> ${THISTMP}/files.txt
                   done
