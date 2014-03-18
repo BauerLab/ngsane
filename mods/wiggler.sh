@@ -144,9 +144,9 @@ else
     RUN_COMMAND="align2rawsignal $WIGGLERADDPARAMS -f=$WIGGLER_FRAGMENTSIZE -of=$WIGGLER_OUTPUTFORMAT -i=$f -s=${FASTA_CHROMDIR} -u=${WIGGLER_UMAPDIR} -v=$OUTDIR/$SAMPLE.log -o=$THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT -mm=$MEMORY_WIGGLER"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    if [[ "$WIGGLER_OUTPUTFORMAT" == "bg" ]] && [[ hash bedToBigBed ]] && [[ -f $GENOME_CHROMSIZES ]]; then
+    if hash bedToBigBed 2>&- && [[ "$WIGGLER_OUTPUTFORMAT" == "bg" ]] && [[ -f $GENOME_CHROMSIZES ]]; then
         bedGraphToBigWig $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bw
-    elif [[ "$WIGGLER_OUTPUTFORMAT" == "wig" ]] && [[ hash wigToBigWig ]] && [[ -f $GENOME_CHROMSIZES ]]; then 
+    elif hash wigToBigWig 2>&- && [[ "$WIGGLER_OUTPUTFORMAT" == "wig" ]] && [[ -f $GENOME_CHROMSIZES ]]; then 
         wigToBigWig $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bw
     else
         $GZIP -c $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT > $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz  
