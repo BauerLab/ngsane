@@ -174,6 +174,7 @@ else
             -A MappingQualityZero \
             --out $OUTDIR/$NAME.raw.vcf \
             -stand_call_conf 30.0 \
+            -rf BadCigar \
             $REGION \
 			$PARALLELENT \
             -stand_emit_conf 10.0 \
