@@ -1,10 +1,8 @@
 
 #!/bin/bash -e
 
-# Template for new mods
-# Work through the TODOs and replace all [TEMPLATE...] patterns
-# author: Fabian Buske
-# date: November 2013
+# author: Hugh French and Fabian Buske
+# date: March 2014
 
 
 echo ">>>>> [TEMPLATE purpose]"
@@ -54,8 +52,6 @@ CHECKPOINT="parameters"
 
 
 
-
-
 echo "[NOTE] Files: $FILES"
 OLDFS=$IFS
 IFS=","
@@ -75,17 +71,18 @@ for f in $FILES; do
     	DATASETS="${DATASETS[@]} ${FILE[@]}"
     fi
 done
-IFS=$OLDFS
+IFS=" "
 
-echo "$DATASETS"
+echo "[NOTE] datasets"
+echo "[NOTE] echo $DATASETS"
 
-
-
+mkdir -p $OUTDIR
 
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
     ## TODO remove primary result files from pervious runs
+    rm ${OUTDIR}/*.csv
 fi
 
 ## TODO remove comments if paired/single library preps should be detected based on the READ identifier patterns
@@ -115,8 +112,6 @@ fi
     
 echo -e "\n********* $CHECKPOINT\n"
 
-
-THISTMP="${OUTDIR}/tmp/"   
 	
 ################################################################################
 CHECKPOINT="Make tables of counts."
@@ -137,10 +132,26 @@ for GTF in  "GTF" "GTF_masked"
    
                [ -f ${THISTMP}/files.txt ] &&  rm ${THISTMP}/files.txt
                touch ${THISTMP}/files.txt
+                
+          
+                
+                array=(${DATASETS[@]})
+                 
+                 array=( "${array[@]/%//${GTF}.${MODE}.${ATTR}}" )
+                 
+                 echo "${array[@]}"
+                 
+             
                
-                for FILE in  ${DATASETS}${GTF}.${MODE}.${ATTR}
+              
+          
+               
+                for THIS_FILE in "${array[@]}"
                   do
-                  [ -f $FILE ] && echo $FILE "Found" >> ${THISTMP}/files.txt || echo "Not found" >> ${THISTMP}/files.txt
+                 [ -f $THIS_FILE ] && echo $THIS_FILE "Found" >> ${THISTMP}/files.txt || echo "Not found" >> ${THISTMP}/files.txt
+                  
+                 
+             
                   done
     
                     if grep -q "Not found" ${THISTMP}/files.txt
@@ -152,7 +163,7 @@ for GTF in  "GTF" "GTF_masked"
               
                             [ -f ${THISTMP}/joinedfile.txt ] && rm ${THISTMP}/joinedfile.txt
 							
-								for i in ${FILES}${GTF}.${MODE}.${ATTR}
+								for i in "${array[@]}"
 
 									do
 
@@ -171,7 +182,7 @@ for GTF in  "GTF" "GTF_masked"
 										fi
 									done
 	
-							echo ${FILES}${GTF}.${MODE}.${ATTR} | sed 's/ /,/g' | sed "s/\/${GTF}.${MODE}.${ATTR}//g" > ${THISTMP}/tmp.txt
+							echo "${array[@]##*${TASK_HTSEQCOUNT}}" |  sed 's/ /,/g' | sed "s/\/${GTF}.${MODE}.${ATTR}//g" | sed 's/\///g'   > ${THISTMP}/tmp.txt
 							
 							awk '{print "gene," $0;}' ${THISTMP}/tmp.txt > ${THISTMP}/out.csv
 	
@@ -205,7 +216,7 @@ CHECKPOINT="cleanup."
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 
-echo ">>>>> alignment with TopHat - FINISHED"
+echo ">>>>> Count tables from htseqcount output - FINISHED"
 echo ">>>>> enddate "`date`
 
 
