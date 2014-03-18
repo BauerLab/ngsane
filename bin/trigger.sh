@@ -349,22 +349,22 @@ if [ -n "$RUNVARCALLSBATCH" ]; then
   	BATCHES=$(cut -f 1 $FASTA.fai | grep -v GL | sort -u)
 	NAME=$(echo ${DIR[@]} | sort -u |sed 's/ /_/g')
 
-	if [ ! "$ARMED"="postonly" ]; then
+	if [[ ! "$ARMED" -eq "postonly" ]]; then
 	  	for i in $BATCHES; do
 			echo "[NOTE] Batch $i"
 			export ADDDUMMY=$i
 	    	JOBID=$( $QSUB $ARMED --postname postcommand$i -r -d -k $CONFIG -t ${TASK_GATKVAR}batch -i $INPUT_GATKVAR  \
 				-e .$ASR.bam -n $NODES_GATKVAR -c $CPU_GATKVAR -m $MEMORY_GATKVAR"G" -w $WALLTIME_GATKVAR \
-	        	--postcommand "${NGSANE_BASE}/mods/gatkVAR.sh -k $CONFIG \
+	        	--postcommand "${NGSANE_BASE}/mods/gatkVARs.sh -k $CONFIG \
 	                        -i <FILE> -t $CPU_GATKVAR \
 	                        -r $FASTA -d $DBSNPVCF -o $OUT/${TASK_GATKVAR}batch/$NAME -n $NAME$ADDDUMMY \
 	                        -H $HAPMAPVCF -L $i " 
 			) && echo -e "$JOBID"
-			if [ -n "$(echo $JOBID | grep Jobnumber)" ]; then	JOBIDS=$(waitForJobIds "$JOBID")":"$JOBIDS; fi
+			if [ -n "$(echo $JOBID | grep Jobnumber)" ]; then JOBIDS=$(waitForJobIds "$JOBID")":"$JOBIDS; fi
 	  	done
 		JOBIDS=${JOBIDS//-W /}
 		JOBIDS=${JOBIDS//::/:}
-		JOBIDS="-W $JOBIDS"
+        [ -n "$JOBIDS" ] && JOBIDS="-W $JOBIDS"
 	fi
 
 	echo "[NOTE] filtered SNPs"
