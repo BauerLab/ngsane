@@ -1,0 +1,55 @@
+This is BibTeX, Version 0.99d (TeX Live 2013/MacPorts 2013_2)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: supplement.aux
+The style file: natbib.bst
+Database file #1: ngsane.bib
+Warning--to sort, need author or key in Rubio-Camarillo2013
+Warning--to sort, need author or key in Althammer2011
+Warning--to sort, need author or key in Blanca2011
+Warning--to sort, need author or key in Neron2009
+Warning--empty author in Neron2009
+Warning--empty author in Blanca2011
+Warning--empty author in Althammer2011
+Warning--empty author in Rubio-Camarillo2013
+You've used 24 entries,
+            2378 wiz_defined-function locations,
+            705 strings with 10765 characters,
+and the built_in function-call counts, 12258 in all, are:
+= -- 1156
+> -- 705
+< -- 6
++ -- 211
+- -- 209
+* -- 1252
+:= -- 2082
+add.period$ -- 110
+call.type$ -- 24
+change.case$ -- 145
+chr.to.int$ -- 24
+cite$ -- 40
+duplicate$ -- 460
+empty$ -- 808
+format.name$ -- 239
+if$ -- 2397
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 24
+newline$ -- 123
+num.names$ -- 80
+pop$ -- 129
+preamble$ -- 1
+purify$ -- 145
+quote$ -- 0
+skip$ -- 291
+stack$ -- 0
+substring$ -- 875
+swap$ -- 86
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 216
+warning$ -- 8
+while$ -- 101
+width$ -- 0
+write$ -- 310
+(There were 8 warnings)

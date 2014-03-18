@@ -1,0 +1,46 @@
+This is BibTeX, Version 0.99d (TeX Live 2013/MacPorts 2013_2)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: paper.aux
+The style file: natbib.bst
+Database file #1: ngsane.bib
+You've used 6 entries,
+            2378 wiz_defined-function locations,
+            579 strings with 5942 characters,
+and the built_in function-call counts, 3234 in all, are:
+= -- 310
+> -- 192
+< -- 2
++ -- 56
+- -- 56
+* -- 325
+:= -- 558
+add.period$ -- 28
+call.type$ -- 6
+change.case$ -- 38
+chr.to.int$ -- 6
+cite$ -- 6
+duplicate$ -- 116
+empty$ -- 205
+format.name$ -- 66
+if$ -- 631
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 6
+newline$ -- 33
+num.names$ -- 24
+pop$ -- 34
+preamble$ -- 1
+purify$ -- 38
+quote$ -- 0
+skip$ -- 77
+stack$ -- 0
+substring$ -- 234
+swap$ -- 22
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 54
+warning$ -- 0
+while$ -- 29
+width$ -- 0
+write$ -- 80
