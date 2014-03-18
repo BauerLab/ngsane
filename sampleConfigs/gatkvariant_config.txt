@@ -57,11 +57,13 @@ ONEKGVCF=
 # PARAMETER (optional overwriting defaults)
 #********************
 
+#REGION="-L <file>"
+
 # additional commands for variant recalibrator
 ADDRECAL=
 
-#WALLTIME_VAR=100:00:00
-#MEMORY_VAR=20
-#CPU_VAR=1
-#NODES_VAR="nodes=1:ppn=1"
+#WALLTIME_GATKVAR=100:00:00
+#MEMORY_GATKVAR=20
+#CPU_GATKVAR=1
+#NODES_GATKVAR="nodes=1:ppn=1"
 #MODULE_GATK=

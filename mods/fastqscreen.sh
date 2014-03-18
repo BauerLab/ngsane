@@ -55,6 +55,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$READONE.$FASTQ/}
 
 #is paired ?
 if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
@@ -97,16 +98,16 @@ else
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    mv $OUTDIR/${n}_screen.txt $OUTDIR/${n/$READONE.$FASTQ/}_screen.txt
-    mv $OUTDIR/${n}_screen.png $OUTDIR/${n/$READONE.$FASTQ/}_screen.png
+    mv $OUTDIR/${n}_screen.txt $OUTDIR/$SAMPLE"_"screen.txt
+    mv $OUTDIR/${n}_screen.png $OUTDIR/$SAMPLE"_"screen.png
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/$READONE.$FASTQ/}_screen.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE"_"screen.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/_screen.txt}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/_screen.txt}.dummy
+[ -e $OUTDIR/$SAMPLE"_"screen.txt.dummy ] && rm $OUTDIR/$SAMPLE"_"screen.txt.dummy
 echo ">>>>> read screening with  FASTQSCREEN - FINISHED"
 echo ">>>>> enddate "`date`
 
