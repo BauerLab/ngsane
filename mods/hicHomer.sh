@@ -273,8 +273,8 @@ CHECKPOINT="Circos plots (optional)"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-    if hash ${CIRCOS} 2>&- ; then
-        echo "********* Circos plots"
+    if hash circos 2>&- ; then
+
         RUN_COMMAND="analyzeHiC $OUTDIR/${SAMPLE}_tagdir_filtered -res 1000000 -pvalue 1e-7 -cpu $CPU_HOMERHIC -circos $SAMPLE -minDist 2000000000 -nomatrix"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     fi
