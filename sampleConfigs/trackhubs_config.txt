@@ -1,0 +1,59 @@
+# author: Fabian Buske
+# date: Mar 2014
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks 
+#********************
+
+# list of task to put into report
+# e.g. RUNMACS2="1"   
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+# read indicator immediately preceding the fastq file suffix
+READONE=
+READTWO=
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# UCSC genome assembly 
+# e.g. UCSC_GENOMEASSEMBLY="hg19"
+UCSC_GENOMEASSEMBLY=
+
+# where to put the trackhubs
+TRACKHUB_DIR="trackhubs"
+
+# name of the hub
+# e.g. TRACKHUB_NAME ="prostate"
+TRACKHUB_NAME=
+
+# track name pattern extracted from file names using sed reg. expression (sed -n)
+# e.g. TRACKHUB_NAMEPATTERN="(.*)"for full name
+# e.g. TRACKHUB_NAMEPATTERN=".*_\(.*_.*\)_.*" on USC123_LNCaP_H2AZ_C to extract LNCaP_H2AZ 
+TRACKHUB_NAMEPATTERN="(.*)"
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# the contact to whom questions regarding the track hub should be directed
+TRACKHUB_EMAIL=
