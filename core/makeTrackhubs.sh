@@ -57,20 +57,18 @@ fi
 
 ################################################################################
 
-echo '''
+echo "
 genome $UCSC_GENOMEASSEMBLY
 trackDb $UCSC_GENOMEASSEMBLY/trackDb.txt
-''' > $TRACKHUB_DIR/genomes.txt
+" > $TRACKHUB_DIR/genomes.txt
 
-echo ''' 
-hub $(echo $$TRACKHUB_NAME | sed -e 's/[ \t]*/d')
+echo "
+hub $(echo $TRACKHUB_NAME | sed -e 's/ /_/g')
 shortLabel $TRACKHUB_NAME
 longLabel $TRACKHUB_NAME
 genomesFile genomes.txt
 email $TRACKHUB_EMAIL
-''' > $TRACKHUB_DIR/hub.txt
-
-mkdir -p $(dirname $SUMMARYTMP) && cat /dev/null > $SUMMARYTMP && cat /dev/null > $SUMMARYCITES # clean temporary content
+" > $TRACKHUB_DIR/hub.txt
 
 PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',os.path.realpath('$(dirname $UCSC_GENOMEASSEMBLY/trackDb.txt)'))")
 [ -z "$PROJECT_RELPATH" ] && PROJECT_RELPATH="."
@@ -93,7 +91,8 @@ function gatherDirs {
 # $1=trackDb.txt folder
 # $2=Libary folder
 function makeCompositeTrack {
-    echo '''
+    cat >> $1/trackDb.txt <<DELIM
+    
 track $2
 shortLabel $2
 longLabel $2
@@ -109,7 +108,7 @@ subGroup1 view Views PK=Peaks SIG=Signals READS=Reads VC=VCF
 subGroup2 mod Module\ #TODO aggregate onces
     mod=bowtie
 sortOrder software=+ view=+
-''' >> $1/trackDb.txt
+DELIM
 } 
 
 # makeTrack takes 2 parameters
@@ -119,15 +118,16 @@ sortOrder software=+ view=+
 # $4=type
 # $5=visibility
 function makeSubTrack {
-    echo '''
-    track $2"_"$3
+    cat >> $1/trackDb.txt <<DELIM
+    
+    track $2_$3
     parent $2
     shortLabel $2 $3
     view $3
     type $4
     visibility $5
     viewUi on
-''' >> $1/trackDb.txt
+DELIM
 } 
 
 # makeTrack takes 2 parameters
@@ -141,28 +141,31 @@ function makeSubTrack {
 # $8=filesuffix (e.g: .asd.bam)
 # $9=additional track infos
 function makeTracks {
-    for f in $( ls $SOURCE/$2/$4/$$7*$8); do
-        RELPATH=$(python -c "import os.path; print os.path.relpath('$1',os.path.realpath('$(dirname $f)'))")
+    echo "ls $SOURCE/$2/$4/$7*$8"
+    for f in $( ls $SOURCE/$2/$4/$7*$8); do
+    echo $1
+        RELPATH=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$(dirname $f)'),'$1/$2_$3')")
         TRACKNAME=${f##*/}          # remove folders
         TRACKNAME=${TRACKNAME/%$8/} # remove file suffix
         TRACKNAME=$(echo $TRACKNAME | sed -n "s/$TRACKHUB_NAMEPATTERN/\1/p") # extract pattern
         
+        echo $TRACKNAME
         
         mkdir -p $1/$2_$3
         [ -f $1/$2_$3/${f##*/} ] && rm $1/$2_$3/${f##*/}
-        ln -s $RELPATH/${f##*/} $1/$2_$3/${f##*/} $1/$2_$3/${f##*/}
+        ln -s $RELPATH/${f##*/} $1/$2_$3/${f##*/}
         
-        echo '''
-            track $2"_"$3"_"$4
+        cat >> $1/trackDb.txt <<DELIM
+            track $2_$3_$4
             shortLabel $2 $3 $4
             longLabel $TRACKNAME
-            parent $2"_"$3 on
+            parent $2_$3 on
             type $5
             color $6
             bigDataUrl $1/$2_$3/${f##*/}
             subGroups view=$3 mod=$4
             $9
-    ''' >> $1/trackDb.txt
+DELIM
     done
 } 
 
@@ -176,11 +179,14 @@ SAMPLESETS=""
 for dir in ${DIR[@]}; do
     # separate folder from sample pattern
     DIRNAME=${dir%%/*} 
-    DATASETS="${SAMPLESETS[@]} ${DIRNAME}"
+    if [ -z "$SAMPLESETS" ]; then 
+        SAMPLESETS="${DIRNAME}"    
+    else
+        SAMPLESETS="${SAMPLESETS[@]} ${DIRNAME}"
+    fi
 done
-
-for SET in "$( echo $SAMPLESETS | sort -u); do
-    makeCompositeTrack $UCSC_GENOMEASSEMBLY "$SET" 
+for SET in "$( echo $SAMPLESETS | tr ' ' '\n' | sort -u)"; do
+    makeCompositeTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $SET
 done
 
 for dir in ${DIR[@]}; do
@@ -192,71 +198,74 @@ for dir in ${DIR[@]}; do
     ############################################################################
     # make signal composite (all bigwig and wig tracks)
     SUBGROUP1="SIG"
-    makeSubTrack $UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 "bigWig 0 100" "full"
+    makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 "bigWig 0 100" "full"
     
     if [[ -n "$RUNBIGWIG" ]]; then        
-        makeTracks $UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BIGWIG "bigWig 0 100" "255,214,79" $SAMPLEPATTERN ".bw" ""
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $INPUT_BIGWIG "bigWig 0 100" "255,214,79" "$SAMPLEPATTERN" ".bw" ""
     fi
 
     if [[ -n "$RUNWIGGLER" ]]; then        
-        makeTracks $UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_WIGGLER "bigWig 0 100" "255,214,79" $SAMPLEPATTERN ".bw" ""
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_WIGGLER "bigWig 0 100" "255,214,79" "$SAMPLEPATTERN" ".bw" ""
     fi
     
 
     ############################################################################
     # make peak composite (all bed, bg, bb)
-    makeSubTrack $UCSC_GENOMEASSEMBLY $DIR "PK" "bigBed 4" "dense"   
-    
+    makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "PK" "bigBed 4" "dense"   
+    SUBGROUP1="PK"
+        
     if [[ -n "$RUNMACS2" ]]; then        
-        makeTracks $UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_MACS2 "bigBed 4" "255,214,79" $SAMPLEPATTERN ".bb" ""
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_MACS2 "bigBed 4" "255,214,79" "$SAMPLEPATTERN" ".bb" ""
     fi
     
     if [[ -n "$RUNPEAKRANGER" ]]; then        
-        makeTracks $UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_PEAKRANGER "bed 4" "255,214,79" $SAMPLEPATTERN "_region.bed" ""
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_PEAKRANGER "bed 4" "255,214,79" "$SAMPLEPATTERN" "_region.bed" ""
     fi
 
     if [[ -n "$RUNHOMERCHIPSEQ" ]]; then        
-        makeTracks $UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HOMERCHIPSEQ "bed 4" "255,214,79" $SAMPLEPATTERN ".bed" "" 
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HOMERCHIPSEQ "bed 4" "255,214,79" "$SAMPLEPATTERN" ".bed" "" 
     fi
     
     ############################################################################
     # make read (all bams)
-    makeSubTrack $UCSC_GENOMEASSEMBLY $DIR "READ" "bam" "squish"   
-    
+    makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "READ" "bam" "squish"   
+    SUBGROUP1="READ"
+        
     if [[ -n "$RUNMAPPINGBOWTIE" ]]; then        
-        makeTracks $UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BOWTIE "bam" "0,0,0" $SAMPLEPATTERN ".$ASD.bam" "bamColorMode=strand"
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BOWTIE "bam" "0,0,0" "$SAMPLEPATTERN" ".$ASD.bam" "bamColorMode=strand"
     fi
 
     if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then        
-        makeTracks $UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BOWTIE2 "bam" "0,0,0" $SAMPLEPATTERN ".$ASD.bam" "bamColorMode=strand"
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BOWTIE2 "bam" "0,0,0" "$SAMPLEPATTERN" ".$ASD.bam" "bamColorMode=strand"
     fi
 
     if [[ -n "$RUNTOPHAT" ]]; then        
-        makeTracks $UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_TOPHAT "bam" "0,0,0" $SAMPLEPATTERN ".$ASD.bam" "bamColorMode=strand"
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_TOPHAT "bam" "0,0,0" "$SAMPLEPATTERN" ".$ASD.bam" "bamColorMode=strand"
     fi
 
     if [[ -n "$RUNMAPPINGBWA" ]]; then        
-        makeTracks $UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BWA "bam" "0,0,0" $SAMPLEPATTERN ".$ASD.bam" "bamColorMode=strand"
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BWA "bam" "0,0,0" "$SAMPLEPATTERN" ".$ASD.bam" "bamColorMode=strand"
     fi
 
     if [[ -n "$RUNHICLIB" ]]; then        
-        makeTracks $UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HICLIB "bam" "0,0,0" $SAMPLEPATTERN ".$ASD.bam" "bamColorMode=strand"
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HICLIB "bam" "0,0,0" "$SAMPLEPATTERN" ".$ASD.bam" "bamColorMode=strand"
     fi
 
     if [[ -n "$RUNHICUP" ]]; then        
-        makeTracks $UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HICUP "bam" "0,0,0" $SAMPLEPATTERN ".bam" "bamColorMode=strand"
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HICUP "bam" "0,0,0" "$SAMPLEPATTERN" ".bam" "bamColorMode=strand"
     fi
 
     if [[ -n "$RUNREALRECAL" ]]; then        
-        makeTracks $UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_RECAL "bam" "0,0,0" $SAMPLEPATTERN ".$ASR.bam" "bamColorMode=strand"
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_RECAL "bam" "0,0,0" "$SAMPLEPATTERN" ".$ASR.bam" "bamColorMode=strand"
     fi
 
     ############################################################################
     # make read (all vcg)
-    makeSubTrack $UCSC_GENOMEASSEMBLY $DIR "VC" "vcfTabix" "squish"   
+    makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "VC" "vcfTabix" "squish"   
+    SUBGROUP1="VC"
     
     if [[ -n "$RUNPINDEL" ]]; then        
-        makeTracks $UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_PINDEL "vcfTabix" "0,0,0" $SAMPLEPATTERN "vcf.gz" ""
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_PINDEL "vcfTabix" "0,0,0" "$SAMPLEPATTERN" "vcf.gz" ""
     fi
 
         

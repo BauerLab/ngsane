@@ -47,9 +47,9 @@ TRACKHUB_DIR="trackhubs"
 TRACKHUB_NAME=
 
 # track name pattern extracted from file names using sed reg. expression (sed -n)
-# e.g. TRACKHUB_NAMEPATTERN="(.*)"for full name
+# e.g. TRACKHUB_NAMEPATTERN="\(.*\)"for full name
 # e.g. TRACKHUB_NAMEPATTERN=".*_\(.*_.*\)_.*" on USC123_LNCaP_H2AZ_C to extract LNCaP_H2AZ 
-TRACKHUB_NAMEPATTERN="(.*)"
+TRACKHUB_NAMEPATTERN="\(.*\)"
 
 #********************
 # PARAMETER (optional overwriting defaults)
