@@ -155,8 +155,8 @@ function makeTracks {
         if [ -z "$COLOR" ]; then COLOR="100,100,100"; fi
         
         mkdir -p $1/$2_$3
-        [ -f $1/$2_$3/${f##*/} ] && rm $1/$2_$3/${f##*/}
-        ln -s $RELPATH/${f##*/} $1/$2_$3/${f##*/}
+        [ -f $1/$2_$3/$4/${f##*/} ] && rm $1/$2_$3/$4/${f##*/}
+        ln -s $RELPATH/${f##*/} $1/$2_$3/$4/${f##*/}
         
         cat >> $1/trackDb.txt <<DELIM
             track $2_$3_$4_${f##*/}
@@ -165,7 +165,7 @@ function makeTracks {
             parent $2_$3 on
             type $5
             color $COLOR
-            bigDataUrl $2_$3/${f##*/}
+            bigDataUrl $2_$3/$4/${f##*/}
             subGroups view=$3 mod=$4
             $9
             
