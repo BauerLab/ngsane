@@ -149,7 +149,7 @@ function makeSubTrack {
 DELIM
 } 
 
-# makeTrack takes 2 parameters
+# makeTrack takes 8 parameters
 # $1=trackDb.txt folder
 # $2=Libary folder
 # $3=subGroup1  (e.g. LNCaP)
@@ -184,6 +184,7 @@ function makeTracks {
 DELIM
     done
 } 
+
 
 ################################################################################
 ################################################################################
