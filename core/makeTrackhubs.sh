@@ -154,7 +154,7 @@ function makeTracks {
         # default color
         if [ -z "$COLOR" ]; then COLOR="100,100,100"; fi
         
-        mkdir -p $1/$2_$3
+        mkdir -p $1/$2_$3/$4
         [ -f $1/$2_$3/$4/${f##*/} ] && rm $1/$2_$3/$4/${f##*/}
         ln -s $RELPATH/${f##*/} $1/$2_$3/$4/${f##*/}
         
