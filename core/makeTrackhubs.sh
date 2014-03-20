@@ -80,6 +80,12 @@ PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',o
 ################################################################################
 # define functions for generating summary scaffold
 #
+containsElement () {
+  local e
+  for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
+  return 1
+}
+#
 # gatherDirs takes 1 parameter
 # $1=TASK (e.g. $TASK_BWA)
 function gatherDirs {
@@ -107,10 +113,19 @@ visibility full
 priority 7
 maxHeightPixels 64:64:11
 type bed 3
-subGroup1 view Views PK=Peaks SIG=Signals READS=Reads VC=VCF
-subGroup2 mod Module\ #TODO aggregate onces
-    mod=bowtie
-sortOrder software=+ view=+
+subGroup1 view Views \
+    PK=Peaks \
+    SIG=Signals \
+    READS=Reads \
+    VC=VCF
+subGroup2 mod Module\
+    bowtie=bowtie \
+    macs=macs \
+    peakranger=peakranger
+
+dimensions dimX=view dimY=mod
+sortOrder mod=+ view=+
+
 DELIM
 } 
 
@@ -130,6 +145,7 @@ function makeSubTrack {
     type $4
     visibility $5
     viewUi on
+    
 DELIM
 } 
 
@@ -143,9 +159,9 @@ DELIM
 # $7=filesuffix (e.g: .asd.bam)
 # $8=additional track infos
 function makeTracks {
-    echo "ls $SOURCE/$2/$4/$6*$7"
+    echo "parsing $SOURCE/$2/$4/$6*$7"
     for f in $( ls $SOURCE/$2/$4/$6*$7); do
-        RELPATH=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$(dirname $f)'),'$1/$2_$3')")
+        RELPATH=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$(dirname $f)'),'$1')")
         TRACKNAME=${f##*/}          # remove folders
         TRACKNAME=${TRACKNAME/%$7/} # remove file suffix
         TRACKNAME=$(echo $TRACKNAME | sed -n "s/$TRACKHUB_NAMEPATTERN/\1/p") # extract pattern
@@ -154,18 +170,14 @@ function makeTracks {
         # default color
         if [ -z "$COLOR" ]; then COLOR="100,100,100"; fi
         
-        mkdir -p $1/$2_$3
-        [ -f $1/$2_$3/$4/${f##*/} ] && rm $1/$2_$3/$4/${f##*/}
-        ln -s $RELPATH/${f##*/} $1/$2_$3/$4/${f##*/}
-        
-        cat >> $1/trackDb.txt <<DELIM
+        cat >> $1/$3.txt <<DELIM
             track $2_$3_$4_${f##*/}
             shortLabel $2 $TRACKNAME 
-            longLabel $TRACKNAME ($2 $3 $4)
+            longLabel $TRACKNAME ($2 $4 ${f##*/})
             parent $2_$3 on
             type $5
             color $COLOR
-            bigDataUrl $2_$3/$4/${f##*/}
+            bigDataUrl $RELPATH/${f##*/}
             subGroups view=$3 mod=$4
             $9
             
@@ -178,34 +190,27 @@ DELIM
 ################################################################################
 
 ################################################################################
-# make all subtracks first
+TRACKDB=$TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/trackDb.txt
+cat /dev/null > $TRACKDB
+
 SAMPLESETS=""
-for dir in ${DIR[@]}; do
+
+for DIR in ${DIR[@]}; do
+
     # separate folder from sample pattern
-    DIRNAME=${dir%%/*} 
-    if [ -z "$SAMPLESETS" ]; then 
-        SAMPLESETS="${DIRNAME}"    
-    else
+    DIRNAME=${DIR%%/*} # TODO ONLY ONCE PER 
+    SAMPLEPATTERN=${DIR/$DIRNAME/}
+
+    if ! containsElement "$DIRNAME" "${SAMPLESETS[@]}" ; then
+        echo "adding $DIRNAME"
+        makeCompositeTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIRNAME
         SAMPLESETS="${SAMPLESETS[@]} ${DIRNAME}"
     fi
-done
-
-cat /dev/null > $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/trackDb.txt
-
-for SET in "$( echo $SAMPLESETS | tr ' ' '\n' | sort -u)"; do
-    makeCompositeTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $SET
-done
-
-for dir in ${DIR[@]}; do
-
-    # separate folder from sample pattern
-    DIRNAME=${dir%%/*} # TODO ONLY ONCE PER 
-    SAMPLEPATTERN=${dir/$DIRNAME/}
     
     ############################################################################
     # make signal composite (all bigwig and wig tracks)
     SUBGROUP1="SIG"
-    makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 "bigWig 0 100" "full"
+    cat /dev/null > $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
     
     if [[ -n "$RUNBIGWIG" ]]; then        
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $INPUT_BIGWIG "bigWig 0 100" "$SAMPLEPATTERN" ".bw" ""
@@ -214,30 +219,42 @@ for dir in ${DIR[@]}; do
     if [[ -n "$RUNWIGGLER" ]]; then        
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_WIGGLER "bigWig 0 100" "$SAMPLEPATTERN" ".bw" ""
     fi
+
+    if [ -s $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt ]; then
+        makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 "bigWig 0 100" "dense"
+        cat $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt >> $TRACKDB   
+    fi
     
+    rm $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
 
     ############################################################################
     # make peak composite (all bed, bg, bb)
-    makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "PK" "bigBed 4" "dense"   
     SUBGROUP1="PK"
-        
+    cat /dev/null > $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
+    
     if [[ -n "$RUNMACS2" ]]; then        
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_MACS2 "bigBed 4" "$SAMPLEPATTERN" ".bb" ""
     fi
     
     if [[ -n "$RUNPEAKRANGER" ]]; then        
-        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_PEAKRANGER "bed 4" "$SAMPLEPATTERN" "_region.bed" ""
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_PEAKRANGER "bigBed 4" "$SAMPLEPATTERN" ".bb" ""
     fi
+#
+#    if [[ -n "$RUNHOMERCHIPSEQ" ]]; then        
+#        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HOMERCHIPSEQ "bigBed 4" "$SAMPLEPATTERN" ".bb" "" 
+#    fi
 
-    if [[ -n "$RUNHOMERCHIPSEQ" ]]; then        
-        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HOMERCHIPSEQ "bed 4" "$SAMPLEPATTERN" ".bed" "" 
+    if [ -s $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt ]; then
+        makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "PK" "bigBed 4" "dense"   
+        cat $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt >> $TRACKDB   
     fi
+    rm $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
     
     ############################################################################
     # make read (all bams)
-    makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "READ" "bam" "squish"   
     SUBGROUP1="READ"
-        
+    cat /dev/null > $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
+    
     if [[ -n "$RUNMAPPINGBOWTIE" ]]; then        
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BOWTIE "bam" "$SAMPLEPATTERN" ".$ASD.bam" "bamColorMode=strand"
     fi
@@ -265,16 +282,28 @@ for dir in ${DIR[@]}; do
     if [[ -n "$RUNREALRECAL" ]]; then        
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_RECAL "bam" "$SAMPLEPATTERN" ".$ASR.bam" "bamColorMode=strand"
     fi
+    
+    if [ -s $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt ]; then
+        makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "READ" "bam" "squish"   
+        cat $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt >> $TRACKDB   
+    fi
+    rm $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
 
     ############################################################################
     # make read (all vcg)
-    makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "VC" "vcfTabix" "squish"   
     SUBGROUP1="VC"
+    cat /dev/null > $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
     
     if [[ -n "$RUNPINDEL" ]]; then        
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_PINDEL "vcfTabix" "$SAMPLEPATTERN" "vcf.gz" ""
     fi
 
+    
+    if [ -s $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt ]; then
+        makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "VC" "vcfTabix" "squish"   
+        cat $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt >> $TRACKDB   
+    fi
+    rm $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
         
 done
 ################################################################################
