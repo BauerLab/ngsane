@@ -1335,3 +1335,18 @@ if [ -n "$RUNFSEQ" ]; then
 fi
 
 
+################################################################################
+#  Fusion search tophat
+#
+# IN : $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/tophatfusion_out/*
+################################################################################       
+
+if [ -n "$RUNFUSION" ]; then
+    if [ -z "$TASK_FUSION" ] || [ -z "$NODES_FUSION" ] || [ -z "$CPU_FUSION" ] || [ -z "$MEMORY_FUSION" ] || [ -z "$WALLTIME_FUSION" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -k $CONFIG -t $TASK_FUSION -i $INPUT_FUSION -e $READONE.$FASTQ -n $NODES_FUSION -c $CPU_FUSION -m $MEMORY_FUSION"G" -w $WALLTIME_FUSION$INDEXJOBIDS \
+        --command "${NGSANE_BASE}/mods/fusion.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FUSION/<NAME>"
+
+fi
+

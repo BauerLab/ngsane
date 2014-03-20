@@ -4,10 +4,7 @@
 # Fabian Buske and Hugh French
 # date: March 2014
 
-
-# messages to look out for -- relevant for the QC.sh script:
-# QCVARIABLES,truncated file
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>
 
 echo ">>>>> readmapping with Tophat "
 echo ">>>>> startdate "`date`
@@ -29,10 +26,6 @@ required:
   -f | --fastq <file>       fastq file
   -o | --outdir <path>      output dir
 
-options:
-  -R | --region <ps>        region of specific interest, e.g. targeted reseq
-                             format chr:pos-pos
-  --forceSingle             run single end eventhough second read is present
 "
 exit
 }
@@ -64,8 +57,8 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_TOPHAT; do module load $MODULE; done  # save way to load modules that itself load other modules
-export PATH=$PATH_TOPHAT:$PATH
+for MODULE in $MODULE_FUSION; do module load $MODULE; done  # save way to load modules that itself load other modules
+export PATH=$PATH_FUSION:$PATH
 module list
 echo "PATH=$PATH"
 
@@ -73,10 +66,14 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 
 echo -e "--tophat      --\n "$(tophat --version)
 [ -z "$(which tophat)" ] && echo "[ERROR] no tophat detected" && exit 1
-echo -e "--bowtie1     --\n "$(bowtie1 --version)
-[ -z "$(which bowtie1)" ] && echo "[ERROR] no bowtie1 detected" && exit 1
+echo -e "--bowtie     --\n "$(bowtie --version)
+[ -z "$(which bowtie)" ] && echo "[ERROR] no bowtie detected" && exit 1
 echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
+
+### add for circos plots.
+### module load fabbus/circos/0.62.1
+
 
 
 
@@ -84,18 +81,40 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
+#make symlinks
+  
+  [ ! -d $OUTDIR ] && mkdir $OUTDIR 
+  
+  cd $OUTDIR
+
+  [ -f $PWD/refGene.txt ] && rm $PWD/refGene.txt
+  
+  [ -f $PWD/ensGene.txt ] && rm $PWD/ensGene.txt
+  
+  [ -f $PWD/mcl ] && rm $PWD/mcl
+  
+  [ -d $PWD/blast ] && rm $PWD/blast
+  
+ln -s ${ANNO_DIR}/refGene.txt $PWD/refGene.txt
+ln -s ${ANNO_DIR}/ensGene.txt $PWD/ensGene.txt
+ln -s ${ANNO_DIR}/mcl $PWD/mcl
+
+ln -s ${ANNO_DIR}/blast $PWD/blast
+
+echo "[NOTE] Symlinks to annotations created."
+
+
 [ ! -f $f ] && echo "[ERROR] input file not found: $f" 1>&2 && exit 1
 
 # get basename of f (samplename)
 n=${f##*/}
 
-if [[ ! -e ${FASTA%.*}.1.bt2 ]]; then
-    echo "[ERROR] Bowtie2 index not detected. Exeute bowtieIndex.sh first"
+if [[ ! -e ${FASTA%.*}.1.ebwt ]]; then
+    echo "[ERROR] Bowtie1 index not detected. Exeute bowtieIndex.sh first"
     exit 1
 fi
 
-# get info about input file
-BAMFILE=$OUTDIR/../${n/%$READONE.$FASTQ/.$ASD.bam}
+
 
 #remove old files
 if [ -z "$RECOVERFROM" ]; then
@@ -137,32 +156,6 @@ if [ -z "$FASTQ_PHRED" ]; then
 fi
 
 
-#ln -s /share/ClusterShare/biodata/contrib/fusion/refGene.txt $PWD/refGene.txt
-#ln -s /share/ClusterShare/biodata/contrib/fusion/ensGene.txt $PWD/ensGene.txt
-#ln -s /share/ClusterShare/biodata/contrib/fusion/mcl $PWD/mcl
-
-#cp -rs /share/ClusterShare/biodata/contrib/fusion/blast/ $PWD/blast/
-
-
-## GTF provided?
-if [ -n "$GTF" ]; then
-    echo "[NOTE] GTF: $GTF"
-    if [ ! -f $GTF ]; then
-        echo "[ERROR] GTF specified but not found!"
-        exit 1
-    fi 
-    if [ ! -z "$DOCTOREDGTFSUFFIX" ]; then
-        if [ ! -f ${GTF/%.gtf/$DOCTOREDGTFSUFFIX} ] ; then
-            echo "[ERROR] Doctored GTF suffix specified but gtf not found: ${GTF/%.gtf/$DOCTOREDGTFSUFFIX}"
-            exit 1
-        else 
-            echo "[NOTE] Doctored GTF: ${GTF/%.gtf/$DOCTOREDGTFSUFFIX}"
-        fi
-    fi
-else
-    echo "[NOTE] no GTF specified!"
-fi
-
 # check library info is set
 if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then
     echo "[ERROR] RNAseq library type not set (RNA_SEQ_LIBRARY_TYPE): either fr-unstranded or fr-firststrand"
@@ -177,14 +170,6 @@ else
     echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
 fi
 
-if [ -n "$TOPHATTRANSCRIPTOMEINDEX" ]; then
-    echo "[NOTE] RNAseq --transcriptome-index specified: ${TOPHATTRANSCRIPTOMEINDEX}"
-    TOPHAT_TRANSCRIPTOME_PARAM="--transcriptome-index=${TOPHATTRANSCRIPTOMEINDEX}"
-
-else
-    echo "[NOTE] no --transcriptome-index specified."
-    TOPHAT_TRANSCRIPTOME_PARAM=
-fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -207,16 +192,14 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     echo "[NOTE] tophat $(date)"
+    echo "[NOTE] $f"
+    echo "[NOTE] $f2"
 
 
-   
-  RUN_COMMAND="tophat $FASTQ_PHRED --fusion-search --keep-fasta-order --bowtie1 --no-coverage-search --max-intron-length 100000 --fusion-min-dist 100000 --fusion-anchor-length 13 --fusion-ignore-chromosomes chrM --num-threads $CPU_TOPHAT --library-type $RNA_SEQ_LIBRARY_TYPE --rg-id $EXPID --rg-sample $PLATFORM --rg-library $LIBRARY --output-dir $OUTDIR ${FASTA%.*} $f $f2"
+  RUN_COMMAND="tophat -o $OUTDIR -p $CPU_FUSION --fusion-search --keep-fasta-order --bowtie1 --no-coverage-search --max-intron-length 100000 --fusion-min-dist 100000 --fusion-anchor-length 13 --fusion-ignore-chromosomes chrM ${FASTA%.*} $f $f2"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    echo "[NOTE] tophat end $(date)"
+    echo "[NOTE] tophat fusion search end $(date)"
 
-  RUN_COMMAND="tophat-fusion-post --num-fusion-reads 1 --num-fusion-pairs 2 --num-fusion-both 5 --num-threads $CPU_TOPHAT --output-dir $OUTDIR ${FASTA%.*} $f $f2"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-    echo "[NOTE] tophat-fusion-post end $(date)"
 
 
     # mark checkpoint
@@ -226,12 +209,83 @@ fi
 
 
 
+
+################################################################################
+CHECKPOINT="run fusion-post"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    echo "[NOTE] tophat fusion post $(date)"
+
+
+  RUN_COMMAND="tophat-fusion-post -p $CPU_FUSION --num-fusion-reads 1 --num-fusion-pairs 2 --num-fusion-both 5 ${FASTA%.*}"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+    echo "[NOTE] tophat-fusion-post end $(date)"
+
+
+    # mark checkpoint
+    if [ -e $OUTDIR/tophatfusion_out/result.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+
+
+################################################################################
+CHECKPOINT="run circos"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    echo "[NOTE] circos $(date)"
+
+
+cat $OUTDIR/tophatfusion_out/result.txt | awk '{ print $3, $4, $4,$6,$7,$7 }' | sed 's/chr/hs/g' > $OUTDIR/my_link.txt
+
+cat $OUTDIR/tophatfusion_out/result.txt | awk '{ print $3,$4,$4,$2 }' | sed 's/chr/hs/g' > $OUTDIR/link_names.txt
+cat $OUTDIR/tophatfusion_out/result.txt | awk '{ print $6,$7,$7,$5 }' | sed 's/chr/hs/g' >> $OUTDIR/link_names.txt
+
+[ -f $PWD/ticks.conf ] && rm $PWD/ticks.conf
+  
+[ -f $PWD/ideogram.conf ] && rm $PWD/ideogram.conf
+  
+[ -f $PWD/base.conf ] && rm $PWD/base.conf
+  
+ln -s ${NGSANE_BASE}/tools/ticks.conf  $PWD/ticks.conf
+ln -s ${NGSANE_BASE}/tools/ideogram.conf  $PWD/ideogram.conf
+ln -s ${NGSANE_BASE}/tools/base.conf  $PWD/base.conf
+
+circos -conf $PWD/base.conf
+
+    # mark checkpoint
+    if [ -e $OUTDIR/circos.png ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi 
+
+
+
 ###############################################################################
 CHECKPOINT="cleanup"
 
+  [ -f $PWD/ticks.conf ] && rm $PWD/ticks.conf
+  
+  [ -f $PWD/ideogram.conf ] && rm $PWD/ideogram.conf
+  
+  [ -f $PWD/base.conf ] && rm $PWD/base.conf
+
+  [ -f $PWD/refGene.txt ] && rm $PWD/refGene.txt
+  
+  [ -f $PWD/ensGene.txt ] && rm $PWD/ensGene.txt
+  
+  [ -f $PWD/mcl ] && rm $PWD/mcl
+  
+  [ -d $PWD/blast ] && rm $PWD/blast
+  
+  [ -f $PWD/ticks.conf ] && rm $PWD/ticks.conf
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e ${BAMFILE}.dummy ] && rm ${BAMFILE}.dummy
-echo ">>>>> alignment with TopHat - FINISHED"
+
+echo ">>>>> fusion search with TopHat - FINISHED"
 echo ">>>>> enddate "`date`
