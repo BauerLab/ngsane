@@ -121,7 +121,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     
     if [ -z "$WIGGLER_FRAGMENTSIZE" ]; then
-        macs2 predictd -i $f > $OUTDIR/$SAMPLE.fragment_size.txt 2>&1
+        macs2 predictd --rfile $OUTDIR/$SAMPLE -i $f > $OUTDIR/$SAMPLE.fragment_size.txt 2>&1
     fi
     
     # mark checkpoint

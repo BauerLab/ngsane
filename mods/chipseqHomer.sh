@@ -59,6 +59,8 @@ echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--homer       --\n "$(which makeTagDirectory)
 [ -z "$(which makeTagDirectory)" ] && echo "[ERROR] homer not detected" && exit 1
+echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
+[ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress bedgraphs"
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -67,6 +69,14 @@ CHECKPOINT="parameters"
 # get basename of f
 n=${f##*/}
 SAMPLE=${n/%.$ASD.bam/}
+
+GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
+if [ ! -f $GENOME_CHROMSIZES ]; then
+    echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES"
+    exit 1
+else
+    echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
+fi
 
 if [ -n "$CHIPINPUT" ];then
     c=${CHIPINPUT##*/}
@@ -129,7 +139,7 @@ else
     if hash bedToBigBed && [ -f $GENOME_CHROMSIZES ]; then
         bedtools intersect -a <(cut -f1-3,5 $OUTDIR/$SAMPLE-$INPUT.bed | grep -v "^#" | sort -k1,1 -k2,2n) -b <( awk '{OFS="\t"; print $1,1,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/$SAMPLE-$INPUT.tmp
         bedToBigBed -type=bed4 $OUTDIR/$SAMPLE-$INPUT.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE-$INPUT.bb
-        $OUTDIR/$SAMPLE-$INPUT.tmp
+        rm $OUTDIR/$SAMPLE-$INPUT.tmp
     fi
         
     # mark checkpoint

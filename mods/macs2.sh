@@ -88,7 +88,6 @@ if [ ! -f $GENOME_CHROMSIZES ]; then
     exit 1
 else
     echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
-
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -119,16 +118,23 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
     
-    RUN_COMMAND="macs2 predictd $MACS2_PREDICTD_ADDPARAM --ifile $f --gsize $MACS2_GENOMESIZE --rfile $SAMPLE > $SAMPLE.summary.txt 2>&1"    
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-
-    Rscript $SAMPLE"_"model.r
-    if hash convert; then 
-        convert -format png $SAMPLE"_"model.pdf $SAMPLE"_"model.png
+    if [ -n "$MACS2_FRAGMENTSIZE" ]; then
+        echo "[NOTE] Skip modeling"
+    
+    else
+    
+        RUN_COMMAND="macs2 predictd $MACS2_PREDICTD_ADDPARAM --ifile $f --gsize $MACS2_GENOMESIZE --rfile $SAMPLE > $SAMPLE.summary.txt 2>&1"    
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+    
+        Rscript $SAMPLE"_"model.R
+        if hash convert; then 
+            convert -format png $SAMPLE"_"model.pdf $SAMPLE"_"model.png
+        fi
+    
     fi
     
     # mark checkpoint
-    if [ -f $SAMPLE"_"model.r ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $SAMPLE"_"model.R ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 ################################################################################
 CHECKPOINT="macs 2 - call peaks "
@@ -141,9 +147,11 @@ else
 	   MAKEBEDGRAPHS="--bdg"
 	fi 
 
-    MACS2_FRAGMENTSIZE=$(grep 'alternative fragment length(s) may be' $SAMPLE.summary.txt | sed 's/.* be //' | egrep -o '((-[0-9]{2,4},)?[0-9]{2,4})')
-
-    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED $MAKEBEDGRAPH --nomodel $MACS2_FRAGMENTSIZE --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE $MAKEBEDGRAPHS --name $SAMPLE > $SAMPLE.summary.txt 2>&1"    
+    if [ -z "$MACS2_FRAGMENTSIZE" ]; then
+        MACS2_FRAGMENTSIZE=$(grep 'alternative fragment length(s) may be' $SAMPLE.summary.txt | sed 's/.* be //' | egrep -o '((-[0-9]{2,4},)?[0-9]{2,4})')
+    fi
+    
+    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED $MAKEBEDGRAPH --nomodel --extsize $MACS2_FRAGMENTSIZE --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE $MAKEBEDGRAPHS --name $SAMPLE >> $SAMPLE.summary.txt 2>&1"    
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
 	if hash bedToBigBed ; then 
