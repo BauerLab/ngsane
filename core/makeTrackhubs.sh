@@ -47,6 +47,7 @@ if [ -z "$TRACKHUB_DIR" ]; then
     echo "[ERROR] output folder not specified"
     exit 1
 else
+    [ -d $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY ] && rm -r $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY
     mkdir -p $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY
 fi
 
@@ -54,6 +55,11 @@ if [ -z "$TRACKHUB_NAME" ]; then
     echo "[ERROR] trackhub name not specified"
     exit 1
 fi
+
+[ -z "$TRACKHUB_READ" ] && TRACKHUB_READ="hide"
+[ -z "$TRACKHUB_SIGNAL" ] && TRACKHUB_SIGNAL="hide"
+[ -z "$TRACKHUB_PEAK" ] && TRACKHUB_PEAK="hide"
+[ -z "$TRACKHUB_VARIANT" ] && TRACKHUB_VARIANT="hide"
 
 # get trackhub colors
 COLORS=$(grep '^TRACKHUB_COLOR ' $CONFIG | cut -d ' ' -f 2,3 )
@@ -109,9 +115,9 @@ compositeTrack on
 showSubtrackColorOnUi on
 viewLimits 0:3
 configurable on
-visibility full
+visibility hide
 priority 7
-maxHeightPixels 64:64:11
+maxHeightPixels 32:22:11
 type bed 3
 subGroup1 view Views \
     PK=Peaks \
@@ -119,9 +125,13 @@ subGroup1 view Views \
     READS=Reads \
     VC=VCF
 subGroup2 mod Module\
-    bowtie=bowtie \
-    macs=macs \
-    peakranger=peakranger
+    bowtie=Bowtie \
+    bowtie2=Bowtie2 \
+    bwa=BWA \
+    tophat=Tophat \
+    macs=Macs \
+    homer=Homer \
+    peakranger=Peakranger
 
 dimensions dimX=view dimY=mod
 sortOrder mod=+ view=+
@@ -136,7 +146,7 @@ DELIM
 # $4=type
 # $5=visibility
 function makeSubTrack {
-    cat >> $1/trackDb.txt <<DELIM
+    cat >> $1/trackDb.tmp <<DELIM
     
     track $2_$3
     parent $2
@@ -160,7 +170,7 @@ DELIM
 # $8=additional track infos
 function makeTracks {
     echo "parsing $SOURCE/$2/$4/$6*$7"
-    for f in $( ls $SOURCE/$2/$4/$6*$7); do
+    for f in $( ls $SOURCE/$2/$4/$6*$7 2> /dev/null ); do
         RELPATH=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$(dirname $f)'),'$1')")
         TRACKNAME=${f##*/}          # remove folders
         TRACKNAME=${TRACKNAME/%$7/} # remove file suffix
@@ -172,7 +182,7 @@ function makeTracks {
         
         cat >> $1/$3.txt <<DELIM
             track $2_$3_$4_${f##*/}
-            shortLabel $2 $TRACKNAME 
+            shortLabel $TRACKNAME
             longLabel $TRACKNAME ($2 $4 ${f##*/})
             parent $2_$3 on
             type $5
@@ -192,7 +202,7 @@ DELIM
 
 ################################################################################
 TRACKDB=$TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/trackDb.txt
-cat /dev/null > $TRACKDB
+cat /dev/null > ${TRACKDB/%.txt/.tmp}
 
 SAMPLESETS=""
 
@@ -201,12 +211,6 @@ for DIR in ${DIR[@]}; do
     # separate folder from sample pattern
     DIRNAME=${DIR%%/*} # TODO ONLY ONCE PER 
     SAMPLEPATTERN=${DIR/$DIRNAME/}
-
-    if ! containsElement "$DIRNAME" "${SAMPLESETS[@]}" ; then
-        echo "adding $DIRNAME"
-        makeCompositeTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIRNAME
-        SAMPLESETS="${SAMPLESETS[@]} ${DIRNAME}"
-    fi
     
     ############################################################################
     # make signal composite (all bigwig and wig tracks)
@@ -222,8 +226,8 @@ for DIR in ${DIR[@]}; do
     fi
 
     if [ -s $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt ]; then
-        makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 "bigWig 0 100" "dense"
-        cat $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt >> $TRACKDB   
+        makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 "bigWig 0 100" "$TRACKHUB_SIGNAL"
+        cat $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt >> ${TRACKDB/%.txt/.tmp}   
     fi
     
     rm $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
@@ -246,8 +250,8 @@ for DIR in ${DIR[@]}; do
 #    fi
 
     if [ -s $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt ]; then
-        makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "PK" "bigBed 4" "dense"   
-        cat $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt >> $TRACKDB   
+        makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "PK" "bigBed 4" "$TRACKHUB_PEAK"   
+        cat $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt >> ${TRACKDB/%.txt/.tmp}   
     fi
     rm $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
     
@@ -285,8 +289,8 @@ for DIR in ${DIR[@]}; do
     fi
     
     if [ -s $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt ]; then
-        makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "READ" "bam" "squish"   
-        cat $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt >> $TRACKDB   
+        makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "READ" "bam" "$TRACKHUB_READ"   
+        cat $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt >> ${TRACKDB/%.txt/.tmp}   
     fi
     rm $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
 
@@ -301,11 +305,24 @@ for DIR in ${DIR[@]}; do
 
     
     if [ -s $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt ]; then
-        makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "VC" "vcfTabix" "squish"   
-        cat $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt >> $TRACKDB   
+        makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR "VC" "vcfTabix" "$TRACKHUB_VARIANT"   
+        cat $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt >> ${TRACKDB/%.txt/.tmp}   
     fi
     rm $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
         
+    if [ -s ${TRACKDB/%.txt/.tmp} ]; then
+        if ! containsElement "$DIRNAME" "${SAMPLESETS[@]}" ; then
+            echo "adding $DIRNAME"
+            makeCompositeTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIRNAME
+            SAMPLESETS="${SAMPLESETS[@]} ${DIRNAME}"
+            cat ${TRACKDB/%.txt/.tmp} >> $TRACKDB
+            rm ${TRACKDB/%.txt/.tmp}
+        else
+            cat ${TRACKDB/%.txt/.tmp} >> $TRACKDB
+            rm ${TRACKDB/%.txt/.tmp}        
+        fi
+    fi
+
 done
 ################################################################################
 

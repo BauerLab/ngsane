@@ -119,11 +119,19 @@ else
     cat $OUTDIR/${SAMPLE}.findpeaks.log # put into qout log too
     
     if [ "$HOMER_CHIPSEQ_STYLE" == "factor" ]; then
-        pos2bed.pl $OUTDIR/${SAMPLE}_homer/peaks.txt > $OUTDIR/${SAMPLE}-${INPUT}_peaks.bed
+        pos2bed.pl $OUTDIR/${SAMPLE}_homer/peaks.txt > $OUTDIR/$SAMPLE-$INPUT.bed
+    
     elif [ "$HOMER_CHIPSEQ_STYLE" == "histone" ]; then
-        pos2bed.pl $OUTDIR/${SAMPLE}_homer/regions.txt > $OUTDIR/${SAMPLE}-${INPUT}_regions.bed
+        pos2bed.pl $OUTDIR/${SAMPLE}_homer/regions.txt > $OUTDIR/$SAMPLE-$INPUT.bed
     fi
 
+    # make bigbed
+    if hash bedToBigBed && [ -f $GENOME_CHROMSIZES ]; then
+        bedtools intersect -a <(cut -f1-3,5 $OUTDIR/$SAMPLE-$INPUT.bed | grep -v "^#" | sort -k1,1 -k2,2n) -b <( awk '{OFS="\t"; print $1,1,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/$SAMPLE-$INPUT.tmp
+        bedToBigBed -type=bed4 $OUTDIR/$SAMPLE-$INPUT.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE-$INPUT.bb
+        $OUTDIR/$SAMPLE-$INPUT.tmp
+    fi
+        
     # mark checkpoint
     if [ -f $OUTDIR/${SAMPLE}.findpeaks.log ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
