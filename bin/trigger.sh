@@ -25,6 +25,7 @@ options for TASK:
   recover    pick up unfinished business (interrupted jobs)
   html       checks logfiles for errors and creates summary HTML page
   report     alias for html
+  trackhubs  generate trackhubs
 
 other options:
   -h         print this help message.
@@ -118,7 +119,12 @@ if [ -n "$ADDITIONALTASK" ]; then
         echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
         ${NGSANE_BASE}/core/makeSummary.sh -k $CONFIG
         exit
-	    
+
+    elif [[ "$ADDITIONALTASK" = "trackhubs" ]]; then
+        echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
+        ${NGSANE_BASE}/core/makeTrackhubs.sh -k $CONFIG
+        exit
+        
     elif [ "$ADDITIONALTASK" = "armed" ]; then
 	    echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
 	    ARMED="--armed"
