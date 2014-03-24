@@ -37,17 +37,17 @@ FORCESINGLE=0
 
 #INPUTS
 while [ "$1" != "" ]; do
-	case $1 in
-	-k | toolkit )          shift; CONFIG=$1 ;; # ENSURE NO VARIABLE NAMES FROM CONFIG
-	-f | --fastq )          shift; f=$1 ;; # fastq file
-	-o | --outdir )         shift; OUTDIR=$1 ;; # output dir
-	-R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
-	--forceSingle )         FORCESINGLE=1;;
+    case $1 in
+    -k | toolkit )          shift; CONFIG=$1 ;; # ENSURE NO VARIABLE NAMES FROM CONFIG
+    -f | --fastq )          shift; f=$1 ;; # fastq file
+    -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
+    -R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
+    --forceSingle )         FORCESINGLE=1;;
     --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
-	-h | --help )           usage ;;
-	* )                     echo "dont understand $1"
-	esac
-	shift
+    -h | --help )           usage ;;
+    * )                     echo "dont understand $1"
+    esac
+    shift
 done
 
 . $CONFIG
@@ -126,7 +126,7 @@ fi
 
 
 if [ -n "$READONE" ] && [ "$READONE" == "$READTWO" ]; then
-	echo "[ERROR] read1 == read2 " 1>&2 && exit 1
+    echo "[ERROR] read1 == read2 " 1>&2 && exit 1
 elif [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
     f2=${f/%$READONE.$FASTQ/$READTWO.$FASTQ}
