@@ -154,6 +154,49 @@ else
     RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED $MAKEBEDGRAPH --nomodel --extsize $MACS2_FRAGMENTSIZE --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE $MAKEBEDGRAPHS --name $SAMPLE >> $SAMPLE.summary.txt 2>&1"    
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
+    # mark checkpoint
+    if [ -f $SAMPLE"_"peaks.xls ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi
+################################################################################
+CHECKPOINT="macs 2 - bedcmp"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else
+
+	if hash bedToBigBed ; then 
+
+        RUN_COMMAND="macs2 bedcmp -t ${SAMPLE}_treat_pileup.bdg -c ${SAMPLE}_control_lambda.bdg $MACS2_BDGCMP_ADDPARAM --output $SAMPLE -m qpois >> $SAMPLE.summary.txt 2>&1"    
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+    
+    	if hash bedToBigBed ; then 
+            bedToBigBed -type=bed4 $SAMPLE"_"treat_qvalue.bdg $GENOME_CHROMSIZES $SAMPLE.bb
+        fi
+        
+        # mark checkpoint
+        if [ -f ${SAMPLE}.bb ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        
+        rm -f $SAMPLE"_"*.bdg
+    fi    
+fi
+################################################################################
+CHECKPOINT="macs 2 - call peaks "
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else
+
+	if hash bedToBigBed ; then 
+	   MAKEBEDGRAPHS="--bdg"
+	fi 
+
+    if [ -z "$MACS2_FRAGMENTSIZE" ]; then
+        MACS2_FRAGMENTSIZE=$(grep 'alternative fragment length(s) may be' $SAMPLE.summary.txt | sed 's/.* be //' | egrep -o '((-[0-9]{2,4},)?[0-9]{2,4})')
+    fi
+    
+    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED $MAKEBEDGRAPH --nomodel --extsize $MACS2_FRAGMENTSIZE --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE $MAKEBEDGRAPHS --name $SAMPLE >> $SAMPLE.summary.txt 2>&1"    
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+    
 	if hash bedToBigBed ; then 
         bedToBigBed -type=bed4 $SAMPLE"_"treat_qvalue.bdg $GENOME_CHROMSIZES $SAMPLE.bb
         rm -f $SAMPLE"_"*.bdg
@@ -161,30 +204,6 @@ else
     
     # mark checkpoint
     if [ -f $SAMPLE"_"peaks.xls ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-fi
-################################################################################
-CHECKPOINT="macs 2 - refine peaks "
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
-
-    if [[ "$MACS2_CALLPEAK_ADDPARAM" == *--broad* ]]; then
-        echo "[NOTE] convert broadpeaks to 6 bed file for refining"
-        cat $SAMPLE"_"peaks.broadPeak | cut -f1-6  > $SAMPLE"_"peaks.bed
-    else
-        echo "[NOTE] convert narrowpeaks to 6 bed file for refining"
-        cat $SAMPLE"_"peaks.narrowPeak | cut -f1-6 > $SAMPLE"_"peaks.bed
-    fi
-
-    RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b $SAMPLE"_"peaks.bed -i $f --o-prefix $SAMPLE  >> $SAMPLE.summary.txt 2>&1"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-    [ -e $SAMPLE"_"peaks.bed ] && rm $SAMPLE"_"peaks.bed    
-
-    echo "Final number of refined peaks: $(wc -l ${SAMPLE}.refinepeak.bed )" >> $SAMPLE.summary.txt
-
-    # mark checkpoint
-    if [ -f ${SAMPLE}.refinepeak.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 ################################################################################
 # back to where we came from
