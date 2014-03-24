@@ -354,43 +354,42 @@ if [ -n "$RUNVARCALLSBATCH" ]; then
 	if [ ! -e "$FASTA.fai" ] ; then echo -e "\e[91m[ERROR]\e[0m $FASTA.fai missing"; exit 1; fi
   	BATCHES=$(cut -f 1 $FASTA.fai | grep -v GL | sort -u)
 	NAME=$(echo ${DIR[@]} | sort -u |sed 's/ /_/g')
-	export QUEUEWAIT=${QUEUEWAIT/afterok/afterany}
 
-	if [ ! "$ARMED"="postonly" ]; then
+	if [[ ! "$ARMED" -eq "postonly" ]]; then
 	  	for i in $BATCHES; do
 			echo "[NOTE] Batch $i"
 			export ADDDUMMY=$i
-	    	JOBID=$( $QSUB $ARMED --postname postcommand$i -r -d -k $CONFIG -t ${TASK_VAR}batch -i $INPUT_VAR  \
-				-e .$ASR.bam -n $NODES_VAR -c $CPU_VAR -m $MEMORY_VAR"G" -w $WALLTIME_VAR \
-	        	--postcommand "${NGSANE_BASE}/mods/gatkSNPs2.sh -k $CONFIG \
-	                        -i <FILE> -t $CPU_VAR \
-	                        -r $FASTA -d $DBSNPVCF -o $OUT/${TASK_VAR}batch/$NAME -n $NAME$ADDDUMMY \
+	    	JOBID=$( $QSUB $ARMED --postname postcommand$i -r -d -k $CONFIG -t ${TASK_GATKVAR}batch -i $INPUT_GATKVAR  \
+				-e .$ASR.bam -n $NODES_GATKVAR -c $CPU_GATKVAR -m $MEMORY_GATKVAR"G" -w $WALLTIME_GATKVAR \
+	        	--postcommand "${NGSANE_BASE}/mods/gatkVARs.sh -k $CONFIG \
+	                        -i <FILE> -t $CPU_GATKVAR \
+	                        -r $FASTA -d $DBSNPVCF -o $OUT/${TASK_GATKVAR}batch/$NAME -n $NAME$ADDDUMMY \
 	                        -H $HAPMAPVCF -L $i " 
 			) && echo -e "$JOBID"
-			if [ -n "$(echo $JOBID | grep Jobnumber)" ]; then	JOBIDS=$(waitForJobIds "$JOBID")":"$JOBIDS; fi
+			if [ -n "$(echo $JOBID | grep Jobnumber)" ]; then JOBIDS=$(waitForJobIds "$JOBID")":"$JOBIDS; fi
 	  	done
 		JOBIDS=${JOBIDS//-W /}
 		JOBIDS=${JOBIDS//::/:}
-		JOBIDS="-W $JOBIDS"
+        [ -n "$JOBIDS" ] && JOBIDS="-W $JOBIDS"
 	fi
 
 	echo "[NOTE] filtered SNPs"
-   	$QSUB $ARMED --postname joinedSNP --givenDirs $NAME -d -k $CONFIG -t ${TASK_VAR}batch -i ${TASK_VAR}batch -e filter.snps.vcf $JOBIDS \
+   	$QSUB $ARMED --postname joinedSNP --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
 		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
-		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_VAR}batch \
-				-i2 ${TASK_VAR}batch -o $OUT/${TASK_VAR}batch/$NAME --dummy filter.snps.vcf --target filter.snps.vcf"
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
+				-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.snps.vcf"
 
 	echo "[NOTE] filtered INDELs"
-   	$QSUB $ARMED --postname joinedINDEL --givenDirs $NAME -d -k $CONFIG -t ${TASK_VAR}batch -i ${TASK_VAR}batch -e filter.snps.vcf $JOBIDS \
+   	$QSUB $ARMED --postname joinedINDEL --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
 		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
-		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_VAR}batch \
-				-i2 ${TASK_VAR}batch -o $OUT/${TASK_VAR}batch/$NAME --dummy filter.snps.vcf --target filter.indel.vcf"
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
+				-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.indel.vcf"
 
 	echo "[NOTE] recal Vars"
-   	$QSUB $ARMED --postname joinedRECAL --givenDirs $NAME -d -k $CONFIG -t ${TASK_VAR}batch -i ${TASK_VAR}batch -e filter.snps.vcf $JOBIDS \
+   	$QSUB $ARMED --postname joinedRECAL --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
 		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
-		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_VAR}batch \
-				-i2 ${TASK_VAR}batch -o $OUT/${TASK_VAR}batch/$NAME --dummy filter.snps.vcf --target recalfilt.vcf"
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
+				-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target recalfilt.vcf"
    
 fi	
 
@@ -1112,14 +1111,14 @@ if [ -n "$RUNANNOTATION" ]; then
     #    for dir in $( ls -d $TASK_VAR/* ); do
     for d in ${DIR[@]}; do	
     
-        dir=$OUT/$TASK_VAR/$d
+        dir=$OUT/$TASK_GATKVAR/$d
         
         n=`basename $dir`
         echo $n
         
-        namesnp=$OUT/$TASK_VAR/$n/$n.filter.snps.vcf
-        namesnp2=$OUT/$TASK_VAR/$n/$n.recalfilt.snps.vcf
-        nameindel=$OUT/$TASK_VAR/$n/$n.filter.indel.vcf
+        namesnp=$OUT/$TASK_GATKVAR/$n/$n.filter.snps.vcf
+        namesnp2=$OUT/$TASK_GATKVAR/$n/$n.recalfilt.snps.vcf
+        nameindel=$OUT/$TASK_GATKVAR/$n/$n.filter.indel.vcf
         
         #cleanup old qouts
         if [ -e $QOUT/$TASK_ANNOVAR/$n.out ]; then rm $QOUT/$TASK_ANNOVAR/$n.out; fi
@@ -1128,9 +1127,9 @@ if [ -n "$RUNANNOTATION" ]; then
         
         
         #check if this is part of the pipe and jobsubmission needs to wait
-        if [ -n "$TASK_VAR" ]; then HOLD="-hold_jid "$TASK_VAR"_"$n; fi
-        #echo -e "-hold_jid "$TASK_VAR"_"$n
-        HOLD="-hold_jid "$TASK_VAR"_"$n
+        if [ -n "$TASK_GATKVAR" ]; then HOLD="-hold_jid "$TASK_GATKVAR"_"$n; fi
+        #echo -e "-hold_jid "$TASK_GATKVAR"_"$n
+        HOLD="-hold_jid "$TASK_GATKVAR"_"$n
         
             #submit
         if [ -n "$ARMED" ]; then
@@ -1142,67 +1141,6 @@ if [ -n "$RUNANNOTATION" ]; then
     done
 
 fi
-
-
-################################################################################
-#   call snps with GATK
-################################################################################
-
-if [ -n "$GATKcallSNPS" ]
-then
-
-    echo -e "********* $TASK_GATKSNP"
-
-    if [ ! -d $QOUT/$TASK_GATKSNP ]; then mkdir -p $QOUT/$TASK_GATKSNP; fi
-    if [ -e $QOUT/$TASK_GATKSNP/ids.txt ]; then rm $QOUT/$TASK_GATKSNP/ids.txt; fi
-    if [ -e $QOUT/$TASK_GATKSNP/sum.out ]; then rm $QOUT/$TASK_GATKSNP/sum.out; fi
-
-
-    for dir in ${DIR[@]}
-      do
-
-      #ensure dirs are there...
-      if [ ! -d $OUT/$dir/$TASK_GATKSNP ]; then mkdir -p $OUT/$dir/$TASK_GATKSNP; fi
-
-      
-
-      #for f in $( ls $SOURCE/$dir/aln2/*$ASR.bam )
-      for f in $( ls $SOURCE/fastq/$dir/*$READONE.$FASTQ )
-	do
-	n=`basename $f`
-	n2=${n/%$READONE.$FASTQ/.$ASR.bam}
-	name=${n/%$READONE.$FASTQ/}
-	echo -e ">>>>>"$dir$n2
-
-	# remove old pbs output
-	if [ -e $QOUT/$TASK_GATKSNP/$dir"_"$name.out ]; then rm $QOUT/$TASK_GATKSNP/$dir"_"$name.*; fi
-
-	#check if this is part of the pipe and jobsubmission needs to wait
-	if [ -n "$GATKcallIndelsSeperate" ] || [ -n "$GATKcallIndelsCombined" ]
-	    then HOLD="-hold_jid "$TASK_GATKIND"_"$dir"_"$name; fi
-
-	#Submit
-	if [ -n "$ARMED" ]; then
-	    qsub $PRIORITY -j y -o $QOUT/$TASK_GATKSNP/$dir'_'$name'.out' -cwd -b y \
-		-l h_vmem=12G -N $TASK_GATKSNP'_'$dir'_'$name $HOLD\
-		${NGSANE_BASE}/mods/gatkSNPs.sh $CONFIG $OUT/$dir/$TASK_RECAL/$n2 $FASTA $DBVCF \
-		$REFSEQROD $OUT/$dir/$TASK_GATKSNP $OUT/$dir/$TASK_GATKIND | cut -d "" -f 2 >>$QOUT/$TASK_GATKSNP/ids.txt
-	fi
-
-
-      done
-    done
-
-
-    #combine into one file
-#    qsub -j y -o $QOUT/gatkInd/final.out -cwd -b y -hold_jid `cat $QOUT/gatkInd/ids.txt`\
-#	echo -e "merge"
-#		merge-vcf `ls $QOUT/dindel/*.dindel.VCF` > genotyping/indels.dindel.vcf
-#		merge-vcf A.vcf.gz B.vcf.gz C.vcf.gz | bgzip -c > out.vcf.gz
-
-fi
-
-
 
 
 ########
@@ -1340,4 +1278,12 @@ if [ -n "$RUNFSEQ" ]; then
         --command "${NGSANE_BASE}/mods/fseq.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FSEQ"
 fi
 
-
+################################################################################ 
+# FEATURE ANNOTATE
+################################################################################ 
+if [ -n "$RUNANNOTATINGFEATURE" ]; then
+    if [ -z "$TASK_FEATANN" ] || [ -z "$NODES_FEATANN" ] || [ -z "$CPU_FEATANN" ] || [ -z "$MEMORY_FEATANN" ] || [ -z "$WALLTIME_FEATANN" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    $QSUB --nodir -r $ARMED -k $CONFIG -t ${INPUT_FEATANN}-${TASK_FEATANN} -i $INPUT_FEATANN -e $ENDING \
+    -n $NODES_FEATANN -c $CPU_FEATANN -m $MEMORY_FEATANN'G' -w $WALLTIME_FEATANN --postname postcommand-$UPSTREAM+$DOWNSTREAM \
+        --postcommand "${NGSANE_BASE}/mods/annotateFeature.sh -k $CONFIG -f <FILE> -o $OUT/${INPUT_FEATANN}-${TASK_FEATANN}-<DIR> "
+fi

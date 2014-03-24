@@ -25,7 +25,7 @@ while [ "$1" != "" ]; do
 	--postmemory )          shift; POSTMEMORY=$1;; # Memory used for postcommand
 	--postwalltime )        shift; POSTWALLTIME=$1;;
 	-r | --reverse )        REV="1";;              # input is fastq
-	-d | --nodir )          NODIR="nodir";;
+	-d | --nodir )          NODIR="nodir";;        # create no output directory
 	-a | --armed )          ARMED="armed";;
 	-W | --wait )           shift; JOBIDS=$1 ;;    # jobids to wait for
 	--commontask )          shift; COMMONTASK=$1;; # name of a task common to multiple libraries
@@ -259,6 +259,10 @@ if [ -n "$POSTCOMMAND" ]; then
 	POSTLOGFILE=$QOUT/$TASK/$POSTNAME.out
 
     echo "[NOTE] "$POSTCOMMAND2
+
+    # try to make output folder -- if there is no dummy. Only folders defined with -o for the mod can 
+    # be created
+    mkdir -p $(echo $POSTCOMMAND2 | gawk '{split($0,o,"-o"); split(o[2],arr," "); print arr[1]}')
 
 	# create dummy files for the pipe
 	COMMANDARR=(${POSTCOMMAND// / })

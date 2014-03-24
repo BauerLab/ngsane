@@ -3,10 +3,20 @@
 
 *.pyc
 
-doc/publications/appNote/ngsane.bib.bak
+doc/publications/appNote/*.bak
 
 *.orig
 
-*.orig
 
 conf/header.sh
+doc/publications/BigData2014/BigData2014.Data/Trash/Trash.Data/rdb/csort.MYD
+
+*.MYI
+
+*.frm
+
+*.opt
+
+*.MYD
+
+*Trash.enl
