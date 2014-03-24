@@ -161,7 +161,7 @@ def main(args):
     upstream=args.upstream/args.bin
     downstream=(args.downstream+1)/args.bin
 
-    print "%i %i" % (upstream, downstream)
+    #print "%i %i" % (upstream, downstream)
 
     #processNumpy(args.inputfile,args.upstream,args.downstream,args.length)
     #mean,std=processStream(args.inputfile,args.upstream,args.downstream,args.length)
