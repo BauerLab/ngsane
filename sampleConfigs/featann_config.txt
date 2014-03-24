@@ -63,9 +63,11 @@ FEATANN_LAB
 # PARAMETER (optional overwriting defaults)
 #********************
 
-REMOVEMULTIFEATURE="yes"
-IGNOREUNCOVERED="--ignoreUncovered"
+REMOVEMULTIFEATURE="yes"               # leave blank 
+NORMALIZE="yes"                        # leave blank 
+IGNOREUNCOVERED="--ignoreUncovered"    # leave blank 
 REMOVEOUTLIER="--removeoutlier 6"
+BIN=""                                 # e.g. 100
 
 
 #TASK_FEATANN="featann"

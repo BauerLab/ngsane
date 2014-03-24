@@ -53,6 +53,8 @@ export OUTDIR=$OUTDIR
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
+if [ -n "$BIN" ]; then export PYBIN="--bin $BIN"; fi
+
 ################################################################################
 CHECKPOINT="programs"
 
@@ -76,7 +78,7 @@ RESULTFILES=""
 for i in $FILES; do
     n=$(basename $i)
     ending=${n/*./}
-    RESULTFILES=$RESULTFILES" "$OUTDIR/${n/$ending/txt}
+    RESULTFILES=$RESULTFILES" "$OUTDIR/${n/.$ending/}"-${UPSTREAM}+${DOWNSTREAM}.txt"
 done
 
 
@@ -146,7 +148,7 @@ else
         . $CONFIG
         name=$(basename $1)
         ending=${name/*./}
-        name=${name/.$ending/}
+        name=${name/.$ending/}"-$UPSTREAM+$DOWNSTREAM"
         arrIN=(${1//\// })
         fileloc=$(echo ${arrIN[@]:(-3)} | sed 's/ /\//g')
         mark=$(grep $fileloc $CONFIG | cut -d " " -f 3)
@@ -157,7 +159,7 @@ else
                     echo "[NOTE] flagstat  $(date)"
                     samtools flagstat $1 >$1.stats
                 fi
-                TOTALREADS=$(head -n 1 $1.stats | cut -d " " -f 1)
+                TOTALREADS="--normalize "$(head -n 1 $1.stats | cut -d " " -f 1)
             fi
             A="-abam"
         elif [[ $ending == "bed" ]]; then
@@ -170,9 +172,14 @@ else
             exit
         fi
         echo "[NOTE] coverage $(date)"
-        bedtools coverage -d $A $1 -b $REGIONS | cut -f 4,5 > $OUTDIR/$name.bed
-        echo "[NOTE] process file $TOTALREADS $(date)"
-        python ${NGSANE_BASE}/tools/coverageAtFeature.py -f $OUTDIR/$name.bed -u $UPSTREAM -d $DOWNSTREAM -l $LENGTH -n $mark -o $OUTDIR/$name $IGNOREUNCOVERED $REMOVEOUTLIER $NORMALIZE --metric $METRIC
+        if [ -n "$BIN" ]; then
+            echo "bin with $BIN"
+            bedtools coverage -d $A $1 -b $REGIONS | cut -f 4,5 | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
+        else
+            bedtools coverage -d $A $1 -b $REGIONS | cut -f 4,5 > $OUTDIR/$name.bed
+        fi
+        echo "[NOTE] process file $(date)"
+        python ${NGSANE_BASE}/tools/coverageAtFeature.py -f $OUTDIR/$name.bed $PYBIN -u $UPSTREAM -d $DOWNSTREAM -l $LENGTH -n $mark -o $OUTDIR/$name $IGNOREUNCOVERED $REMOVEOUTLIER $TOTALREADS --metric $METRIC
     }
     export -f get_coverage
     
@@ -181,7 +188,8 @@ else
 
 	# mark checkpoint
     if [ -f $(echo $RESULTFILES | cut -d " " -f 1) ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
+    
+    rm ${RESULTFILES//.txt/.bed}
 fi
 
 
@@ -196,12 +204,14 @@ else
     echo "[NOTE] plot $JOINED.pdf $(date)"
     head -n 1 $(echo $RESULTFILES | cut -d " " -f 1) > $JOINED.txt
     cat $RESULTFILES | grep -v "x" >> $JOINED.txt
-    python ${NGSANE_BASE}/tools/coverageAtFeature.py -o $JOINED -u $UPSTREAM -d $DOWNSTREAM -l $LENGTH -g "TSS" -i $JOINED --metric $METRIC
+    python ${NGSANE_BASE}/tools/coverageAtFeature.py -o $JOINED $PYBIN -u $UPSTREAM -d $DOWNSTREAM -l $LENGTH -g "TSS" -i $JOINED --metric $METRIC
     Rscript $JOINED.R
     convert $JOINED.pdf $JOINED.png
     
 	# mark checkpoint
     if [ -f $JOINED.pdf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    
+    rm $RESULTFILES
 
 fi
 

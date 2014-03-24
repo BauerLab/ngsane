@@ -10,48 +10,51 @@ import argparse, sys, numpy, math
 #from rpy2.robjects import pandas2ri
 #pandas2ri.activate()
 
-def processStream(file, up, down, length):
-    matrix=numpy.empty(shape=(up+down))
-    counter=0
-    for f in open(file):
-#        print "%i %i %i" % (counter%(up+down), counter, int(f.split("\t")[4]))
-         # take counter from file instead
-        if counter%(up+down)==0:
-            if counter!=0:
-                matrix=numpy.vstack((matrix, a))
-                #print matrix.shape
-            a=numpy.empty(shape=(up+down))
-        a[counter%(up+down)]=int(f.split("\t")[1])
-        counter+=1
-
-    matrix = numpy.delete(matrix, (0), axis=0)
-    return (numpy.mean(matrix, axis=0), numpy.std(matrix, axis=0))
+#def processStream(file, up, down, length):
+#    matrix=numpy.empty(shape=(up+down))
+#    counter=0
+#    for f in open(file):
+##        print "%i %i %i" % (counter%(up+down), counter, int(f.split("\t")[4]))
+#         # take counter from file instead
+#        if counter%(up+down)==0:
+#            if counter!=0:
+#                matrix=numpy.vstack((matrix, a))
+#                #print matrix.shape
+#            a=numpy.empty(shape=(up+down))
+#        a[counter%(up+down)]=int(f.split("\t")[1])
+#        counter+=1
+#
+#    matrix = numpy.delete(matrix, (0), axis=0)
+#    return (numpy.mean(matrix, axis=0), numpy.std(matrix, axis=0))
                     
 
-def processStream2(file, up, down, length, args):
+def processStream2(file, up, down, bin, length, args):
     matrix=numpy.empty(shape=(length,up+down))
     counter=0
     for f in open(file):
         arr=map(float,f.split("\t"))
         #print "%i %i %i" % (counter/(up+down), arr[0], arr[1])
-        matrix[counter/(up+down),arr[0]-1]=arr[1]
+        matrix[counter/(up+down),(arr[0]-1)/bin]=arr[1]
         counter+=1
+
     #normalize by total reads in library
     if (args.normalize):
         matrix=matrix*(1.0/args.normalize)
         print "normalize by %i" % (args.normalize)
     print "shape of matrix %s" % (str(matrix.shape))
+
     #remove outliers
-    if (args.TIMESSTD):
+    if (args.timestd):
         #std=numpy.std(matrix)
         #z = numpy.any(matrix>(std*args.TIMESSTD), axis=1)
         std=numpy.std(matrix,axis=0)
         mask=numpy.zeros(shape=(length))
         for r in range(0,numpy.shape(matrix)[1]):
-            loc=numpy.where(matrix[:,r]>(std[r]*args.TIMESSTD))
+            loc=numpy.where(matrix[:,r]>(std[r]*args.timestd))
             mask[loc]=1
         matrix = matrix.compress(numpy.logical_not(mask), axis=0)
         print "shape of matrix %s after outlier removal" % (str(matrix.shape))
+
     #ignore all genomic locations that have zero coverage
     if (args.ignore):
         z = numpy.all(matrix==0, axis=1)
@@ -60,6 +63,7 @@ def processStream2(file, up, down, length, args):
     if (matrix.shape[0]==0):
         print("[ERROR] all TTS were removed for this mark, consider a less stringent filtering")
         sys.exit()
+
     #calculate median
     if (args.metric=="median"):
         print "median"
@@ -150,15 +154,20 @@ def main(args):
     parser.add_argument('--normalize', type=int, dest='normalize', help='normalize by total numbers of reads')
     parser.add_argument('--ignoreUncovered', dest='ignore', action='store_true', help='ignore features that have zero covereage')
     parser.add_argument('--metric', dest='metric', default='mean', type=str, choices=["mean", "median", "sum"], help='metric')
-    parser.add_argument('--removeoutlier', dest='TIMESSTD', type=int, help='remove outlier larger than <int>*std')
+    parser.add_argument('--removeoutlier', dest='timestd', type=int, help='remove outlier larger than <int>*std')
+    parser.add_argument('--bin', dest='bin', type=int, help='binsize', default=1)
     args = parser.parse_args()
 
+    upstream=args.upstream/args.bin
+    downstream=(args.downstream+1)/args.bin
+
+    print "%i %i" % (upstream, downstream)
 
     #processNumpy(args.inputfile,args.upstream,args.downstream,args.length)
     #mean,std=processStream(args.inputfile,args.upstream,args.downstream,args.length)
     if (args.inputfile):
-        metric,ste=processStream2(args.inputfile,args.upstream,args.downstream+1,args.length, args)
-        x=range(-(args.upstream),args.downstream+1)
+        metric,ste=processStream2(args.inputfile,upstream,downstream,args.bin,args.length, args)
+        x=range(-(args.upstream),args.downstream,args.bin)
         writeR(metric,ste,x,args.rfile,args.name,args)
     if (args.image) :
         writeCode(args.rfile,args.genomic,args)
