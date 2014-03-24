@@ -135,7 +135,7 @@ for GTF in  "GTF" "GTF_masked"
                 
           
                 
-                array=(${DATASETS[@]})
+                 array=(${DATASETS[@]})
                  
                  array=( "${array[@]/%//${GTF}.${MODE}.${ATTR}}" )
                  
@@ -199,7 +199,98 @@ for GTF in  "GTF" "GTF_masked"
 
 	done
 
+
+
 ################################################################################
+CHECKPOINT="Make tables of RPKMs."
+
+echo "[NOTE] Make tables of RPKMs."
+     
+for GTF in  "" "masked"
+
+  do
+     
+      for MODE in "union" "intersection-strict" "intersection-nonempty"
+
+         do     
+ 
+            for ATTR in "gene_id" "transcript_id"
+    
+               do 
+   
+               [ -f ${THISTMP}/files.txt ] &&  rm ${THISTMP}/files.txt
+               touch ${THISTMP}/files.txt
+                
+          
+                
+                 array=(${DATASETS[@]})
+                 ###array=(${array[@]%/*})
+                 array=( "${array[@]/%/${GTF}.${MODE}.${ATTR}.RPKM.csv}" )
+                 
+                 echo "${array[@]}"
+                 
+             
+
+          
+               
+                for THIS_FILE in "${array[@]}"
+                  do
+                 [ -f $THIS_FILE ] && echo $THIS_FILE "Found" >> ${THISTMP}/files.txt || echo "Not found" >> ${THISTMP}/files.txt
+                  
+                 
+             
+                  done
+    
+                    if grep -q "Not found" ${THISTMP}/files.txt
+                         
+                         then
+                         echo "[NOTE] ${GTF}.${MODE}.${ATTR}.RPKM.csv - not found, skipping."            
+                         else
+                         echo "[NOTE] ${GTF}.${MODE}.${ATTR}.RPKM.csv - found, making count tables."  
+              
+                            [ -f ${THISTMP}/joinedfile.txt ] && rm ${THISTMP}/joinedfile.txt
+							
+								for i in "${array[@]}"
+
+									do
+
+										 if [ ! -f ${THISTMP}/joinedfile.txt ] 
+										
+										   then
+										
+										      cat ${i} > ${THISTMP}/joinedfile.txt 
+
+										    else
+
+											   cut -f 2 ${i} | paste ${THISTMP}/joinedfile.txt -  > ${THISTMP}/tmp.txt 
+											
+											   mv ${THISTMP}/tmp.txt ${THISTMP}/joinedfile.txt
+											   
+										fi
+									done
+	
+							echo "${array[@]##*${TASK_HTSEQCOUNT}}" |  sed 's/ /,/g' | sed "s/\/${GTF}.${MODE}.${ATTR}.RPKM.csv//g" | sed 's/\///g'   > ${THISTMP}/tmp.txt
+							
+							awk '{print "gene," $0;}' ${THISTMP}/tmp.txt > ${THISTMP}/out.csv
+	
+	                        cat ${THISTMP}/joinedfile.txt | sed 's/\t/,/g' >> ${THISTMP}/out.csv
+
+	                        mv ${THISTMP}/out.csv ${OUTDIR}/${GTF}.${MODE}.${ATTR}.RPKM.csv
+    
+ 
+                          fi
+ 
+            done
+ 
+        done
+
+	done
+
+################################################################################
+
+
+
+
 CHECKPOINT="cleanup."
 
 

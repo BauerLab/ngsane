@@ -10,3 +10,7 @@ doc/publications/appNote/ngsane.bib.bak
 *.orig
 
 conf/header.sh
+
+._*
+.fuse*
+

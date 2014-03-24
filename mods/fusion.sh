@@ -83,17 +83,20 @@ CHECKPOINT="parameters"
 
 #make symlinks
   
-  [ ! -d $OUTDIR ] && mkdir $OUTDIR 
+  echo "[NOTE] $OUTDIR "
+
+  
+  [ ! -d $OUTDIR ] && mkdir -p $OUTDIR 
   
   cd $OUTDIR
 
-  [ -f $PWD/refGene.txt ] && rm $PWD/refGene.txt
+  [ -L ${PWD}/refGene.txt ] && rm ${PWD}/refGene.txt
   
-  [ -f $PWD/ensGene.txt ] && rm $PWD/ensGene.txt
+  [ -L ${PWD}/ensGene.txt ] && rm ${PWD}/ensGene.txt
   
-  [ -f $PWD/mcl ] && rm $PWD/mcl
+  [ -L ${PWD}/mcl ] && rm ${PWD}/mcl
   
-  [ -d $PWD/blast ] && rm $PWD/blast
+  [ -L ${PWD}/blast ] && rm ${PWD}/blast
   
 ln -s ${ANNO_DIR}/refGene.txt $PWD/refGene.txt
 ln -s ${ANNO_DIR}/ensGene.txt $PWD/ensGene.txt
@@ -194,16 +197,22 @@ else
     echo "[NOTE] tophat $(date)"
     echo "[NOTE] $f"
     echo "[NOTE] $f2"
-
-
-  RUN_COMMAND="tophat -o $OUTDIR -p $CPU_FUSION --fusion-search --keep-fasta-order --bowtie1 --no-coverage-search --max-intron-length 100000 --fusion-min-dist 100000 --fusion-anchor-length 13 --fusion-ignore-chromosomes chrM ${FASTA%.*} $f $f2"
+    
+    TOPHAT_FUSION_OUT="${OUTDIR}/tophat_sample"
+    
+    [ ! -d $TOPHAT_FUSION_OUT ] && mkdir -p $TOPHAT_FUSION_OUT 
+  
+    
+    echo "[NOTE] tophat out $TOPHAT_FUSION_OUT "
+    
+  RUN_COMMAND="tophat -o $TOPHAT_FUSION_OUT -p $CPU_FUSION --fusion-search --keep-fasta-order --bowtie1 --no-coverage-search --max-intron-length 100000 --fusion-min-dist 100000 --fusion-anchor-length 13 --fusion-ignore-chromosomes chrM ${FASTA%.*} $f $f2"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     echo "[NOTE] tophat fusion search end $(date)"
 
-
+  
 
     # mark checkpoint
-    if [ -e $OUTDIR/accepted_hits.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e ${TOPHAT_FUSION_OUT}/accepted_hits.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
@@ -218,9 +227,33 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     echo "[NOTE] tophat fusion post $(date)"
+    
+    [ ! -d ${OUTDIR}/tophatfusion_out ] && mkdir -p ${OUTDIR}/tophatfusion_out
+      
+    
+     cd $OUTDIR
 
+    [ -L ${PWD}/refGene.txt ] && rm ${PWD}/refGene.txt
+  
+    [ -L ${PWD}/ensGene.txt ] && rm ${PWD}/ensGene.txt
+  
+    [ -L ${PWD}/mcl ] && rm ${PWD}/mcl
+  
+    [ -L ${PWD}/blast ] && rm ${PWD}/blast
+  
+    ln -s ${ANNO_DIR}/refGene.txt $PWD/refGene.txt
+    ln -s ${ANNO_DIR}/ensGene.txt $PWD/ensGene.txt
+    ln -s ${ANNO_DIR}/mcl $PWD/mcl
 
-  RUN_COMMAND="tophat-fusion-post -p $CPU_FUSION --num-fusion-reads 1 --num-fusion-pairs 2 --num-fusion-both 5 ${FASTA%.*}"
+    ln -s ${ANNO_DIR}/blast $PWD/blast
+
+    echo "[NOTE] Symlinks to annotations checked (remade)."
+
+    
+    
+    echo "[NOTE] working in $PWD "
+
+  RUN_COMMAND="tophat-fusion-post -o tophatfusion_out -p $CPU_FUSION --num-fusion-reads 1 --num-fusion-pairs 2 --num-fusion-both 5 ${FASTA%.*}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     echo "[NOTE] tophat-fusion-post end $(date)"
 
@@ -268,21 +301,21 @@ fi
 ###############################################################################
 CHECKPOINT="cleanup"
 
-  [ -f $PWD/ticks.conf ] && rm $PWD/ticks.conf
+  [ -e $PWD/ticks.conf ] && rm $PWD/ticks.conf
   
-  [ -f $PWD/ideogram.conf ] && rm $PWD/ideogram.conf
+  [ -e $PWD/ideogram.conf ] && rm $PWD/ideogram.conf
   
-  [ -f $PWD/base.conf ] && rm $PWD/base.conf
+  [ -e $PWD/base.conf ] && rm $PWD/base.conf
 
-  [ -f $PWD/refGene.txt ] && rm $PWD/refGene.txt
+  [ -L $PWD/refGene.txt ] && rm $PWD/refGene.txt
   
-  [ -f $PWD/ensGene.txt ] && rm $PWD/ensGene.txt
+  [ -L $PWD/ensGene.txt ] && rm $PWD/ensGene.txt
   
-  [ -f $PWD/mcl ] && rm $PWD/mcl
+  [ -L $PWD/mcl ] && rm $PWD/mcl
   
-  [ -d $PWD/blast ] && rm $PWD/blast
+  [ -L $PWD/blast ] && rm $PWD/blast
   
-  [ -f $PWD/ticks.conf ] && rm $PWD/ticks.conf
+  [ -e $PWD/ticks.conf ] && rm $PWD/ticks.conf
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
