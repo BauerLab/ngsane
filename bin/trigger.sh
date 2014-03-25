@@ -1287,3 +1287,19 @@ if [ -n "$RUNANNOTATINGFEATURE" ]; then
     -n $NODES_FEATANN -c $CPU_FEATANN -m $MEMORY_FEATANN'G' -w $WALLTIME_FEATANN --postname postcommand-$UPSTREAM+$DOWNSTREAM \
         --postcommand "${NGSANE_BASE}/mods/annotateFeature.sh -k $CONFIG -f <FILE> -o $OUT/${INPUT_FEATANN}-${TASK_FEATANN}-<DIR> "
 fi
+
+################################################################################
+#  Fusion search tophat
+#
+# IN : $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/tophatfusion_out/*
+################################################################################       
+
+if [ -n "$RUNFUSION" ]; then
+    if [ -z "$TASK_FUSION" ] || [ -z "$NODES_FUSION" ] || [ -z "$CPU_FUSION" ] || [ -z "$MEMORY_FUSION" ] || [ -z "$WALLTIME_FUSION" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -k $CONFIG -t $TASK_FUSION -i $INPUT_FUSION -e $READONE.$FASTQ -n $NODES_FUSION -c $CPU_FUSION -m $MEMORY_FUSION"G" -w $WALLTIME_FUSION$INDEXJOBIDS \
+        --command "${NGSANE_BASE}/mods/fusion.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FUSION/<NAME>"
+
+fi
+
