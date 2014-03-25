@@ -118,7 +118,7 @@ else
     GENOMESIZE=${FASTA/.$ending/}.chrom.sizes
     name=$(basename $FEATUREFILE)
     export REGIONS=$OUTDIR/${name/bed/tss-$UPSTREAM"+"$DOWNSTREAM.bed}
-	gawk '{print $1"\t"$7"\t"$7+1}' $FEATUREFILE | bedtools slop -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $REGIONS
+	gawk '{print $1"\t"$7"\t"$7+1}' $FEATUREFILE | sort -u | bedtools slop -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $REGIONS
 
     if [ -n "$REMOVEMULTIFEATURE" ]; then
         bedtools merge -n -i $REGIONS | gawk '{if ($4==1){print $1"\t"$2"\t"$3}}' > $REGIONS.tmp
