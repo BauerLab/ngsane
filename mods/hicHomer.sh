@@ -65,34 +65,20 @@ echo -e "\n********* $CHECKPOINT\n"
 CHECKPOINT="parameters"
 
 # get basename of f
-if [ -z "$POOLED_DATA_NAME" ]; then 
-    n=${f##*/}
-    SAMPLE=${n/%$READONE.$ASD.bam/}
-    
-    #is paired ?                                                                                                      
-    if [ "$f" != "${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam}" ] && [ -e ${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} ]; then
-        PAIRED="1"
-    else
-        PAIRED="0"
-        echo "[ERROR] paired library required for HIC analysis" && exit 1
-    fi
-
-else
-    SAMPLE=$POOLED_DATA_NAME
-    array=(${f//,/ })
-    #is paired ?                                                                                                      
-    if [ "${array[i]}" != "${array[i]/%$READONE.$ASD.bam/$READTWO.$ASD.bam}" ] && [ -e ${array[i]/%$READONE.$ASD.bam/$READTWO.$ASD.bam} ]; then
-        PAIRED="1"
-    else
-        PAIRED="0"
-        echo "[ERROR] paired library required for HIC analysis" && exit 1
-    fi
-    
-fi
+n=${f##*/}
+SAMPLE=${n/%$READONE.$ASD.bam/}
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
     exit 1
+fi
+
+#is paired ?                                                                                                      
+if [ "$f" != "${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam}" ] && [ -e ${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} ]; then
+    PAIRED="1"
+else
+    PAIRED="0"
+    echo "[ERROR] paired library required for HIC analysis" && exit 1
 fi
 
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
@@ -122,23 +108,11 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    if [ -z "$POOLED_DATA_NAME" ]; then 
-        cp $f ${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} $THISTMP
-        RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered" $THISTMP/$n,$THISTMP/${n/%$READONE.$ASD.bam/$READTWO.$ASD.bam} -format sam -illuminaPE -tbp 1"
-    else
-        # pool data
-        RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered
-        array=(${f//,/ })
-        for i in "${!array[@]}"; do
-            cp ${array[i]} ${array[i]/%$READONE.$ASD.bam/$READTWO.$ASD.bam} $THISTMP
-            n=${array[i]##*/} 
-            RUN_COMMAND="$RUN_COMMAND $THISTMP/$n,$THISTMP/${n/%$READONE.$ASD.bam/$READTWO.$ASD.bam}"
-        done
-        RUN_COMMAND="$RUN_COMMAND -format sam -illuminaPE -tbp 1"
-    fi
+    cp $f ${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} $THISTMP
+    RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered" $THISTMP/$n,$THISTMP/${n/%$READONE.$ASD.bam/$READTWO.$ASD.bam} -format sam -illuminaPE -tbp 1"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    mv $THISTMP/$SAMPLE"_tagdir_unfiltered" $OUTDIR
+    mv $THISTMP/$SAMPLE"_tagdir_unfiltered" $OUTDIR/$SAMPLE"_tagdir_unfiltered"
     
     # mark checkpoint
     if [ -e $OUTDIR/$SAMPLE"_tagdir_unfiltered"/tagInfo.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi

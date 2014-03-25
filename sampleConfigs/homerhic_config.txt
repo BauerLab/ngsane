@@ -74,10 +74,6 @@ HOMER_HIC_ANNOTATE_ADDPARAM=
 # PARAMETER (optional overwriting defaults)
 #********************
 
-# Name of target folder when pooling all input libraries , leave empty prevent data pooling
-# e.g. "POOLED_DATA_NAME=Sample_pooled"
-POOLED_DATA_NAME=
-
 #WALLTIME_HOMERHIC=60:00:00
 #MEMORY_HOMERHIC=60
 #CPU_HOMERHIC=16
