@@ -170,10 +170,13 @@ else
     
     RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b $SAMPLE"_"peaks.bed -i $f --o-prefix $SAMPLE >> $SAMPLE.summary.txt 2>&1"
     echo $RUN_COMMAND && eval $RUN_COMMAND
+    mv ${SAMPLE}_refinepeak.bed ${SAMPLE}.refinepeak.bed
 
 	if hash bedToBigBed ; then 
-	   echo "[NOTE] create bigbed from peaks" 
-        bedToBigBed -type=bed4 <( awk '{OFS="\t"; print $1,$2,$3,$5}' $SAMPLE"_"peaks.bed ) $GENOME_CHROMSIZES $SAMPLE.bb
+        echo "[NOTE] create bigbed from peaks" 
+        awk '{OFS="\t"; print $1,$2,$3,$5}' $SAMPLE"_"peaks.bed > $SAMPLE"_"peaks.tmp
+        bedToBigBed -type=bed4 $SAMPLE"_"peaks.tmp $GENOME_CHROMSIZES $SAMPLE.bb
+        rm $SAMPLE"_"peaks.tmp
     fi
     [ -e $SAMPLE"_"peaks.bed ] && rm $SAMPLE"_"peaks.bed    
 
