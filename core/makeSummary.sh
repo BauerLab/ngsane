@@ -212,7 +212,7 @@ if [ -n "$RUNFASTQC" ]; then
                     GCCONTENT2=
                     READ=
                 fi
-                echo "<tr style='vertical-align: middle;'><td>$CHART1<br/>$CHART2</td><td>$ENCODING1<br/>$ENCODING2</td><td>$LIBRARYSIZE1<br/>$LIBRARYSIZE2</td><td>1<br/>$READ</td><td>$READLENGTH1<br/>$READLENGTH2</td><td>$GCCONTENT1<br/>$GCCONTENT2</td><td>" >>$SUMMARYTMP
+                echo "<tr style='vertical-align: middle;'><td>$CHART1<br/>$CHART2</td><td>$ENCODING1<br/>$ENCODING2</td><td>$LIBRARYSIZE1<br/>$LIBRARYSIZE2</td><td>1<br/>$READ</td><td>$READLENGTH1<br/>$READLENGTH2</td><td>$GCCONTENT1<br/>$GCCONTENT2</td><td class='left'>" >>$SUMMARYTMP
                 
                 echo "<a href='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/${n1}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/${n1}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all first reads'/></a>" >>$SUMMARYTMP                   
                 if [ -n "$READ" ]; then
