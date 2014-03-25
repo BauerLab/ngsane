@@ -251,11 +251,12 @@ done
 if [ -n "$POSTCOMMAND" ]; then
    # process for postcommand
 	dir=$(echo ${DIR[@]} | sort -u |sed 's/ /_/g')
+    DIRNAME=${dir%%/*}
 	#DIR=$(echo ${DIR[@]} | tr " " "\n" | sort -u | tr "\n" "_" | sed 's/_$//' )
     #DIR=$(echo -e ${DIR// /\\n} | sort -u -r | gawk 'BEGIN{x=""};{x=x"_"$0}END{print x}' | sed 's/__//' | sed 's/^_//' | sed 's/_$//' )
     FILES=$(echo -e $FILES | sed 's/ /,/g')
     POSTCOMMAND2=${POSTCOMMAND//<FILE>/$FILES}
-    POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$dir}
+    POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$DIRNAME}
 	POSTLOGFILE=$QOUT/$TASK/$POSTNAME.out
 
     echo "[NOTE] "$POSTCOMMAND2
