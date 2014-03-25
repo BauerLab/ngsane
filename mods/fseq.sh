@@ -120,16 +120,21 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    rm -f $THISTMP/*wig
-
-    RUN_COMMAND="java $JAVAPARAMS -cp $CLASSPATH edu.duke.igsp.gkde.Main $FSEQADDPARAM -o $THISTMP -of wig <(bedtools bamtobed -i $INPUTFILE )"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
+    if [ -n "$FSEQ_MAKEBIGWIG" ]; then
+        rm -f $THISTMP/*wig
     
-    RUN_COMMAND="cat $THISTMP/*.wig | wigToBigWig stdin ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.bw"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-
-    # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.bw ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        RUN_COMMAND="java $JAVAPARAMS -cp $CLASSPATH edu.duke.igsp.gkde.Main $FSEQADDPARAM -o $THISTMP -of wig <(bedtools bamtobed -i $INPUTFILE )"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+        
+        RUN_COMMAND="cat $THISTMP/*.wig | wigToBigWig stdin ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.bw"
+        echo $RUN_COMMAND && eval $RUN_COMMAND    
+    
+        # mark checkpoint
+        if [ -f $OUTDIR/$SAMPLE.bw ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    else
+        echo "[NOTE] skip bw generation"
+        echo -e "\n********* $CHECKPOINT\n"
+    fi 
 fi
 ################################################################################
 CHECKPOINT="fseq narrowpeak"

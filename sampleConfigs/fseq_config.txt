@@ -48,3 +48,7 @@ FSEQADDPARAM=""
 # p-values cutoff applied to filter out peaks (default=0.05) 
 # e.g. FSEQ_PVALUECUTOFF=0.01
 FSEQ_PVALUECUTOFF=
+
+# whether to make bigwigs too
+# e.g. FSEQ_MAKEBIGWIG=1 to enable bw generation
+FSEQ_MAKEBIGWIG=
