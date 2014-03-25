@@ -1,0 +1,93 @@
+# author: Hugh French and Fabian Buske
+# date: March 2014
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNFUSION="1"    # mapping with tophat --fusion search(RNAseq)
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( SRR064286 )
+
+# folder/task containing the data this task operates on
+INPUT_FUSION="fastq"
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+## PARAMETER (mandatory)
+##********************
+
+# fastq file suffix
+FASTQ="fastq"
+
+# read indicator immediately preceding the fastq file suffix
+READONE="_1"
+READTWO="_2"
+
+# reference genome
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+
+FASTA="/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa"
+
+# reference genome
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+
+
+#Annotations --symlinks will be made to subfolders 
+ANNO_DIR="/share/ClusterShare/biodata/contrib/tophat_fusion/hg19"
+
+
+#specify library type for tophat.
+# choose "fr-firststrand" "fr-unstranded" "fr-secondstrand"
+RNA_SEQ_LIBRARY_TYPE="fr-unstranded"
+
+# library tags
+EXPID="Celltype"
+LIBRARY="RNAseq"
+PLATFORM="Illumina"
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# FASTQ encoding (Phred score), leave empty to detect automatically
+# e.g. "--phred64-quals"
+FASTQ_PHRED=
+
+# additional parameters for tophat, see http://tophat.cbcb.umd.edu/manual.shtml
+TOPHATADDPARAM=
+
+
+#TASK_FUSION="tophatfusionsearch"
+#WALLTIME_FUSION=62:00:00
+#MEMORY_FUSION=50
+#CPU_FUSION=16
+#NODES_FUSION="nodes=2:ppn=8"
+#INPUT_FUSION="fastq"
+#MODULE_FUSION="${NG_BOOST} ${NG_SAMTOOLS} ${NG_BOWTIE} ${NG_TOPHAT}"
+
+
+
+
+
+
+
+
+
+
+
+
