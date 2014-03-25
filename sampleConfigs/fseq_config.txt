@@ -44,3 +44,7 @@ QOUT=$OUT/qout
 # additional parameters passed to fseq
 # e.g. "-f 0 -b /share/ClusterShare/biodata/contrib/fabbus/bff_hg19/bff_35 -p /share/ClusterShare/biodata/contrib/fabbus/iff_hg19/iff_generic_male"
 FSEQADDPARAM=""
+
+# p-values cutoff applied to filter out peaks (default=0.05) 
+# e.g. FSEQ_PVALUECUTOFF=0.01
+FSEQ_PVALUECUTOFF=

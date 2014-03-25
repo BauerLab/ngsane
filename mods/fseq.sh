@@ -7,7 +7,7 @@
 # QCVARIABLES,Resource temporarily unavailable
 # RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.bw
 
-echo ">>>>> DNase-Seq with fseq"
+echo ">>>>> Peak calling with fseq"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
@@ -61,6 +61,8 @@ echo -e "--wigToBigWig --\n "$(wigToBigWig 2>&1 | tee | head -n 1)
 [ -z "$(which wigToBigWig)" ] && echo "[ERROR] wigToBigWig not detected" && exit 1
 echo -e "--fseq        --\n "$(fseq -v | head -n 1)
 [ -z "$(which fseq)" ] && echo "[ERROR] no fseq detected" && exit 1
+echo -e "--R           --\n "$(R --version | head -n 3)
+[ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -89,6 +91,10 @@ if [ ! -f $GENOME_CHROMSIZES ]; then
     exit 1
 else
     echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
+fi
+
+if [ -z "$FSEQ_PVALUECUTOFF" ] || [ $FSEQ_PVALUECUTOFF -gt 1 ] ; then
+    FSEQ_PVALUECUTOFF=0.05
 fi
 
 # unique temp folder that should be used to store temporary files
@@ -141,6 +147,33 @@ else
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE.narrowPeak ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
+
+################################################################################
+CHECKPOINT="estimate p-values"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else
+
+    # estimate p-value by fitting gamma distribution
+    cat > $OUTDIR/$SAMPLE.R <<DELIM    
+library(MASS)
+x <- read.delim("$OUTDIR/$SAMPLE.narrowPeak", header=F)
+g<-MASS::fitdistr(x\$V7,"gamma")
+x\$V8<-sapply(x\$V7, function(y) ks.test(y, "pgamma",shape=g\$estimate["shape"],rate=g\$estimate["rate"])\$p.value)
+write.table(x, "$OUTDIR/$SAMPLE.narrowPeak.tmp", sep="\t", row.names=FALSE, col.names=FALSE, quote=FALSE)
+DELIM
+    
+    Rscript --vanilla $OUTDIR/$SAMPLE.R
+
+    #filter with p-value cutoff
+    awk -v CUTOFF=$FSEQ_PVALUECUTOFF '{if ($8 <= CUTOFF){print $0}}' $OUTDIR/$SAMPLE.narrowPeak.tmp > $OUTDIR/$SAMPLE.narrowPeak
+    [ -f $OUTDIR/$SAMPLE.narrowPeak.tmp ] && rm $OUTDIR/$SAMPLE.narrowPeak.tmp 
+    [ -f $OUTDIR/$SAMPLE.R ] && rm $OUTDIR/$SAMPLE.R
+
+    # mark checkpoint
+    if [ -f $OUTDIR/$SAMPLE.narrowPeak ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi
 ###############################################################################
 CHECKPOINT="cleanup"
 
@@ -149,5 +182,5 @@ CHECKPOINT="cleanup"
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 [ -e $OUTDIR/$SAMPLE.bw.dummy ] && rm $OUTDIR/$SAMPLE.bw.dummy
-echo ">>>>> DNase-Seq with fseq - FINISHED"
+echo ">>>>> Peak calling with fseq - FINISHED"
 echo ">>>>> enddate "`date`

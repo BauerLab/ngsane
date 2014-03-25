@@ -1,0 +1,80 @@
+# author: Denis Bauer
+# date: Mar.2014
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+
+RUNANNOTATINGFEATURE="1"   
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_BAMANN=$TASK_BWA
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# BED file with locations of genomic features
+# e.g. downloaded from UCSC 
+FEATUREFILE=
+DOWNSTREAM=2000
+UPSTREAM=500
+
+# reference genome -- actually we just need the chrom sizes 
+# genome.fa -> genome.chrom.sizes
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+# or ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=${NGSANE_REFERENCE}/oviAri3/oviAri3.fa
+
+# summary statistic (mean,median,sum)
+METRIC="mean"
+
+# ending of the files the coverage should be generated over (bam,bed)
+ENDING=".$ASD.bam"
+
+
+# Define the labels for the R plot
+# FEATANN_LAB <file> <label>
+# e.g. FEATANN_LAB Input/bwa/Lib11.asd.bam H3K4me 
+<<FEATANN_LAB
+FEATANN_LAB
+
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+REMOVEMULTIFEATURE="yes"               # leave blank 
+NORMALIZE="yes"                        # leave blank 
+IGNOREUNCOVERED="--ignoreUncovered"    # leave blank 
+REMOVEOUTLIER="--removeoutlier 6"
+BIN=""                                 # e.g. 100
+
+
+#TASK_FEATANN="featann"
+#WALLTIME_FEATANN=1:00:00
+#MEMORY_FEATANN=16
+#CPU_FEATANN=8
+#NODES_FEATANN="nodes=1:ppn=8"
+#INPUT_FEATANN=$TASK_BWA
+#MODULE_FEATANN="${NG_BEDTOOLS} ${NG_PYTHON} ${NG_R} ${NG_PARALLEL} ${NG_SAMTOOLS}"
+#PATH_FEATANN=

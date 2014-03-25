@@ -48,22 +48,18 @@ MACS2_GENOMESIZE=2.7e9
 # location of the input (control) for the chip experiments (bam file)
 CHIPINPUT=
 
+# Fragment size of the library (leave empty to estimate using predictd)
+MACS2_FRAGMENTSIZE=
+
+# additional MACS parameters, for predictd
+MACS2_PREDICTD_ADDPARAM=
+
 # additional MACS parameters, for callpeak
 # e.g. "--broad"
 MACS2_CALLPEAK_ADDPARAM=
 
-# method to use in bedgraph compare
-MACS2_BDGCMP_METHOD=ppois
-
-#Additional MACS parameters, for bdgcmp (only relevant when input is specified)
-CS2_BDGCMP_ADDPARAM=
-
 # additional MACS parameters, for refinepeak
 MACS2_REFINEPEAK_ADDPARAM=
-
-# set to 1 in order to convert and keep the bedGraphs into BigBed format
-MACS2_MAKEBIGBEDS=
-
 
 #WALLTIME_MACS2=12:00:00
 #MEMORY_MACS2=20
