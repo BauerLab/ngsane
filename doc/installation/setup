@@ -718,7 +718,14 @@ mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 wget http://ebi.edu.au/ftp/software/MEME/$VERSION/$SOFTWARE"_"$VERSION"_1".tar.gz
 tar -xf $SOFTWARE"_"$VERSION"_1".tar.gz
 cd $SOFTWARE"_"$VERSION
-./configure --prefix=/packages/$SOFTWARE/$VERSION --enable-opt
+./configure --prefix=/packages/$SOFTWARE/$VERSION --enable-opt --with-url=http://meme.nbcr.net/meme 
+
+# determine perl dependencies
+perl scripts/dependencies.pl
+# install missing perl modules
+cpan install SOAP::Lite SOAP::WSDL WWW::Mechanize
+
+# compile software
 make && make test
 make install
 
@@ -935,6 +942,9 @@ mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 wget http://www.bioinformatics.babraham.ac.uk/projects/$SOFTWARE/$SOFTWARE"_v"$VERSION.tar.gz
 tar -xf $SOFTWARE"_v"$VERSION.tar.gz
 mv $SOFTWARE"_v"$VERSION/* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+#ger Perl dependencies
+cpan install GD::Text GD::Graph
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0

@@ -64,12 +64,12 @@ DATASETS=""
 for f in $FILES; do
     # get basename of f
     n=${f##*/}
-    n=${n/%$READONE.$FASTQ/}
+    $SAMPLE=${n/%$READONE.$FASTQ/}
     # get directory
     d=$(dirname $f)
     d=${d##*/}
     # get hdf5 file
-    FILE=$(ls $SOURCE/$d/$TASK_HICLIB/$n-fragment_dataset.hdf5)
+    FILE=$(ls $SOURCE/$d/$TASK_HICLIB/$SAMPLE-fragment_dataset.hdf5)
     # add to dataset
     if [ -n "$FILE" ]; then 
     	DATASETS="${DATASETS[@]} ${FILE[@]}"
