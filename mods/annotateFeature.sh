@@ -152,17 +152,17 @@ else
         arrIN=(${1//\// })
         fileloc=$(echo ${arrIN[@]:(-3)} | sed 's/ /\//g')
         mark=$(grep $fileloc $CONFIG | cut -d " " -f 3)
-        echo "[NOTE] process $fileloc with mark $mark $(date)"
-        if [[ $ending=="bam" ]]; then
+        echo "[NOTE] process $fileloc with mark $mark"
+        if [[ "$ending" == "bam" ]]; then
             if [ -n "$NORMALIZE" ]; then
                 if [ ! -e $1.stats ]; then
-                    echo "[NOTE] flagstat  $(date)"
+                    echo "[NOTE] flagstat "
                     samtools flagstat $1 >$1.stats
                 fi
                 TOTALREADS="--normalize "$(head -n 1 $1.stats | cut -d " " -f 1)
             fi
             A="-abam"
-        elif [[ $ending == "bed" ]]; then
+        elif [[ "$ending" == "bed" ]]; then
             if [ -n "$NORMALIZE" ]; then 
                 TOTALREADS="--normalize "$( wc -l $1 | cut -d " " -f 1)
             fi
@@ -171,20 +171,21 @@ else
             echo "input file format not recognized"
             exit
         fi
-        echo "[NOTE] coverage $(date)"
+        echo "[NOTE] coverage"
         if [ -n "$BIN" ]; then
             echo "bin with $BIN"
             bedtools coverage -d $A $1 -b $REGIONS | cut -f 4,5 | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
         else
             bedtools coverage -d $A $1 -b $REGIONS | cut -f 4,5 > $OUTDIR/$name.bed
         fi
-        echo "[NOTE] process file $(date)"
+        echo "[NOTE] process file"
         python ${NGSANE_BASE}/tools/coverageAtFeature.py -f $OUTDIR/$name.bed $PYBIN -u $UPSTREAM -d $DOWNSTREAM -l $LENGTH -n $mark -o $OUTDIR/$name $IGNOREUNCOVERED $REMOVEOUTLIER $TOTALREADS --metric $METRIC
     }
     export -f get_coverage
     
-    parallel -env get_coverage ::: $FILES
-    #for i in $FILES; do get_coverage $i; done
+    echo "[NOTE] Files $FILES"
+    parallel --gnu -env get_coverage ::: $FILES
+#    for i in $FILES; do get_coverage $i; done
 
 	# mark checkpoint
     if [ -f $(echo $RESULTFILES | cut -d " " -f 1) ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -201,7 +202,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     JOINED=$OUTDIR/"joined-"$UPSTREAM"+"$DOWNSTREAM"_"$METRIC
-    echo "[NOTE] plot $JOINED.pdf $(date)"
+    echo "[NOTE] plot $JOINED.pdf"
     head -n 1 $(echo $RESULTFILES | cut -d " " -f 1) > $JOINED.txt
     cat $RESULTFILES | grep -v "x" >> $JOINED.txt
     python ${NGSANE_BASE}/tools/coverageAtFeature.py -o $JOINED $PYBIN -u $UPSTREAM -d $DOWNSTREAM -l $LENGTH -g "TSS" -i $JOINED --metric $METRIC
