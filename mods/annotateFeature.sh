@@ -165,34 +165,33 @@ else
                 fi
                 TOTALREADS="--normalize "$(head -n 1 $1.stats | cut -d " " -f 1)
             fi
+            if [ -n "$STRAND" ]; then IND=5 ;VAL=6; STR=4; else IND=4 ;VAL=5; STR=10; fi
             A="-abam"
         elif [[ "$ending" == "bed" ]]; then
-            if [ -n "$NORMALIZE" ]; then
-                TOTALREADS="--normalize "$( wc -l $1 | cut -d " " -f 1)
-            fi
+            if [ -n "$NORMALIZE" ]; then TOTALREADS="--normalize "$( wc -l $1 | cut -d " " -f 1); fi
+            if [ -n "$STRAND" ]; then IND=7 ;VAL=8; STR=6; else IND=7 ;VAL=8; STR=10; fi
             A="-a"
         else
             echo "input file format not recognized"
             exit
         fi
-        if [ -n "$STRAND" ]; then CUT="gawk '{print $5\"\t\"$6\"\t\"$4}'"; else CUT="cut -f 4,5"; fi
         echo "[NOTE] coverage $STRAND"
-        echo $CUT
+
         if [ -n "$BIN" ]; then
             echo "bin with $BIN"
-            bedtools coverage $STRAND -d $A $1 -b $REGIONS | $CUT | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
+            bedtools coverage -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{print $i"\t"$v"\t"$s}' | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
         else
-            #bedtools coverage -d $A $1 -b $REGIONS | cut -f 4,5 > $OUTDIR/$name.bed
-            bedtools coverage $STRAND -d $A $1 -b $REGIONS | $CUT > $OUTDIR/$name.bed
+            bedtools coverage -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{print $i"\t"$v"\t"$s}' > $OUTDIR/$name.bed
         fi
+
         echo "[NOTE] process file"
         python ${NGSANE_BASE}/tools/coverageAtFeature.py -f $OUTDIR/$name.bed $PYBIN -u $UPSTREAM -d $DOWNSTREAM -l $LENGTH -n $mark -o $OUTDIR/$name $IGNOREUNCOVERED $REMOVEOUTLIER $TOTALREADS --metric $METRIC
     }
     export -f get_coverage
 
     echo "[NOTE] Files $FILES"
-    parallel --gnu -env get_coverage ::: $FILES
-#    for i in $FILES; do get_coverage $i; done
+#    parallel --gnu -env get_coverage ::: $FILES
+    for i in $FILES; do get_coverage $i; done
 
 	# mark checkpoint
     if [ -f $(echo $RESULTFILES | cut -d " " -f 1) ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
