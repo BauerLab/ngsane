@@ -159,7 +159,7 @@ mkdir -p $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-CHECKPOINT="mask GTF"
+CHECKPOINT="fix mates"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
@@ -180,22 +180,8 @@ else
 	rm $THISTMP/$SAMPLE.tmp.bam
 	samtools index $OUTDIR/$SAMPLE.fixed.bam
 
-    echo "[NOTE] Create filtered bamfile (removed: rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene RNA18S5 RNA28S5)"
-	
-    ##remove r_RNA and create counts.
-	python ${NGSANE_BASE}/tools/extractFeature.py -f $GTF --keep rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene > $OUTDIR/mask.gff
-	python ${NGSANE_BASE}/tools/extractFeature.py -f $GTF --keep RNA18S5 RNA28S5 -l 17 >> $OUTDIR/mask.gff
-	        
-    intersectBed -v -abam $OUTDIR/$SAMPLE.fixed.bam -b $OUTDIR/mask.gff > $THISTMP/$SAMPLE.fixed.masked.tmp
-    
-    samtools sort -@ $CPU_HTSEQCOUNT -n $THISTMP/$SAMPLE.fixed.masked.tmp $OUTDIR/$SAMPLE.fixed.masked
-    rm $THISTMP/$SAMPLE.fixed.masked.tmp
-    samtools index $OUTDIR/$SAMPLE.fixed.masked.bam
-
-    [ -e $OUTDIR/mask.gff ] && rm $OUTDIR/mask.gff
-    
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.fixed.masked.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE.fixed.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
    
 fi
 ################################################################################
@@ -240,32 +226,54 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 	cat /dev/null > $OUTDIR/GTF_masked.summary.txt
 	
-    for ATTR in $HTSEQCOUNT_ATTRIBUTES; do 
-        for MODE in $HTSEQCOUNT_MODES; do 
-            echo "[NOTE] processing $ATTR $MODE"
-            if [ "$PAIRED" = 1 ]; then 
-                samtools view -f 3 $OUTDIR/$SAMPLE.fixed.masked.bam | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF_masked.$MODE.$ATTR.tmp
-            else
-                samtools view -F 4 $OUTDIR/$SAMPLE.fixed.masked.bam | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF_masked.$MODE.$ATTR.tmp
-            fi
-            head -n-5 $THISTMP/GTF_masked.$MODE.$ATTR.tmp > $OUTDIR/GTF_masked.$MODE.$ATTR
-            echo "${ATTR} ${MODE} "$(tail -n 5 $THISTMP/GTF_masked.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF_masked.summary.txt
-            rm $THISTMP/GTF_masked.$MODE.$ATTR.tmp
+	if [ -n "$HTSEQCOUNT_SKIPMASKED" ]; then
 
-        	 
-            if [ "$ATTR" == "gene_id" ]; then
-            	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/GTF_masked.$MODE.$ATTR $RPKMSSDIR/$SAMPLE.masked.$MODE.$ATTR
-            fi
-            
-            if [ "$ATTR" == "transcript_id" ]; then
-            	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeTranscriptRPKM.R $GTF $OUTDIR/GTF_masked.$MODE.$ATTR $RPKMSSDIR/$SAMPLE.masked.$MODE.$ATTR
-            fi
+	   echo "[NOTE] skip htseqcount on masked gtfs"
+	   echo -e "\n********* $CHECKPOINT\n"
+	   
+	else
+    	
+    echo "[NOTE] Create filtered bamfile (removed: rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene RNA18S5 RNA28S5)"
+	
+        ##remove r_RNA and create counts.
+    	python ${NGSANE_BASE}/tools/extractFeature.py -f $GTF --keep rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene > $OUTDIR/mask.gff
+    	python ${NGSANE_BASE}/tools/extractFeature.py -f $GTF --keep RNA18S5 RNA28S5 -l 17 >> $OUTDIR/mask.gff
+    	        
+        intersectBed -v -abam $OUTDIR/$SAMPLE.fixed.bam -b $OUTDIR/mask.gff > $THISTMP/$SAMPLE.fixed.masked.tmp
         
-        done
-    done
+        samtools sort -@ $CPU_HTSEQCOUNT -n $THISTMP/$SAMPLE.fixed.masked.tmp $OUTDIR/$SAMPLE.fixed.masked
+        rm $THISTMP/$SAMPLE.fixed.masked.tmp
+        samtools index $OUTDIR/$SAMPLE.fixed.masked.bam
+    
+        [ -e $OUTDIR/mask.gff ] && rm $OUTDIR/mask.gff
 
-    # mark checkpoint
-    if [ -f $RPKMSSDIR/$SAMPLE.masked.$MODE.$ATTR.RPKM.csv ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        for ATTR in $HTSEQCOUNT_ATTRIBUTES; do 
+            for MODE in $HTSEQCOUNT_MODES; do 
+                echo "[NOTE] processing $ATTR $MODE"
+                if [ "$PAIRED" = 1 ]; then 
+                    samtools view -f 3 $OUTDIR/$SAMPLE.fixed.masked.bam | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF_masked.$MODE.$ATTR.tmp
+                else
+                    samtools view -F 4 $OUTDIR/$SAMPLE.fixed.masked.bam | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF_masked.$MODE.$ATTR.tmp
+                fi
+                head -n-5 $THISTMP/GTF_masked.$MODE.$ATTR.tmp > $OUTDIR/GTF_masked.$MODE.$ATTR
+                echo "${ATTR} ${MODE} "$(tail -n 5 $THISTMP/GTF_masked.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF_masked.summary.txt
+                rm $THISTMP/GTF_masked.$MODE.$ATTR.tmp
+    
+            	 
+                if [ "$ATTR" == "gene_id" ]; then
+                	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/GTF_masked.$MODE.$ATTR $RPKMSSDIR/$SAMPLE.masked.$MODE.$ATTR
+                fi
+                
+                if [ "$ATTR" == "transcript_id" ]; then
+                	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeTranscriptRPKM.R $GTF $OUTDIR/GTF_masked.$MODE.$ATTR $RPKMSSDIR/$SAMPLE.masked.$MODE.$ATTR
+                fi
+            
+            done
+        done
+    
+        # mark checkpoint
+        if [ -f $RPKMSSDIR/$SAMPLE.masked.$MODE.$ATTR.RPKM.csv ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    fi
    
 fi
 
