@@ -83,6 +83,9 @@ REMOVEOUTLIER="--removeoutlier 6"
 # options: provide int, comment out
 #BIN="100"
 
+# collect coverage according to the strand the feature is on
+# options: yes, comment out
+#STRANDETNESS="yes"
 
 #TASK_FEATANN="featann"
 #WALLTIME_FEATANN=1:00:00

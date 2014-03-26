@@ -119,11 +119,9 @@ else
     GENOMESIZE=${FASTA/.$ending/}.chrom.sizes
     name=$(basename $FEATUREFILE)
     export REGIONS=$OUTDIR/${name/bed/tss-$UPSTREAM"+"$DOWNSTREAM.bed}
-#	gawk '{print $1"\t"$7"\t"$7+1}' $FEATUREFILE | sort -u | bedtools slop -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $REGIONS
 	gawk '{print $1"\t"$7"\t"$7+1"\t"$4"\t"$5"\t"$6}' $FEATUREFILE | sort -u -k1,1 -k2,2g | bedtools slop $STRAND -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $REGIONS
 
     if [ -n "$REMOVEMULTIFEATURE" ]; then
-        #bedtools merge -n -i $REGIONS | gawk '{if ($4==1){print $1"\t"$2"\t"$3}}' > $REGIONS.tmp
         bedtools merge $STRAND -n -i $REGIONS | gawk '{if ($4==1){print $1"\t"$2"\t"$3"\t"$5}}' > $REGIONS.tmp
         echo "drop "$(echo $(wc -l $REGIONS | cut -d " " -f 1 )-$(wc -l $REGIONS.tmp | cut -d " " -f 1) | bc)" multi-feature regions"
         mv $REGIONS.tmp $REGIONS
@@ -169,14 +167,14 @@ else
             A="-abam"
         elif [[ "$ending" == "bed" ]]; then
             if [ -n "$NORMALIZE" ]; then TOTALREADS="--normalize "$( wc -l $1 | cut -d " " -f 1); fi
-            if [ -n "$STRAND" ]; then IND=7 ;VAL=8; STR=6; else IND=7 ;VAL=8; STR=10; fi
+            if [ -n "$STRAND" ]; then IND=5 ;VAL=6; STR=4; else IND=4 ;VAL=5; STR=10; fi
             A="-a"
         else
             echo "input file format not recognized"
             exit
         fi
         echo "[NOTE] coverage $STRAND"
-
+#	bedtools coverage -d $A $1 -b $REGIONS | head
         if [ -n "$BIN" ]; then
             echo "bin with $BIN"
             bedtools coverage -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{print $i"\t"$v"\t"$s}' | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
@@ -190,8 +188,8 @@ else
     export -f get_coverage
 
     echo "[NOTE] Files $FILES"
-#    parallel --gnu -env get_coverage ::: $FILES
-    for i in $FILES; do get_coverage $i; done
+    parallel --gnu -env get_coverage ::: $FILES
+#    for i in $FILES; do get_coverage $i; done
 
 	# mark checkpoint
     if [ -f $(echo $RESULTFILES | cut -d " " -f 1) ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
