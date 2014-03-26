@@ -7,7 +7,7 @@
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.refinepeak.bed
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>_refinepeak.bed
 
 
 echo ">>>>> ChIPseq analysis with MACS2"
@@ -120,7 +120,8 @@ else
     
     if [ -n "$MACS2_FRAGMENTSIZE" ]; then
         echo "[NOTE] Skip modeling"
-    
+        echo -e "\n********* $CHECKPOINT\n"
+        
     else
     
         RUN_COMMAND="macs2 predictd $MACS2_PREDICTD_ADDPARAM --ifile $f --gsize $MACS2_GENOMESIZE --rfile $SAMPLE > $SAMPLE.summary.txt 2>&1"    
@@ -131,10 +132,10 @@ else
             convert -format png $SAMPLE"_"model.pdf $SAMPLE"_"model.png
         fi
     
-    fi
-    
-    # mark checkpoint
-    if [ -f $SAMPLE"_"model.R ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        # mark checkpoint
+        if [ -f $SAMPLE"_"model.R ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+    fi    
 fi
 ################################################################################
 CHECKPOINT="macs 2 - call peaks "
@@ -170,7 +171,6 @@ else
     
     RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b $SAMPLE"_"peaks.bed -i $f --o-prefix $SAMPLE >> $SAMPLE.summary.txt 2>&1"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    mv ${SAMPLE}_refinepeak.bed ${SAMPLE}.refinepeak.bed
 
 	if hash bedToBigBed ; then 
         echo "[NOTE] create bigbed from peaks" 
@@ -180,10 +180,10 @@ else
     fi
     [ -e $SAMPLE"_"peaks.bed ] && rm $SAMPLE"_"peaks.bed    
 
-    echo "Final number of refined peaks: $(wc -l ${SAMPLE}.refinepeak.bed )" >> $SAMPLE.summary.txt
+    echo "Final number of refined peaks: $(wc -l ${SAMPLE}_refinepeak.bed )" >> $SAMPLE.summary.txt
 
     # mark checkpoint
-    if [ -f ${SAMPLE}.refinepeak.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f ${SAMPLE}_refinepeak.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 ################################################################################
 # back to where we came from
