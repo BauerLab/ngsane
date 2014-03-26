@@ -208,7 +208,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         # add citations
 		TASKCITE=${TASK/*-/}
         TASKNAME=$(egrep "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
-		CITED_PROGRAMS=$(egrep "^${TASKNAME/TASK/MODULE}=" $JOBLOG | cut -d' ' -f 1 | sed -e "s|^${TASKNAME/TASK/MODULE}||g" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g')
+		CITED_PROGRAMS=$(egrep "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||g" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g')
         for M in NG_CITE_NGSANE $CITED_PROGRAMS; do
 
             CITE=$(grep -P "^$M=" $JOBLOG) || CITE=""
@@ -216,7 +216,6 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
                 echo -e "[CITE] ${CITE/$M=/}" >> $LOGFILE
             fi 
         done
-
 		#eval job directly but write to logfile
 	    if [ -n "$DIRECT" ]; then echo "[NOTE] write $LOGFILE"; eval $COMMAND2 >> $LOGFILE 2>&1; continue; fi
 
@@ -308,7 +307,7 @@ if [ -n "$POSTCOMMAND" ]; then
     # add citations
 	TASKCITE=${TASK/*-/}
     TASKNAME=$(grep -P "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
-	CITED_PROGRAMS=$(grep -P "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g')
+	CITED_PROGRAMS=$(egrep "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g')
     for M in NG_CITE_NGSANE $CITED_PROGRAMS; do
     	CITE=$(grep -P "^$M=" $JOBLOG) || CITE=""
       	if [ -n "$CITE" ]; then
