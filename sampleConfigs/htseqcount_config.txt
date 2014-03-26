@@ -65,10 +65,13 @@ HTSEQCOUNT_ADDPARAMS=
 # has a different suffix
 #DOCTOREDGTFSUFFIX=".doctored.gtf"
 
-# keep intermediate bam files generated for htseqcount
-# e.g. HTSEQCOUNT_KEEPBAMS=1 to keep files
-# e.g. HTSEQCOUNT_KEEPBAMS=  remove files
+# keep intermediate bam files generated for htseqcount (default remove bams)
+# e.g. HTSEQCOUNT_KEEPBAMS="yes" to keep files
 HTSEQCOUNT_KEEPBAMS=
+
+# whether to skip output with tRNA, rRNA etc masked in gtf
+# e.g. HTSEQCOUNT_SKIPMASKED="yes" to skip
+HTSEQCOUNT_SKIPMASKED=
 
 #WALLTIME_HTSEQCOUNT=24:00:00
 #MEMORY_HTSEQCOUNT=50
