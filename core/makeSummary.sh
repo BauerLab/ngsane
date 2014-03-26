@@ -138,7 +138,7 @@ function gatherDirsAggregate {
 # $3=output file ($SUMMARYTMP)
 function bamAnnotate {
 	echo "<h3 class='overall'>Reads overlapping annotated regions</h3>" >>$3
-	python ${NGSANE_BASE}/core/Summary.py ${1} .anno.stats annostats >> $3
+	python ${NGSANE_BASE}/core/Summary.py ${1} .$ASD.bam.anno.stats annostats >> $3
 	BAMANNOUT=runStats/bamann/$(echo ${DIR[@]} | sed 's/ /_/g' | cut -c 1-60 )_${2}.ggplot
 	BAMANNIMAGE=${BAMANNOUT/%ggplot/pdf}
 	if [ ! -f $BAMANNOUT ]; then mkdir -p $( dirname $BAMANNOUT); fi
@@ -412,7 +412,7 @@ fi
 if [[ -n "$RUNHTSEQCOUNT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
     summaryHeader "Htseq-count" "$TASK_HTSEQCOUNT" "htseqcount.sh" "$SUMMARYTMP" ".RPKM.csv"
 
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_HTSEQCOUNT)" summary.txt htseqcount >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_HTSEQCOUNT)" .summary.txt htseqcount >>$SUMMARYTMP
 
     summaryFooter "$TASK_HTSEQCOUNT" "$SUMMARYTMP"
 fi
