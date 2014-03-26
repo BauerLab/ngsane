@@ -55,8 +55,8 @@ ENDING=".$ASD.bam"
 # Define the labels for the R plot
 # FEATANN_LAB <file> <label>
 # e.g. FEATANN_LAB Input/bwa/Lib11.asd.bam H3K4me 
-<<FEATANN_LAB
-FEATANN_LAB
+<<FEATANN_LABS
+FEATANN_LABS
 
 
 #********************
@@ -83,6 +83,9 @@ REMOVEOUTLIER="--removeoutlier 6"
 # options: provide int, comment out
 #BIN="100"
 
+# collect coverage according to the strand the feature is on
+# options: yes, comment out
+#STRANDETNESS="yes"
 
 #TASK_FEATANN="featann"
 #WALLTIME_FEATANN=1:00:00

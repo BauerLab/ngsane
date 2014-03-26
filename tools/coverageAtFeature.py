@@ -32,9 +32,13 @@ def processStream2(file, up, down, bin, length, args):
     matrix=numpy.empty(shape=(length,up+down))
     counter=0
     for f in open(file):
-        arr=map(float,f.split("\t"))
-        #print "%i %i %i" % (counter/(up+down), arr[0], arr[1])
-        matrix[counter/(up+down),(arr[0]-1)/bin]=arr[1]
+        #arr=map(float,f.split("\t"))
+        arr=f.split("\t")
+        #print "%i %s %s %i %s" % (counter/(up+down), arr[0], arr[1], len(arr),str(arr))
+        if (len(arr)>2 and arr[2]=="-"):
+            matrix[counter/(up+down),((up+down)-int(arr[0]))/bin]=float(arr[1])   
+        else:
+            matrix[counter/(up+down),(int(arr[0])-1)/bin]=float(arr[1])
         counter+=1
 
     #normalize by total reads in library

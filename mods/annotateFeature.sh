@@ -54,6 +54,7 @@ export OUTDIR=$OUTDIR
 . $CONFIG
 
 if [ -n "$BIN" ]; then export PYBIN="--bin $BIN"; fi
+if [ -n "$STRANDETNESS" ]; then export STRAND="-s"; fi
 
 ################################################################################
 CHECKPOINT="programs"
@@ -118,16 +119,16 @@ else
     GENOMESIZE=${FASTA/.$ending/}.chrom.sizes
     name=$(basename $FEATUREFILE)
     export REGIONS=$OUTDIR/${name/bed/tss-$UPSTREAM"+"$DOWNSTREAM.bed}
-	gawk '{print $1"\t"$7"\t"$7+1}' $FEATUREFILE | sort -u | bedtools slop -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $REGIONS
+	gawk '{print $1"\t"$7"\t"$7+1"\t"$4"\t"$5"\t"$6}' $FEATUREFILE | sort -u -k1,1 -k2,2g | bedtools slop $STRAND -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $REGIONS
 
     if [ -n "$REMOVEMULTIFEATURE" ]; then
-        bedtools merge -n -i $REGIONS | gawk '{if ($4==1){print $1"\t"$2"\t"$3}}' > $REGIONS.tmp
+        bedtools merge $STRAND -n -i $REGIONS | gawk '{if ($4==1){print $1"\t"$2"\t"$3"\t"$5}}' > $REGIONS.tmp
         echo "drop "$(echo $(wc -l $REGIONS | cut -d " " -f 1 )-$(wc -l $REGIONS.tmp | cut -d " " -f 1) | bc)" multi-feature regions"
         mv $REGIONS.tmp $REGIONS
     fi
 
     export LENGTH=$(wc -l $REGIONS | cut -d " " -f 1)
-    echo "[NOTE] $LENGTH features in $REGIONS"
+    echo "[NOTE] $LENGTH features in $REGIONS $STRAND"
 
 	# mark checkpoint
     if [ -f $REGIONS ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -152,37 +153,40 @@ else
         arrIN=(${1//\// })
         fileloc=$(echo ${arrIN[@]:(-3)} | sed 's/ /\//g')
         mark=$(grep $fileloc $CONFIG | cut -d " " -f 3)
+        if [ -z "$mark" ]; then echo "error no mark definition (please provide FEATANN_LAB in the config file)"; exit; fi
         echo "[NOTE] process $fileloc with mark $mark"
         if [[ "$ending" == "bam" ]]; then
             if [ -n "$NORMALIZE" ]; then
                 if [ ! -e $1.stats ]; then
-                    echo "[NOTE] flagstat "
+                    echo "[NOTE] flagstat"
                     samtools flagstat $1 >$1.stats
                 fi
                 TOTALREADS="--normalize "$(head -n 1 $1.stats | cut -d " " -f 1)
             fi
+            if [ -n "$STRAND" ]; then IND=5 ;VAL=6; STR=4; else IND=4 ;VAL=5; STR=10; fi
             A="-abam"
         elif [[ "$ending" == "bed" ]]; then
-            if [ -n "$NORMALIZE" ]; then 
-                TOTALREADS="--normalize "$( wc -l $1 | cut -d " " -f 1)
-            fi
+            if [ -n "$NORMALIZE" ]; then TOTALREADS="--normalize "$( wc -l $1 | cut -d " " -f 1); fi
+            if [ -n "$STRAND" ]; then IND=5 ;VAL=6; STR=4; else IND=4 ;VAL=5; STR=10; fi
             A="-a"
         else
             echo "input file format not recognized"
             exit
         fi
-        echo "[NOTE] coverage"
+        echo "[NOTE] coverage $STRAND"
+#	bedtools coverage -d $A $1 -b $REGIONS | head
+
         if [ -n "$BIN" ]; then
             echo "bin with $BIN"
-            bedtools coverage -d $A $1 -b $REGIONS | cut -f 4,5 | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
+            bedtools coverage -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{print $i"\t"$v"\t"$s}' | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
         else
-            bedtools coverage -d $A $1 -b $REGIONS | cut -f 4,5 > $OUTDIR/$name.bed
+            bedtools coverage -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{print $i"\t"$v"\t"$s}' > $OUTDIR/$name.bed
         fi
         echo "[NOTE] process file"
         python ${NGSANE_BASE}/tools/coverageAtFeature.py -f $OUTDIR/$name.bed $PYBIN -u $UPSTREAM -d $DOWNSTREAM -l $LENGTH -n $mark -o $OUTDIR/$name $IGNOREUNCOVERED $REMOVEOUTLIER $TOTALREADS --metric $METRIC
     }
     export -f get_coverage
-    
+
     echo "[NOTE] Files $FILES"
     parallel --gnu -env get_coverage ::: $FILES
 #    for i in $FILES; do get_coverage $i; done
