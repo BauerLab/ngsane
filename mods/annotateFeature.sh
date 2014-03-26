@@ -118,10 +118,12 @@ else
     GENOMESIZE=${FASTA/.$ending/}.chrom.sizes
     name=$(basename $FEATUREFILE)
     export REGIONS=$OUTDIR/${name/bed/tss-$UPSTREAM"+"$DOWNSTREAM.bed}
-	gawk '{print $1"\t"$7"\t"$7+1}' $FEATUREFILE | sort -u | bedtools slop -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $REGIONS
+#	gawk '{print $1"\t"$7"\t"$7+1}' $FEATUREFILE | sort -u | bedtools slop -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $REGIONS
+	gawk '{print $1"\t"$7"\t"$7+1"\t"$4"\t"$5"\t"$6}' $FEATUREFILE | sort -u -k1,1 -k2,2g | bedtools slop -s -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $REGIONS
 
     if [ -n "$REMOVEMULTIFEATURE" ]; then
-        bedtools merge -n -i $REGIONS | gawk '{if ($4==1){print $1"\t"$2"\t"$3}}' > $REGIONS.tmp
+        #bedtools merge -n -i $REGIONS | gawk '{if ($4==1){print $1"\t"$2"\t"$3}}' > $REGIONS.tmp
+        bedtools merge -s -n -i $REGIONS | gawk '{if ($4==1){print $1"\t"$2"\t"$3"\t"$5}}' > $REGIONS.tmp
         echo "drop "$(echo $(wc -l $REGIONS | cut -d " " -f 1 )-$(wc -l $REGIONS.tmp | cut -d " " -f 1) | bc)" multi-feature regions"
         mv $REGIONS.tmp $REGIONS
     fi
@@ -173,11 +175,13 @@ else
             exit
         fi
         echo "[NOTE] coverage"
+        echo "bedtools coverage -s -d $A $1 -b $REGIONS "
         if [ -n "$BIN" ]; then
             echo "bin with $BIN"
             bedtools coverage -d $A $1 -b $REGIONS | cut -f 4,5 | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
         else
-            bedtools coverage -d $A $1 -b $REGIONS | cut -f 4,5 > $OUTDIR/$name.bed
+            #bedtools coverage -d $A $1 -b $REGIONS | cut -f 4,5 > $OUTDIR/$name.bed
+            bedtools coverage -s -d $A $1 -b $REGIONS | gawk '{print $5"\t"$6"\t"$4}' > $OUTDIR/$name.bed
         fi
         echo "[NOTE] process file"
         python ${NGSANE_BASE}/tools/coverageAtFeature.py -f $OUTDIR/$name.bed $PYBIN -u $UPSTREAM -d $DOWNSTREAM -l $LENGTH -n $mark -o $OUTDIR/$name $IGNOREUNCOVERED $REMOVEOUTLIER $TOTALREADS --metric $METRIC
