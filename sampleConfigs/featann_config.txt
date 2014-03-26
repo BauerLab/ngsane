@@ -55,8 +55,8 @@ ENDING=".$ASD.bam"
 # Define the labels for the R plot
 # FEATANN_LAB <file> <label>
 # e.g. FEATANN_LAB Input/bwa/Lib11.asd.bam H3K4me 
-<<FEATANN_LAB
-FEATANN_LAB
+<<FEATANN_LABS
+FEATANN_LABS
 
 
 #********************
