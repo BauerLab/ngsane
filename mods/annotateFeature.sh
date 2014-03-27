@@ -79,7 +79,7 @@ RESULTFILES=""
 for i in $FILES; do
     n=$(basename $i)
     ending=${n/*./}
-    RESULTFILES=$RESULTFILES" "$OUTDIR/${n/.$ending/}"-${UPSTREAM}+${DOWNSTREAM}.txt"
+    RESULTFILES=$RESULTFILES" "$OUTDIR/${n/.$ending/}"-"${UPSTREAM}"+"${DOWNSTREAM}"_"$METRIC${STRAND/-/_}".txt"
 done
 
 
@@ -118,7 +118,7 @@ else
     ending=${FASTA/*./}
     GENOMESIZE=${FASTA/.$ending/}.chrom.sizes
     name=$(basename $FEATUREFILE)
-    export REGIONS=$OUTDIR/${name/bed/tss-$UPSTREAM"+"$DOWNSTREAM.bed}
+    export REGIONS=$OUTDIR/${name/bed/}feat-$UPSTREAM"+"$DOWNSTREAM"_"$METRIC${STRAND/-/_}.bed
 	gawk '{print $1"\t"$7"\t"$7+1"\t"$4"\t"$5"\t"$6}' $FEATUREFILE | sort -u -k1,1 -k2,2g | bedtools slop $STRAND -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $REGIONS
 
     if [ -n "$REMOVEMULTIFEATURE" ]; then
@@ -149,7 +149,7 @@ else
         . $CONFIG
         name=$(basename $1)
         ending=${name/*./}
-        name=${name/.$ending/}"-$UPSTREAM+$DOWNSTREAM"
+        name=${name/.$ending/}"-"$UPSTREAM"+"$DOWNSTREAM"_"$METRIC${STRAND/-/_}
         arrIN=(${1//\// })
         fileloc=$(echo ${arrIN[@]:(-3)} | sed 's/ /\//g')
         mark=$(grep $fileloc $CONFIG | cut -d " " -f 3)
@@ -167,14 +167,17 @@ else
             A="-abam"
         elif [[ "$ending" == "bed" ]]; then
             if [ -n "$NORMALIZE" ]; then TOTALREADS="--normalize "$( wc -l $1 | cut -d " " -f 1); fi
-            if [ -n "$STRAND" ]; then IND=5 ;VAL=6; STR=4; else IND=4 ;VAL=5; STR=10; fi
+            if [ -n "$STRAND" ]; then IND=5 ;VAL=6; STR=4; else IND=5 ;VAL=5; STR=10; fi
             A="-a"
         else
             echo "input file format not recognized"
             exit
         fi
         echo "[NOTE] coverage $STRAND"
-#	bedtools coverage -d $A $1 -b $REGIONS | head
+#	    bedtools coverage $STRAND -d $A $1 -b $REGIONS | head
+        EXPREG=$(bedtools coverage $STRAND $A $1 -b $REGIONS | gawk '{if ($5!=0) {print $0}}' | wc -l)  # non-zero covered features
+        echo "nonzero regions $EXPREG"
+        if [ $EXPREG == 0 ]; then touch $OUTDIR/$name.txt;  continue; fi
         if [ -n "$BIN" ]; then
             echo "bin with $BIN"
             bedtools coverage -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{print $i"\t"$v"\t"$s}' | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
@@ -205,7 +208,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    JOINED=$OUTDIR/"joined-"$UPSTREAM"+"$DOWNSTREAM"_"$METRIC
+    JOINED=$OUTDIR/"joined-"$UPSTREAM"+"$DOWNSTREAM"_"$METRIC${STRAND/-/_}
     echo "[NOTE] plot $JOINED.pdf"
     head -n 1 $(echo $RESULTFILES | cut -d " " -f 1) > $JOINED.txt
     cat $RESULTFILES | grep -v "x" >> $JOINED.txt
