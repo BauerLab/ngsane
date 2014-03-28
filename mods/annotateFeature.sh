@@ -93,8 +93,8 @@ fi
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    [ -e $(echo $RESULTFILES | cut -d " " -f 1) ] && rm ${RESULTFILES//.txt/*}
-    [ -e $OUTDIR/joined.png ] && rm $OUTDIR/joined*
+    [ -e $(echo $RESULTFILES | cut -d " " -f 1) ] && rm -f ${RESULTFILES//.txt/*}
+    [ -e $OUTDIR/joined"-"${UPSTREAM}"+"${DOWNSTREAM}"_"$METRIC${STRAND/-/_}.png ] && rm -f $OUTDIR/joined"-"${UPSTREAM}"+"${DOWNSTREAM}"_"$METRIC${STRAND/-/_}*
 fi
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -121,11 +121,18 @@ else
     export REGIONS=$OUTDIR/${name/bed/}feat-$UPSTREAM"+"$DOWNSTREAM"_"$METRIC${STRAND/-/_}.bed
 	gawk '{print $1"\t"$7"\t"$7+1"\t"$4"\t"$5"\t"$6}' $FEATUREFILE | sort -u -k1,1 -k2,2g | bedtools slop $STRAND -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $REGIONS
 
+    head $REGIONS
+
     if [ -n "$REMOVEMULTIFEATURE" ]; then
+
+   bedtools merge $STRAND -n -i $REGIONS | head
+
         bedtools merge $STRAND -n -i $REGIONS | gawk '{if ($4==1){print $1"\t"$2"\t"$3"\t"$5}}' > $REGIONS.tmp
         echo "drop "$(echo $(wc -l $REGIONS | cut -d " " -f 1 )-$(wc -l $REGIONS.tmp | cut -d " " -f 1) | bc)" multi-feature regions"
         mv $REGIONS.tmp $REGIONS
     fi
+
+    head $REGIONS
 
     export LENGTH=$(wc -l $REGIONS | cut -d " " -f 1)
     echo "[NOTE] $LENGTH features in $REGIONS $STRAND"
@@ -167,22 +174,22 @@ else
             A="-abam"
         elif [[ "$ending" == "bed" ]]; then
             if [ -n "$NORMALIZE" ]; then TOTALREADS="--normalize "$( wc -l $1 | cut -d " " -f 1); fi
-            if [ -n "$STRAND" ]; then IND=5 ;VAL=6; STR=4; else IND=5 ;VAL=5; STR=10; fi
+            if [ -n "$STRAND" ]; then IND=5 ;VAL=6; STR=4; else IND=4 ;VAL=5; STR=10; fi
             A="-a"
         else
             echo "input file format not recognized"
             exit
         fi
         echo "[NOTE] coverage $STRAND"
-#	    bedtools coverage $STRAND -d $A $1 -b $REGIONS | head
+	    bedtools coverage $STRAND -d $A $1 -b $REGIONS | head
         EXPREG=$(bedtools coverage $STRAND $A $1 -b $REGIONS | gawk '{if ($5!=0) {print $0}}' | wc -l)  # non-zero covered features
         echo "nonzero regions $EXPREG"
         if [ $EXPREG == 0 ]; then touch $OUTDIR/$name.txt;  continue; fi
         if [ -n "$BIN" ]; then
             echo "bin with $BIN"
-            bedtools coverage -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{print $i"\t"$v"\t"$s}' | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
+            bedtools coverage $STRAND -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{print $i"\t"$v"\t"$s}' | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
         else
-            bedtools coverage -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{print $i"\t"$v"\t"$s}' > $OUTDIR/$name.bed
+            bedtools coverage $STRAND -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{print $i"\t"$v"\t"$s}' > $OUTDIR/$name.bed
         fi
 
         echo "[NOTE] process file"
@@ -191,13 +198,16 @@ else
     export -f get_coverage
 
     echo "[NOTE] Files $FILES"
-    parallel --gnu -env get_coverage ::: $FILES
-#    for i in $FILES; do get_coverage $i; done
+    #parallel --gnu -env get_coverage ::: $FILES
+    for i in $FILES; do get_coverage $i; done
+
+    head $OUTDIR/$name.bed
+    head $OUTDIR/$name.txt
 
 	# mark checkpoint
     if [ -f $(echo $RESULTFILES | cut -d " " -f 1) ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
-    rm ${RESULTFILES//.txt/.bed}
+    #rm ${RESULTFILES//.txt/.bed}
 fi
 
 

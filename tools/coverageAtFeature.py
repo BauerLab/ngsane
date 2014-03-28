@@ -41,6 +41,8 @@ def processStream2(file, up, down, bin, length, args):
             matrix[counter/(up+down),(int(arr[0])-1)/bin]=float(arr[1])
         counter+=1
 
+    print "shape of matrix %s" % (str(matrix.shape))
+
     #ignore all genomic locations that have zero coverage
     if (args.ignore):
         z = numpy.all(matrix==0, axis=1)
@@ -54,7 +56,6 @@ def processStream2(file, up, down, bin, length, args):
     if (args.normalize):
         matrix=matrix*(1.0/args.normalize)
         print "normalize by %i" % (args.normalize)
-    print "shape of matrix %s" % (str(matrix.shape))
 
 
     #remove outliers
