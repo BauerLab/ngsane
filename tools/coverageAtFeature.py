@@ -41,32 +41,34 @@ def processStream2(file, up, down, bin, length, args):
             matrix[counter/(up+down),(int(arr[0])-1)/bin]=float(arr[1])
         counter+=1
 
+    print "shape of matrix %s" % (str(matrix.shape))
+
+    #ignore all genomic locations that have zero coverage
+    if (args.ignore):
+        z = numpy.all(matrix==0, axis=1)
+        matrix = matrix.compress(numpy.logical_not(z), axis=0)
+        print "shape of matrix %s after removal of zero coverage" % (str(matrix.shape))
+    if (matrix.shape[0]==0):
+        print("[ERROR] all TTS were removed for this mark, consider a less stringent filtering")
+        sys.exit()
+
     #normalize by total reads in library
     if (args.normalize):
         matrix=matrix*(1.0/args.normalize)
         print "normalize by %i" % (args.normalize)
-    print "shape of matrix %s" % (str(matrix.shape))
+
 
     #remove outliers
     if (args.timestd):
         #std=numpy.std(matrix)
         #z = numpy.any(matrix>(std*args.TIMESSTD), axis=1)
         std=numpy.std(matrix,axis=0)
-        mask=numpy.zeros(shape=(length))
+        mask=numpy.zeros(shape=(len(matrix)))
         for r in range(0,numpy.shape(matrix)[1]):
             loc=numpy.where(matrix[:,r]>(std[r]*args.timestd))
             mask[loc]=1
         matrix = matrix.compress(numpy.logical_not(mask), axis=0)
         print "shape of matrix %s after outlier removal" % (str(matrix.shape))
-
-    #ignore all genomic locations that have zero coverage
-    if (args.ignore):
-        z = numpy.all(matrix==0, axis=1)
-        matrix = matrix.compress(numpy.logical_not(z), axis=0) 
-        print "shape of matrix %s after removal of zero coverage" % (str(matrix.shape))
-    if (matrix.shape[0]==0):
-        print("[ERROR] all TTS were removed for this mark, consider a less stringent filtering")
-        sys.exit()
 
     #calculate median
     if (args.metric=="median"):
