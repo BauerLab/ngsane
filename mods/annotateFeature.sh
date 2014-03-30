@@ -172,7 +172,7 @@ else
             A="-abam"
         elif [[ "$ending" == "bed" ]]; then
             if [ -n "$NORMALIZE" ]; then TOTALREADS="--normalize "$( wc -l $1 | cut -d " " -f 1); fi
-            if [ -n "$STRAND" ]; then IND=5 ;VAL=6; STR=4; else IND=4 ;VAL=5; STR=10; fi
+            if [ -n "$STRAND" ]; then IND=7 ;VAL=8; STR=6; else IND=6 ;VAL=7; STR=10; fi
             A="-a"
         else
             echo "input file format not recognized"
