@@ -85,7 +85,9 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     # check for ".fastq.gz" suffix as FASTQC removes both suffixes then
     if [ "$FASTQ" != "fastq.gz" ];then 
-        mv $OUTDIR/${INPUTFILENAME%.*}"_"fastqc.zip $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}; 
+        [ -e $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip} ] && rm $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}
+        [ -e $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc} ] && rm -r $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc}
+        mv $OUTDIR/${INPUTFILENAME%.*}"_"fastqc.zip $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}
         mv $OUTDIR/${INPUTFILENAME%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc}
     fi
 
@@ -105,8 +107,10 @@ else
         echo $RUN_COMMAND && eval $RUN_COMMAND
         R2=${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.$FASTQ}
         if [ "$FASTQ" != "fastq.gz" ];then 
-            mv $OUTDIR/${R2%.*}"_"fastqc.zip $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc.zip}; 
-            mv $OUTDIR/${R2%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc}; 
+            [ -e $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc.zip} ] && rm $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc.zip}
+            [ -e $OUTDIR/${R2%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc} ] && rm -r $OUTDIR/${R2%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc}
+            mv $OUTDIR/${R2%.*}"_"fastqc.zip $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc.zip}
+            mv $OUTDIR/${R2%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc}
         fi
     else
         echo "[NOTE] Single-end pair library detected. No second read to process."
