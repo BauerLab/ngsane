@@ -142,18 +142,18 @@ else
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    # keep only peaks that pass the FDR
-    awk '{if($0~"fdrPassed"){OFS="\t";print $1,$2,$3,$5}}' $OUTDIR/$SAMPLE-$CONTROL"_region.bed" | sort -u  > $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
+    # keep only peaks that pass the FDR and merge overlapping peaks keeping the smallest score
+    awk '{if($0~"fdrPassed"){print $0}}' $OUTDIR/$SAMPLE-$CONTROL"_region.bed" | bedtools sort | bedtools merge -scores min -i stdin > $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
     mv $OUTDIR/$SAMPLE-$CONTROL"_region.tmp" $OUTDIR/$SAMPLE-$CONTROL"_region.bed"
 
-    awk '{if($0~"fdrPassed"){OFS="\t";print $1,$2,$3,$5}}' $OUTDIR/$SAMPLE-$CONTROL"_summit.bed" > $OUTDIR/$SAMPLE-$CONTROL"_summit.tmp"
+    awk '{if($0~"fdrPassed"){print $0}}' $OUTDIR/$SAMPLE-$CONTROL"_summit.bed" | bedtools sort | bedtools merge -scores min -i stdin > $OUTDIR/$SAMPLE-$CONTROL"_summit.tmp"
     mv $OUTDIR/$SAMPLE-$CONTROL"_summit.tmp" $OUTDIR/$SAMPLE-$CONTROL"_summit.bed"
     
     echo "Peaks: $(wc -l $OUTDIR/$SAMPLE-$CONTROL"_region.bed" | awk '{print $1}')" >> $OUTDIR/$SAMPLE-$CONTROL.summary.txt
 
     # make bigbed
 	if hash bedToBigBed && [ -f $GENOME_CHROMSIZES ] && [ -s $OUTDIR/$SAMPLE-$CONTROL"_region.bed" ] ; then
-        bedtools intersect -a <(cut -f1-4 $OUTDIR/$SAMPLE-$CONTROL"_region.bed" | sort -k1,1 -k2,2n) -b <( awk '{OFS="\t"; print $1,1,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
+        bedtools intersect -a $OUTDIR/$SAMPLE-$CONTROL"_region.bed" -b <( awk '{OFS="\t"; print $1,1,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
         bedToBigBed -type=bed4 $OUTDIR/$SAMPLE-$CONTROL"_region.tmp" $GENOME_CHROMSIZES $OUTDIR/$SAMPLE-$CONTROL".bb"
         rm $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
     fi
@@ -170,6 +170,6 @@ $GZIP -f $OUTDIR/$SAMPLE-$CONTROL"_details"
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e $OUTDIR/$SAMPLE-$CONTROL"_region.bed".dummy ] && rm $OUTDIR/$SAMPLE-$CONTROL"_region.bed".dummy
+[ -e $OUTDIR/$SAMPLE-$CONTROL"_region.bed.dummy" ] && rm $OUTDIR/$SAMPLE-$CONTROL"_region.bed.dummy"
 echo ">>>>> ChIPseq analysis with Peakranger - FINISHED"
 echo ">>>>> enddate "`date`
