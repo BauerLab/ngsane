@@ -5,7 +5,7 @@
 # date: January 1914
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.bw
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.narrowPeak
 
 echo ">>>>> Peak calling with fseq"
 echo ">>>>> startdate "`date`
@@ -63,6 +63,8 @@ echo -e "--fseq        --\n "$(fseq -v | head -n 1)
 [ -z "$(which fseq)" ] && echo "[ERROR] no fseq detected" && exit 1
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
+echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
+[ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress bedgraphs"
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -126,8 +128,7 @@ else
         RUN_COMMAND="java $JAVAPARAMS -cp $CLASSPATH edu.duke.igsp.gkde.Main $FSEQADDPARAM -o $THISTMP -of wig <(bedtools bamtobed -i $INPUTFILE )"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
-        RUN_COMMAND="cat $THISTMP/*.wig | wigToBigWig stdin ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.bw"
-        echo $RUN_COMMAND && eval $RUN_COMMAND    
+        cat $THISTMP/*.wig | wigToBigWig stdin ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.bw
     
         # mark checkpoint
         if [ -f $OUTDIR/$SAMPLE.bw ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -146,8 +147,7 @@ else
     RUN_COMMAND="java $JAVAPARAMS -cp $CLASSPATH edu.duke.igsp.gkde.Main $FSEQADDPARAM -o $THISTMP -of npf <(bedtools bamtobed -i $INPUTFILE )"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    RUN_COMMAND="cat $THISTMP/*.npf > $OUTDIR/$SAMPLE.narrowPeak"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
+    cat $THISTMP/*.npf > $OUTDIR/$SAMPLE.narrowPeak
 
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE.narrowPeak ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -176,6 +176,14 @@ DELIM
     [ -f $OUTDIR/$SAMPLE.narrowPeak.tmp ] && rm $OUTDIR/$SAMPLE.narrowPeak.tmp 
     [ -f $OUTDIR/$SAMPLE.R ] && rm $OUTDIR/$SAMPLE.R
 
+    # convert to bigbed
+	if hash bedToBigBed ; then 
+        echo "[NOTE] create bigbed from peaks" 
+        awk '{OFS="\t"; print $1,$2,$3,$7}' $OUTDIR/$SAMPLE.narrowPeak > $OUTDIR/$SAMPLE.peak.tmp
+        bedToBigBed -type=bed4 $OUTDIR/$SAMPLE.peak.tmp $GENOME_CHROMSIZES $SAMPLE.bb
+        rm $OUTDIR/$SAMPLE.peak.tmp
+    fi
+
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE.narrowPeak ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
@@ -186,6 +194,6 @@ CHECKPOINT="cleanup"
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e $OUTDIR/$SAMPLE.bw.dummy ] && rm $OUTDIR/$SAMPLE.bw.dummy
+[ -e $OUTDIR/$SAMPLE.narrowPeak.dummy ] && rm $OUTDIR/$SAMPLE.narrowPeak.dummy
 echo ">>>>> Peak calling with fseq - FINISHED"
 echo ">>>>> enddate "`date`
