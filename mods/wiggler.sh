@@ -136,7 +136,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     
     if [ -z "$WIGGLER_FRAGMENTSIZE" ]; then
-        WIGGLER_FRAGMENTSIZE=$(grep 'alternative fragment length(s) may be' $OUTDIR/$SAMPLE.fragment_size.txt | sed 's/.* be //' | egrep -o '((-[0-9]{2,4},)?[0-9]{2,4})')
+        WIGGLER_FRAGMENTSIZE=$(grep 'alternative fragment length(s) may be' $OUTDIR/$SAMPLE.fragment_size.txt | sed 's/.* be //' | tr ',' '\n' | egrep -v "^-" | head -n 1)
     fi
     
     [ -f $OUTDIR/$SAMPLE.log ] && rm $OUTDIR/$SAMPLE.log
