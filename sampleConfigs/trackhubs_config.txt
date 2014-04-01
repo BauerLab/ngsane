@@ -58,6 +58,17 @@ TRACKHUB_NAMEPATTERN="\(.*\)"
 # the contact to whom questions regarding the track hub should be directed
 TRACKHUB_EMAIL=
 
+# visibility settings for signal, peak, read and variant tracks
+# default is "hide"
+TRACKHUB_READ=
+TRACKHUB_SIGNAL="pack"
+TRACKHUB_PEAK="squish"
+TRACKHUB_VARIANT=
+
+# default view limits
+TRACKHUB_VIEWLIMITS="0:3"
+TRACKHUB_MAXHEIGHTPIXELS="32:22:11"
+
 # define as many trackhub colors as needed one per line (order matters)
 # TRACKHUB_COLOR <pattern> <rbg color> 
 # e.g. TRACKHUB_COLOR H2AZ 123,234,213

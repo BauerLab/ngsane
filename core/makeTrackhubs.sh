@@ -60,6 +60,8 @@ fi
 [ -z "$TRACKHUB_SIGNAL" ] && TRACKHUB_SIGNAL="hide"
 [ -z "$TRACKHUB_PEAK" ] && TRACKHUB_PEAK="hide"
 [ -z "$TRACKHUB_VARIANT" ] && TRACKHUB_VARIANT="hide"
+[ -z "$TRACKHUB_VIEWLIMITS" ] && TRACKHUB_VIEWLIMITS="0:3"
+[ -z "$TRACKHUB_MAXHEIGHTPIXELS" ] && TRACKHUB_MAXHEIGHTPIXELS="32:22:11"
 
 # get trackhub colors
 COLORS=$(grep '^TRACKHUB_COLOR ' $CONFIG | cut -d ' ' -f 2,3 )
@@ -113,11 +115,11 @@ shortLabel $2
 longLabel $2
 compositeTrack on
 showSubtrackColorOnUi on
-viewLimits 0:3
+viewLimits $TRACKHUB_VIEWLIMITS
 configurable on
 visibility hide
 priority 7
-maxHeightPixels 32:22:11
+maxHeightPixels $TRACKHUB_MAXHEIGHTPIXELS
 type bed 3
 subGroup1 view Views \
     PK=Peaks \
