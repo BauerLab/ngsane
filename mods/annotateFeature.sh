@@ -168,11 +168,11 @@ else
                 TOTALREADS="--normalize "$(head -n 1 $1.stats | cut -d " " -f 1)
             fi
             #if [ -n "$STRAND" ]; then IND=5 ;VAL=6; STR=4; else IND=4 ;VAL=5; STR=10; fi
-            if [ -n "$STRAND" ]; then IND=7 ;VAL=8; STR=6; else IND=6 ;VAL=7; STR=10; fi
+            if [ -n "$STRAND" ]; then IND=7 ;VAL=8; STR=6; else IND=7 ;VAL=8; STR=10; fi
             A="-abam"
         elif [[ "$ending" == "bed" ]]; then
             if [ -n "$NORMALIZE" ]; then TOTALREADS="--normalize "$( wc -l $1 | cut -d " " -f 1); fi
-            if [ -n "$STRAND" ]; then IND=7 ;VAL=8; STR=6; else IND=6 ;VAL=7; STR=10; fi
+            if [ -n "$STRAND" ]; then IND=7 ;VAL=8; STR=6; else IND=7 ;VAL=8; STR=10; fi
             A="-a"
         else
             echo "input file format not recognized"
@@ -180,18 +180,18 @@ else
         fi
         echo "[NOTE] coverage $STRAND"
 
-        #bedtools coverage $STRAND -d $A $1 -b $REGIONS | head
+        bedtools coverage $STRAND -d $A $1 -b $REGIONS | head
         EXPREG=$(bedtools coverage $STRAND $A $1 -b $REGIONS | gawk -v v=$VAL '{if ($v!=0) {print $0}}' | wc -l)  # non-zero covered features
         if [ $EXPREG != 0 ]; then
             echo "[NOTE] nonzero regions $EXPREG"
             if [ -n "$BIN" ]; then
                 echo "bin with $BIN"
-                bedtools coverage $STRAND -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{print $i"\t"$v"\t"$s}' | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
+                bedtools coverage $STRAND -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len"\t"$3}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
             else
-                bedtools coverage $STRAND -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{print $i"\t"$v"\t"$s}' > $OUTDIR/$name.bed
+                bedtools coverage $STRAND -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' > $OUTDIR/$name.bed
             fi
     
-            #head $OUTDIR/$name.bed
+ #           head $OUTDIR/$name.bed
 
             echo "[NOTE] process file"
             python ${NGSANE_BASE}/tools/coverageAtFeature.py -f $OUTDIR/$name.bed $PYBIN -u $UPSTREAM -d $DOWNSTREAM -l $LENGTH -n $mark -o $OUTDIR/$name $IGNOREUNCOVERED $REMOVEOUTLIER $TOTALREADS --metric $METRIC
@@ -200,7 +200,7 @@ else
             echo "[NOTE] no regions overlap features"
             touch $OUTDIR/$name.txt $OUTDIR/$name.bed;
         fi
-        #head $OUTDIR/$name.bed
+#        head $OUTDIR/$name.bed
 
 
     }
