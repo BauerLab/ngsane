@@ -207,21 +207,6 @@ else
 fi
 
 ################################################################################
-CHECKPOINT="PCA clustering"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-
-    RUN_COMMAND="runHiCpca.pl $SAMPLE $OUTDIR/${SAMPLE}_tagdir_filtered $HOMER_HIC_PCA_ADDPARAM -cpu $CPU_HOMERHIC"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-
-    # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.PC1.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
-fi
-
-################################################################################
 CHECKPOINT="Significant high-res cis interactions"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
@@ -265,6 +250,51 @@ else
     # mark checkpoint
     if [ -f $OUTDIR/${SAMPLE}_annotations_cisInteractions/interactionAnnotation.txt ]; then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
+fi
+
+################################################################################
+CHECKPOINT="PCA clustering"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    RUN_COMMAND="runHiCpca.pl $SAMPLE $OUTDIR/${SAMPLE}_tagdir_filtered $HOMER_HIC_PCA_ADDPARAM -cpu $CPU_HOMERHIC"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+    
+    # mark checkpoint
+    if [ -f $OUTDIR/$SAMPLE.PC1.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi
+
+
+################################################################################
+CHECKPOINT="SIMA"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    if [[ "$HOMER_HIC_SIMA_ADDPARAM" ~= "-p" ]]; then
+
+        RUN_COMMAND="findHiCCompartments.pl $OUTDIR/$SAMPLE.PC1.txt > $OUTDIR/$SAMPLE.activeDomains.txt"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+        
+        RUN_COMMAND="findHiCCompartments.pl -opp $OUTDIR/$SAMPLE.PC1.txt > $OUTDIR/$SAMPLE.inactiveDomains.txt"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+        
+        RUN_COMMAND="SIMA.pl $OUTDIR/${SAMPLE}_tagdir_filtered -d <(cat $OUTDIR/$SAMPLE.activeDomains.txt $OUTDIR/$SAMPLE.inactiveDomains.txt)$HOMER_HIC_SIMA_ADDPARAM -cpu $CPU_HOMERHIC > $SAMPLE.sima.txt"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+        
+        # mark checkpoint
+        if [ -f $SAMPLE.sima.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+    else
+        echo "[NOTE] no peaks provided for SIMA analysis. Skipping it"
+        # mark checkpoint
+        echo -e "\n********* $CHECKPOINT\n"
+        
+    fi
 fi
 
 ################################################################################

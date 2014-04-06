@@ -70,6 +70,15 @@ HOMER_HIC_CISINTERACTIONS_ADDPARAM=
 # e.g. "hg19"
 HOMER_HIC_ANNOTATE_ADDPARAM=
 
+# additional parameter to pass to annotation process
+# e.g. "hg19"
+HOMER_HIC_ANNOTATE_ADDPARAM=
+
+# additional parameters for SIMA analysis 
+# will be skipped if no peak files are specified (-c)
+# e.g. HOMER_HIC_SIMA_ADDPARAM="-c CTCF.bed"
+HOMER_HIC_SIMA_ADDPARAM=
+
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
