@@ -275,7 +275,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    if [[ "$HOMER_HIC_SIMA_ADDPARAM" ~= "-p" ]]; then
+    if [[ "$HOMER_HIC_SIMA_ADDPARAM" =~ -p ]]; then
 
         RUN_COMMAND="findHiCCompartments.pl $OUTDIR/$SAMPLE.PC1.txt > $OUTDIR/$SAMPLE.activeDomains.txt"
         echo $RUN_COMMAND && eval $RUN_COMMAND
