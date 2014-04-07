@@ -76,7 +76,7 @@ HOMER_HIC_ANNOTATE_ADDPARAM=
 
 # additional parameters for SIMA analysis 
 # will be skipped if no peak files are specified (-c)
-# e.g. HOMER_HIC_SIMA_ADDPARAM="-c CTCF.bed"
+# e.g. HOMER_HIC_SIMA_ADDPARAM="-p CTCF.bed"
 HOMER_HIC_SIMA_ADDPARAM=
 
 #********************

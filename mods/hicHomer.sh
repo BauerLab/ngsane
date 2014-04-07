@@ -59,6 +59,8 @@ echo -e "--homer       --\n "$(which makeTagDirectory)
 [ -z "$(which makeTagDirectory)" ] && echo "[ERROR] homer not detected" && exit 1
 echo -e "--circos      --\n "$(circos --version)
 [ -z "$(which circos)" ] && echo "[WARN] circos not detected"
+echo -e "--wigToBigWig --\n "$(wigToBigWig 2>&1 | tee | head -n 1)
+[ -z "$(which wigToBigWig)" ] && echo "[WARN] wigToBigWig not detected"
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -94,6 +96,14 @@ if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
     exit 1
 fi
+
+GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
+if [ ! -f $GENOME_CHROMSIZES ]; then
+    echo "[WARN] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES. Will not create bigBed file"
+else
+    echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
+fi
+
 
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
@@ -262,11 +272,16 @@ else
     RUN_COMMAND="runHiCpca.pl $SAMPLE $OUTDIR/${SAMPLE}_tagdir_filtered $HOMER_HIC_PCA_ADDPARAM -cpu $CPU_HOMERHIC"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
+    if hash wigToBigWig && [ -f $GENOME_CHROMSIZES ]; then   
+          $OUTDIR/$SAMPLE.PC1.bedGraph ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.PC1.bw
+          rm $OUTDIR/$SAMPLE.PC1.bedGraph
+    fi
+    
+    
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE.PC1.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
-
 
 ################################################################################
 CHECKPOINT="SIMA"
@@ -277,13 +292,21 @@ else
 
     if [[ "$HOMER_HIC_SIMA_ADDPARAM" =~ -p ]]; then
 
-        RUN_COMMAND="findHiCCompartments.pl $OUTDIR/$SAMPLE.PC1.txt > $OUTDIR/$SAMPLE.activeDomains.txt"
+        RUN_COMMAND="findHiCCompartments.pl <( tail -n+2 $OUTDIR/$SAMPLE.PC1.txt) > $OUTDIR/$SAMPLE.activeDomains.txt"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
-        RUN_COMMAND="findHiCCompartments.pl -opp $OUTDIR/$SAMPLE.PC1.txt > $OUTDIR/$SAMPLE.inactiveDomains.txt"
+        RUN_COMMAND="findHiCCompartments.pl <( tail -n+2 $OUTDIR/$SAMPLE.PC1.txt) -opp > $OUTDIR/$SAMPLE.inactiveDomains.txt"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
-        RUN_COMMAND="SIMA.pl $OUTDIR/${SAMPLE}_tagdir_filtered -d <(cat $OUTDIR/$SAMPLE.activeDomains.txt $OUTDIR/$SAMPLE.inactiveDomains.txt)$HOMER_HIC_SIMA_ADDPARAM -cpu $CPU_HOMERHIC > $SAMPLE.sima.txt"
+        tail -n+2 $OUTDIR/$SAMPLE.activeDomains.txt > $OUTDIR/$SAMPLE.activeAndInactiveDomains.txt
+        tail -n+2 $OUTDIR/$SAMPLE.inactiveDomains.txt >> $OUTDIR/$SAMPLE.activeAndInactiveDomains.txt
+        
+        awk '{if ($5<0){OFS="\t"; print $2,$3,$4,$1,"Active-"$6,$5}else{OFS="\t"; print $2,$3,$4,$1,"Inactive-"$6,$5}}' $OUTDIR/$SAMPLE.activeAndInactiveDomains.txt > $OUTDIR/$SAMPLE.activeAndInactiveDomains.bed
+        
+#        rm $OUTDIR/$SAMPLE.activeDomains.txt
+#        rm $OUTDIR/$SAMPLE.inactiveDomains.txt
+        
+        RUN_COMMAND="SIMA.pl $OUTDIR/${SAMPLE}_tagdir_filtered -d $OUTDIR/$SAMPLE.activeAndInactiveDomains.txt $HOMER_HIC_SIMA_ADDPARAM -cpu $CPU_HOMERHIC > $SAMPLE.sima.txt"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
         # mark checkpoint
