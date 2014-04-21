@@ -180,7 +180,7 @@ DELIM
 	if hash bedToBigBed ; then 
         echo "[NOTE] create bigbed from peaks" 
         awk '{OFS="\t"; print $1,$2,$3,$7}' $OUTDIR/$SAMPLE.narrowPeak > $OUTDIR/$SAMPLE.peak.tmp
-        bedToBigBed -type=bed4 $OUTDIR/$SAMPLE.peak.tmp $GENOME_CHROMSIZES $SAMPLE.bb
+        bedToBigBed -type=bed4 $OUTDIR/$SAMPLE.peak.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bb
         rm $OUTDIR/$SAMPLE.peak.tmp
     fi
 

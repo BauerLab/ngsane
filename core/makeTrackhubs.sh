@@ -231,6 +231,10 @@ for DIR in ${DIR[@]}; do
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HOMERHIC "bigWig 0 100" "$SAMPLEPATTERN" ".bw" ""
     fi
 
+    if [[ -n "$RUNFSEQ" ]]; then        
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_FSEQ "bigWig 0 100" "$SAMPLEPATTERN" ".bw" ""
+    fi
+    
     if [ -s $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt ]; then
         makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 "bigWig 0 100" "$TRACKHUB_SIGNAL"
         cat $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt >> ${TRACKDB/%.txt/.tmp}   
@@ -250,6 +254,12 @@ for DIR in ${DIR[@]}; do
     if [[ -n "$RUNPEAKRANGER" ]]; then        
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_PEAKRANGER "bigBed 4" "$SAMPLEPATTERN" ".bb" ""
     fi
+
+    if [[ -n "$RUNFSEQ" ]]; then        
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_FSEQ "bigBed 4" "$SAMPLEPATTERN" ".bb" ""
+    fi
+    
+
 #
 #    if [[ -n "$RUNHOMERCHIPSEQ" ]]; then        
 #        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HOMERCHIPSEQ "bigBed 4" "$SAMPLEPATTERN" ".bb" "" 
