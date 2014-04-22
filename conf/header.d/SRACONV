@@ -1,0 +1,11 @@
+##############################################################
+# SRA CONV
+TASK_SRACONV="sraconv"
+WALLTIME_SRACONV=5:00:00
+MEMORY_SRACONV=32
+CPU_SRACONV=1
+NODES_SRACONV="nodes=1:ppn=1"
+INPUT_SRACONV=fastq
+MODULE_SRACONV="${NG_SRATOOLS}"
+PATH_SRACONV=
+
