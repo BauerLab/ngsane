@@ -16,7 +16,7 @@ RUNFUSION="1"    # mapping with tophat --fusion search(RNAseq)
 SOURCE=$(pwd)
 
 # which folder to run on (i.e. folders within fastq directory)
-declare -a DIR; DIR=( SRR064286 )
+declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
 INPUT_FUSION="fastq"
@@ -32,7 +32,7 @@ QOUT=$OUT/qout
 ##********************
 
 # fastq file suffix
-FASTQ="fastq"
+FASTQ="fastq.gz"
 
 # read indicator immediately preceding the fastq file suffix
 READONE="_1"
@@ -40,16 +40,11 @@ READTWO="_2"
 
 # reference genome
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+FASTA=""
 
-FASTA="/share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa"
-
-# reference genome
-# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
-
-
-#Annotations --symlinks will be made to subfolders 
-ANNO_DIR="/share/ClusterShare/biodata/contrib/tophat_fusion/hg19"
-
+# Annotations --symlinks will be made to subfolders 
+# e.g. "/share/ClusterShare/biodata/contrib/tophat_fusion/hg19"
+ANNO_DIR=""
 
 #specify library type for tophat.
 # choose "fr-firststrand" "fr-unstranded" "fr-secondstrand"
@@ -69,25 +64,13 @@ PLATFORM="Illumina"
 FASTQ_PHRED=
 
 # additional parameters for tophat, see http://tophat.cbcb.umd.edu/manual.shtml
-TOPHATADDPARAM=
+TOPHATFUSIONADDPARAM="--max-intron-length 100000 --fusion-min-dist 100000 --fusion-anchor-length 13 --fusion-ignore-chromosomes chrM"
 
+# additional parameters for tophat fusion, see http://tophat.cbcb.umd.edu/manual.shtml
+TOPHATFUSIONADDPARAMPOST="--num-fusion-reads 1 --num-fusion-pairs 2 --num-fusion-both 5"
 
-#TASK_FUSION="tophatfusionsearch"
+#TASK_FUSION="tophatfusion"
 #WALLTIME_FUSION=62:00:00
 #MEMORY_FUSION=50
 #CPU_FUSION=16
 #NODES_FUSION="nodes=2:ppn=8"
-#INPUT_FUSION="fastq"
-#MODULE_FUSION="${NG_BOOST} ${NG_SAMTOOLS} ${NG_BOWTIE} ${NG_TOPHAT}"
-
-
-
-
-
-
-
-
-
-
-
-
