@@ -1260,3 +1260,15 @@ if [ -n "$RUNANNOTATINGFEATURE" ]; then
     -n $NODES_FEATANN -c $CPU_FEATANN -m $MEMORY_FEATANN'G' -w $WALLTIME_FEATANN --postname postcommand-$UPSTREAM+$DOWNSTREAM"_"$METRIC$STRAND \
         --postcommand "${NGSANE_BASE}/mods/annotateFeature.sh -k $CONFIG -f <FILE> -o $OUT/${TASK_FEATANN}/${INPUT_FEATANN}-<DIR> "
 fi
+
+################################################################################
+#   SRA sra to fastq
+################################################################################
+if [ -n "$RUNSRACONV" ]; then
+    if [ -z "$TASK_SRACONV" ] || [ -z "$NODES_SRACONV" ] || [ -z "$CPU_SRACONV" ] || [ -z "$MEMORY_SRACONV" ] || [ -z "$WALLTIME_SRACONV" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -d -k $CONFIG -t $TASK_SRACONV -i $INPUT_SRACONV -e .sra -n $NODES_SRACONV \
+    	-c $CPU_SRACONV -m $MEMORY_SRACONV"G" -w $WALLTIME_SRACONV \
+    	--command "${NGSANE_BASE}/mods/sraconverter.sh -k $CONFIG -f <FILE> -o $OUT/fastq/<DIR>" 
+fi
+
