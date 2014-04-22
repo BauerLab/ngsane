@@ -67,6 +67,7 @@ NG_BLAT=
 NG_PINDEL=
 NG_SEQLOGO=
 NG_MASAI=
+NG_SRATOOLS=
 
 ##############################################################
 # Software reference
@@ -111,6 +112,7 @@ NG_CITE_BLAT="Genome Res. 2002 Apr;12(4):656-64. 'BLAT--the BLAST-like alignment
 NG_CITE_PINDEL="Ye K, Schulz MH, Long Q, Apweiler R, Ning Z. Pindel: a pattern growth approach to detect break points of large deletions and medium sized insertions from paired-end short reads. Bioinformatics. 2009 Nov 1;25(21):2865-71. Epub 2009 Jun 26."
 NG_CITE_SEQLOGO="Nucleic Acids Res. 1990 Oct 25;18(20):6097-100.; 'Sequence logos: a new way to display consensus sequences.'; Schneider TD, Stephens RM."
 NG_CITE_MASAI="Nucleic Acids Res. 2013 Apr;41(7):e78. doi: 10.1093/nar/gkt005. Epub 2013 Jan 28.'Fast and accurate read mapping with approximate seeds and multiple backtracking.'; Siragusa E, Weese D, Reinert K."
+NG_CITE_SRATOOLS="http://www.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?cmd=show&f=software&m=software&s=software"
 
 ##############################################################
 # PROGRAM PATHS
