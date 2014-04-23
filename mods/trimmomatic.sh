@@ -63,6 +63,14 @@ CHECKPOINT="parameters"
 # get basename of f
 n=${f##*/}
 
+#is ziped ?
+CAT="cat"
+if [[ ${f##*.} == "gz" ]]; 
+    then CAT="zcat"; 
+elif [[ ${f##*.} == "bz2" ]]; 
+    then CAT="bzcat"; 
+fi
+
 #is paired ?
 if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     echo "[NOTE] PAIRED library"
@@ -80,7 +88,7 @@ fi
 # get encoding
 if [ -z $FASTQ_ENCODING ]; then
     echo "[NOTE] Detect fastq Phred encoding"
-    FASTQ_ENCODING=$(zcat $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+    FASTQ_ENCODING=$($CAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
     echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 fi
 if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then

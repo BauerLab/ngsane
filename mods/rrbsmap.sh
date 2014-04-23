@@ -120,9 +120,13 @@ fi
 # get basename of f
 n=${f##*/}
 
-#is ziped ?                                                                                                       
-ZCAT="zcat"
-if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
+#is ziped ?
+CAT="cat"
+if [[ ${f##*.} == "gz" ]]; 
+    then CAT="zcat"; 
+elif [[ ${f##*.} == "bz2" ]]; 
+    then CAT="bzcat"; 
+fi
 
 FASTASUFFIX=${FASTA##*.}
 
@@ -135,13 +139,13 @@ fi
 #is paired ?
 if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
-    READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-    READ2=`$ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}' `
+    READ1=`$CAT $f | wc -l | gawk '{print int($1/4)}' `
+    READ2=`$CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}' `
     let FASTQREADS=$READ1+$READ2
 
 else
     PAIRED="0"
-    let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
+    let FASTQREADS=`$CAT $f | wc -l | gawk '{print int($1/4)}' `
 fi
 
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"

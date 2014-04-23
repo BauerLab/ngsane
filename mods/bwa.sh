@@ -126,25 +126,29 @@ if [ -z "$RECOVERFROM" ]; then
 fi
 
 #is ziped ?
-ZCAT="zcat"
-if [[ $f != *.gz ]]; then ZCAT="cat"; fi
+CAT="cat"
+if [[ ${f##*.} == "gz" ]]; 
+    then CAT="zcat"; 
+elif [[ ${f##*.} == "bz2" ]]; 
+    then CAT="bzcat"; 
+fi
 
 #is paired ?
 if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     PAIRED="1"
-    READ1=$($ZCAT $f | wc -l | gawk '{print int($1/4)}')
-    READ2=$($ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}')
+    READ1=$($CAT $f | wc -l | gawk '{print int($1/4)}')
+    READ2=$($CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}')
     let FASTQREADS=$READ1+$READ2
 else
     PAIRED="0"
     READS="$f"
-    let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
+    let FASTQREADS=`$CAT $f | wc -l | gawk '{print int($1/4)}' `
 fi
 
 # get encoding unless specified
 if [ -z "$FASTQ_ENCODING" ]; then 
     echo "[NOTE] Detect fastq Phred encoding"
-    FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+    FASTQ_ENCODING=$($CAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
     echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 fi
 if [[ "$FASTQ_ENCODING" == **Phred33** ]]; then

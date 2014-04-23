@@ -93,10 +93,12 @@ else
 fi
 
 #is ziped ?
-ZCAT="zcat"
-if [[ $f != *.gz ]]; then ZCAT="cat"; fi
-
-
+CAT="cat"
+if [[ ${f##*.} == "gz" ]]; 
+    then CAT="zcat"; 
+elif [[ ${f##*.} == "bz2" ]]; 
+    then CAT="bzcat"; 
+fi
 
 if [ -z "$HICUP_RENZYME1" ] || [ "${HICUP_RENZYME1,,}" == "none" ] || [ -z "$HICUP_RCUTSITE1" ]; then
     echo "[ERROR] Restriction enzyme 1 not defined" && exit 1
@@ -120,7 +122,7 @@ fi
 # get encoding
 if [ -z "$FASTQ_ENCODING" ]; then 
     echo "[NOTE] Detect fastq Phred encoding"
-    FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+    FASTQ_ENCODING=$($CAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
     echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 fi
 

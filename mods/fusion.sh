@@ -121,15 +121,17 @@ else
     echo "[NOTE] Single-Strand (unpaired) library detected"
 fi
 
-## is ziped ?
-ZCAT="cat" # always cat
-if [[ $f = *.gz ]]; then # unless its zipped
-    ZCAT="zcat";
+#is ziped ?
+CAT="cat"
+if [[ ${f##*.} == "gz" ]]; 
+    then CAT="zcat"; 
+elif [[ ${f##*.} == "bz2" ]]; 
+    then CAT="bzcat"; 
 fi
 
 # get encoding
 if [ -z "$FASTQ_PHRED" ]; then 
-    FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+    FASTQ_ENCODING=$($CAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
     if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
         FASTQ_PHRED="" # use default
     elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then

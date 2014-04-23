@@ -107,21 +107,24 @@ if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/$SAMPLE.$ASD.bam.dupl ] && rm $OUTDIR/$SAMPLE.$ASD.bam.dupl
 fi
 
-#is ziped ?
-ZCAT="zcat"
-if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
+#is paired ?
+if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
+    PAIRED="1"
+else
+    echo "[ERROR] HiCUP requires paired fastq libraries" && exit 1
+fi
 
 #is paired ?                                                                                                      
 if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     echo "[NOTE] paired-end library detected"
     PAIRED="1"
-    READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-    READ2=`$ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}' `
+    READ1=`$CAT $f | wc -l | gawk '{print int($1/4)}' `
+    READ2=`$CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}' `
     let FASTQREADS=$READ1+$READ2
 else
     echo "[NOTE] single-end library detected"
     PAIRED="0"
-    let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
+    let FASTQREADS=`$CAT $f | wc -l | gawk '{print int($1/4)}' `
 fi
 
 if [ -z "$MASAI_INDEX" ]; then
@@ -198,30 +201,22 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
         
     if [ "$PAIRED" = "0" ]; then
-        
-        $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
 
-        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}"
+        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $FASTAREFERENCE <($CAT $f)"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
-        RUN_COMMAND="masai_output_se $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw}"
+        RUN_COMMAND="masai_output_se $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTAREFERENCE <($CAT $f) $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
     elif [ "$PAIRED" = "1" ]; then
 
-        $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
-        $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}
-      
-        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}"
+        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $FASTAREFERENCE <($CAT $f)"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
-        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.raw} $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}"
+        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.raw} $FASTAREFERENCE <($CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ})"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
-        $ZCAT $f > $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq}
-        $ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq}
-        
-        RUN_COMMAND="masai_output_pe $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTAREFERENCE $THISTMP/${INPUTFILENAME/%.$FASTQ/_pipe.fastq} $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/${READTWO}_pipe.fastq} $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.raw}"
+        RUN_COMMAND="masai_output_pe $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTAREFERENCE <($CAT $f) <($CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}) $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.raw}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
     fi

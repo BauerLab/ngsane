@@ -57,6 +57,14 @@ CHECKPOINT="parameters"
 n=${f##*/}
 SAMPLE=${n/%$READONE.$FASTQ/}
 
+#is ziped ?
+CAT="cat"
+if [[ ${f##*.} == "gz" ]]; 
+    then CAT="zcat"; 
+elif [[ ${f##*.} == "bz2" ]]; 
+    then CAT="bzcat"; 
+fi
+
 #is paired ?
 if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     echo "[NOTE] PAIRED library"
@@ -92,9 +100,9 @@ else
 
     # Paired read
     if [ "$PAIRED" = "1" ]; then
-        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --paired --threads $CPU_FASTQSCREEN $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
+        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --paired --threads $CPU_FASTQSCREEN <($CAT $f) <($CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ})"
     else
-        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --threads $CPU_FASTQSCREEN $f"
+        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --threads $CPU_FASTQSCREEN <($CAT $f)"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 

@@ -112,6 +112,14 @@ if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/$SAMPLE.$ALN.bam ] && rm $OUTDIR/$SAMPLE.$ALN.*bam
 fi
 
+#is ziped ?
+CAT="cat"
+if [[ ${f##*.} == "gz" ]]; 
+    then CAT="zcat"; 
+elif [[ ${f##*.} == "bz2" ]]; 
+    then CAT="bzcat"; 
+fi
+
 #is paired ?                                                                                                      
 if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     PAIRED="1"
@@ -119,14 +127,10 @@ else
     PAIRED="0"
 fi
 
-#is ziped ?                                                                                                       
-ZCAT="zcat"
-if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
-
 # get encoding
 if [ -z "$FASTQ_ENCODING" ]; then 
     echo "[NOTE] Detect fastq Phred encoding"
-    FASTQ_ENCODING=$($ZCAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
+    FASTQ_ENCODING=$($CAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
     echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 fi
 
@@ -167,12 +171,12 @@ CHECKPOINT="map with bowtie"
 
 if [ $PAIRED == "0" ]; then 
     READS="$f"
-    let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
+    let FASTQREADS=`$CAT $f | wc -l | gawk '{print int($1/4)}' `
 else 
 
     READS="-1 $f -2 ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
-    READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-    READ2=`$ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}' `
+    READ1=`$CAT $f | wc -l | gawk '{print int($1/4)}' `
+    READ2=`$CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}' `
     let FASTQREADS=$READ1+$READ2
 fi
 
@@ -184,12 +188,12 @@ else
 	if [ $PAIRED == "0" ]; then
         echo "[NOTE] SINGLE READS"
 
-        RUN_COMMAND="$ZCAT $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --sam $BOWTIE_OPTIONS ${FASTA%.*} - $THISTMP/$SAMPLE.$ALN.sam"
+        RUN_COMMAND="$CAT $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --sam $BOWTIE_OPTIONS ${FASTA%.*} - $THISTMP/$SAMPLE.$ALN.sam"
 
 	#Paired
     else
         echo "[NOTE] PAIRED READS"
-		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --sam $BOWTIE_OPTIONS ${FASTA%.*} -1 <($ZCAT $f) -2 <($ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}) $THISTMP/$SAMPLE.$ALN.sam"
+		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --sam $BOWTIE_OPTIONS ${FASTA%.*} -1 <($CAT $f) -2 <($CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}) $THISTMP/$SAMPLE.$ALN.sam"
 
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND

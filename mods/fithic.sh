@@ -71,10 +71,6 @@ if [ -z "$RECOVERFROM" ]; then
     [ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
 fi
 
-#is ziped ?
-ZCAT="zcat"
-if [[ $f != *.gz ]]; then ZCAT="cat"; fi
-
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"

@@ -76,8 +76,12 @@ fi
 #fi
 
 ## TODO remove comments if compressed status of input files should be detected
-#ZCAT="zcat"
-#if [[ ${INPUTFILE##*.} != "gz" ]]; then ZCAT="cat"; fi
+#CAT="cat"
+#if [[ ${f##*.} == "gz" ]]; 
+#    then CAT="zcat"; 
+#elif [[ ${f##*.} == "bz2" ]]; 
+#    then CAT="bzcat"; 
+#fi
 
 # unique temp folder that should be used to store temporary files
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
