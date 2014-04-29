@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Script running annovar
 # QC:
@@ -39,20 +39,9 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
-        -i1 | --input1 )        shift; snps=$1 ;; # SNP file
-        -i2 | --input2 )        shift; snps2=$1 ;; # SNP file
-        -i3 | --input3 )        shift; indel=$1 ;; # INDEL file
-        -o | --outdir )         shift; OUT=$1 ;; # output dir
-        -r | --reference )      shift; FASTA=$1 ;; # reference genome
-
+        -f | --file )           shift; INPUTFILE=$1 ;;  # input file
+        -o | --outdir )         shift; OUTDIR=$1 ;;     # output dir 
         -n | --name )           shift; NAME=$1 ;; # name
-        -g | --refseq )         shift; REFSEQROD=$1 ;; # refseq genome
-        -H | --hapmap )         shift; HAPMAPVCF=$1 ;; # hapmap
-        -d | --dbsnp )          shift; DBSNPVCF=$1 ;; # dbsnp
-        -K | --1kg )            shift; ONEKGVCF=$1 ;; # 1000genomes data
-        -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
-        --maxGaussians )        shift; ADDRECAL=$ADDRECAL" --maxGaussians "$1 ;; #(additional params for recal)
-        --percentBadVariants )  shift; ADDRECAL=$ADDRECAL" --percentBadVariants "$1 ;; #(additional params for recal)
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
         -h | --help )           usage ;;
         * )                     usage
@@ -67,87 +56,89 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-export PATH=$ANNOVAR:$PATH
+################################################################################
+CHECKPOINT="programs"
+
+for MODULE in $MODULE_ANNOVAR; do module load $MODULE; done  # save way to load modules that itself load other modules
+export PATH=$PATH_ANNOVAR:$PATH
+module list
+echo "PATH=$PATH"
+
+echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 
 
-for f in $snps $snps2 $indel; do
+echo -e "\n********* $CHECKPOINT\n"
+################################################################################
+CHECKPOINT="parameters"
 
-    # get basename of f
-	n=${f##*/}
+f=$INPUTFILE
 
-    echo "********* convert to annovar format"
-    $ANNOVAR/convert2annovar.pl $f -format vcf4 -filter PASS -includeinfo >$OUT/${n/vcf/txt}
+echo -e "\n********* $CHECKPOINT\n"
+################################################################################
+CHECKPOINT="recall files from tape"
 
-    echo "********* autofilter"
-    $ANNOVAR/summarize_annovar.pl --buildver hg19 $OUT/${n/vcf/txt} $ANNOVAR/humandb/ --remove -outfile $OUT/${n/vcf/sum}
-
-    echo "********* summarize over all samples"
-    python ${NGSANE_BASE}/bin/formatAnnovar.py $OUT/${n/vcf/sum}.genome_summary.csv $( grep "CHROM" $f ) > $OUT/${n/vcf/genome.summary.csv}
-
-
-    #clean
-    rm $OUT/${n/vcf/sum}.*_summary.csv
-    rm $OUT/${n/vcf/txt}
-    rm $OUT/*"_filtered"
-    rm $OUT/*"_dropped"
+if [ -n "$DMGET" ]; then
+	dmget -a $INPUTFILE
+fi
     
+echo -e "\n********* $CHECKPOINT\n"
 
-done
 
 
+# get basename of f
+n=${f##*/}
+
+################################################################################
+CHECKPOINT="convert to annovar format"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+	#head -n 1000 $f >test
+
+    command="convert2annovar.pl $f --format vcf4old --filter PASS --includeinfo >$OUTDIR/${n/vcf/txt}"
+    echo $command && eval $command
+    
+    # mark checkpoint
+    if [ -e $OUTDIR/${n/vcf/txt} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi
+
+################################################################################
+CHECKPOINT="autofilter"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    #summarize_annovar.pl --buildver $LIBRARY $OUTDIR/${n/vcf/txt} $DATABASE --remove -outfile $OUTDIR/${n/vcf/sum}
+	command="table_annovar.pl $OUTDIR/${n/vcf/txt} $DATABASE --buildver $LIBRARY --protocol refGene,knownGene,ensGene,wgEncodeGencodeManualV4,gerp++elem,phastConsElements46way,genomicSuperDups,esp6500si_all,1000g2012apr_all,1000g2012apr_eur,1000g2012apr_amr,1000g2012apr_asn,1000g2012apr_afr,cg46,cosmic64,snp129,snp132,snp138,avsift,ljb2_all --operation g,g,g,g,r,r,r,f,f,f,f,f,f,f,f,f,f,f,f,f --outfile $OUTDIR/${n/vcf/sum} --remove --otherinfo"
+	#command="table_annovar.pl $OUTDIR/${n/vcf/txt} $DATABASE --buildver $LIBRARY --protocol refGene,genomicSuperDups,cosmic64 --operation g,r,f --outfile $OUTDIR/${n/vcf/sum} --remove --otherinfo"
+	echo $command && eval $command
+
+    # mark checkpoint
+    if [ -e $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.txt" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi
+
+################################################################################
+CHECKPOINT="summarize over all samples"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+	# add the genotype information to the sample and make it then an csv file (cannot do it in the previous step because the genotype info is tab separated...)
+    REP=$(grep "CHROM" $f) # | cut -f 10- | sed 's/\t/,/g')
+    sed "s/Otherinfo/$REP/" $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.txt" |	gawk -F \\t -v OFS="\",\"" '{$1=$1; print "\""$0"\""}' > $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.csv"
+
+# mark checkpoint
+    if [ -e $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.csv" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi
+
+#clean
+rm $OUTDIR/${n/vcf/txt}
 
 echo ">>>>> Annotate variants - FINISHED"
 echo ">>>>> enddate "`date`
 
 
-exit
-
-
-    echo " get sample ids"
-    SAMPLES=`grep CHR $f | gawk '{split($0,arr,"FORMAT"); print arr[2]}'`
-
-
-    for s in $SAMPLES; do 
-	echo $s
-    
-	echo " extract individual samples"
-	java -jar $GATKJAR/GenomeAnalysisTK.jar \
-	    -T SelectVariants \
-	    -R $FASTA \
-	    -B:variant,VCF $f \
-	    -sn $s \
-	    -ef \
-	    -o $OUT/${n/vcf/$s.vcf}
-
-
-	echo " convert to annovar format"
-	$ANNOVAR/convert2annovar.pl $OUT/${n/vcf/$s.vcf} -format vcf4 -filter PASS -includeinfo >$OUT/${n/vcf/$s.txt}
-     
-
-	echo " autofilter"
-	$ANNOVAR/summarize_annovar.pl --buildver hg19 $OUT/${n/vcf/$s.txt} $ANNOVAR/humandb/ --remove -outfile $OUT/${n/vcf/$s.sum}
-
-     RESULTS=$RESULTS" "$OUT/${n/vcf/$s.sum}.genome_summary.csv
-     $ANNOVAR/auto_annovar.pl --buildver hg19 -model recessive $OUT/${n/vcf/$s.txt}  $ANNOVAR/humandb/
-
-    done
-
-    echo "python ${NGSANE_BASE}/bin/joinAnnovar.py $RESULTS > $OUT/${n/vcf/genome.summary.csv}"
-
-    echo " summarize over all samples"
-    python ${NGSANE_BASE}/bin/joinAnnovar.py $RESULTS > $OUT/${n/vcf/genome.summary.csv}
-
-
-
-
-for i in gene knowngene ; do
-    $ANNOVAR/annotate_variation.pl --buildver hg19 -geneanno -dbtype $i $OUT/${n/vcf/txt} $ANNOVAR/humandb/ >$OUT/${n/vcf/}.$i.txt
-done
-
-for i in band tfbs mirna mirnatarget segdup mce44way evofold dgv omimGene gwascatalog avsift ljb_pp2 ljb_mt ljb_phylop ljb_lrt; do
-    $ANNOVAR/annotate_variation.pl --buildver hg19 -regionanno -dbtype $i $OUT/${n/vcf/txt} $ANNOVAR/humandb/ >$OUT/${n/vcf/}.$i.txt
-done
-
-for i in avsift ljb_pp2 ljb_mt ljb_phylop ljb_lrt; do
-    $ANNOVAR/annotate_variation.pl --buildver hg19 -filteranno -dbtype $i $OUT/${n/vcf/txt} $ANNOVAR/humandb/ >$OUT/${n/vcf/}.$i.txt
-done

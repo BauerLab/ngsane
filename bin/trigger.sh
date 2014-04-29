@@ -368,22 +368,22 @@ if [ -n "$RUNVARCALLSBATCH" ]; then
 	fi
 
 	echo "[NOTE] filtered SNPs"
-   	$QSUB $ARMED --postname joinedSNP --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
+   	$QSUB $ARMED --postname joinedSNP --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch/ -e filter.snps.vcf $JOBIDS \
 		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
-		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
-				-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.snps.vcf"
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch/ \
+				-i2 ${TASK_GATKVAR}batch/ -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.snps.vcf"
 
 	echo "[NOTE] filtered INDELs"
-   	$QSUB $ARMED --postname joinedINDEL --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
+   	$QSUB $ARMED --postname joinedINDEL --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch/batches -e filter.snps.vcf $JOBIDS \
 		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
-		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
-				-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.indel.vcf"
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch/ \
+				-i2 ${TASK_GATKVAR}batch/ -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.indel.vcf"
 
 	echo "[NOTE] recal Vars"
-   	$QSUB $ARMED --postname joinedRECAL --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
+   	$QSUB $ARMED --postname joinedRECAL --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch/ -e filter.snps.vcf $JOBIDS \
 		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
-		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
-				-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target recalfilt.vcf"
+		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch/ \
+				-i2 ${TASK_GATKVAR}batch/ -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target recalfilt.vcf"
    
 fi	
 
@@ -1272,3 +1272,13 @@ if [ -n "$RUNSRACONV" ]; then
     	--command "${NGSANE_BASE}/mods/sraconverter.sh -k $CONFIG -f <FILE> -o $OUT/fastq/<DIR>" 
 fi
 
+################################################################################
+#   SRA sra to fastq
+################################################################################
+if [ -n "$RUNANNOVAR" ]; then
+    if [ -z "$TASK_ANNOVAR" ] || [ -z "$NODES_ANNOVAR" ] || [ -z "$CPU_ANNOVAR" ] || [ -z "$MEMORY_ANNOVAR" ] || [ -z "$WALLTIME_ANNOVAR" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -d -k $CONFIG -t $TASK_ANNOVAR -i $INPUT_ANNOVAR -e .vcf -n $NODES_ANNOVAR \
+    	-c $CPU_ANNOVAR -m $MEMORY_ANNOVAR"G" -w $WALLTIME_ANNOVAR \
+    	--command "${NGSANE_BASE}/mods/annovar.sh -k $CONFIG -f <FILE> -o $INPUT_ANNOVAR/<DIR>" 
+fi

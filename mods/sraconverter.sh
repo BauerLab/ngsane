@@ -83,8 +83,11 @@ else
     command="fastq-dump $FASTQDUMADDPARAM $INPUTFILE -O $OUTDIR/ --gzip $SPLIT"
     echo $command && eval $command
 
-    [ -e $OUTDIR/$SAMPLE"_1".$FASTQ ] && mv $OUTDIR/$SAMPLE"_1".$FASTQ $OUTDIR/$SAMPLE$READONE.$FASTQ
-    [ -e $OUTDIR/$SAMPLE"_2".$FASTQ ] && mv $OUTDIR/$SAMPLE"_2".$FASTQ $OUTDIR/$SAMPLE$READTWO.$FASTQ
+    #rename file if requested
+    if [[ $OUTDIR/$SAMPLE"_1".$FASTQ != $OUTDIR/$SAMPLE$READONE.$FASTQ ]]; then 
+	[ -e $OUTDIR/$SAMPLE"_1".$FASTQ ] && mv -f $OUTDIR/$SAMPLE"_1".$FASTQ $OUTDIR/$SAMPLE$READONE.$FASTQ
+	[ -e $OUTDIR/$SAMPLE"_2".$FASTQ ] && mv -f $OUTDIR/$SAMPLE"_2".$FASTQ $OUTDIR/$SAMPLE$READTWO.$FASTQ
+    fi
  
     # mark checkpoint
     if [ -e $OUTDIR/$SAMPLE$READONE.$FASTQ ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi

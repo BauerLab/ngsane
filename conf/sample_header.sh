@@ -68,6 +68,7 @@ NG_PINDEL=
 NG_SEQLOGO=
 NG_MASAI=
 NG_SRATOOLS=
+NG_ANNOVAR=
 
 ##############################################################
 # Software reference
@@ -113,6 +114,7 @@ NG_CITE_PINDEL="Ye K, Schulz MH, Long Q, Apweiler R, Ning Z. Pindel: a pattern g
 NG_CITE_SEQLOGO="Nucleic Acids Res. 1990 Oct 25;18(20):6097-100.; 'Sequence logos: a new way to display consensus sequences.'; Schneider TD, Stephens RM."
 NG_CITE_MASAI="Nucleic Acids Res. 2013 Apr;41(7):e78. doi: 10.1093/nar/gkt005. Epub 2013 Jan 28.'Fast and accurate read mapping with approximate seeds and multiple backtracking.'; Siragusa E, Weese D, Reinert K."
 NG_CITE_SRATOOLS="http://www.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?cmd=show&f=software&m=software&s=software"
+NG_CITE_ANNOVAR="Wang K, Li M, Hakonarson H. ANNOVAR: functional annotation of genetic variants from high-throughput sequencing data. Nucleic Acids Res. 2010 Sep;38(16):e164. doi: 10.1093/nar/gkq603. Epub 2010 Jul 3. PubMed PMID: 20601685; PubMed Central PMCID: PMC2938201."
 
 ##############################################################
 # PROGRAM PATHS

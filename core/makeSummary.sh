@@ -435,37 +435,60 @@ if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
 fi
 
 ################################################################################
-if [ -n "$RUNVARCALLS" ]; then 
+if [[ -n "$RUNVARCALLS" ]]; then 
+
     summaryHeader "Variant calling" "$TASK_GATKVAR" "gatkVARs.sh" "$SUMMARYTMP"
 
-	vali=$OUT/$TASK_GATKVAR/$(echo ${DIR[@]}|sed 's/ /_/g')/
+    vali=$OUT/$TASK_GATKVAR$ADD/$(echo ${DIR[@]}|sed 's/ /_/g')/
     echo "<h3>SNPs</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.snps.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$vali" "recalfilt.snps.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
     echo "<h3>INDELs</h3>" >>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.indel.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
 
-    summaryFooter "$TASK_GATKVAR" "$SUMMARYTMP"
+    summaryFooter "$TASK_GATKVAR"$ADD "$SUMMARYTMP"
 fi
 
 ################################################################################
-if [ -n "$RUNANNOTATION" ]; then
+if [[ -n "$RUNVARCALLSBATCH" ]]; then 
+
+    summaryHeader "Variant calling" "$TASK_GATKVAR""batch" "gatkVARs.sh" "$SUMMARYTMP" 
+    
+    vali=$OUT/$TASK_GATKVAR"batch"/$(echo ${DIR[@]}|sed 's/ /_/g')/
+    echo "<h3>SNPs</h3>">>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.snps.vcf.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "recalfilt.snps.vcf.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
+    echo "<h3>INDELs</h3>" >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" "filter.indel.vcf.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
+
+    summaryFooter "$TASK_GATKVAR""batch" "$SUMMARYTMP"
+fi
+
+
+
+
+################################################################################
+if [ -n "$RUNANNOVAR" ]; then
+
     summaryHeader "Variant annotation" "$TASK_ANNOVAR" "annovar.sh" "$SUMMARYTMP"
+
+	if [ -n "$RUNVARCALLSBATCH" ]; ADD="batch"; fi
 
     vali=""
     for dir in ${DIR[@]}; do
-        vali=$vali" "$( ls $OUT/$TASK_ANNOVAR/${dir%%/*}/*.csv)
+        vali=$vali" "$( ls $OUT/$TASK_GATKVAR$ADD/${dir%%/*}/*.csv)
     done
     echo "<h3>Annotation Files</h3>">>$SUMMARYTMP
     echo "Please right click the link and choose \"Save as...\" to download.<br><br>">> $SUMMARYTMP
     for v in $vali; do
+   	    chmod a+r $v
         name=`basename $v`
-        address=${v/\/illumina/http:\/\/hpsc.csiro.au}
-        echo "<a href=\"$address\">$name</a><br>" >> $SUMMARYTMP
+        echo "<a href=\"$PROJECT_RELPATH/"$TASK_GATKVAR"$ADD/${dir%%/*}/"$name"\">$name</a><br>" >> $SUMMARYTMP
     done
-    echo "<br>More information about the columns can be found on the <a target=new href=\"http://redmine.qbi.uq.edu.au/knowledgebase/articles/12\">Project Server</a> (uqlogin). and the description of the <a href=\"http://www.broadinstitute.org/gsa/wiki/index.php/Understanding_the_Unified_Genotyper%27s_VCF_files\">vcf file</a>">> $SUMMARYTMP
+#    echo "<br>More information about the columns can be found on the <a target=new href=\"\">Project Server</a> (uqlogin). and the description of the <a href=\"http://www.broadinstitute.org/gsa/wiki/index.php/Understanding_the_Unified_Genotyper%27s_VCF_files\">vcf file</a>">> $SUMMARYTMP
     
-    summaryFooter "$TASK_ANNOVAR" "$SUMMARYTMP"
+    summaryFooter $TASK_ANNOVAR "$SUMMARYTMP"
+
 fi
 
 ################################################################################
