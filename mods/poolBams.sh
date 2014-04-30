@@ -26,14 +26,14 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_POOLBAMS; do module load $MODULE; done  # save way to load modules that itself load other modules
+for MODULE in $MEMORY_POOLBAMS; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_POOLBAMS:$PATH;
 module list
 echo "PATH=$PATH"
 PATH_PICARD=$(dirname $(which MergeSamFiles.jar))
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_BOWTIE*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_POOLBAM*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -54,52 +54,38 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="pair input"
 
-if [ -z "$PATTERN" ]; then
-    echo "[ERROR] no pattern defined"
-    exit 1
-fi
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference defined: FASTA"
     exit 1
-fi
-if [ -z "$REPLACEWITH" ]; then
-    echo "[ERROR] no replacement defined, defaulting to _pooled"
-    REPLACEWITH="_pooled"
 fi
 
 COMMAND=$OUT/tmp/pool_bams`date +%Y%m%d`.commands
 
 cat /dev/null > $COMMAND
-
 for d in ${DIR[@]}; do
-    for i in $(ls $OUT/$d/$INPUT_POOLBAMS/*$ASD.bam | grep -P "$PATTERN"); do 
-        echo "$i $i" |  sed -e "s|$PATTERN||"; 
-    done | sort -k1,1 > $OUT/$d/$INPUT_POOLBAMS/pattern.tmp
+    grep '^POOLBAM ' $CONFIG | cut -d' ' -f 2- > $OUT/$d/$INPUT_POOLBAMS/pools.tmp
+    while read -r -a POOL; do
+        PATTERN=$(echo "${POOL[@]:1}" | sed -e 's/ /|/g')
 
-    OLDIFS=$IFS
-    for POOL in $(cat $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | cut -d' ' -f 1 | sort -u); do 
-        OUTBAM=$(grep "$POOL" $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | cut -d' ' -f 2 | head -n 1 | sed -e "s|$PATTERN|$REPLACEWITH|" ) 
-        COMMENT=$(grep "$POOL" $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | cut -d' ' -f 2 | tr '\n' ' ')
-        
-        INBAMS=$(grep "$POOL" $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | awk '{print "INPUT="$2}' | tr '\n' ' ')
+        OUTBAM="$OUT/$d/$INPUT_POOLBAMS/$(echo $POOL | cut -d' ' -f1).$ASD.bam"
         [ -f $OUTBAM ] && rm $OUTBAM
-        echo -ne "java $JAVAPARAMS -jar $PATH_PICARD/MergeSamFiles.jar QUIET=true VERBOSITY=ERROR VALIDATION_STRINGENCY=LENIENT TMP_DIR=$TMP COMPRESSION_LEVEL=9 USE_THREADING=true OUTPUT=$OUTBAM $INBAMS COMMENT='merged: $COMMENT'; samtools index $OUTBAM; samstat $OUTBAM" >> $COMMAND
-        if [ "$DELETEORIGINALBAMS" = "true" ]; then
-            for j in $(grep "$POOL" $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | cut -d' ' -f 2 ); do
-                echo -ne "; rm $j*" >> $COMMAND
-            done
-        fi
-        
-        echo "$OUTBAM = ${INBAMS/INPUT=/}"
-        echo ";" >> $COMMAND
-    done
-done
 
-CPUS=$(wc -l $COMMAND | cut -d' ' -f 1)
-echo $CPUS
-if [[ "$CPUS" -gt "$CPU_POOLBAMS" ]]; then 
-    echo "[NOTE] reduce to $CPU_POOLBAMS CPUs"; CPUS=$CPU_POOLBAMS; 
-fi
+        INBAMS=""
+        COMMENT=""
+        for i in $(ls $OUT/$d/$INPUT_POOLBAMS/*$ASD.bam | egrep "$PATTERN"); do 
+            INBAMS="$INBAMS INPUT=$i"
+            COMMENT="$COMMENT ${i##*/}"
+        done        
+                
+        if [ -n "$INBAMS" ]; then   
+            echo -ne "java $JAVAPARAMS -jar $PATH_PICARD/MergeSamFiles.jar QUIET=true VERBOSITY=ERROR VALIDATION_STRINGENCY=LENIENT TMP_DIR=$TMP COMPRESSION_LEVEL=9 USE_THREADING=true OUTPUT=$OUTBAM $INBAMS COMMENT='merged:$COMMENT'; samtools index $OUTBAM; samstat $OUTBAM" >> $COMMAND
+            echo ";" >> $COMMAND
+        fi
+    done < $OUT/$d/$INPUT_POOLBAMS/pools.tmp
+    
+    rm $OUT/$d/$INPUT_POOLBAMS/pools.tmp
+    
+done
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -107,8 +93,7 @@ CHECKPOINT="pool data"
 
 if hash parallel ; then
     echo "[NOTE] parallel processing"
-    
-    cat $COMMAND | parallel --eta -j $CPUS "eval {}"
+    cat $COMMAND | parallel --eta -j $CPU_POOLBAMS "eval {}"
 
 else
     # serial processing
