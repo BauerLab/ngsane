@@ -263,9 +263,11 @@ if [ -n "$POSTCOMMAND" ]; then
 
     # try to make output folder -- if there is no dummy. Only folders defined with -o for the mod can 
     # be created
+    echo $POSTCOMMAND2
     echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}'
     
-    mkdir -p $(echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}')
+    POSTCOMMANDOUTDIR=$(echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}')
+    [ -n "$POSTCOMMANDOUTDIR" ] && mkdir -p $POSTCOMMANDOUTDIR
     
 	# create dummy files for the pipe
 	COMMANDARR=(${POSTCOMMAND// / })
