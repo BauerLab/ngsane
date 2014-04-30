@@ -188,32 +188,11 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
-        RUN_COMMAND="analyzeHiC $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM  > $OUTDIR/"$SAMPLE"_matrix.txt"
-        echo $RUN_COMMAND && eval $RUN_COMMAND
-    
-    [ ! -f $FASTA.fai ] && samtools faidx $FASTA
-    
-    elif [ "$HOMER_HIC_INTERACTIONS" == "cis" ]; then
-    
-        for CHR in $(awk '{print $1'} $FASTA.fai); do
-    	    RUN_COMMAND="analyzeHiC $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR > $OUTDIR/"$SAMPLE"_${CHR}_matrix.txt"
-    	    echo $RUN_COMMAND && eval $RUN_COMMAND
-        done
-    elif [ "$HOMER_HIC_INTERACTIONS" == "trans" ]; then
-    
-        for CHR1 in $(awk '{print $1'} $FASTA.fai); do
-            for CHR2 in $(awk '{print $1'} $FASTA.fai); do
-                if [ "$CHR1" != "$CHR2" ]; then
-                    RUN_COMMAND="analyzeHiC $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR1 -chr2 $CHR2 > $OUTDIR/"$SAMPLE"_${CHR1}-${CHR2}_matrix.txt"
-                    echo $RUN_COMMAND && eval $RUN_COMMAND
-                fi
-            done
-        done
-    fi
+    RUN_COMMAND="analyzeHiC $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM  > $OUTDIR/"$SAMPLE"_"matrix.txt
+    echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT\n"
+    if [ -f $OUTDIR/$SAMPLE"_"matrix.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
