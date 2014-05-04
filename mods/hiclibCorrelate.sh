@@ -41,15 +41,15 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_HICLIB; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_HICLIB; do module load $MODULE; done && module list 
 
 export PATH=$PATH_HICLIB:$PATH
-module list
 echo "PATH=$PATH"
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--Python      --\n" $(python --version)
-echo -e "--Python libs --\n "$(yolk -l)
+hash module 2>/dev/null && echo -e "--Python libs --\n "$(yolk -l)
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################

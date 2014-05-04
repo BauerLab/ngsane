@@ -137,14 +137,14 @@ ASD="asd"   # aligned sorted duplicate-removed
 ASR="asdrr" # aligned sorted duplicate-removed raligned recalibrated
 
 MODULES_DEFAULT=
-for MODULE in $MODULES_DEFAULT; do module load $MODULES_DEFAULT; done
+hash module 2>/dev/null && for MODULE in $MODULES_DEFAULT; do module load $MODULES_DEFAULT; done
 
 ##############################################################
 # gzip alternatives, e.g.
 # pigz (2.3) - http://zlib.net/pigz/
 MODULE_GZIP=${NG_GZIP}
 GZIP="gzip -9"			# command, e.g. gzip or pigz
-[ -n "$MODULE_GZIP" ] && module load $MODULE_GZIP
+hash module 2>/dev/null && [ -n "$MODULE_GZIP" ] && module load $MODULE_GZIP
 
 # source content in default folder twice to properly set up crosslinked variables
 for NGSANE_DEFAULTS in ${NGSANE_BASE}/conf/header.d/* ; do source $NGSANE_DEFAULTS; done

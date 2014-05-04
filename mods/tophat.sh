@@ -68,14 +68,15 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_TOPHAT; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_TOPHAT; do module load $MODULE; done && module list 
+
 export PATH=$PATH_TOPHAT:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
-PATH_RNASEQC=$(dirname $(which RNA-SeQC.jar))
+[ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
+[ -z "$PATH_RNASEQC" ] && PATH_RNASEQC=$(dirname $(which RNA-SeQC.jar))
 
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_TOPHAT*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 

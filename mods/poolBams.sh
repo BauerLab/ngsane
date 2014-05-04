@@ -26,12 +26,13 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MEMORY_POOLBAMS; do module load $MODULE; done  # save way to load modules that itself load other modules
-export PATH=$PATH_POOLBAMS:$PATH;
-module list
-echo "PATH=$PATH"
-PATH_PICARD=$(dirname $(which MergeSamFiles.jar))
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MEMORY_POOLBAMS; do module load $MODULE; done && module list 
 
+export PATH=$PATH_POOLBAMS:$PATH;
+echo "PATH=$PATH"
+[ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MergeSamFiles.jar))
+ 
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_POOLBAM*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
