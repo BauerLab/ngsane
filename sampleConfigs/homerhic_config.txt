@@ -50,7 +50,7 @@ FASTA=
 # e.g. "-genome hg19 -checkGC -restrictionSite AAGCTT -both -removePEbg -removeSelfLigation -removeRestrictionEnds -removeSpikes 10000 5"
 HOMER_HIC_TAGDIR_ADDPARAM=
 
-# additional parameters to pass to normalization process
+# additional parameters to pass to normalisation process (by chromosome)
 # e.g. "-res 100000 -superRes 200000"
 HOMER_HIC_NORMALIZE_ADDPARAM=
 
