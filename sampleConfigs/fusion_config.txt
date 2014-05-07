@@ -69,6 +69,9 @@ TOPHATFUSIONADDPARAM="--max-intron-length 100000 --fusion-min-dist 100000 --fusi
 # additional parameters for tophat fusion, see http://tophat.cbcb.umd.edu/manual.shtml
 TOPHATFUSIONADDPARAMPOST="--num-fusion-reads 1 --num-fusion-pairs 2 --num-fusion-both 5"
 
+# Set to "1" if the fusion-search bam file should be kept
+KEEP_FUSION_BAM=
+
 #TASK_FUSION="tophatfusion"
 #WALLTIME_FUSION=62:00:00
 #MEMORY_FUSION=50
