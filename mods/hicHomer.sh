@@ -189,15 +189,16 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     # normalize matrix for each chromosome
+    LASTCHR=""
     for CHR in $(grep -v "_" $GENOME_CHROMSIZES | cut -f 1); do
         
         RUN_COMMAND="analyzeHiC -chr $CHR $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM  > $OUTDIR/"$SAMPLE"_"$CHR"_"matrix.txt
         echo $RUN_COMMAND && eval $RUN_COMMAND
-    
+        LASTCHR=$CHR
     done
     
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE"_"matrix.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE"_"$LASTCHR"_"matrix.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
