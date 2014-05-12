@@ -27,14 +27,14 @@ done
 CHECKPOINT="programs"
 
 # save way to load modules that itself loads other modules
-hash module 2>/dev/null && for MODULE in $MEMORY_POOLBAMS; do module load $MODULE; done && module list 
+hash module 2>/dev/null && for MODULE in $MODULE_POOLBAMS; do module load $MODULE; done && module list 
 
 export PATH=$PATH_POOLBAMS:$PATH;
 echo "PATH=$PATH"
 [ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MergeSamFiles.jar))
  
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_POOLBAM*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_POOLBAMS*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -64,7 +64,8 @@ COMMAND=$OUT/tmp/pool_bams`date +%Y%m%d`.commands
 
 cat /dev/null > $COMMAND
 for d in ${DIR[@]}; do
-    grep '^POOLBAM ' $CONFIG | cut -d' ' -f 2- > $OUT/$d/$INPUT_POOLBAMS/pools.tmp
+    grep '^POOL_BAM ' $CONFIG | cut -d' ' -f 2- > $OUT/$d/$INPUT_POOLBAMS/pools.tmp
+
     while read -r -a POOL; do
         PATTERN=$(echo "${POOL[@]:1}" | sed -e 's/ /|/g')
 
@@ -94,7 +95,8 @@ CHECKPOINT="pool data"
 
 if hash parallel ; then
     echo "[NOTE] parallel processing"
-    cat $COMMAND | parallel --eta -j $CPU_POOLBAMS "eval {}"
+    cat $COMMAND
+    cat $COMMAND | parallel --gnu --eta -j $CPU_POOLBAMS "eval {}"
 
 else
     # serial processing
@@ -105,7 +107,7 @@ else
     done < $COMMAND
 fi
 
-rm $COMMAND
+#rm $COMMAND
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
