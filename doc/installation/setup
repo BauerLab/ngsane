@@ -845,6 +845,7 @@ wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-
 unzip Trimmomatic-$VERSION.zip
 mv Trimmomatic-$VERSION/* $PACKAGEPATH/$SOFTWARE/$VERSION
 chmod 555 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
+ln -s $SOFTWARE-$VERSION.jar $PACKAGEPATH/$SOFTWARE/$VERSION/$SOFTWARE.jar
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
