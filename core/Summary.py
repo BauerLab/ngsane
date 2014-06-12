@@ -757,14 +757,14 @@ def macs2Stats(logFile):
         TT=float(match.group(2))
         values.append(TT)
     else:
-        values.append(-1)
+        values.append(0)
         
     match=re.search(r"#1  (tags|fragments) after filtering in treatment: (\d+)", file)
     if match:
         TF=float(match.group(2))
         values.append(TF)
     else:
-        values.append(-1)
+        values.append(0)
        
     match=re.search(r"#1  Redundant rate of treatment: (\d+.\d+)", file)
     if match:
@@ -773,31 +773,27 @@ def macs2Stats(logFile):
     else:
         values.append(0)
          
-    try:
-        match=re.search(r"#1  total (tags|fragments) in control: (\d+)", file)
-        if match:
-            CT=float(match.group(2))
-            values.append(CT)
-        else:
-            values.append(-1)
-            
-        match=re.search(r"#1  (tags|fragments) after filtering in control: (\d+)", file)
-        if match:
-            CF=float(match.group(2))
-            values.append(CF)
-        else:
-            values.append(-1)
+    match=re.search(r"#1  total (tags|fragments) in control: (\d+)", file)
+    if match:
+        CT=float(match.group(2))
+        values.append(CT)
+    else:
+        values.append(0)
+        
+    match=re.search(r"#1  (tags|fragments) after filtering in control: (\d+)", file)
+    if match:
+        CF=float(match.group(2))
+        values.append(CF)
+    else:
+        values.append(0)   
 
-        match=re.search(r"#1  Redundant rate of control: (\d+.\d+)", file)
-        if match:
-            CR=float(match.group(1))
-            values.append(100.-CR)
-        else:
-            values.append(0)
-         
-
-    except:
-        print "No control detected"
+    match=re.search(r"#1  Redundant rate of control: (\d+.\d+)", file)
+    if match:
+        CR=float(match.group(1))
+        values.append(100.-CR)
+    else:
+        values.append(0)
+        
 
     try:
         tmp=file.split("#2 number of paired peaks:")[1].strip().split()[0]
