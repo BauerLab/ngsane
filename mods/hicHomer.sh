@@ -182,7 +182,7 @@ else
 fi
 
 ################################################################################
-CHECKPOINT="normalize matrices"    
+CHECKPOINT="output matrices"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
@@ -192,13 +192,13 @@ else
     LASTCHR=""
     for CHR in $(grep -v "_" $GENOME_CHROMSIZES | cut -f 1); do
         
-        RUN_COMMAND="analyzeHiC $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR > $OUTDIR/"$SAMPLE"_"$CHR"_"matrix.txt
+        RUN_COMMAND="analyzeHiC $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR | $GZIP -9 > $OUTDIR/"$SAMPLE"_"$CHR"_"matrix.txt.gz
         echo $RUN_COMMAND && eval $RUN_COMMAND
         LASTCHR=$CHR
     done
     
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE"_"$LASTCHR"_"matrix.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE"_"$LASTCHR"_"matrix.txt.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
