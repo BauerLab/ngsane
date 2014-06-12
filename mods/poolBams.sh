@@ -80,7 +80,7 @@ for d in ${DIR[@]}; do
         done        
                 
         if [ -n "$INBAMS" ]; then   
-            echo -ne "java $JAVAPARAMS -jar $PATH_PICARD/MergeSamFiles.jar QUIET=true VERBOSITY=ERROR VALIDATION_STRINGENCY=LENIENT TMP_DIR=$TMP COMPRESSION_LEVEL=9 USE_THREADING=true OUTPUT=$OUTBAM $INBAMS COMMENT='merged:$COMMENT'; samtools index $OUTBAM; samstat $OUTBAM" >> $COMMAND
+            echo -ne "java $JAVAPARAMS -jar $PATH_PICARD/MergeSamFiles.jar ASSUME_SORTED=true QUIET=true VERBOSITY=ERROR VALIDATION_STRINGENCY=LENIENT TMP_DIR=$TMP COMPRESSION_LEVEL=9 USE_THREADING=true OUTPUT=$OUTBAM $INBAMS COMMENT='merged:$COMMENT'; samtools index $OUTBAM; samtools flagstat $OUTBAM > $OUTBAM.stats; " >> $COMMAND
             echo ";" >> $COMMAND
         fi
     done < $OUT/$d/$INPUT_POOLBAMS/pools.tmp
@@ -95,8 +95,8 @@ CHECKPOINT="pool data"
 
 if hash parallel ; then
     echo "[NOTE] parallel processing"
-    cat $COMMAND
-    cat $COMMAND | parallel --gnu --eta -j $CPU_POOLBAMS "eval {}"
+
+    cat $COMMAND | parallel --verbose --joblog $TMP/$TASK_POOLBAMS.log --gnu --eta -j $CPU_POOLBAMS "eval {}" > /dev/null
 
 else
     # serial processing
