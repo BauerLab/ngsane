@@ -1,6 +1,6 @@
 #!/bin/python
 
-import sys,os,math,re,traceback,datetime,glob
+import sys,os,math,re,traceback,datetime,glob,mmap
 
 def removePrefix(text, prefix):
 ### remove prefix from a string ###
@@ -752,34 +752,52 @@ def macs2Stats(logFile):
     values=[]
     file=open(logFile).read()
     # populate
-    tmp=file.split("#1  total tags in treatment:")[1].strip().split()[0]
-    TT=float(tmp.strip())
-    values.append(TT)
-
-    tmp=file.split("#1  tags after filtering in treatment:")[1].strip().split()[0]
-    TF=float(tmp.strip())
-    values.append(TF)
-
-    tmp=file.split("#1  Redundant rate of treatment:")[1].strip().split()[0]
-    TR=float(tmp.strip())
-    values.append(100.-TR)
-    
+    match=re.search(r"#1  total (tags|fragments) in treatment: (\d+)", file)
+    if match:
+        TT=float(match.group(2))
+        values.append(TT)
+    else:
+        values.append(-1)
+        
+    match=re.search(r"#1  (tags|fragments) after filtering in treatment: (\d+)", file)
+    if match:
+        TF=float(match.group(2))
+        values.append(TF)
+    else:
+        values.append(-1)
+       
+    match=re.search(r"#1  Redundant rate of treatment: (\d+.\d+)", file)
+    if match:
+        TR=float(match.group(1))
+        values.append(100.-TR)
+    else:
+        values.append(0)
+         
     try:
-        tmp=file.split("#1  total tags in control:")[1].strip().split()[0]
-        CT=float(tmp.strip())
-        values.append(CT)
+        match=re.search(r"#1  total (tags|fragments) in control: (\d+)", file)
+        if match:
+            CT=float(match.group(2))
+            values.append(CT)
+        else:
+            values.append(-1)
+            
+        match=re.search(r"#1  (tags|fragments) after filtering in control: (\d+)", file)
+        if match:
+            CF=float(match.group(2))
+            values.append(CF)
+        else:
+            values.append(-1)
 
-        tmp=file.split("#1  tags after filtering in control:")[1].strip().split()[0]
-        CF=float(tmp.strip())
-        values.append(CF)
+        match=re.search(r"#1  Redundant rate of control: (\d+.\d+)", file)
+        if match:
+            CR=float(match.group(1))
+            values.append(100.-CR)
+        else:
+            values.append(0)
+         
 
-        tmp=file.split("#1  Redundant rate of control:")[1].strip().split()[0]
-        CR=float(tmp.strip())
-        values.append(100.-CR)
     except:
-        values.append(0)
-        values.append(0)
-        values.append(0)
+        print "No control detected"
 
     try:
         tmp=file.split("#2 number of paired peaks:")[1].strip().split()[0]
@@ -805,11 +823,13 @@ def macs2Stats(logFile):
     
         except:
             values.append(0)
-     
-    tmp=file.split("Final number of refined peaks:")[1].strip().split()[0]
-    RP=float(tmp.strip())
-    values.append(RP)
-           
+
+    try:     
+        tmp=file.split("Final number of refined peaks:")[1].strip().split()[0]
+        RP=float(tmp.strip())
+        values.append(RP)
+    except:
+        values.append(0)            
     return names, values
 
 def chanceStats(logFile):
@@ -955,6 +975,19 @@ def bigwigStats(logFile):
     tmp=file.split("scale factor:")[1].strip().split()[0]
     SF=float(tmp.strip())
     values.append(SF)
+
+    return names, values
+
+def fseqStats(logFile):
+    names=["Peaks"]
+    f = open(logFile, "r+")
+    buf = mmap.mmap(f.fileno(), 0)
+    lines = 0
+    readline = buf.readline
+    while readline():
+        lines += 1
+
+    values=[lines]
 
     return names, values
 
@@ -1167,6 +1200,8 @@ for d in dir:
                 names,values=butterflyStats(f)
             if (type=="bigwig"):
 				names,values=bigwigStats(f)
+            if (type=="fseq"):
+				names,values=fseqStats(f)
             
             result=addValues(result,values)
 
