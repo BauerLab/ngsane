@@ -80,6 +80,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
         
         # add tasks to runnow.tmp
         # search for real files and dummy files, in case both exist only keep real one
+        # "$ENDING*" is important to detect dummy files
         if [ -n "$REV" ]; then
             for f in $( ls $SOURCE/$DIRNAME/$ORIGIN/$SAMPLEPATTERN*$ENDING* | egrep ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
                 echo $f
@@ -101,7 +102,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
             done
         
         else
-            for f in $( ls $SOURCE/$ORIGIN/$DIRNAME/$SAMPLEPATTERN*$ENDING | egrep ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
+            for f in $( ls $SOURCE/$ORIGIN/$DIRNAME/$SAMPLEPATTERN*$ENDING* | egrep ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
                 n=${f##*/}
                 name=${n/$ENDING/}
                 LOGFILE=$QOUT/$TASK/$DIRNAME'_'$name'.out'

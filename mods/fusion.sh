@@ -79,6 +79,7 @@ CHECKPOINT="parameters"
 [ ! -f $f ] && echo "[ERROR] input file not found: $f" 1>&2 && exit 1
 # get basename of f (samplename)
 n=${f##*/}
+SAMPLE=${n/%$READONE.$FASTQ/}
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] regerence genome not specified (FASTA)" 
@@ -90,21 +91,6 @@ fi
 
 # create symlinks to annotation data
 echo "[NOTE] create symlinks"
-
-[ ! -d $OUTDIR ] && mkdir -p $OUTDIR 
-cd $OUTDIR
-
-[ -z "$ANNO_DIR" ] && echo "[ERROR] ANNO_DIR not specified" && exit 1
-[ -L ${PWD}/refGene.txt ] && rm ${PWD}/refGene.txt
-[ -L ${PWD}/ensGene.txt ] && rm ${PWD}/ensGene.txt
-[ -L ${PWD}/mcl ] && rm ${PWD}/mcl
-[ -L ${PWD}/blast ] && rm ${PWD}/blast
-
-ln -s ${ANNO_DIR}/refGene.txt $PWD/refGene.txt
-ln -s ${ANNO_DIR}/ensGene.txt $PWD/ensGene.txt
-ln -s ${ANNO_DIR}/mcl $PWD/mcl
-ln -s ${ANNO_DIR}/blast $PWD/blast
-echo "[NOTE] Symlinks to annotations created."
 
 #remove old files
 if [ -z "$RECOVERFROM" ]; then
@@ -159,6 +145,8 @@ else
     echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
 fi
 
+[ ! -d $OUTDIR ] && mkdir -p $OUTDIR 
+
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
@@ -176,6 +164,20 @@ CHECKPOINT="run tophat fusion"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+
+    cd $OUTDIR
+    
+    [ -z "$ANNO_DIR" ] && echo "[ERROR] ANNO_DIR not specified" && exit 1
+    [ -L ${PWD}/refGene.txt ] && rm ${PWD}/refGene.txt
+    [ -L ${PWD}/ensGene.txt ] && rm ${PWD}/ensGene.txt
+    [ -L ${PWD}/mcl ] && rm ${PWD}/mcl
+    [ -L ${PWD}/blast ] && rm ${PWD}/blast
+    
+    ln -s ${ANNO_DIR}/refGene.txt $PWD/refGene.txt
+    ln -s ${ANNO_DIR}/ensGene.txt $PWD/ensGene.txt
+    ln -s ${ANNO_DIR}/mcl $PWD/mcl
+    ln -s ${ANNO_DIR}/blast $PWD/blast
+    echo "[NOTE] Symlinks to annotations created."
 
     echo "[NOTE] $f"
     echo "[NOTE] $f2"
@@ -198,7 +200,6 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    [ ! -d ${OUTDIR}/$TASK_FUSION ] && mkdir -p ${OUTDIR}/$TASK_FUSION     
     cd $OUTDIR
 
     [ -L ${PWD}/refGene.txt ] && rm ${PWD}/refGene.txt  
@@ -213,11 +214,11 @@ else
 
     echo "[NOTE] Symlinks to annotations checked (remade)."
 
-    RUN_COMMAND="tophat-fusion-post -o $TASK_FUSION -p $CPU_FUSION $TOPHATFUSIONADDPARAMPOST ${FASTA%.*}"
+    RUN_COMMAND="tophat-fusion-post -o $OUTDIR -p $CPU_FUSION $TOPHATFUSIONADDPARAMPOST ${FASTA%.*}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -e $OUTDIR/$TASK_FUSION/result.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/result.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 ################################################################################
@@ -228,9 +229,9 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     cd $OUTDIR
-    cat $OUTDIR/$TASK_FUSION/result.txt | awk '{ print $3, $4, $4,$6,$7,$7 }' | sed 's/chr/hs/g' > $OUTDIR/my_link.txt    
-    cat $OUTDIR/$TASK_FUSION/result.txt | awk '{ print $3,$4,$4,$2 }' | sed 's/chr/hs/g' > $OUTDIR/link_names.txt
-    cat $OUTDIR/$TASK_FUSION/result.txt | awk '{ print $6,$7,$7,$5 }' | sed 's/chr/hs/g' >> $OUTDIR/link_names.txt
+    cat $OUTDIR/result.txt | awk '{ print $3, $4, $4,$6,$7,$7 }' | sed 's/chr/hs/g' > $OUTDIR/my_link.txt    
+    cat $OUTDIR/result.txt | awk '{ print $3,$4,$4,$2 }' | sed 's/chr/hs/g' > $OUTDIR/link_names.txt
+    cat $OUTDIR/result.txt | awk '{ print $6,$7,$7,$5 }' | sed 's/chr/hs/g' >> $OUTDIR/link_names.txt
     
     [ -f $PWD/ticks.conf ] && rm $PWD/ticks.conf
     [ -f $PWD/ideogram.conf ] && rm $PWD/ideogram.conf
@@ -249,14 +250,16 @@ fi
 ###############################################################################
 CHECKPOINT="cleanup"
 
-  [ -e $PWD/ticks.conf ] && rm $PWD/ticks.conf
-  [ -e $PWD/ideogram.conf ] && rm $PWD/ideogram.conf
-  [ -e $PWD/base.conf ] && rm $PWD/base.conf
-  [ -L $PWD/refGene.txt ] && rm $PWD/refGene.txt
-  [ -L $PWD/ensGene.txt ] && rm $PWD/ensGene.txt
-  [ -L $PWD/mcl ] && rm $PWD/mcl
-  [ -L $PWD/blast ] && rm $PWD/blast
-  [ -e $PWD/ticks.conf ] && rm $PWD/ticks.conf
+[ -e $PWD/ticks.conf ] && rm $PWD/ticks.conf
+[ -e $PWD/ideogram.conf ] && rm $PWD/ideogram.conf
+[ -e $PWD/base.conf ] && rm $PWD/base.conf
+[ -L $PWD/refGene.txt ] && rm $PWD/refGene.txt
+[ -L $PWD/ensGene.txt ] && rm $PWD/ensGene.txt
+[ -L $PWD/mcl ] && rm $PWD/mcl
+[ -L $PWD/blast ] && rm $PWD/blast
+[ -e $PWD/ticks.conf ] && rm $PWD/ticks.conf
+  
+[ -z "$KEEP_FUSION_BAM" ] && [  -d ${OUTDIR}/tophat_sample ] && rm -r ${OUTDIR}/tophat_sample"
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################

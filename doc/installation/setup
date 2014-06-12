@@ -835,7 +835,7 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=0.30
+VERSION=0.32
 SOFTWARE=trimmomatic
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -845,6 +845,7 @@ wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-
 unzip Trimmomatic-$VERSION.zip
 mv Trimmomatic-$VERSION/* $PACKAGEPATH/$SOFTWARE/$VERSION
 chmod 555 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
+ln -s $SOFTWARE-$VERSION.jar $PACKAGEPATH/$SOFTWARE/$VERSION/$SOFTWARE.jar
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
@@ -1412,7 +1413,7 @@ sed -i 's|^NG_WIGGLER=|NG_WIGGLER=wiggler/2.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$N
 sed -i 's|^NG_HOMER=|NG_HOMER=homer/4.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CUTADAPT=|NG_CUTADAPT=${NG_PYTHON}|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_TRIMGALORE=|NG_TRIMGALORE=trim_galore/0.3.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_TRIMMOMATIC=|NG_TRIMMOMATIC=trimmomatic/0.30|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_TRIMMOMATIC=|NG_TRIMMOMATIC=trimmomatic/0.32|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HDF5=|NG_HDF5=hdf5/1.8.12|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HICLIB=|NG_HICLIB=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HICUP=|NG_HICUP=hicup/0.4.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh

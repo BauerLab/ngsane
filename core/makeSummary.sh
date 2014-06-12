@@ -174,6 +174,10 @@ if [ -n "$RUNFASTQC" ]; then
                 libraryfile=${librarylog/$QOUT\/$TASK_FASTQC\/$SAMPLE"_"/}
                 library=${libraryfile/%.out/}
                 f="$SAMPLE/$TASK_FASTQC/${library}${READONE}_fastqc.zip"
+                if [ ! -e $f ]; then
+                    echo "[WARN] No result detected: $f"
+                    continue
+                fi
                 # get basename of f
                 n1=${f##*/}
                 n1=${n1/"_fastqc.zip"/}
@@ -546,6 +550,14 @@ if [ -n "$RUNBIGWIG" ];then
     summaryFooter "$TASK_BIGWIG" "$SUMMARYTMP"
 fi
 
+################################################################################
+if [ -n "$RUNFSEQ" ];then
+    summaryHeader "Fseq" "$TASK_FSEQ" "fseq.sh" "$SUMMARYTMP" ".narrowPeak"
+
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_FSEQ)" ".narrowPeak" fseq >> $SUMMARYTMP
+
+    summaryFooter "$TASK_FSEQ" "$SUMMARYTMP"
+fi
 ################################################################################
 if [ -n "$RUNHOMERCHIPSEQ" ];then
     summaryHeader "Homer ChIP-Seq" "$TASK_HOMERCHIPSEQ" "chipseqHomer.sh" "$SUMMARYTMP" ".bed"

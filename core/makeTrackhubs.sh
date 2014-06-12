@@ -38,7 +38,7 @@ done
 
 ################################################################################
 
-if [ -z "UCSC_GENOMEASSEMBLY" ]; then
+if [ -z "$UCSC_GENOMEASSEMBLY" ]; then
     echo "[ERROR] genome assembly not specified"
     exit 1
 fi
@@ -220,23 +220,23 @@ for DIR in ${DIR[@]}; do
     cat /dev/null > $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
     
     if [[ -n "$RUNBIGWIG" ]]; then        
-        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $INPUT_BIGWIG "bigWig 0 100" "$SAMPLEPATTERN" ".bw" ""
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $INPUT_BIGWIG "bigWig" "$SAMPLEPATTERN" ".bw" ""
     fi
 
     if [[ -n "$RUNWIGGLER" ]]; then        
-        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_WIGGLER "bigWig 0 100" "$SAMPLEPATTERN" ".bw" ""
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_WIGGLER "bigWig" "$SAMPLEPATTERN" ".bw" ""
     fi
     
     if [[ -n "$RUNHOMERHIC" ]]; then        
-        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HOMERHIC "bigWig 0 100" "$SAMPLEPATTERN" ".bw" ""
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HOMERHIC "bigWig" "$SAMPLEPATTERN" ".bw" ""
     fi
 
     if [[ -n "$RUNFSEQ" ]]; then        
-        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_FSEQ "bigWig 0 100" "$SAMPLEPATTERN" ".bw" ""
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_FSEQ "bigWig" "$SAMPLEPATTERN" ".bw" ""
     fi
     
     if [ -s $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt ]; then
-        makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 "bigWig 0 100" "$TRACKHUB_SIGNAL"
+        makeSubTrack $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 "bigWig" "$TRACKHUB_SIGNAL"
         cat $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt >> ${TRACKDB/%.txt/.tmp}   
     fi
     

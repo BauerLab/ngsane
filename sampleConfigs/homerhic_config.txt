@@ -50,20 +50,21 @@ FASTA=
 # e.g. "-genome hg19 -checkGC -restrictionSite AAGCTT -both -removePEbg -removeSelfLigation -removeRestrictionEnds -removeSpikes 10000 5"
 HOMER_HIC_TAGDIR_ADDPARAM=
 
-# additional parameters to pass to normalization process
-# e.g. "-res 100000 -superRes 200000"
+# additional parameters to pass to normalisation process (by chromosome)
+# e.g. "-res 10000 -superRes 20000"
 HOMER_HIC_NORMALIZE_ADDPARAM=
 
 # additional parameters to pass to pca computation
-# e.g. "-res 100000 -genome hg19"
+# e.g. "-res 10000 -genome hg19"
 HOMER_HIC_PCA_ADDPARAM=
 
 # additional parameters to pass to interaction calculation 
 # e.g. "-res 1000000 -maxDist 10000000 -center"
+# or   "-res 1000000  -minDist 2000000000 -center" for trans interactions
 HOMER_HIC_LOWRESINTERACTIONS_ADDPARAM=
 
 # additional parameters to pass to interaction calculation 
-# e.g. "-res 2000 -superRes 10000 -minDist 500 -maxDist 1000000"
+# e.g. "-res 10000 -superRes 20000 -minDist 5000 -maxDist 5000000"
 HOMER_HIC_CISINTERACTIONS_ADDPARAM=
 
 # additional parameter to pass to annotation process
