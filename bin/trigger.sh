@@ -880,7 +880,7 @@ if [ -n "$RUNPOOLBAMS" ]; then
     
     $QSUB $ARMED -r -d -k $CONFIG -t $TASK_POOLBAMS -i $INPUT_POOLBAMS -e .$ASD.bam -n $NODES_POOLBAMS \
     	-c $CPU_POOLBAMS -m $MEMORY_POOLBAMS"G" -w $WALLTIME_POOLBAMS \
-    	--postcommand "${NGSANE_BASE}/mods/poolBams.sh -k $CONFIG" 
+    	--postname postcommand${POOLED_DATA_NAME} --postcommand "${NGSANE_BASE}/mods/poolBams.sh -k $CONFIG" 
 fi
 
 ################################################################################
@@ -1285,7 +1285,7 @@ if [ -n "$RUNANNOTATINGFEATURE" ]; then
     if [ -n "$STRANDETNESS" ]; then STRAND="_s"; fi
     if [ -z "$TASK_FEATANN" ] || [ -z "$NODES_FEATANN" ] || [ -z "$CPU_FEATANN" ] || [ -z "$MEMORY_FEATANN" ] || [ -z "$WALLTIME_FEATANN" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     $QSUB --nodir -r $ARMED -k $CONFIG -t ${INPUT_FEATANN}-${TASK_FEATANN} -i $INPUT_FEATANN -e $ENDING \
-    -n $NODES_FEATANN -c $CPU_FEATANN -m $MEMORY_FEATANN'G' -w $WALLTIME_FEATANN --postname postcommand-$UPSTREAM+$DOWNSTREAM"_"$METRIC$STRAND \
+    -n $NODES_FEATANN -c $CPU_FEATANN -m $MEMORY_FEATANN'G' -w $WALLTIME_FEATANN ç postcommand-$UPSTREAM+$DOWNSTREAM"_"$METRIC$STRAND \
         --postcommand "${NGSANE_BASE}/mods/annotateFeature.sh -k $CONFIG -f <FILE> -o $OUT/${TASK_FEATANN}/${INPUT_FEATANN}-<DIR> "
 fi
 
