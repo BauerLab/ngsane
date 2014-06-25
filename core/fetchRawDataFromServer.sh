@@ -105,20 +105,26 @@ fi
 
 CURDIR=$(pwd)
 
+THISTMP=$TMP"/"$(whoami)"/"$(echo ${SOURCE}/fastq/${DIR[0]} | md5sum | cut -d' ' -f1)
+[ -d $THISTMP ] && rm -r $THISTMP
+mkdir -p $THISTMP
+
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
 CHECKPOINT="fetch files"
 
-cd $SOURCE/fastq/${DIR[0]}
+cd $THISTMP
 
 for sourcefile in ${SOURCE_FILES[@]}; do
+
     RUN_COMMAND="smbclient ${SOURCE_SERVER} $AUTH -c 'prompt; recurse; cd $SOURCE_FOLDER; mask *$READONE.$FASTQ; mget ${sourcefile}'"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 	
-	# get second read
-	if [ -n "$READTWO" ] && [ "$f" != "${f/$READONE/$READTWO}" ]; then  
-        RUN_COMMAND="smbclient ${SOURCE_SERVER} $AUTH -c 'prompt; recurse; cd $SOURCE_FOLDER; mask *$READTWO.$FASTQ; mget ${sourcefile}'"
-        echo $RUN_COMMAND && eval $RUN_COMMAND
+	# check second read
+	if [ -n "$READTWO" ] && [ "$READONE" != "$READTWO" ]; then  
+		echo "[NOTE] get second read"
+		RUN_COMMAND="smbclient ${SOURCE_SERVER} $AUTH -c 'prompt; recurse; cd $SOURCE_FOLDER; mask *$READTWO.$FASTQ; mget ${sourcefile/%$READONE.$FASTQ/$READTWO.$FASTQ}'"
+        	echo $RUN_COMMAND && eval $RUN_COMMAND
 	fi
 done
 
@@ -126,15 +132,17 @@ done
 for d in $(find . -mindepth 1  -type f -name "*$READONE.$FASTQ" ); do 
     mv $d .
 done
-if [ -n "$READTWO" ] && [ "$f" != "${f/$READONE/$READTWO}" ]; then  
+if [ -n "$READTWO" ] && [ "$READONE" != "$READTWO" ]; then  
     for d in $(find . -mindepth 1 -type f -name "*$READTWO.$FASTQ" ); do 
-        mv $d .
+        mv $d ${SOURCE}/fastq/${DIR[0]}
     done
 fi
 # remove dirs
 for d in $(find . -mindepth 1 -maxdepth 1 -type d ); do 
     rm -r $d
 done
+
+rm -r $THISTMP
 
 echo -e "\n********* $CHECKPOINT"
 ################################################################################
