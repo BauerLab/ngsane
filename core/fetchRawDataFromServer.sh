@@ -55,7 +55,7 @@ if [ ! -f ~/.smbclient ]; then
 fi
 
 # test if source server is given
-if [ -z "$SOURCE_SERVER" ]; then
+if [ -z "${SOURCE_SERVER}" ]; then
     echo "[ERROR] source server not specified (SOURCE_SERVER)."
     exit 1
 fi
@@ -82,11 +82,11 @@ if [ "${#DIR[@]}" -ne "1" ]; then
     exit 1
 fi
 
-if [ -z "$SOURCE_FOLDER" ]; then
-    echo "[ERROR] no path on source server specified"
+if [ -z "${SOURCE_FOLDER}" ]; then
+    echo "[ERROR] no path on source server specified (SOURCE_FOLDER)"
     exit 1
 else
-    echo "[NOTE] will fetch from $SOURCE_SERVER/$SOURCE_FOLDER/"
+    echo "[NOTE] will fetch from ${SOURCE_SERVER}/${SOURCE_FOLDER}"
 fi
 
 # ensure out directory is there 
@@ -117,20 +117,20 @@ cd $THISTMP
 
 for sourcefile in ${SOURCE_FILES[@]}; do
 
-    RUN_COMMAND="smbclient ${SOURCE_SERVER} $AUTH -c 'prompt; recurse; cd $SOURCE_FOLDER; mask *$READONE.$FASTQ; mget ${sourcefile}'"
+    RUN_COMMAND="smbclient ${SOURCE_SERVER} $AUTH -c 'prompt; recurse; cd ${SOURCE_FOLDER}; mask *$READONE.$FASTQ; mget ${sourcefile}'"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 	
 	# check second read
 	if [ -n "$READTWO" ] && [ "$READONE" != "$READTWO" ]; then  
 		echo "[NOTE] get second read"
-		RUN_COMMAND="smbclient ${SOURCE_SERVER} $AUTH -c 'prompt; recurse; cd $SOURCE_FOLDER; mask *$READTWO.$FASTQ; mget ${sourcefile/%$READONE.$FASTQ/$READTWO.$FASTQ}'"
+		RUN_COMMAND="smbclient ${SOURCE_SERVER} $AUTH -c 'prompt; recurse; cd ${SOURCE_FOLDER}; mask *$READTWO.$FASTQ; mget ${sourcefile/%$READONE.$FASTQ/$READTWO.$FASTQ}'"
         	echo $RUN_COMMAND && eval $RUN_COMMAND
 	fi
 done
 
 # move to get a flat hierarchy
 for d in $(find . -mindepth 1  -type f -name "*$READONE.$FASTQ" ); do 
-    mv $d .
+    mv $d ${SOURCE}/fastq/${DIR[0]}
 done
 if [ -n "$READTWO" ] && [ "$READONE" != "$READTWO" ]; then  
     for d in $(find . -mindepth 1 -type f -name "*$READTWO.$FASTQ" ); do 
