@@ -46,6 +46,10 @@ FASTA=
 # e.g. FRAGMENTLENGTH=300 for many ChIP-assays
 FRAGMENTLENGTH=
 
+# Whether to consider the midpoint of the fragment only, e.g. for ATAC-seq (paired-end libraries only) 
+# e.g. FRAGMENTMIDPOINT=1
+FRAGMENTMIDPOINT=
+
 # Normalize to 1000000 reads
 NORMALIZETO=1000000
 
