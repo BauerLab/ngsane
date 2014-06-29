@@ -47,7 +47,7 @@ echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
-echo -e "--gnu parallel --\n "$(parallel --version 2>&1 | tee | head -n 1)
+echo -e "--gnu parallel --\n "$(parallel --gnu --version 2>&1 | tee | head -n 1)
 [ -z "$(which parallel 2> /dev/null)" ] && echo "[WARN] no gnu parallel detected, processing in serial"
 
 
@@ -96,7 +96,7 @@ CHECKPOINT="pool data"
 if hash parallel ; then
     echo "[NOTE] parallel processing"
 
-    cat $COMMAND | parallel --verbose --joblog $TMP/$TASK_POOLBAMS.log --gnu --eta -j $CPU_POOLBAMS "eval {}" > /dev/null
+    cat $COMMAND | parallel --verbose --joblog $TMP/$TASK_POOLBAMS.log --gnu --eta -j $CPU_POOLBAMS "eval {}" > /dev/null 2&>1
 
 else
     # serial processing
