@@ -7,7 +7,7 @@
 # date: July 2014
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>"_"bamqc/qualimapReport.html
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>"_"bamQC/qualimapReport.html
 
 
 echo ">>>>> BAM QC with qualimap"
@@ -58,6 +58,7 @@ echo "PATH=$PATH"
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_QUALIMAP*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
+unset DISPLAY
 echo "JAVAPARAMS "$JAVAPARAMS
 export JAVA_OPTS="$JAVAPARAMS"
 
