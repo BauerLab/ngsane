@@ -7,7 +7,7 @@
 # date: July 2014
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>"_"bamQC/qualimapReport.html
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>-bamQC/qualimapReport.html
 
 
 echo ">>>>> BAM QC with qualimap"
