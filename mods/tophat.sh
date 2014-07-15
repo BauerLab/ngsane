@@ -263,8 +263,12 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    echo "[NOTE] samtools merge"
-    samtools merge -@ $CPU_TOPHAT -f $THISTMP/$SAMPLE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
+    echo "[NOTE] add unmapped reads"
+    if [ -f $OUTDIR/unmapped.bam ]; then
+        samtools merge -@ $CPU_TOPHAT -f $THISTMP/$SAMPLE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
+    else
+        ln -s $OUTDIR/accepted_hits.bam $THISTMP/$SAMPLE.tmp.bam
+    fi
     
     if [ "$PAIRED" = "1" ]; then
         # fix and sort
