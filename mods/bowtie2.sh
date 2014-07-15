@@ -171,14 +171,20 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     if [ "$PAIRED" = "1" ]; then
-        # fix mates
-        samtools sort -@ $CPU_BOWTIE2 -n $OUTDIR/$SAMPLE.$ALN.bam $OUTDIR/$SAMPLE.tmp
-        samtools fixmate $OUTDIR/$SAMPLE.tmp.bam $OUTDIR/$SAMPLE.$ALN.bam
-        [ -e $OUTDIR/$SAMPLE.tmp.bam ] && rm $OUTDIR/$SAMPLE.tmp.bam
+        # fix and sort
+        echo "[NOTE] fixmate"
+        RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar \
+            I=$OUTDIR/$SAMPLE.$ALN.bam \
+            O=$OUTDIR/$SAMPLE.ash.bam \
+            VALIDATION_STRINGENCY=SILENT \
+            SORT_ORDER=coordinate \
+            TMP_DIR=$THISTMP"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+    else
+        # just sort
+        samtools sort -@ $CPU_BOWTIE $OUTDIR/$SAMPLE.$ALN.bam $OUTDIR/$SAMPLE.ash
     fi
-
-    samtools sort -@ $CPU_BOWTIE2 $OUTDIR/$SAMPLE.$ALN.bam $OUTDIR/$SAMPLE.ash
-
+    
     [ -e $OUTDIR/$SAMPLE.$ALN.bam ] && rm $OUTDIR/$SAMPLE.$ALN.bam
        
     # mark checkpoint
