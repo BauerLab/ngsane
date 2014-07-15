@@ -44,9 +44,12 @@ FASTA=
 # define as many pools as needed one per line (order matters)
 # POOL_BAMS output_prefix <pattern1> [<pattern2>]
 # e.g. POOL_BAM H2AZ H2AZ_Rep1 H2AZ_Rep2
-# pr   POOL_BAM H2AZ H2AZ_Rep*
+# or   POOL_BAM H2AZ H2AZ_Rep*
 <<POOL_BAMS
 POOL_BAMS
+
+# suffix for the logfile name
+POOLED_DATA_NAME=
 
 #********************
 # PARAMETER (optional overwriting defaults)

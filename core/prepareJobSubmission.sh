@@ -259,7 +259,6 @@ if [ -n "$POSTCOMMAND" ]; then
     POSTCOMMAND2=${POSTCOMMAND//<FILE>/$FILES}
     POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$DIRNAME}
 	POSTLOGFILE=$QOUT/$TASK/$POSTNAME.out
-
     echo "[NOTE] "$POSTCOMMAND2
 
     # try to make output folder -- if there is no dummy. Only folders defined with -o for the mod can 

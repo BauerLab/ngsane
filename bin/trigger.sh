@@ -628,6 +628,21 @@ if [ -n "$RUNTOPHAT" ]; then
 fi
 
 ################################################################################
+#  RNAseq-QC
+#
+# IN : $SOURCE/$dir/tophat/*.bam/
+# OUT: $OUT/$dir/rnaseqc/sample/[report]
+################################################################################       
+
+if [ -n "$RUNRNASEQC" ]; then
+    if [ -z "$TASK_RNASEQC" ] || [ -z "$NODES_RNASEQC" ] || [ -z "$CPU_RNASEQC" ] || [ -z "$MEMORY_RNASEQC" ] || [ -z "$WALLTIME_RNASEQC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -k $CONFIG -t $TASK_RNASEQC -i $INPUT_RNASEQC -e .$ASD.bam -n $NODES_RNASEQC -c $CPU_RNASEQC -m $MEMORY_RNASEQC"G" -w $WALLTIME_RNASEQC \
+        --command "${NGSANE_BASE}/mods/RNASEQC.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_RNASEQC/<NAME>"
+
+fi
+
+################################################################################
 #  Gene expression analysis with cufflinks
 #
 # IN : $OUT/$dir/tophat/*.bam
@@ -639,7 +654,7 @@ if [ -n "$RUNCUFFLINKS" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASK_CUFFLINKS -i $INPUT_CUFFLINKS -e .$ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS  \
         --command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFLINKS/<NAME>"
-
+        --postcommand "${NGSANE_BASE}/mods/cuffpost.sh -f <FILE> -k $CONFIG --outdir $OUT/cuffmerge/$TASK_CUFFLINKS-<DIR>"
 fi
 
 ################################################################################
@@ -880,7 +895,7 @@ if [ -n "$RUNPOOLBAMS" ]; then
     
     $QSUB $ARMED -r -d -k $CONFIG -t $TASK_POOLBAMS -i $INPUT_POOLBAMS -e .$ASD.bam -n $NODES_POOLBAMS \
     	-c $CPU_POOLBAMS -m $MEMORY_POOLBAMS"G" -w $WALLTIME_POOLBAMS \
-    	--postcommand "${NGSANE_BASE}/mods/poolBams.sh -k $CONFIG" 
+    	--postname postcommand${POOLED_DATA_NAME} --postcommand "${NGSANE_BASE}/mods/poolBams.sh -k $CONFIG" 
 fi
 
 ################################################################################
@@ -1285,7 +1300,7 @@ if [ -n "$RUNANNOTATINGFEATURE" ]; then
     if [ -n "$STRANDETNESS" ]; then STRAND="_s"; fi
     if [ -z "$TASK_FEATANN" ] || [ -z "$NODES_FEATANN" ] || [ -z "$CPU_FEATANN" ] || [ -z "$MEMORY_FEATANN" ] || [ -z "$WALLTIME_FEATANN" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     $QSUB --nodir -r $ARMED -k $CONFIG -t ${INPUT_FEATANN}-${TASK_FEATANN} -i $INPUT_FEATANN -e $ENDING \
-    -n $NODES_FEATANN -c $CPU_FEATANN -m $MEMORY_FEATANN'G' -w $WALLTIME_FEATANN --postname postcommand-$UPSTREAM+$DOWNSTREAM"_"$METRIC$STRAND \
+    -n $NODES_FEATANN -c $CPU_FEATANN -m $MEMORY_FEATANN'G' -w $WALLTIME_FEATANN ç postcommand-$UPSTREAM+$DOWNSTREAM"_"$METRIC$STRAND \
         --postcommand "${NGSANE_BASE}/mods/annotateFeature.sh -k $CONFIG -f <FILE> -o $OUT/${TASK_FEATANN}/${INPUT_FEATANN}-<DIR> "
 fi
 
@@ -1316,5 +1331,19 @@ if [ -n "$RUNHOTSPOT" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASK_HOTSPOT -i $INPUT_HOTSPOT -e .$ASD.bam -n $NODES_HOTSPOT -c $CPU_HOTSPOT -m $MEMORY_HOTSPOT"G" -w $WALLTIME_HOTSPOT \
         --command "${NGSANE_BASE}/mods/hotspot.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOTSPOT"
+
+################################################################################
+#  Bam QC with qualimap
+#
+# IN: $SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/qualimap/
+################################################################################       
+
+if [ -n "$RUNQUALIMAP" ]; then
+    if [ -z "$TASK_QUALIMAP" ] || [ -z "$NODES_QUALIMAP" ] || [ -z "$CPU_QUALIMAP" ] || [ -z "$MEMORY_QUALIMAP" ] || [ -z "$WALLTIME_QUALIMAP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_QUALIMAP -i $INPUT_QUALIMAP -e .$ASD.bam -n $NODES_QUALIMAP -c $CPU_QUALIMAP -m $MEMORY_QUALIMAP"G" -w $WALLTIME_QUALIMAP \
+        --command "${NGSANE_BASE}/mods/qualimap.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_QUALIMAP/"
+
 fi
 

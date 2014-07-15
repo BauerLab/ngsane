@@ -76,7 +76,6 @@ echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 [ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
-[ -z "$PATH_RNASEQC" ] && PATH_RNASEQC=$(dirname $(which RNA-SeQC.jar))
 
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_TOPHAT*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
@@ -100,8 +99,6 @@ echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 echo -e "--bedtools    --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
-echo -e "--RNA-SeQC    --\n "$(java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar --version  2>&1 | head -n 1 )
-[ -z "$(which RNA-SeQC.jar)" ] && echo "[ERROR] no RNA_SeQC.jar detected" && exit 1
 
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -404,54 +401,6 @@ else
 
     # mark checkpoint
     if [ -f ${BAMFILE/.$ASD/.$ALN} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
-fi
-
-################################################################################
-CHECKPOINT="RNA-SeQC"    
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-	## ensure bam is properly ordered for GATK
-	#reheader bam
-	java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=$BAMFILE O=${BAMFILE}_unsorted.bam R=$FASTA VALIDATION_STRINGENCY=SILENT
-
-	#sort
-	samtools sort ${BAMFILE}_unsorted.bam ${BAMFILE}_sorted
-	
-	#index
-	samtools index ${BAMFILE}_sorted.bam
-	
-	rm ${BAMFILE}_unsorted.bam
-    
-    # take doctored GTF if available
-    if [ -n "$DOCTOREDGTFSUFFIX" ]; then 
-        RNASEQC_GTF=${GTF/%.gtf/$DOCTOREDGTFSUFFIX}; 
-    else
-        RNASEQC_GTF=$GTF
-    fi
-    # run GC stratification if available
-    if [ -f ${RNASEQC_GTF}.gc ]; then RNASEQC_CG="-strat gc -gc ${RNASEQC_GTF}.gc"; fi
-    
-    # add parameter flag
-    if [ -z "$RNASEQC_GTF" ]; then
-        echo "[NOTE] no GTF file specified, skipping RNA-SeQC"
-    else
-        RNASeQCDIR=$OUTDIR/../${n/%$READONE.$FASTQ/_RNASeQC}
-        mkdir -p $RNASeQCDIR
-    
-        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE}_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG  2>&1 | tee | grep -v 'Ignoring SAM validation error: ERROR:'"
-        # TODO: find a way to fix the bamfile reg. the SAM error
-        # http://seqanswers.com/forums/showthread.php?t=28155
-        echo $RUN_COMMAND && eval $RUN_COMMAND
-    
-    	rm ${BAMFILE}_sorted.bam
-    	rm ${BAMFILE}_sorted.bam.bai
-    fi
-
-    # mark checkpoint
-    if [ -d $RNASeQCDIR ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 

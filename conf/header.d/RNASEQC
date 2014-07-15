@@ -1,0 +1,11 @@
+##############################################################
+# RNAseq-QC 
+# 
+TASK_RNASEQC="rnaseqc"
+WALLTIME_RNASEQC=12:00:00
+MEMORY_RNASEQC=30
+CPU_RNASEQC=8
+NODES_RNASEQC="nodes=1:ppn=8"
+INPUT_RNASEQC="tophat"
+MODULE_RNASEQC="${NG_JAVA}${NG_SAMTOOLS} ${NG_PICARD} {NG_RNASEQC}"
+PATH_RNASEQC=
