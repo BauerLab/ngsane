@@ -252,23 +252,36 @@ done
 if [ -n "$POSTCOMMAND" ]; then
    # process for postcommand
 	dir=$(echo ${DIR[@]} | sort -u |sed 's/ /_/g')
-    DIRNAME=${dir%%/*}
+
 	#DIR=$(echo ${DIR[@]} | tr " " "\n" | sort -u | tr "\n" "_" | sed 's/_$//' )
     #DIR=$(echo -e ${DIR// /\\n} | sort -u -r | gawk 'BEGIN{x=""};{x=x"_"$0}END{print x}' | sed 's/__//' | sed 's/^_//' | sed 's/_$//' )
     FILES=$(echo -e $FILES | sed 's/ /,/g')
     POSTCOMMAND2=${POSTCOMMAND//<FILE>/$FILES}
-    POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$DIRNAME}
+    
+    if [[ -z "$POSTNAME" || "$POSTNAME" == "postcommand" ]]; then
+        # concatenate library names for make output folder 
+        # unless a foldername was specified via postname
+        DIRNAME=${dir%%/*}
+        # truncate to 60 characters to avoid issues with the filesystem
+        DIRNAME=${DIRNAME:0:60}
+        POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$DIRNAME}
+    else
+        TMPPOSTNAME=${POSTNAME/postcommand/}
+        POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$TMPPOSTNAME}
+    fi
 	POSTLOGFILE=$QOUT/$TASK/$POSTNAME.out
     echo "[NOTE] "$POSTCOMMAND2
 
     # try to make output folder -- if there is no dummy. Only folders defined with -o for the mod can 
     # be created
-    echo $POSTCOMMAND2
-    echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}'
+#    echo $POSTCOMMAND2
+#    echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}'
     
     POSTCOMMANDOUTDIR=$(echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}')
+    echo "daschhau" $POSTCOMMANDOUTDIR
+
     [ -n "$POSTCOMMANDOUTDIR" ] && mkdir -p $POSTCOMMANDOUTDIR
-    
+       
 	# create dummy files for the pipe
 	COMMANDARR=(${POSTCOMMAND// / })
 	if [ -n "$(grep RESULTFILENAME ${COMMANDARR[0]})" ]; then
