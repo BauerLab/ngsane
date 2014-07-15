@@ -73,6 +73,10 @@ HTSEQCOUNT_KEEPBAMS=
 # e.g. HTSEQCOUNT_SKIPMASKED="yes" to skip
 HTSEQCOUNT_SKIPMASKED=
 
+# name of the folder that will contain the aggregated counts table over all libraries
+# if not set, defaults to a concatenation of the library folders
+HTSEQCOUNT_TABLE_FOLDERNAME="htseqcount-countstable"
+
 #WALLTIME_HTSEQCOUNT=24:00:00
 #MEMORY_HTSEQCOUNT=50
 #CPU_HTSEQCOUNT=1
