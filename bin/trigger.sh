@@ -628,6 +628,21 @@ if [ -n "$RUNTOPHAT" ]; then
 fi
 
 ################################################################################
+#  RNAseq-QC
+#
+# IN : $SOURCE/$dir/tophat/*.bam/
+# OUT: $OUT/$dir/rnaseqc/sample/[report]
+################################################################################       
+
+if [ -n "$RUNRNASEQC" ]; then
+    if [ -z "$TASK_RNASEQC" ] || [ -z "$NODES_RNASEQC" ] || [ -z "$CPU_RNASEQC" ] || [ -z "$MEMORY_RNASEQC" ] || [ -z "$WALLTIME_RNASEQC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -k $CONFIG -t $TASK_RNASEQC -i $INPUT_RNASEQC -e .$ASD.bam -n $NODES_RNASEQC -c $CPU_RNASEQC -m $MEMORY_RNASEQC"G" -w $WALLTIME_RNASEQC \
+        --command "${NGSANE_BASE}/mods/RNASEQC.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_RNASEQC/<NAME>"
+
+fi
+
+################################################################################
 #  Gene expression analysis with cufflinks
 #
 # IN : $OUT/$dir/tophat/*.bam
