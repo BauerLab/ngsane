@@ -89,12 +89,11 @@ function summaryHeader {
     else 
         RESULTLOCATION=""
     fi
-
     ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $4 --modscript $3 --log $QOUT --toolkit $CONFIG --task $2 $RESULTLOCATION $SUFFIX >> $4    
-    
     grep -r '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES
     
     echo "<div id='$2_results'>" >> $4
+
 } 
 
 # summaryFooter takes 2 parameters
@@ -175,7 +174,7 @@ if [ -n "$RUNFASTQC" ]; then
                 library=${libraryfile/%.out/}
                 f="$SAMPLE/$TASK_FASTQC/${library}${READONE}_fastqc.zip"
                 if [ ! -e $f ]; then
-                    echo "[WARN] No result detected: $f"
+                    echo "[NOTE] No result detected: $f"
                     continue
                 fi
                 # get basename of f

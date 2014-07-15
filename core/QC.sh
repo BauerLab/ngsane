@@ -56,9 +56,10 @@ fi
 # pack normal and post command in a long string for the subsequent loops
 # file1*file2*file3:task.sh postcommand:posttask.sh
 for dir in ${DIR[@]}; do
-    for file in $(ls $QOUT/$TASK/${dir%%/*}*.out | grep -v "postcommand"); do
-        LOGFILES="${LOGFILES} ${file}"
-    done
+#        for file in $(ls $QOUT/$TASK/${dir%%/*}*.out | grep -v "postcommand"); do
+        for LOGFILE in $(find $QOUT/$TASK/ -maxdepth 1 -type f -name "${dir%%/*}*.out" 2>/dev/null ); do
+            LOGFILES="${LOGFILES} ${LOGFILE}"
+        done
 done
 echo $LOGFILES
 
@@ -195,11 +196,16 @@ if [ -n "$HTMLOUTPUT" ]; then
     if [ -n "$RESULTSUFFIX" ]; then
         echo "<div id='${TASK}_nrfiles'><div class='box'>"
         for dir in ${DIR[@]}; do
-            for i in $(find $OUTDIR/${dir%%/*}/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX | sort -n ); do
-                FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
-                echo "<a href='$FN'>${i/$OUTDIR\/*\/$OUTTASK\//}</a><br/>"
-            done
+            if [ ! -d $OUTDIR/${dir%%/*}/$OUTTASK/ ]; then
+                echo "[NOTE] No result detected: $dir" 1>&2
+            else
+                for i in $(find $OUTDIR/${dir%%/*}/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX | sort -n ); do
+                    FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
+                    echo "<a href='$FN'>${i/$OUTDIR\/*\/$OUTTASK\//}</a><br/>"
+                done
+            fi
         done
+        
         echo "</div></div>"
     fi
     echo "<script type='text/javascript'> 
