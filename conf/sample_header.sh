@@ -68,6 +68,8 @@ NG_PINDEL=
 NG_SEQLOGO=
 NG_MASAI=
 NG_FSEQ=
+NG_HOTSPOT=
+NG_BEDOPS=
 
 ##############################################################
 # Software reference
@@ -114,6 +116,8 @@ NG_CITE_SEQLOGO="Nucleic Acids Res. 1990 Oct 25;18(20):6097-100.; 'Sequence logo
 NG_CITE_MASAI="Nucleic Acids Res. 2013 Apr;41(7):e78. doi: 10.1093/nar/gkt005. Epub 2013 Jan 28.'Fast and accurate read mapping with approximate seeds and multiple backtracking.'; Siragusa E, Weese D, Reinert K."
 NG_CITE_FSEQ="Bioinformatics. 2008 Nov 1;24(21):2537-8. doi: 10.1093/bioinformatics/btn480. Epub 2008 Sep 10. 'F-Seq: a feature density estimator for high-throughput sequence tags.'; Boyle AP1, Guinney J, Crawford GE, Furey TS."
 NG_CITE_BIGWIG="Bioinformatics. Sep 1, 2010; 26(17): 2204–2207. Published online Jul 17, 2010. doi:  10.1093/bioinformatics/btq351; PMCID: PMC2922891' BigWig and BigBed: enabling browsing of large distributed datasets W. J. Kent, A. S. Zweig,* G. Barber, A. S. Hinrichs, and D. Karolchik"
+NG_CITE_HOTSPOT="Nat Genet. 2011 Mar;43(3):264-8. doi: 10.1038/ng.759. Epub 2011 Jan 23.,'Chromatin accessibility pre-determines glucocorticoid receptor binding patterns.', John S, Sabo PJ, Thurman RE, Sung MH, Biddie SC, Johnson TA, Hager GL, Stamatoyannopoulos JA."
+NG_CITE_BEDOPS="Bioinformatics. 2012 Jul 15;28(14):1919-20. doi: 10.1093/bioinformatics/bts277. Epub 2012 May 9., 'BEDOPS: high-performance genomic feature operations.', Neph S, Kuehn MS, Reynolds AP, Haugen E, Thurman RE, Johnson AK, Rynes E, Maurano MT, Vierstra J, Thomas S, Sandstrom R, Humbert R, Stamatoyannopoulos JA."
 
 ##############################################################
 # PROGRAM PATHS
