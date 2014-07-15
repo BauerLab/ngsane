@@ -176,11 +176,22 @@ else
     	samtools sort -@ $CPU_HTSEQCOUNT -n $f $THISTMP/$SAMPLE.tmp
 	fi	
 
-    echo "[NOTE] fixmates"
-	samtools fixmate $THISTMP/$SAMPLE.tmp.bam $OUTDIR/$SAMPLE.fixed.bam
-	rm $THISTMP/$SAMPLE.tmp.bam
+    # fix mate pairs
+    echo "[NOTE] fixmate"
+    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar \
+        I=$THISTMP/$SAMPLE.tmp.bam \
+        O=$OUTDIR/$SAMPLE.fixed.bam \
+        ASSUME_SORTED=true \
+        VALIDATION_STRINGENCY=SILENT \
+        SORT_ORDER=coordinate \
+        TMP_DIR=$THISTMP"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+        
 	samtools index $OUTDIR/$SAMPLE.fixed.bam
-
+    
+    # cleanup
+    rm $THISTMP/$SAMPLE.tmp.bam
+    
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE.fixed.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
    
