@@ -175,7 +175,7 @@ if [ -n "$ADDITIONALTASK" ]; then
         exit 1
     fi
 else
-    echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4[empty]\e[24m (dry run)"
+    echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m[empty]\e[24m (dry run)"
 	ARMED="--dryrun"
 fi
 
