@@ -278,7 +278,6 @@ if [ -n "$POSTCOMMAND" ]; then
 #    echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}'
     
     POSTCOMMANDOUTDIR=$(echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}')
-    echo "daschhau" $POSTCOMMANDOUTDIR
 
     [ -n "$POSTCOMMANDOUTDIR" ] && mkdir -p $POSTCOMMANDOUTDIR
        
