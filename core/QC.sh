@@ -56,10 +56,9 @@ fi
 # pack normal and post command in a long string for the subsequent loops
 # file1*file2*file3:task.sh postcommand:posttask.sh
 for dir in ${DIR[@]}; do
-#        for file in $(ls $QOUT/$TASK/${dir%%/*}*.out | grep -v "postcommand"); do
-        for LOGFILE in $(find $QOUT/$TASK/ -maxdepth 1 -type f -name "${dir%%/*}*.out" 2>/dev/null ); do
-            LOGFILES="${LOGFILES} ${LOGFILE}"
-        done
+    for LOGFILE in $(find $QOUT/$TASK/ -maxdepth 1 -type f -name "${dir%%/*}*.out" 2>/dev/null ); do
+        LOGFILES="${LOGFILES} ${LOGFILE}"
+    done
 done
 echo $LOGFILES
 
@@ -233,7 +232,4 @@ if [ -n "$HTMLOUTPUT" ]; then
         }
     </script>"    
 fi
-
-
 ################################################################################
-
