@@ -60,6 +60,8 @@ for dir in ${DIR[@]}; do
         LOGFILES="${LOGFILES} ${LOGFILE}"
     done
 done
+# remove potential duplicates
+LOGFILES=$(echo "${LOGFILES}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
 echo $LOGFILES
 
 if [ ! -z "$LOGFILES" ]; then # if there is really more than just the postcommand
