@@ -383,15 +383,6 @@ if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
 
 	vali=""
     echo "<br>Note, the duplication rate is not calculated by tophat and hence zero.<br>" >>$SUMMARYTMP
-    CURDIR=$(pwd -P)
-    for dir in ${DIR[@]}; do
-    	vali=$vali" $OUT/${dir%%/*}/$TASK_TOPHAT/"
-    	cd $OUT/${dir%%/*}/$TASK_TOPHAT
-    	for d in $(find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \; | grep --no-messages "RNASeQC"); do
-            echo "<a href=\"$PROJECT_RELPATH/${dir%%/*}/$TASK_TOPHAT/$d/index.html\">RNAseq-QC for ${dir%%/*}/$d</a><br/>" >> $CURDIR/$SUMMARYTMP
-		done
-    done
-    cd $CURDIR
     python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASD.bam.stats tophat >>$SUMMARYTMP
     
     if [ -n "$RUNANNOTATINGBAM" ] || [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
@@ -400,6 +391,24 @@ if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
     
     summaryFooter "$TASK_TOPHAT" "$SUMMARYTMP"
 
+fi
+
+################################################################################
+if [[ -n "$RUNRNASEQC" ]]; then
+    summaryHeader "RNA-SeQC" "$TASK_RNASEQC" "rnaseqc.sh" "$SUMMARYTMP" ".$ASD.bam"
+
+	vali=""
+    CURDIR=$(pwd -P)
+    for dir in ${DIR[@]}; do
+    	vali=$vali" $OUT/${dir%%/*}/$TASK_RNASEQC/"
+    	cd $OUT/${dir%%/*}/$TASK_RNASEQC
+    	for d in $(find . -maxdepth 1 -mindepth 1 -type d -exec basename '{}' \; ); do
+            echo "<a href=\"$PROJECT_RELPATH/${dir%%/*}/$TASK_RNASEQC/$d/index.html\">RNAseq-QC for ${dir%%/*}/$d</a><br/>" >> $CURDIR/$SUMMARYTMP
+		done
+    done
+    cd $CURDIR
+    
+    summaryFooter "$TASK_RNASEQC" "$SUMMARYTMP"
 fi
 
 ################################################################################

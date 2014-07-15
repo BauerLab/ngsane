@@ -75,8 +75,7 @@ export PATH=$PATH_TOPHAT:$PATH
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-[ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
-[ -z "$PATH_RNASEQC" ] && PATH_RNASEQC=$(dirname $(which RNA-SeQC.jar))
+[ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which CleanSam.jar))
 
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_TOPHAT*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
@@ -94,14 +93,12 @@ echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
-echo -e "--picard      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
-[ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
+echo -e "--picard      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar --version 2>&1)
+[ ! -f $PATH_PICARD/CleanSam.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 echo -e "--bedtools    --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
-echo -e "--RNA-SeQC    --\n "$(java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar --version  2>&1 | head -n 1 )
-[ -z "$(which RNA-SeQC.jar)" ] && echo "[ERROR] no RNA_SeQC.jar detected" && exit 1
 
 
 echo -e "\n********* $CHECKPOINT\n"
@@ -112,6 +109,7 @@ CHECKPOINT="parameters"
 
 # get basename of f (samplename)
 n=${f##*/}
+SAMPLE=${n/%$READONE.$FASTQ/}
 
 if [[ ! -e ${FASTA%.*}.1.bt2 ]]; then
     echo "[ERROR] Bowtie2 index not detected. Exeute bowtieIndex.sh first"
@@ -119,7 +117,7 @@ if [[ ! -e ${FASTA%.*}.1.bt2 ]]; then
 fi
 
 # get info about input file
-BAMFILE=$OUTDIR/../${n/%$READONE.$FASTQ/.$ASD.bam}
+BAMFILE=$OUTDIR/../$SAMPLE.$ASD.bam
 
 #remove old files
 if [ -z "$RECOVERFROM" ]; then
@@ -225,6 +223,10 @@ else
     PICARD_REFERENCE=$FASTA
 fi
 
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
+[ -d $THISTMP ] && rm -r $THISTMP
+mkdir -p $THISTMP
+
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="recall files from tape"
@@ -261,36 +263,42 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    echo "[NOTE] samtools merge"
-    samtools merge -@ $CPU_TOPHAT -f $BAMFILE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
-    
-    if [ "$PAIRED" = "1" ]; then
-        # fix mate pairs
-        echo "[NOTE] samtools fixmate"
-        samtools sort -@ $CPU_TOPHAT -n $BAMFILE.tmp.bam $BAMFILE.tmp2
-        samtools fixmate $BAMFILE.tmp2.bam $BAMFILE.tmp.bam
-        rm $BAMFILE.tmp2.bam
+    echo "[NOTE] add unmapped reads"
+    if [ -f $OUTDIR/unmapped.bam ]; then
+        samtools merge -@ $CPU_TOPHAT -f $THISTMP/$SAMPLE.tmp.bam $OUTDIR/accepted_hits.bam $OUTDIR/unmapped.bam
+    else
+        ln -s $OUTDIR/accepted_hits.bam $THISTMP/$SAMPLE.tmp.bam
     fi
     
-    echo "[NOTE] samtools sort"
-    samtools sort -@ $CPU_TOPHAT $BAMFILE.tmp.bam ${BAMFILE/.bam/.samtools}
-    rm $BAMFILE.tmp.bam
+    if [ "$PAIRED" = "1" ]; then
+        # fix and sort
+        echo "[NOTE] fixmate"
+        RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar \
+            I=$THISTMP/$SAMPLE.tmp.bam \
+            O=$THISTMP/$SAMPLE.sorted.bam \
+            VALIDATION_STRINGENCY=SILENT \
+            SORT_ORDER=coordinate \
+            TMP_DIR=$THISTMP"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+    else
+        # just sort
+        samtools sort -@ $CPU_TOPHAT $THISTMP/$SAMPLE.tmp.bam $THISTMP/$SAMPLE.sorted
+    fi
+    rm $THISTMP/$SAMPLE.tmp.bam   
     
     echo "[NOTE] add read group"
-    THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
-    mkdir -p  $THISTMP
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
-        I=${BAMFILE/.bam/.samtools}.bam \
-        O=$BAMFILE.rg \
+        I=$THISTMP/$SAMPLE.sorted.bam \
+        O=$THISTMP/$SAMPLE.rg.bam \
         LB=$EXPID PL=Illumina PU=XXXXXX SM=$EXPID \
         VALIDATION_STRINGENCY=SILENT \
         TMP_DIR=$THISTMP"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    rm ${BAMFILE/.bam/.samtools}.bam
+    rm $THISTMP/$SAMPLE.sorted.bam
         
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
-        I=$BAMFILE.rg \
+        I=$THISTMP/$SAMPLE.rg.bam \
         O=$BAMFILE \
         CREATE_MD5_FILE=true \
         COMPRESSION_LEVEL=9 \
@@ -298,12 +306,10 @@ else
         TMP_DIR=$THISTMP"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    rm $BAMFILE.rg
-    rm -r $THISTMP
+    rm $THISTMP/$SAMPLE.rg.bam
 
     # mark checkpoint
     if [ -f $BAMFILE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
 fi 
 
 ################################################################################
@@ -349,8 +355,6 @@ else
     echo "********* calculate inner distance"
     echo "[NOTE] picard CollectMultipleMetrics"
     if [ ! -e $OUTDIR/../metrices ]; then mkdir -p $OUTDIR/../metrices ; fi
-    THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
-    mkdir -p  $THISTMP
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
         INPUT=$BAMFILE \
         REFERENCE_SEQUENCE=$PICARD_REFERENCE \
@@ -365,7 +369,6 @@ else
     for im in $( ls $OUTDIR/../metrices/$(basename $BAMFILE)*.pdf ); do
         convert $im ${im/pdf/jpg}
     done
-    rm -r $THISTMP
    
     # mark checkpoint
     if [ -f $OUTDIR/../metrices/${BAMFILE##*/}.alignment_summary_metrics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -407,54 +410,6 @@ else
 
 fi
 
-################################################################################
-CHECKPOINT="RNA-SeQC"    
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-	## ensure bam is properly ordered for GATK
-	#reheader bam
-	java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=$BAMFILE O=${BAMFILE}_unsorted.bam R=$FASTA VALIDATION_STRINGENCY=SILENT
-
-	#sort
-	samtools sort ${BAMFILE}_unsorted.bam ${BAMFILE}_sorted
-	
-	#index
-	samtools index ${BAMFILE}_sorted.bam
-	
-	rm ${BAMFILE}_unsorted.bam
-    
-    # take doctored GTF if available
-    if [ -n "$DOCTOREDGTFSUFFIX" ]; then 
-        RNASEQC_GTF=${GTF/%.gtf/$DOCTOREDGTFSUFFIX}; 
-    else
-        RNASEQC_GTF=$GTF
-    fi
-    # run GC stratification if available
-    if [ -f ${RNASEQC_GTF}.gc ]; then RNASEQC_CG="-strat gc -gc ${RNASEQC_GTF}.gc"; fi
-    
-    # add parameter flag
-    if [ -z "$RNASEQC_GTF" ]; then
-        echo "[NOTE] no GTF file specified, skipping RNA-SeQC"
-    else
-        RNASeQCDIR=$OUTDIR/../${n/%$READONE.$FASTQ/_RNASeQC}
-        mkdir -p $RNASeQCDIR
-    
-        RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE}_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $RNASeQCDIR/ $RNASEQC_CG  2>&1 | tee | grep -v 'Ignoring SAM validation error: ERROR:'"
-        # TODO: find a way to fix the bamfile reg. the SAM error
-        # http://seqanswers.com/forums/showthread.php?t=28155
-        echo $RUN_COMMAND && eval $RUN_COMMAND
-    
-    	rm ${BAMFILE}_sorted.bam
-    	rm ${BAMFILE}_sorted.bam.bai
-    fi
-
-    # mark checkpoint
-    if [ -d $RNASeQCDIR ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
-fi
-
 ###############################################################################
 CHECKPOINT="create bigwigs"
 
@@ -475,8 +430,8 @@ fi
 CHECKPOINT="cleanup"
 
 [ -e ${BAMFILE/.$ASD/.$ALN} ] && rm ${BAMFILE/.$ASD/.$ALN} 
-
 [ -e ${BAMFILE/.$ASD/.$ALN}.bai ] && rm ${BAMFILE/.$ASD/.$ALN}.bai
+[ -d $THISTMP ] && rm -r $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################

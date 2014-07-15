@@ -7,8 +7,6 @@
 # date: July 2014
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>-bamQC/qualimapReport.html
-
 
 echo ">>>>> BAM QC with qualimap"
 echo ">>>>> startdate "`date`
@@ -94,8 +92,9 @@ cd $OUTDIR
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else
-    qualimap bamqc -bam $f $QUALIMAP_BAMQC_ADDPARAM -nt $CPU_QUALIMAP -outformat HTML -outdir $OUTDIR/$SAMPLE-bamQC
-        
+    RUNCOMMAND="qualimap bamqc -bam $f $QUALIMAP_BAMQC_ADDPARAM -nt $CPU_QUALIMAP -outformat HTML -outdir $OUTDIR/$SAMPLE-bamQC"
+    echo $RUNCOMMAND && eval $RUNCOMMAND        
+    
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE-bamQC/qualimapReport.html ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
@@ -110,10 +109,11 @@ else
         
     if [[ -n "$QUALIMAP_RNASEQ" ]]; then
 
-        qualimap rnaseq -bam $f $QUALIMAP_RNASEQ_ADDPARAM -nt $CPU_QUALIMAP -outformat HTML -counts $OUTDIR/$SAMPLE"_"counts.txt -outdir $OUTDIR/$SAMPLE-rnaseqQC
-           
+        RUNCOMMAND="qualimap rnaseq -bam $f $QUALIMAP_RNASEQ_ADDPARAM -outformat HTML -counts $OUTDIR/$SAMPLE'_'counts.txt -outdir $OUTDIR/$SAMPLE-rnaseqQC"
+        echo $RUNCOMMAND && eval $RUNCOMMAND
+        
         # mark checkpoint
-        if [ -f $OUTDIR/$SAMPLE-rnaseqQC/report.html ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        if [ -f $OUTDIR/$SAMPLE-rnaseqQC/qualimapReport.html ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
         
     else
         echo "[NOTE] rnaseq qc skipped"
@@ -122,7 +122,6 @@ else
     
 fi
 ################################################################################
-[ -e $OUTDIR/$SAMPLE-bamQC/qualimapReport.html.dummy ] && rm $OUTDIR/$SAMPLE-bamQC/qualimapReport.html.dummy
 echo ">>>>> BAM QC with qualimap - FINISHED"
 echo ">>>>> enddate "`date`
 
