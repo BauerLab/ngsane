@@ -11,7 +11,6 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,truncated file
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
 
 echo ">>>>> RNA QC with RNAseq-QC"
 echo ">>>>> startdate "`date`
@@ -60,9 +59,9 @@ done
 CHECKPOINT="programs"
 
 # save way to load modules that itself loads other modules
-hash module 2>/dev/null && for MODULE in $MODULE_RNASEQQC; do module load $MODULE; done && module list 
+hash module 2>/dev/null && for MODULE in $MODULE_RNASEQC; do module load $MODULE; done && module list 
 
-export PATH=$PATH_RNASEQQC:$PATH
+export PATH=$PATH_RNASEQC:$PATH
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -70,7 +69,7 @@ echo "PATH=$PATH"
 [ -z "$PATH_RNASEQC" ] && PATH_RNASEQC=$(dirname $(which RNA-SeQC.jar))
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_RNASEQQC*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_RNASEQC*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -93,6 +92,11 @@ CHECKPOINT="parameters"
 # get basename of f (samplename)
 n=${f##*/}
 SAMPLE=${n/.$ASD.bam/}
+
+if [ -z "$FASTA" ]; then
+    echo "[ERROR] no reference provided (FASTA)"
+    exit 1
+fi
 
 #remove old files
 if [ -z "$RECOVERFROM" ]; then
@@ -118,10 +122,9 @@ else
     echo "[NOTE] no GTF specified!"
 fi
 
-if [ -z "$RNASEQC_GTF" ]; then
-    echo "[NOTE] no GTF file specified, exit RNA-SeQC"
-    exit 1
-fi
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
+[ -d $THISTMP ] && rm -r $THISTMP
+mkdir -p $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -143,16 +146,16 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 	## ensure bam is properly ordered for GATK
 	#reheader bam
-	RUN_COMMAND="java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar I=$BAMFILE O=${BAMFILE}_unsorted.bam R=$FASTA VALIDATION_STRINGENCY=SILENT"
+	RUN_COMMAND="java -jar $JAVAPARAMS $PATH_PICARD/ReorderSam.jar INPUT=$f OUTPUT=$THISTMP/${SAMPLE}_unsorted.bam REFERENCE=$FASTA VALIDATION_STRINGENCY=SILENT"
     echo $RUN_COMMAND && eval $RUN_COMMAND	
 
 	#sort
-	samtools sort ${BAMFILE}_unsorted.bam ${BAMFILE}_sorted
+	samtools sort $THISTMP/${SAMPLE}_unsorted.bam $THISTMP/${SAMPLE}_sorted
 	
 	#index
-	samtools index ${BAMFILE}_sorted.bam
+	samtools index $THISTMP/${SAMPLE}_sorted.bam
 	
-	rm ${BAMFILE}_unsorted.bam
+	rm $THISTMP/${SAMPLE}_unsorted.bam
     
     # take doctored GTF if available
     if [ -n "$DOCTOREDGTFSUFFIX" ]; then 
@@ -164,19 +167,18 @@ else
     if [ -f ${RNASEQC_GTF}.gc ]; then RNASEQC_CG="-strat gc -gc ${RNASEQC_GTF}.gc"; fi
     
     
-    RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${n/%$READONE.$FASTQ/}|${BAMFILE}_sorted.bam|${n/%$READONE.$FASTQ/}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $OUTDIR $RNASEQC_CG  2>&1 | tee | grep -v 'Ignoring SAM validation error: ERROR:'"
+    RUN_COMMAND="java $JAVAPARAMS -jar ${PATH_RNASEQC}/RNA-SeQC.jar $RNASEQCADDPARAM -n 1000 -s '${SAMPLE}|$THISTMP/${SAMPLE}_sorted.bam|${SAMPLE}' -t ${RNASEQC_GTF}  -r ${FASTA} -o $OUTDIR $RNASEQC_CG  2>&1 | tee | grep -v 'Ignoring SAM validation error: ERROR:'"
     # TODO: find a way to fix the bamfile reg. the SAM error
     # http://seqanswers.com/forums/showthread.php?t=28155
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-	rm ${BAMFILE}_sorted.bam
-	rm ${BAMFILE}_sorted.bam.bai
+	rm $THISTMP/${SAMPLE}_sorted.bam
+	rm $THISTMP/${SAMPLE}_sorted.bam.bai
 
     # mark checkpoint
     if [ -d $OUTDIR/ ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 ################################################################################
-[ -e ${BAMFILE}.dummy ] && rm ${BAMFILE}.dummy
-echo ">>>>> alignment with TopHat - FINISHED"
+echo ">>>>> RNA QC with RNAseq-QC - FINISHED"
 echo ">>>>> enddate "`date`
