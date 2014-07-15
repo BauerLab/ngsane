@@ -654,7 +654,7 @@ if [ -n "$RUNCUFFLINKS" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASK_CUFFLINKS -i $INPUT_CUFFLINKS -e .$ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS  \
         --command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFLINKS/<NAME>"
-
+        --postcommand "${NGSANE_BASE}/mods/cuffpost.sh -f <FILE> -k $CONFIG --outdir $OUT/cuffmerge/$TASK_CUFFLINKS-<DIR>"
 fi
 
 ################################################################################
