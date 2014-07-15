@@ -42,9 +42,10 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_FSEQ; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_FSEQ; do module load $MODULE; done && module list 
+
 export PATH=$PATH_FSEQ:$PATH
-module list
 echo "PATH=$PATH"
 
 echo "[NOTE] set java parameters"
@@ -176,17 +177,29 @@ DELIM
     [ -f $OUTDIR/$SAMPLE.narrowPeak.tmp ] && rm $OUTDIR/$SAMPLE.narrowPeak.tmp 
     [ -f $OUTDIR/$SAMPLE.R ] && rm $OUTDIR/$SAMPLE.R
 
+    # mark checkpoint
+    if [ -f $OUTDIR/$SAMPLE.narrowPeak ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+fi
+
+################################################################################
+CHECKPOINT="generate bigbed"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else
     # convert to bigbed
 	if hash bedToBigBed ; then 
         echo "[NOTE] create bigbed from peaks" 
         awk '{OFS="\t"; print $1,$2,$3,$7}' $OUTDIR/$SAMPLE.narrowPeak > $OUTDIR/$SAMPLE.peak.tmp
         bedToBigBed -type=bed4 $OUTDIR/$SAMPLE.peak.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bb
         rm $OUTDIR/$SAMPLE.peak.tmp
+         # mark checkpoint
+        if [ -f $OUTDIR/$SAMPLE.bb ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    else
+        echo "[NOTE] bigbed not generated"
+        echo -e "\n********* $CHECKPOINT\n"
     fi
-
-    # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.narrowPeak ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-fi
+fi   
 ###############################################################################
 CHECKPOINT="cleanup"
 

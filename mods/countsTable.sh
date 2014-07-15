@@ -37,7 +37,10 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-module list
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_HTSEQCOUNT; do module load $MODULE; done && module list 
+
+export PATH=$PATH_HTSEQCOUNT:$PATH
 echo "PATH=$PATH"
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)

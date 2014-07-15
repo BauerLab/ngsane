@@ -39,9 +39,11 @@ done
 
 ################################################################################
 CHECKPOINT="programs"
-for MODS in $MODULES_TRINITY; do module load $MODS; done 
+
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULES_TRINITY; do module load $MODULE; done  && module list 
+
 export PATH=$PATH_TRINITY:$PATH
-module list
 echo "PATH=$PATH"
 
 echo "[NOTE] set java parameters"

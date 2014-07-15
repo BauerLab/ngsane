@@ -80,8 +80,9 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
         
         # add tasks to runnow.tmp
         # search for real files and dummy files, in case both exist only keep real one
+        # "$ENDING*" is important to detect dummy files
         if [ -n "$REV" ]; then
-            for f in $( ls $SOURCE/$DIRNAME/$ORIGIN/$SAMPLEPATTERN*$ENDING | egrep ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
+            for f in $( ls $SOURCE/$DIRNAME/$ORIGIN/$SAMPLEPATTERN*$ENDING* | egrep ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
                 echo $f
                 n=${f##*/}
                 name=${n/$ENDING/}
@@ -101,7 +102,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
             done
         
         else
-            for f in $( ls $SOURCE/$ORIGIN/$DIRNAME/$SAMPLEPATTERN*$ENDING | egrep ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
+            for f in $( ls $SOURCE/$ORIGIN/$DIRNAME/$SAMPLEPATTERN*$ENDING* | egrep ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
                 n=${f##*/}
                 name=${n/$ENDING/}
                 LOGFILE=$QOUT/$TASK/$DIRNAME'_'$name'.out'
@@ -258,14 +259,15 @@ if [ -n "$POSTCOMMAND" ]; then
     POSTCOMMAND2=${POSTCOMMAND//<FILE>/$FILES}
     POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$DIRNAME}
 	POSTLOGFILE=$QOUT/$TASK/$POSTNAME.out
-
     echo "[NOTE] "$POSTCOMMAND2
 
     # try to make output folder -- if there is no dummy. Only folders defined with -o for the mod can 
     # be created
+    echo $POSTCOMMAND2
     echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}'
     
-    mkdir -p $(echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}')
+    POSTCOMMANDOUTDIR=$(echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}')
+    [ -n "$POSTCOMMANDOUTDIR" ] && mkdir -p $POSTCOMMANDOUTDIR
     
 	# create dummy files for the pipe
 	COMMANDARR=(${POSTCOMMAND// / })

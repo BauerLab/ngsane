@@ -46,9 +46,10 @@ done
 CHECKPOINT="programs"
 
 ## [TODO] change [TEMPLATE] to program
-for MODULE in $MODULE_[TEMPLATE]; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself load other modules
+hash module 2>/dev/null && for MODULE in $MODULE_[TEMPLATE]; do module load $MODULE; done && module list
+
 export PATH=$PATH_[TEMPLATE]:$PATH
-module list
 echo "PATH=$PATH"
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)

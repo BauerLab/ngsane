@@ -26,14 +26,15 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_POOLBAMS; do module load $MODULE; done  # save way to load modules that itself load other modules
-export PATH=$PATH_POOLBAMS:$PATH;
-module list
-echo "PATH=$PATH"
-PATH_PICARD=$(dirname $(which MergeSamFiles.jar))
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_POOLBAMS; do module load $MODULE; done && module list 
 
+export PATH=$PATH_POOLBAMS:$PATH;
+echo "PATH=$PATH"
+[ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MergeSamFiles.jar))
+ 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_BOWTIE*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_POOLBAMS*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -46,7 +47,7 @@ echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
-echo -e "--gnu parallel --\n "$(parallel --version 2>&1 | tee | head -n 1)
+echo -e "--gnu parallel --\n "$(parallel --gnu --version 2>&1 | tee | head -n 1)
 [ -z "$(which parallel 2> /dev/null)" ] && echo "[WARN] no gnu parallel detected, processing in serial"
 
 
@@ -54,52 +55,39 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="pair input"
 
-if [ -z "$PATTERN" ]; then
-    echo "[ERROR] no pattern defined"
-    exit 1
-fi
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference defined: FASTA"
     exit 1
-fi
-if [ -z "$REPLACEWITH" ]; then
-    echo "[ERROR] no replacement defined, defaulting to _pooled"
-    REPLACEWITH="_pooled"
 fi
 
 COMMAND=$OUT/tmp/pool_bams`date +%Y%m%d`.commands
 
 cat /dev/null > $COMMAND
-
 for d in ${DIR[@]}; do
-    for i in $(ls $OUT/$d/$INPUT_POOLBAMS/*$ASD.bam | grep -P "$PATTERN"); do 
-        echo "$i $i" |  sed -e "s|$PATTERN||"; 
-    done | sort -k1,1 > $OUT/$d/$INPUT_POOLBAMS/pattern.tmp
+    grep '^POOL_BAM ' $CONFIG | cut -d' ' -f 2- > $OUT/$d/$INPUT_POOLBAMS/pools.tmp
 
-    OLDIFS=$IFS
-    for POOL in $(cat $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | cut -d' ' -f 1 | sort -u); do 
-        OUTBAM=$(grep "$POOL" $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | cut -d' ' -f 2 | head -n 1 | sed -e "s|$PATTERN|$REPLACEWITH|" ) 
-        COMMENT=$(grep "$POOL" $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | cut -d' ' -f 2 | tr '\n' ' ')
-        
-        INBAMS=$(grep "$POOL" $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | awk '{print "INPUT="$2}' | tr '\n' ' ')
+    while read -r -a POOL; do
+        PATTERN=$(echo "${POOL[@]:1}" | sed -e 's/ /|/g')
+
+        OUTBAM="$OUT/$d/$INPUT_POOLBAMS/$(echo $POOL | cut -d' ' -f1).$ASD.bam"
         [ -f $OUTBAM ] && rm $OUTBAM
-        echo -ne "java $JAVAPARAMS -jar $PATH_PICARD/MergeSamFiles.jar QUIET=true VERBOSITY=ERROR VALIDATION_STRINGENCY=LENIENT TMP_DIR=$TMP COMPRESSION_LEVEL=9 USE_THREADING=true OUTPUT=$OUTBAM $INBAMS COMMENT='merged: $COMMENT'; samtools index $OUTBAM; samstat $OUTBAM" >> $COMMAND
-        if [ "$DELETEORIGINALBAMS" = "true" ]; then
-            for j in $(grep "$POOL" $OUT/$d/$INPUT_POOLBAMS/pattern.tmp | cut -d' ' -f 2 ); do
-                echo -ne "; rm $j*" >> $COMMAND
-            done
-        fi
-        
-        echo "$OUTBAM = ${INBAMS/INPUT=/}"
-        echo ";" >> $COMMAND
-    done
-done
 
-CPUS=$(wc -l $COMMAND | cut -d' ' -f 1)
-echo $CPUS
-if [[ "$CPUS" -gt "$CPU_POOLBAMS" ]]; then 
-    echo "[NOTE] reduce to $CPU_POOLBAMS CPUs"; CPUS=$CPU_POOLBAMS; 
-fi
+        INBAMS=""
+        COMMENT=""
+        for i in $(ls $OUT/$d/$INPUT_POOLBAMS/*$ASD.bam | egrep "$PATTERN"); do 
+            INBAMS="$INBAMS INPUT=$i"
+            COMMENT="$COMMENT ${i##*/}"
+        done        
+                
+        if [ -n "$INBAMS" ]; then   
+            echo -ne "java $JAVAPARAMS -jar $PATH_PICARD/MergeSamFiles.jar ASSUME_SORTED=true QUIET=true VERBOSITY=ERROR VALIDATION_STRINGENCY=LENIENT TMP_DIR=$TMP COMPRESSION_LEVEL=9 USE_THREADING=true OUTPUT=$OUTBAM $INBAMS COMMENT='merged:$COMMENT'; samtools index $OUTBAM; samtools flagstat $OUTBAM > $OUTBAM.stats" >> $COMMAND
+            echo ";" >> $COMMAND
+        fi
+    done < $OUT/$d/$INPUT_POOLBAMS/pools.tmp
+    
+    rm $OUT/$d/$INPUT_POOLBAMS/pools.tmp
+    
+done
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -107,8 +95,8 @@ CHECKPOINT="pool data"
 
 if hash parallel ; then
     echo "[NOTE] parallel processing"
-    
-    cat $COMMAND | parallel --eta -j $CPUS "eval {}"
+
+    cat $COMMAND | parallel --verbose --joblog $TMP/$TASK_POOLBAMS.log --gnu --eta -j $CPU_POOLBAMS "eval {}" > /dev/null 2&>1
 
 else
     # serial processing
@@ -119,7 +107,7 @@ else
     done < $COMMAND
 fi
 
-rm $COMMAND
+#rm $COMMAND
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
