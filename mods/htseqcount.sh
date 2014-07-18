@@ -189,7 +189,6 @@ else
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar \
         I=$THISTMP/$SAMPLE.tmp.bam \
         O=$OUTDIR/$SAMPLE.fixed.bam \
-        ASSUME_SORTED=true \
         VALIDATION_STRINGENCY=SILENT \
         SORT_ORDER=coordinate \
         TMP_DIR=$THISTMP"
