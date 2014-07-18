@@ -89,12 +89,11 @@ function summaryHeader {
     else 
         RESULTLOCATION=""
     fi
-
     ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $4 --modscript $3 --log $QOUT --toolkit $CONFIG --task $2 $RESULTLOCATION $SUFFIX >> $4    
-    
     grep -r '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES
     
     echo "<div id='$2_results'>" >> $4
+
 } 
 
 # summaryFooter takes 2 parameters
@@ -175,7 +174,7 @@ if [ -n "$RUNFASTQC" ]; then
                 library=${libraryfile/%.out/}
                 f="$SAMPLE/$TASK_FASTQC/${library}${READONE}_fastqc.zip"
                 if [ ! -e $f ]; then
-                    echo "[WARN] No result detected: $f"
+                    echo "[NOTE] No result detected: $f"
                     continue
                 fi
                 # get basename of f
@@ -382,7 +381,7 @@ if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
     summaryHeader "Tophat" "$TASK_TOPHAT" "tophat.sh" "$SUMMARYTMP" ".$ASD.bam"
 
 	vali=""
-    echo "<br>Note, the duplication rate is not calculated by tophat and hence zero.<br>" >>$SUMMARYTMP
+    echo "<br>[NOTE] the duplication rate is not calculated by tophat and hence zero.<br>" >>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASD.bam.stats tophat >>$SUMMARYTMP
     
     if [ -n "$RUNANNOTATINGBAM" ] || [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
@@ -511,12 +510,19 @@ if [ -n "$RUNHICUP" ];then
     python ${NGSANE_BASE}/core/Summary.py "$vali" "_deduplicator_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     
     imgs=""
-    for f in $(ls runStats/$TASK_HICUP/*_ditag_classification.png 2> /dev/null); do
-        n=${f##*/}
-        n=${n/"_ditag_classification.png"/}
-        imgs+="<div class='inset_image'>$n<br/><a href=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_ditag_classification.png\"><img src=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_ditag_classification.png\" width=\"200px\"/></a><br/><a href=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_uniques_cis-trans.png\"><img src=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_uniques_cis-trans.png\" width=\"200px\"/></a><br/><a href=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_ditag_size_distribution.png\"><img src=\"$PROJECT_RELPATH/runStats/$TASK_HICUP/"$n"_ditag_size_distribution.png\" width=\"200px\"/></a></div>"
+#    for f in $(ls runStats/$TASK_HICUP/*_ditag_classification.png 2> /dev/null); do
+    for dir in ${DIR[@]}; do
+        echo ${dir%%/*}
+        for f in $(ls $PROJECT_RELPATH/${dir%%/*}/$TASK_HICUP/*_ditag_classification.png 2> /dev/null); do
+            echo $f
+            n=${f/"_ditag_classification.png"/}
+            
+            imgs+="<div class='inset_image'>${n##*/}<br/><a href=\"${n}_ditag_classification.png\"><img src=\"${n}_ditag_classification.png\" width=\"200px\"/></a><br/><a href=\"${n}_uniques_cis-trans.png\"><img src=\"${n}_uniques_cis-trans.png\" width=\"200px\"/></a><br/><a href=\"${n}_ditag_size_distribution.png\"><img src=\"${n}_ditag_size_distribution.png\" width=\"200px\"/></a></div>"
+        done
     done
     echo "<div>$imgs</div>" >> $SUMMARYTMP
+    
+    
     
     summaryFooter "$TASK_HICUP" "$SUMMARYTMP"
 fi

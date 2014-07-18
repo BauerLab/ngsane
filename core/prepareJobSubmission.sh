@@ -270,7 +270,7 @@ if [ -n "$POSTCOMMAND" ]; then
         POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$TMPPOSTNAME}
     fi
 	POSTLOGFILE=$QOUT/$TASK/$POSTNAME.out
-    echo "[NOTE] "$POSTCOMMAND2
+    echo -e "\e[33m[PJOB]\e[0m  $POSTCOMMAND2"
 
     # try to make output folder -- if there is no dummy. Only folders defined with -o for the mod can 
     # be created
@@ -278,7 +278,6 @@ if [ -n "$POSTCOMMAND" ]; then
 #    echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}'
     
     POSTCOMMANDOUTDIR=$(echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}')
-    echo "daschhau" $POSTCOMMANDOUTDIR
 
     [ -n "$POSTCOMMANDOUTDIR" ] && mkdir -p $POSTCOMMANDOUTDIR
        
