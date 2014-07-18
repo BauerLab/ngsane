@@ -52,6 +52,12 @@ export PATH=$PATH_HTSEQCOUNT:$PATH
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
+[ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
+
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_HTSEQCOUNT*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
@@ -60,6 +66,8 @@ echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--bedtools    --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
+echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar --version 2>&1)
+[ ! -f $PATH_PICARD/FixMateInformation.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--htSeq       --\n "$(htseq-count | tail -n 1)
 [ -z "$(which htseq-count)" ] && [ -n "$GTF" ] && echo "[ERROR] no htseq-count or GTF detected" && exit 1
 echo -e "--Python      --\n" $(python --version 2>&1 | tee | head -n 1 )
@@ -181,7 +189,6 @@ else
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar \
         I=$THISTMP/$SAMPLE.tmp.bam \
         O=$OUTDIR/$SAMPLE.fixed.bam \
-        ASSUME_SORTED=true \
         VALIDATION_STRINGENCY=SILENT \
         SORT_ORDER=coordinate \
         TMP_DIR=$THISTMP"
