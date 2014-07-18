@@ -570,19 +570,30 @@ if [ -n "$RUNMAPPINGBOWTIE2" ]; then
 fi
 
 ################################################################################
-#   Mapping using Masai
+#   Mapping using Yara
 #
 # IN:$SOURCE/$dir/fastq/*read1.fastq
-# OUT: $OUT/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/yara/*.bam
 ################################################################################
 
-# TODO: finish pipeline
-#if [ -n "$RUNMASAI" ]; then
-#    if [ -z "$TASK_MASAI" ] || [ -z "$NODES_MASAI" ] || [ -z "$CPU_MASAI" ] || [ -z "$MEMORY_MASAI" ] || [ -z "$WALLTIME_MASAI" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
-#
-#    $QSUB $ARMED -k $CONFIG -t $TASK_MASAI -i $INPUT_MASAI -e $READONE.$FASTQ -n $NODES_MASAI -c $CPU_MASAI -m $MEMORY_MASAI"G" -w $WALLTIME_MASAI \
-#        --command "${NGSANE_BASE}/mods/masai.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_MASAI --rgsi <DIR>"        
-#fi
+if [ -n "$RUNYARA" ]; then
+    if [ -z "$TASK_YARA" ] || [ -z "$NODES_YARA" ] || [ -z "$CPU_YARA" ] || [ -z "$MEMORY_YARA" ] || [ -z "$WALLTIME_YARA" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    if [ ! -f ${FASTA%.*}.sa.val ];then
+        # submit job for index generation if necessary
+        INDEXJOBIDS=$(
+            $QSUB $ARMED -k $CONFIG -t $TASK_YARA -i $INPUT_YARA -e $READONE.$FASTQ -n $NODES_YARA -c $CPU_YARA -m $MEMORY_YARA"G" \
+            -w $WALLTIME_YARA --commontask indexGenome \
+            --command "${NGSANE_BASE}/mods/yaraIndex.sh -k $CONFIG"
+        ) && echo -e "$INDEXJOBIDS"
+        INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+    else
+        INDEXJOBIDS=""
+    fi
+    
+    $QSUB $ARMED -k $CONFIG -t $TASK_YARA -i $INPUT_YARA -e $READONE.$FASTQ -n $NODES_YARA -c $CPU_YARA -m $MEMORY_YARA"G" -w $WALLTIME_YARA  $INDEXJOBIDS \
+        --command "${NGSANE_BASE}/mods/yara.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_YARA --rgsi <DIR>"        
+fi
 
 
 ################################################################################

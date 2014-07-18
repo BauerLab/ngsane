@@ -4,12 +4,12 @@
 # It takes comma-seprated list of files containing short sequence reads in fasta or fastq format and masai index files as input.
 # It produces output files: read alignments in .bam format and other files.
 # author: Fabian Buske
-# date: Nov 2013
+# date: July 2014
 
 # QCVARIABLES,Resource temporarily unavailable
 # RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
 
-echo ">>>>> readmapping with Masai "
+echo ">>>>> readmapping with Yara "
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
@@ -48,9 +48,9 @@ done
 CHECKPOINT="programs"
 
 # save way to load modules that itself loads other modules
-hash module 2>/dev/null && for MODULE in $MODULE_MASAI; do module load $MODULE; done && module list 
+hash module 2>/dev/null && for MODULE in $MODULE_YARA; do module load $MODULE; done && module list 
 
-export PATH=$PATH_MASAI:$PATH
+export PATH=$PATH_YARA:$PATH
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -58,15 +58,15 @@ echo "PATH=$PATH"
 [ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_MASAI*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_YARA*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
-echo -e "--masai       --\n "$(masai_mapper 2>&1 | tee | grep version)
-[ -z "$(which masai_mapper)" ] && echo "[ERROR] no masai detected" && exit 1
+echo -e "--yara       --\n "$(yara_mapper --version)
+[ -z "$(which yara_mapper)" ] && echo "[ERROR] no yara detected" && exit 1
 echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--R           --\n "$(R --version | head -n 3)
@@ -109,11 +109,19 @@ if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/$SAMPLE.$ASD.bam.dupl ] && rm $OUTDIR/$SAMPLE.$ASD.bam.dupl
 fi
 
+#is ziped ?
+CAT="cat"
+if [[ ${f##*.} == "gz" ]]; 
+    then CAT="zcat"; 
+elif [[ ${f##*.} == "bz2" ]]; 
+    then CAT="bzcat"; 
+fi
+
 #is paired ?
 if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
     PAIRED="1"
 else
-    echo "[ERROR] HiCUP requires paired fastq libraries" && exit 1
+    PAIRED="0"
 fi
 
 #is paired ?                                                                                                      
@@ -129,12 +137,12 @@ else
     let FASTQREADS=`$CAT $f | wc -l | gawk '{print int($1/4)}' `
 fi
 
-if [ -z "$MASAI_INDEX" ]; then
-    echo "[NOTE] default index for masai is sa"
-    MASAI_INDEX="sa"
+if [[ ! -e ${FASTA%.*}.sa.val ]]; then
+    echo "[ERROR] Yara index not detected. Execute yara_indexer first"
+    exit 1
 fi
 
-THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 mkdir -p $THISTMP
 
 FASTASUFFIX=${FASTA##*.}
@@ -156,84 +164,31 @@ fi
     
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-CHECKPOINT="generating the index files"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    
-    if [[ "$MASAI_INDEX" = "sa" ]] && [[ ! -e ${FASTA/.$FASTASUFFIX/.sa} ]]; then 
-        echo "[NOTE] make index: $MASAI_INDEX"; 
-        # make sure parallel executions don't interfere with each other when generating the index.
-        mkdir -p $THISTMP/reference/
-        ln -s $FASTA $THISTMP/reference/
-        FASTAREFERENCE=$THISTMP/reference/${FASTA##*/}
-        masai_indexer -t $TMP -x $MASAI_INDEX $FASTAREFERENCE
-
-    elif [[ "$MASAI_INDEX" = "fm" ]] && [[ ! -e ${FASTA/.$FASTASUFFIX/.fma} ]]; then
-        echo "[NOTE] make index: $MASAI_INDEX";
-        # make sure parallel executions don't interfere with each other when generating the index.
-        mkdir -p $THISTMP/reference/
-        ln -s $FASTA $THISTMP/reference/
-        FASTAREFERENCE=$THISTMP/reference/${FASTA##*/}
-        masai_indexer -t $TMP -x $MASAI_INDEX $FASTAREFERENCE
-
-    elif [[ "$MASAI_INDEX" = "esa" ]] && [[ ! -e ${FASTA/.$FASTASUFFIX/.esa} ]]; then
-        echo "[NOTE] make index: $MASAI_INDEX";
-        # make sure parallel executions don't interfere with each other when generating the index.
-        mkdir -p $THISTMP/reference/
-        ln -s $FASTA $THISTMP/reference/
-        FASTAREFERENCE=$THISTMP/reference/${FASTA##*/}
-        masai_indexer -t $TMP -x $MASAI_INDEX $FASTAREFERENCE
-
-    else
-        FASTAREFERENCE=$FASTA
-    fi
-
-    if [ ! -e $FASTA.fai ]; then echo "[NOTE] make .fai"; samtools faidx $FASTA; fi
-
-    # mark checkpoint
-    if [ -f $FASTA.fai ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-fi 
-
-################################################################################
-CHECKPOINT="masai"
+CHECKPOINT="yara"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
         
     if [ "$PAIRED" = "0" ]; then
 
-        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $FASTAREFERENCE <($CAT $f)"
+        RUN_COMMAND="yara_mapper $YARA_MAPPERADDPARAM --threads $CPU_YARA --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTA $f"
         echo $RUN_COMMAND && eval $RUN_COMMAND
-    
-        RUN_COMMAND="masai_output_se $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTAREFERENCE <($CAT $f) $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw}"
-        echo $RUN_COMMAND && eval $RUN_COMMAND
+
         
     elif [ "$PAIRED" = "1" ]; then
 
-        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $FASTAREFERENCE <($CAT $f)"
-        echo $RUN_COMMAND && eval $RUN_COMMAND
-
-        RUN_COMMAND="masai_mapper $MASAI_MAPPERADDPARAM --index $MASAI_INDEX --output-file $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.raw} $FASTAREFERENCE <($CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ})"
-        echo $RUN_COMMAND && eval $RUN_COMMAND
-
-        RUN_COMMAND="masai_output_pe $MASAI_OUTPUTADDPARAM --tmp-folder $TMP --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTAREFERENCE <($CAT $f) <($CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}) $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.raw}"
+        RUN_COMMAND="yara_mapper $YARA_MAPPERADDPARAM --threads $CPU_YARA --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTA $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
     fi
 
-    # bam file conversion                                                                         
-    samtools view -@ $CPU_MASAI -Sbt $FASTA.fai $THISTMP/$SAMPLE.$ALN.sam > $OUTDIR/$SAMPLE.$ALN.bam
-    samtools sort -@ $CPU_MASAI $OUTDIR/$SAMPLE.$ALN.bam $OUTDIR/$SAMPLE.ash
+    # bam file conversion                                                                        
+    samtools view -Sb $THISTMP/$SAMPLE.$ALN.sam > $THISTMP/$SAMPLE.$ALN.bam 
+    samtools sort -@ $CPU_YARA $THISTMP/$SAMPLE.$ALN.bam $OUTDIR/$SAMPLE.ash
 
     # cleanup
-    [ -e $THISTMP/${INPUTFILENAME}_pipe ] && rm $THISTMP/${INPUTFILENAME}_pipe
-    [ -e $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe ] && rm $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.$FASTQ}_pipe
-    [ -e $THISTMP/$SAMPLE.$ALN.sam ] && rm $THISTMP/$SAMPLE.$ALN.sam
-    [ -e $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw} ] && rm $THISTMP/${INPUTFILENAME/%.$FASTQ/.raw}
-    [ -e $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.raw} ] && rm $THISTMP/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.raw}
     [ -e $OUTDIR/$SAMPLE.$ALN.bam ] && rm $OUTDIR/$SAMPLE.$ALN.bam
+    [ -e $OUTDIR/$SAMPLE.$ALN.sam ] && rm $OUTDIR/$SAMPLE.$ALN.sam
        
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE.ash.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -295,8 +250,8 @@ else
     samtools flagstat $OUTDIR/$SAMPLE.$ASD.bam > $STATSOUT
     if [ -n "$SEQREG" ]; then
         echo "#custom region" >> $STATSOUT
-        echo $(samtools view -@ $CPU_MASAI -c -F 4 $OUTDIR/$SAMPLE.$ASD.bam $SEQREG )" total reads in region " >> $STATSOUT
-        echo $(samtools view -@ $CPU_MASAI -c -f 3 $OUTDIR/$SAMPLE.$ASD.bam $SEQREG )" properly paired reads in region " >> $STATSOUT
+        echo $(samtools view -@ $CPU_YARA -c -F 4 $OUTDIR/$SAMPLE.$ASD.bam $SEQREG )" total reads in region " >> $STATSOUT
+        echo $(samtools view -@ $CPU_YARA -c -f 3 $OUTDIR/$SAMPLE.$ASD.bam $SEQREG )" properly paired reads in region " >> $STATSOUT
     fi
 
     # mark checkpoint
@@ -373,8 +328,7 @@ CHECKPOINT="cleanup"
 [ -d $THISTMP ] && rm -r $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
-    
 ################################################################################
 [ -e $OUTDIR/$SAMPLE.$ASD.bam.dummy ] && rm $OUTDIR/$SAMPLE.$ASD.bam.dummy
-echo ">>>>> readmapping with Masai - FINISHED"
+echo ">>>>> readmapping with Yara - FINISHED"
 echo ">>>>> enddate "`date`
