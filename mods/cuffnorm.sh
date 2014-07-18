@@ -52,20 +52,21 @@ echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 echo "[NOTE] Files: $FILES"
-OLDFS=$IFS
-IFS=","
 DATASETS=""
 for f in $FILES; do
-    n=${f/%.$ASD.bam/}
-    FILE=${n/$TASK_TOPHAT/$TASK_CUFFLINKS}
-    # get directory
-    d=$(dirname $f)
-    d=${d##*/}    # add to dataset
+    n=$(dirname ${f})
+#    n=$(dirname ${f/%.$ASD.bam/.cxb}
+    FILE=${n/$TASK_TOPHAT/$TASK_CUFFLINKS}/abundances.cxb
+
+#     get directory
+#    d=$(dirname $f)
+#    d=${d##*/}    # add to dataset
     if [ -n "$FILE" ]; then 
         DATASETS="${DATASETS[@]} ${FILE[@]}"
     fi
 done
-IFS=" "
+
+echo "[NOTE] ${FILE[@]}"
 
 echo "[NOTE] datasets"
 echo "[NOTE] $DATASETS"
@@ -77,17 +78,6 @@ echo "[NOTE] $OUTDIR"
 #    ## TODO remove primary result files from pervious runs
 #    rm ${OUTDIR}/*
 #fi
-
-## TODO remove comments if paired/single library preps should be detected based on the READ identifier patterns
-#if [ "$INPUTFILE" != "${INPUTFILE/$READONE/$READTWO}" ] && [ -e ${INPUTFILE/$READONE/$READTWO} ]; then
-#    PAIRED="1"
-#else
-#    PAIRED="0"
-#fi
-
-## TODO remove comments if compressed status of input files should be detected
-#ZCAT="zcat"
-#if [[ ${INPUTFILE##*.} != "gz" ]]; then ZCAT="cat"; fi
 
 # unique temp folder that should be used to store temporary files
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
@@ -108,33 +98,31 @@ fi
 echo -e "\n********* $CHECKPOINT\n"
 
 #################################################################################
-CHECKPOINT="Run cuffnorm."
+CHECKPOINT="Run cuffnorm"
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+    
+    RUNCOMMAND="cuffnorm --no-update-check --quiet --output-dir ${OUTDIR}/$MERGED_GTF_NAME -p $CPU_CUFFLINKS $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf $(echo $FILES | tr ',' ' ')"
+    echo $RUNCOMMAND && eval $RUNCOMMAND
+
+    # mark checkpoint
+    if [ -e $OUTDIR/ ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi
+#################################################################################
+CHECKPOINT="cleanup"  
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-echo "[NOTE] Run cuffnorm."     
-
-cuffnorm -p $CPU_CUFFLINKS ${OUTDIR}/merged.gtf $FILES --output-dir ${OUTDIR}
-
-IFS=" "
-
-echo -e "\n********* $CHECKPOINT\n"
+    [ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
+     
+    echo -e "\n********* $CHECKPOINT\n"
 fi
 #################################################################################
-
-CHECKPOINT="cleanup."  
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-
-[ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
- 
-echo -e "\n********* $CHECKPOINT\n"
-fi
-#################################################################################
-    echo ">>>>> Experiment merged transcripts (cuffquant) - FINISHED"
-    echo ">>>>> enddate "`date`
+echo ">>>>> Experiment merged transcripts (cuffquant) - FINISHED"
+echo ">>>>> enddate "`date`
 
 
 
