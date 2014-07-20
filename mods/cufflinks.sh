@@ -66,7 +66,7 @@ CHECKPOINT="parameters"
 
 # get basename of f (samplename)
 n=${f##*/}
-SAMPLE=${n/%.$ASD.bam/}
+SAMPLE=${n/%$ASD.bam/}
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"

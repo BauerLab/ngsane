@@ -69,11 +69,10 @@ echo -e "\n********* $CHECKPOINT\n"
 CHECKPOINT="parameters"
 
 # get basename of f
-f=${f/%.dummy/} #if input came from pip
 n=${f##*/}
-SAMPLE=${n/%.$ASD.bam/}
+SAMPLE=${n/%$ASD.bam/}
 c=${CHIPINPUT##*/}
-CONTROL=${c/%.$ASD.bam/}
+CONTROL=${c/%$ASD.bam/}
 
 if [ -z "$FASTA" ] || [ ! -f $FASTA ]; then
     echo "[ERROR] no reference provided (FASTA)"

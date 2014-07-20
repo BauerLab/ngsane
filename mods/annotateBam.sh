@@ -6,7 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/$INPUT_BAMANN/<SAMPLE>.$ASD.bam.merg.anno.bed
+# RESULTFILENAME <DIR>/$INPUT_BAMANN/<SAMPLE>$ASD.bam.merg.anno.bed
 
 echo ">>>>> Annotate BAM file "
 echo ">>>>> startdate "`date`
@@ -70,6 +70,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$ASD.bam/}
 
 # check library variables are set
 if [[ -z "$BAMANNLIB" ]]; then

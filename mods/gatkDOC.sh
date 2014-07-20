@@ -6,7 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
-# RESULTFILENAME <DIR>/$TASK_GATKDOC/<SAMPLE>.$ASR.bam.doc
+# RESULTFILENAME <DIR>/$TASK_GATKDOC/<SAMPLE>$ASR.bam.doc
 
 echo ">>>>> determine the depth of coverage with GATK"
 echo ">>>>> startdate "`date`

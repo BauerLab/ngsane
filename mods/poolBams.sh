@@ -69,12 +69,12 @@ for d in ${DIR[@]}; do
     while read -r -a POOL; do
         PATTERN=$(echo "${POOL[@]:1}" | sed -e 's/ /|/g')
 
-        OUTBAM="$OUT/$d/$INPUT_POOLBAMS/$(echo $POOL | cut -d' ' -f1).$ASD.bam"
+        OUTBAM="$OUT/$d/$INPUT_POOLBAMS/$(echo $POOL | cut -d' ' -f1)$ASD.bam"
         [ -f $OUTBAM ] && rm $OUTBAM
 
         INBAMS=""
         COMMENT=""
-        for i in $(ls $OUT/$d/$INPUT_POOLBAMS/*$ASD.bam | egrep "$PATTERN"); do 
+        for i in $(ls $OUT/$d/$INPUT_POOLBAMS/$ASD.bam | egrep "$PATTERN"); do 
             INBAMS="$INBAMS INPUT=$i"
             COMMENT="$COMMENT ${i##*/}"
         done        

@@ -60,3 +60,4 @@ clean:
 	rm -f referenceData/chr16.*.bt2
 	rm -f referenceData/chr16_HiCcopy.*
 	rm -f referenceData/chr16_RNAseqcopy.*
+	rm -f hs_err_pid*

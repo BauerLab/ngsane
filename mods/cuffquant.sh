@@ -56,7 +56,7 @@ CHECKPOINT="parameters"
 
 # get basename of f (samplename)
 n=${INPUTFILE##*/}
-SAMPLE=${n/%.$ASD.bam/}
+SAMPLE=${n/%$ASD.bam/}
 
 if [ -z "$MERGED_GTF_NAME" ]; then
     echo "[ERROR] MERGED_GTF_NAME not specified"

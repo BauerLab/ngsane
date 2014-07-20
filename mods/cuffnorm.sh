@@ -55,7 +55,7 @@ echo "[NOTE] Files: $FILES"
 DATASETS=""
 for f in $FILES; do
     n=$(dirname ${f})
-#    n=$(dirname ${f/%.$ASD.bam/.cxb}
+#    n=$(dirname ${f/%$ASD.bam/.cxb}
     FILE=${n/$TASK_TOPHAT/$TASK_CUFFLINKS}/abundances.cxb
 
 #     get directory

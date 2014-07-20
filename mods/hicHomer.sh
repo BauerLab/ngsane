@@ -69,10 +69,10 @@ CHECKPOINT="parameters"
 # get basename of f
 if [ -z "$POOLED_DATA_NAME" ]; then 
     n=${f##*/}
-    SAMPLE=${n/%$READONE.$ASD.bam/}
+    SAMPLE=${n/%$READONE$ASD.bam/}
     
     #is paired ?                                                                                                      
-    if [ "$f" != "${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam}" ] && [ -e ${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} ]; then
+    if [ "$f" != "${f/%$READONE$ASD.bam/$READTWO$ASD.bam}" ] && [ -e ${f/%$READONE$ASD.bam/$READTWO$ASD.bam} ]; then
         PAIRED="1"
     else
         PAIRED="0"
@@ -83,7 +83,7 @@ else
     SAMPLE=$POOLED_DATA_NAME
     array=(${f//,/ })
     #is paired ?                                                                                                      
-    if [ "${array[i]}" != "${array[i]/%$READONE.$ASD.bam/$READTWO.$ASD.bam}" ] && [ -e ${array[i]/%$READONE.$ASD.bam/$READTWO.$ASD.bam} ]; then
+    if [ "${array[i]}" != "${array[i]/%$READONE$ASD.bam/$READTWO$ASD.bam}" ] && [ -e ${array[i]/%$READONE$ASD.bam/$READTWO$ASD.bam} ]; then
         PAIRED="1"
     else
         PAIRED="0"
@@ -133,16 +133,16 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else
 
     if [ -z "$POOLED_DATA_NAME" ]; then 
-        cp $f ${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} $THISTMP
-        RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered" $THISTMP/$n,$THISTMP/${n/%$READONE.$ASD.bam/$READTWO.$ASD.bam} -format sam -illuminaPE -tbp 1"
+        cp $f ${f/%$READONE$ASD.bam/$READTWO$ASD.bam} $THISTMP
+        RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered" $THISTMP/$n,$THISTMP/${n/%$READONE$ASD.bam/$READTWO$ASD.bam} -format sam -illuminaPE -tbp 1"
     else
         # pool data
         RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered
         array=(${f//,/ })
         for i in "${!array[@]}"; do
-            cp ${array[i]} ${array[i]/%$READONE.$ASD.bam/$READTWO.$ASD.bam} $THISTMP
+            cp ${array[i]} ${array[i]/%$READONE$ASD.bam/$READTWO$ASD.bam} $THISTMP
             n=${array[i]##*/} 
-            RUN_COMMAND="$RUN_COMMAND $THISTMP/$n,$THISTMP/${n/%$READONE.$ASD.bam/$READTWO.$ASD.bam}"
+            RUN_COMMAND="$RUN_COMMAND $THISTMP/$n,$THISTMP/${n/%$READONE$ASD.bam/$READTWO$ASD.bam}"
         done
         RUN_COMMAND="$RUN_COMMAND -format sam -illuminaPE -tbp 1"
     fi

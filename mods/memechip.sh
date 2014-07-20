@@ -57,7 +57,7 @@ echo -e "--bedtools    --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 echo -e "--perl        --\n "$(perl -v | grep "This is perl" )
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
-echo -e "--meme-chip   --\n "$(cat `which meme`.bin | strings | grep -A 2 "MEME - Motif discovery tool" | tail -n 1)
+echo -e "--meme-chip   --\n "$(cat `which meme` | strings | grep -A 2 "MEME - Motif discovery tool" | tail -n 1)
 [ -z "$(which meme-chip)" ] && echo "[ERROR] meme-chip not detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT\n"

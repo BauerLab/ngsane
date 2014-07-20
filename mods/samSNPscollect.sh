@@ -87,9 +87,9 @@ n=${f##*/}
 
 # delete old bam file
 #if [ -z "$RECOVERFROM" ]; then
-#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
-#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
-#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
+#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/$ASD.bam} ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/$ASD.bam}; fi
+#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/$ASD.bam}.stats ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/$ASD.bam}.stats; fi
+#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/$ASD.bam}.dupl ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/$ASD.bam}.dupl; fi
 #fi
 # ensure dir is there
 if [ ! -d $OUTDIR ]; then mkdir -p $OUTDIR; fi

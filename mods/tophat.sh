@@ -11,7 +11,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,truncated file
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>$ASD.bam
 
 echo ">>>>> readmapping with Tophat "
 echo ">>>>> startdate "`date`
@@ -117,7 +117,7 @@ if [[ ! -e ${FASTA%.*}.1.bt2 ]]; then
 fi
 
 # get info about input file
-BAMFILE=$OUTDIR/../$SAMPLE.$ASD.bam
+BAMFILE=$OUTDIR/../$SAMPLE$ASD.bam
 
 #remove old files
 if [ -z "$RECOVERFROM" ]; then
@@ -399,14 +399,14 @@ else
 
     echo "[NOTE] extract mapped reads"
     if [ "$PAIRED" = "1" ]; then
-        samtools view -@ $CPU_TOPHAT -f 3 -h -b $BAMFILE > ${BAMFILE/.$ASD/.$ALN}
+        samtools view -@ $CPU_TOPHAT -f 3 -h -b $BAMFILE > ${BAMFILE/$ASD/$ALN}
     else
-        samtools view -@ $CPU_TOPHAT -F 4 -h -b $BAMFILE > ${BAMFILE/.$ASD/.$ALN}
+        samtools view -@ $CPU_TOPHAT -F 4 -h -b $BAMFILE > ${BAMFILE/$ASD/$ALN}
     fi
-    samtools index ${BAMFILE/.$ASD/.$ALN}
+    samtools index ${BAMFILE/$ASD/$ALN}
 
     # mark checkpoint
-    if [ -f ${BAMFILE/.$ASD/.$ALN} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f ${BAMFILE/$ASD/$ALN} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -418,7 +418,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     
     #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-	RUN_COMMAND="Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R ${BAMFILE/.$ASD/.$ALN} ${n/%$READONE.$FASTQ/} $BAM2BW_OPTION_1 $OUTDIR/../ $BAM2BW_OPTION_2 $BAM2BW_OPTION_ISPAIRED"
+	RUN_COMMAND="Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R ${BAMFILE/$ASD/$ALN} ${n/%$READONE.$FASTQ/} $BAM2BW_OPTION_1 $OUTDIR/../ $BAM2BW_OPTION_2 $BAM2BW_OPTION_ISPAIRED"
 	echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
@@ -429,8 +429,8 @@ fi
 ###############################################################################
 CHECKPOINT="cleanup"
 
-[ -e ${BAMFILE/.$ASD/.$ALN} ] && rm ${BAMFILE/.$ASD/.$ALN} 
-[ -e ${BAMFILE/.$ASD/.$ALN}.bai ] && rm ${BAMFILE/.$ASD/.$ALN}.bai
+[ -e ${BAMFILE/$ASD/$ALN} ] && rm ${BAMFILE/$ASD/$ALN} 
+[ -e ${BAMFILE/$ASD/$ALN}.bai ] && rm ${BAMFILE/$ASD/$ALN}.bai
 [ -d $THISTMP ] && rm -r $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
