@@ -56,7 +56,7 @@ OLDFS=$IFS
 IFS=","
 DATASETS=""
 for f in $FILES; do
-    n=${f/%.$ASD.bam/}
+    n=${f/%$ASD.bam/}
     FILE=${n/$TASK_TOPHAT/$TASK_CUFFLINKS}
     # get directory
     d=$(dirname $f)

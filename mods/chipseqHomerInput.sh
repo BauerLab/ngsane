@@ -63,7 +63,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${CHIPINPUT##*/}
-SAMPLE=${n/%.$ASD.bam/}
+SAMPLE=${n/%$ASD.bam/}
 
 if [ -z "$CHIPINPUT" ]; then
     echo "[ERROR] no CHIPINPUT detected: $CHIPINPUT"

@@ -56,7 +56,7 @@ OLDFS=$IFS
 IFS=","
 DATASETS=""
 for f in $FILES; do
-    n=${f/%.$ASD.bam/}
+    n=${f/%$ASD.bam/}
     FILE=${n/$TASK_TOPHAT/$TASK_CUFFLINKS}
     # get directory
     d=$(dirname $f)
@@ -121,7 +121,7 @@ echo $FILES
 for f in $FILES
      do
       echo "$f"
-      xx=${f/%.$ASD.bam/}                
+      xx=${f/%$ASD.bam/}                
      [ -f $f ] && cuffquant -p $CPU_CUFFLINKS ${OUTDIR}/merged.gtf $f --output-dir ${xx/$TASK_TOPHAT/$TASK_CUFFLINKS}       
      done
 

@@ -7,7 +7,7 @@
 # date: July 2014
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>$ASD.bam
 
 echo ">>>>> readmapping with Yara "
 echo ">>>>> startdate "`date`
@@ -104,9 +104,9 @@ fi
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    [ -e $OUTDIR/$SAMPLE.$ASD.bam ] && rm $OUTDIR/$SAMPLE.$ASD.bam
-    [ -e $OUTDIR/$SAMPLE.$ASD.bam.stats ] && rm $OUTDIR/$SAMPLE.$ASD.bam.stats
-    [ -e $OUTDIR/$SAMPLE.$ASD.bam.dupl ] && rm $OUTDIR/$SAMPLE.$ASD.bam.dupl
+    [ -e $OUTDIR/$SAMPLE$ASD.bam ] && rm $OUTDIR/$SAMPLE$ASD.bam
+    [ -e $OUTDIR/$SAMPLE$ASD.bam.stats ] && rm $OUTDIR/$SAMPLE$ASD.bam.stats
+    [ -e $OUTDIR/$SAMPLE$ASD.bam.dupl ] && rm $OUTDIR/$SAMPLE$ASD.bam.dupl
 fi
 
 #is ziped ?
@@ -171,24 +171,24 @@ else
         
     if [ "$PAIRED" = "0" ]; then
 
-        RUN_COMMAND="yara_mapper $YARA_MAPPERADDPARAM --threads $CPU_YARA --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTA $f"
+        RUN_COMMAND="yara_mapper $YARA_MAPPERADDPARAM --threads $CPU_YARA --output-file $THISTMP/$SAMPLE$ALN.sam $FASTA $f"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
         
     elif [ "$PAIRED" = "1" ]; then
 
-        RUN_COMMAND="yara_mapper $YARA_MAPPERADDPARAM --threads $CPU_YARA --output-file $THISTMP/$SAMPLE.$ALN.sam $FASTA $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
+        RUN_COMMAND="yara_mapper $YARA_MAPPERADDPARAM --threads $CPU_YARA --output-file $THISTMP/$SAMPLE$ALN.sam $FASTA $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
     fi
 
     # bam file conversion                                                                        
-    samtools view -Sb $THISTMP/$SAMPLE.$ALN.sam > $THISTMP/$SAMPLE.$ALN.bam 
-    samtools sort -@ $CPU_YARA $THISTMP/$SAMPLE.$ALN.bam $OUTDIR/$SAMPLE.ash
+    samtools view -Sb $THISTMP/$SAMPLE$ALN.sam > $THISTMP/$SAMPLE$ALN.bam 
+    samtools sort -@ $CPU_YARA $THISTMP/$SAMPLE$ALN.bam $OUTDIR/$SAMPLE.ash
 
     # cleanup
-    [ -e $OUTDIR/$SAMPLE.$ALN.bam ] && rm $OUTDIR/$SAMPLE.$ALN.bam
-    [ -e $OUTDIR/$SAMPLE.$ALN.sam ] && rm $OUTDIR/$SAMPLE.$ALN.sam
+    [ -e $OUTDIR/$SAMPLE$ALN.bam ] && rm $OUTDIR/$SAMPLE$ALN.bam
+    [ -e $OUTDIR/$SAMPLE$ALN.sam ] && rm $OUTDIR/$SAMPLE$ALN.sam
        
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE.ash.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -224,15 +224,15 @@ else
     if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
         INPUT=$OUTDIR/$SAMPLE.ashrg.bam \
-        OUTPUT=$OUTDIR/$SAMPLE.$ASD.bam \
-        METRICS_FILE=$OUTDIR/metrices/$SAMPLE.$ASD.bam.dupl AS=true \
+        OUTPUT=$OUTDIR/$SAMPLE$ASD.bam \
+        METRICS_FILE=$OUTDIR/metrices/$SAMPLE$ASD.bam.dupl AS=true \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
         
-    samtools index $OUTDIR/$SAMPLE.$ASD.bam
+    samtools index $OUTDIR/$SAMPLE$ASD.bam
           
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
     #cleanup
     [ -e $OUTDIR/$SAMPLE.ashrg.bam ] && rm $OUTDIR/$SAMPLE.ashrg.bam
@@ -246,12 +246,12 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    STATSOUT=$OUTDIR/$SAMPLE.$ASD.bam.stats
-    samtools flagstat $OUTDIR/$SAMPLE.$ASD.bam > $STATSOUT
+    STATSOUT=$OUTDIR/$SAMPLE$ASD.bam.stats
+    samtools flagstat $OUTDIR/$SAMPLE$ASD.bam > $STATSOUT
     if [ -n "$SEQREG" ]; then
         echo "#custom region" >> $STATSOUT
-        echo $(samtools view -@ $CPU_YARA -c -F 4 $OUTDIR/$SAMPLE.$ASD.bam $SEQREG )" total reads in region " >> $STATSOUT
-        echo $(samtools view -@ $CPU_YARA -c -f 3 $OUTDIR/$SAMPLE.$ASD.bam $SEQREG )" properly paired reads in region " >> $STATSOUT
+        echo $(samtools view -@ $CPU_YARA -c -F 4 $OUTDIR/$SAMPLE$ASD.bam $SEQREG )" total reads in region " >> $STATSOUT
+        echo $(samtools view -@ $CPU_YARA -c -f 3 $OUTDIR/$SAMPLE$ASD.bam $SEQREG )" properly paired reads in region " >> $STATSOUT
     fi
 
     # mark checkpoint
@@ -266,9 +266,9 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
-        INPUT=$OUTDIR/$SAMPLE.$ASD.bam \
+        INPUT=$OUTDIR/$SAMPLE$ASD.bam \
         REFERENCE_SEQUENCE=$FASTA \
-        OUTPUT=$OUTDIR/metrices/$SAMPLE.$ASD.bam \
+        OUTPUT=$OUTDIR/metrices/$SAMPLE$ASD.bam \
         VALIDATION_STRINGENCY=LENIENT \
         PROGRAM=CollectAlignmentSummaryMetrics \
         PROGRAM=CollectInsertSizeMetrics \
@@ -279,7 +279,7 @@ else
     done
 
     # mark checkpoint
-    if [ -f $OUTDIR/metrices/$SAMPLE.$ASD.bam.alignment_summary_metrics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/metrices/$SAMPLE$ASD.bam.alignment_summary_metrics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
@@ -289,9 +289,9 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $OUTDIR/$SAMPLE.$ASD.bam $OUTDIR/$SAMPLE.$ASD.bam.cov.tdf ${FASTA/.$FASTASUFFIX/}.genome
+    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $OUTDIR/$SAMPLE$ASD.bam $OUTDIR/$SAMPLE$ASD.bam.cov.tdf ${FASTA/.$FASTASUFFIX/}.genome
     # mark checkpoint
-    [ -f $OUTDIR/$SAMPLE.$ASD.bam.cov.tdf ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    [ -f $OUTDIR/$SAMPLE$ASD.bam.cov.tdf ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -301,17 +301,17 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    samstat $OUTDIR/$SAMPLE.$ASD.bam
+    samstat $OUTDIR/$SAMPLE$ASD.bam
 
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.$ASD.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE$ASD.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
 fi
 
 ###############################################################################
 CHECKPOINT="verify"    
 
-BAMREADS=$(head -n1 $OUTDIR/$SAMPLE.$ASD.bam.stats | cut -d " " -f 1)
+BAMREADS=$(head -n1 $OUTDIR/$SAMPLE$ASD.bam.stats | cut -d " " -f 1)
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "[NOTE] PASS check mapping: $BAMREADS == $FASTQREADS"
@@ -329,6 +329,6 @@ CHECKPOINT="cleanup"
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e $OUTDIR/$SAMPLE.$ASD.bam.dummy ] && rm $OUTDIR/$SAMPLE.$ASD.bam.dummy
+[ -e $OUTDIR/$SAMPLE$ASD.bam.dummy ] && rm $OUTDIR/$SAMPLE$ASD.bam.dummy
 echo ">>>>> readmapping with Yara - FINISHED"
 echo ">>>>> enddate "`date`

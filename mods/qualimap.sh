@@ -73,7 +73,7 @@ CHECKPOINT="parameters"
 # get basename of f
 f=${f/%.dummy/} #if input came from pip
 n=${f##*/}
-SAMPLE=${n/%.$ASD.bam/}
+SAMPLE=${n/%$ASD.bam/}
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################

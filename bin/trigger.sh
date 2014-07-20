@@ -305,7 +305,7 @@ fi
 if [ -n "$RUNANNOTATINGBAM" ]; then
     if [ -z "$TASK_BAMANN" ] || [ -z "$NODES_BAMANN" ] || [ -z "$CPU_BAMANN" ] || [ -z "$MEMORY_BAMANN" ] || [ -z "$WALLTIME_BAMANN" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB --nodir -r $ARMED -k $CONFIG -t $TASK_BAMANN -i $INPUT_BAMANN -e .$ASD.bam \
+    $QSUB --nodir -r $ARMED -k $CONFIG -t $TASK_BAMANN -i $INPUT_BAMANN -e $ASD.bam \
     -n $NODES_BAMANN -c $CPU_BAMANN -m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN \
         --command "${NGSANE_BASE}/mods/annotateBam.sh -k $CONFIG -f <FILE>"
 fi
@@ -320,7 +320,7 @@ fi
 if [ -n "$RUNSAMVAR" ]; then
     if [ -z "$TASK_BWA" ] || [ -z "$NODES_SAMVAR" ] || [ -z "$CPU_SAMVAR" ] || [ -z "$MEMORY_SAMVAR" ] || [ -z "$WALLTIME_SAMVAR" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB -r $ARMED -k $CONFIG -t $INPUT_SAMVAR-$TASK_SAMVAR -i $INPUT_SAMVAR -e .$ASD.bam \
+    $QSUB -r $ARMED -k $CONFIG -t $INPUT_SAMVAR-$TASK_SAMVAR -i $INPUT_SAMVAR -e $ASD.bam \
        -n $NODES_SAMVAR -c $CPU_SAMVAR -m $MEMORY_SAMVAR'G' -w $WALLTIME_SAMVAR \
 		--postnodes $NODES_VARCOLLECT --postcpu $CPU_VARCOLLECT \
 		--postwalltime $WALLTIME_VARCOLLECT --postmemory $MEMORY_VARCOLLECT"G" \
@@ -337,7 +337,7 @@ fi
 
 if [ -n "$RUNVARCALLS" ]; then
     NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
-    $QSUB $ARMED -r -d -k $CONFIG -t $TASK_GATKVAR -i $INPUT_GATKVAR  -e .$ASR.bam -n $NODES_GATKVAR \
+    $QSUB $ARMED -r -d -k $CONFIG -t $TASK_GATKVAR -i $INPUT_GATKVAR  -e $ASR.bam -n $NODES_GATKVAR \
         -c $CPU_GATKVAR -m $MEMORY_GATKVAR"G" -w $WALLTIME_GATKVAR \
         --postcommand "${NGSANE_BASE}/mods/gatkVARs.sh -k $CONFIG \
                         -i <FILE> -t $CPU_GATKVAR \
@@ -360,7 +360,7 @@ if [ -n "$RUNVARCALLSBATCH" ]; then
 			echo "[NOTE] Batch $i"
 			export ADDDUMMY=$i
 	    	JOBID=$( $QSUB $ARMED --postname postcommand$i -r -d -k $CONFIG -t ${TASK_GATKVAR}batch -i $INPUT_GATKVAR  \
-				-e .$ASR.bam -n $NODES_GATKVAR -c $CPU_GATKVAR -m $MEMORY_GATKVAR"G" -w $WALLTIME_GATKVAR \
+				-e $ASR.bam -n $NODES_GATKVAR -c $CPU_GATKVAR -m $MEMORY_GATKVAR"G" -w $WALLTIME_GATKVAR \
 	        	--postcommand "${NGSANE_BASE}/mods/gatkVARs.sh -k $CONFIG \
 	                        -i <FILE> -t $CPU_GATKVAR \
 	                        -r $FASTA -d $DBSNPVCF -o $OUT/${TASK_GATKVAR}batch/$NAME -n $NAME$ADDDUMMY \
@@ -401,7 +401,7 @@ fi
 ################################################################################
 
 if [ -n "$RUNDEPTHOFCOVERAGE" ]; then
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_GATKDOC -i $INPUT_GATKDOC -e .$ASR.bam \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_GATKDOC -i $INPUT_GATKDOC -e $ASR.bam \
 	-n $NODES_GATKDOC -c $CPU_GATKDOC -m $MEMORY_GATKDOC"G" -w $WALLTIME_GATKDOC \
 	--command "${NGSANE_BASE}/mods/gatkDOC.sh -k $CONFIG -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASK_GATKDOC -t $CPU_GATKDOC"
 fi
@@ -494,7 +494,7 @@ fi
 #   Mapping using BWA
 #
 # IN : $SOURCE/$dir/fastq/*read1.fastq
-# OUT: $OUT/$dir/bwa/*.$ASD.bam
+# OUT: $OUT/$dir/bwa/*$ASD.bam
 ################################################################################
 
 if [ -n "$RUNMAPPINGBWA" ]; then
@@ -649,7 +649,7 @@ fi
 if [ -n "$RUNRNASEQC" ]; then
     if [ -z "$TASK_RNASEQC" ] || [ -z "$NODES_RNASEQC" ] || [ -z "$CPU_RNASEQC" ] || [ -z "$MEMORY_RNASEQC" ] || [ -z "$WALLTIME_RNASEQC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_RNASEQC -i $INPUT_RNASEQC -e .$ASD.bam -n $NODES_RNASEQC -c $CPU_RNASEQC -m $MEMORY_RNASEQC"G" -w $WALLTIME_RNASEQC \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_RNASEQC -i $INPUT_RNASEQC -e $ASD.bam -n $NODES_RNASEQC -c $CPU_RNASEQC -m $MEMORY_RNASEQC"G" -w $WALLTIME_RNASEQC \
         --command "${NGSANE_BASE}/mods/rnaseqc.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_RNASEQC/<NAME>"
 
 fi
@@ -664,7 +664,7 @@ fi
 if [ -n "$RUNCUFFLINKS" ]; then
     if [ -z "$TASK_CUFFLINKS" ] || [ -z "$NODES_CUFFLINKS" ] || [ -z "$CPU_CUFFLINKS" ] || [ -z "$MEMORY_CUFFLINKS" ] || [ -z "$WALLTIME_CUFFLINKS" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_CUFFLINKS -i $INPUT_CUFFLINKS -e .$ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS  \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_CUFFLINKS -i $INPUT_CUFFLINKS -e $ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS  \
         --command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFLINKS/<NAME>"
         --postcommand "${NGSANE_BASE}/mods/cuffpost.sh -f <FILE> -k $CONFIG --outdir $OUT/cuffmerge/$TASK_CUFFLINKS-<DIR>"
 fi
@@ -679,7 +679,7 @@ fi
 if [ -n "$RUNHTSEQCOUNT" ]; then
     if [ -z "$TASK_HTSEQCOUNT" ] || [ -z "$NODES_HTSEQCOUNT" ] || [ -z "$CPU_HTSEQCOUNT" ] || [ -z "$MEMORY_HTSEQCOUNT" ] || [ -z "$WALLTIME_HTSEQCOUNT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_HTSEQCOUNT -i $INPUT_HTSEQCOUNT -e .$ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_HTSEQCOUNT -i $INPUT_HTSEQCOUNT -e $ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT \
         --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HTSEQCOUNT/<NAME>" \
         --postname postcommand$HTSEQCOUNT_TABLE_FOLDERNAME \
         --postcommand "${NGSANE_BASE}/mods/countsTable.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/<DIR>"
@@ -736,13 +736,13 @@ if [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
    JOBIDS=$(waitForJobIds "$JOBIDS")
 
     # instruct to wait for TOPHATJOBIDS to finish
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_CUFFLINKS -i $INPUT_CUFFLINKS -e .$ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS $JOBIDS \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_CUFFLINKS -i $INPUT_CUFFLINKS -e $ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS $JOBIDS \
         --command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFLINKS/<NAME>"
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_HTSEQCOUNT -i $INPUT_HTSEQCOUNT -e .$ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT $JOBIDS \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_HTSEQCOUNT -i $INPUT_HTSEQCOUNT -e $ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT $JOBIDS \
         --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HTSEQCOUNT/<NAME>"      
     
-    $QSUB --nodir -r $ARMED -k $CONFIG -t $TASK_BAMANN -i $INPUT_BAMANN -e .$ASD.bam -n $NODES_BAMANN -c $CPU_BAMANN -m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN $JOBIDS \
+    $QSUB $ARMED --nodir -r -k $CONFIG -t $TASK_BAMANN -i $INPUT_BAMANN -e $ASD.bam -n $NODES_BAMANN -c $CPU_BAMANN -m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN $JOBIDS \
         --command "${NGSANE_BASE}/mods/annotateBam.sh -k $CONFIG -f <FILE>"
 
 fi
@@ -750,35 +750,34 @@ fi
 ################################################################################
 #   Create Bigwig from Bam
 #
-# IN:$SOURCE/$dir/bowtie/*.bam
-# OUT: $OUT/$dir/bowtie/*.bw
+# IN : $SOURCE/$dir/INPUT_BIGWIG/*.bam
+# OUT: $OUT/$dir/TASK_BIGWIG/*.bw
 ################################################################################
 
 if [ -n "$RUNBIGWIG" ]; then
     if [ -z "$TASK_BIGWIG" ] || [ -z "$NODES_BIGWIG" ] || [ -z "$CPU_BIGWIG" ] || [ -z "$MEMORY_BIGWIG" ] || [ -z "$WALLTIME_BIGWIG" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED --nodir -r -k $CONFIG -t $TASK_BIGWIG -i $INPUT_BIGWIG -e .$ASD.bam -n $NODES_BIGWIG -c $CPU_BIGWIG -m $MEMORY_BIGWIG"G" -w $WALLTIME_BIGWIG \
-        --command "${NGSANE_BASE}/mods/bigwig.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$INPUT_BIGWIG"
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_BIGWIG -i $INPUT_BIGWIG -e $ASD.bam -n $NODES_BIGWIG -c $CPU_BIGWIG -m $MEMORY_BIGWIG"G" -w $WALLTIME_BIGWIG \
+        --command "${NGSANE_BASE}/mods/bigwig.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_BIGWIG"
             
 fi
-
 
 ################################################################################
 #  HiC analysis with homer
 #
-# IN: $SOURCE/$dir/bwa/*.bam
-# OUT: $OUT/$dir/homerhic/
+# IN : $SOURCE/$dir/INPIUT_HOMERHIC/*.bam
+# OUT: $OUT/$dir/TASK_HOMERHIC/
 ################################################################################
 if [ -n "$RUNHOMERHIC" ]; then
     if [ -z "$TASK_HOMERHIC" ] || [ -z "$NODES_HOMERHIC" ] || [ -z "$CPU_HOMERHIC" ] || [ -z "$MEMORY_HOMERHIC" ] || [ -z "$WALLTIME_HOMERHIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
     if [ -z "$POOLED_DATA_NAME" ]; then 
         # don't pool data
-        $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERHIC -i $INPUT_HOMERHIC -e $READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
+        $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERHIC -i $INPUT_HOMERHIC -e $ASD$READONE$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
 	   --command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERHIC"
     else
         # pool data
-        $QSUB $ARMED --postname postcommand$POOLED_DATA_NAME -r -k $CONFIG -t $TASK_HOMERHIC -i $INPUT_HOMERHIC -e $READONE.$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
+        $QSUB $ARMED --postname postcommand$POOLED_DATA_NAME -r -k $CONFIG -t $TASK_HOMERHIC -i $INPUT_HOMERHIC -e $READONE$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
 	   --postcommand "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERHIC"
    
     fi
@@ -794,7 +793,7 @@ fi
 if [ -n "$RUNCHANCE" ]; then
     if [ -z "$TASK_CHANCE" ] || [ -z "$NODES_CHANCE" ] || [ -z "$CPU_CHANCE" ] || [ -z "$MEMORY_CHANCE" ] || [ -z "$WALLTIME_CHANCE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_CHANCE -i $INPUT_CHANCE -e .$ASD.bam -n $NODES_CHANCE -c $CPU_CHANCE -m $MEMORY_CHANCE"G" -w $WALLTIME_CHANCE \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_CHANCE -i $INPUT_CHANCE -e $ASD.bam -n $NODES_CHANCE -c $CPU_CHANCE -m $MEMORY_CHANCE"G" -w $WALLTIME_CHANCE \
 	   --command "${NGSANE_BASE}/mods/chance.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CHANCE"
 fi
 
@@ -810,7 +809,7 @@ if [ -n "$RUNHOMERCHIPSEQ" ]; then
 
     if  [ -n "$CHIPINPUT" ];then
         JOBIDS=$( 
-        $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e .$ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ \
+        $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e $ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ \
         	-m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ --commontask ${CONFIG##*/} \
             --command "${NGSANE_BASE}/mods/chipseqHomerInput.sh -k $CONFIG" 
         ) && echo -e "$JOBIDS"
@@ -820,7 +819,7 @@ if [ -n "$RUNHOMERCHIPSEQ" ]; then
         JOBIDS=""
     fi
     
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e .$ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e $ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m \
         $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ $JOBIDS \
         --command "${NGSANE_BASE}/mods/chipseqHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERCHIPSEQ"
 fi
@@ -834,7 +833,7 @@ fi
 if [ -n "$RUNPEAKRANGER" ]; then
     if [ -z "$TASK_PEAKRANGER" ] || [ -z "$NODES_PEAKRANGER" ] || [ -z "$CPU_PEAKRANGER" ] || [ -z "$MEMORY_PEAKRANGER" ] || [ -z "$WALLTIME_PEAKRANGER" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_PEAKRANGER -i $INPUT_PEAKRANGER -e .$ASD.bam -n $NODES_PEAKRANGER -c $CPU_PEAKRANGER -m $MEMORY_PEAKRANGER"G" -w $WALLTIME_PEAKRANGER \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_PEAKRANGER -i $INPUT_PEAKRANGER -e $ASD.bam -n $NODES_PEAKRANGER -c $CPU_PEAKRANGER -m $MEMORY_PEAKRANGER"G" -w $WALLTIME_PEAKRANGER \
 	   --command "${NGSANE_BASE}/mods/peakranger.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_PEAKRANGER"
 fi
 
@@ -847,7 +846,7 @@ fi
 if [ -n "$RUNMACS2" ]; then
     if [ -z "$TASK_MACS2" ] || [ -z "$NODES_MACS2" ] || [ -z "$CPU_MACS2" ] || [ -z "$MEMORY_MACS2" ] || [ -z "$WALLTIME_MACS2" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_MACS2 -i $INPUT_MACS2 -e .$ASD.bam -n $NODES_MACS2 -c $CPU_MACS2 -m $MEMORY_MACS2"G" -w $WALLTIME_MACS2 \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_MACS2 -i $INPUT_MACS2 -e $ASD.bam -n $NODES_MACS2 -c $CPU_MACS2 -m $MEMORY_MACS2"G" -w $WALLTIME_MACS2 \
 	   --command "${NGSANE_BASE}/mods/macs2.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_MACS2"
 fi
 
@@ -874,7 +873,7 @@ fi
 if [ -n "$RUNWIGGLER" ]; then
     if [ -z "$TASK_WIGGLER" ] || [ -z "$NODES_WIGGLER" ] || [ -z "$CPU_WIGGLER" ] || [ -z "$MEMORY_WIGGLER" ] || [ -z "$WALLTIME_WIGGLER" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_WIGGLER -i $INPUT_WIGGLER -e .$ASD.bam -n $NODES_WIGGLER -c $CPU_WIGGLER -m $MEMORY_WIGGLER"G" -w $WALLTIME_WIGGLER \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_WIGGLER -i $INPUT_WIGGLER -e $ASD.bam -n $NODES_WIGGLER -c $CPU_WIGGLER -m $MEMORY_WIGGLER"G" -w $WALLTIME_WIGGLER \
         --command "${NGSANE_BASE}/mods/wiggler.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_WIGGLER" 
 fi
 
@@ -885,12 +884,12 @@ fi
 #   http://picard.sourceforge.net/command-line-overview.shtml#FixMateInformation
 #   full pipe: http://www.broadinstitute.org/gsa/wiki/index.php/Whole_genome,_deep_coverage
 # IN:$SOURCE/$dir/fastq/*$READONE.fastq
-# OUT: $OUT/$dir/reCal/*.$ASR.bam
+# OUT: $OUT/$dir/reCal/*$ASR.bam
 ################################################################################
 
 if [ -n "$RUNREALRECAL" ]; then
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_RECAL -i $INPUT_REALRECAL -e .$ASD.bam \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_RECAL -i $INPUT_REALRECAL -e $ASD.bam \
         -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
         --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBSNPVCF -o $OUT/<DIR>/$TASK_RECAL"
 
@@ -906,7 +905,7 @@ fi
 if [ -n "$RUNPOOLBAMS" ]; then
     if [ -z "$TASK_POOLBAMS" ] || [ -z "$NODES_POOLBAMS" ] || [ -z "$CPU_POOLBAMS" ] || [ -z "$MEMORY_POOLBAMS" ] || [ -z "$WALLTIME_POOLBAMS" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -r -d -k $CONFIG -t $TASK_POOLBAMS -i $INPUT_POOLBAMS -e .$ASD.bam -n $NODES_POOLBAMS \
+    $QSUB $ARMED -r -d -k $CONFIG -t $TASK_POOLBAMS -i $INPUT_POOLBAMS -e $ASD.bam -n $NODES_POOLBAMS \
     	-c $CPU_POOLBAMS -m $MEMORY_POOLBAMS"G" -w $WALLTIME_POOLBAMS \
     	--postname postcommand${POOLED_DATA_NAME} \
     	--postcommand "${NGSANE_BASE}/mods/poolBams.sh -k $CONFIG" 
@@ -927,7 +926,7 @@ if [ -n "$RUNDOWNSAMPLING" ]; then
       if [ ! -d $OUT/$dir/$TASK_DOWNSAMPLE ]; then mkdir -p $OUT/$dir/$TASK_DOWNSAMPLE; fi
 
 
-      for f in $( ls $OUT/$dir/$TASK_RECAL/*$ASR.bam ); do
+      for f in $( ls $OUT/$dir/$TASK_RECAL/$ASR.bam ); do
           n=`basename $f`
           NAME=$dir"_"$n
           echo $dir"/"$TASK_RECAL"/"$NAME" -> "$dir/$TASK_DOWNSAMPLE
@@ -995,7 +994,7 @@ then
 	do
 	
 	n=`basename $f`
-	n2=${n/%$READONE.$FASTQ/.$ASD.bam}
+	n2=${n/%$READONE.$FASTQ/$ASD.bam}
 	name=${n/%$READONE.$FASTQ/}
 	echo -e ">>>>>"$dir$n2
 
@@ -1018,7 +1017,7 @@ then
     done
 
 # echo $( ls Hannibal_FC30MEJAAXX/downsample/*500d.bam ) > mergeBamfiles500d.tmp
-# qsub -b y -cwd -j y -o qout/$COMBDIR/merged.asd.500d -pe mpich 2 /clusterdata/hiseq_apps/hiSeqInf/mods/merge.sh ${NGSANE_BASE} mergeBamfiles500d.tmp merged merged.$ASD.500d.bam bam
+# qsub -b y -cwd -j y -o qout/$COMBDIR/merged.asd.500d -pe mpich 2 /clusterdata/hiseq_apps/hiSeqInf/mods/merge.sh ${NGSANE_BASE} mergeBamfiles500d.tmp merged merged$ASD.500d.bam bam
 
 fi
 
@@ -1045,11 +1044,11 @@ then
 
       
 
-      #for f in $( ls $SOURCE/$dir/aln2/*$ASR.bam )
+      #for f in $( ls $SOURCE/$dir/aln2/$ASR.bam )
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.fastq )
 	do
 	n=`basename $f`
-	n2=${n/%$READONE.$FASTQ/.$ASR.bam}
+	n2=${n/%$READONE.$FASTQ/$ASR.bam}
 	name=${n/%$READONE.$FASTQ/}
 	echo -e ">>>>>"$dir$n2
 
@@ -1102,7 +1101,7 @@ then
     for dir in ${DIR[@]};do
       for f in $( ls $SOURCE/fastq/$dir/*$READONE.fastq );do
 	n=`basename $f`
-	echo $OUT/$dir/$TASK_RECAL/${n/%$READONE.$FASTQ/.$ASR.bam} >> $TASK_GATKIND"bamfiles.tmp"
+	echo $OUT/$dir/$TASK_RECAL/${n/%$READONE.$FASTQ/$ASR.bam} >> $TASK_GATKIND"bamfiles.tmp"
       done
     done
 
@@ -1284,7 +1283,7 @@ fi
 
 if [ -n "$RUNPINDEL" ]; then
 
-    $QSUB $ARMED -r -k $CONFIG -t $INPUT_PINDEL-$TASK_PINDEL -i $INPUT_PINDEL -e .$ASD.bam \
+    $QSUB $ARMED -r -k $CONFIG -t $INPUT_PINDEL-$TASK_PINDEL -i $INPUT_PINDEL -e $ASD.bam \
         -n $NODES_PINDEL -c $CPU_PINDEL -m $MEMORY_PINDEL"G" -w $WALLTIME_PINDEL \
 		--postnodes $NODES_VARCOLLECT --postcpu $CPU_VARCOLLECT \
 		--postwalltime $WALLTIME_VARCOLLECT --postmemory $MEMORY_VARCOLLECT"G" \
@@ -1304,7 +1303,7 @@ fi
 if [ -n "$RUNFSEQ" ]; then
     if [ -z "$TASK_FSEQ" ] || [ -z "$NODES_FSEQ" ] || [ -z "$CPU_FSEQ" ] || [ -z "$MEMORY_FSEQ" ] || [ -z "$WALLTIME_FSEQ" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_FSEQ -i $INPUT_FSEQ -e .$ASD.bam -n $NODES_FSEQ -c $CPU_FSEQ -m $MEMORY_FSEQ"G" -w $WALLTIME_FSEQ \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_FSEQ -i $INPUT_FSEQ -e $ASD.bam -n $NODES_FSEQ -c $CPU_FSEQ -m $MEMORY_FSEQ"G" -w $WALLTIME_FSEQ \
         --command "${NGSANE_BASE}/mods/fseq.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FSEQ"
 fi
 
@@ -1357,7 +1356,7 @@ fi
 if [ -n "$RUNHOTSPOT" ]; then
     if [ -z "$TASK_HOTSPOT" ] || [ -z "$NODES_HOTSPOT" ] || [ -z "$CPU_HOTSPOT" ] || [ -z "$MEMORY_HOTSPOT" ] || [ -z "$WALLTIME_HOTSPOT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_HOTSPOT -i $INPUT_HOTSPOT -e .$ASD.bam -n $NODES_HOTSPOT -c $CPU_HOTSPOT -m $MEMORY_HOTSPOT"G" -w $WALLTIME_HOTSPOT \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_HOTSPOT -i $INPUT_HOTSPOT -e $ASD.bam -n $NODES_HOTSPOT -c $CPU_HOTSPOT -m $MEMORY_HOTSPOT"G" -w $WALLTIME_HOTSPOT \
         --command "${NGSANE_BASE}/mods/hotspot.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOTSPOT"
 fi
 
@@ -1371,7 +1370,7 @@ fi
 if [ -n "$RUNQUALIMAP" ]; then
     if [ -z "$TASK_QUALIMAP" ] || [ -z "$NODES_QUALIMAP" ] || [ -z "$CPU_QUALIMAP" ] || [ -z "$MEMORY_QUALIMAP" ] || [ -z "$WALLTIME_QUALIMAP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_QUALIMAP -i $INPUT_QUALIMAP -e .$ASD.bam -n $NODES_QUALIMAP -c $CPU_QUALIMAP -m $MEMORY_QUALIMAP"G" -w $WALLTIME_QUALIMAP \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_QUALIMAP -i $INPUT_QUALIMAP -e $ASD.bam -n $NODES_QUALIMAP -c $CPU_QUALIMAP -m $MEMORY_QUALIMAP"G" -w $WALLTIME_QUALIMAP \
         --command "${NGSANE_BASE}/mods/qualimap.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_QUALIMAP/"
 
 fi

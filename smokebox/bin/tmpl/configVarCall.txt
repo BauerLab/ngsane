@@ -71,8 +71,8 @@ declare -a DIR; DIR=( Transcript )
 OUT=$SOURCE
 QOUT=$OUT/qout
 
-ASD="asd"
-ASR="asd"
+ASD=".asd"
+ASR=".asd"
 READONE="_read1"
 READTWO="_read2"
 FASTQ=fastq

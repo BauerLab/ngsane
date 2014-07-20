@@ -6,7 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,We are loosing reads,for unmapped read,no such file,file not found,reCalAln.sh: line
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASR.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>$ASR.bam
 
 echo ">>>>> recalibration and realignment using GATK"
 echo ">>>>> startdate "`date`
@@ -20,7 +20,7 @@ function usage {
 echo -e "usage: $(basename $0) -k NGSANE -f bam -r REFERENCE -o OUTDIR -d SNPDB [OPTIONS]
 
 Script running the recalibration and realigment step (GATK)
-It expects a bam file (*.$ASD.bam)
+It expects a bam file (*$ASD.bam)
 
 required:
   -k | --toolkit <path>     location of the NGSANE repository 
@@ -71,6 +71,7 @@ echo $PATH
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 [ -z "$PATH_GATK" ] && PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
+[ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which FixMateInformation.jar))
 
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_RECAL*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
@@ -82,6 +83,8 @@ echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
 [ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
 echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 [ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
+echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar --version 2>&1)
+[ ! -f $PATH_PICARD/FixMateInformation.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--GATK        --\n "$(java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar --version)
@@ -94,12 +97,13 @@ CHECKPOINT="parameters"
 # get basename of f
 f=${f/%.dummy/} #if input came from pipe
 n=${f##*/}
+SAMPLE=${n/%$ASD.bam/}
 
 BAMREADS=`head -n1 $f.stats | cut -d " " -f 1`
 
 if [ -n "$SEQREG" ]; then REGION="-L $SEQREG"; fi
 
-#is paired ?
+#is paired ?SAMPLE=${n/%$ASD.bam/}
 p=`grep "paired in " $f.stats | cut -d " " -f 1`
 if [ ! "$p" -eq "0" ]; then
     PAIRED="1"
@@ -111,8 +115,8 @@ fi
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    [ -e $OUTDIR/${n/%$ASD.bam/$ASR.bam} ] && rm $OUTDIR/${n/%$ASD.bam/$ASR.bam}
-    [ -e $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats ] && rm $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
+    [ -e $OUTDIR/${SAMPLE}$ASR.bam ] && rm $OUTDIR/${SAMPLE}$ASR.bam
+    [ -e $OUTDIR/${SAMPLE}$ASR.bam.stats ] && rm $OUTDIR/${SAMPLE}$ASR.bam.stats
 fi
 
 if [ -z "$DBSNPVCF" ] || [ ! -e $DBSNPVCF ] ; then
@@ -122,17 +126,15 @@ fi
 
 # parallelization supported (2013): http://gatkforums.broadinstitute.org/discussion/1975/recommendations-for-parallelizing-gatk-tools
 if [[ $(which GenomeAnalysisTK.jar) =~ "2.8" ]]; then 
-        echo "[NOTE] new GATK parallele"
-        PARALLELENCT="-nct $CPU_RECAL"
-		PARALLELENT="-nt $CPU_RECAL"
+    echo "[NOTE] new GATK parallele"
+    PARALLELENCT="-nct $CPU_RECAL"
+	PARALLELENT="-nt $CPU_RECAL"
 fi
-
-
-
-# bwa/name.$ASD.bam -> /reCalAln/name.$ASD.bam
-f2=${f/$INPUT_REALRECAL/$TASK_RECAL}
-# /reCalAln/name.$ASD.bam -> /reCalAln/name.$ASD.real
-f3=${f2/bam/real.bam}
+#
+## bwa/name$ASD.bam -> /reCalAln/name$ASD.bam
+#f2=${f/$INPUT_REALRECAL/$TASK_RECAL}
+## /reCalAln/name$ASD.bam -> /reCalAln/name$ASD.real
+#f3=${f2/%bam/real.bam}
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -157,13 +159,13 @@ else
         -T RealignerTargetCreator \
         -I $f \
         -R $FASTA \
-        -o $f2.intervals \
+        -o $OUTDIR/${SAMPLE}.intervals \
         -known $DBSNPVCF \
         $REGION \
         -nt $CPU_RECAL
         
     # mark checkpoint
-    if [ -f $f2.intervals ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${SAMPLE}.intervals ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
@@ -180,16 +182,15 @@ else
         -T IndelRealigner \
         -I $f \
         -R $FASTA \
-        -targetIntervals $f2.intervals \
-        --out ${f2/bam/real.bam} \
+        -targetIntervals $OUTDIR/${SAMPLE}.intervals \
+        --out $OUTDIR/${SAMPLE}.real.bam \
         -known $DBSNPVCF \
         -compress 0 
 
-    #samtools sort ${f2/bam/real.fix.bam} $OUTDIR/${n/$ASD.bam/$ASR}
-    samtools index $f3
+    samtools index $OUTDIR/${SAMPLE}.real.bam
 
     # mark checkpoint
-    if [ -f ${f2/bam/real.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${SAMPLE}.real.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
@@ -207,19 +208,19 @@ else
         -T BaseRecalibrator \
         -R $FASTA \
         -knownSites $DBSNPVCF \
-        -I $f3 \
+        -I $OUTDIR/${SAMPLE}.real.bam \
         -dcov 1000 \
         -cov ReadGroupCovariate \
         -cov QualityScoreCovariate \
         -cov CycleCovariate \
 		$PARALLELENCT \
         -rf BadCigar \
-        -o ${f3/.bam/.covar.grp}
+        -o $OUTDIR/${SAMPLE}.real.covar.grp
 	#   --plot_pdf_file $OUTDIR/GATKorig.pdf \
 
 
     # mark checkpoint
-    if [ -f ${f3/.bam/.covar.grp} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${SAMPLE}.real.covar.grp ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
@@ -235,15 +236,15 @@ else
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
         -T PrintReads \
         -R $FASTA \
-        -I $f3 \
-        -o ${f3/.bam/.recal.bam} \
-        -BQSR ${f3/.bam/.covar.grp} \
+        -I $OUTDIR/${SAMPLE}.real.bam \
+        -o $OUTDIR/${SAMPLE}.real.recal.bam \
+        -BQSR $OUTDIR/${SAMPLE}.real.covar.grp \
         -nct $CPU_RECAL
        
-    samtools index ${f3/.bam/.recal.bam}
+    samtools index $OUTDIR/${SAMPLE}.real.recal.bam
 
     # mark checkpoint
-    if [ -f ${f3/.bam/.recal.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${SAMPLE}.real.recal.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
@@ -257,17 +258,15 @@ else
 
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
          -T RecalibrationPerformance \
-         -o ${f3/.bam/.recal.performace} \
+         -o $OUTDIR/${SAMPLE}.real.recal.performace \
          -R $FASTA \
-         --recal ${f3/.bam/.covar.grp} \
+         --recal $OUTDIR/${SAMPLE}.real.covar.grp \
          -nct $CPU_RECAL 
     
     # mark checkpoint
-    if [ -f ${f3/.bam/.recal.performace} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${SAMPLE}.real.recal.performace ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
-
-
 
 ################################################################################
 CHECKPOINT="count covariantes after recalibration"
@@ -287,23 +286,23 @@ else
         -T BaseRecalibrator \
         -R $FASTA \
         -knownSites $DBSNPVCF \
-        -I ${f3/.bam/.recal.bam}  \
+        -I $OUTDIR/${SAMPLE}.real.recal.bam  \
         -dcov 1000 \
         -cov ReadGroupCovariate \
         -cov QualityScoreCovariate \
         -cov CycleCovariate \
         --plot_pdf_file $OUTDIR/GATKrecal.pdf \
         -rf BadCigar \
-        -o ${f3/.bam/.recal.covar.grp} 
+        -o $OUTDIR/${SAMPLE}.real.recal.covar.grp 
     #    -nt $CPU_RECAL
 
 	else
-		touch ${f3/.bam/.recal.covar.grp}
+		touch $OUTDIR/${SAMPLE}.real.recal.covar.grp
 	fi
     
     #echo " plotting both"
     #java $JAVAPARAMS -jar $PATH_GATK/AnalyzeCovariates.jar \
-    #    -recalFile ${f3/.bam/.covar.csv} \
+    #    -recalFile ${f3/%.bam/.covar.csv} \
     #    -outputDir $OUTDIR/GATKorig/$n \
     #    -ignoreQ 5
     
@@ -312,12 +311,12 @@ else
     
     
     #java $JAVAPARAMS -jar $PATH_GATK/AnalyzeCovariates.jar \
-    #    -recalFile ${f3/.bam/.recal.covar.csv} \
+    #    -recalFile ${f3/%.bam/.recal.covar.csv} \
     #    -outputDir $OUTDIR/GATKrcal/$n  \
     #    -ignoreQ 5
     
     # mark checkpoint
-    if [ -f ${f3/.bam/.recal.covar.grp} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${SAMPLE}.real.recal.covar.grp ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
@@ -330,17 +329,24 @@ else
     echo "[NOTE] $CHECKPOINT"
 
     if [ "$PAIRED" == "1" ]; then
-        # fix mates
-        samtools sort -@ $CPU_RECAL -n ${f3/bam/recal.bam} ${f3/bam/recal.tmp}
-        samtools fixmate ${f3/bam/recal.tmp.bam} ${f3/bam/recal.bam}
-        [ -e ${f3/bam/recal.tmp.bam} ] && rm ${f3/bam/recal.tmp.bam}
+        echo "[NOTE] fixmate"
+        RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar \
+            I=$OUTDIR/${SAMPLE}.real.recal.bam \
+            O=$OUTDIR/${SAMPLE}$ASR.bam \
+            VALIDATION_STRINGENCY=SILENT \
+            COMPRESSION_LEVEL=0 \
+            SORT_ORDER=coordinate \
+            TMP_DIR=$THISTMP"
+            
+        echo $RUN_COMMAND && eval $RUN_COMMAND       
+    else
+        samtools sort -@ $CPU_RECAL $OUTDIR/${SAMPLE}.real.recal.bam $OUTDIR/${SAMPLE}$ASR 
     fi
     
-    samtools sort -@ $CPU_RECAL ${f3/bam/recal.bam} $OUTDIR/${n/%$ASD.bam/$ASR}
-    samtools index $OUTDIR/${n/%$ASD.bam/$ASR.bam}
+    samtools index $OUTDIR/${SAMPLE}$ASR.bam
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$ASD.bam/$ASR.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${SAMPLE}$ASR.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
@@ -352,40 +358,36 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     echo "[NOTE] $CHECKPOINT"
 
-    samtools flagstat $OUTDIR/${n/%$ASD.bam/$ASR.bam} >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
+    samtools flagstat $OUTDIR/${SAMPLE}$ASR.bam >> $OUTDIR/${SAMPLE}$ASR.bam.stats
     if [ -n "$SEQREG" ]; then
-        echo "#custom region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
-        echo $(samtools view -@ $CPU_RECAL -c -F 4 $OUTDIR/${n/%$ASD.bam/$ASR.bam} $SEQREG )" total reads in region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
-        echo $(samtools view -@ $CPU_RECAL -c -f 3 $OUTDIR/${n/%$ASD.bam/$ASR.bam} $SEQREG )" properly paired reads in region " >> $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats
+        echo "#custom region " >> $OUTDIR/${SAMPLE}$ASR.bam.stats
+        echo $(samtools view -@ $CPU_RECAL -c -F 4 $OUTDIR/${SAMPLE}$ASR.bam $SEQREG )" total reads in region " >> $OUTDIR/${SAMPLE}$ASR.bam.stats
+        echo $(samtools view -@ $CPU_RECAL -c -f 3 $OUTDIR/${SAMPLE}$ASR.bam $SEQREG )" properly paired reads in region " >> $OUTDIR/${SAMPLE}$ASR.bam.stats
     fi
-
-    #f2=/reCalAln/name.$ASD.bam
-    #f3=/reCalAln/name.$ASD.real.bam
-    
-    BAMREADSRERE=`head -n1 $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats | cut -d " " -f 1`
+   
+    BAMREADSRERE=`head -n1 $OUTDIR/${SAMPLE}$ASR.bam.stats | cut -d " " -f 1`
     if [ "$BAMREADSRERE" = "" ]; then let BAMREADSRERE="0"; fi	
     if [[ $BAMREADS -eq $BAMREADSRERE  && ! $BAMREADS -eq 0 ]]; then
         echo "[NOTE] PASS check recalibration and realignment: $BAMREADS == $BAMREADSRERE"
-        rm ${f3/.bam/.covar.grp}
-        rm ${f3/.bam/.recal.covar.grp}
-        rm ${f3/.bam/.recal.bam}
-        rm ${f3/.bam/.recal.bam}.bai
-        rm ${f3/.bam/.recal}.bai
-        rm $f2.intervals
-        rm $f3
-        rm ${f2/bam/real.bam}.bai
-        rm ${f2/bam/real}.bai
+        rm $OUTDIR/${SAMPLE}.real.covar.grp
+        rm $OUTDIR/${SAMPLE}.real.recal.covar.grp
+        rm $OUTDIR/${SAMPLE}.real.recal.bam
+        rm $OUTDIR/${SAMPLE}.real.recal.bam.bai
+        rm $OUTDIR/${SAMPLE}.real.recal.bai
+        rm $OUTDIR/${SAMPLE}.intervals
+        rm $OUTDIR/${SAMPLE}.real.bam.bai
+        rm $OUTDIR/${SAMPLE}.real.bam
     else
         echo -e "[ERROR] We are loosing reads during recalibration and realignment-> .bam in $f: bam had $BAMREADS recal+real bam has $BAMREADSRERE"
         exit 1
     fi
     
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$ASD.bam/$ASR.bam}.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${SAMPLE}$ASR.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 ################################################################################
-[ -e $OUTDIR/${n/%$ASD.bam/$ASR.bam}.dummy ] && rm $OUTDIR/${n/%$ASD.bam/$ASR.bam}.dummy
+[ -e $OUTDIR/${SAMPLE}$ASR.bam.dummy ] && rm $OUTDIR/${SAMPLE}$ASR.bam.dummy
 echo ">>>>> recalibration and realignment using GATK - FINISHED"
 echo ">>>>> enddate "`date`

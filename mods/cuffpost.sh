@@ -58,7 +58,7 @@ DATASETS=""
 for f in $FILES; do
     # get basename of f
 
-    n=${f/%.$ASD.bam/}
+    n=${f/%$ASD.bam/}
     FILE=${n/$TASK_TOPHAT/$TASK_CUFFLINKS}
     # get directory
     d=$(dirname $f)

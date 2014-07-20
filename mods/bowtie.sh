@@ -7,7 +7,7 @@
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.$ASD.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>$ASD.bam
 
 
 echo ">>>>> read mapping with bowtie 1"
@@ -107,10 +107,10 @@ fi
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    [ -e $OUTDIR/$SAMPLE.$ASD.bam ] && rm $OUTDIR/$SAMPLE.$ASD.bam
-    [ -e $OUTDIR/$SAMPLE.$ASD.bam.stats ] && rm $OUTDIR/$SAMPLE.$ASD.bam.stats
-    [ -e $OUTDIR/$SAMPLE.$ASD.bam.dupl ] && rm $OUTDIR/$SAMPLE.$ASD.bam.dupl
-    [ -e $OUTDIR/$SAMPLE.$ALN.bam ] && rm $OUTDIR/$SAMPLE.$ALN.*bam
+    [ -e $OUTDIR/$SAMPLE$ASD.bam ] && rm $OUTDIR/$SAMPLE$ASD.bam
+    [ -e $OUTDIR/$SAMPLE$ASD.bam.stats ] && rm $OUTDIR/$SAMPLE$ASD.bam.stats
+    [ -e $OUTDIR/$SAMPLE$ASD.bam.dupl ] && rm $OUTDIR/$SAMPLE$ASD.bam.dupl
+    [ -e $OUTDIR/$SAMPLE$ALN.bam ] && rm $OUTDIR/$SAMPLE$ALN.*bam
 fi
 
 #is ziped ?
@@ -189,24 +189,24 @@ else
 	if [ $PAIRED == "0" ]; then
         echo "[NOTE] SINGLE READS"
 
-        RUN_COMMAND="$CAT $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --sam $BOWTIE_OPTIONS ${FASTA%.*} - $THISTMP/$SAMPLE.$ALN.sam"
+        RUN_COMMAND="$CAT $f | bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --sam $BOWTIE_OPTIONS ${FASTA%.*} - $THISTMP/$SAMPLE$ALN.sam"
 
 	#Paired
     else
         echo "[NOTE] PAIRED READS"
-		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --sam $BOWTIE_OPTIONS ${FASTA%.*} -1 <($CAT $f) -2 <($CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}) $THISTMP/$SAMPLE.$ALN.sam"
+		RUN_COMMAND="bowtie $RG $BOWTIEADDPARAM $FASTQ_PHRED --threads $CPU_BOWTIE --sam $BOWTIE_OPTIONS ${FASTA%.*} -1 <($CAT $f) -2 <($CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}) $THISTMP/$SAMPLE$ALN.sam"
 
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # bam file conversion                                                                         
-    samtools view -@ $CPU_BOWTIE -Sbt $FASTA.fai $THISTMP/$SAMPLE.$ALN.sam > $OUTDIR/$SAMPLE.$ALN.bam
+    samtools view -@ $CPU_BOWTIE -Sbt $FASTA.fai $THISTMP/$SAMPLE$ALN.sam > $OUTDIR/$SAMPLE$ALN.bam
     
     # cleanup
-    [ -e $THISTMP/$SAMPLE.$ALN.sam ] && rm $THISTMP/$SAMPLE.$ALN.sam
+    [ -e $THISTMP/$SAMPLE$ALN.sam ] && rm $THISTMP/$SAMPLE$ALN.sam
 
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.$ALN.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE$ALN.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
@@ -220,7 +220,7 @@ else
         # fix and sort
         echo "[NOTE] fixmate"
         RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar \
-            I=$OUTDIR/$SAMPLE.$ALN.bam \
+            I=$OUTDIR/$SAMPLE$ALN.bam \
             O=$OUTDIR/$SAMPLE.ash.bam \
             VALIDATION_STRINGENCY=SILENT \
             SORT_ORDER=coordinate \
@@ -228,14 +228,14 @@ else
         echo $RUN_COMMAND && eval $RUN_COMMAND
     else
         # just sort
-        samtools sort -@ $CPU_BOWTIE $OUTDIR/$SAMPLE.$ALN.bam $OUTDIR/$SAMPLE.ash
+        samtools sort -@ $CPU_BOWTIE $OUTDIR/$SAMPLE$ALN.bam $OUTDIR/$SAMPLE.ash
     fi
 
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE.ash.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
     # cleanup
-    [ -e $OUTDIR/$SAMPLE.$ALN.bam ] && rm $OUTDIR/$SAMPLE.$ALN.bam
+    [ -e $OUTDIR/$SAMPLE$ALN.bam ] && rm $OUTDIR/$SAMPLE$ALN.bam
 fi
 
 ################################################################################
@@ -269,17 +269,17 @@ else
     if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
         INPUT=$OUTDIR/$SAMPLE.cleaned.bam \
-        OUTPUT=$OUTDIR/$SAMPLE.$ASD.bam \
-        METRICS_FILE=$OUTDIR/metrices/$SAMPLE.$ASD.bam.dupl \
+        OUTPUT=$OUTDIR/$SAMPLE$ASD.bam \
+        METRICS_FILE=$OUTDIR/metrices/$SAMPLE$ASD.bam.dupl \
         AS=true \
         CREATE_MD5_FILE=true \
         COMPRESSION_LEVEL=9 \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
-    samtools index $OUTDIR/$SAMPLE.$ASD.bam
+    samtools index $OUTDIR/$SAMPLE$ASD.bam
 
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
     # cleanup
     [ -e $OUTDIR/$SAMPLE.cleaned.bam ] && rm $OUTDIR/$SAMPLE.cleaned.bam
@@ -292,13 +292,13 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    STATSOUT=$OUTDIR/$SAMPLE.$ASD.bam.stats
-    samtools flagstat $OUTDIR/$SAMPLE.$ASD.bam > $STATSOUT
+    STATSOUT=$OUTDIR/$SAMPLE$ASD.bam.stats
+    samtools flagstat $OUTDIR/$SAMPLE$ASD.bam > $STATSOUT
     
     if [ -n "$SEQREG" ]; then
         echo "#custom region" >> $STATSOUT
-        echo $(samtools view -@ $CPU_BOWTIE -c -F 4 $OUTDIR/$SAMPLE.$ASD.bam $SEQREG )" total reads in region " >> $STATSOUT
-        echo $(samtools view -@ $CPU_BOWTIE -c -f 3 $OUTDIR/$SAMPLE.$ASD.bam $SEQREG )" properly paired reads in region " >> $STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -F 4 $OUTDIR/$SAMPLE$ASD.bam $SEQREG )" total reads in region " >> $STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -f 3 $OUTDIR/$SAMPLE$ASD.bam $SEQREG )" properly paired reads in region " >> $STATSOUT
     fi
 
     # mark checkpoint
@@ -313,9 +313,9 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
     
     java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
-        INPUT=$OUTDIR/$SAMPLE.$ASD.bam \
+        INPUT=$OUTDIR/$SAMPLE$ASD.bam \
         REFERENCE_SEQUENCE=$FASTA \
-        OUTPUT=$OUTDIR/metrices/$SAMPLE.$ASD.bam \
+        OUTPUT=$OUTDIR/metrices/$SAMPLE$ASD.bam \
         VALIDATION_STRINGENCY=LENIENT \
         PROGRAM=CollectAlignmentSummaryMetrics \
         PROGRAM=CollectInsertSizeMetrics \
@@ -330,7 +330,7 @@ else
     fi
 
     # mark checkpoint
-    [ -f $OUTDIR/metrices/$SAMPLE.$ASD.bam.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    [ -f $OUTDIR/metrices/$SAMPLE$ASD.bam.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi
 
 
@@ -341,17 +341,17 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    samstat $OUTDIR/$SAMPLE.$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
+    samstat $OUTDIR/$SAMPLE$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
 
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.$ASD.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE$ASD.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 
 ################################################################################
 CHECKPOINT="verify"    
     
-BAMREADS=`head -n1 $OUTDIR/$SAMPLE.$ASD.bam.stats | cut -d " " -f 1`
+BAMREADS=`head -n1 $OUTDIR/$SAMPLE$ASD.bam.stats | cut -d " " -f 1`
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "[NOTE] PASS check mapping: $BAMREADS == $FASTQREADS"
@@ -362,6 +362,6 @@ fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e $OUTDIR/$SAMPLE.$ASD.bam.dummy ] && rm $OUTDIR/$SAMPLE.$ASD.bam.dummy
+[ -e $OUTDIR/$SAMPLE$ASD.bam.dummy ] && rm $OUTDIR/$SAMPLE$ASD.bam.dummy
 echo ">>>>> read mapping with bowtie 1 - FINISHED"
 echo ">>>>> enddate "`date`

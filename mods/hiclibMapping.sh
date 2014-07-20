@@ -169,26 +169,26 @@ else
     # merge
     samtools merge $THISTMP/$SAMPLE$READONE.bam $OUTDIR/$SAMPLE$READONE*.bam.[0-9]*
     # keep mapped
-    samtools view -bh -F 4 $THISTMP/$SAMPLE$READONE.bam > $THISTMP/$SAMPLE$READONE.$ALN.bam
+    samtools view -bh -F 4 $THISTMP/$SAMPLE$READONE.bam > $THISTMP/$SAMPLE$READONE$ALN.bam
     rm $THISTMP/$SAMPLE$READONE.bam 
     # sort
-    samtools sort -@ $CPU_HICLIB $THISTMP/$SAMPLE$READONE.$ALN.bam $THISTMP/$SAMPLE$READONE.ash
-    rm $THISTMP/$SAMPLE$READONE.$ALN.bam
+    samtools sort -@ $CPU_HICLIB $THISTMP/$SAMPLE$READONE$ALN.bam $THISTMP/$SAMPLE$READONE.ash
+    rm $THISTMP/$SAMPLE$READONE$ALN.bam
 
     mkdir -p $OUTDIR/metrices
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
         INPUT=$THISTMP/$SAMPLE$READONE.ash.bam \
-        OUTPUT=$OUTDIR/$SAMPLE$READONE.$ASD.bam \
-        METRICS_FILE=$OUTDIR/$SAMPLE$READONE.$ASD.bam.dupl \
+        OUTPUT=$OUTDIR/$SAMPLE$READONE$ASD.bam \
+        METRICS_FILE=$OUTDIR/$SAMPLE$READONE$ASD.bam.dupl \
         AS=true \
         CREATE_MD5_FILE=true \
         COMPRESSION_LEVEL=9 \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
-    samtools index $OUTDIR/$SAMPLE$READONE.$ASD.bam
+    samtools index $OUTDIR/$SAMPLE$READONE$ASD.bam
     
     # mark checkpoint
-    if [ -e $OUTDIR/$SAMPLE$READONE.$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/$SAMPLE$READONE$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
     # cleanup
     [ -f $THISTMP/$SAMPLE$READONE.ash.bam ] && rm $THISTMP/$SAMPLE$READONE.ash.bam
@@ -209,25 +209,25 @@ else
     # merge
     samtools merge $THISTMP/$SAMPLE$READTWO.bam $OUTDIR/$SAMPLE$READTWO*.bam.[0-9]*
     # keep mapped
-    samtools view -bh -F 4 $THISTMP/$SAMPLE$READTWO.bam > $THISTMP/$SAMPLE$READTWO.$ALN.bam
+    samtools view -bh -F 4 $THISTMP/$SAMPLE$READTWO.bam > $THISTMP/$SAMPLE$READTWO$ALN.bam
     rm $THISTMP/$SAMPLE$READTWO.bam
     # sort
-    samtools sort -@ $CPU_HICLIB $THISTMP/$SAMPLE$READTWO.$ALN.bam $THISTMP/$SAMPLE$READTWO.ash
-    rm $THISTMP/$SAMPLE$READTWO.$ALN.bam
+    samtools sort -@ $CPU_HICLIB $THISTMP/$SAMPLE$READTWO$ALN.bam $THISTMP/$SAMPLE$READTWO.ash
+    rm $THISTMP/$SAMPLE$READTWO$ALN.bam
 
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
         INPUT=$THISTMP/$SAMPLE$READTWO.ash.bam \
-        OUTPUT=$OUTDIR/$SAMPLE$READTWO.$ASD.bam \
-        METRICS_FILE=$OUTDIR/$SAMPLE$READTWO.$ASD.bam.dupl \
+        OUTPUT=$OUTDIR/$SAMPLE$READTWO$ASD.bam \
+        METRICS_FILE=$OUTDIR/$SAMPLE$READTWO$ASD.bam.dupl \
         AS=true \
         CREATE_MD5_FILE=true \
         COMPRESSION_LEVEL=9 \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
-    samtools index $OUTDIR/$SAMPLE$READTWO.$ASD.bam
+    samtools index $OUTDIR/$SAMPLE$READTWO$ASD.bam
 
     # mark checkpoint
-    if [ -e $OUTDIR/$SAMPLE$READTWO.$ASD.bam ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/$SAMPLE$READTWO$ASD.bam ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
     
     # cleanup
     [ -f $THISTMP/$SAMPLE$READTWO.ash.bam ] && rm $THISTMP/$SAMPLE$READTWO.ash.bam
@@ -243,22 +243,22 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    READ1STATSOUT=$OUTDIR/$SAMPLE$READONE.$ASD.bam.stats
-    samtools flagstat $OUTDIR/$SAMPLE$READONE.$ASD.bam > $READ1STATSOUT
+    READ1STATSOUT=$OUTDIR/$SAMPLE$READONE$ASD.bam.stats
+    samtools flagstat $OUTDIR/$SAMPLE$READONE$ASD.bam > $READ1STATSOUT
     
     if [ -n "$SEQREG" ]; then
         echo "#custom region" >> $READ1STATSOUT
-        echo $(samtools view -@ $CPU_BOWTIE -c -F 4 $OUTDIR/$SAMPLE$READONE.$ASD.bam $SEQREG )" total reads in region " >> $READ1STATSOUT
-        echo $(samtools view -@ $CPU_BOWTIE -c -f 3 $OUTDIR/$SAMPLE$READONE.$ASD.bam $SEQREG )" properly paired reads in region " >> $READ1STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -F 4 $OUTDIR/$SAMPLE$READONE$ASD.bam $SEQREG )" total reads in region " >> $READ1STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -f 3 $OUTDIR/$SAMPLE$READONE$ASD.bam $SEQREG )" properly paired reads in region " >> $READ1STATSOUT
     fi
     
-    READ2STATSOUT=$OUTDIR/$SAMPLE$READTWO.$ASD.bam.stats
-    samtools flagstat $OUTDIR/$SAMPLE$READTWO.$ASD.bam > $READ2STATSOUT
+    READ2STATSOUT=$OUTDIR/$SAMPLE$READTWO$ASD.bam.stats
+    samtools flagstat $OUTDIR/$SAMPLE$READTWO$ASD.bam > $READ2STATSOUT
     
     if [ -n "$SEQREG" ]; then
         echo "#custom region" >> $READ2STATSOUT
-        echo $(samtools view -@ $CPU_BOWTIE -c -F 4 $OUTDIR/$SAMPLE$READTWO.$ASD.bam $SEQREG )" total reads in region " >> $READ2STATSOUT
-        echo $(samtools view -@ $CPU_BOWTIE -c -f 3 $OUTDIR/$SAMPLE$READTWO.$ASD.bam $SEQREG )" properly paired reads in region " >> $READ2STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -F 4 $OUTDIR/$SAMPLE$READTWO$ASD.bam $SEQREG )" total reads in region " >> $READ2STATSOUT
+        echo $(samtools view -@ $CPU_BOWTIE -c -f 3 $OUTDIR/$SAMPLE$READTWO$ASD.bam $SEQREG )" properly paired reads in region " >> $READ2STATSOUT
     fi
 
     # mark checkpoint
@@ -271,11 +271,11 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
     
-    samstat $OUTDIR/$SAMPLE$READONE.$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
-    samstat $OUTDIR/$SAMPLE$READTWO.$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
+    samstat $OUTDIR/$SAMPLE$READONE$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
+    samstat $OUTDIR/$SAMPLE$READTWO$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
 
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE$READONE.$ASD.bam.stats ] && [ -f $OUTDIR/$SAMPLE$READTWO.$ASD.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE$READONE$ASD.bam.stats ] && [ -f $OUTDIR/$SAMPLE$READTWO$ASD.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 ################################################################################
 [ -e $OUTDIR/${SAMPLE}-mapped_reads.hdf5.dummy ] && rm $OUTDIR/${SAMPLE}-mapped_reads.hdf5.dummy

@@ -68,7 +68,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
-SAMPLE=${n/%.$ASD.bam/}
+SAMPLE=${n/%$ASD.bam/}
 
 GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
 if [ ! -f $GENOME_CHROMSIZES ]; then
@@ -80,7 +80,7 @@ fi
 
 if [ -n "$CHIPINPUT" ];then
     c=${CHIPINPUT##*/}
-    INPUT=${c/.$ASD.bam/}
+    INPUT=${c/$ASD.bam/}
 else
     INPUT="NONE"
 fi

@@ -91,7 +91,7 @@ CHECKPOINT="parameters"
 
 # get basename of f (samplename)
 n=${f##*/}
-SAMPLE=${n/%.$ASD.bam/}
+SAMPLE=${n/%$ASD.bam/}
 
 #remove old files
 if [ -z "$RECOVERFROM" ]; then

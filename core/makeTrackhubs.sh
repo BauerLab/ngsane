@@ -277,23 +277,23 @@ for DIR in ${DIR[@]}; do
     cat /dev/null > $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
     
     if [[ -n "$RUNMAPPINGBOWTIE" ]]; then        
-        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BOWTIE "bam" "$SAMPLEPATTERN" ".$ASD.bam" "bamColorMode=strand"
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BOWTIE "bam" "$SAMPLEPATTERN" "$ASD.bam" "bamColorMode=strand"
     fi
 
     if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then        
-        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BOWTIE2 "bam" "$SAMPLEPATTERN" ".$ASD.bam" "bamColorMode=strand"
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BOWTIE2 "bam" "$SAMPLEPATTERN" "$ASD.bam" "bamColorMode=strand"
     fi
 
     if [[ -n "$RUNTOPHAT" ]]; then        
-        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_TOPHAT "bam" "$SAMPLEPATTERN" ".$ASD.bam" "bamColorMode=strand"
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_TOPHAT "bam" "$SAMPLEPATTERN" "$ASD.bam" "bamColorMode=strand"
     fi
 
     if [[ -n "$RUNMAPPINGBWA" ]]; then        
-        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BWA "bam" "$SAMPLEPATTERN" ".$ASD.bam" "bamColorMode=strand"
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BWA "bam" "$SAMPLEPATTERN" "$ASD.bam" "bamColorMode=strand"
     fi
 
     if [[ -n "$RUNHICLIB" ]]; then        
-        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HICLIB "bam" "$SAMPLEPATTERN" ".$ASD.bam" "bamColorMode=strand"
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HICLIB "bam" "$SAMPLEPATTERN" "$ASD.bam" "bamColorMode=strand"
     fi
 
     if [[ -n "$RUNHICUP" ]]; then        
@@ -301,7 +301,7 @@ for DIR in ${DIR[@]}; do
     fi
 
     if [[ -n "$RUNREALRECAL" ]]; then        
-        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_RECAL "bam" "$SAMPLEPATTERN" ".$ASR.bam" "bamColorMode=strand"
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_RECAL "bam" "$SAMPLEPATTERN" "$ASR.bam" "bamColorMode=strand"
     fi
     
     if [ -s $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt ]; then

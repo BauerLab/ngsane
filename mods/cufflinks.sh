@@ -69,7 +69,7 @@ n=${f##*/}
 
 #remove old files unless recovering
 if [ -z "$RECOVERFROM" ]; then
-    if [ -e $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf} ]; then rm $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf}; fi
+    if [ -e $OUTDIR/../${n/%$ASD.bam/_transcripts.gtf} ]; then rm $OUTDIR/../${n/%$ASD.bam/_transcripts.gtf}; fi
 fi
 
 ## GTF provided?
@@ -132,13 +132,13 @@ else
 
     CURDIR=$(pwd) 
     cd $OUTDIR/.. 
-    ln -f -s ${n/%.$ASD.bam/}/transcripts.gtf ${n/%.$ASD.bam/_transcripts.gtf} 
+    ln -f -s ${n/%$ASD.bam/}/transcripts.gtf ${n/%$ASD.bam/_transcripts.gtf} 
     cd $CURDIR
     
     echo "[NOTE] cufflinks end $(date)"
 
     # mark checkpoint
-    if [ -e $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/../${n/%$ASD.bam/_transcripts.gtf} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -149,7 +149,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    SUMMARYFILE=$OUTDIR/../${n/%.$ASD.bam/.summary.txt}
+    SUMMARYFILE=$OUTDIR/../${n/%$ASD.bam/.summary.txt}
     cat /dev/null > $SUMMARYFILE
     
     for i in $(ls $OUTDIR/*.fpkm_tracking); do
@@ -168,6 +168,6 @@ else
 
 fi
 ################################################################################
-[ -e $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf}.dummy ] && rm $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf}.dummy
+[ -e $OUTDIR/../${n/%$ASD.bam/_transcripts.gtf}.dummy ] && rm $OUTDIR/../${n/%$ASD.bam/_transcripts.gtf}.dummy
 echo ">>>>> transcript assembly with cufflinks - FINISHED"
 echo ">>>>> enddate "`date`

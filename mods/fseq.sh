@@ -74,7 +74,7 @@ CHECKPOINT="parameters"
 # get basename of input file f
 INPUTFILENAME=${INPUTFILE##*/}
 # get sample prefix
-SAMPLE=${INPUTFILENAME/%.$ASD.bam/}
+SAMPLE=${INPUTFILENAME/%$ASD.bam/}
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then

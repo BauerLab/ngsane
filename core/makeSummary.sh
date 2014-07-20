@@ -137,7 +137,7 @@ function gatherDirsAggregate {
 # $3=output file ($SUMMARYTMP)
 function bamAnnotate {
 	echo "<h3 class='overall'>Reads overlapping annotated regions</h3>" >>$3
-	python ${NGSANE_BASE}/core/Summary.py ${1} .$ASD.bam.anno.stats annostats >> $3
+	python ${NGSANE_BASE}/core/Summary.py ${1} $ASD.bam.anno.stats annostats >> $3
 	BAMANNOUT=runStats/bamann/$(echo ${DIR[@]} | sed 's/ /_/g' | cut -c 1-60 )_${2}.ggplot
 	BAMANNIMAGE=${BAMANNOUT/%ggplot/pdf}
 	if [ ! -f $BAMANNOUT ]; then mkdir -p $( dirname $BAMANNOUT); fi
@@ -145,7 +145,7 @@ function bamAnnotate {
 	find ${1} -type f -name *anno.stats | xargs -d"\n" cat | head -n 1 | gawk '{print "type "$0" sample"}' > $BAMANNOUT
     for i in $(find ${1} -type f -name *anno.stats); do
         name=$(basename $i)
-        arrIN=(${name//.$ASD/ })
+        arrIN=(${name//$ASD/ })
         grep --no-messages sum $i | gawk -v x=${arrIN[0]} '{print $0" "x}';
 	done >> $BAMANNOUT
 	sed -i -r 's/\s+/ /g' $BAMANNOUT
@@ -330,7 +330,7 @@ if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
     summaryHeader "BWA mapping" "$TASK_BWA" "bwa.sh" "$SUMMARYTMP"
 
     vali=$(gatherDirs $TASK_BWA)
-    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
         bamAnnotate "$vali" $TASK_BWA  $SUMMARYTMP
@@ -344,17 +344,17 @@ fi
 if [[ -n "$RUNREALRECAL" ]]; then 
     summaryHeader "Recalibrate + Realign" "$TASK_RECAL" "reCalAln.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_RECAL)" .$ASR.bam.stats samstatsrecal >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_RECAL)" $ASR.bam.stats samstatsrecal >>$SUMMARYTMP
 
     summaryFooter "$TASK_RECAL" "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
-    summaryHeader "Bowtie v1 mapping" "$TASK_BOWTIE" "bowtie.sh" "$SUMMARYTMP" ".$ASD.bam"
+    summaryHeader "Bowtie v1 mapping" "$TASK_BOWTIE" "bowtie.sh" "$SUMMARYTMP" "$ASD.bam"
 
     vali=$(gatherDirs $TASK_BOWTIE)
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_BOWTIE)" .$ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_BOWTIE)" $ASD.bam.stats samstats >>$SUMMARYTMP
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
         bamAnnotate "$vali" $TASK_BOWTIE  $SUMMARYTMP
@@ -365,9 +365,9 @@ fi
 
 ################################################################################
 if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
-    summaryHeader "Bowtie v2 mapping" "$TASK_BOWTIE2" "bowtie2.sh" "$SUMMARYTMP" ".$ASD.bam"
+    summaryHeader "Bowtie v2 mapping" "$TASK_BOWTIE2" "bowtie2.sh" "$SUMMARYTMP" "$ASD.bam"
 
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_BOWTIE2)" .$ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_BOWTIE2)" $ASD.bam.stats samstats >>$SUMMARYTMP
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
         bamAnnotate "$vali" $TASK_BOWTIE2 $SUMMARYTMP
@@ -378,11 +378,11 @@ fi
 
 ################################################################################
 if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
-    summaryHeader "Tophat" "$TASK_TOPHAT" "tophat.sh" "$SUMMARYTMP" ".$ASD.bam"
+    summaryHeader "Tophat" "$TASK_TOPHAT" "tophat.sh" "$SUMMARYTMP" "$ASD.bam"
 
-	vali=""
+	vali=$(gatherDirs $TASK_TOPHAT)
     echo "<br>[NOTE] the duplication rate is not calculated by tophat and hence zero.<br>" >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASD.bam.stats tophat >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASD.bam.stats tophat >>$SUMMARYTMP
     
     if [ -n "$RUNANNOTATINGBAM" ] || [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
         bamAnnotate "$vali" $TASK_TOPHAT  $SUMMARYTMP
@@ -394,7 +394,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNRNASEQC" ]]; then
-    summaryHeader "RNA-SeQC" "$TASK_RNASEQC" "rnaseqc.sh" "$SUMMARYTMP" ".$ASD.bam"
+    summaryHeader "RNA-SeQC" "$TASK_RNASEQC" "rnaseqc.sh" "$SUMMARYTMP" "$ASD.bam"
 
 	vali=""
     CURDIR=$(pwd -P)
@@ -435,13 +435,13 @@ if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
 
     vali=$(gatherDirs $TASK_GATKDOC)
     echo "<h3>Average coverage</h3>">>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASR".bam.doc.sample_summary" coverage >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASR".bam.doc.sample_summary" coverage >>$SUMMARYTMP
     echo "<h3>Base pair coverage over all intervals</h3>" >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASR".bam.doc.sample_cumulative_coverage_counts" coverage --p >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASR".bam.doc.sample_cumulative_coverage_counts" coverage --p >>$SUMMARYTMP
     echo "<h3>Intervals covered</h3>" >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASR".bam.doc.sample_interval_statistics" coverage --p >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASR".bam.doc.sample_interval_statistics" coverage --p >>$SUMMARYTMP
     echo "<h3>On Target</h3>" >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" .$ASR".bam.stats" target >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASR".bam.stats" target >>$SUMMARYTMP
 
     summaryFooter "$TASK_VAR" "$SUMMARYTMP" 
 fi
@@ -513,7 +513,7 @@ if [ -n "$RUNHICUP" ];then
 #    for f in $(ls runStats/$TASK_HICUP/*_ditag_classification.png 2> /dev/null); do
     for dir in ${DIR[@]}; do
         echo ${dir%%/*}
-        for f in $(ls $PROJECT_RELPATH/${dir%%/*}/$TASK_HICUP/*_ditag_classification.png 2> /dev/null); do
+        for f in $(ls $OUT/${dir%%/*}/$TASK_HICUP/*_ditag_classification.png 2> /dev/null); do
             echo $f
             n=${f/"_ditag_classification.png"/}
             
@@ -558,9 +558,9 @@ fi
 
 ################################################################################
 if [ -n "$RUNBIGWIG" ];then
-    summaryHeader "BigWig" "$TASK_BIGWIG" "bigwig.sh" "$SUMMARYTMP" ".bw" $INPUT_BIGWIG
+    summaryHeader "BigWig" "$TASK_BIGWIG" "bigwig.sh" "$SUMMARYTMP" ".bw"
 
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $INPUT_BIGWIG)" ".bw.stats" bigwig  --noSummary --noOverallSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_BIGWIG)" ".bw.stats" bigwig  --noSummary --noOverallSummary >> $SUMMARYTMP
 
     summaryFooter "$TASK_BIGWIG" "$SUMMARYTMP"
 fi

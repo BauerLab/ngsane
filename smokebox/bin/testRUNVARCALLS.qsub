@@ -24,7 +24,7 @@ cat bin/tmpl/configVarCall.txt | sed 's/RUNMAPPINGBWA=\"\"/RUNMAPPINGBWA=\"1\"/g
 
 # submit the BWA run to the cluster
 JOBIDSBWA=$( trigger.sh tmp/configBWA.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] sumitted jobs $(echo -n $JOBIDSBWA)"
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSBWA)"
 
 ################################################################################
 #  BAMANN
@@ -39,7 +39,7 @@ echo QSUBEXTRA='$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBWA//:/$QUEUEWAITSEP}\"" >>tmp/
 
 # submit the BAMANN run to the cluster
 JOBIDSBAMANN=$( trigger.sh tmp/configBAMANN.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] sumitted jobs $(echo -n $JOBIDSBAMANN)"
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSBAMANN)"
 
 
 ################################################################################
@@ -55,7 +55,7 @@ echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBWA//:/$QUEUEWAITSEP}\"" >>tmp/
 
 # submit the RECAL run to the cluster
 JOBIDSRECAL=$( trigger.sh tmp/configRECAL.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] sumitted jobs $(echo -n $JOBIDSRECAL)"
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSRECAL)"
 
 
 ################################################################################
@@ -71,7 +71,7 @@ echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSRECAL//:/$QUEUEWAITSEP}\"" >>tm
 
 # submit the VARCALLS run to the cluster
 JOBIDSVARCALL=$( trigger.sh tmp/configVARCALLS.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] sumitted jobs $(echo -n $JOBIDSVARCALL)"
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSVARCALL)"
 
 
 ################################################################################
@@ -87,7 +87,7 @@ echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSRECAL//:/$QUEUEWAITSEP}\"" >>tm
 
 # submit the VARCALLS run to the cluster
 JOBIDSPINDEL=$( trigger.sh tmp/configPINDEL.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] sumitted jobs $(echo -n $JOBIDSPINDEL)"
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSPINDEL)"
 
 
 

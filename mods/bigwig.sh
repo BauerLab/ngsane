@@ -67,7 +67,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
-SAMPLE=${n/%.$ASD.bam/}
+SAMPLE=${n/%$ASD.bam/}
 
 # delete old bw files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
