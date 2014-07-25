@@ -4,12 +4,17 @@
 # One can either submit one module at a time or combined several to stage qsub
 # submissions
 
+# Copy this file and name it after your new module
+# Substitute [MOD] and similar places with the appropriate variables
+
 ################################################################################
 #   Trigger command for individual [MOD]
 #
 # IN : $SOURCE/$dir/INPUT_[MOD]/*.[inputfile.suffix]
 # OUT: $OUT/$dir/TASK_[MOD]/*.[outputfile.suffix]
 ################################################################################
+
+: ' # [TODO] REMOVE THIS LINE
 
 if [ -n "$RUN[MOD]" ]; then
     # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/[MOD]
@@ -67,3 +72,5 @@ if [ -n "$RUN[PIPELINE]" ]; then
         -c $CPU_[MOD2] -m $MEMORY_[MOD2]"G" -w $WALLTIME_[MOD2] $JOBIDS \
         --command "${NGSANE_BASE}/mods/[MOD2].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD2]"
 fi
+
+' # [TODO] REMOVE THIS LINE
