@@ -1,0 +1,13 @@
+#!/bin/bash -e
+
+################################################################################
+#   Depth of Coverage
+# IN: */bwa/*.bam
+# OUT: */bwa_var/*.clean.vcf
+################################################################################
+
+if [ -n "$RUNDEPTHOFCOVERAGE" ]; then
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_GATKDOC -i $INPUT_GATKDOC -e $ASR.bam \
+	-n $NODES_GATKDOC -c $CPU_GATKDOC -m $MEMORY_GATKDOC"G" -w $WALLTIME_GATKDOC \
+	--command "${NGSANE_BASE}/mods/gatkDOC.sh -k $CONFIG -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASK_GATKDOC -t $CPU_GATKDOC"
+fi

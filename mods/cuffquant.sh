@@ -2,6 +2,7 @@
 
 # author: Hugh French and Fabian Buske
 # date: April 2014 echo ">>>>> [cuffquant]"
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.cxb
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
@@ -20,7 +21,7 @@ if [ ! $# -gt 3 ]; then usage ; fi
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;;     # location of the NGSANE repository                       
-        -f | --file )           shift; FILES=$1 ;;  # input file                                                       
+        -f | --file )           shift; INPUTFILE=$1 ;;  # input file                                                       
         -o | --outdir )         shift; OUTDIR=$1 ;;     # output dir                                                     
         --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
@@ -33,7 +34,6 @@ done
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
-
 
 ################################################################################
 CHECKPOINT="programs"
@@ -51,49 +51,25 @@ echo -e "--cufflinks   --\n "$(cufflinks 2>&1 | tee | head -n 2 )
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
-echo "[NOTE] Files: $FILES"
-OLDFS=$IFS
-IFS=","
-DATASETS=""
-for f in $FILES; do
-    n=${f/%$ASD.bam/}
-    FILE=${n/$TASK_TOPHAT/$TASK_CUFFLINKS}
-    # get directory
-    d=$(dirname $f)
-    d=${d##*/}    # add to dataset
-    if [ -n "$FILE" ]; then 
-        DATASETS="${DATASETS[@]} ${FILE[@]}"
-    fi
-done
-IFS=" "
 
-echo "[NOTE] datasets"
-echo "[NOTE] $DATASETS"
+[ ! -f $INPUTFILE ] && echo "[ERROR] input file not found: $INPUTFILE" && exit 1
 
-echo "[NOTE] $OUTDIR"
+# get basename of f (samplename)
+n=${INPUTFILE##*/}
+SAMPLE=${n/%$ASD.bam/}
 
-#mkdir -p "$OUTDIR"
-#if [ -z "$RECOVERFROM" ]; then
-#    ## TODO remove primary result files from pervious runs
-#    rm ${OUTDIR}/*
-#fi
-
-## TODO remove comments if paired/single library preps should be detected based on the READ identifier patterns
-#if [ "$INPUTFILE" != "${INPUTFILE/$READONE/$READTWO}" ] && [ -e ${INPUTFILE/$READONE/$READTWO} ]; then
-#    PAIRED="1"
-#else
-#    PAIRED="0"
-#fi
-
-## TODO remove comments if compressed status of input files should be detected
-#ZCAT="zcat"
-#if [[ ${INPUTFILE##*.} != "gz" ]]; then ZCAT="cat"; fi
+if [ -z "$MERGED_GTF_NAME" ]; then
+    echo "[ERROR] MERGED_GTF_NAME not specified"
+    exit 1
+elif [ ! -f $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf ]; then 
+    echo "[ERROR] merged gtf file not found in $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf "
+    exit 1
+fi
 
 # unique temp folder that should be used to store temporary files
-THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
-mkdir -p "$THISTMP"
-
-#echo "[NOTE] echo $THISTMP"
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
+[ -d $THISTMP ] && rm -r $THISTMP
+mkdir -p $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -106,41 +82,29 @@ if [ -n "$DMGET" ]; then
 fi
     
 echo -e "\n********* $CHECKPOINT\n"
-
-#################################################################################
-CHECKPOINT="Run cuffquant."  
+################################################################################
+CHECKPOINT="Run cuffquant"  
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
+    
+    RUNCOMMAND="cuffquant --no-update-check --quiet --output-dir $OUTDIR -p $CPU_CUFFLINKS $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf $INPUTFILE"
+    echo $RUNCOMMAND && eval $RUNCOMMAND
 
-
-IFS=","
-
-echo $FILES
-
-for f in $FILES
-     do
-      echo "$f"
-      xx=${f/%$ASD.bam/}                
-     [ -f $f ] && cuffquant -p $CPU_CUFFLINKS ${OUTDIR}/merged.gtf $f --output-dir ${xx/$TASK_TOPHAT/$TASK_CUFFLINKS}       
-     done
-
-echo -e "\n********* $CHECKPOINT\n"
+    # mark checkpoint
+    if [ -e $OUTDIR/abundances.cxb ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
-#################################################################################
-CHECKPOINT="cleanup."  
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+################################################################################
+CHECKPOINT="cleanup"
 
 [ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
- 
+
 echo -e "\n********* $CHECKPOINT\n"
-fi
-#################################################################################
-    echo ">>>>> Experiment merged transcripts (cuffquant) - FINISHED"
-    echo ">>>>> enddate "`date`
+################################################################################
+[ -e $OUTDIR/../${SAMPLE}.cxb.dummy ] && rm $OUTDIR/../${SAMPLE}.cxb.dummy
+echo ">>>>> Experiment merged transcripts (cuffquant) - FINISHED"
+echo ">>>>> enddate "`date`
 
 
 

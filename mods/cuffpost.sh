@@ -51,6 +51,17 @@ echo -e "--cufflinks   --\n "$(cufflinks 2>&1 | tee | head -n 2 )
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
+
+if [ -z "$MERGED_GTF_NAME" ]; then
+    echo "[ERROR] MERGED_GTF_NAME not specified"
+    exit 1
+fi
+
+if [ -z "$FASTA" ]; then
+    echo "[ERROR] no reference provided (FASTA)"
+    exit 1
+fi
+
 echo "[NOTE] Files: $FILES"
 OLDFS=$IFS
 IFS=","
@@ -69,27 +80,13 @@ for f in $FILES; do
 done
 IFS=" "
 
-echo "[NOTE] datasets"
-echo "[NOTE] echo $DATASETS"
-
-echo "[NOTE] echo $OUTDIR"
+echo "[NOTE] datasets: $DATASETS"
 
 #mkdir -p "$OUTDIR"
 #if [ -z "$RECOVERFROM" ]; then
 #    ## TODO remove primary result files from pervious runs
 #    rm ${OUTDIR}/*
 #fi
-
-## TODO remove comments if paired/single library preps should be detected based on the READ identifier patterns
-#if [ "$INPUTFILE" != "${INPUTFILE/$READONE/$READTWO}" ] && [ -e ${INPUTFILE/$READONE/$READTWO} ]; then
-#    PAIRED="1"
-#else
-#    PAIRED="0"
-#fi
-
-## TODO remove comments if compressed status of input files should be detected
-#ZCAT="zcat"
-#if [[ ${INPUTFILE##*.} != "gz" ]]; then ZCAT="cat"; fi
 
 # unique temp folder that should be used to store temporary files
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
@@ -111,40 +108,44 @@ echo -e "\n********* $CHECKPOINT\n"
 
     
 ################################################################################
-CHECKPOINT="Run cuffmerge."
+CHECKPOINT="Run cuffmerge"  
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
 
-echo "[NOTE] Make merged.gtf."
-
-   array=(${DATASETS[@]})
-
-
-               [ -f ${THISTMP}/files.txt ] &&  rm ${THISTMP}/files.txt
-               touch ${THISTMP}/files.txt
-                    
-                 array=( "${array[@]/%//transcripts.gtf}" )                  
-                 
-                   for THIS_FILE in "${array[@]}"
-                      do
-                      [ -f $THIS_FILE ] && echo $THIS_FILE >> ${THISTMP}/files.txt 
-                  
-                      done
-
+    array=(${DATASETS[@]})
+    
+    
+    [ -f ${THISTMP}/files.txt ] &&  rm ${THISTMP}/files.txt
+    touch ${THISTMP}/files.txt
+    
+    array=( "${array[@]/%//transcripts.gtf}" )                  
+    
+    for THIS_FILE in "${array[@]}"; do
+        [ -f $THIS_FILE ] && echo $THIS_FILE >> ${THISTMP}/files.txt 
+    done
+    
     cat ${THISTMP}/files.txt
+    
+    RUNCOMMAND="cuffmerge -p $CPU_CUFFLINKS -o $THISTMP --ref-sequence $FASTA --ref-gtf $GTF ${THISTMP}/files.txt"
+    echo $RUNCOMMAND && eval $RUNCOMMAND
+    
+    mv $THISTMP/merged.gtf $OUTDIR/$MERGED_GTF_NAME.gtf
+    
+    # mark checkpoint
+    if [ -e $OUTDIR/$MERGED_GTF_NAME.gtf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
-    cuffmerge -p $CPU_CUFFLINKS -o $OUTDIR --ref-sequence $FASTA --ref-gtf $GTF ${THISTMP}/files.txt
-
-echo -e "\n********* $CHECKPOINT\n"
-
-#################################################################################
+fi
+################################################################################
 
 CHECKPOINT="cleanup."  
   
 [ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
   
 echo -e "\n********* $CHECKPOINT\n"
-#################################################################################
-    echo ">>>>> Experiment merged transcripts (cuffmerge) - FINISHED"
-    echo ">>>>> enddate "`date`
+################################################################################
+echo ">>>>> Experiment merged transcripts (cuffmerge) - FINISHED"
+echo ">>>>> enddate "`date`
 
 
 

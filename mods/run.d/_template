@@ -1,0 +1,76 @@
+#!/bin/bash -e
+
+# This template should be used to specify the parameter for the module calls
+# One can either submit one module at a time or combined several to stage qsub
+# submissions
+
+# Copy this file and name it after your new module
+# Substitute [MOD] and similar places with the appropriate variables
+
+################################################################################
+#   Trigger command for individual [MOD]
+#
+# IN : $SOURCE/$dir/INPUT_[MOD]/*.[inputfile.suffix]
+# OUT: $OUT/$dir/TASK_[MOD]/*.[outputfile.suffix]
+################################################################################
+
+: ' # [TODO] REMOVE THIS LINE
+
+if [ -n "$RUN[MOD]" ]; then
+    # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/[MOD]
+    if [ -z "$TASK_[MOD]" ] || [ -z "$NODES_[MOD]" ] || [ -z "$CPU_[MOD]" ] || [ -z "$MEMORY_[MOD]" ] || [ -z "$WALLTIME_[MOD]" ]; then 
+        echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+    fi
+    
+    # Choose ONE qsub call from below and fill in the variables as required and adapt as required
+
+    # 1) SINGLE command working on fastq files (see FASTQC as example)
+    $QSUB $ARMED -d -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e $READONE.$FASTQ -n $NODES_[MOD] \
+    	-c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] \
+    	--command "${NGSANE_BASE}/mods/[MOD].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD]" 
+    	
+    # 2) SINGLE command working on fastq files	and producing fastq files as well (see TRIMMOMATIC as example)
+    $QSUB $ARMED -d -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e $READONE.$FASTQ -n $NODES_[MOD] \
+        -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] \
+        --command "$NGSANE_BASE/mods/[MOD].sh -k $CONFIG -f <FILE>"
+       
+    # 3) SINGLE command NOT working on fastq files (see MACS2 as example)
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e [inputfile.suffix] -n $NODES_[MOD] \
+        -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] \
+	   --command "${NGSANE_BASE}/mods/[MOD].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD]"
+
+    # 4) COMMAND and POSTCOMMAND NOT working on fastq files (see HTSEQCOUNT as example)
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e [inputfile.suffix] -n $NODES_[MOD] \
+        -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] \
+        --command "${NGSANE_BASE}/mods/[MOD].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD]" \
+        --postname postcommand$[MOD] \
+        --postcommand "${NGSANE_BASE}/mods/[MODPOSTCOMMAND].sh -f <FILE> -k $CONFIG --outdir $OUT/[MODPOSTCOMMAND]/<DIR>"
+                         
+fi
+
+################################################################################
+#   Trigger command for pipelines
+################################################################################
+if [ -n "$RUN[PIPELINE]" ]; then
+    # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/[MOD]
+    if [ -z "$TASK_[MOD1]" ] || [ -z "$NODES_[MOD1]" ] || [ -z "$CPU_[MOD1]" ] || [ -z "$MEMORY_[MOD1]" ] || [ -z "$WALLTIME_[MOD1]" ]; then 
+        echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+    fi
+    if [ -z "$TASK_[MOD2]" ] || [ -z "$NODES_[MOD2]" ] || [ -z "$CPU_[MOD2]" ] || [ -z "$MEMORY_[MOD2]" ] || [ -z "$WALLTIME_[MOD2]" ]; then 
+        echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+    fi
+        
+    # 5) Staged commands (pipelines) starting from FASTQ files (see TOPHATCUFFHTSEQ as example)
+    JOBIDS=$( 
+        $QSUB $ARMED -d -f -k $CONFIG -t $TASK_[MOD1] -i $INPUT_[MOD1] -e $READONE.$FASTQ -n $NODES_[MOD1] \
+            -c $CPU_[MOD1] -m $MEMORY_[MOD1]"G" $INDEXJOBIDS -w $WALLTIME_[MOD1] \
+            --command "${NGSANE_BASE}/mods/[MOD1].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD1]" 
+    ) && echo -e "$JOBIDS"
+    JOBIDS=$(waitForJobIds "$JOBIDS")
+
+    $QSUB $ARMED -d -r -k $CONFIG -t $TASK_[MOD2] -i $INPUT_[MOD2] -e [MOD1.inputfile.suffix] -n $NODES_[MOD2] \
+        -c $CPU_[MOD2] -m $MEMORY_[MOD2]"G" -w $WALLTIME_[MOD2] $JOBIDS \
+        --command "${NGSANE_BASE}/mods/[MOD2].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD2]"
+fi
+
+' # [TODO] REMOVE THIS LINE

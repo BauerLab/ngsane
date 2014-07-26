@@ -1,0 +1,16 @@
+#!/bin/bash -e
+
+################################################################################
+#   TRIMMOMATIC remove contaminants
+#
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $SOURCE/fastq/$dir_trimmomatic/*read1.fastq
+################################################################################
+
+if [ -n "$RUNTRIMMOMATIC" ]; then
+    if [ -z "$TASK_TRIMMOMATIC" ] || [ -z "$NODES_TRIMMOMATIC" ] || [ -z "$CPU_TRIMMOMATIC" ] || [ -z "$MEMORY_TRIMMOMATIC" ] || [ -z "$WALLTIME_TRIMMOMATIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -d -k $CONFIG -t $TASK_TRIMMOMATIC -i $INPUT_TRIMMOMATIC -e $READONE.$FASTQ -n $NODES_TRIMMOMATIC \
+        -c $CPU_TRIMMOMATIC -m $MEMORY_TRIMMOMATIC"G" -w $WALLTIME_TRIMMOMATIC \
+        --command "$NGSANE_BASE/mods/trimmomatic.sh -k $CONFIG -f <FILE>"
+fi

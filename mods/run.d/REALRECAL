@@ -1,0 +1,19 @@
+#!/bin/bash -e
+
+################################################################################ 
+#   recalibrate quality scores
+#   http://www.broadinstitute.org/gsa/wiki/index.php/Base_quality_score_recalibration
+#   http://www.broadinstitute.org/gsa/wiki/index.php/Local_realignment_around_indels
+#   http://picard.sourceforge.net/command-line-overview.shtml#FixMateInformation
+#   full pipe: http://www.broadinstitute.org/gsa/wiki/index.php/Whole_genome,_deep_coverage
+# IN:$SOURCE/$dir/fastq/*$READONE.fastq
+# OUT: $OUT/$dir/reCal/*$ASR.bam
+################################################################################
+
+if [ -n "$RUNREALRECAL" ]; then
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_RECAL -i $INPUT_REALRECAL -e $ASD.bam \
+        -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
+        --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBSNPVCF -o $OUT/<DIR>/$TASK_RECAL"
+
+fi

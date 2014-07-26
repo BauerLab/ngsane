@@ -1,0 +1,14 @@
+#!/bin/bash -e
+
+################################################################################
+#  De-novo motif discovery with memechip
+#
+# IN: $SOURCE/$dir/peakranger/*.Bedford
+# OUT: $OUT/$dir/memechip/
+################################################################################
+if [ -n "$RUNMEMECHIP" ]; then
+    if [ -z "$TASK_MEMECHIP" ] || [ -z "$NODES_MEMECHIP" ] || [ -z "$CPU_MEMECHIP" ] || [ -z "$MEMORY_MEMECHIP" ] || [ -z "$WALLTIME_MEMECHIP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_MEMECHIP -i $INPUT_MEMECHIP -e $BED -n $NODES_MEMECHIP -c $CPU_MEMECHIP -m $MEMORY_MEMECHIP"G" -w $WALLTIME_MEMECHIP \
+	   --command "${NGSANE_BASE}/mods/memechip.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_MEMECHIP"
+fi

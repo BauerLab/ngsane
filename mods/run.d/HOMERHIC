@@ -1,0 +1,22 @@
+#!/bin/bash -e
+
+################################################################################
+#  HiC analysis with homer
+#
+# IN : $SOURCE/$dir/INPIUT_HOMERHIC/*.bam
+# OUT: $OUT/$dir/TASK_HOMERHIC/
+################################################################################
+if [ -n "$RUNHOMERHIC" ]; then
+    if [ -z "$TASK_HOMERHIC" ] || [ -z "$NODES_HOMERHIC" ] || [ -z "$CPU_HOMERHIC" ] || [ -z "$MEMORY_HOMERHIC" ] || [ -z "$WALLTIME_HOMERHIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    if [ -z "$POOLED_DATA_NAME" ]; then 
+        # don't pool data
+        $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERHIC -i $INPUT_HOMERHIC -e $ASD$READONE$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
+	   --command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERHIC"
+    else
+        # pool data
+        $QSUB $ARMED --postname postcommand$POOLED_DATA_NAME -r -k $CONFIG -t $TASK_HOMERHIC -i $INPUT_HOMERHIC -e $READONE$ASD.bam -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
+	   --postcommand "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERHIC"
+   
+    fi
+fi

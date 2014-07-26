@@ -145,6 +145,10 @@ if [ -z "$FASTQ_PHRED" ]; then
     echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 fi
 
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
+[ -d $THISTMP ] && rm -r $THISTMP
+mkdir -p $THISTMP
+
 #readgroup
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
@@ -221,8 +225,6 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
    
     if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
-    THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files                                        
-    mkdir -p $THISTMP
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
         INPUT=$OUTDIR/$SAMPLE.cleaned.bam \
         OUTPUT=$OUTDIR/$SAMPLE$ASD.bam \
@@ -231,7 +233,6 @@ else
         COMPRESSION_LEVEL=9 \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
-    [ -d $THISTMP ] && rm -r $THISTMP
     samtools index $OUTDIR/$SAMPLE$ASD.bam
           
     # mark checkpoint
@@ -268,8 +269,6 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
-    mkdir $THISTMP
     java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
         INPUT=$OUTDIR/$SAMPLE$ASD.bam \
         REFERENCE_SEQUENCE=$FASTA \
@@ -282,7 +281,6 @@ else
     for im in $( ls $OUTDIR/metrices/*.pdf ); do
         convert $im ${im/pdf/jpg}
     done
-    rm -r $THISTMP
 
     # mark checkpoint
     if [ -f $OUTDIR/metrices/$SAMPLE$ASD.bam.alignment_summary_metrics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -313,6 +311,12 @@ else
     echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"
     exit 1
 fi
+
+echo -e "\n********* $CHECKPOINT\n"
+###############################################################################
+CHECKPOINT="cleanup"
+
+[ -d $THISTMP ] && rm -r $THISTMP
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
