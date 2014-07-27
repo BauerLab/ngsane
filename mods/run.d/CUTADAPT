@@ -1,0 +1,16 @@
+#!/bin/bash -e
+
+################################################################################
+#   CUTADAPT remove contaminants
+#
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $SOURCE/fastq/$dir_cutadapt/*read1.fastq
+################################################################################
+
+if [ -n "$RUNCUTADAPT" ]; then
+    if [ -z "$TASK_CUTADAPT" ] || [ -z "$NODES_CUTADAPT" ] || [ -z "$CPU_CUTADAPT" ] || [ -z "$MEMORY_CUTADAPT" ] || [ -z "$WALLTIME_CUTADAPT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -d -k $CONFIG -t $TASK_CUTADAPT -i $INPUT_CUTADAPT -e $READONE.$FASTQ -n $NODES_CUTADAPT \
+        -c $CPU_CUTADAPT -m $MEMORY_CUTADAPT"G" -w $WALLTIME_CUTADAPT \
+        --command "${NGSANE_BASE}/mods/cutadapt.sh -k $CONFIG -f <FILE>" 
+fi

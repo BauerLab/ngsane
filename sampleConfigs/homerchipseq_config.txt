@@ -30,10 +30,6 @@ OUT=$SOURCE
 # where to write the log files
 QOUT=$OUT/qout
 
-# chromosome sizes
-# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa
-# or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
-FASTA=
 
 #********************
 # PARAMETER (mandatory)
@@ -49,6 +45,11 @@ HOMER_CHIPSEQ_STYLE="factor"
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
+
+# chromosome sizes
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa
+# or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=
 
 # location of the input (control) for the chip experiments (bam file)
 CHIPINPUT=
