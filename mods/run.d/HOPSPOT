@@ -1,0 +1,15 @@
+#!/bin/bash -e
+
+################################################################################
+#  Hotspot detection 
+#
+# IN:$SOURCE/$dir/$INPUT_HOTSPOT/*asd.bam
+# OUT: $OUT/$dir/hotspot/*.bw
+################################################################################       
+
+if [ -n "$RUNHOTSPOT" ]; then
+    if [ -z "$TASK_HOTSPOT" ] || [ -z "$NODES_HOTSPOT" ] || [ -z "$CPU_HOTSPOT" ] || [ -z "$MEMORY_HOTSPOT" ] || [ -z "$WALLTIME_HOTSPOT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_HOTSPOT -i $INPUT_HOTSPOT -e $ASD.bam -n $NODES_HOTSPOT -c $CPU_HOTSPOT -m $MEMORY_HOTSPOT"G" -w $WALLTIME_HOTSPOT \
+        --command "${NGSANE_BASE}/mods/hotspot.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOTSPOT"
+fi

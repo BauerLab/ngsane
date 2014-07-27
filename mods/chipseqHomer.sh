@@ -72,8 +72,7 @@ SAMPLE=${n/%$ASD.bam/}
 
 GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
 if [ ! -f $GENOME_CHROMSIZES ]; then
-    echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES"
-    exit 1
+    echo "[WARN] GENOME_CHROMSIZES not found. No bigbeds will be generated"
 else
     echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
 fi
