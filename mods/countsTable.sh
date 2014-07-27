@@ -70,12 +70,14 @@ IFS=" "
 echo "[NOTE] datasets"
 echo "[NOTE] echo $DATASETS"
 
-mkdir -p $OUTDIR 
+
 # delete old files unless attempting to recover
+#remove old files
 if [ -z "$RECOVERFROM" ]; then
-    ## TODO remove primary result files from previous runs
-    rm ${OUTDIR}/*.csv
+    if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
 fi
+
+mkdir -p $OUTDIR 
 
 # unique temp folder that should be used to store temporary files
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
@@ -132,7 +134,7 @@ else
                     echo "${array[@]##*${TASK_HTSEQCOUNT}}" |  sed 's/ /,/g' | sed "s/\/${GTF}.${MODE}.${ATTR}//g" | sed 's/\///g'   > ${THISTMP}/tmp.txt
                     awk '{print "gene," $0;}' ${THISTMP}/tmp.txt > ${THISTMP}/out.csv
                     cat ${THISTMP}/joinedfile.txt | sed 's/\t/,/g' >> ${THISTMP}/out.csv
-                    mv ${THISTMP}/out.csv ${OUTDIR}/${GTF}.${MODE}.${ATTR}.csv
+                    mv ${THISTMP}/out.csv ${OUTDIR}/${HTSEQCOUNT_TABLE_FOLDERNAME}.${GTF}.${MODE}.${ATTR}.csv
                 fi
             done
         done
@@ -190,7 +192,7 @@ else
                     echo "${array[@]##*${TASK_HTSEQCOUNT}}" |  sed 's/ /,/g' | sed "s/.${MODE}.${ATTR}.RPKM.csv//g" | sed 's/\///g'   > ${THISTMP}/tmp.txt
                     awk '{print "gene," $0;}' ${THISTMP}/tmp.txt > ${THISTMP}/out.csv
                     cat ${THISTMP}/joinedfile.txt | grep -v "ENSG," | grep -v "ENST," |  sed 's/\t/,/g' >> ${THISTMP}/out.csv
-                    mv ${THISTMP}/out.csv ${OUTDIR}/GTF${GTF}.${MODE}.${ATTR}.RPKM.csv
+                    mv ${THISTMP}/out.csv ${OUTDIR}/${HTSEQCOUNT_TABLE_FOLDERNAME}.${GTF}.${MODE}.${ATTR}.RPKM.csv
                 fi
                 
             done
@@ -246,7 +248,7 @@ else
                     echo "${array[@]##*${TASK_HTSEQCOUNT}}" |  sed 's/ /,/g' | sed "s/.${MODE}.${ATTR}.RPKM.median.csv//g" | sed 's/\///g'   > ${THISTMP}/tmp.txt
                     awk '{print "gene," $0;}' ${THISTMP}/tmp.txt > ${THISTMP}/out.csv
                     cat ${THISTMP}/joinedfile.txt | grep -v "ENSG," | grep -v "ENST," |  sed 's/\t/,/g' >> ${THISTMP}/out.csv
-                    mv ${THISTMP}/out.csv ${OUTDIR}/GTF${GTF}.${MODE}.${ATTR}.RPKM.median.csv
+                    mv ${THISTMP}/out.csv ${OUTDIR}/${HTSEQCOUNT_TABLE_FOLDERNAME}${GTF}.${MODE}.${ATTR}.RPKM.median.csv
                 fi
             done
         done
@@ -264,5 +266,65 @@ CHECKPOINT="cleanup RPKM (gene length, median)."  [ -f ${THISTMP}/joinedfile.txt
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
+
+################################################################################
+CHECKPOINT="Make tables of RPKMs (gene, average)."
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+     
+    for GTF in  "" "masked"; do
+        for MODE in "union" "intersection-strict" "intersection-nonempty"; do
+            for ATTR in "gene_id"; do 
+       
+                [ -f ${THISTMP}/files.txt ] &&  rm ${THISTMP}/files.txt
+                touch ${THISTMP}/files.txt
+                
+                array=(${DATASETS[@]})
+                ###array=(${array[@]%/*})
+                array=( "${array[@]/%/${GTF}.${MODE}.${ATTR}.RPKM.average.csv}" )
+                for THIS_FILE in "${array[@]}"; do
+                    [ -f $THIS_FILE ] && echo $THIS_FILE "Found" >> ${THISTMP}/files.txt || echo "Not found" >> ${THISTMP}/files.txt
+                done
+
+                if grep -q "Not found" ${THISTMP}/files.txt; then
+                    echo "[NOTE] GTF${GTF}.${MODE}.${ATTR}.RPKM.average.csv - not found, skipping."            
+                else
+                    echo "[NOTE] GTF${GTF}.${MODE}.${ATTR}.RPKM.average.csv - found, making RPKM (median) table."  
+                    [ -f ${THISTMP}/joinedfile.txt ] && rm ${THISTMP}/joinedfile.txt
+
+                    for i in "${array[@]}"; do
+                        if [ ! -f ${THISTMP}/joinedfile.txt ]; then
+                            cat ${i} > ${THISTMP}/joinedfile.txt                                                 
+                        else
+                            cut -d',' -f 2 ${i} | paste ${THISTMP}/joinedfile.txt -  > ${THISTMP}/tmp.txt 
+                            mv ${THISTMP}/tmp.txt ${THISTMP}/joinedfile.txt
+                        fi
+                    done
+                    echo "${array[@]##*${TASK_HTSEQCOUNT}}" |  sed 's/ /,/g' | sed "s/.${MODE}.${ATTR}.RPKM.average.csv//g" | sed 's/\///g'   > ${THISTMP}/tmp.txt
+                    awk '{print "gene," $0;}' ${THISTMP}/tmp.txt > ${THISTMP}/out.csv
+                    cat ${THISTMP}/joinedfile.txt | grep -v "ENSG," | grep -v "ENST," |  sed 's/\t/,/g' >> ${THISTMP}/out.csv
+                    mv ${THISTMP}/out.csv ${OUTDIR}/${HTSEQCOUNT_TABLE_FOLDERNAME}${GTF}.${MODE}.${ATTR}.RPKM.average.csv
+                fi
+            done
+        done
+    done
+        
+    # mark checkpoint
+    echo -e "\n********* $CHECKPOINT\n"
+fi
+################################################################################
+CHECKPOINT="cleanup RPKM (gene length, average)."  [ -f ${THISTMP}/joinedfile.txt ] && rm ${THISTMP}/joinedfile.txt
+  
+[ -f ${THISTMP}/out.csv ] && rm ${THISTMP}/out.csv
+[ -f ${THISTMP}/joinedfile.txt ] && rm ${THISTMP}/joinedfile.txt
+[ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
+
+echo -e "\n********* $CHECKPOINT\n"
+################################################################################
+
+
+
+
 echo ">>>>> Count tables from htseqcount output - FINISHED"
 echo ">>>>> enddate "`date`

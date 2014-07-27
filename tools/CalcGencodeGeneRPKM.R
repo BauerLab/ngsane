@@ -7,7 +7,6 @@ countsF<-args[2]
 #sample name eg RNA3kChr16
 sampleName<-args[3]
 
-
 library(GenomicFeatures)
 library(edgeR)
 
@@ -32,7 +31,7 @@ RPKM<-rpkm(matrix(counts[,2]), gene.length=ordered.gene.length)
 #write table of rpkms
 write.csv(cbind("ENSG"=counts[,1],"RPKM"=RPKM[,1]),file=paste(sampleName,".RPKM.csv",sep=""),quote=FALSE,row.names=FALSE)
 
-#### calculate RPKM per median gene length as well
+#### calculate RPKM per median & average gene length as well
 
 #caution overwriting some of the above values in workspace.
 
@@ -61,6 +60,16 @@ ordered.gene.length<-gene.length.gencode[match(counts[,1],names(gene.length.genc
 RPKM<-rpkm(matrix(counts[,2]), gene.length=ordered.gene.length)
 write.csv(cbind("ENSG"=counts[,1],"RPKM"=RPKM[,1]),file=paste(sampleName,".RPKM.median.csv",sep=""),quote=FALSE,row.names=FALSE)
 
+#calculate average transcript length per gene_id
+xx<-tapply(transcript.length.gencode,names(transcript.length.gencode),function(x) mean(x))
+#tidy up
+gene.length.gencode<-as.vector(xx)
+names(gene.length.gencode)<-names(xx)
+#overwrite above values for median table
+counts<-read.table(countsF,stringsAsFactors=F)
+ordered.gene.length<-gene.length.gencode[match(counts[,1],names(gene.length.gencode))]
+RPKM<-rpkm(matrix(counts[,2]), gene.length=ordered.gene.length)
+write.csv(cbind("ENSG"=counts[,1],"RPKM"=RPKM[,1]),file=paste(sampleName,".RPKM.average.csv",sep=""),quote=FALSE,row.names=FALSE)
 
 sink(type = "message")
 sessionInfo()
