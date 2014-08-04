@@ -74,7 +74,7 @@ for d in ${DIR[@]}; do
 
         INBAMS=""
         COMMENT=""
-        for i in $(ls $OUT/$d/$INPUT_POOLBAMS/$ASD.bam | egrep "$PATTERN"); do 
+        for i in $(ls $OUT/$d/$INPUT_POOLBAMS/*$ASD.bam | egrep "$PATTERN"); do 
             INBAMS="$INBAMS INPUT=$i"
             COMMENT="$COMMENT ${i##*/}"
         done        
@@ -84,7 +84,6 @@ for d in ${DIR[@]}; do
             echo ";" >> $COMMAND
         fi
     done < $OUT/$d/$INPUT_POOLBAMS/pools.tmp
-    
     rm $OUT/$d/$INPUT_POOLBAMS/pools.tmp
     
 done
