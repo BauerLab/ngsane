@@ -5,7 +5,7 @@
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/$INPUT_BIGWIG/<SAMPLE>.bw
+# RESULTFILENAME <DIR>/$TASK_BIGWIG/<SAMPLE>.bw
 
 echo ">>>>> bigwig generation"
 echo ">>>>> startdate "`date`
