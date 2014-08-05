@@ -126,7 +126,6 @@ CHECKPOINT="run cufflinks"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-    echo "[NOTE] cufflinks $(date)"
 
     ## add GTF file if present
     if [ -n "$GTF" ]; then 
