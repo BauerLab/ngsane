@@ -226,6 +226,9 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             if [[ $(echo $JOBIDS | sed 's/:*$//g'| awk -F':' '{print NF}') == 1 ]]; then
                 # everyone waits for the same job if only one id was given
                 JOBID=$(echo $JOBIDS | cut -d ":" -f 1)        
+            elif [[ $(echo $JOBIDS | sed 's/:*$//g'| awk -F':' '{print NF}') -ge $(wc -l $QOUT/$TASK/runnow.tmp | cut -d' ' -f 1) ]]; then
+                # everyone waits for all jobs to finish
+                JOBID=$(echo $JOBIDS | sed 's/:*$//g')
             else
                 # otherwise wait for job in corresponding slot
                 JOBID=$(echo $JOBIDS | cut -d ":" -f $JOBNUMBER)
