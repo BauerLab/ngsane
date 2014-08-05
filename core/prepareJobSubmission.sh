@@ -60,8 +60,9 @@ if [ -n "$COMMONTASK" ]; then
 fi
         
 ## Select files in dir to run 
+echo "[NOTE] SOURCE: $SOURCE"
 if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
-    echo -e "[NOTE] setup enviroment"
+    echo -e "[NOTE] Detect datasets and setup environment"
     if [ -e $QOUT/$TASK/runnow.tmp ]; then rm $QOUT/$TASK/runnow.tmp; fi
         
     for dir in ${DIR[@]}; do
@@ -83,7 +84,6 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
         # "$ENDING*" is important to detect dummy files
         if [ -n "$REV" ]; then
             for f in $( ls $SOURCE/$DIRNAME/$ORIGIN/$SAMPLEPATTERN*$ENDING* | egrep ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
-                echo $f
                 n=${f##*/}
                 name=${n/$ENDING/}
                 LOGFILE=$QOUT/$TASK/$DIRNAME'_'$name'.out'
