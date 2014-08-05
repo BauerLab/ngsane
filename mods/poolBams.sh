@@ -1,6 +1,7 @@
 #!/bin/bash -e
 # author: Fabian Buske
 # date: September 2013
+# pool/merge bam files from within a experiment folder subject to a pattern 
 
 echo ">>>>> pool bam datasets"
 echo ">>>>> startdate "`date`
@@ -69,7 +70,7 @@ for d in ${DIR[@]}; do
     while read -r -a POOL; do
         PATTERN=$(echo "${POOL[@]:1}" | sed -e 's/ /|/g')
 
-        OUTBAM="$OUT/$d/$INPUT_POOLBAMS/$(echo $POOL | cut -d' ' -f1)$ASD.bam"
+        OUTBAM="$OUT/$d/$TASK_POOLBAMS/$(echo $POOL | cut -d' ' -f1)$ASD.bam"
         [ -f $OUTBAM ] && rm $OUTBAM
 
         INBAMS=""
@@ -87,15 +88,16 @@ for d in ${DIR[@]}; do
     rm $OUT/$d/$INPUT_POOLBAMS/pools.tmp
     
 done
+echo "COMMAND:" $(cat $COMMAND)
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="pool data"
 
 if hash parallel ; then
-    echo "[NOTE] parallel processing"
 
-    cat $COMMAND | parallel --verbose --joblog $TMP/$TASK_POOLBAMS.log --gnu --eta -j $CPU_POOLBAMS "eval {}" > /dev/null 2&>1
+    echo "[NOTE] parallel processing"
+    cat $COMMAND | parallel --verbose --joblog $TMP/$TASK_POOLBAMS.log --gnu --eta -j $CPU_POOLBAMS "eval {}" > /dev/null 2>&1
 
 else
     # serial processing
