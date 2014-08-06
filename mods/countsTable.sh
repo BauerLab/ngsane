@@ -70,12 +70,21 @@ IFS=" "
 echo "[NOTE] datasets"
 echo "[NOTE] echo $DATASETS"
 
-mkdir -p $OUTDIR 
+annoF=${GTF##*/}
+anno_version=${annoF%.*}
+
+echo "[NOTE] GTF"
+echo "[NOTE] echo $anno_version"
+
+echo "[NOTE] ${OUTDIR}"
+
 # delete old files unless attempting to recover
+#remove old files
 if [ -z "$RECOVERFROM" ]; then
-    ## TODO remove primary result files from previous runs
-    rm ${OUTDIR}/*.csv
+    if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
 fi
+
+mkdir -p $OUTDIR 
 
 # unique temp folder that should be used to store temporary files
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
@@ -100,7 +109,7 @@ else
 
     echo "[NOTE] Make tables of counts."
          
-    for GTF in  "GTF" "GTF_masked"; do
+    for GTF in  "$anno_version" ; do
         for MODE in "union" "intersection-strict" "intersection-nonempty"; do
             for ATTR in "gene_id" "transcript_id"; do 
        
@@ -111,7 +120,9 @@ else
                 array=( "${array[@]/%//${GTF}.${MODE}.${ATTR}}" )                  
                 
                 for THIS_FILE in "${array[@]}"; do
-                    [ -f $THIS_FILE ] && echo $THIS_FILE "Found" >> ${THISTMP}/files.txt || echo "Not found" >> ${THISTMP}/files.txt                 
+                    [ -f $THIS_FILE ] && echo $THIS_FILE "Found" >> ${THISTMP}/files.txt || echo "Not found" >> ${THISTMP}/files.txt           
+
+       
                 done
        
                 if grep -q "Not found" ${THISTMP}/files.txt;then    
@@ -132,7 +143,8 @@ else
                     echo "${array[@]##*${TASK_HTSEQCOUNT}}" |  sed 's/ /,/g' | sed "s/\/${GTF}.${MODE}.${ATTR}//g" | sed 's/\///g'   > ${THISTMP}/tmp.txt
                     awk '{print "gene," $0;}' ${THISTMP}/tmp.txt > ${THISTMP}/out.csv
                     cat ${THISTMP}/joinedfile.txt | sed 's/\t/,/g' >> ${THISTMP}/out.csv
-                    mv ${THISTMP}/out.csv ${OUTDIR}/${GTF}.${MODE}.${ATTR}.csv
+                    mv ${THISTMP}/out.csv ${OUTDIR}/${anno_version}.${MODE}.${ATTR}.csv
+                    echo "[NOTE] OUTFILE ${OUTDIR}/${anno_version}.${MODE}.${ATTR}.csv "
                 fi
             done
         done
@@ -150,119 +162,11 @@ CHECKPOINT="cleanup counts."
   [ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
 
 echo -e "\n********* $CHECKPOINT\n"
+
 ################################################################################
-CHECKPOINT="Make tables of RPKMs."
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
 
-    echo "[NOTE] Make tables of RPKMs."
-         
-    for GTF in  "" "masked"; do
-        for MODE in "union" "intersection-strict" "intersection-nonempty"; do
-            for ATTR in "gene_id" "transcript_id"; do 
-   
-                [ -f ${THISTMP}/files.txt ] &&  rm ${THISTMP}/files.txt
-                touch ${THISTMP}/files.txt
-                
-                array=(${DATASETS[@]})
-                ###array=(${array[@]%/*})
-                array=( "${array[@]/%/${GTF}.${MODE}.${ATTR}.RPKM.csv}" )
-                for THIS_FILE in "${array[@]}"; do
-                    [ -f $THIS_FILE ] && echo $THIS_FILE "Found" >> ${THISTMP}/files.txt || echo "Not found" >> ${THISTMP}/files.txt
-                done
-            
-                if grep -q "Not found" ${THISTMP}/files.txt; then
-                    echo "[NOTE] GTF${GTF}.${MODE}.${ATTR}.RPKM.csv - not found, skipping."            
-                else
-                    echo "[NOTE] GTF${GTF}.${MODE}.${ATTR}.RPKM.csv - found, making RPKM table."  
-                    
-                    [ -f ${THISTMP}/joinedfile.txt ] && rm ${THISTMP}/joinedfile.txt
-                    for i in "${array[@]}"; do
-                        if [ ! -f ${THISTMP}/joinedfile.txt ]; then
-                            cat ${i} > ${THISTMP}/joinedfile.txt                                              
-                        else
-                            cut -d',' -f 2 ${i} | paste ${THISTMP}/joinedfile.txt -  > ${THISTMP}/tmp.txt 
-                            mv ${THISTMP}/tmp.txt ${THISTMP}/joinedfile.txt
-                        fi
-                    done
 
-                    echo "${array[@]##*${TASK_HTSEQCOUNT}}" |  sed 's/ /,/g' | sed "s/.${MODE}.${ATTR}.RPKM.csv//g" | sed 's/\///g'   > ${THISTMP}/tmp.txt
-                    awk '{print "gene," $0;}' ${THISTMP}/tmp.txt > ${THISTMP}/out.csv
-                    cat ${THISTMP}/joinedfile.txt | grep -v "ENSG," | grep -v "ENST," |  sed 's/\t/,/g' >> ${THISTMP}/out.csv
-                    mv ${THISTMP}/out.csv ${OUTDIR}/GTF${GTF}.${MODE}.${ATTR}.RPKM.csv
-                fi
-                
-            done
-        done
-    done
-    
-    # mark checkpoint
-    echo -e "\n********* $CHECKPOINT\n"
-    
-fi
-################################################################################
-CHECKPOINT="cleanup RPKM non overlapping exon length." 
 
-[ -f ${THISTMP}/out.csv ] && rm ${THISTMP}/out.csv
-[ -f ${THISTMP}/joinedfile.txt ] && rm ${THISTMP}/joinedfile.txt
-[ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
 
-echo -e "\n********* $CHECKPOINT\n"
-################################################################################
-CHECKPOINT="Make tables of RPKMs (gene, median)."
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-     
-    for GTF in  "" "masked"; do
-        for MODE in "union" "intersection-strict" "intersection-nonempty"; do
-            for ATTR in "gene_id"; do 
-       
-                [ -f ${THISTMP}/files.txt ] &&  rm ${THISTMP}/files.txt
-                touch ${THISTMP}/files.txt
-                
-                array=(${DATASETS[@]})
-                ###array=(${array[@]%/*})
-                array=( "${array[@]/%/${GTF}.${MODE}.${ATTR}.RPKM.median.csv}" )
-                for THIS_FILE in "${array[@]}"; do
-                    [ -f $THIS_FILE ] && echo $THIS_FILE "Found" >> ${THISTMP}/files.txt || echo "Not found" >> ${THISTMP}/files.txt
-                done
-
-                if grep -q "Not found" ${THISTMP}/files.txt; then
-                    echo "[NOTE] GTF${GTF}.${MODE}.${ATTR}.RPKM.median.csv - not found, skipping."            
-                else
-                    echo "[NOTE] GTF${GTF}.${MODE}.${ATTR}.RPKM.median.csv - found, making RPKM (median) table."  
-                    [ -f ${THISTMP}/joinedfile.txt ] && rm ${THISTMP}/joinedfile.txt
-
-                    for i in "${array[@]}"; do
-                        if [ ! -f ${THISTMP}/joinedfile.txt ]; then
-                            cat ${i} > ${THISTMP}/joinedfile.txt                                                 
-                        else
-                            cut -d',' -f 2 ${i} | paste ${THISTMP}/joinedfile.txt -  > ${THISTMP}/tmp.txt 
-                            mv ${THISTMP}/tmp.txt ${THISTMP}/joinedfile.txt
-                        fi
-                    done
-                    echo "${array[@]##*${TASK_HTSEQCOUNT}}" |  sed 's/ /,/g' | sed "s/.${MODE}.${ATTR}.RPKM.median.csv//g" | sed 's/\///g'   > ${THISTMP}/tmp.txt
-                    awk '{print "gene," $0;}' ${THISTMP}/tmp.txt > ${THISTMP}/out.csv
-                    cat ${THISTMP}/joinedfile.txt | grep -v "ENSG," | grep -v "ENST," |  sed 's/\t/,/g' >> ${THISTMP}/out.csv
-                    mv ${THISTMP}/out.csv ${OUTDIR}/GTF${GTF}.${MODE}.${ATTR}.RPKM.median.csv
-                fi
-            done
-        done
-    done
-        
-    # mark checkpoint
-    echo -e "\n********* $CHECKPOINT\n"
-fi
-################################################################################
-CHECKPOINT="cleanup RPKM (gene length, median)."  [ -f ${THISTMP}/joinedfile.txt ] && rm ${THISTMP}/joinedfile.txt
-  
-[ -f ${THISTMP}/out.csv ] && rm ${THISTMP}/out.csv
-[ -f ${THISTMP}/joinedfile.txt ] && rm ${THISTMP}/joinedfile.txt
-[ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
-
-echo -e "\n********* $CHECKPOINT\n"
-################################################################################
 echo ">>>>> Count tables from htseqcount output - FINISHED"
 echo ">>>>> enddate "`date`
