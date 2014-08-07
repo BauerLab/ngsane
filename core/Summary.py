@@ -15,9 +15,10 @@ if (len(sys.argv)==1 or sys.argv[0].find("help")>-1):
     print "python2 times"
     die
 
-dir=re.split("[ \n]",sys.argv[1])
-ext=sys.argv[2]
-mod=sys.argv[3]
+task=sys.argv[1]
+dir=re.split("[ \n]",sys.argv[2])
+ext=sys.argv[3]
+mod=sys.argv[4]
 printing=True
 percent=False
 noSummary=False
@@ -97,6 +98,9 @@ def per(max,arr):
 
 def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix, modname):
 
+    #print ("Length of arrS[0] is ") 
+    #print (len(arrS[0]))
+    #print ("length of arrN is " + len(arrN))
     if (len(arrV)==0):
         print " <i> - No result files detected</i>"
         return
@@ -107,71 +111,95 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix, modname):
     jsonTitle=[]
     jsonData=[]
     
-    for c in xrange(len(arrV)):
-        string+=["<div>%17s</div>" % arrN[c]]
+    for c in xrange(len(arrN)):
+        #string+=["<div>%17s</div>" % arrN[c]]
+        #string+=["<div>arrN[c]</div>"]
         jsonTitle+=['{"sTitle": "'+arrN[c]+'"}']
-        formatString="%17.2f"
-        if (min(arrV[c]) > 0.0 and min(arrV[c])<0.009):
-            formatString="%17.2e"
-        out[0].append(formatString % (min(arrV[c])))
-        out[1].append(formatString % (max(arrV[c])))
-        out[2].append(formatString % (average(arrV[c])))
-        out[3].append(formatString % (ste(arrV[c])))
-        if (percent):
-            out[4].append(formatString % (per(arrV[0],arrV[c])))
-        out[5].append(formatString % (sum(arrV[c])))
+        #formatString="%17.2f"
+        #if (min(arrV[c]) > 0.0 and min(arrV[c])<0.009):
+            #formatString="%17.2e"
+        #out[0].append(formatString % (min(arrV[c])))
+        #out[1].append(formatString % (max(arrV[c])))
+        #out[2].append(formatString % (average(arrV[c])))
+        #out[3].append(formatString % (ste(arrV[c])))
+        #if (percent):
+        #    out[4].append(formatString % (per(arrV[0],arrV[c])))
+        #out[5].append(formatString % (sum(arrV[c])))
+#No idea what data is here
+    #print "<div class='tabContent' id='DC_Bowtie_v1_Mapping'>"
+    print "<div><table id='" + filestructure + "_id_Table' class='data'>"
 
-    print "<table class='data'><thead><tr><th><div style='width:25px'><div></th><th>"+("</th><th>").join(string)+"</th><th class='left'>File</th></tr></thead>"
     if(printing and arrS!=0 ):       
-        print "<tbody>"
-        for l in arrS:
-            resultPerS=[]
-            jsonDataRow=[]
-            for e in l[0]:
-                formatString="%17.2f"
-                if (e > 0.0 and e<0.009):
-                    formatString="%17.2e"
-                resultPerS+=[ formatString % e ]
-                jsonDataRow+= [ formatString % e ]
-            jsonData+= [ "[" + ",".join(jsonDataRow) + "]" ]
-            print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+ removeSuffix(removePrefix(l[1], filestructure), filesuffix)+"</td></tr>"
-        print "</tbody>"
+        #print "<tbody>"
+        #for l in arrS:
+            #resultPerS=[]
+            #jsonDataRow=[]
+            #for e in l[0]:
+                #formatString="%17.2f"
+                #if (e > 0.0 and e<0.009):
+                #    formatString="%17.2e"
+                #resultPerS+=[ formatString % e ]
+                #jsonDataRow+= [ formatString % e ]
+                #jsonDataRow+= e
+            #jsonData+= [ "[" + ",".join(jsonDataRow) + "]" ]
+            #print "<tr><td></td><td>"+("</td><td>").join(resultPerS)+"</td><td class='left'>"+ removeSuffix(removePrefix(l[1], filestructure), filesuffix)+"</td></tr>"
+        #print "</tbody>"
+        i=0
+        rowLength = len(arrN)
+        numValues = len(arrV)
+        #print "This is l from arrV "
+	for l in arrV:
+            #print (l)
+            if (i % rowLength == 0):
+	         jsonData += [ "[" + "".join(l) + "," ]
+            elif (i % rowLength < rowLength-1):
+                 jsonData += [ "".join(l) + "," ]
+            if (i %rowLength == rowLength -1 and i != numValues-1):
+	         jsonData += [ "".join(l) + "]," ] 
+            elif (i == numValues-1):
+                 jsonData += [ "".join(l) + "]" ]
+            
+            i+=1
+
+        #print "This is jsonData "
+        #print (" |HAHA| ".join(jsonData))
+
 
     # Add JSON object
     json="""<script type="text/javascript">
 //<![CDATA[
-""" + modname + """={
+""" + filestructure + """_Table_json ={
 	"bPaginate": true,
 	"bProcessing": true,
 	"bAutoWidth": false,
 	"bInfo": true,
 	"bLengthChange": true,
-    "bFilter": false,
+    "bFilter": true,
 	"iDisplayLength": 10,
 	"bJQueryUI": true,
-	"aLengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]],
+	"aLengthMenu": [[0, 5, 10, -1], [0, 5, 10, "All"]],
 	"aoColumns": [
 """ + ",\n".join(jsonTitle) + """
 	],	
 	"aaData": [
-""" + ",\n".join(jsonData) + """
+""" + "".join(jsonData) + """
 	]
 }
 //]]>
 </script>
 """
                   
-    if(not noSummary and (arrS==0 or len(arrS)>1)):
+    #if(not noSummary and (arrS==0 or len(arrS)>1)):
 
-        print "<tfoot>"
-        print "<tr><td class='left'>sum</td><td>"+("</td><td>").join(out[5])+"</td><td class='left'><i>aggregation</i></td></tr>"
-        print "<tr><td class='left'>min</td><td>"+("</td><td>").join(out[0])+"</td><td></td></tr>"
-        print "<tr><td class='left'>max</td><td>"+("</td><td>").join(out[1])+"</td><td></td></tr>"
-        print "<tr><td class='left'>av</td><td>"+("</td><td>").join(out[2])+"</td><td></td></tr>"
-        print "<tr><td class='left'>ste</td><td>"+("</td><td>").join(out[3])+"</td><td></td></tr>"
-        if (percent):
-            print "<tr><td>av%</td><td>"+"</td><td>".join(out[4])+"</td><td></td></tr>"
-        print "</tfoot>"
+     #   print "<tfoot>"
+     #   print "<tr><td class='left'>sum</td><td>"+("</td><td>").join(out[5])+"</td><td class='left'><i>aggregation</i></td></tr>"
+     #   print "<tr><td class='left'>min</td><td>"+("</td><td>").join(out[0])+"</td><td></td></tr>"
+     #   print "<tr><td class='left'>max</td><td>"+("</td><td>").join(out[1])+"</td><td></td></tr>"
+     #   print "<tr><td class='left'>av</td><td>"+("</td><td>").join(out[2])+"</td><td></td></tr>"
+     #   print "<tr><td class='left'>ste</td><td>"+("</td><td>").join(out[3])+"</td><td></td></tr>"
+     #   if (percent):
+     #       print "<tr><td>av%</td><td>"+"</td><td>".join(out[4])+"</td><td></td></tr>"
+     #   print "</tfoot>"
 
     print "</table>"
 
@@ -220,6 +248,7 @@ def blue(statsfile):
     names=["Total reads","Reads OK","Reads OK%","healed","healed%","not healed", "not healed %","discarded", "discarded %","subs","dels","ins"]
     values=[]
     st=re.split("[\n]+",open(statsfile).read())
+    
     values.append(int(st[2].split("\t")[0])) # total
     values.append(int(st[3].split("\t")[0])) # acepted
     values.append(float(values[-1])/float(values[0])*100) # %
@@ -242,6 +271,7 @@ def tophat(statsfile):
     names=["Total reads","Accepted","QCfail","Duplicates","Duplicates %","Mapped","Mapped %","Paired", "Paired %", "Singletons"]
     values=[]
     st=re.split("[ \n]+",open(statsfile).read())
+    
     values.append(int(st[73])) # total
     values.append(int(st[0])) # acepted
     values.append(int(st[2])) # QCfail
@@ -271,6 +301,7 @@ def cufflinksStats(logFile):
     values=[]
     file=open(logFile).read()
     # populate
+    
     tmp=file.split("transcripts.gtf")[1].strip().split()[0]
     TS=float(tmp.strip())
     values.append(TS)
@@ -348,6 +379,7 @@ def htseqcountStats(logFile):
 def onTarget(statsfile):
     names=["Total reads", "Total paired", "Total  Paired(%)" ,"OnTarget 100","(%)", "Paired on Target 100","(%)"]
     values=[]
+    
     f=open(statsfile).read()
 #    print f
     st=re.split("[ \n]+",f)
@@ -377,6 +409,7 @@ def onTarget(statsfile):
 def annoStatsPicard(statsfile):
     names=["Total bases", "Aligned bases","(%)", "Ribosomal bases", "(%)" ,"Coding","(%)", "UTR","(%)","Intronic","(%)", "Intergenic", "(%)", "MEDIAN_CV_COVERAGE","MEDIAN_5PRIME_BIAS","MEDIAN_3PRIME_BIAS"]
     values=[]
+    
     f=open(statsfile).read().split("\n")[7]
 #    print f
     st=re.split("[ \t]+",f)
@@ -470,6 +503,7 @@ def bamDist(bamfile, col):
 def variant(variantFile):
 	names=["Total","known", "SNPdb Conc", "variantRatePerBp", "hetHomRatio", "novel", "variantRatePerBp","hetHomRatio"]
 	values=[]
+        
 	file=open(variantFile).read()
 #	CO=re.split("[ \t\n]+", file.split("CompOverlap")[3])
 #	values.append(int(CO[5])) #total
@@ -497,6 +531,7 @@ def variant(variantFile):
 def trimgaloreStats(logFile):
     names=["Processed reads", "Trimmed reads","%","Too short reads","%","Too long reads","%", "Remaining reads","%"]
     values=[]
+    
     file=open(logFile).read()
     # populate
     tmp=file.split("Processed reads:")[1].strip().split()[0]
@@ -527,6 +562,7 @@ def trimgaloreStats(logFile):
 
 def trimmomaticStats(logFile):
     values=[]
+    
     if "Input Read Pairs" in open(logFile).read():
         # paired library
         names=["Input Read Pairs", "Both Surviving","%","Forward Only","%","Reverse Only","%", "Dropped","%"]
@@ -587,6 +623,7 @@ def trimmomaticStats(logFile):
 def cutadaptStats(logFile):
     names=["Processed reads", "Trimmed reads","%","Too short reads","%","Too long reads","%", "Remaining reads","%"]
     values=[]
+    
     file=open(logFile).read()
     # populate
     tmp=file.split("Processed reads:")[1].strip().split()[0]
@@ -618,6 +655,7 @@ def cutadaptStats(logFile):
 def hiclibStats(logFile):
     names=["Original reads", "Unmapped", "(%)", "Semi-dangling", "(%)", "Duplicates", "(%)", "Sm/Lg Fragments","(%)", "Extreme Fragments","(%)", "# Reads (final)", "(%)", "# Fragments (final)"]
     values=[]
+    
     file=open(logFile).read()
     # populate
     tmp=file.split("Original reads:")[1].split("Number of reads changed")[1].split("Fragments number changed")[0].split("--->")
@@ -696,6 +734,7 @@ def hicupStats(statsFile):
 def fithicStats(statsFile):
     names=["Intra In Range Count", "Intra Out Of Range Count", "Intra Very Proximal Count","Inter Count" ]
     values=[]
+    
     file=open(statsFile).read()
 
     # populate
@@ -720,6 +759,7 @@ def fithicStats(statsFile):
 def homerchipseqStats(logFile):
     names=["Est. fragment length","Autocorr. same strand", "Autocorr. diff. strand", "Autocorr. same/diff", "# Peaks","Peak size","IP efficiency (%)"]
     values=[]
+    
     file=open(logFile).read()
     # populate
     tmp=file.split("# fragment length =")[1].strip().split()[0]
@@ -755,6 +795,7 @@ def homerchipseqStats(logFile):
 def peakrangerStats(logFile):
     names=["Estimated noise rate", "Total reads", "Unique reads","Library complexity","Peaks","Summits"]
     values=[]
+    
     file=open(logFile).read()
     # populate
     tmp=file.split("Estimated noise rate:")[1].strip().split()[0]
@@ -782,6 +823,7 @@ def peakrangerStats(logFile):
 def macs2Stats(logFile):
     names=["Total IP tags", "IP (filtered)", "%","Control tags","Control (filtered)","%","Paired peaks","Fragment length","Refined peaks"]
     values=[]
+    
     file=open(logFile).read()
     # populate
     tmp=file.split("#1  total tags in treatment:")[1].strip().split()[0]
@@ -845,8 +887,9 @@ def macs2Stats(logFile):
     return names, values
 
 def chanceStats(logFile):
-    names=[ "Cumulative % enrichment", "Input scaling factor", "Diff. Enrichment", "FDR (overall)", "FDR (TF normal)", "FDR (Histone normal)", "FDR (TF cancer)", "FDR (Histone cancer)"]
+    names=["Cumulative % enrichment", "Input scaling factor", "Diff. Enrichment", "FDR (overall)", "FDR (TF normal)", "FDR (Histone normal)", "FDR (TF cancer)", "FDR (Histone cancer)"]
     values=[]
+    
     file=open(logFile).read()
     # populate
     tmp=file.split("percent_genome_enriched,")[1].strip().split()[0]
@@ -910,6 +953,7 @@ def fastqscreenStats(logFile):
 def memechipStats(logFile):
     names=["Peak regions", "with strong sites","%", "w/o strong sites","%"]
     values=[]
+    
     file=open(logFile).read()
     # populate
     tmp=file.split("Peak regions:")[1].strip().split()[0]
@@ -930,8 +974,9 @@ def memechipStats(logFile):
  
  
 def inchwormStats(logFile):
-    names=[ "Read pairs", "Jellyfish kmers", "Inchworm fasta"]
+    names=["Read pairs", "Jellyfish kmers", "Inchworm fasta"]
     values=[]
+    
     file=open(logFile).read()
     # populate
 
@@ -951,6 +996,7 @@ def inchwormStats(logFile):
 def chrysalisStats(logFile):
     names=["Read count"]
     values=[]
+    
     file=open(logFile).read()
     # populate
     tmp=file.split("Read count:")[1].strip().split()[0]
@@ -960,8 +1006,9 @@ def chrysalisStats(logFile):
     return names, values
     
 def butterflyStats(logFile):
-    names=[ "Transcripts"]
+    names=[  "Transcripts"]
     values=[]
+    
     file=open(logFile).read()
     # populate
     
@@ -974,6 +1021,7 @@ def butterflyStats(logFile):
 def bigwigStats(logFile):
     names=["Library Size", "Normalized to", "Scale factor"]
     values=[]
+    
     file=open(logFile).read()
     # populate
     tmp=file.split("library size:")[1].strip().split()[0]
@@ -997,6 +1045,7 @@ def intersection(variantFile):
     #names=["Intersection", "Post", "Het/Hom", "Ti/Tv","known", "novel", "Pre", "Het/Hom", "Ti/Tv","known", "novel" ]
     names=["Total","Het/Hom","nHets","nHomRef","nHomVar","overlHapMap77", "concHapMap77", "overlHapMap78","concHapMap78", "overl1000G78", "conc1000G78", "overldbSNP", "concdbSNP", "Intersection","Het/Hom","nHets","nHomRef","nHomVar","overlHapMap77","concHapMap77","overlHapMap78","concHapMap78", "overl1000G78","conc1000G78","overldbSNP", "concdbSNP","Post","Het/Hom","nHets","nHomRef","nHomVar","overlHapMap77", "concHapMap77","overlHapMap78","concHapMap78","overl1000G78", "conc1000G78", "overldbSNP","concdbSNP","Pre", "Het/Hom","nHets","nHomRef","nHomVar","overlHapMap77","concHapMap77","overlHapMap78","concHapMap78","overl1000G78", "conc1000G78","overldbSNP","concdbSNP"]
     values=[]
+    
     file=open(variantFile).read()
     CO=file.split("CompOverlap :")[1].split("\n")
     CV=file.split("CountVariants :")[1].split("\n")
@@ -1125,6 +1174,7 @@ def addValues(results,values):
         for v in values:
             results.append([v])
     else:
+	currindex = len(results)
         for v in range(0,len(values)):
             results[v].append(values[v])
     return results
@@ -1134,9 +1184,11 @@ def addValues(results,values):
 # MAIN
 #######3
 oaresult=[]
+oapsresult = []
+oavalues=[]
 for d in dir:
-    result=[]
-    psresult=[]
+    psresult = []
+    result = []
     name=glob.glob(d+'*'+ext)
     name.sort()
     for f in name:
@@ -1198,26 +1250,70 @@ for d in dir:
             if (mod=="trinity_butterfly"):
                 names,values=butterflyStats(f)
             if (mod=="bigwig"):
-				names,values=bigwigStats(f)
-            
-            result=addValues(result,values)
+	        names,values=bigwigStats(f)
 
             # only list file structure from current root
-            filename="/".join(f.split("/")[-4::])
-            if (link!=""):
-                filename="<a href=\"%s\">%s</a>" % (link+"/"+filename, filename)
-            psresult.append([values,filename])
-            oaresult=addValues(oaresult,values)
-                
+            filename="/".join(f.split("/")[-1::])
+            filename=filename.split(".")
+            filename=filename[0]
+            #if (link!=""):
+                #filename="<a href=\"%s\">%s</a>" % (link+"/"+filename, filename)
+
+            names.insert(0, "Filename")
+            oaresult.append(["'" + filename+ "'"])
+            oavalues.append("'" + filename+ "'")
+
+            names.insert(1, "Experiment")
+            # only list file structure from current root
+            fname = f.split("/")
+            experiment= fname[5]
+            #if (link!=""):
+                #Experiment="<a href=\"%s\">%s</a>" % (link+"/"+Experiment, Experiment)
+            #add name of experiment i.e. file name to results and values
+	    oaresult.append(["'" + experiment+ "'"])
+            oavalues.append("'" + experiment+ "'")
+
+
+                       
+            #psresult.append([values,Experiment])
+            result=addValues(result,values)
+            #print ("result: ")
+            #print (', '.join(str(x) for x in result))
+            #print ("psresult: ")
+            #print (', '.join(str(x) for x in psresult))
+
+            for v in values:
+                v = str(v);
+                #v= "'" + v + "'"
+		oaresult.append([v])
+		oavalues.append(v)	              
         except:
             sys.stderr.write("error with "+f+"\n")
             traceback.print_exc()
             #sys.exit()
 
-    filestructure="/".join(d.split("/")[-4::]) # only list file structure from current root
-    print "<h3>"+ filestructure +"</h3>" 
-    printStats(result,names,psresult,noSummary,filestructure, ext, re.sub("[\\\/-]","_",filestructure)+mod)
+    
+filestructure="/".join(d.split("/")[-4::]) # only list file structure from current root
+filestructure = filestructure.replace("/", "_")
 
-if (not noOverallSummary and overAll):
-    print "<h3 class='overall'>Aggregation over all libraries</h3>"
-    printStats(oaresult,names,0,noOverallSummary,"","","aggregation_"+mod)
+
+            
+oapsresult.append([oavalues,filestructure])
+
+#print ("names: ")
+#print (', '.join(str(x) for x in names))
+#print ("oaresult: ")
+#print (', '.join(str(x) for x in oaresult))
+#print ("oavalues: ")"
+#print (', '.join(str(x) for x in oavalues))
+#print ("oaresult: ")
+#print (', '.join(str(x) for x in oaresult))
+#print ("task is: ")
+#print("hello"+task+"hello")
+
+
+printStats(oaresult,names,oapsresult,noSummary,task, ext, re.sub("[\\\/-]","_",filestructure)+'Table_json')
+
+#if (not noOverallSummary and overAll):
+    #print "<h3 class='overall'>Aggregation over all libraries</h3>"
+    #printStats(oaresult,names,0,noOverallSummary,"","","aggregation_"+mod)

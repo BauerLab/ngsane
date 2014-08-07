@@ -49,7 +49,7 @@ fi
 LOGFOLDER=$(dirname $QOUT)
 
 if [ -n "$HTMLOUTPUT" ]; then
-    echo "<div id='${TASK}_checklist'><pre>"
+    echo "<div class='tabContent_hide' id='DC_${TASK}_checklist'><div><pre>"
 fi
 
 
@@ -140,8 +140,8 @@ done
 
 
 if [ -n "$HTMLOUTPUT" ]; then
-    echo "</pre></div>"
-    echo "<div id='${TASK}_notes'><pre>"
+    echo "</pre></div></div>"
+    echo "<div class='tabContent_hide' id='DC_${TASK}_notes'><div><pre>"
 else
     echo ">>>>>>>>>> Notes"
 fi
@@ -161,8 +161,8 @@ done
 #########################################################################################
 
 if [ -n "$HTMLOUTPUT" ]; then
-    echo "</pre></div>"
-    echo "<div id='${TASK}_errors'><pre>"
+    echo "</pre></div></div>"
+    echo "<div class='tabContent_hide' id='DC_${TASK}_errors'><div><pre>"
 else
     echo ">>>>>>>>>> Errors"
 fi
@@ -186,47 +186,24 @@ done
 
 if [ -n "$HTMLOUTPUT" ]; then
 
-    echo "</pre></div>"
-    echo "<div id='${TASK}_logfiles'><div class='box'>"
+    echo "</pre></div></div>"
+    echo "<div class='tabContent_hide' id='DC_${TASK}_logfiles'><div><div class='box'>"
     for i in $LOGFILES ;do
         FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
         echo "<a href='$FN'>${i/$QOUT\/$TASK\//}</a><br/>"
     done
-    echo "</div></div>"
+    echo "</div></div></div>"
     if [ -n "$RESULTSUFFIX" ]; then
-        echo "<div id='${TASK}_nrfiles'><div class='box'>"
+        echo "<div class='tabContent_hide' id='DC_${TASK}_PRIMARY_RESULT_FILES'><div><div class='box'>"
         for dir in ${DIR[@]}; do
             for i in $(find $OUTDIR/${dir%%/*}/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX | sort -n ); do
                 FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
                 echo "<a href='$FN'>${i/$OUTDIR\/*\/$OUTTASK\//}</a><br/>"
             done
         done
-        echo "</div></div>"
+        echo "</div></div></div>"
     fi
-    echo "<script type='text/javascript'> 
-        if (typeof jQuery === 'undefined') {
-            console.log('jquery not loaded');
-        } else {
-            \$('#${TASK}_counter_notes').text('$SUMNOTES');
-            \$('#${TASK}_counter_errors').text('$SUMERRORS');
-            \$('#${TASK}_counter_checkpoints_passed').text('$CHECKPOINTS_PASSED');
-            \$('#${TASK}_counter_checkpoints_failed').text('$CHECKPOINTS_FAILED'); 
-            if ($SUMERRORS==0){
-                \$('#${TASK}_counter_errors').toggleClass('errors neutral');
-            }; 
-            if($CHECKPOINTS_FAILED==0){
-                \$('#${TASK}_counter_checkpoints_failed').toggleClass('failed nofailed');
-            };
-
-            \$('#${TASK}_panelback h2').click(function() {
-                \$(this).parent().children().addClass('inactive');
-                \$(this).removeClass('inactive');
-                console.log();
-                var panel=\$(this).attr('id').replace('_h_','_');
-                \$('#${TASK}_panel div.wrapper div.display').html(\$('#'+ panel).html());
-            });
-        }
-    </script>"    
+       
 fi
 
 
