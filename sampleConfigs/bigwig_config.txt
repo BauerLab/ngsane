@@ -1,5 +1,5 @@
 # author: Fabian Buske
-# date: September 2013
+# date: March 2014
 
 #####################################
 # Resources
@@ -41,8 +41,14 @@ FASTA=
 #********************
 
 # Fragment length to extend reads downstream  - only relevant for single-end libraries during bigwig generation
-# Fragment length of -1 will use the genomic fragment covered by the read-mates if the input is a paired read library
-FRAGMENTLENGTH=0
+# FRAGMENTLENGTH=x with x>=0 will crop/extend read to cover x bases from the 5' end
+# e.g. FRAGMENTLENGTH=0 for DNase hypersensitivity assays
+# e.g. FRAGMENTLENGTH=300 for many ChIP-assays
+FRAGMENTLENGTH=
+
+# Whether to consider the midpoint of the fragment only, e.g. for ATAC-seq (paired-end libraries only) 
+# e.g. FRAGMENTMIDPOINT=1
+FRAGMENTMIDPOINT=
 
 # Normalize to 1000000 reads
 NORMALIZETO=1000000
@@ -50,8 +56,13 @@ NORMALIZETO=1000000
 # Scale by a specific value (0<x<1)
 #SCALEFACTOR=
 
-# uncomment to generate strand-specific bigwig files
-#BIGWIGSTRANDS=strand-specific
+# whether to generate strand-specific bigwig files as well
+# e.g. BIGWIGSTRANDS=strand-specific 
+BIGWIGSTRANDS=
+
+# whether to keep duplicates for example in CAGE-seq
+# eg KEEPDUPLICATES="1" to put all duplicates into the bw
+KEEPDUPLICATES=
 
 #WALLTIME_BIGWIG=10:00:00
 #MEMORY_BIGWIG=60

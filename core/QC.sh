@@ -56,10 +56,12 @@ fi
 # pack normal and post command in a long string for the subsequent loops
 # file1*file2*file3:task.sh postcommand:posttask.sh
 for dir in ${DIR[@]}; do
-    for file in $(ls $QOUT/$TASK/${dir%%/*}*.out | grep -v "postcommand"); do
-        LOGFILES="${LOGFILES} ${file}"
+    for LOGFILE in $(find $QOUT/$TASK/ -maxdepth 1 -type f -name "${dir%%/*}*.out" 2>/dev/null ); do
+        LOGFILES="${LOGFILES} ${LOGFILE}"
     done
 done
+# remove potential duplicates
+LOGFILES=$(echo "${LOGFILES}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
 echo $LOGFILES
 
 if [ ! -z "$LOGFILES" ]; then # if there is really more than just the postcommand
@@ -82,7 +84,7 @@ for T in $SCRIPTFILES; do
 	# unpack script name and files
 	SCRIPT=${T/*:/}
 	files=$(echo ${T/%:*/} | tr "*" " "files=${FILES/*/ })
-	nrfiles=$(echo $files | wc -w)
+	nrfiles=$(echo $files | wc -w | sed -e 's/^[ \t]*//')
 
 	echo "###################################################"
 	echo "# NGSANE ${SCRIPT/.sh/} "
@@ -92,7 +94,7 @@ for T in $SCRIPTFILES; do
 	CHECKPOINTS_FAILED=0
 	
 	echo ">>>>>>>>>> Finished"
-	finished=$(grep -P "^>{5} .* FINISHED" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l)
+	finished=$(egrep "^>{5} .* FINISHED" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
 	if [ "$finished" = "$nrfiles" ]; then
 	    echo "QC_PASS .. finished are $finished/$nrfiles"
 	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
@@ -102,11 +104,11 @@ for T in $SCRIPTFILES; do
 	fi
 
 	echo ">>>>>>>>>> Errors"
-	ERROR=$(grep QCVARIABLES $SCRIPT | tr ' ' '_' | tr ',' ' ')
+	ERROR=$(egrep QCVARIABLES $SCRIPT | tr ' ' '_' | tr ',' ' ')
 	ERROR=${ERROR/"# QCVARIABLES"/}
 	for i in $ERROR; do
 	  i=${i//_/ }
-	  var=$(grep -i "$i" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l)
+	  var=$(grep -i "$i" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
 	  if [ "$var" = "0" ]; then
 	    echo "QC_PASS .. $var have $i/$nrfiles"
 	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
@@ -117,11 +119,11 @@ for T in $SCRIPTFILES; do
 	done
 
 	echo ">>>>>>>>>> CheckPoints "
-	PROGRESS=$(grep -P '^CHECKPOINT="' $SCRIPT | awk -F'"' '{print $2}' | tr ' ' '_')
+	PROGRESS=$(grep '^CHECKPOINT="' $SCRIPT | awk -F'"' '{print $2}' | tr ' ' '_')
 	for i in $PROGRESS; do
 	  i=${i//_/ }
-	  var=$(grep -P "^\*{9} $i" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l)
-	  if [ ! "$var" = $nrfiles ]; then
+	  var=$(egrep "^\*{9} $i" $files | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
+	  if [ ! "$var" = "$nrfiles" ]; then
 	    echo "**_FAIL .. $var have $i/$nrfiles"
 	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
 	  else
@@ -150,7 +152,7 @@ SUMNOTES=0
 #for i in $( ls $QOUT/$TASK/*.out ) ; do
 for i in $LOGFILES ;do
     echo -e "\n${i/$LOGFOLDER\//}"
-    NOTELIST=$(grep -P "^\[NOTE\]" $i)
+    NOTELIST=$(egrep "^\[NOTE\]" $i)
     echo -e "$NOTELIST"
     SUMNOTES=`expr $SUMNOTES + $(echo -e "$NOTELIST" | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' )`
 done
@@ -170,7 +172,7 @@ fi
 SUMERRORS=0
 for i in $LOGFILES ;do
     echo -e "\n${i/$LOGFOLDER\//}"
-    ERRORLIST=$(grep -P "^\[ERROR\]" $i)
+    ERRORLIST=$(egrep "^\[ERROR\]" $i)
     if [ -n "$ERRORLIST" ]; then 
         echo -e "$ERRORLIST"
     else
@@ -183,7 +185,6 @@ done
 #########################################################################################
 # Third TAB
 #########################################################################################
-
 if [ -n "$HTMLOUTPUT" ]; then
 
     echo "</pre></div></div>"
@@ -196,17 +197,17 @@ if [ -n "$HTMLOUTPUT" ]; then
     if [ -n "$RESULTSUFFIX" ]; then
         echo "<div class='tabContent_hide' id='DC_${TASK}_PRIMARY_RESULT_FILES'><div><div class='box'>"
         for dir in ${DIR[@]}; do
-            for i in $(find $OUTDIR/${dir%%/*}/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX | sort -n ); do
-                FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
-                echo "<a href='$FN'>${i/$OUTDIR\/*\/$OUTTASK\//}</a><br/>"
-            done
+            if [ ! -d $OUTDIR/${dir%%/*}/$OUTTASK/ ]; then
+                echo "[NOTE] No result detected: $dir" 1>&2
+            else
+                for i in $(find $OUTDIR/${dir%%/*}/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX | sort -n ); do
+                    FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
+                    echo "<a href='$FN'>${i/$OUTDIR\/*\/$OUTTASK\//}</a><br/>"
+                done
+            fi
         done
         echo "</div></div></div>"
     fi
        
 fi
-
-
-
 ################################################################################
-

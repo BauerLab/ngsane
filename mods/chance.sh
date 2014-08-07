@@ -44,10 +44,10 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_CHANCE; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_CHANCE; do module load $MODULE; done && module list 
 
 export PATH=$PATH_CHANCE:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -103,11 +103,11 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    RUN_COMMAND="${CHANCE} IPStrength -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n/.$ASD.bam/}-${c/.$ASD.bam/}.IPstrength --ipfile $f --ipsample ${n/.$ASD.bam/} --inputfile ${CHIPINPUT} --inputsample ${c/.$ASD.bam/}"
+    RUN_COMMAND="${CHANCE} IPStrength -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.IPstrength --ipfile $f --ipsample ${n/$ASD.bam/} --inputfile ${CHIPINPUT} --inputsample ${c/$ASD.bam/}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    if [ -f ${OUTDIR}/${n/.$ASD.bam/}-${c/.$ASD.bam/}.IPstrength ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.IPstrength ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
@@ -124,11 +124,11 @@ else
             EXPERIMENTID=$(echo "$n" | sed -rn $EXPERIMENTPATTERN)
         fi
         
-        RUN_COMMAND="${CHANCE} compENCODE -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n}-${c}.compENCODE -e $EXPERIMENTID --ipfile ${f} --ipsample ${n/.$ASD.bam/} --inputfile ${CHIPINPUT} --inputsample ${c/.$ASD.bam/}"
+        RUN_COMMAND="${CHANCE} compENCODE -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n}-${c}.compENCODE -e $EXPERIMENTID --ipfile ${f} --ipsample ${n/$ASD.bam/} --inputfile ${CHIPINPUT} --inputsample ${c/$ASD.bam/}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
         # mark checkpoint
-        if [ -f ${OUTDIR}/${n/.$ASD.bam/}-${c/.$ASD.bam/}.compENCODE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        if [ -f ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.compENCODE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
     else
         echo "[NOTE] skip ENCODE comparison "
@@ -143,13 +143,13 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
     
-    Rscript --vanilla ${NGSANE_BASE}/tools/makeChancePlots.R $f $CHIPINPUT ${n/.$ASD.bam/} ${c/.$ASD.bam/} $OUTDIR
+    Rscript --vanilla ${NGSANE_BASE}/tools/makeChancePlots.R $f $CHIPINPUT ${n/$ASD.bam/} ${c/$ASD.bam/} $OUTDIR
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/.$ASD.bam/.pdf} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/${n/$ASD.bam/.pdf} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 ################################################################################
-[ -e $OUTDIR/${n/.$ASD.bam/.pdf}.dummy ] && rm $OUTDIR/${n/.$ASD.bam/.pdf}.dummy
+[ -e $OUTDIR/${n/$ASD.bam/.pdf}.dummy ] && rm $OUTDIR/${n/$ASD.bam/.pdf}.dummy
 echo ">>>>> ChIPseq QC with Chance - FINISHED"
 echo ">>>>> enddate "`date`

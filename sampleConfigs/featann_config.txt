@@ -1,0 +1,103 @@
+# author: Denis Bauer
+# date: Mar.2014
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+
+RUNANNOTATINGFEATURE="1"   
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_FEATANN=$TASK_BWA
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# BED file with locations of genomic features
+# e.g. downloaded from UCSC 
+FEATUREFILE=
+# Number of bps to consider upstream and downstream
+DOWNSTREAM=
+UPSTREAM=
+
+# reference genome -- actually we just need the chrom sizes 
+# genome.fa -> genome.chrom.sizes
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+# or ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=
+
+# Specify either or both columns to consider landmark or regions
+# e.g. "" 2 or 7 (FEATURE_START) "", 3, 8 (FEATURE_END)
+FEATURE_START=2
+FEATURE_END=3
+
+# summary statistic (mean,median,sum)
+METRIC="mean"
+
+# ending of the files the coverage should be generated over (bam,bed)
+ENDING="$ASD.bam"
+
+
+# Define the labels for the R plot
+# FEATANN_LAB <file> <label>
+# e.g. FEATANN_LAB Input/bwa/Lib11.asd.bam H3K4me 
+<<FEATANN_LABS
+FEATANN_LABS
+
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# remove feature where other features overlap and hence distort the shape 
+# options: yes, comment out
+REMOVEMULTIFEATURE="yes"
+
+# normalize coverage by library size (total reads, bam) or element number (bed) 
+# options: yes, comment out
+NORMALIZE="yes"
+
+# remove features which have no coverage anyway -- they do not contribute to the shape
+# options: yes, comment out
+IGNOREUNCOVERED="--ignoreUncovered"
+
+# remove outlier features where one position is > <int>*std of that position in all other features
+# options: provide different number, comment out
+REMOVEOUTLIER="--removeoutlier 6"
+
+# instead of single basepair resolution bin results by averaging over a window
+# options: provide int, comment out
+#BIN="100"
+
+# collect coverage according to the strand the feature is on
+# options: yes, comment out
+#STRANDETNESS="yes"
+
+#TASK_FEATANN="featann"
+#WALLTIME_FEATANN=1:00:00
+#MEMORY_FEATANN=32
+#CPU_FEATANN=8
+#NODES_FEATANN="nodes=1:ppn=8"
+#INPUT_FEATANN=$TASK_BWA
+#MODULE_FEATANN="${NG_BEDTOOLS} ${NG_PYTHON} ${NG_R} ${NG_PARALLEL} ${NG_SAMTOOLS}"
+#PATH_FEATANN=

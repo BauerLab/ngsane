@@ -6,7 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
-# RESULTFILENAME <DIR>/$TASK_GATKDOC/<SAMPLE>.$ASR.bam.doc
+# RESULTFILENAME <DIR>/$TASK_GATKDOC/<SAMPLE>$ASR.bam.doc
 
 echo ">>>>> determine the depth of coverage with GATK"
 echo ">>>>> startdate "`date`
@@ -68,13 +68,14 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_GATKDOC; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_GATKDOC; do module load $MODULE; done && module list 
+
 export PATH=$PATH_GATK:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
+[ -z "$PATH_GATK" ] && PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_GATKDOC*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 

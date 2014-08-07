@@ -36,9 +36,10 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_TRIMGALORE; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_TRIMGALORE; do module load $MODULE; done && module list 
+
 export PATH=$PATH_TRIMGALORE:$PATH;
-module list
 echo "PATH=$PATH"
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
@@ -72,6 +73,14 @@ if [ ! -d $FASTQDIRTRIM ]; then mkdir -p $FASTQDIRTRIM; fi
 echo $f "->" $o
 if [ "$PAIRED" = "1" ]; then echo ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} "->" ${o/%$READONE.$FASTQ/$READTWO.$FASTQ} ; fi
 
+#is ziped ?
+CAT="cat"
+if [[ ${f##*.} == "gz" ]]; 
+    then CAT="zcat"; 
+elif [[ ${f##*.} == "bz2" ]]; 
+    then CAT="bzcat"; 
+fi
+
 echo "********** get contaminators"
 
 if [ ! -n "$TRIMGALORE_ADAPTER1" ] && [ ! -n "$TRIMGALORE_ADAPTER2" ];then echo "TRIMGALORE_ADAPTER1 and 2 not defined in $CONFIG, default to 'AGATCGGAAGAGC'"; fi
@@ -104,11 +113,11 @@ else
     # Paired read
     if [ "$PAIRED" = "1" ]
     then
-        trim_galore $TRIMGALOREADDPARAM $CONTAM --paired --output_dir $FASTQDIRTRIM $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}
+        trim_galore $TRIMGALOREADDPARAM $CONTAM --paired --output_dir $FASTQDIRTRIM <($CAT $f) <($CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ})
         mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READONE"_val_1".fq.gz} $FASTQDIRTRIM/$n
         mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READTWO"_val_2".fq.gz} $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}
     else
-        trim_galore $TRIMGALOREADDPARAM $CONTAM --output_dir $FASTQDIRTRIM $f
+        trim_galore $TRIMGALOREADDPARAM $CONTAM --output_dir $FASTQDIRTRIM <($CAT $f)
         mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READONE"_trimmed".fq.gz} $FASTQDIRTRIM/$n
     fi
 

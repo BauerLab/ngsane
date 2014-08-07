@@ -7,7 +7,7 @@
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>-${CHIPINPUT##*/} | sed "s/.$ASD.bam/"_region.bed"/"
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>-${CHIPINPUT##*/} | sed "s/$ASD.bam/"_region.bed"/"
 
 echo ">>>>> ChIPseq analysis with Peakranger"
 echo ">>>>> startdate "`date`
@@ -44,10 +44,10 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_PEAKRANGER; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_PEAKRANGER; do module load $MODULE; done && module list 
 
 export PATH=$PATH_PEAKRANGER:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -74,9 +74,9 @@ fi
 # get basename of f
 f=${f/%.dummy/} #if input came from pip
 n=${f##*/}
-SAMPLE=${n/%.$ASD.bam/}
+SAMPLE=${n/%$ASD.bam/}
 c=${CHIPINPUT##*/}
-CONTROL=${c/%.$ASD.bam/}
+CONTROL=${c/%$ASD.bam/}
 
 GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
 if [ ! -f $GENOME_CHROMSIZES ]; then
@@ -142,19 +142,19 @@ else
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    # keep only peaks that pass the FDR
-    awk '{if($0~"fdrPassed"){print $0}}' $OUTDIR/$SAMPLE-$CONTROL"_region.bed" > $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
+    # keep only peaks that pass the FDR and merge overlapping peaks keeping the smallest score
+    awk '{if($0~"fdrPassed"){print $0}}' $OUTDIR/$SAMPLE-$CONTROL"_region.bed" | bedtools sort | bedtools merge -scores min -i stdin > $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
     mv $OUTDIR/$SAMPLE-$CONTROL"_region.tmp" $OUTDIR/$SAMPLE-$CONTROL"_region.bed"
 
-    awk '{if($0~"fdrPassed"){print $0}}' $OUTDIR/$SAMPLE-$CONTROL"_summit.bed" > $OUTDIR/$SAMPLE-$CONTROL"_summit.tmp"
+    awk '{if($0~"fdrPassed"){print $0}}' $OUTDIR/$SAMPLE-$CONTROL"_summit.bed" | bedtools sort | bedtools merge -scores min -i stdin > $OUTDIR/$SAMPLE-$CONTROL"_summit.tmp"
     mv $OUTDIR/$SAMPLE-$CONTROL"_summit.tmp" $OUTDIR/$SAMPLE-$CONTROL"_summit.bed"
     
     echo "Peaks: $(wc -l $OUTDIR/$SAMPLE-$CONTROL"_region.bed" | awk '{print $1}')" >> $OUTDIR/$SAMPLE-$CONTROL.summary.txt
 
     # make bigbed
 	if hash bedToBigBed && [ -f $GENOME_CHROMSIZES ] && [ -s $OUTDIR/$SAMPLE-$CONTROL"_region.bed" ] ; then
-        bedtools intersect -a <(cut -f1-3 $OUTDIR/$SAMPLE-$CONTROL"_region.bed" | sort -k1,1 -k2,2n) -b <( awk '{OFS="\t"; print $1,1,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
-        bedToBigBed -type=bed3 $OUTDIR/$SAMPLE-$CONTROL"_region.tmp" $GENOME_CHROMSIZES $OUTDIR/$SAMPLE-$CONTROL"_region.bb"
+        bedtools intersect -a $OUTDIR/$SAMPLE-$CONTROL"_region.bed" -b <( awk '{OFS="\t"; print $1,1,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
+        bedToBigBed -type=bed4 $OUTDIR/$SAMPLE-$CONTROL"_region.tmp" $GENOME_CHROMSIZES $OUTDIR/$SAMPLE-$CONTROL".bb"
         rm $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
     fi
     
@@ -170,6 +170,6 @@ $GZIP -f $OUTDIR/$SAMPLE-$CONTROL"_details"
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
-[ -e $OUTDIR/$SAMPLE-$CONTROL"_region.bed".dummy ] && rm $OUTDIR/$SAMPLE-$CONTROL"_region.bed".dummy
+[ -e $OUTDIR/$SAMPLE-$CONTROL"_region.bed.dummy" ] && rm $OUTDIR/$SAMPLE-$CONTROL"_region.bed.dummy"
 echo ">>>>> ChIPseq analysis with Peakranger - FINISHED"
 echo ">>>>> enddate "`date`

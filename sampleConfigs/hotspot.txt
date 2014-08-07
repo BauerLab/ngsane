@@ -1,0 +1,78 @@
+# author: Fabian Buske
+# date: June 2014
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks 
+#********************
+
+# list of task to put into report
+RUNHOTSPOT="1"   
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_HOTSPOT=$TASK_BOWTIE
+
+# reference genome, 
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+# or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# UCSC genome assembly 
+# e.g. UCSC_GENOMEASSEMBLY="hg19"
+UCSC_GENOMEASSEMBLY=
+
+# Tokenizer config file
+HOTSPOTCONFIG=$(cat << HOTSPOT_CONFIG_END
+_USE_INPUT_ = F
+## Genome assembly
+_GENOME_ = $UCSC_GENOMEASSEMBLY
+## Tag length
+_K_ = 36
+## Chromosome coordinates, bed format.
+_CHROM_FILE_ = $HOTSPOT_HOME/data/$UCSC_GENOMEASSEMBLY.chromInfo.bed
+## Location of uniquely mappable positions in the genome for this tag length.
+_MAPPABLE_FILE_ = $HOTSPOT_HOME/data/$UCSC_GENOMEASSEMBLY.K36.mappable_only.bed.starch
+#Duplication
+_DUPOK_ = T
+_FDRS_ = "0.01"
+_DENS_:
+_OMIT_REGIONS_: $HOTSPOT_HOME/data/Satellite.$UCSC_GENOMEASSEMBLY.bed
+_CHECK_ = T
+_CHKCHR_ = chrX
+_HOTSPOT_ = $HOTSPOT_HOME/bin/hotspot
+_CLEAN_ = T
+_PKFIND_BIN_ = $HOTSPOT_HOME/bin/wavePeaks
+_PKFIND_SMTH_LVL_ = 3
+_SEED_=101
+## Hotspot program parameters
+_THRESH_ = 2
+_WIN_MIN_ = 200
+_WIN_MAX_ = 300
+_WIN_INCR_ = 50
+_BACKGRD_WIN_ = 50000
+_MERGE_DIST_ = 150
+_MINSIZE_ = 10
+HOTSPOT_CONFIG_END
+)

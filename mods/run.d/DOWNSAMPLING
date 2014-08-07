@@ -1,0 +1,34 @@
+#!/bin/bash -e
+
+################################################################################
+# downsampling
+################################################################################
+
+if [ -n "$RUNDOWNSAMPLING" ]; then
+
+    echo -e "********** Downsampling"
+    let ABB=$READNUMBER/100000
+    TASK_DOWNSAMPLE="sample"$ABB"K"
+    for dir in ${DIR[@]}; do
+
+      if [ ! -d $QOUT/$TASK_DOWNSAMPLE ]; then mkdir -p $QOUT/$TASK_DOWNSAMPLE; fi
+      if [ ! -d $OUT/$dir/$TASK_DOWNSAMPLE ]; then mkdir -p $OUT/$dir/$TASK_DOWNSAMPLE; fi
+
+
+      for f in $( ls $OUT/$dir/$TASK_RECAL/$ASR.bam ); do
+          n=`basename $f`
+          NAME=$dir"_"$n
+          echo $dir"/"$TASK_RECAL"/"$NAME" -> "$dir/$TASK_DOWNSAMPLE
+
+          if [ -e $QOUT/$TASK_DOWNSAMPLE/$NAME.out ]; then rm $QOUT/$TASK_DOWNSAMPLE/$NAME.out; fi
+
+          if [ -n "$ARMED" ]; then
+	  		 qsub $PRIORITY -j y -o $QOUT/$TASK_DOWNSAMPLE/$NAME.out -cwd -b y \
+	  		 -N $TASK_DOWNSAMPLE"_"$NAME -l vf=4G \
+			${NGSANE_BASE}/mods/downsample.sh -k ${NGSANE_BASE} -i $f -o $OUT/$dir/$TASK_DOWNSAMPLE \
+			-s $READNUMBER -r $FASTA
+
+		  fi
+      done
+  done
+fi

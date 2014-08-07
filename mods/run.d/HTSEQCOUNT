@@ -1,0 +1,17 @@
+#!/bin/bash -e
+
+################################################################################
+#  Feature counting with HTSEQCOUNT
+#
+# IN : $OUT/$dir/tophat/*.bam
+# OUT: $OUT/$dir/htseqcount/*_transcript.gtf
+################################################################################       
+
+if [ -n "$RUNHTSEQCOUNT" ]; then
+    if [ -z "$TASK_HTSEQCOUNT" ] || [ -z "$NODES_HTSEQCOUNT" ] || [ -z "$CPU_HTSEQCOUNT" ] || [ -z "$MEMORY_HTSEQCOUNT" ] || [ -z "$WALLTIME_HTSEQCOUNT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_HTSEQCOUNT -i $INPUT_HTSEQCOUNT -e $ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT \
+        --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HTSEQCOUNT/<NAME>" \
+        --postname "postcommandHtseq$HTSEQCOUNT_TABLE_FOLDERNAME" \
+        --postcommand "${NGSANE_BASE}/mods/countsTable.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$HTSEQCOUNT_TABLE_FOLDERNAME"
+fi

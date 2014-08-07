@@ -42,10 +42,10 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_HOMERHIC; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_HOMERHIC; do module load $MODULE; done && module list 
 
 export PATH=$PATH_HOMERHIC:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -59,27 +59,51 @@ echo -e "--homer       --\n "$(which makeTagDirectory)
 [ -z "$(which makeTagDirectory)" ] && echo "[ERROR] homer not detected" && exit 1
 echo -e "--circos      --\n "$(circos --version)
 [ -z "$(which circos)" ] && echo "[WARN] circos not detected"
+echo -e "--wigToBigWig --\n "$(wigToBigWig 2>&1 | tee | head -n 1)
+[ -z "$(which wigToBigWig)" ] && echo "[WARN] wigToBigWig not detected"
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
 CHECKPOINT="parameters"
 
 # get basename of f
-n=${f##*/}
-SAMPLE=${n/%$READONE.$ASD.bam/}
+if [ -z "$POOLED_DATA_NAME" ]; then 
+    n=${f##*/}
+    SAMPLE=${n/%$READONE$ASD.bam/}
+    
+    #is paired ?                                                                                                      
+    if [ "$f" != "${f/%$READONE$ASD.bam/$READTWO$ASD.bam}" ] && [ -e ${f/%$READONE$ASD.bam/$READTWO$ASD.bam} ]; then
+        PAIRED="1"
+    else
+        PAIRED="0"
+        echo "[ERROR] paired library required for HIC analysis" && exit 1
+    fi
+
+else
+    SAMPLE=$POOLED_DATA_NAME
+    array=(${f//,/ })
+    #is paired ?                                                                                                      
+    if [ "${array[i]}" != "${array[i]/%$READONE$ASD.bam/$READTWO$ASD.bam}" ] && [ -e ${array[i]/%$READONE$ASD.bam/$READTWO$ASD.bam} ]; then
+        PAIRED="1"
+    else
+        PAIRED="0"
+        echo "[ERROR] paired library required for HIC analysis" && exit 1
+    fi
+    
+fi
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
     exit 1
 fi
 
-#is paired ?                                                                                                      
-if [ "$f" != "${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam}" ] && [ -e ${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} ]; then
-    PAIRED="1"
+GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
+if [ ! -f $GENOME_CHROMSIZES ]; then
+    echo "[WARN] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES. Will not create bigBed file"
 else
-    PAIRED="0"
-    echo "[ERROR] paired library required for HIC analysis" && exit 1
+    echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
 fi
+
 
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
@@ -108,11 +132,23 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    cp $f ${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} $THISTMP
-    RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered" $THISTMP/$n,$THISTMP/${n/%$READONE.$ASD.bam/$READTWO.$ASD.bam} -format sam -illuminaPE -tbp 1"
+    if [ -z "$POOLED_DATA_NAME" ]; then 
+        cp $f ${f/%$READONE$ASD.bam/$READTWO$ASD.bam} $THISTMP
+        RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered" $THISTMP/$n,$THISTMP/${n/%$READONE$ASD.bam/$READTWO$ASD.bam} -format sam -illuminaPE -tbp 1"
+    else
+        # pool data
+        RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered
+        array=(${f//,/ })
+        for i in "${!array[@]}"; do
+            cp ${array[i]} ${array[i]/%$READONE$ASD.bam/$READTWO$ASD.bam} $THISTMP
+            n=${array[i]##*/} 
+            RUN_COMMAND="$RUN_COMMAND $THISTMP/$n,$THISTMP/${n/%$READONE$ASD.bam/$READTWO$ASD.bam}"
+        done
+        RUN_COMMAND="$RUN_COMMAND -format sam -illuminaPE -tbp 1"
+    fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    mv $THISTMP/$SAMPLE"_tagdir_unfiltered" $OUTDIR/$SAMPLE"_tagdir_unfiltered"
+    mv $THISTMP/$SAMPLE"_tagdir_unfiltered" $OUTDIR
     
     # mark checkpoint
     if [ -e $OUTDIR/$SAMPLE"_tagdir_unfiltered"/tagInfo.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -146,53 +182,23 @@ else
 fi
 
 ################################################################################
-CHECKPOINT="normalize matrices"    
+CHECKPOINT="output matrices"    
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
-        RUN_COMMAND="analyzeHiC $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM  > $OUTDIR/"$SAMPLE"_matrix.txt"
+    # normalize matrix for each chromosome
+    LASTCHR=""
+    for CHR in $(grep -v "_" $GENOME_CHROMSIZES | cut -f 1); do
+        
+        RUN_COMMAND="analyzeHiC $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR | $GZIP -9 > $OUTDIR/"$SAMPLE"_"$CHR"_"matrix.txt.gz
         echo $RUN_COMMAND && eval $RUN_COMMAND
+        LASTCHR=$CHR
+    done
     
-    [ ! -f $FASTA.fai ] && samtools faidx $FASTA
-    
-    elif [ "$HOMER_HIC_INTERACTIONS" == "cis" ]; then
-    
-        for CHR in $(awk '{print $1'} $FASTA.fai); do
-    	    RUN_COMMAND="analyzeHiC $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR > $OUTDIR/"$SAMPLE"_${CHR}_matrix.txt"
-    	    echo $RUN_COMMAND && eval $RUN_COMMAND
-        done
-    elif [ "$HOMER_HIC_INTERACTIONS" == "trans" ]; then
-    
-        for CHR1 in $(awk '{print $1'} $FASTA.fai); do
-            for CHR2 in $(awk '{print $1'} $FASTA.fai); do
-                if [ "$CHR1" != "$CHR2" ]; then
-                    RUN_COMMAND="analyzeHiC $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR1 -chr2 $CHR2 > $OUTDIR/"$SAMPLE"_${CHR1}-${CHR2}_matrix.txt"
-                    echo $RUN_COMMAND && eval $RUN_COMMAND
-                fi
-            done
-        done
-    fi
-
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT\n"
-fi
-
-################################################################################
-CHECKPOINT="PCA clustering"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-
-    RUN_COMMAND="runHiCpca.pl $SAMPLE $OUTDIR/${SAMPLE}_tagdir_filtered $HOMER_HIC_PCA_ADDPARAM -cpu $CPU_HOMERHIC"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-
-    # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.PC1.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
+    if [ -f $OUTDIR/$SAMPLE"_"$LASTCHR"_"matrix.txt.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
@@ -242,13 +248,71 @@ else
 fi
 
 ################################################################################
+CHECKPOINT="PCA clustering"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    RUN_COMMAND="runHiCpca.pl $SAMPLE $OUTDIR/${SAMPLE}_tagdir_filtered $HOMER_HIC_PCA_ADDPARAM -cpu $CPU_HOMERHIC"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+    
+    if hash wigToBigWig && [ -f $GENOME_CHROMSIZES ]; then   
+          $OUTDIR/$SAMPLE.PC1.bedGraph ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.PC1.bw
+          rm $OUTDIR/$SAMPLE.PC1.bedGraph
+    fi
+    
+    
+    # mark checkpoint
+    if [ -f $OUTDIR/$SAMPLE.PC1.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+fi
+
+################################################################################
+CHECKPOINT="SIMA"
+
+if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
+    echo "::::::::: passed $CHECKPOINT"
+else 
+
+    if [[ "$HOMER_HIC_SIMA_ADDPARAM" =~ -p ]]; then
+
+        RUN_COMMAND="findHiCCompartments.pl <( tail -n+2 $OUTDIR/$SAMPLE.PC1.txt) > $OUTDIR/$SAMPLE.activeDomains.txt"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+        
+        RUN_COMMAND="findHiCCompartments.pl <( tail -n+2 $OUTDIR/$SAMPLE.PC1.txt) -opp > $OUTDIR/$SAMPLE.inactiveDomains.txt"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+        
+        tail -n+2 $OUTDIR/$SAMPLE.activeDomains.txt > $OUTDIR/$SAMPLE.activeAndInactiveDomains.txt
+        tail -n+2 $OUTDIR/$SAMPLE.inactiveDomains.txt >> $OUTDIR/$SAMPLE.activeAndInactiveDomains.txt
+        
+        awk '{if ($5<0){OFS="\t"; print $2,$3,$4,$1,"Active-"$6,$5}else{OFS="\t"; print $2,$3,$4,$1,"Inactive-"$6,$5}}' $OUTDIR/$SAMPLE.activeAndInactiveDomains.txt > $OUTDIR/$SAMPLE.activeAndInactiveDomains.bed
+        
+#        rm $OUTDIR/$SAMPLE.activeDomains.txt
+#        rm $OUTDIR/$SAMPLE.inactiveDomains.txt
+        
+        RUN_COMMAND="SIMA.pl $OUTDIR/${SAMPLE}_tagdir_filtered -d $OUTDIR/$SAMPLE.activeAndInactiveDomains.txt $HOMER_HIC_SIMA_ADDPARAM -cpu $CPU_HOMERHIC > $SAMPLE.sima.txt"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+        
+        # mark checkpoint
+        if [ -f $SAMPLE.sima.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+
+    else
+        echo "[NOTE] no peaks provided for SIMA analysis. Skipping it"
+        # mark checkpoint
+        echo -e "\n********* $CHECKPOINT\n"
+        
+    fi
+fi
+
+################################################################################
 CHECKPOINT="Circos plots (optional)"
 
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-    if hash ${CIRCOS} 2>&- ; then
-        echo "********* Circos plots"
+    if hash circos 2>&- ; then
+
         RUN_COMMAND="analyzeHiC $OUTDIR/${SAMPLE}_tagdir_filtered -res 1000000 -pvalue 1e-7 -cpu $CPU_HOMERHIC -circos $SAMPLE -minDist 2000000000 -nomatrix"
         echo $RUN_COMMAND && eval $RUN_COMMAND
     fi

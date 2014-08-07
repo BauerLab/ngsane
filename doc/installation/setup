@@ -43,7 +43,7 @@ apt-get install -y gawk zip
 
 ################################################################################
 echo "install libcurl4 and libxml2"
-apt-get install -y libcurl4-openssl-dev libxml2-dev libbz2-dev libreadline-dev gnustep-base-runtime libpng-dev libmysqlclient-dev
+apt-get install -y libcurl4-openssl-dev libxml2-dev libbz2-dev libreadline-dev gnustep-base-runtime libpng-dev libmysqlclient-dev libexpat1-dev libxml-parser-perl
 
 locale-gen en_AU.UTF-8
 
@@ -244,7 +244,7 @@ pip install scipy
 yolk -l
 
 ################################################################################
-VERSION=2.17.0
+VERSION=2.19.1
 SOFTWARE=bedtools
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -314,7 +314,7 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=1.102
+VERSION=1.117
 SOFTWARE=picard-tools
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -458,32 +458,32 @@ rm -r /tmp/kent/ /tmp/jksrc.v$VERSION.zip
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=0.7.1
-SOFTWARE=masai
-
-echo "install $SOFTWARE $VERSION " && cd /tmp/
-mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
-
-wget http://packages.seqan.de/$SOFTWARE/$SOFTWARE-$VERSION-Linux-x86_64.tar.bz2
-tar -xf $SOFTWARE-$VERSION-Linux-x86_64.tar.bz2
-mv $SOFTWARE-$VERSION-Linux-x86_64/* $PACKAGEPATH/$SOFTWARE/$VERSION
-
-cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
-#%Module1.0
-proc ModulesHelp { } {
-global dotversion
- puts stderr "\t $SOFTWARE $VERSION"
-}
- module-whatis "$SOFTWARE $VERSION"
-conflict $SOFTWARE
-prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/bin
-DELIM
-
-module load $SOFTWARE/$VERSION
+#VERSION=0.8.0
+#SOFTWARE=yara
+#
+#echo "install $SOFTWARE $VERSION " && cd /tmp/
+#mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+#
+#wget http://packages.seqan.de/$SOFTWARE/$SOFTWARE-$VERSION-Linux-x86_64.tar.bz2
+#tar -xf $SOFTWARE-$VERSION-Linux-x86_64.tar.bz2
+#mv $SOFTWARE-$VERSION-Linux-x86_64/* $PACKAGEPATH/$SOFTWARE/$VERSION
+#
+#cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+##%Module1.0
+#proc ModulesHelp { } {
+#global dotversion
+# puts stderr "\t $SOFTWARE $VERSION"
+#}
+# module-whatis "$SOFTWARE $VERSION"
+#conflict $SOFTWARE
+#prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+#DELIM
+#
+#module load $SOFTWARE/$VERSION
 
 
 ################################################################################
-VERSION=1.0.0
+VERSION=1.0.1
 SOFTWARE=bowtie
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -512,7 +512,7 @@ module load $SOFTWARE/$VERSION
 
 
 ################################################################################
-VERSION=2.1.0
+VERSION=2.2.3
 SOFTWARE=bowtie
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -538,8 +538,7 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-#VERSION=2.0.9
-VERSION=2.0.10
+VERSION=2.0.12
 SOFTWARE=tophat
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -595,7 +594,7 @@ module load $SOFTWARE/$VERSION
 ##############
 # needs more memory than ti.micro
 ################################################################################
-VERSION=2.1.1
+VERSION=2.2.1
 SOFTWARE=cufflinks
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -646,7 +645,7 @@ DELIM
 
 module load $SOFTWARE/$VERSION
 ################################################################################
-VERSION=0.7.5a
+VERSION=0.7.10
 SOFTWARE=bwa
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -709,7 +708,7 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=4.9.1
+VERSION=4.10.0
 SOFTWARE=meme
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -718,7 +717,14 @@ mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 wget http://ebi.edu.au/ftp/software/MEME/$VERSION/$SOFTWARE"_"$VERSION"_1".tar.gz
 tar -xf $SOFTWARE"_"$VERSION"_1".tar.gz
 cd $SOFTWARE"_"$VERSION
-./configure --prefix=/packages/$SOFTWARE/$VERSION --enable-opt
+./configure --prefix=/packages/$SOFTWARE/$VERSION --enable-opt --with-url=http://meme.nbcr.net/meme 
+
+# determine perl dependencies
+perl scripts/dependencies.pl
+# install missing perl modules
+cpan install SOAP::Lite SOAP::WSDL WWW::Mechanize XML::LibXML::SAX
+
+# compile software
 make && make test
 make install
 
@@ -828,7 +834,7 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=0.30
+VERSION=0.32
 SOFTWARE=trimmomatic
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -838,6 +844,7 @@ wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-
 unzip Trimmomatic-$VERSION.zip
 mv Trimmomatic-$VERSION/* $PACKAGEPATH/$SOFTWARE/$VERSION
 chmod 555 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
+ln -s $SOFTWARE-$VERSION.jar $PACKAGEPATH/$SOFTWARE/$VERSION/$SOFTWARE.jar
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
@@ -853,7 +860,7 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=0.3.3
+VERSION=0.3.7
 SOFTWARE=trim_galore
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -935,6 +942,9 @@ mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 wget http://www.bioinformatics.babraham.ac.uk/projects/$SOFTWARE/$SOFTWARE"_v"$VERSION.tar.gz
 tar -xf $SOFTWARE"_v"$VERSION.tar.gz
 mv $SOFTWARE"_v"$VERSION/* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+#ger Perl dependencies
+cpan install GD::Text GD::Graph
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
@@ -1307,6 +1317,37 @@ chmod 777 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
 
 module load $SOFTWARE/$VERSION
 
+################################################################################
+VERSION=1.0
+SOFTWARE=qualimap
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://qualimap.bioinfo.cipf.es/release/${SOFTWARE}_v${VERSION}.zip
+unzip ${SOFTWARE}_v${VERSION}.zip
+cp ${SOFTWARE}_v${VERSION}/* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+prepend-path    CLASSPATH  $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
+setenv  QUALIMAP_HOME $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+chmod 777 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
+
+module load $SOFTWARE/$VERSION
+
+# install R dependencies
+Rscript $QUALIMAP_HOME/scripts/installDependencies.r
+
 ##############
 # needs more memory than ti.micro
 ################################################################################
@@ -1377,22 +1418,22 @@ sed -i 's|^NG_FASTQC=|NG_FASTQC=fastqc/0.10.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$N
 sed -i 's|^NG_SAMTOOLS=|NG_SAMTOOLS=samtools/0.1.19|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_IGVTOOLS=|NG_IGVTOOLS=igvtools/2.3.23|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_GATK=|NG_GATK=gatk/2.8-1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_BWA=|NG_BWA=bwa/0.7.5a|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_BWA=|NG_BWA=bwa/0.7.10|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_IMAGEMAGIC=|NG_IMAGEMAGIC=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_PICARD=|NG_PICARD=picard-tools/1.102|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_PICARD=|NG_PICARD=picard-tools/1.117|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_SAMSTAT=|NG_SAMSTAT=samstat/1.09|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_UCSCTOOLS=|NG_UCSCTOOLS=ucsc_utils/291|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_BEDTOOLS=|NG_BEDTOOLS=bedtools/2.17.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_MASAI=|NG_MASAI=masai/0.7.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_BEDTOOLS=|NG_BEDTOOLS=bedtools/2.19.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_YARA=|NG_YARA=yara/0.8.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_FSEQ=|NG_FSEQ=fseq/1.84|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_BOWTIE=|NG_BOWTIE=bowtie/1.0.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_BOWTIE2=|NG_BOWTIE2=bowtie/2.1.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_BOWTIE=|NG_BOWTIE=bowtie/1.0.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_BOWTIE2=|NG_BOWTIE2=bowtie/2.2.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BOOST=|NG_BOOST=boost/1.53.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_PEAKRANGER=|NG_PEAKRANGER=peakranger/1.16|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_MEME=|NG_MEME=meme/4.9.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_TOPHAT=|NG_TOPHAT=tophat/2.0.10|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_TOPHAT=|NG_TOPHAT=tophat/2.0.12|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_RNASEQC=|NG_RNASEQC=RNA-SeQC/1.1.7|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_CUFFLINKS=|NG_CUFFLINKS=cufflinks/2.1.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_CUFFLINKS=|NG_CUFFLINKS=cufflinks/2.2.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_MONO=|NG_MONO=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BLUE=|NG_BLUE=blue/1.0.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_PERL=|NG_PERL=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1401,8 +1442,8 @@ sed -i 's|^NG_BLAT=|NG_BLAT=blat/35|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERS
 sed -i 's|^NG_WIGGLER=|NG_WIGGLER=wiggler/2.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HOMER=|NG_HOMER=homer/4.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CUTADAPT=|NG_CUTADAPT=${NG_PYTHON}|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_TRIMGALORE=|NG_TRIMGALORE=trim_galore/0.3.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_TRIMMOMATIC=|NG_TRIMMOMATIC=trimmomatic/0.30|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_TRIMGALORE=|NG_TRIMGALORE=trim_galore/0.3.7|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_TRIMMOMATIC=|NG_TRIMMOMATIC=trimmomatic/0.32|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HDF5=|NG_HDF5=hdf5/1.8.12|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HICLIB=|NG_HICLIB=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HICUP=|NG_HICUP=hicup/0.4.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1414,6 +1455,7 @@ sed -i 's|^NG_PARALLEL=|NG_PARALLEL=parallel/20131022|' $PACKAGEPATH/$NGSANE_SOF
 sed -i 's|^NG_TRINITY=|NG_TRINITY=trinityrnaseq/2013_08_14|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_PINDEL=|NG_PINDEL=pindel/0.2.5|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CIRCOS=|NG_CIRCOS=circos/0.64|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_QUALIMAP=|NG_QUALIMAP=qualimap/1.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 
 # databases
 sed -i 's|^MEMECHIPDATABASES=|MEMECHIPDATABASES=/packages/meme/4.9.1/db/motif_databases/jolma2013.meme|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh

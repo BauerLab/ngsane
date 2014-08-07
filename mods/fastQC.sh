@@ -31,14 +31,16 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_FASTQC; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_FASTQC; do module load $MODULE; done && module list 
+
 export PATH=$PATH_FASTQC:$PATH;
-module list
 echo "PATH=$PATH"
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_BOWTIE*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_FASTQC*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
+export _JAVA_OPTIONS=$JAVAPARAMS
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
@@ -84,7 +86,9 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     # check for ".fastq.gz" suffix as FASTQC removes both suffixes then
     if [ "$FASTQ" != "fastq.gz" ];then 
-        mv $OUTDIR/${INPUTFILENAME%.*}"_"fastqc.zip $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}; 
+        [ -e $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip} ] && rm $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}
+        [ -e $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc} ] && rm -r $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc}
+        mv $OUTDIR/${INPUTFILENAME%.*}"_"fastqc.zip $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}
         mv $OUTDIR/${INPUTFILENAME%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc}
     fi
 
@@ -104,8 +108,10 @@ else
         echo $RUN_COMMAND && eval $RUN_COMMAND
         R2=${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.$FASTQ}
         if [ "$FASTQ" != "fastq.gz" ];then 
-            mv $OUTDIR/${R2%.*}"_"fastqc.zip $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc.zip}; 
-            mv $OUTDIR/${R2%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc}; 
+            [ -e $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc.zip} ] && rm $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc.zip}
+            [ -e $OUTDIR/${R2%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc} ] && rm -r $OUTDIR/${R2%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc}
+            mv $OUTDIR/${R2%.*}"_"fastqc.zip $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc.zip}
+            mv $OUTDIR/${R2%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc}
         fi
     else
         echo "[NOTE] Single-end pair library detected. No second read to process."

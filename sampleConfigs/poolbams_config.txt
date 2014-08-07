@@ -32,14 +32,6 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
-# regular expression pattern identifying replicates
-# e.g. "_Rep[0-9]*"
-PATTERN=
-
-# replacement for the pattern
-# e.g. "_pooled"
-REPLACEWITH=
-
 # Flag indicating whether original bams of the individual replicas should be deleted afterwards
 # set to "true" to remove original files
 DELETEORIGINALBAMS=
@@ -48,6 +40,16 @@ DELETEORIGINALBAMS=
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
 # or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
 FASTA=
+
+# define as many pools as needed one per line (order matters)
+# POOL_BAMS output_folder output_prefix <pattern1> [<pattern2>]
+# e.g. POOL_BAM label library_Rep1 library_Rep2
+# or   POOL_BAM H2AZ H2AZ_Rep*
+<<POOL_BAMS
+POOL_BAMS
+
+# suffix for the logfile name
+POOLED_DATA_NAME=
 
 #********************
 # PARAMETER (optional overwriting defaults)

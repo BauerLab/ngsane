@@ -46,9 +46,10 @@ done
 CHECKPOINT="programs"
 
 ## [TODO] change [TEMPLATE] to program
-for MODULE in $MODULE_[TEMPLATE]; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself load other modules
+hash module 2>/dev/null && for MODULE in $MODULE_[TEMPLATE]; do module load $MODULE; done && module list
+
 export PATH=$PATH_[TEMPLATE]:$PATH
-module list
 echo "PATH=$PATH"
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
@@ -76,8 +77,12 @@ fi
 #fi
 
 ## TODO remove comments if compressed status of input files should be detected
-#ZCAT="zcat"
-#if [[ ${INPUTFILE##*.} != "gz" ]]; then ZCAT="cat"; fi
+#CAT="cat"
+#if [[ ${f##*.} == "gz" ]]; 
+#    then CAT="zcat"; 
+#elif [[ ${f##*.} == "bz2" ]]; 
+#    then CAT="bzcat"; 
+#fi
 
 # unique temp folder that should be used to store temporary files
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)

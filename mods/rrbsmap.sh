@@ -76,14 +76,15 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_RRBSMAP; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_RRBSMAP; do module load $MODULE; done && module list 
+
 export PATH=$PATH_RRBS:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
-PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
+[ -z "$PATH_IGVTOOLS" ] && PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
+[ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_RRBS*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
@@ -120,28 +121,32 @@ fi
 # get basename of f
 n=${f##*/}
 
-#is ziped ?                                                                                                       
-ZCAT="zcat"
-if [[ ${f##*.} != "gz" ]]; then ZCAT="cat"; fi
+#is ziped ?
+CAT="cat"
+if [[ ${f##*.} == "gz" ]]; 
+    then CAT="zcat"; 
+elif [[ ${f##*.} == "bz2" ]]; 
+    then CAT="bzcat"; 
+fi
 
 FASTASUFFIX=${FASTA##*.}
 
 # delete old bam files unless attempting to recover
 if [ -z "$RECOVERFROM" ]; then
-    if [ -e $OUT/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $OUT/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
-    if [ -e $OUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $OUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
+    if [ -e $OUT/${n/%$READONE.$FASTQ/$ASD.bam} ]; then rm $OUT/${n/%$READONE.$FASTQ/$ASD.bam}; fi
+    if [ -e $OUT/${n/%$READONE.$FASTQ/$ASD.bam}.stats ]; then rm $OUT/${n/%$READONE.$FASTQ/$ASD.bam}.stats; fi
 fi
 
 #is paired ?
 if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ] && [ "$FORCESINGLE" = 0 ]; then
     PAIRED="1"
-    READ1=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
-    READ2=`$ZCAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}' `
+    READ1=`$CAT $f | wc -l | gawk '{print int($1/4)}' `
+    READ2=`$CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}' `
     let FASTQREADS=$READ1+$READ2
 
 else
     PAIRED="0"
-    let FASTQREADS=`$ZCAT $f | wc -l | gawk '{print int($1/4)}' `
+    let FASTQREADS=`$CAT $f | wc -l | gawk '{print int($1/4)}' `
 fi
 
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
@@ -167,18 +172,18 @@ else
 
     if [ "$PAIRED" = "1" ]; then
         echo "[NOTE] PAIRED READS"
-        $RRBSMAP -a $f -b ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} -d $FASTA -o $OUT/${n/%$READONE.$FASTQ/$ALN.bam} \
-    	$ADAPTER -D $RSITE -p $CPU_RRBSMAP -2 $OUT/${n/%$READONE.$FASTQ/$UNM.bam}
+        $RRBSMAP -a $f -b ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} -d $FASTA -o $OUT/${n/%$READONE.$FASTQ$ALN.bam} \
+    	$ADAPTER -D $RSITE -p $CPU_RRBSMAP -2 $OUT/${n/%$READONE.$FASTQ$UNM.bam}
     else
     
         echo "[NOTE] SINGLE READS"
-        $RRBSMAP -a $f -d $FASTA -o $OUT/${n/%$READONE.$FASTQ/$ALN.bam} \
-    	$ADAPTER -D $RSITE -p $CPU_RRBSMAP -2 $OUT/${n/%$READONE.$FASTQ/$UNM.bam}
+        $RRBSMAP -a $f -d $FASTA -o $OUT/${n/%$READONE.$FASTQ$ALN.bam} \
+    	$ADAPTER -D $RSITE -p $CPU_RRBSMAP -2 $OUT/${n/%$READONE.$FASTQ$UNM.bam}
     
     fi
     
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/$ALN.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    [ -f $OUT/${n/%$READONE.$FASTQ$ALN.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
@@ -189,8 +194,8 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
 else 
 
     java $JAVAPARAMS -jar $PATH_PICARD/MergeBamAlignment.jar \
-        UNMAPPED_BAM=$OUT/${n/%$READONE.$FASTQ/$UNM.bam} \
-        ALIGNED_BAM=$OUT/${n/%$READONE.$FASTQ/$ALN.bam} \
+        UNMAPPED_BAM=$OUT/${n/%$READONE.$FASTQ$UNM.bam} \
+        ALIGNED_BAM=$OUT/${n/%$READONE.$FASTQ$ALN.bam} \
         OUTPUT=$OUT/${n/%$READONE.$FASTQ/.ash.bam} \
         REFERENCE_SEQUENCE=$FASTA \
         PAIRED_RUN=$PAIRED \
@@ -229,15 +234,15 @@ else
     mkdir $THISTMP
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
         INPUT=$OUT/${n/%$READONE.$FASTQ/.ashrg.bam} \
-        OUTPUT=$OUT/${n/%$READONE.$FASTQ/.$ASD.bam} \
-        METRICS_FILE=$OUT/metrices/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl AS=true \
+        OUTPUT=$OUT/${n/%$READONE.$FASTQ/$ASD.bam} \
+        METRICS_FILE=$OUT/metrices/${n/%$READONE.$FASTQ/$ASD.bam}.dupl AS=true \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=$THISTMP
     rm -r $THISTMP
-    $SAMTOOLS index $OUT/${n/%$READONE.$FASTQ/.$ASD.bam}
+    $SAMTOOLS index $OUT/${n/%$READONE.$FASTQ/$ASD.bam}
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.$ASD.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    [ -f $OUT/${n/%$READONE.$FASTQ/$ASD.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi 
 
 ################################################################################
@@ -247,8 +252,8 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    STATSOUT=$OUT/${n/%$READONE.$FASTQ/.$ASD.bam}.stats
-    $SAMTOOLS flagstat $OUT/${n/%$READONE.$FASTQ/.$ASD.bam} > STATSOUT
+    STATSOUT=$OUT/${n/%$READONE.$FASTQ/$ASD.bam}.stats
+    $SAMTOOLS flagstat $OUT/${n/%$READONE.$FASTQ/$ASD.bam} > STATSOUT
     
     if [ -n "$SEQREG" ]; then
         echo "#custom region" >> $STATSOUT
@@ -268,11 +273,11 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else
 
-    java $JAVAPARAMS -jar $IGVTOOLS count $OUT/${n/%$READONE.$FASTQ/.$ASD.bam} \
-        $OUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/.genome}
+    java $JAVAPARAMS -jar $IGVTOOLS count $OUT/${n/%$READONE.$FASTQ/$ASD.bam} \
+        $OUT/${n/%$READONE.$FASTQ/$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/.genome}
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.$ASD.bam.cov.tdf} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    [ -f $OUT/${n/%$READONE.$FASTQ/$ASD.bam.cov.tdf} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi
 
 ################################################################################
@@ -283,8 +288,8 @@ BAMREADS=`head -n1 $STATSOUT | cut -d " " -f 1`
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi			
 if [ $BAMREADS -eq $FASTQREADS ]; then
     echo "[NOTE] PASS check mapping: $BAMREADS == $FASTQREADS"
-    rm $OUT/${n/%$READONE$FASTQ/$ALN.bam}
-    rm $OUT/${n/%$READONE$FASTQ/$UNM.bam}
+    rm $OUT/${n/%$READONE$FASTQ$ALN.bam}
+    rm $OUT/${n/%$READONE$FASTQ$UNM.bam}
     rm $OUT/${n/%$READONE$FASTQ/.ash.bam}
 else
     echo -e "[ERROR] We are loosing reads from .fastq -> .bam in $f: \nFastq had $FASTQREADS Bam has $BAMREADS"

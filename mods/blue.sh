@@ -37,9 +37,10 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_BLUE; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_BLUE; do module load $MODULE; done && module list 
+
 export PATH=$PATH_BLUE:$PATH;
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -90,18 +91,26 @@ FILES=""
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
 mkdir -p $THISTMP
 
-if [[ ${f##*.} != "gz" ]]; then
-    FILES="${f/$FASTQ/}"
-    if [ $PAIRED = "1" ]; then 
-        FILES="$FILES ${f/$READONE.$FASTQ/$READTWO}"
-    fi
-else
-    echo "[NOTE] unzip input"
+if [[ ${f##*.} == "gz" ]]; then
+    echo "[NOTE] gunzip input"
     zcat $f > $THISTMP/${n/.$FASTQ/.unzipped}
     FILES="$THISTMP/${n/.$FASTQ/.unzipped}"
     if [ $PAIRED = "1" ]; then 
         zcat ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/$SAMPLE$READTWO.unzipped
         FILES="$FILES $THISTMP/$SAMPLE$READTWO.unzipped"
+    fi
+elif [[ ${f##*.} == "bz2" ]]; then
+    echo "[NOTE] bunzip input"
+    bzcat $f > $THISTMP/${n/.$FASTQ/.unzipped}
+    FILES="$THISTMP/${n/.$FASTQ/.unzipped}"
+    if [ $PAIRED = "1" ]; then 
+        bzcat ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/$SAMPLE$READTWO.unzipped
+        FILES="$FILES $THISTMP/$SAMPLE$READTWO.unzipped"
+    fi
+else
+    FILES="${f/$FASTQ/}"
+    if [ $PAIRED = "1" ]; then 
+        FILES="$FILES ${f/$READONE.$FASTQ/$READTWO}"
     fi
 fi
 

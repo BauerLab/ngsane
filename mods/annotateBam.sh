@@ -6,7 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/$INPUT_BAMANN/<SAMPLE>.$ASD.bam.merg.anno.bed
+# RESULTFILENAME <DIR>/$INPUT_BAMANN/<SAMPLE>$ASD.bam.merg.anno.bed
 
 echo ">>>>> Annotate BAM file "
 echo ">>>>> startdate "`date`
@@ -54,9 +54,10 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_BAMANN; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_BAMANN; do module load $MODULE; done && module list 
+
 export PATH=$PATH_BAMANN:$PATH
-module list
 echo "PATH=$PATH"
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
@@ -69,6 +70,7 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$ASD.bam/}
 
 # check library variables are set
 if [[ -z "$BAMANNLIB" ]]; then

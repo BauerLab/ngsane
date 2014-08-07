@@ -44,10 +44,10 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_MEMECHIP; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_MEMECHIP; do module load $MODULE; done && module list 
 
 export PATH=$PATH_MEMECHIP:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -57,7 +57,7 @@ echo -e "--bedtools    --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 echo -e "--perl        --\n "$(perl -v | grep "This is perl" )
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
-echo -e "--meme-chip   --\n "$(cat `which meme`.bin | strings | grep -A 2 "MEME - Motif discovery tool" | tail -n 1)
+echo -e "--meme-chip   --\n "$(cat `which meme` | strings | grep -A 2 "MEME - Motif discovery tool" | tail -n 1)
 [ -z "$(which meme-chip)" ] && echo "[ERROR] meme-chip not detected" && exit 1
 
 echo -e "\n********* $CHECKPOINT\n"

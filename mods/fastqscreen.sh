@@ -36,9 +36,10 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_FASTQSCREEN; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_FASTQSCREEN; do module load $MODULE; done && module list 
+
 export PATH=$PATH_FASTQSCREEN:$PATH;
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -55,6 +56,15 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$READONE.$FASTQ/}
+
+#is ziped ?
+CAT="cat"
+if [[ ${f##*.} == "gz" ]]; 
+    then CAT="zcat"; 
+elif [[ ${f##*.} == "bz2" ]]; 
+    then CAT="bzcat"; 
+fi
 
 #is paired ?
 if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
@@ -91,22 +101,22 @@ else
 
     # Paired read
     if [ "$PAIRED" = "1" ]; then
-        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --paired --threads $CPU_FASTQSCREEN $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
+        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --paired --threads $CPU_FASTQSCREEN <($CAT $f) <($CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ})"
     else
-        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --threads $CPU_FASTQSCREEN $f"
+        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --threads $CPU_FASTQSCREEN <($CAT $f)"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    mv $OUTDIR/${n}_screen.txt $OUTDIR/${n/$READONE.$FASTQ/}_screen.txt
-    mv $OUTDIR/${n}_screen.png $OUTDIR/${n/$READONE.$FASTQ/}_screen.png
+    mv $OUTDIR/${n}_screen.txt $OUTDIR/$SAMPLE"_"screen.txt
+    mv $OUTDIR/${n}_screen.png $OUTDIR/$SAMPLE"_"screen.png
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/$READONE.$FASTQ/}_screen.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE"_"screen.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
 
 ################################################################################
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/_screen.txt}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/_screen.txt}.dummy
+[ -e $OUTDIR/$SAMPLE"_"screen.txt.dummy ] && rm $OUTDIR/$SAMPLE"_"screen.txt.dummy
 echo ">>>>> read screening with  FASTQSCREEN - FINISHED"
 echo ">>>>> enddate "`date`
 

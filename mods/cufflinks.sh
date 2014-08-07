@@ -5,11 +5,11 @@
 # author: Chikako Ragan, Denis Bauer
 # date: Jan. 2011
 # modified by Fabian Buske and Hugh French
-# date: 2013-
+# date: 2014
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,truncated file
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>_transcripts.gtf
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>/transcripts.gtf
 
 echo ">>>>> transcript assembly with cufflinks "
 echo ">>>>> startdate "`date`
@@ -46,9 +46,10 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_CUFFLINKS; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_CUFFLINKS; do module load $MODULE; done && module list 
+
 export PATH=$PATH_CUFFLINKS:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -65,16 +66,21 @@ CHECKPOINT="parameters"
 
 # get basename of f (samplename)
 n=${f##*/}
+SAMPLE=${n/%$ASD.bam/}
+
+if [ -z "$FASTA" ]; then
+    echo "[ERROR] no reference provided (FASTA)"
+    exit 1
+fi
 
 #remove old files unless recovering
 if [ -z "$RECOVERFROM" ]; then
-    if [ -e $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf} ]; then rm $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf}; fi
+    if [ -e $OUTDIR/../${SAMPLE}_transcripts.gtf ]; then rm $OUTDIR/../${SAMPLE}_transcripts.gtf; fi
 fi
 
 ## GTF provided?
 if [ -z "$GTF" ] || [ ! -f $GTF ]; then
-    echo "[ERROR] GTF not specified or not found!"
-    exit 1
+    echo "[WARN] GTF not specified or not found!"
 else
     echo "[NOTE] GTF: $GTF"
 fi
@@ -87,6 +93,12 @@ if [ ! -z "$DOCTOREDGTFSUFFIX" ]; then
         echo "[NOTE] Using detected doctored GTF: ${GTF/%.gtf/$DOCTOREDGTFSUFFIX}"
         GTF=${GTF/%.gtf/$DOCTOREDGTFSUFFIX}
     fi
+fi
+
+# how to name the merged gtf file
+if [ -z "$MERGED_GTF_NAME" ]; then
+    echo "[ERROR] MERGED_GTF_NAME not specified"
+    exit 1
 fi
 
 # check library info is set
@@ -114,33 +126,23 @@ CHECKPOINT="run cufflinks"
 if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
     echo "::::::::: passed $CHECKPOINT"
 else 
-#    echo ">>>>> from $f to $OUTPUT"
-    echo "[NOTE] cufflinks $(date)"
 
     ## add GTF file if present
     if [ -n "$GTF" ]; then 
         echo "[NOTE] execute cufflinks with guide (GTF provided)"
-        RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --GTF-guide $GTF -p $CPU_CUFFLINKS --library-type $RNA_SEQ_LIBRARY_TYPE -o $OUTDIR $f"
+        RUN_COMMAND="cufflinks --no-update-check --quiet $CUFFLINKSADDPARAM --GTF-guide $GTF -p $CPU_CUFFLINKS --library-type $RNA_SEQ_LIBRARY_TYPE -o $OUTDIR $f"
 
     else
         # non reference guided
         echo "[NOTE] de novo run (no GTF provided)"
-        RUN_COMMAND="cufflinks --quiet $CUFFLINKSADDPARAM --frag-bias-correct $FASTA -p $CPU_CUFFLINKS --library-type $RNA_SEQ_LIBRARY_TYPE -o $OUTDIR $f"
+        RUN_COMMAND="cufflinks --no-update-check --quiet $CUFFLINKSADDPARAM --frag-bias-correct $FASTA -p $CPU_CUFFLINKS --library-type $RNA_SEQ_LIBRARY_TYPE -o $OUTDIR $f"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    CURDIR=$(pwd) 
-    cd $OUTDIR/.. 
-    ln -f -s ${n/%.$ASD.bam/}/transcripts.gtf ${n/%.$ASD.bam/_transcripts.gtf} 
-    cd $CURDIR
-    
-    echo "[NOTE] cufflinks end $(date)"
-
     # mark checkpoint
-    if [ -e $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -e $OUTDIR/transcripts.gtf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi
-
 ################################################################################
 CHECKPOINT="statistics"    
 
@@ -148,7 +150,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    SUMMARYFILE=$OUTDIR/../${n/%.$ASD.bam/.summary.txt}
+    SUMMARYFILE=$OUTDIR/../${SAMPLE}.summary.txt
     cat /dev/null > $SUMMARYFILE
     
     for i in $(ls $OUTDIR/*.fpkm_tracking); do
@@ -164,9 +166,8 @@ else
     # mark checkpoint
     if [ -e $SUMMARYFILE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
-
 fi
 ################################################################################
-[ -e $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf}.dummy ] && rm $OUTDIR/../${n/%.$ASD.bam/_transcripts.gtf}.dummy
+[ -e $OUTDIR/transcripts.gtf.dummy ] && rm $OUTDIR/transcripts.gtf.dummy
 echo ">>>>> transcript assembly with cufflinks - FINISHED"
 echo ">>>>> enddate "`date`

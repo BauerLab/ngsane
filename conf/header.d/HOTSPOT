@@ -1,0 +1,11 @@
+##############################################################
+# HOTSPOT
+# http://www.uwencode.org/proj/hotspot/
+TASK_HOTSPOT="hotspot"
+WALLTIME_HOTSPOT=72:00:00
+MEMORY_HOTSPOT=40
+CPU_HOTSPOT=1
+NODES_HOTSPOT="nodes=1:ppn=1"
+INPUT_HOTSPOT=$TASK_BOWTIE
+MODULE_HOTSPOT="${NG_JAVA} ${NG_PYTHON} ${NG_BEDTOOLS} ${NG_BEDOPS} ${NG_UCSCTOOLS} ${NG_HOTSPOT} ${NG_R}"
+PATH_HOTSPOT=

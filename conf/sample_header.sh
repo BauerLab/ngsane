@@ -66,7 +66,12 @@ NG_CIRCOS=
 NG_BLAT=
 NG_PINDEL=
 NG_SEQLOGO=
-NG_MASAI=
+NG_YARA=
+NG_FSEQ=
+NG_HOTSPOT=
+NG_BEDOPS=
+NG_QUALIMAP=
+NG_MRSFAST=
 
 ##############################################################
 # Software reference
@@ -102,7 +107,7 @@ NG_CITE_FITHIC="Genome Res February 5, 2014, doi:10.1101/gr.160374.113; 'Statist
 NG_CITE_FASTQSCREEN="http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/"
 NG_CITE_MATLAB="MathWorks, (2012). Bioinformatics Toolbox: User's Guide (R2012a). Retrieved July 14, 2012 from www.mathworks.com/help/pdf_doc/bioinfo/bioinfo_ug.pdf"
 NG_CITE_CHANCE="Genome Biol. 2012 Oct 15;13(10):R98. [Epub ahead of print] 'CHANCE: comprehensive software for quality control and validation of ChIP-seq data.'; Diaz A, Nellore A, Song JS."
-NG_CITE_PARALLEL="http://www.gnu.org/s/parallel"
+NG_CITE_PARALLEL="O. Tange (2011), 'GNU Parallel - The Command-Line Power Tool', The USENIX Magazine, February 2011:42-47."
 NG_CITE_TRINITY="Nat Biotechnol. 2011 May 15;29(7):644-52. doi: 10.1038/nbt.1883. 'Full-length transcriptome assembly from RNA-Seq data without a reference genome.'; Grabherr MG, Haas BJ, Yassour M, Levin JZ, Thompson DA, Amit I, Adiconis X, Fan L, Raychowdhury R, Zeng Q, Chen Z, Mauceli E, Hacohen N, Gnirke A, Rhind N, di Palma F, Birren BW, Nusbaum C, Lindblad-Toh K, Friedman N, Regev A."
 NG_CITE_MACS2="Genome Biol. 2008;9(9):R137. doi: 10.1186/gb-2008-9-9-r137. Epub 2008 Sep 17. 'Model-based analysis of ChIP-Seq (MACS).'; Zhang Y, Liu T, Meyer CA, Eeckhoute J, Johnson DS, Bernstein BE, Nusbaum C, Myers RM, Brown M, Li W, Liu XS."
 NG_CITE_HTSEQ="Conf Proc IEEE Eng Med Biol Soc. 2013 Jul;2013:647-50. doi: 10.1109/EMBC.2013.6609583. 'Benchmarking RNA-Seq quantification tools.'; Chandramohan R, Wu PY, Phan JH, Wang MD."
@@ -110,7 +115,13 @@ NG_CITE_CIRCOS="Genome Res. 2009 Sep;19(9):1639-45. doi: 10.1101/gr.092759.109. 
 NG_CITE_BLAT="Genome Res. 2002 Apr;12(4):656-64. 'BLAT--the BLAST-like alignment tool.'; Kent WJ."
 NG_CITE_PINDEL="Ye K, Schulz MH, Long Q, Apweiler R, Ning Z. Pindel: a pattern growth approach to detect break points of large deletions and medium sized insertions from paired-end short reads. Bioinformatics. 2009 Nov 1;25(21):2865-71. Epub 2009 Jun 26."
 NG_CITE_SEQLOGO="Nucleic Acids Res. 1990 Oct 25;18(20):6097-100.; 'Sequence logos: a new way to display consensus sequences.'; Schneider TD, Stephens RM."
-NG_CITE_MASAI="Nucleic Acids Res. 2013 Apr;41(7):e78. doi: 10.1093/nar/gkt005. Epub 2013 Jan 28.'Fast and accurate read mapping with approximate seeds and multiple backtracking.'; Siragusa E, Weese D, Reinert K."
+NG_CITE_YARA="Siragusa, E., Weese D., and Reinert, K. (2014). Yara: reliable read mapping at high-throughput sequencing speed."
+NG_CITE_FSEQ="Bioinformatics. 2008 Nov 1;24(21):2537-8. doi: 10.1093/bioinformatics/btn480. Epub 2008 Sep 10. 'F-Seq: a feature density estimator for high-throughput sequence tags.'; Boyle AP1, Guinney J, Crawford GE, Furey TS."
+NG_CITE_BIGWIG="Bioinformatics. Sep 1, 2010; 26(17): 2204–2207. Published online Jul 17, 2010. doi:  10.1093/bioinformatics/btq351; PMCID: PMC2922891' BigWig and BigBed: enabling browsing of large distributed datasets W. J. Kent, A. S. Zweig,* G. Barber, A. S. Hinrichs, and D. Karolchik"
+NG_CITE_HOTSPOT="Nat Genet. 2011 Mar;43(3):264-8. doi: 10.1038/ng.759. Epub 2011 Jan 23.,'Chromatin accessibility pre-determines glucocorticoid receptor binding patterns.', John S, Sabo PJ, Thurman RE, Sung MH, Biddie SC, Johnson TA, Hager GL, Stamatoyannopoulos JA."
+NG_CITE_BEDOPS="Bioinformatics. 2012 Jul 15;28(14):1919-20. doi: 10.1093/bioinformatics/bts277. Epub 2012 May 9., 'BEDOPS: high-performance genomic feature operations.', Neph S, Kuehn MS, Reynolds AP, Haugen E, Thurman RE, Johnson AK, Rynes E, Maurano MT, Vierstra J, Thomas S, Sandstrom R, Humbert R, Stamatoyannopoulos JA."
+NG_CITE_QUALIMAP="Bioinformatics. 2012 Oct 15;28(20):2678-9. doi: 10.1093/bioinformatics/bts503. Epub 2012 Aug 22.; 'Qualimap: evaluating next-generation sequencing alignment data.'; García-Alcalde F1, Okonechnikov K, Carbonell J, Cruz LM, Götz S, Tarazona S, Dopazo J, Meyer TF, Conesa A."
+NG_CITE_MRSFAST="Nucleic Acids Res. 2014 Jul;42(Web Server issue):W494-500. doi: 10.1093/nar/gku370. Epub 2014 May 8. 'mrsFAST-Ultra: a compact, SNP-aware mapper for high performance sequencing applications.'; Hach F1, Sarrafi I2, Hormozdiari F3, Alkan C4, Eichler EE5, Sahinalp SC6."
 
 ##############################################################
 # PROGRAM PATHS
@@ -127,21 +138,21 @@ FASTA=            # fasta file usually from the reference genome
 FASTA_CHROMDIR=   # folder containing individual fasta files for each chromosome of the reference genome 
 
 # file infixes
-UNM="unm"   # unmapped
-ALN="aln"   # aligned 
-MUL="mul"   # non-unique aligned
-ASD="asd"   # aligned sorted duplicate-removed
-ASR="asdrr" # aligned sorted duplicate-removed raligned recalibrated
+UNM=".unm"   # unmapped
+ALN=".aln"   # aligned 
+MUL=".mul"   # non-unique aligned
+ASD=".asd"   # aligned sorted duplicate-removed
+ASR=".asdrr" # aligned sorted duplicate-removed raligned recalibrated
 
 MODULES_DEFAULT=
-for MODULE in $MODULES_DEFAULT; do module load $MODULES_DEFAULT; done
+hash module 2>/dev/null && for MODULE in $MODULES_DEFAULT; do module load $MODULES_DEFAULT; done
 
 ##############################################################
 # gzip alternatives, e.g.
 # pigz (2.3) - http://zlib.net/pigz/
 MODULE_GZIP=${NG_GZIP}
 GZIP="gzip -9"			# command, e.g. gzip or pigz
-[ -n "$MODULE_GZIP" ] && module load $MODULE_GZIP
+hash module 2>/dev/null && [ -n "$MODULE_GZIP" ] && module load $MODULE_GZIP
 
 # source content in default folder twice to properly set up crosslinked variables
 for NGSANE_DEFAULTS in ${NGSANE_BASE}/conf/header.d/* ; do source $NGSANE_DEFAULTS; done

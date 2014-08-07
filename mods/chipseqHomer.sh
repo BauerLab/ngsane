@@ -44,10 +44,10 @@ done
 ################################################################################
 CHECKPOINT="programs"
 
-for MODULE in $MODULE_HOMERCHIPSEQ; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_HOMERCHIPSEQ; do module load $MODULE; done && module list 
 
 export PATH=$PATH_HOMERCHIPSEQ:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -59,6 +59,8 @@ echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--homer       --\n "$(which makeTagDirectory)
 [ -z "$(which makeTagDirectory)" ] && echo "[ERROR] homer not detected" && exit 1
+echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
+[ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress bedgraphs"
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -66,11 +68,18 @@ CHECKPOINT="parameters"
 
 # get basename of f
 n=${f##*/}
-SAMPLE=${n/%.$ASD.bam/}
+SAMPLE=${n/%$ASD.bam/}
+
+GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
+if [ ! -f $GENOME_CHROMSIZES ]; then
+    echo "[WARN] GENOME_CHROMSIZES not found. No bigbeds will be generated"
+else
+    echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
+fi
 
 if [ -n "$CHIPINPUT" ];then
     c=${CHIPINPUT##*/}
-    INPUT=${c/.$ASD.bam/}
+    INPUT=${c/$ASD.bam/}
 else
     INPUT="NONE"
 fi
@@ -119,11 +128,19 @@ else
     cat $OUTDIR/${SAMPLE}.findpeaks.log # put into qout log too
     
     if [ "$HOMER_CHIPSEQ_STYLE" == "factor" ]; then
-        pos2bed.pl $OUTDIR/${SAMPLE}_homer/peaks.txt > $OUTDIR/${SAMPLE}-${INPUT}_peaks.bed
+        pos2bed.pl $OUTDIR/${SAMPLE}_homer/peaks.txt > $OUTDIR/$SAMPLE-$INPUT.bed
+    
     elif [ "$HOMER_CHIPSEQ_STYLE" == "histone" ]; then
-        pos2bed.pl $OUTDIR/${SAMPLE}_homer/regions.txt > $OUTDIR/${SAMPLE}-${INPUT}_regions.bed
+        pos2bed.pl $OUTDIR/${SAMPLE}_homer/regions.txt > $OUTDIR/$SAMPLE-$INPUT.bed
     fi
 
+    # make bigbed
+    if hash bedToBigBed && [ -f $GENOME_CHROMSIZES ]; then
+        bedtools intersect -a <(cut -f1-3,5 $OUTDIR/$SAMPLE-$INPUT.bed | grep -v "^#" | sort -k1,1 -k2,2n) -b <( awk '{OFS="\t"; print $1,1,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/$SAMPLE-$INPUT.tmp
+        bedToBigBed -type=bed4 $OUTDIR/$SAMPLE-$INPUT.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE-$INPUT.bb
+        rm $OUTDIR/$SAMPLE-$INPUT.tmp
+    fi
+        
     # mark checkpoint
     if [ -f $OUTDIR/${SAMPLE}.findpeaks.log ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
