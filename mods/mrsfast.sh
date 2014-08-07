@@ -127,26 +127,6 @@ else
     PAIRED="0"
 fi
 
-# get encoding
-if [ -z "$FASTQ_ENCODING" ]; then 
-    echo "[NOTE] Detect fastq Phred encoding"
-    FASTQ_ENCODING=$($CAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
-    echo "[NOTE] $FASTQ_ENCODING fastq format detected"
-fi
-
-if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
-    FASTQ_PHRED="--phred33-quals"    
-    FASTQ_PHRED_TRIM=" -phred33"
-elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
-    FASTQ_PHRED="--phred64-quals"
-    FASTQ_PHRED_TRIM=" -phred64"
-elif [[ "$FASTQ_ENCODING" == *Solexa* ]]; then
-    FASTQ_PHRED="--solexa1.3-quals"
-    FASTQ_PHRED_TRIM=" -phred64"
-else
-    echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default"
-fi
-
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
 mkdir -p $THISTMP
@@ -328,6 +308,7 @@ else
     # mark checkpoint
     [ -f $OUTDIR/metrices/$SAMPLE$ASD.bam.alignment_summary_metrics ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
 fi
+
 ################################################################################
 CHECKPOINT="samstat"    
 
@@ -340,7 +321,6 @@ else
     # mark checkpoint
     if [ -f $OUTDIR/$SAMPLE$ASD.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
-
 
 ################################################################################
 CHECKPOINT="verify"    
