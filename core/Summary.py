@@ -17,6 +17,7 @@ if (len(sys.argv)==1 or sys.argv[0].find("help")>-1):
 
 task=sys.argv[1]
 dir=re.split("[ \n]",sys.argv[2])
+
 ext=sys.argv[3]
 mod=sys.argv[4]
 printing=True
@@ -29,7 +30,9 @@ link=""
 if(dir[0]==""):
     dir.pop(0)
 
-
+if not dir:
+    sys.stdout.write("NO DIRECTORY IN SUMMARY PY LINE 33\n")
+ 
 pseudocount=1e-20
 
 #print "looking at "+str(dir)
@@ -1278,9 +1281,9 @@ for d in dir:
                 names,values=chrysalisStats(f)
             if (mod=="trinity_butterfly"):
                 names,values=butterflyStats(f)
-            if (type=="bigwig"):
+            if (mod=="bigwig"):
 				names,values=bigwigStats(f)
-            if (type=="fseq"):
+            if (mod=="fseq"):
 				names,values=fseqStats(f)
 
             # only list file structure from current root
@@ -1296,8 +1299,9 @@ for d in dir:
 
             names.insert(1, "Experiment")
             # only list file structure from current root
-            fname = f.split("/")
-            experiment= fname[5]
+            #fname = f.split("/")
+            #experiment= fname[5]
+            experiment="/".join(d.split("/")[-3:-2])
             #if (link!=""):
                 #Experiment="<a href=\"%s\">%s</a>" % (link+"/"+Experiment, Experiment)
             #add name of experiment i.e. file name to results and values
@@ -1323,28 +1327,32 @@ for d in dir:
             traceback.print_exc()
             #sys.exit()
 
-    
-filestructure="/".join(d.split("/")[-4::]) # only list file structure from current root
-filestructure = filestructure.replace("/", "_")
+if dir:    
+	filestructure="/".join(dir[-1].split("/")[-4::]) # only list file structure from current root
+	filestructure = filestructure.replace("/", "_")
 
 
-            
-oapsresult.append([oavalues,filestructure])
+		    
+	oapsresult.append([oavalues,filestructure])
 
-#print ("names: ")
-#print (', '.join(str(x) for x in names))
-#print ("oaresult: ")
-#print (', '.join(str(x) for x in oaresult))
-#print ("oavalues: ")"
-#print (', '.join(str(x) for x in oavalues))
-#print ("oaresult: ")
-#print (', '.join(str(x) for x in oaresult))
-#print ("task is: ")
-#print("hello"+task+"hello")
+	#print ("names: ")
+	#print (', '.join(str(x) for x in names))
+	#print ("oaresult: ")
+	#print (', '.join(str(x) for x in oaresult))
+	#print ("oavalues: ")"
+	#print (', '.join(str(x) for x in oavalues))
+	#print ("oaresult: ")
+	#print (', '.join(str(x) for x in oaresult))
+	#print ("task is: ")
+	#print("hello"+task+"hello")
 
 
-printStats(oaresult,names,oapsresult,noSummary,task, ext, re.sub("[\\\/-]","_",filestructure)+'Table_json')
+	printStats(oaresult,names,oapsresult,noSummary,task, ext, re.sub("[\\\/-]","_",filestructure)+'Table_json')
 
-#if (not noOverallSummary and overAll):
-    #print "<h3 class='overall'>Aggregation over all libraries</h3>"
-    #printStats(oaresult,names,0,noOverallSummary,"","","aggregation_"+mod)
+	#if (not noOverallSummary and overAll):
+	    #print "<h3 class='overall'>Aggregation over all libraries</h3>"
+	    #printStats(oaresult,names,0,noOverallSummary,"","","aggregation_"+mod)
+
+
+
+

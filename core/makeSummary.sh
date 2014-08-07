@@ -602,7 +602,6 @@ if [ -n "$RUNBIGWIG" ];then
     summaryHeader "BigWig" "$TASK_BIGWIG" "bigwig.sh" "$SUMMARYTMP" ".bw"
 
     python ${NGSANE_BASE}/core/Summary.py "$TASK_BIGWIG" "$(gatherDirs $TASK_BIGWIG)" ".bw.stats" bigwig  --noSummary --noOverallSummary >> $SUMMARYTMP
-
     summaryFooter "$TASK_BIGWIG" "$SUMMARYTMP"
 fi
 
@@ -833,21 +832,13 @@ echo '''
 <!DOCTYPE html><html>
 
 <head><meta charset="windows-1252"> <title>NGSANE project card</title>
-<link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
+
+
 <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
-
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-
-<link href="includes/jquery.dataTables.yadcf.css" rel="stylesheet" type="text/css" />
 <link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
 <link rel="stylesheet" type="text/css" href="includes/css/jquery.dataTables.css">
-<script type='text/javascript' src="includes/js/jquery.js"></script>
-<script type='text/javascript' src="includes/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="dataTables.htmlColumnFilter.js"></script>
-<!--<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>-->
-<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+<script type=text/javascript src="includes/js/jquery.js"></script>
 <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
-<script src="includes/jquery.dataTables.yadcf.js"></script>
 
 ''' > $SUMMARYFILE.tmp
 
