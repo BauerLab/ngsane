@@ -130,7 +130,7 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix, modname):
         #out[5].append(formatString % (sum(arrV[c])))
 #No idea what data is here
     #print "<div class='tabContent' id='DC_Bowtie_v1_Mapping'>"
-    print "<div><table id='" + filestructure + "_id_Table' class='data'>"
+    print "<table id='" + filestructure + "_id_Table' class='data'>"
 
     if(printing and arrS!=0 ):       
         #print "<tbody>"

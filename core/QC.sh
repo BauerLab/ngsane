@@ -208,6 +208,29 @@ if [ -n "$HTMLOUTPUT" ]; then
         done
         echo "</div></div></div>"
     fi
-       
+    echo "<script type='text/javascript'> 
+        if (typeof jQuery === 'undefined') {
+            console.log('jquery not loaded');
+        } else {
+            \$('#${TASK}_counter_notes').text('$SUMNOTES');
+            \$('#${TASK}_counter_errors').text('$SUMERRORS');
+            \$('#${TASK}_counter_checkpoints_passed').text('$CHECKPOINTS_PASSED');
+            \$('#${TASK}_counter_checkpoints_failed').text('$CHECKPOINTS_FAILED'); 
+            if ($SUMERRORS==0){
+                \$('#${TASK}_counter_errors').toggleClass('errors neutral');
+            }; 
+            if($CHECKPOINTS_FAILED==0){
+                \$('#${TASK}_counter_checkpoints_failed').toggleClass('failed nofailed');
+            };
+
+            \$('#${TASK}_panelback h2').click(function() {
+                \$(this).parent().children().addClass('inactive');
+                \$(this).removeClass('inactive');
+                console.log();
+                var panel=\$(this).attr('id').replace('_h_','_');
+                \$('#${TASK}_panel div.wrapper div.display').html(\$('#'+ panel).html());
+            });
+        }
+    </script>"    
 fi
 ################################################################################

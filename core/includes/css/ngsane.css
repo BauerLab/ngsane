@@ -1,7 +1,12 @@
+
 body {
 	font: 12px/19px "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode",
 		Verdana, sans-serif;
 }
+
+div.tabContent { margin: 0.5em; }
+div.tabContent_hide { display: none; }
+
 
 h2 {
 	display: block;
@@ -48,7 +53,7 @@ h4 {
 	text-transform: small_caps;
 }
 
-div.panel h2,div.panel h2.sub.inactive {
+div.panel h2,div.panel a h2.sub {
 	background: #888;
 	background-image: -webkit-gradient(linear, left top, left bottom, from(#8a9aa6),
 		to(#17212e));
@@ -76,11 +81,19 @@ div.panel#quicklinks h2{
 	background-image: linear-gradient(top, #8a9aa6, #17212e);
 }
 
-div.panel h2.sub.inactive {
+div.panel h2.sub {
+	margin-left: 2px;
+	margin-top: 2px;
+	border-radius: 10px 10px 0 0;
+	border: 1px solid #666;
+	border-top-color: #EEE;
+	border-left-color: #DDD;
+	border-bottom: none;
+	display: inline-block;
+	vertical-align: top;
+	width: 165px;
 	color: #dedede;
 	cursor: pointer;
-	border-top-color: #ccc;
-	border-left-color: #aaa;
 }
 
 div.headbagb {
@@ -136,19 +149,9 @@ a {
 	transform: scale(1.05);
 }
 
-div.panel h2.sub {
-	margin-left: 2px;
-	margin-top: 2px;
+div.panel a.selected h2.sub {
 	background: #fafaff;
-	border-radius: 10px 10px 0 0;
-	border: 1px solid #666;
-	border-top-color: #EEE;
-	border-left-color: #DDD;
 	color: #444;
-	border-bottom: none;
-	display: inline-block;
-	vertical-align: top;
-	width: 165px;
 }
 
 div.panel span.counter {
