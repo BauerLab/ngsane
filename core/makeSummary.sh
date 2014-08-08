@@ -70,23 +70,20 @@ PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',o
 # $7=dir folder
 function summaryHeader {
     LINKS=$LINKS" $2"   
-    echo "<div class=panel id=$2_panel><h2>$2</h2>
-        <ul class='tabs' id='$2_panel_tabs'>
-	    <li><a class='selected' href='#$2_results'>Results</a></li>
-      	    <li><a href='#$2_checklist'>CheckList</a></li>
-	    <li><a href='#$2_notes'>Notes</a></li>
-      	    <li><a href='#$2_errors'>Errors</a></li>
-      	    <li><a href='#$2_logfiles'>Log Files</a></li>" >> $4
-	    if [ -n "$5" ]; then 
-                SUFFIX="--filesuffix $5"; 
-                echo " <li><a href='#$2_PRIMARY_RESULT_FILES'>PRIMARY RESULT FILES</a></li>" >> $4
-            fi
-	    echo "</ul> " >> $4
-            
-    # echo "</div><div class='wrapper'><div class='hidden'>" >> $4
+    echo "<div class='panel' id='$2_panel'><div class='tabs headbagb' id='$2_panel_tabs'><a name='$2'></a>
+            <a class='selected' href='#$2_results'><h2 id='$2_h_results' class='sub'>$1</h2></a>
+            <a href='#$2_checklist'><h2 id='$2_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='$2_counter_checkpoints_passed'></span><span class='failed' id='$2_counter_checkpoints_failed'></span></span></h2></a>
+            <a href='#$2_notes'><h2 id='$2_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='$2_counter_notes'></span></span></span></h2></a>
+            <a href='#$2_errors'><h2 id='$2_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='$2_counter_errors'></span></span></h2></a>
+            <a href='#$2_logfiles'><h2 id='$2_h_logfiles' class='sub inactive' rel='errors'>Log files</h2></a>" >> $4
+    if [ -n "$5" ]; then 
+        SUFFIX="--filesuffix $5"; 
+        echo "<a href='#$2_PRIMARY_RESULT_FILES'><h2 id='$2_h_nrfiles' class='sub inactive' rel='files'>Primary result files</h2></a>" >> $4
+    fi
+    echo "</div>" >> $4
     echo "QC - $2"
-
     #check of resultfiles are redirected into to a different folder
+
     if [ -n "$6" ]; then 
         RESULTLOCATION="--results-task $6"
     else 
@@ -101,7 +98,7 @@ function summaryHeader {
 # $1=TASK (e.g. $TASK_BWA)
 # $2=output file ($SUMMARYTMP)
 function summaryFooter {
-    echo "</div></div></div></div>" >> $2
+    echo "</div></div></div>" >> $2
     
     
 }
@@ -157,8 +154,8 @@ function bamAnnotate {
 if [ -n "$RUNFASTQC" ]; then
     summaryHeader "FASTQC" "$TASK_FASTQC" "fastQC.sh" "$SUMMARYTMP"
 
-echo "<table id='fastQC_id_Table' class='data'>" >>$SUMMARYTMP
-echo "</table>" >>$SUMMARYTMP
+echo "<table id='fastQC_id_Table' class='data'></table>" >>$SUMMARYTMP
+
 echo "<script type=\"text/javascript\">
 //<![CDATA[
 fastQC_Table_json ={
@@ -188,11 +185,8 @@ fastQC_Table_json ={
 
 
     for dir in ${DIR[@]}; do
-    
- 
         SAMPLE=${dir%%/*}
-
-        if [[ -e $SAMPLE/$TASK_FASTQC/ ]]; then
+       if [[ -e $SAMPLE/$TASK_FASTQC/ ]]; then
              for librarylog in $(ls $QOUT/$TASK_FASTQC/$SAMPLE"_"*.out); do           
                 libraryfile=${librarylog/$QOUT\/$TASK_FASTQC\/$SAMPLE"_"/}
                 library=${libraryfile/%.out/}
@@ -273,6 +267,7 @@ fastQC_Table_json ={
 [}
     echo $FASTQC >>$SUMMARYTMP
     echo "]} </script>" >>$SUMMARYTMP
+    
     summaryFooter "$TASK_FASTQC" "$SUMMARYTMP"
 fi
 
@@ -563,8 +558,6 @@ if [ -n "$RUNHICUP" ];then
     done
     echo "<div>$imgs</div>" >> $SUMMARYTMP
     
-    
-    
     summaryFooter "$TASK_HICUP" "$SUMMARYTMP"
 fi
 
@@ -596,12 +589,12 @@ if [ -n "$RUNCHANCE" ];then
     summaryFooter "$TASK_CHANCE" "$SUMMARYTMP"
 fi
 
-
 ################################################################################
 if [ -n "$RUNBIGWIG" ];then
     summaryHeader "BigWig" "$TASK_BIGWIG" "bigwig.sh" "$SUMMARYTMP" ".bw"
 
     python ${NGSANE_BASE}/core/Summary.py "$TASK_BIGWIG" "$(gatherDirs $TASK_BIGWIG)" ".bw.stats" bigwig  --noSummary --noOverallSummary >> $SUMMARYTMP
+    
     summaryFooter "$TASK_BIGWIG" "$SUMMARYTMP"
 fi
 
@@ -830,33 +823,26 @@ rm $SUMMARYCITES
 ################################################################################
 echo '''
 <!DOCTYPE html><html>
-
-<head><meta charset="windows-1252"> <title>NGSANE project card</title>
-
-
+<head><meta charset="windows-1252"><title>NGSANE project card</title>
 <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
 <link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
 <link rel="stylesheet" type="text/css" href="includes/css/jquery.dataTables.css">
 <script type=text/javascript src="includes/js/jquery.js"></script>
-<script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
-
-''' > $SUMMARYFILE.tmp
-
-echo '''</head><body>
+<script type="text/javascript" charset="utf8" src="includes/js/jquery.dataTables.min.js"></script>
+</head><body>
 <div id="center">
+<div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>
 ''' >> $SUMMARYFILE.tmp
-echo "<div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>" >> $SUMMARYFILE.tmp
 declare -a LINKSET=( )
 for i in $LINKS; do
     LINKSET=("${LINKSET[@]}" "<a href='#"$i"_panel'>$i</a>")
 done
 echo $(IFS='|' ; echo "${LINKSET[*]}") >> $SUMMARYFILE.tmp
 
-
-
-echo "<div id =\"Right\" style=\"float:right;width:285px;padding:2px 2px 2px 2px;\">" >>$SUMMARYFILE.tmp
-echo "Search: <input type=\"text\" id=\"search\" >" >>$SUMMARYFILE.tmp
-echo "</div> </div><!-- Links --></div><!-- panel -->" >>$SUMMARYFILE.tmp
+echo '''
+<div id ="Right" style="float:right;width:285px;padding:2px 2px 2px 2px;"> Search: <input type="text" id="search"></div>
+</div><!-- Links -->
+</div><!-- panel -->''' >>$SUMMARYFILE.tmp
 
 echo "<hr><span>Report generated with "`$NGSANE_BASE/bin/trigger.sh -v`"</span><span style='float:right;'>Last modified: "`date`"</span>" >> $SUMMARYTMP
 echo "</div><!-- center --></body>" >> $SUMMARYTMP
