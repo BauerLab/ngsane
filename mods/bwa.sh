@@ -419,16 +419,15 @@ NGSANE_CHECKPOINT_INIT "statistics"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         
-    STATSOUT=$OUTDIR/$SAMPLE$ASD.bam.stats
-    samtools flagstat $OUTDIR/$SAMPLE$ASD.bam > $STATSOUT
+    samtools flagstat $OUTDIR/$SAMPLE$ASD.bam > $OUTDIR/$SAMPLE$ASD.bam.stats
     if [ -n "$SEQREG" ]; then
-        echo "#custom region" >> $STATSOUT
-        echo $(samtools view -c -F 4 $OUTDIR/$SAMPLE$ASD.bam $SEQREG )" total reads in region " >> $STATSOUT
-        echo $(samtools view -c -f 3 $OUTDIR/$SAMPLE$ASD.bam $SEQREG )" properly paired reads in region " >> $STATSOUT
+        echo "#custom region" >> $OUTDIR/$SAMPLE$ASD.bam.stats
+        echo $(samtools view -c -F 4 $OUTDIR/$SAMPLE$ASD.bam $SEQREG )" total reads in region " >> $OUTDIR/$SAMPLE$ASD.bam.stats
+        echo $(samtools view -c -f 3 $OUTDIR/$SAMPLE$ASD.bam $SEQREG )" properly paired reads in region " >> $OUTDIR/$SAMPLE$ASD.bam.stats
     fi
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $STATSOUT
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam.stats
 fi
 
 ################################################################################
@@ -459,7 +458,7 @@ NGSANE_CHECKPOINT_INIT "samstat"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
-    samstat $OUTDIR/$SAMPLE$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
+    samstat $OUTDIR/$SAMPLE$ASD.bam 2>&1 | tee | fgrep -v "Bad x in routine betai"
 
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam.stats

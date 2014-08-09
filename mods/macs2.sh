@@ -101,12 +101,13 @@ if [ -n "$DMGET" ]; then
 	[ -n "$CHIPINPUT" ] && dmget -a $CHIPINPUT
 fi
 
-if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
-    echo "[WARN] input control not provided or invalid (CHIPINPUT)"
+if [[ -z "$CHIPINPUT" ]] || [[ ! -f $CHIPINPUT ]]; then
+    echo "[WARN] input control not provided or invalid ($CHIPINPUT)"
+    ls -la $(basename $CHIPINPUT)
     unset CHIPINPUT
 else
 	echo "[NOTE] CHIPINPUT $CHIPINPUT"
-    CHIPINPUT="--control $SOURCE/$CHIPINPUT"
+    CHIPINPUT="--control $CHIPINPUT"
 fi
 
 NGSANE_CHECKPOINT_CHECK

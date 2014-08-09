@@ -119,9 +119,7 @@ fi
 annoF=${GTF##*/}
 anno_version=${annoF%.*}
 
-
 echo "[NOTE] GTF: $anno_version"
-
 
 # check library info is set
 if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then
@@ -184,8 +182,6 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     	samtools sort -@ $CPU_HTSEQCOUNT -n $f $THISTMP/$SAMPLE.tmp
 	fi	
 
-    # fix mate pairs
-    echo "[NOTE] fixmate"
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar \
         I=$THISTMP/$SAMPLE.tmp.bam \
         O=$OUTDIR/$SAMPLE.fixed.bam \
@@ -229,7 +225,6 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$anno_version.$MODE.$ATTR
 fi
 	
-
 ################################################################################
 NGSANE_CHECKPOINT_INIT "summarize"
 
@@ -246,9 +241,7 @@ fi
 [ -e $OUTDIR/GTF.summary.txt ] && rm $OUTDIR/GTF.summary.txt
 [ -e $OUTDIR/..//${SAMPLE}.summary.txt.dummy ] && rm $OUTDIR/..//${SAMPLE}.summary.txt.dummy
 
-
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
-
 echo ">>>>> feature counting with HTSEQ-COUNT - FINISHED"
 echo ">>>>> enddate "`date`

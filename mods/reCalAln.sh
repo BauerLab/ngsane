@@ -126,7 +126,7 @@ fi
 
 # parallelization supported (2013): http://gatkforums.broadinstitute.org/discussion/1975/recommendations-for-parallelizing-gatk-tools
 if [[ $(which GenomeAnalysisTK.jar) =~ "2.8" ]]; then 
-    echo "[NOTE] new GATK parallele"
+    echo "[NOTE] GATK multithreading"
     PARALLELENCT="-nct $CPU_RECAL"
 	PARALLELENT="-nt $CPU_RECAL"
 fi
@@ -151,7 +151,6 @@ NGSANE_CHECKPOINT_CHECK
 NGSANE_CHECKPOINT_INIT "find intervals to improve"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-    echo "[NOTE] $CHECKPOINT"
 
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
         -T RealignerTargetCreator \
@@ -171,7 +170,6 @@ fi
 NGSANE_CHECKPOINT_INIT "realign"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-    echo "[NOTE] $CHECKPOINT"
 
 	# parallelization not supported (2013): http://gatkforums.broadinstitute.org/discussion/1975/recommendations-for-parallelizing-gatk-tools
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
@@ -194,7 +192,6 @@ fi
 NGSANE_CHECKPOINT_INIT "count covariantes "
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-    echo "[NOTE] $CHECKPOINT"
     
     # there seems to be a warning reg. Rscript but it does not affect output
     # BadCigar is necessary in case of "MESSAGE: START (101) > (100) STOP -- this should never happen, please check read" (bwa)
@@ -223,7 +220,6 @@ fi
 NGSANE_CHECKPOINT_INIT "adjust score"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-    echo "[NOTE] $CHECKPOINT"
 
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
         -T PrintReads \
@@ -244,7 +240,6 @@ fi
 NGSANE_CHECKPOINT_INIT "evaluate performace"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-    echo "[NOTE] $CHECKPOINT"
 
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
          -T RecalibrationPerformance \
@@ -262,30 +257,34 @@ fi
 NGSANE_CHECKPOINT_INIT "count covariantes after recalibration"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-    echo "[NOTE] $CHECKPOINT"
 
 
 	if [[ $(which GenomeAnalysisTK.jar) =~ "2.5" ]]; then 
-	echo "[NOTE] old GATK plotting "
+    	echo "[NOTE] old GATK plotting "
+    
+        # TODO remove the below once it is not experimental anymore
+        echo "[NOTE] counting covariantes after recalibration"
+        java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar  -l WARN \
+            -T BaseRecalibrator \
+            -R $FASTA \
+            -knownSites $DBSNPVCF \
+            -I $OUTDIR/${SAMPLE}.real.recal.bam  \
+            -dcov 1000 \
+            -cov ReadGroupCovariate \
+            -cov QualityScoreCovariate \
+            -cov CycleCovariate \
+            --plot_pdf_file $OUTDIR/GATKrecal.pdf \
+            -rf BadCigar \
+            -o $OUTDIR/${SAMPLE}.real.recal.covar.grp 
+        #    -nt $CPU_RECAL
 
-    # TODO remove the below once it is not experimental anymore
-    echo "********* counting covariantes after recalibration"
-    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar  -l WARN \
-        -T BaseRecalibrator \
-        -R $FASTA \
-        -knownSites $DBSNPVCF \
-        -I $OUTDIR/${SAMPLE}.real.recal.bam  \
-        -dcov 1000 \
-        -cov ReadGroupCovariate \
-        -cov QualityScoreCovariate \
-        -cov CycleCovariate \
-        --plot_pdf_file $OUTDIR/GATKrecal.pdf \
-        -rf BadCigar \
-        -o $OUTDIR/${SAMPLE}.real.recal.covar.grp 
-    #    -nt $CPU_RECAL
+        # mark checkpoint
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.real.recal.covar.grp
 
 	else
-		touch $OUTDIR/${SAMPLE}.real.recal.covar.grp
+	   echo "[WARN] experimental plotting skipped"
+	   touch $OUTDIR/${SAMPLE}.real.recal.covar.grp
+       NGSANE_CHECKPOINT_CHECK
 	fi
     
     #echo " plotting both"
@@ -302,9 +301,6 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     #    -recalFile ${f3/%.bam/.recal.covar.csv} \
     #    -outputDir $OUTDIR/GATKrcal/$n  \
     #    -ignoreQ 5
-    
-    # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.real.recal.covar.grp
 
 fi 
 
@@ -312,7 +308,6 @@ fi
 NGSANE_CHECKPOINT_INIT "sort/index"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-    echo "[NOTE] $CHECKPOINT"
 
     if [ "$PAIRED" == "1" ]; then
         echo "[NOTE] fixmate"
@@ -340,7 +335,6 @@ fi
 NGSANE_CHECKPOINT_INIT "statistics"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-    echo "[NOTE] $CHECKPOINT"
 
     samtools flagstat $OUTDIR/${SAMPLE}$ASR.bam >> $OUTDIR/${SAMPLE}$ASR.bam.stats
     if [ -n "$SEQREG" ]; then

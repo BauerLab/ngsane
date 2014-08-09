@@ -194,7 +194,7 @@ NGSANE_CHECKPOINT_INIT "pindel"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-	if [[ ${INPUT_IS_BWA}="false" ]]; then
+	if [[ ${INPUT_IS_BWA} == "false" ]]; then
 
 		if [ -z "$INSERT" ]; then # sometimes Picard insert size calculation is wrong...
 			INSERT=$(grep MEDIAN_INSERT_SIZE  ${f/$INPUT_PINDEL/$INPUT_PINDEL/metrices}.insert_size_metrics -A 1 | tail -n 1 | cut -f 1)
@@ -214,8 +214,8 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 		echo $command && eval $command
 
 	fi
-
-    # mark checkpoint
+	
+	# mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_"BP
 
 fi 
@@ -231,7 +231,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 	done
 
     # mark checkpoint
-	if [ -f $OUTDIR/$SAMPLE"_BP".vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset NGSANE_RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_BP".vcf
 
 fi 
 

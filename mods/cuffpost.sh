@@ -82,17 +82,13 @@ IFS=" "
 
 echo "[NOTE] datasets: $DATASETS"
 
-#mkdir -p "$OUTDIR"
-#if [ -z "$NGSANE_RECOVERFROM" ]; then
-#    ## TODO remove primary result files from pervious runs
-#    rm ${OUTDIR}/*
-#fi
+if [ -z "$NGSANE_RECOVERFROM" ]; then
+    [ -f $OUTDIR/$MERGED_GTF_NAME.gtf ] && rm $OUTDIR/$MERGED_GTF_NAME.gtf
+fi
 
 # unique temp folder that should be used to store temporary files
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
 mkdir -p "$THISTMP"
-
-#echo "[NOTE] echo $THISTMP"
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -134,7 +130,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 fi
 ################################################################################
-NGSANE_CHECKPOINT_INIT "cleanup."  
+NGSANE_CHECKPOINT_INIT "cleanup"  
   
 [ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
   
@@ -142,7 +138,3 @@ NGSANE_CHECKPOINT_CHECK
 ################################################################################
 echo ">>>>> Experiment merged transcripts (cuffmerge) - FINISHED"
 echo ">>>>> enddate "`date`
-
-
-
-

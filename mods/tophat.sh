@@ -194,25 +194,6 @@ else
     echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
 fi
 
-
-if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
-    echo "[NOTE] make bigwigs; library is fr-unstranded "
-    BAM2BW_OPTION_1="FALSE"
-    BAM2BW_OPTION_2="FALSE"
-elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
-    echo "[NOTE] make bigwigs; library is fr-firststrand "
-    BAM2BW_OPTION_1="TRUE"
-    BAM2BW_OPTION_2="TRUE"
-elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-secondstrand" ]; then
-    echo "[NOTE] make bigwigs; library is fr-secondstrand "
-    BAM2BW_OPTION_1="TRUE"
-    BAM2BW_OPTION_2="FALSE"	    
-fi
-
-BIGWIGSDIR=$OUTDIR/../
-
-mkdir -p $OUTDIR
-
 if [ -n "$TOPHATTRANSCRIPTOMEINDEX" ]; then
     echo "[NOTE] RNAseq --transcriptome-index specified: ${TOPHATTRANSCRIPTOMEINDEX}"
     TOPHAT_TRANSCRIPTOME_PARAM="--transcriptome-index=${TOPHATTRANSCRIPTOMEINDEX}"
@@ -333,7 +314,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK [ -f $BAMFILE.stats ]
+    NGSANE_CHECKPOINT_CHECK $BAMFILE.stats
 
 fi 
 
@@ -372,7 +353,7 @@ NGSANE_CHECKPOINT_INIT "samstat"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     echo "[NOTE] samstat"
-    samstat $BAMFILE 2>&1 | tee | grep -v -P "Bad x in routine betai"
+    samstat $BAMFILE 2>&1 | tee | fgrep -v "Bad x in routine betai"
   
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $BAMFILE.stats
@@ -393,20 +374,6 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK ${BAMFILE/$ASD/$ALN}
-
-fi
-
-###############################################################################
-NGSANE_CHECKPOINT_INIT "create bigwigs"
-
-if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-    
-    #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-	RUN_COMMAND="Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R ${BAMFILE/$ASD/$ALN} ${n/%$READONE.$FASTQ/} $BAM2BW_OPTION_1 $OUTDIR/../ $BAM2BW_OPTION_2 $BAM2BW_OPTION_ISPAIRED"
-	echo $RUN_COMMAND && eval $RUN_COMMAND
-
-    # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/../${n/%$READONE.$FASTQ/.bw} ]] || [[ -s $OUTDIR/../${n/%$READONE.$FASTQ/_+.bw}
 
 fi
 

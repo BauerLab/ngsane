@@ -88,7 +88,7 @@ echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBOWTIE//:/$QUEUEWAITSEP}\"" >>t
 
 # submit the MACS run to the cluster
 JOBIDSMACS=$( trigger.sh tmp/configMACS2.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] submitted jobs $(echo -n $JOBIDSMACS)"
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSMACS) "
 
 ################################################################################
 #  MEMEchip
@@ -121,7 +121,7 @@ cat bin/tmpl/configChIPseq.txt | \
     sed 's/RUNPEAKRANGER=\"\"/RUNPEAKRANGER=\"1\"/g' |\
     sed 's/RUNMACS2=\"\"/RUNMACS2=\"1\"/g' |\
     sed 's/RUNMEMECHIP=\"\"/RUNMEMECHIP=\"1\"/g' |\
-	sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryCHIPSEQ\"/g' > tmp/configCHIPSEQ.txt
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryCHIPSEQ\"/g' > tmp/configCHIPSEQ.txt
 
 # Prep and run the job to generate the html result page and perform the diff 
 echo "[NOTE] Prep and run evaluation script tmp/testCHIPSEQPR.qsub wait for $HOLDID"

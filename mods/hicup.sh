@@ -170,7 +170,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     mv $OUTDIR/$SAMPLE/hicup_truncater_summary_run.txt $OUTDIR/$SAMPLE"_truncater_summary.txt"
     
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz ]] && [[ -s $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz
 
 fi
 
@@ -249,7 +249,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     $GZIP $OUTDIR/${SAMPLE}.fragmentLists $OUTDIR/${SAMPLE}.contactCounts
     
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.fragmentLists.gz ]] && [[ -s $OUTDIR/${SAMPLE}.contactCounts.gz
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.fragmentLists.gz $OUTDIR/${SAMPLE}.contactCounts.gz
 
 fi
 
