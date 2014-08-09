@@ -123,7 +123,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
     
     # mark checkpoint
-    [ -f $OUTDIR/$SAMPLE.fragment_size.txt ] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.fragment_size.txt 
     
 fi 
 ################################################################################
@@ -142,14 +142,17 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if hash bedToBigBed 2>&- && [[ "$WIGGLER_OUTPUTFORMAT" == "bg" ]] && [[ -f $GENOME_CHROMSIZES ]]; then
         bedGraphToBigWig $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bw
+        CHECKPOINTFILE=$OUTDIR/$SAMPLE.bw
     elif hash wigToBigWig 2>&- && [[ "$WIGGLER_OUTPUTFORMAT" == "wig" ]] && [[ -f $GENOME_CHROMSIZES ]]; then 
         wigToBigWig $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bw
+        CHECKPOINTFILE=$OUTDIR/$SAMPLE.bw
     else
-        $GZIP -c $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT > $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz  
+        $GZIP -c $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT > $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz
+        CHECKPOINTFILE=$OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz
     fi
         
     # mark checkpoint
-    [[ -f $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz ]] || [[ -f $OUTDIR/$SAMPLE.bw ]] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $CHECKPOINTFILE
     
 fi 
 ################################################################################

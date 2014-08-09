@@ -101,7 +101,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         $OUTDIR/${n/$READONE/"sidebyside$READONE"}
 
     # mark checkpoint
-    [[ -s $OUTDIR/${n/$READONE/"sidebyside$READONE"} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${n/$READONE/"sidebyside$READONE"}
 
 fi 
 
@@ -114,7 +114,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         --bcfile $CUSTOMBARCODE --bol --mismatches 1 --prefix $OUTDIR/$PREFIX$READONE"_" \
         --suffix "_seq.fastq" > $OUTDIR/$PREFIX$READONE"_read_counts"
     
-    [[ -s $OUTDIR/$PREFIX$READONE"_read_counts" ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$PREFIX$READONE"_read_counts"
 
 fi 
 
@@ -126,7 +126,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     # find unmatched
     perl ${NGSANE_BASE}/bin/splitintoforandrevreads.pl $OUTDIR/$PREFIX$READONE"_unmatched"
 
-    [[ -s $OUTDIR/$PREFIX$READONE"_unmatched" ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$PREFIX$READONE"_unmatched"
 
 fi 
 
@@ -141,7 +141,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         $OUTDIR/$PREFIX$READONE"_unmatched_1_seq.fastq" \
         $OUTDIR/${n/$READONE/"sidebyside$READTWO"}
 
-    [[ -s $OUTDIR/${n/$READONE/"sidebyside$READTWO"} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${n/$READONE/"sidebyside$READTWO"}
 
 fi 
 
@@ -155,7 +155,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         --bcfile $CUSTOMBARCODE --bol --mismatches 1 --prefix $OUTDIR/$PREFIX$READTWO"_" \
         --suffix "_seq.fastq" > $OUTDIR/$PREFIX$READTWO"_read_counts"
 
-    [[ -s $OUTDIR/$PREFIX$READTWO"_read_counts" ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$PREFIX$READTWO"_read_counts"
 
 fi 
 
@@ -197,7 +197,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
      
     done
     
-    [[ -s $OUTDIR/$PREFIX$READTWO"_read_counts" ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$PREFIX$READTWO"_read_counts"
 
 fi 
 

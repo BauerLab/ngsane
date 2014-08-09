@@ -163,7 +163,7 @@ EOF
     chmod 777 $OUTDIR/$SAMPLE.sh
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE.sh ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.sh
 fi
 
 ################################################################################
@@ -191,7 +191,7 @@ fi
 #        bedToBigBed -type=bed4 $OUTDIR/$SAMPLE.peak.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bb
 #        rm $OUTDIR/$SAMPLE.peak.tmp
 #         # mark checkpoint
-#        [[ -s $OUTDIR/$SAMPLE.bb ]] && NGSANE_CHECKPOINT_CHECK
+#        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.bb
 #    else
 #        echo "[NOTE] bigbed not generated"
 #        NGSANE_CHECKPOINT_CHECK

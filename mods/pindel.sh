@@ -162,7 +162,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 	fi
 
     # mark checkpoint
-    [[ -s ${f/$INPUT_PINDEL/$INPUT_PINDEL/metrices}.insert_size_metrics ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK ${f/$INPUT_PINDEL/$INPUT_PINDEL/metrices}.insert_size_metrics
 fi
 
 ################################################################################
@@ -185,7 +185,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 	echo -e "$f\t$INSERT\t$SAMPLE" > $OUTDIR/$SAMPLE.conf.txt
         
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE.conf.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.conf.txt
 
 fi 
 
@@ -216,7 +216,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 	fi
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE"_"BP ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_"BP
 
 fi 
 
@@ -256,7 +256,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
    	python ${NGSANE_BASE}/tools/checkpindelENDs.py $OUTDIR/$SAMPLE.summary.sorteduncorr.vcf $OUTDIR/$SAMPLE$ASD.vcf
         
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE$ASD.vcf ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.vcf
 
 	rm $OUTDIR/$SAMPLE.conf.txt $OUTDIR/$SAMPLE.summary.sorteduncorr.vcf $OUTDIR/$SAMPLE.summary.unsorted.vcf*
 	for i in D SI LI INV TD BP ; do rm $OUTDIR/$SAMPLE"_"$i.vcf; done

@@ -105,7 +105,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUNCOMMAND && eval $RUNCOMMAND
 
     # mark checkpoint
-    [[ -e $OUTDIR/ ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK && $OUTDIR/genes.count_table $OUTDIR/genes.fpkm_table
 
 fi
 #################################################################################

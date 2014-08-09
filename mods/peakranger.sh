@@ -120,7 +120,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE-$CONTROL.summary.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE-$CONTROL.summary.txt
 
 fi
 ################################################################################
@@ -155,7 +155,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
     
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE-$CONTROL"_region.bed" ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE-$CONTROL"_region.bed"
 
 fi
 

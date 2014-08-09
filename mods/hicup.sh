@@ -170,7 +170,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     mv $OUTDIR/$SAMPLE/hicup_truncater_summary_run.txt $OUTDIR/$SAMPLE"_truncater_summary.txt"
     
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz ]] && [[ -s $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz ]] && [[ -s $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz
 
 fi
 
@@ -187,7 +187,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     mv $OUTDIR/$SAMPLE/hicup_mapper_summary_run.txt $OUTDIR/$SAMPLE"_mapper_summary.txt"
         
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz
 
 fi
 
@@ -204,7 +204,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     mv $OUTDIR/$SAMPLE/hicup_filter_summary_run.txt $OUTDIR/$SAMPLE"_filter_summary.txt"
     
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam
 
 fi
 
@@ -228,7 +228,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     cp -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz_ditag_size_distribution.png $OUTDIR/${SAMPLE}_ditag_size_distribution.png
 
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}_uniques.bam ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_uniques.bam
 
 fi
 
@@ -249,7 +249,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     $GZIP $OUTDIR/${SAMPLE}.fragmentLists $OUTDIR/${SAMPLE}.contactCounts
     
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}.fragmentLists.gz ]] && [[ -s $OUTDIR/${SAMPLE}.contactCounts.gz ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.fragmentLists.gz ]] && [[ -s $OUTDIR/${SAMPLE}.contactCounts.gz
 
 fi
 

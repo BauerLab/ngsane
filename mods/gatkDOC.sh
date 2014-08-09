@@ -146,7 +146,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     #    --minBaseQuality 20 \
     
     # mark checkpoint
-    [[ -s $OUTDIR/$n.doc.sample_statistics ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$n.doc.sample_statistics
 
 fi 
 
@@ -175,7 +175,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     	-abam $f -b stdin -u | $SAMTOOLS flagstat - >> $OUTDIR/$n.stats
 
         # mark checkpoint
-        [[ -s $OUTDIR/$n.stats ]] && NGSANE_CHECKPOINT_CHECK
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/$n.stats
 
     fi
 fi

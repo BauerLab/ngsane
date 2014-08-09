@@ -116,7 +116,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     bedtools getfasta -name -fi $FASTA -bed $f -fo $OUTDIR/$SAMPLE.fasta
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE.fasta ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.fasta
 
 fi
 
@@ -132,7 +132,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
     
     # mark checkpoint
-    [[ -s "$MEMEBACKGROUND" ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK "$MEMEBACKGROUND"
 
 fi
 
@@ -145,7 +145,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE/combined.meme ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/combined.meme
 
 fi
 
@@ -214,7 +214,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
     
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE.summary.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.summary.txt
     
 fi
 

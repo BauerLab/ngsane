@@ -85,7 +85,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
 
     # mark checkpoint
-    [[ -s $FASTA.bwt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $FASTA.bwt
 fi 
 
 ################################################################################

@@ -135,7 +135,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [[ -s $o ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $o
 
 fi
 

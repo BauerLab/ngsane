@@ -105,7 +105,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    [[ -s ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.IPstrength ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.IPstrength
 
 fi
 
@@ -124,7 +124,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
         # mark checkpoint
-        [[ -s ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.compENCODE ]] && NGSANE_CHECKPOINT_CHECK
+        NGSANE_CHECKPOINT_CHECK ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.compENCODE
 
     else
         echo "[NOTE] skip ENCODE comparison "
@@ -140,7 +140,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     Rscript --vanilla ${NGSANE_BASE}/tools/makeChancePlots.R $f $CHIPINPUT ${n/$ASD.bam/} ${c/$ASD.bam/} $OUTDIR
 
     # mark checkpoint
-    [[ -s $OUTDIR/${n/$ASD.bam/.pdf} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${n/$ASD.bam/.pdf}
 
 fi
 ################################################################################

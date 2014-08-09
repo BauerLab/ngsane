@@ -95,7 +95,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUNCOMMAND && eval $RUNCOMMAND        
     
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE-bamQC/qualimapReport.html ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE-bamQC/qualimapReport.html
 
 fi
 ################################################################################
@@ -110,7 +110,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         echo $RUNCOMMAND && eval $RUNCOMMAND
         
         # mark checkpoint
-        [[ -s $OUTDIR/$SAMPLE-rnaseqQC/qualimapReport.html ]] && NGSANE_CHECKPOINT_CHECK
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE-rnaseqQC/qualimapReport.html
         
     else
         echo "[NOTE] rnaseq qc skipped"

@@ -189,7 +189,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     [ -e $OUTDIR/$SAMPLE$ALN.sam ] && rm $OUTDIR/$SAMPLE$ALN.sam
        
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE.ash.bam ]] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.ash.bam 
     
 fi
 
@@ -205,7 +205,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         RGSM=$FULLSAMPLEID RGPU="XXXXXX"
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE.ashrg.bam ]] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.ashrg.bam 
     
     [ -e $OUTDIR/$SAMPLE.ash.bam ] && rm $OUTDIR/$SAMPLE.ash.bam
 fi 
@@ -226,7 +226,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools index $OUTDIR/$SAMPLE$ASD.bam
           
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE$ASD.bam ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam
     
     #cleanup
     [ -e $OUTDIR/$SAMPLE.ashrg.bam ] && rm $OUTDIR/$SAMPLE.ashrg.bam
@@ -247,7 +247,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
 
     # mark checkpoint
-    [[ -s $STATSOUT ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $STATSOUT
 fi
 
 ################################################################################
@@ -269,7 +269,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     done
 
     # mark checkpoint
-    [[ -s $OUTDIR/metrices/$SAMPLE$ASD.bam.alignment_summary_metrics ]] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/metrices/$SAMPLE$ASD.bam.alignment_summary_metrics 
 fi
 
 ################################################################################
@@ -279,7 +279,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar count $OUTDIR/$SAMPLE$ASD.bam $OUTDIR/$SAMPLE$ASD.bam.cov.tdf ${FASTA/.$FASTASUFFIX/}.genome
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE$ASD.bam.cov.tdf ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam.cov.tdf
 fi
 
 ################################################################################
@@ -290,7 +290,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samstat $OUTDIR/$SAMPLE$ASD.bam
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE$ASD.bam.stats ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam.stats
     
 fi
 

@@ -173,7 +173,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 	rm $THISTMP/${SAMPLE}_sorted.bam.bai
 
     # mark checkpoint
-    [ -d $OUTDIR/ ] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/index.html 
 
 fi
 ################################################################################

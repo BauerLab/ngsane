@@ -129,7 +129,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         cat $THISTMP/*.wig | wigToBigWig stdin ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.bw
     
         # mark checkpoint
-        [[ -s $OUTDIR/$SAMPLE.bw ]] && NGSANE_CHECKPOINT_CHECK
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.bw
     else
         echo "[NOTE] skip bw generation"
         NGSANE_CHECKPOINT_CHECK
@@ -145,7 +145,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     cat $THISTMP/*.npf > $OUTDIR/$SAMPLE.narrowPeak
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE.narrowPeak ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.narrowPeak
 fi
 
 ################################################################################
@@ -170,7 +170,7 @@ DELIM
     [ -f $OUTDIR/$SAMPLE.R ] && rm $OUTDIR/$SAMPLE.R
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE.narrowPeak ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.narrowPeak
 fi
 
 ################################################################################
@@ -184,7 +184,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         bedToBigBed -type=bed4 $OUTDIR/$SAMPLE.peak.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bb
         rm $OUTDIR/$SAMPLE.peak.tmp
          # mark checkpoint
-        [[ -s $OUTDIR/$SAMPLE.bb ]] && NGSANE_CHECKPOINT_CHECK
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.bb
     else
         echo "[NOTE] bigbed not generated"
         NGSANE_CHECKPOINT_CHECK

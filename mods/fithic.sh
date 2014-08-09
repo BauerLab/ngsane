@@ -93,7 +93,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     zcat $OUTDIR/${SAMPLE}.spline_pass1.pvals.txt.gz | awk '$7<=0.05' | sort -k7g | gzip > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz
 
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz ]] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz 
 fi
 
 ################################################################################

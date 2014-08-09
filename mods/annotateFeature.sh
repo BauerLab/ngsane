@@ -156,7 +156,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     head -n 2 $REGIONS
  
     # mark checkpoint
-    [ -f $REGIONS ] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $REGIONS 
 fi
 ################################################################################
 
@@ -240,7 +240,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     #for i in $FILES; do get_coverage $i; done
 
 	# mark checkpoint
-    [ -f $(echo $RESULTFILES | cut -d " " -f 1) ] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $RESULTFILES
     
     rm ${RESULTFILES//.txt/.bed}
 fi
@@ -260,7 +260,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     ls $JOINED.png
 
 	# mark checkpoint
-    [ -f $JOINED.pdf ] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $JOINED.pdf 
     
     rm $RESULTFILES
 

@@ -210,7 +210,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi 
       
     # mark checkpoint
-    [ -f $OUTDIR/$SAMPLE.bw ] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.bw 
  
 fi
 

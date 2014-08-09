@@ -132,7 +132,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         GTF=$OUTDIR/comp.combined.gtf
         
         # mark checkpoint
-        [[ -s $OUTDIR/comp.combined.gtf ]] && NGSANE_CHECKPOINT_CHECK
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/comp.combined.gtf
     else
     
         echo "[NOTE] skip checking reference GTF"

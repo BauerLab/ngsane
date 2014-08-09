@@ -137,7 +137,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
        -priority $NAMES
 
     # mark checkpoint
-    [[ -s $OUTDIR/joined.vcf ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/joined.vcf
 
 fi 
 

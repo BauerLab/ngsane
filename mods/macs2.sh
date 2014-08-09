@@ -131,7 +131,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         fi
     
         # mark checkpoint
-        [[ -s $SAMPLE"_"model.R ]] && NGSANE_CHECKPOINT_CHECK
+        NGSANE_CHECKPOINT_CHECK $SAMPLE"_"model.R
 
     fi    
 fi
@@ -149,7 +149,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    [[ -s $SAMPLE"_"peaks.xls ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $SAMPLE"_"peaks.xls
 fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "macs 2 - refine peaks "
@@ -179,7 +179,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo "Final number of refined peaks: $(wc -l ${SAMPLE}_refinepeak.bed )" >> $SAMPLE.summary.txt
 
     # mark checkpoint
-    [[ -s ${SAMPLE}_refinepeak.bed ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK ${SAMPLE}_refinepeak.bed
 fi
 ################################################################################
 # back to where we came from

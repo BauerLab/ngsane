@@ -92,7 +92,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools index $OUTDIR/${n/bam/drm.bam}
 
     # mark checkpoint
-    [[ -s $OUTDIR/${n/bam/drm.bam} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${n/bam/drm.bam}
 
 fi 
 
@@ -104,7 +104,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools mpileup -uf $FASTA -q1 -D $OUTDIR/${n/bam/drm.bam} |  bcftools view -vcg - >$OUTDIR/${n/bam/vcf}
 
     # mark checkpoint
-    [[ -s $OUTDIR/${n/bam/vcf} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${n/bam/vcf}
 
 fi 
 
@@ -116,7 +116,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     vcfutils.pl varFilter -D1000 -w0 -e0 $OUTDIR/${n/bam/vcf}  > $OUTDIR/${n/bam/clean.vcf}
  
     # mark checkpoint
-    [[ -s $OUTDIR/${n/bam/clean.vcf} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${n/bam/clean.vcf}
 
 fi 
 

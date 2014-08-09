@@ -89,7 +89,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUNCOMMAND && eval $RUNCOMMAND
 
     # mark checkpoint
-    [[ -s $OUTDIR/abundances.cxb ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/abundances.cxb
 fi
 
 ################################################################################

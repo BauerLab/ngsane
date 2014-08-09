@@ -109,7 +109,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     mv $OUTDIR/${n}_screen.png $OUTDIR/$SAMPLE"_"screen.png
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE"_"screen.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_"screen.txt
 
 fi
 

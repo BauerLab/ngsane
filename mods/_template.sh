@@ -115,7 +115,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     ## TODO: specify intermediate result file pattern for testing 
     # mark checkpoint checking for existance/non-empty result file
-    [[ -s $OUTDIR/$SAMPLE.[TEMPLATE_INTERMEDIATE_FILE_SUFFIX] ]] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.[TEMPLATE_INTERMEDIATE_FILE_SUFFIX] 
 fi
 
 ################################################################################

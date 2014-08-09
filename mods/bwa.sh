@@ -218,7 +218,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
     
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE$ALN.bam ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ALN.bam
 fi
 
 ################################################################################
@@ -372,7 +372,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         rm $THISTMP/$SAMPLE$ALN.fullsize.header $ITERATIVEINPUT $OUTDIR/$SAMPLE$ALN.[0-9]*.bam $OUTDIR/$SAMPLE$ALN.[0-9]*.iterative
 
         # mark checkpoint
-        [[ -s $OUTDIR/$SAMPLE$ALN.bam ]] && NGSANE_CHECKPOINT_CHECK
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ALN.bam
     fi
 fi
 
@@ -385,7 +385,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     [ -e $OUTDIR/$SAMPLE$ALN.bam ] && rm $OUTDIR/$SAMPLE$ALN.bam
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE.ash.bam ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.ash.bam
 fi
 
 
@@ -411,7 +411,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools index $OUTDIR/$SAMPLE$ASD.bam
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE$ASD.bam ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam
 fi
 
 ################################################################################
@@ -428,7 +428,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
 
     # mark checkpoint
-    [[ -s $STATSOUT ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $STATSOUT
 fi
 
 ################################################################################
@@ -451,7 +451,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     done
 
     # mark checkpoint
-    [[ -s $OUTDIR/metrices/$SAMPLE$ASD.bam.alignment_summary_metrics ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/metrices/$SAMPLE$ASD.bam.alignment_summary_metrics
 fi
 
 ################################################################################
@@ -462,7 +462,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samstat $OUTDIR/$SAMPLE$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE$ASD.bam.stats ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam.stats
     
 fi
 

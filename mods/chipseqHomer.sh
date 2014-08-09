@@ -107,7 +107,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     cat $OUTDIR/${SAMPLE}.tagdirIP.log # put into qout log too
 
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}_homer/tagLengthDistribution.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_homer/tagLengthDistribution.txt
 
 fi
 
@@ -139,7 +139,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
         
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}.findpeaks.log ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.findpeaks.log
 
 fi
 ################################################################################
@@ -158,7 +158,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
     
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}.summary.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.summary.txt
 
 fi
 ################################################################################

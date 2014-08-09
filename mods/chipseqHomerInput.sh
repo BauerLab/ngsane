@@ -89,7 +89,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE/tagLengthDistribution.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/tagLengthDistribution.txt
 
 fi
 

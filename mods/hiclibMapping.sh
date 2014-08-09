@@ -153,7 +153,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}-mapped_reads.hdf5 ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}-mapped_reads.hdf5
 
 fi
 ################################################################################
@@ -184,7 +184,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools index $OUTDIR/$SAMPLE$READONE$ASD.bam
     
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE$READONE$ASD.bam ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$READONE$ASD.bam
     
     # cleanup
     [ -f $THISTMP/$SAMPLE$READONE.ash.bam ] && rm $THISTMP/$SAMPLE$READONE.ash.bam
@@ -221,7 +221,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools index $OUTDIR/$SAMPLE$READTWO$ASD.bam
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE$READTWO$ASD.bam ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$READTWO$ASD.bam
     
     # cleanup
     [ -f $THISTMP/$SAMPLE$READTWO.ash.bam ] && rm $THISTMP/$SAMPLE$READTWO.ash.bam
@@ -254,7 +254,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
 
     # mark checkpoint
-    [[ -s $READ1STATSOUT ]] && [[ -s $READ2STATSOUT ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $READ1STATSOUT $READ2STATSOUT
 fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "samstat"    
@@ -265,7 +265,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samstat $OUTDIR/$SAMPLE$READTWO$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE$READONE$ASD.bam.stats  && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$READONE$ASD.bam.stats
 fi
 ################################################################################
 [ -e $OUTDIR/${SAMPLE}-mapped_reads.hdf5.dummy ] && rm $OUTDIR/${SAMPLE}-mapped_reads.hdf5.dummy

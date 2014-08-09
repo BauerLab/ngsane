@@ -250,7 +250,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo "[NOTE] tophat end $(date)"
 
     # mark checkpoint
-    [[ -s $OUTDIR/accepted_hits.bam ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/accepted_hits.bam
 
 fi 
 
@@ -305,7 +305,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     rm $THISTMP/$SAMPLE.rg.bam
 
     # mark checkpoint
-    [[ -s $BAMFILE ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $BAMFILE
 fi 
 
 ################################################################################
@@ -362,7 +362,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     done
    
     # mark checkpoint
-    [[ -s $OUTDIR/../metrices/${BAMFILE##*/}.alignment_summary_metrics ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/../metrices/${BAMFILE##*/}.alignment_summary_metrics
 
 fi 
 
@@ -375,7 +375,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samstat $BAMFILE 2>&1 | tee | grep -v -P "Bad x in routine betai"
   
     # mark checkpoint
-    [[ -s $BAMFILE.stats ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $BAMFILE.stats
 
 fi
 
@@ -392,7 +392,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools index ${BAMFILE/$ASD/$ALN}
 
     # mark checkpoint
-    [[ -s ${BAMFILE/$ASD/$ALN} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK ${BAMFILE/$ASD/$ALN}
 
 fi
 
@@ -406,7 +406,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 	echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [[ -s $OUTDIR/../${n/%$READONE.$FASTQ/.bw} ]] || [[ -s $OUTDIR/../${n/%$READONE.$FASTQ/_+.bw} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/../${n/%$READONE.$FASTQ/.bw} ]] || [[ -s $OUTDIR/../${n/%$READONE.$FASTQ/_+.bw}
 
 fi
 

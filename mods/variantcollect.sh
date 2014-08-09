@@ -150,7 +150,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
        -priority $NAMES 
 
     # mark checkpoint
-    [[ -s $OUTDIR/joined.$TARGET ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/joined.$TARGET
 
 fi 
 
@@ -181,7 +181,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
             -o $OUTDIR/joined.$TARGET.eval.txt
 
     # mark checkpoint
-    [[ -s $OUTDIR/joined.$TARGET.eval.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/joined.$TARGET.eval.txt
 
 fi
 

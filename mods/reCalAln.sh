@@ -163,7 +163,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         -nt $CPU_RECAL
         
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}.intervals ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.intervals
 
 fi 
 
@@ -186,7 +186,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools index $OUTDIR/${SAMPLE}.real.bam
 
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}.real.bam ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.real.bam
 
 fi 
 
@@ -214,7 +214,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}.real.covar.grp ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.real.covar.grp
 
 fi 
 
@@ -236,7 +236,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools index $OUTDIR/${SAMPLE}.real.recal.bam
 
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}.real.recal.bam ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.real.recal.bam
 
 fi 
 
@@ -254,7 +254,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
          -nct $CPU_RECAL 
     
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}.real.recal.performace ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.real.recal.performace
 
 fi 
 
@@ -304,7 +304,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     #    -ignoreQ 5
     
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}.real.recal.covar.grp ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.real.recal.covar.grp
 
 fi 
 
@@ -332,7 +332,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools index $OUTDIR/${SAMPLE}$ASR.bam
 
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}$ASR.bam ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}$ASR.bam
 
 fi 
 
@@ -367,7 +367,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
     
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}$ASR.bam.stats ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}$ASR.bam.stats
 
 fi 
 

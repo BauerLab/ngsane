@@ -118,7 +118,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
 
     # mark checkpoint
-    [[ -s $FASTQDIRTRIM/$n ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $FASTQDIRTRIM/$n
 
 fi
 

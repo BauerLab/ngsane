@@ -181,7 +181,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
     
     # mark checkpoint
-    [[ -s $OUT/${n/%$READONE.$FASTQ$ALN.bam} ]] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $OUT/${n/%$READONE.$FASTQ$ALN.bam} 
 fi 
 
 ################################################################################
@@ -198,7 +198,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         IS_BISULFITE_SEQUENCE=true 
 
     # mark checkpoint
-    [[ -s $OUT/${n/%$READONE.$FASTQ/.ash.bam} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUT/${n/%$READONE.$FASTQ/.ash.bam}
 fi 
 
 ################################################################################
@@ -213,7 +213,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         RGPU=$UNIT RGSM=$FULLSAMPLEID 
 
     # mark checkpoint
-    [[ -s $OUT/${n/%$READONE.$FASTQ/.ashrg.bam} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUT/${n/%$READONE.$FASTQ/.ashrg.bam}
 fi 
 
 ################################################################################
@@ -234,7 +234,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     $SAMTOOLS index $OUT/${n/%$READONE.$FASTQ/$ASD.bam}
 
     # mark checkpoint
-    [[ -s $OUT/${n/%$READONE.$FASTQ/$ASD.bam} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUT/${n/%$READONE.$FASTQ/$ASD.bam}
 fi 
 
 ################################################################################
@@ -252,7 +252,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
 
     # mark checkpoint
-    [[ -s $STATSOUT ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $STATSOUT
 fi
 
 
@@ -265,7 +265,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         $OUT/${n/%$READONE.$FASTQ/$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/.genome}
 
     # mark checkpoint
-    [[ -s $OUT/${n/%$READONE.$FASTQ/$ASD.bam.cov.tdf} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUT/${n/%$READONE.$FASTQ/$ASD.bam.cov.tdf}
 fi
 
 ################################################################################

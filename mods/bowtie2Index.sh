@@ -86,7 +86,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
 
     # mark checkpoint
-    [[ -s ${FASTA%.*}.1.bt2 ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK ${FASTA%.*}.1.bt2
 fi 
 ################################################################################
 [ -e ${FASTA%.*}.1.bt2.dummy ] && rm ${FASTA%.*}.1.bt2.dummy

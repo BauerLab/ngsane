@@ -128,7 +128,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo "[NOTE] butterly has completed properly! thank Martin by buying him yet another beer (hic!)"
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE/Trinity.fasta ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/Trinity.fasta
 fi 
 
 ################################################################################
@@ -153,7 +153,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     ln -s $SAMPLE/Trinity.fasta.gz $OUTDIR/../$TASK_TRINITY/$SAMPLE.fasta.gz
 
     # mark checkpoint
-    [[ -s $OUTDIR/../$TASK_TRINITY/$SAMPLE.fasta.gz ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/../$TASK_TRINITY/$SAMPLE.fasta.gz
 fi 
 ################################################################################
 NGSANE_CHECKPOINT_INIT "cleanup"

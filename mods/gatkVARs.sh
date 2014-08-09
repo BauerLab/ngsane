@@ -200,7 +200,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo "[NOTE] SNP call done "`date`
 
     # mark checkpoint
-    [[ -s $OUTDIR/$NAME.raw.vcf ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$NAME.raw.vcf
 
 fi 
 
@@ -249,7 +249,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 	--filterName "QualFilter"
 
     # mark checkpoint
-    [[ -s $OUTDIR/$NAME.filter.snps.vcf ]] && [[ -f $OUTDIR/$NAME.filter.indel.vcf ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$NAME.filter.snps.vcf ]] && [[ -f $OUTDIR/$NAME.filter.indel.vcf
 
 fi 
 
@@ -262,7 +262,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/$NAME.filter.indel.vcf
 
     # mark checkpoint
-    [[ -s $OUTDIR/$NAME.filter.snps.vcf.idx ]] && [[ -s $OUTDIR/$NAME.filter.indel.vcf.idx ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$NAME.filter.snps.vcf.idx ]] && [[ -s $OUTDIR/$NAME.filter.indel.vcf.idx
 fi 
 
 ################################################################################
@@ -293,7 +293,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
             -o $OUTDIR/$NAME.filter.indel.eval.txt
 
     # mark checkpoint
-    [[ -s $OUTDIR/$NAME.filter.snps.eval.txt ]] && [[ -s $OUTDIR/$NAME.filter.indel.eval.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$NAME.filter.snps.eval.txt ]] && [[ -s $OUTDIR/$NAME.filter.indel.eval.txt
 
 fi
 
@@ -365,7 +365,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
                 -o $OUTDIR/$NAME.recalfilt.eval.txt
     
         # mark checkpoint
-        [[ -s $OUTDIR/$NAME.recalfilt.eval.txt ]] && NGSANE_CHECKPOINT_CHECK
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/$NAME.recalfilt.eval.txt
     else
         echo "[NOTE] re-calibrate skipped"
         NGSANE_CHECKPOINT_CHECK

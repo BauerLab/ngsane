@@ -104,7 +104,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 	bedtools bamtobed -i $f | bedtools merge -i - -n  > $f.merg.bed
 
 	# mark checkpoint
-    [ -f $f.merg.bed ] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $f.merg.bed 
 
 fi
  
@@ -129,7 +129,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
    	bedtools annotate -counts -i $f.merg.bed -files $ANNFILES -names $NAMES | sed 's/[ \t]*$//g' | awk '{FS=OFS="\t";if (NR==1){print $0,"unannotated"} else{ for(i=5; i<=NF;i++) j+=$i; if (j>0){print $0,0}else{print $0,1}; j=0}}' > $f.merg.anno.bed
 	
 	# mark checkpoint
-    [ -f $f.merg.anno.bed ] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $f.merg.anno.bed 
 
 fi
 [ -e f.merg.bed  ] && rm $f.merg.bed
@@ -146,7 +146,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     cat $f.merg.anno.bed | sort -k4gr | head -n 20 >> $f.anno.stats  
     
 	# mark checkpoint
-    [ -f $f.anno.stats ] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $f.anno.stats 
 
 fi
 

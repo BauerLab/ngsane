@@ -129,16 +129,16 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     rm -r $TMP/$PERSISTENT_ID/* $OUTDIR/../$TASK_TRINITY/$SAMPLE/target.fa    
     ln -f -s $OUTDIR/../$TASK_TRINITY/$SAMPLE/inchworm.K25.L25.fa $OUTDIR/../$TASK_TRINITY/$SAMPLE/target.fa
 
-    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing}
-    echo "Read count:"$(head -n 1 $OUTDIR/$SAMPLE/chrysalis/readcounts.out) > $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
+    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/$SAMPLE.chrysalis.timing
+    echo "Read count:"$(head -n 1 $OUTDIR/$SAMPLE/chrysalis/readcounts.out) > $OUTDIR/$SAMPLE.summary.txt
     
     echo "[NOTE] Chrysalis pt.1 has completed properly! thank Martin by buying him another beer"
 
     # mark checkpoint
-    [[ -s $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.chrysalis.timing
 fi 
 
 ################################################################################
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing}.dummy
+[ -e $OUTDIR/$SAMPLE.chrysalis.timing.dummy ] && rm $OUTDIR/$SAMPLE.chrysalis.timing.dummy
 echo ">>>>> transcriptome assembly with trinity chrysalis - FINISHED"
 echo ">>>>> enddate "`date`

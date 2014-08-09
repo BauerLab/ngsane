@@ -85,10 +85,8 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
 
     # mark checkpoint
-    [ -f ${FASTA%.*}.sa.val ] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK ${FASTA%.*}.sa.val 
 fi 
-
-NGSANE_CHECKPOINT_CHECK
 ################################################################################
 [ -e ${FASTA%.*}.sa.val.dummy ] && rm ${FASTA%.*}.sa.val.dummy
 echo ">>>>> index generation for yara - FINISHED"

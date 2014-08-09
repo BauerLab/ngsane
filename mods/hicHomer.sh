@@ -150,7 +150,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     mv $THISTMP/$SAMPLE"_tagdir_unfiltered" $OUTDIR
     
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE"_tagdir_unfiltered"/tagInfo.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_tagdir_unfiltered"/tagInfo.txt
 fi
 
 ################################################################################
@@ -173,7 +173,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     mv $THISTMP/$SAMPLE"_tagdir_unfiltered" $OUTDIR/$SAMPLE"_tagdir_filtered"
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE"_tagdir_filtered"/tagInfo.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_tagdir_filtered"/tagInfo.txt
 
     [ -d $OUTDIR/$SAMPLE"_tagdir_unfiltered" ] && rm -r $OUTDIR/$SAMPLE"_tagdir_unfiltered"
 
@@ -194,7 +194,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     done
     
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE"_"$LASTCHR"_"matrix.txt.gz ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_"$LASTCHR"_"matrix.txt.gz
 fi
 
 ################################################################################
@@ -206,7 +206,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}_significantCisInteractions.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_significantCisInteractions.txt
 fi
 
 ################################################################################
@@ -222,7 +222,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo "$OUTDIR/${SAMPLE}_significantInteractions.txt all" > $OUTDIR/${SAMPLE}_significantInteractions.log
 
     # mark checkpoint
-    [[ $(wc -l $OUTDIR/${SAMPLE}_significantInteractions.log | cut -d' ' -f 1) -ge 1 ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_significantInteractions.log
 fi
 
 ################################################################################
@@ -234,7 +234,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [[ -s $OUTDIR/${SAMPLE}_annotations_cisInteractions/interactionAnnotation.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_annotations_cisInteractions/interactionAnnotation.txt
 
 fi
 
@@ -252,7 +252,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
     
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE.PC1.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.PC1.txt
 
 fi
 
@@ -281,7 +281,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
         # mark checkpoint
-        [[ -s $SAMPLE.sima.txt ]] && NGSANE_CHECKPOINT_CHECK
+        NGSANE_CHECKPOINT_CHECK $SAMPLE.sima.txt
 
     else
         echo "[NOTE] no peaks provided for SIMA analysis. Skipping it"

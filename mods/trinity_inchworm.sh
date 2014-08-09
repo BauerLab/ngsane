@@ -129,14 +129,14 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
     echo "[NOTE] inchworm has completed properly! thank Martin by buying him a beer"
 
-    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/${n/%$READONE.$FASTQ/.inchworm.timing}
+    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/$SAMPLE.inchworm.timing
 
-    echo "jellyfish kmers: "$(grep ">" $OUTDIR/$SAMPLE/jellyfish.kmers.fa |  wc -l) > $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
-    echo "inchworm fasta: "$(grep ">" <$(ls $OUTDIR/$SAMPLE/inchworm.*.fa | head -n 1) | wc -l) >> $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
-    echo "both fasta: "$(grep ">" $OUTDIR/$SAMPLE/both.fa |  wc -l) >> $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
+    echo "jellyfish kmers: "$(grep ">" $OUTDIR/$SAMPLE/jellyfish.kmers.fa |  wc -l) > $OUTDIR/$SAMPLE.summary.txt
+    echo "inchworm fasta: "$(grep ">" <$(ls $OUTDIR/$SAMPLE/inchworm.*.fa | head -n 1) | wc -l) >> $OUTDIR/$SAMPLE.summary.txt
+    echo "both fasta: "$(grep ">" $OUTDIR/$SAMPLE/both.fa |  wc -l) >> $OUTDIR/$SAMPLE.summary.txt
     
     # mark checkpoint
-    [ -f $OUTDIR/${n/%$READONE.$FASTQ/.inchworm.timing} ] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.inchworm.timing $OUTDIR/$SAMPLE.summary.txt
 fi 
 
 ################################################################################
@@ -153,6 +153,6 @@ fi
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
 #TODO correct dummy
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/.inchworm.timing}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.inchworm.timing}.dummy
+[ -e $OUTDIR/$SAMPLE.inchworm.timing.dummy ] && rm $OUTDIR/$SAMPLE.inchworm.timing.dummy
 echo ">>>>> transcriptome assembly with trinity inchworm - FINISHED"
 echo ">>>>> enddate "`date`

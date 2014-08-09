@@ -137,7 +137,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     # mark checkpoint
 
-    [[ -s $TESSELDIR/$SAMPLE"_"$BLUE_KMER".cbt" ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $TESSELDIR/$SAMPLE"_"$BLUE_KMER".cbt"
 fi
 
 ################################################################################
@@ -166,7 +166,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
 
     # mark checkpoint
-    [[ -s $OUTDIR/$n ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$n
 fi
 
 ################################################################################

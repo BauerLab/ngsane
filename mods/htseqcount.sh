@@ -201,7 +201,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     [ -e $THISTMP/$SAMPLE.tmp.bam ] && rm $THISTMP/$SAMPLE.tmp.bam
     
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE.fixed.bam ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.fixed.bam
    
 fi
 ################################################################################
@@ -226,7 +226,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     done
     
     # mark checkpoint
-    [[ -s $OUTDIR/$anno_version.$MODE.$ATTR ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$anno_version.$MODE.$ATTR
 fi
 	
 

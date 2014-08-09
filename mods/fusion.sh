@@ -188,7 +188,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [[ -s ${TOPHAT_FUSION_OUT}/accepted_hits.bam ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK ${TOPHAT_FUSION_OUT}/accepted_hits.bam
 
 fi 
 ################################################################################
@@ -214,7 +214,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [[ -s $OUTDIR/result.txt ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/result.txt
 
 fi 
 ################################################################################
@@ -238,7 +238,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     circos -conf $PWD/base.conf
 
     # mark checkpoint
-    [[ -s $OUTDIR/circos.png ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/circos.png
 
 fi 
 ###############################################################################

@@ -92,7 +92,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     chmod -R a+rx $OUTDIR/
     
-    [[ -s $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}
 fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "fastqc read 2"
@@ -115,7 +115,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     chmod -R a+rx $OUTDIR/
     
-    [[ -s $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}
 fi
 ################################################################################
 [ -e $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}.dummy ] && rm $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}.dummy

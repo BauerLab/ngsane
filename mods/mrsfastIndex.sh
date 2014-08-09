@@ -86,7 +86,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
 
     # mark checkpoint
-    [[ -s ${FASTA%.*}.index ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK ${FASTA%.*}.index
 fi 
 
 ################################################################################

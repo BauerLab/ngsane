@@ -96,7 +96,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools view -f 0x0002 -h -b $f > $OUT/${n/bam/pn.bam}
     
     # mark checkpoint
-    [[ -s $OUT/${n/bam/pn.bam} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUT/${n/bam/pn.bam}
 
 fi 
 
@@ -120,7 +120,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools index $OUT/${n/bam/pns.bam}
  
     # mark checkpoint
-    [[ -s $OUT/${n/bam/pns.bam} ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUT/${n/bam/pns.bam}
 
 fi 
 
@@ -132,7 +132,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools flagstat $OUT/${n/bam/pns.bam} > $OUT/${n/bam/pns.bam}.stats
     
     # mark checkpoint
-    [[ -s $OUT/${n/bam/pns.bam}.stats ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUT/${n/bam/pns.bam}.stats
 
 fi
 

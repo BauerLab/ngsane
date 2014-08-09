@@ -190,7 +190,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     [ -e $OUTDIR/$SAMPLE$ALN.bam ] && rm $OUTDIR/$SAMPLE$ALN.bam
        
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE.ash.bam ]] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.ash.bam 
     
 fi
 
@@ -207,7 +207,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         TMP_DIR=$THISTMP
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE.cleaned.bam ]] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.cleaned.bam 
     
     # cleanup
     [ -e $OUTDIR/$SAMPLE.ash.bam ] && rm $OUTDIR/$SAMPLE.ash.bam
@@ -230,7 +230,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools index $OUTDIR/$SAMPLE$ASD.bam
           
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE$ASD.bam ]] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam 
     
     #cleanup
     [ -e $OUTDIR/$SAMPLE.cleaned.bam ] && rm $OUTDIR/$SAMPLE.cleaned.bam
@@ -251,7 +251,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
 
     # mark checkpoint
-    [[ -s $STATSOUT ]] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $STATSOUT 
 fi
 
 ################################################################################
@@ -273,7 +273,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     done
 
     # mark checkpoint
-    [[ -s $OUTDIR/metrices/$SAMPLE$ASD.bam.alignment_summary_metrics ]] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/metrices/$SAMPLE$ASD.bam.alignment_summary_metrics 
 fi
 
 ################################################################################
@@ -284,7 +284,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samstat $OUTDIR/$SAMPLE$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
 
     # mark checkpoint
-    [[ -s $OUTDIR/$SAMPLE$ASD.bam.stats ]] && NGSANE_CHECKPOINT_CHECK 
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam.stats 
     
 fi
 

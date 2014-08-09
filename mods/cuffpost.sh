@@ -130,7 +130,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     mv $THISTMP/merged.gtf $OUTDIR/$MERGED_GTF_NAME.gtf
     
     # mark checkpoint
-    [[ -s $OUTDIR/$MERGED_GTF_NAME.gtf ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$MERGED_GTF_NAME.gtf
 
 fi
 ################################################################################

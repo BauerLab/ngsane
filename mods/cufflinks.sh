@@ -138,7 +138,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    [[ -s $OUTDIR/transcripts.gtf ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/transcripts.gtf
 
 fi
 ################################################################################
@@ -160,7 +160,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     done
     
     # mark checkpoint
-    [[ -s $SUMMARYFILE ]] && NGSANE_CHECKPOINT_CHECK
+    NGSANE_CHECKPOINT_CHECK $SUMMARYFILE
 
 fi
 ################################################################################
