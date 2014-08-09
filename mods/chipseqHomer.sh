@@ -29,7 +29,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --bam )            shift; f=$1 ;; # bam file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir 
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -42,7 +42,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_HOMERCHIPSEQ; do module load $MODULE; done && module list 
@@ -62,9 +62,9 @@ echo -e "--homer       --\n "$(which makeTagDirectory)
 echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
 [ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress bedgraphs"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
@@ -84,9 +84,9 @@ else
     INPUT="NONE"
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a $f
@@ -94,13 +94,12 @@ if [ -n "$DMGET" ]; then
     dmget -a $OUTDIR/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="create tagdirectory"
+NGSANE_CHECKPOINT_INIT "create tagdirectory"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
     
     mkdir -p $OUTDIR/${SAMPLE}_homer
     RUN_COMMAND="makeTagDirectory $OUTDIR/${SAMPLE}_homer $f $HOMER_CHIPSEQ_TAGDIR_ADDPARAM &> $OUTDIR/${SAMPLE}.tagdirIP.log"
@@ -108,16 +107,14 @@ else
     cat $OUTDIR/${SAMPLE}.tagdirIP.log # put into qout log too
 
     # mark checkpoint
-    if [ -e $OUTDIR/${SAMPLE}_homer/tagLengthDistribution.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/${SAMPLE}_homer/tagLengthDistribution.txt ]] && NGSANE_CHECKPOINT_CHECK
 
 fi
 
 ################################################################################
-CHECKPOINT="find peaks"
+NGSANE_CHECKPOINT_INIT "find peaks"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     RUN_COMMAND="findPeaks $OUTDIR/${SAMPLE}_homer -style $HOMER_CHIPSEQ_STYLE  $HOMER_CHIPSEQ_FINDPEAKS_ADDPARAM -o auto "
     if [ -n "$CHIPINPUT" ];then
@@ -142,15 +139,13 @@ else
     fi
         
     # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}.findpeaks.log ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/${SAMPLE}.findpeaks.log ]] && NGSANE_CHECKPOINT_CHECK
 
 fi
 ################################################################################
-CHECKPOINT="summarize"
+NGSANE_CHECKPOINT_INIT "summarize"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     cat $OUTDIR/${SAMPLE}.tagdirIP.log $OUTDIR/${SAMPLE}.findpeaks.log > $OUTDIR/${SAMPLE}.summary.txt
     
@@ -161,12 +156,13 @@ else
     elif [ "$HOMER_CHIPSEQ_STYLE" == "histone" ]; then
         grep "^#" $OUTDIR/${SAMPLE}_homer/regions.txt >> $OUTDIR/${SAMPLE}.summary.txt
     fi
+    
     # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}.summary.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/${SAMPLE}.summary.txt ]] && NGSANE_CHECKPOINT_CHECK
 
 fi
 ################################################################################
-CHECKPOINT="cleanup"
+NGSANE_CHECKPOINT_INIT "cleanup"
 
 if [ -z "$HOMER_KEEPTAGDIRECTORY" ]; then
    rm -f $OUTDIR/${SAMPLE}_homer/*.tags.tsv
@@ -175,7 +171,7 @@ fi
 [ -f $OUTDIR/${SAMPLE}.tagdirIP.log ] && rm $OUTDIR/${SAMPLE}.tagdirIP.log
 [ -f $OUTDIR/${SAMPLE}.findpeaks.log ] && rm $OUTDIR/${SAMPLE}.findpeaks.log
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 [ -e $OUTDIR/${SAMPLE}.summary.txt.dummy ] && rm $OUTDIR/${SAMPLE}.summary.txt.dummy
 echo ">>>>> ChIPseq analysis with Homer - FINISHED"

@@ -28,7 +28,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
         -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir                                                     
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -41,7 +41,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_HICLIB; do module load $MODULE; done && module list
@@ -71,9 +71,9 @@ echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates
 echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
@@ -108,9 +108,9 @@ THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
 mkdir -p $THISTMP
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $(dirname $FASTA_CHROMDIR)/*
@@ -119,13 +119,11 @@ if [ -n "$DMGET" ]; then
 	dmget -a $OUTDIR/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="run hiclib"
+NGSANE_CHECKPOINT_INIT "run hiclib"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     READS="$f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
 
@@ -155,15 +153,13 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -e $OUTDIR/${SAMPLE}-mapped_reads.hdf5 ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/${SAMPLE}-mapped_reads.hdf5 ]] && NGSANE_CHECKPOINT_CHECK
 
 fi
 ################################################################################
-CHECKPOINT="treat read1.bam"
+NGSANE_CHECKPOINT_INIT "treat read1.bam"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     # treat read one    
     # merge
@@ -188,7 +184,7 @@ else
     samtools index $OUTDIR/$SAMPLE$READONE$ASD.bam
     
     # mark checkpoint
-    if [ -e $OUTDIR/$SAMPLE$READONE$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$SAMPLE$READONE$ASD.bam ]] && NGSANE_CHECKPOINT_CHECK
     
     # cleanup
     [ -f $THISTMP/$SAMPLE$READONE.ash.bam ] && rm $THISTMP/$SAMPLE$READONE.ash.bam
@@ -199,11 +195,9 @@ else
 fi
 
 ################################################################################
-CHECKPOINT="treat read2.bam"
+NGSANE_CHECKPOINT_INIT "treat read2.bam"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     # treat read two
     # merge
@@ -227,7 +221,7 @@ else
     samtools index $OUTDIR/$SAMPLE$READTWO$ASD.bam
 
     # mark checkpoint
-    if [ -e $OUTDIR/$SAMPLE$READTWO$ASD.bam ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$SAMPLE$READTWO$ASD.bam ]] && NGSANE_CHECKPOINT_CHECK
     
     # cleanup
     [ -f $THISTMP/$SAMPLE$READTWO.ash.bam ] && rm $THISTMP/$SAMPLE$READTWO.ash.bam
@@ -237,11 +231,9 @@ else
 
 fi
 ################################################################################
-CHECKPOINT="statistics"                                                                                                
+NGSANE_CHECKPOINT_INIT "statistics"                                                                                                
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     READ1STATSOUT=$OUTDIR/$SAMPLE$READONE$ASD.bam.stats
     samtools flagstat $OUTDIR/$SAMPLE$READONE$ASD.bam > $READ1STATSOUT
@@ -262,20 +254,18 @@ else
     fi
 
     # mark checkpoint
-    if [ -f $READ1STATSOUT ] && [ -f $READ2STATSOUT ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $READ1STATSOUT ]] && [[ -s $READ2STATSOUT ]] && NGSANE_CHECKPOINT_CHECK
 fi
 ################################################################################
-CHECKPOINT="samstat"    
+NGSANE_CHECKPOINT_INIT "samstat"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     samstat $OUTDIR/$SAMPLE$READONE$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
     samstat $OUTDIR/$SAMPLE$READTWO$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
 
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE$READONE$ASD.bam.stats ] && [ -f $OUTDIR/$SAMPLE$READTWO$ASD.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$SAMPLE$READONE$ASD.bam.stats  && NGSANE_CHECKPOINT_CHECK
 fi
 ################################################################################
 [ -e $OUTDIR/${SAMPLE}-mapped_reads.hdf5.dummy ] && rm $OUTDIR/${SAMPLE}-mapped_reads.hdf5.dummy

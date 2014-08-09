@@ -22,7 +22,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;;     # location of the NGSANE repository                       
         -f | --file )           shift; FILES=$1 ;;  # input file                                                       
         -o | --outdir )         shift; OUTDIR=$1 ;;     # output dir                                                     
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -36,7 +36,7 @@ done
 
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_CUFFLINKS; do module load $MODULE; done && module list 
@@ -48,9 +48,9 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--cufflinks   --\n "$(cufflinks 2>&1 | tee | head -n 2 )
 [ -z "$(which cufflinks)" ] && echo "[ERROR] no cufflinks detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 if [ -z "$MERGED_GTF_NAME" ]; then
     echo "[ERROR] MERGED_GTF_NAME not specified"
@@ -83,7 +83,7 @@ IFS=" "
 echo "[NOTE] datasets: $DATASETS"
 
 #mkdir -p "$OUTDIR"
-#if [ -z "$RECOVERFROM" ]; then
+#if [ -z "$NGSANE_RECOVERFROM" ]; then
 #    ## TODO remove primary result files from pervious runs
 #    rm ${OUTDIR}/*
 #fi
@@ -94,9 +94,9 @@ mkdir -p "$THISTMP"
 
 #echo "[NOTE] echo $THISTMP"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a $INPUTFILE
@@ -104,14 +104,11 @@ if [ -n "$DMGET" ]; then
     # TODO add additional resources that are required and may need recovery from tape
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
-
-    
+NGSANE_CHECKPOINT_CHECK   
 ################################################################################
-CHECKPOINT="Run cuffmerge"  
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+NGSANE_CHECKPOINT_INIT "Run cuffmerge"  
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     array=(${DATASETS[@]})
     
@@ -133,16 +130,15 @@ else
     mv $THISTMP/merged.gtf $OUTDIR/$MERGED_GTF_NAME.gtf
     
     # mark checkpoint
-    if [ -e $OUTDIR/$MERGED_GTF_NAME.gtf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$MERGED_GTF_NAME.gtf ]] && NGSANE_CHECKPOINT_CHECK
 
 fi
 ################################################################################
-
-CHECKPOINT="cleanup."  
+NGSANE_CHECKPOINT_INIT "cleanup."  
   
 [ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
   
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 echo ">>>>> Experiment merged transcripts (cuffmerge) - FINISHED"
 echo ">>>>> enddate "`date`

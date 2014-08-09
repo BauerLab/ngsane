@@ -60,7 +60,7 @@ while [ "$1" != "" ]; do
         -u | --rgpu )           shift; UNIT=$1 ;; # read group platform unit RG PU 
         -A | --adapter )        shift; ADAPTER="-A "$1 ;; # adapter
         -R | --restriction )    shift; RSITE=$1 ;;
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -74,7 +74,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_RRBSMAP; do module load $MODULE; done && module list 
@@ -106,9 +106,9 @@ echo -e "--convert     --\n "$(convert -version | head -n 1)
 [ -z "$(which convert)" ] && echo "[WARN] imagemagick convert not detected" 
 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # check library variables are set
 if [[ -z "$EXPID" || -z "$LIBRARY" || -z "$PLATFORM" ]]; then
@@ -132,7 +132,7 @@ fi
 FASTASUFFIX=${FASTA##*.}
 
 # delete old bam files unless attempting to recover
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     if [ -e $OUT/${n/%$READONE.$FASTQ/$ASD.bam} ]; then rm $OUT/${n/%$READONE.$FASTQ/$ASD.bam}; fi
     if [ -e $OUT/${n/%$READONE.$FASTQ/$ASD.bam}.stats ]; then rm $OUT/${n/%$READONE.$FASTQ/$ASD.bam}.stats; fi
 fi
@@ -152,9 +152,9 @@ fi
 FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 echo "[NOTE] full sample ID "$FULLSAMPLEID
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $(dirname $FASTA)/*
@@ -162,13 +162,11 @@ if [ -n "$DMGET" ]; then
 	dmget -a $OUTDIR/*
 fi
     
-echo -e "\n********* $CHECKPOINT\n"    
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="mapping"
+NGSANE_CHECKPOINT_INIT "mapping"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ "$PAIRED" = "1" ]; then
         echo "[NOTE] PAIRED READS"
@@ -183,15 +181,13 @@ else
     fi
     
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ$ALN.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    [[ -s $OUT/${n/%$READONE.$FASTQ$ALN.bam} ]] && NGSANE_CHECKPOINT_CHECK 
 fi 
 
 ################################################################################
-CHECKPOINT="merge to single file"
+NGSANE_CHECKPOINT_INIT "merge to single file"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     java $JAVAPARAMS -jar $PATH_PICARD/MergeBamAlignment.jar \
         UNMAPPED_BAM=$OUT/${n/%$READONE.$FASTQ$UNM.bam} \
@@ -202,15 +198,13 @@ else
         IS_BISULFITE_SEQUENCE=true 
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.ash.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    [[ -s $OUT/${n/%$READONE.$FASTQ/.ash.bam} ]] && NGSANE_CHECKPOINT_CHECK
 fi 
 
 ################################################################################
-CHECKPOINT="add readgroup"
+NGSANE_CHECKPOINT_INIT "add readgroup"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
         INPUT=$OUT/${n/%$READONE.$FASTQ/.ash.bam} \
@@ -219,15 +213,13 @@ else
         RGPU=$UNIT RGSM=$FULLSAMPLEID 
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/.ashrg.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    [[ -s $OUT/${n/%$READONE.$FASTQ/.ashrg.bam} ]] && NGSANE_CHECKPOINT_CHECK
 fi 
 
 ################################################################################
-CHECKPOINT="mark duplicates"
+NGSANE_CHECKPOINT_INIT "mark duplicates"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ ! -e $OUT/metrices ]; then mkdir $OUT/metrices ; fi
     THISTMP=$TMP/$n$RANDOM #mk tmp dir because picard writes none-unique files
@@ -242,15 +234,13 @@ else
     $SAMTOOLS index $OUT/${n/%$READONE.$FASTQ/$ASD.bam}
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/$ASD.bam} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    [[ -s $OUT/${n/%$READONE.$FASTQ/$ASD.bam} ]] && NGSANE_CHECKPOINT_CHECK
 fi 
 
 ################################################################################
-CHECKPOINT="statistics"                                                                                                
+NGSANE_CHECKPOINT_INIT "statistics"                                                                                                
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     STATSOUT=$OUT/${n/%$READONE.$FASTQ/$ASD.bam}.stats
     $SAMTOOLS flagstat $OUT/${n/%$READONE.$FASTQ/$ASD.bam} > STATSOUT
@@ -262,26 +252,24 @@ else
     fi
 
     # mark checkpoint
-    [ -f $STATSOUT ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    [[ -s $STATSOUT ]] && NGSANE_CHECKPOINT_CHECK
 fi
 
 
 ################################################################################
-CHECKPOINT="coverage track"    
+NGSANE_CHECKPOINT_INIT "coverage track"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     java $JAVAPARAMS -jar $IGVTOOLS count $OUT/${n/%$READONE.$FASTQ/$ASD.bam} \
         $OUT/${n/%$READONE.$FASTQ/$ASD.bam.cov.tdf} ${FASTA/.$FASTASUFFIX/.genome}
 
     # mark checkpoint
-    [ -f $OUT/${n/%$READONE.$FASTQ/$ASD.bam.cov.tdf} ] && echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    [[ -s $OUT/${n/%$READONE.$FASTQ/$ASD.bam.cov.tdf} ]] && NGSANE_CHECKPOINT_CHECK
 fi
 
 ################################################################################
-CHECKPOINT="verify"    
+NGSANE_CHECKPOINT_INIT "verify"    
     
 
 BAMREADS=`head -n1 $STATSOUT | cut -d " " -f 1`
@@ -297,7 +285,7 @@ else
       
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 echo ">>>>> readmapping with rrbsmap - FINISHED"
 echo ">>>>> enddate "`date`

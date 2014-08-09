@@ -42,7 +42,7 @@ while [ "$1" != "" ]; do
     -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
     -R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
     --forceSingle )         FORCESINGLE=1;;
-    --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+    --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
     -h | --help )           usage ;;
     * )                     echo "dont understand $1"
     esac
@@ -54,7 +54,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_FUSION; do module load $MODULE; done && module list 
@@ -72,9 +72,9 @@ echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
 echo -e "--circos      --\n "$(circos --version)
 [ -z "$(which circos)" ] && echo "[ERROR] circos not detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 [ ! -f $f ] && echo "[ERROR] input file not found: $f" 1>&2 && exit 1
 # get basename of f (samplename)
@@ -93,7 +93,7 @@ fi
 echo "[NOTE] create symlinks"
 
 #remove old files
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
 fi
 
@@ -147,9 +147,9 @@ fi
 
 [ ! -d $OUTDIR ] && mkdir -p $OUTDIR 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a $(dirname $FASTA)/*
@@ -157,13 +157,11 @@ if [ -n "$DMGET" ]; then
     dmget -a $OUTDIR/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="run tophat fusion"
+NGSANE_CHECKPOINT_INIT "run tophat fusion"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     cd $OUTDIR
     
@@ -190,15 +188,13 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -e ${TOPHAT_FUSION_OUT}/accepted_hits.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s ${TOPHAT_FUSION_OUT}/accepted_hits.bam ]] && NGSANE_CHECKPOINT_CHECK
 
 fi 
 ################################################################################
-CHECKPOINT="run fusion-post"
+NGSANE_CHECKPOINT_INIT "run fusion-post"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     cd $OUTDIR
 
@@ -218,15 +214,13 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -e $OUTDIR/result.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/result.txt ]] && NGSANE_CHECKPOINT_CHECK
 
 fi 
 ################################################################################
-CHECKPOINT="run circos"
+NGSANE_CHECKPOINT_INIT "run circos"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     cd $OUTDIR
     cat $OUTDIR/result.txt | awk '{ print $3, $4, $4,$6,$7,$7 }' | sed 's/chr/hs/g' > $OUTDIR/my_link.txt    
@@ -244,11 +238,11 @@ else
     circos -conf $PWD/base.conf
 
     # mark checkpoint
-    if [ -e $OUTDIR/circos.png ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/circos.png ]] && NGSANE_CHECKPOINT_CHECK
 
 fi 
 ###############################################################################
-CHECKPOINT="cleanup"
+NGSANE_CHECKPOINT_INIT "cleanup"
 
 [ -e $PWD/ticks.conf ] && rm $PWD/ticks.conf
 [ -e $PWD/ideogram.conf ] && rm $PWD/ideogram.conf
@@ -261,7 +255,7 @@ CHECKPOINT="cleanup"
   
 [ -z "$KEEP_FUSION_BAM" ] && [  -d ${OUTDIR}/tophat_sample ] && rm -r ${OUTDIR}/tophat_sample"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 echo ">>>>> fusion search with TopHat - FINISHED"
 echo ">>>>> enddate "`date`

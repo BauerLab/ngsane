@@ -57,7 +57,7 @@ while [ "$1" != "" ]; do
         -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
         --maxGaussians )        shift; ADDRECAL=$ADDRECAL" --maxGaussians "$1 ;; #(additional params for recal)
         --percentBadVariants )  shift; ADDRECAL=$ADDRECAL" --percentBadVariants "$1 ;; #(additional params for recal)
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -70,7 +70,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_GATKVAR; do module load $MODULE; done && module list 
@@ -98,14 +98,14 @@ echo -e "--GATK        --\n "$(java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK
 [ ! -f $PATH_GATK/GenomeAnalysisTK.jar ] && echo "[ERROR] no GATK detected" && exit 1
 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 if [ ! -d $OUTDIR ]; then mkdir -p $OUTDIR; fi
 
 # delete old snp files unless attempting to recover
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -e $OUTDIR/$NAME.fi.vcf ] && rm $OUTDIR/$NAME.fi.vcf
     [ -e $OUTDIR/$NAME.fi.vcf.idx ] && rm $OUTDIR/$NAME.fi.vcf.idx
     [ -e $OUTDIR/gatkSNPcall.tmp ] && rm $OUTDIR/gatkSNPcall.tmp
@@ -135,23 +135,20 @@ if [[ $(which GenomeAnalysisTK.jar) =~ "2.8" ]]; then
 fi
 
         
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then 
     dmget -a ${FILES//,/ };
 	dmget -a $OUTDIR/*
 fi
     
-echo -e "\n********* $CHECKPOINT\n"    
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="call snps"
+NGSANE_CHECKPOINT_INIT "call snps"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
 	for f in ${FILES//,/ }; do LIST=$LIST"-I $f " ; done
 	
@@ -203,17 +200,14 @@ else
     echo "[NOTE] SNP call done "`date`
 
     # mark checkpoint
-    if [ -f $OUTDIR/$NAME.raw.vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$NAME.raw.vcf ]] && NGSANE_CHECKPOINT_CHECK
 
 fi 
 
 ################################################################################
-CHECKPOINT="hardfilter"
+NGSANE_CHECKPOINT_INIT "hardfilter"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
 	-T VariantFiltration \
@@ -255,31 +249,26 @@ else
 	--filterName "QualFilter"
 
     # mark checkpoint
-    if [[ -f $OUTDIR/$NAME.filter.snps.vcf && -f $OUTDIR/$NAME.filter.indel.vcf ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$NAME.filter.snps.vcf ]] && [[ -f $OUTDIR/$NAME.filter.indel.vcf ]] && NGSANE_CHECKPOINT_CHECK
 
 fi 
 
 ################################################################################
-CHECKPOINT="index for IGV"
+NGSANE_CHECKPOINT_INIT "index for IGV"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/$NAME.filter.snps.vcf
     java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/$NAME.filter.indel.vcf
 
     # mark checkpoint
-    if [[ -f $OUTDIR/$NAME.filter.snps.vcf.idx && -f $OUTDIR/$NAME.filter.indel.vcf.idx ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$NAME.filter.snps.vcf.idx ]] && [[ -s $OUTDIR/$NAME.filter.indel.vcf.idx ]] && NGSANE_CHECKPOINT_CHECK
 fi 
 
 ################################################################################
-CHECKPOINT="evaluate"
+NGSANE_CHECKPOINT_INIT "evaluate"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     echo "[NOTE] Hard filter eval SNPs"
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
@@ -304,17 +293,14 @@ else
             -o $OUTDIR/$NAME.filter.indel.eval.txt
 
     # mark checkpoint
-    if [[ -f $OUTDIR/$NAME.filter.snps.eval.txt && -f $OUTDIR/$NAME.filter.indel.eval.txt ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$NAME.filter.snps.eval.txt ]] && [[ -s $OUTDIR/$NAME.filter.indel.eval.txt ]] && NGSANE_CHECKPOINT_CHECK
 
 fi
 
 ################################################################################
-CHECKPOINT="re-calibrate"
+NGSANE_CHECKPOINT_INIT "re-calibrate"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     #####################
     # Recalibration
@@ -327,9 +313,9 @@ else
         echo $DBSNPVCF
         echo $HAPMAPVCF
         echo $ONEKGVCF
-	if [ -n "$ONEKGVCF" ]; then 
-	    ONEKGPARAMS="-resource:omni,known=false,training=true,truth=false,prior=12.0 $ONEKGVCF"
-	fi
+	    if [ -n "$ONEKGVCF" ]; then 
+	        ONEKGPARAMS="-resource:omni,known=false,training=true,truth=false,prior=12.0 $ONEKGVCF"
+	    fi
 
     	if [ ! -e $OUTDIR/R ]; then mkdir $OUTDIR/R; fi
     
@@ -379,8 +365,10 @@ else
                 -o $OUTDIR/$NAME.recalfilt.eval.txt
     
         # mark checkpoint
-        if [ -f $OUTDIR/$NAME.recalfilt.eval.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
+        [[ -s $OUTDIR/$NAME.recalfilt.eval.txt ]] && NGSANE_CHECKPOINT_CHECK
+    else
+        echo "[NOTE] re-calibrate skipped"
+        NGSANE_CHECKPOINT_CHECK
     fi
 fi 
 

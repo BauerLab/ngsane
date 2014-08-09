@@ -41,7 +41,7 @@ while [ "$1" != "" ]; do
         -f | --bam )            shift; f=$1 ;; # bam file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
         -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -55,7 +55,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
  # save way to load modules that itself load other modules
 hash module 2>/dev/null && for MODULE in $MODULE_PINDEL; do module load $MODULE; done && module list
@@ -84,9 +84,9 @@ echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/ReorderSam.jar
 echo -e "--GATK        --\n "$(java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar --version)
 [ ! -f $PATH_GATK/GenomeAnalysisTK.jar ] && echo "[ERROR] no GATK detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 f=${f/%.dummy/} #if input came from pipe
@@ -101,7 +101,7 @@ echo $REFERENCE_ENDING" "$REFERENCE_DATE" "$REFERENCE_NAME
 
 
 # delete old bam files unless attempting to recover
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -e $OUTDIR/$SAMPLE"_"BD ] && rm $OUTDIR/$SAMPLE*
 fi
 
@@ -109,21 +109,19 @@ if [ ! -e ${FASTA/$REFERENCE_ENDING/fa} ]; then echo "[ERROR] pindel2vcf needs f
 if [ ! -e ${FASTA/$REFERENCE_ENDING/fasta} ]; then echo "[ERROR] GenomeAnalysisTK.jar needs fasta file with .fasta ending - please create a symbolic link"; exit -1; fi 
 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $f
 fi
     
-echo -e "\n********* $CHECKPOINT\n"    
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="calculate inner distance"                                                                                                
+NGSANE_CHECKPOINT_INIT "calculate inner distance"                                                                                                
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
 	INDIR=${OUTDIR/-$TASK_PINDEL/}
 
@@ -164,15 +162,13 @@ else
 	fi
 
     # mark checkpoint
-    if [ -f ${f/$INPUT_PINDEL/$INPUT_PINDEL/metrices}.insert_size_metrics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s ${f/$INPUT_PINDEL/$INPUT_PINDEL/metrices}.insert_size_metrics ]] && NGSANE_CHECKPOINT_CHECK
 fi
-################################################################################
-CHECKPOINT="create bam config file"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
+################################################################################
+NGSANE_CHECKPOINT_INIT "create bam config file"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 	if [ ! -e $f.bai ]; then
 		echo "[NOTE] create index for bam file"
@@ -189,19 +185,14 @@ else
 	echo -e "$f\t$INSERT\t$SAMPLE" > $OUTDIR/$SAMPLE.conf.txt
         
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.conf.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$SAMPLE.conf.txt ]] && NGSANE_CHECKPOINT_CHECK
 
 fi 
 
-
 ################################################################################
-CHECKPOINT="pindel"
+NGSANE_CHECKPOINT_INIT "pindel"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
-
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 	if [[ ${INPUT_IS_BWA}="false" ]]; then
 
@@ -225,17 +216,14 @@ else
 	fi
 
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE"_"BP ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$SAMPLE"_"BP ]] && NGSANE_CHECKPOINT_CHECK
 
 fi 
 
-
 ################################################################################
-CHECKPOINT="convert to vcf"
+NGSANE_CHECKPOINT_INIT "convert to vcf"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo "[NOTE] $CHECKPOINT"
 
 	for i in D SI LI INV TD BP ; do 
@@ -243,18 +231,15 @@ else
 	done
 
     # mark checkpoint
-	if [ -f $OUTDIR/$SAMPLE"_BP".vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+	if [ -f $OUTDIR/$SAMPLE"_BP".vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset NGSANE_RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 
 ################################################################################
-CHECKPOINT="join vcf files"
+NGSANE_CHECKPOINT_INIT "join vcf files"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 	VAR=""
 	for i in D SI LI INV TD BP ; do  VAR=$VAR" -V "$OUTDIR"/"$SAMPLE"_"$i".vcf"; done
@@ -271,7 +256,7 @@ else
    	python ${NGSANE_BASE}/tools/checkpindelENDs.py $OUTDIR/$SAMPLE.summary.sorteduncorr.vcf $OUTDIR/$SAMPLE$ASD.vcf
         
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE$ASD.vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$SAMPLE$ASD.vcf ]] && NGSANE_CHECKPOINT_CHECK
 
 	rm $OUTDIR/$SAMPLE.conf.txt $OUTDIR/$SAMPLE.summary.sorteduncorr.vcf $OUTDIR/$SAMPLE.summary.unsorted.vcf*
 	for i in D SI LI INV TD BP ; do rm $OUTDIR/$SAMPLE"_"$i.vcf; done

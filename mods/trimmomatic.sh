@@ -22,7 +22,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of NGSANE
         -f | --file )           shift; f=$1 ;; # fastq file
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -34,7 +34,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_TRIMMOMATIC; do module load $MODULE; done && module list 
@@ -57,9 +57,9 @@ echo -e "--trimmomatic --\n " $(which $PATH_TRIMMOMATIC/trimmomatic.jar)
 [ ! -f $PATH_TRIMMOMATIC/trimmomatic.jar ] && echo "[ERROR] no trimmomatic detected" && exit 1
 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
@@ -111,22 +111,20 @@ echo $f "->" $o
 if [ "$PAIRED" = "1" ]; then echo ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} "->" ${o/%$READON.$FASTQE/$READTWO.$FASTQ} ; fi
 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
     dmget -a ${o/$READONE/"*"}
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="trim"    
+NGSANE_CHECKPOINT_INIT "trim"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ "$PAIRED" = "1" ]; then
         RUN_COMMAND="java -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED -threads $CPU_TRIMMOMATIC $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} $o ${o}_unpaired ${o/%$READONE.$FASTQ/$READTWO.$FASTQ} ${o/%$READONE.$FASTQ/$READTWO.$FASTQ}_unpaired $TRIMMOMATICSTEPS > ${o/%$READONE.$FASTQ/}.log 2>&1"
@@ -137,7 +135,7 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -f $o ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $o ]] && NGSANE_CHECKPOINT_CHECK
 
 fi
 

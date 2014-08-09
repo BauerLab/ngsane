@@ -29,7 +29,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --bam )            shift; f=$1 ;; # bam file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir 
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -42,7 +42,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_PEAKRANGER; do module load $MODULE; done && module list 
@@ -62,9 +62,9 @@ echo -e "--bedtools --\n "$(bedtools --version)
 echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
 [ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress bedgraphs"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
     echo "[ERROR] input control not provided or invalid (CHIPINPUT=\"$CHIPINPUT\")"
@@ -85,7 +85,7 @@ else
     echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
 fi
 
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -e $OUTDIR/$SAMPLE-$CONTROL"_region.bed" ] && rm $OUTDIR/$SAMPLE-$CONTROL*
 fi
 
@@ -94,22 +94,20 @@ if [ "$PEAKRANGER_PEAKS" != "broad" ] && [ "$PEAKRANGER_PEAKS" != "sharp" ]; the
     exit 1
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f}
 	dmget -a $OUTDIR/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="assess data quality"
+NGSANE_CHECKPOINT_INIT "assess data quality"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     [ -f $OUTDIR/$SAMPLE-$CONTROL.summary.txt ] && rm $OUTDIR/$SAMPLE-$CONTROL.summary.txt
     
@@ -122,16 +120,14 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE-$CONTROL.summary.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$SAMPLE-$CONTROL.summary.txt ]] && NGSANE_CHECKPOINT_CHECK
 
 fi
 ################################################################################
-CHECKPOINT="peakranger"
+NGSANE_CHECKPOINT_INIT "peakranger"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
-    
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
     if [ "$PEAKRANGER_PEAKS" == "broad" ]; then
         echo "[NOTE] calling broad peaks"
         RUN_COMMAND="peakranger ccat $PEAKRANGERADDPARAM --format bam --data $f --control $CHIPINPUT --output $OUTDIR/$SAMPLE-$CONTROL -t $CPU_PEAKRANGER"
@@ -159,16 +155,16 @@ else
     fi
     
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE-$CONTROL"_region.bed" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$SAMPLE-$CONTROL"_region.bed" ]] && NGSANE_CHECKPOINT_CHECK
 
 fi
 
 ################################################################################
-CHECKPOINT="zip"
+NGSANE_CHECKPOINT_INIT "zip"
 
 $GZIP -f $OUTDIR/$SAMPLE-$CONTROL"_details"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 [ -e $OUTDIR/$SAMPLE-$CONTROL"_region.bed.dummy" ] && rm $OUTDIR/$SAMPLE-$CONTROL"_region.bed.dummy"
 echo ">>>>> ChIPseq analysis with Peakranger - FINISHED"

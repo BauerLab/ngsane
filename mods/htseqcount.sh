@@ -31,7 +31,7 @@ while [ "$1" != "" ]; do
 	-k | toolkit )          shift; CONFIG=$1 ;; # ENSURE NO VARIABLE NAMES FROM CONFIG
 	-f | --bam )            shift; f=$1 ;; # fastq file
 	-o | --outdir )         shift; OUTDIR=$1 ;; # output dir
-    --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+    --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
 	-h | --help )           usage ;;
 	* )                     echo "dont understand $1"
 	esac
@@ -43,7 +43,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_HTSEQCOUNT; do module load $MODULE; done && module list 
@@ -74,18 +74,18 @@ echo -e "--Python      --\n" $(python --version 2>&1 | tee | head -n 1 )
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 hash module 2>/dev/null && echo -e "--Python libs --\n "$(yolk -l)
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a ${f}*
 	dmget -a $OUTDIR/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 [ ! -f $f ] && echo "[ERROR] input file not found: $f" && exit 1
 
@@ -94,7 +94,7 @@ n=${f##*/}
 SAMPLE=${n/%$ASD.bam/}
 
 #remove old files
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
 fi
 
@@ -168,13 +168,11 @@ THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
 mkdir -p $THISTMP
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="fix mates"
+NGSANE_CHECKPOINT_INIT "fix mates"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 	if	[[ -n "$HTSEQCOUNT_UNIQUE" ]] ; then
 
@@ -201,16 +199,15 @@ else
     # cleanup
     
     [ -e $THISTMP/$SAMPLE.tmp.bam ] && rm $THISTMP/$SAMPLE.tmp.bam
+    
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.fixed.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$SAMPLE.fixed.bam ]] && NGSANE_CHECKPOINT_CHECK
    
 fi
 ################################################################################
-CHECKPOINT="Calculate Counts"
+NGSANE_CHECKPOINT_INIT "Calculate Counts"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     cat /dev/null > $OUTDIR/GTF.summary.txt
     echo "[NOTE] Summary file - $OUTDIR/${anno_version}.summary.txt"    
     for ATTR in $HTSEQCOUNT_ATTRIBUTES; do 
@@ -229,18 +226,18 @@ else
     done
     
     # mark checkpoint
-    if [ -f $OUTDIR/$anno_version.$MODE.$ATTR ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$anno_version.$MODE.$ATTR ]] && NGSANE_CHECKPOINT_CHECK
 fi
 	
 
 ################################################################################
-CHECKPOINT="summarize"
+NGSANE_CHECKPOINT_INIT "summarize"
 
 cat $OUTDIR/GTF.summary.txt | awk '{print "all",$0}' > ${OUTDIR}/${SAMPLE}.${anno_version}.summary.txt
    
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="cleanup"    
+NGSANE_CHECKPOINT_INIT "cleanup"    
 
 if [ -z "$HTSEQCOUNT_KEEPBAMS"]; then
     [ -e $OUTDIR/$SAMPLE.fixed.bam ] && rm $OUTDIR/$SAMPLE.fixed.bam
@@ -250,7 +247,7 @@ fi
 [ -e $OUTDIR/..//${SAMPLE}.summary.txt.dummy ] && rm $OUTDIR/..//${SAMPLE}.summary.txt.dummy
 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 
 echo ">>>>> feature counting with HTSEQ-COUNT - FINISHED"

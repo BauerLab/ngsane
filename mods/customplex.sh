@@ -42,7 +42,7 @@ while [ "$1" != "" ]; do
         -b | --barcode )        shift; BARCODR=$1 ;; # reference genome
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
         -p | --prefix )         shift; PREFIX=$1 ;; # prefix for the line
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -54,7 +54,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && 
@@ -74,9 +74,9 @@ echo -e "--fastx_trimmer              --\n "$(fastx_trimmer -h | head -n 2 | tai
 [ -z "$(which fastx_trimmer)" ] && echo "[ERROR] no fastx_trimmer detected" && exit 1
 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 #echo $OUTDIR
 
@@ -90,58 +90,50 @@ fi
 # get basename of f
 n=${f##*/}
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="read1-read2"
+NGSANE_CHECKPOINT_INIT "read1-read2"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     # put read1 and read2 side by side
     perl ${NGSANE_BASE}/bin/shuffleSequences_fastq_sidebyside.pl $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} \
         $OUTDIR/${n/$READONE/"sidebyside$READONE"}
 
     # mark checkpoint
-    if [ -e $OUTDIR/${n/$READONE/"sidebyside$READONE"} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/${n/$READONE/"sidebyside$READONE"} ]] && NGSANE_CHECKPOINT_CHECK
 
 fi 
 
 ################################################################################
-CHECKPOINT="read1-read2 demult"
+NGSANE_CHECKPOINT_INIT "read1-read2 demult"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     cat $OUTDIR/${n/$READONE/"sidebyside$READONE"} | fastx_barcode_splitter.pl  \
         --bcfile $CUSTOMBARCODE --bol --mismatches 1 --prefix $OUTDIR/$PREFIX$READONE"_" \
         --suffix "_seq.fastq" > $OUTDIR/$PREFIX$READONE"_read_counts"
     
-    if [ -e $OUTDIR/$PREFIX$READONE"_read_counts" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$PREFIX$READONE"_read_counts" ]] && NGSANE_CHECKPOINT_CHECK
 
 fi 
 
 ################################################################################
-CHECKPOINT="read1-read2 unmatched"
+NGSANE_CHECKPOINT_INIT "read1-read2 unmatched"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     # find unmatched
     perl ${NGSANE_BASE}/bin/splitintoforandrevreads.pl $OUTDIR/$PREFIX$READONE"_unmatched"
 
-    if [ -e $OUTDIR/$PREFIX$READONE"_unmatched" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$PREFIX$READONE"_unmatched" ]] && NGSANE_CHECKPOINT_CHECK
 
 fi 
 
 ################################################################################
-CHECKPOINT="read2-read1"
+NGSANE_CHECKPOINT_INIT "read2-read1"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     # put for the unmached read one first
     perl ${NGSANE_BASE}/bin/shuffleSequences_fastq_sidebyside.pl \
@@ -149,32 +141,28 @@ else
         $OUTDIR/$PREFIX$READONE"_unmatched_1_seq.fastq" \
         $OUTDIR/${n/$READONE/"sidebyside$READTWO"}
 
-    if [ -e $OUTDIR/${n/$READONE/"sidebyside$READTWO"} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/${n/$READONE/"sidebyside$READTWO"} ]] && NGSANE_CHECKPOINT_CHECK
 
 fi 
 
 ################################################################################
-CHECKPOINT="read2-read1 demult"
+NGSANE_CHECKPOINT_INIT "read2-read1 demult"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     # demultiplex with read2/read1
     cat $OUTDIR/${n/$READONE/"sidebyside$READTWO"} | fastx_barcode_splitter.pl \
         --bcfile $CUSTOMBARCODE --bol --mismatches 1 --prefix $OUTDIR/$PREFIX$READTWO"_" \
         --suffix "_seq.fastq" > $OUTDIR/$PREFIX$READTWO"_read_counts"
 
-    if [ -e $OUTDIR/$PREFIX$READTWO"_read_counts" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$PREFIX$READTWO"_read_counts" ]] && NGSANE_CHECKPOINT_CHECK
 
 fi 
 
 ################################################################################
-CHECKPOINT="cat and trim"
+NGSANE_CHECKPOINT_INIT "cat and trim"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     for p in $( ls $OUTDIR/$PREFIX"$READONE"*.fastq ); do
     
@@ -209,19 +197,19 @@ else
      
     done
     
-    if [ -e $OUTDIR/$PREFIX$READTWO"_read_counts" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [[ -s $OUTDIR/$PREFIX$READTWO"_read_counts" ]] && NGSANE_CHECKPOINT_CHECK
 
 fi 
 
 ################################################################################
-CHECKPOINT="cleanup"
+NGSANE_CHECKPOINT_INIT "cleanup"
 
 [ -e $OUTDIR/$PREFIX$READONE"_unmatched_seq.fastq" ] && rm $OUTDIR/$PREFIX$READONE"_unmatched_seq.fastq"
 [ -e $OUTDIR/$PREFIX$READTWO"_unmatched_seq.fastq" ] && rm $OUTDIR/$PREFIX$READTWO"_unmatched_seq.fastq"
 [ -e $OUTDIR/${n/$READONE/"sidebyside$READONE"} ] && rm $OUTDIR/${n/$READONE/"sidebyside$READONE"}
 [ -e $OUTDIR/${n/$READONE/"sidebyside$READTWO"} ] && rm $OUTDIR/${n/$READONE/"sidebyside$READTWO"}
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 echo ">>>>> customplex with fastXtoolkit - FINISHED"
 echo ">>>>> enddate "`date`

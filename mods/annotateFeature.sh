@@ -38,7 +38,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --file )           shift; FILES=$1 ;; # files
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir                                                       
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -56,7 +56,7 @@ if [ -n "$BIN" ]; then export PYBIN="--bin $BIN"; fi
 if [ -n "$STRANDETNESS" ]; then export STRAND="-s"; fi
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_FEATANN; do module load $MODULE; done && module list 
@@ -68,9 +68,9 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--bedtools    --\n "$(bedtools -version)
 [ -z "$(which bedtools)" ] && echo "[WARN] bedtools not detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 FILES=${FILES//,/ /}
 
@@ -90,7 +90,7 @@ else
 fi
 
 # delete old bam files unless attempting to recover
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -e $(echo $RESULTFILES | cut -d " " -f 1) ] && rm -f ${RESULTFILES//.txt/*}
     [ -e $OUTDIR/joined"-"${UPSTREAM}"+"${DOWNSTREAM}"_"$METRIC${STRAND/-/_}.png ] && rm -f $OUTDIR/joined"-"${UPSTREAM}"+"${DOWNSTREAM}"_"$METRIC${STRAND/-/_}*
 fi
@@ -115,23 +115,20 @@ export REGIONS=$OUTDIR/${FEATURENAME/bed/}feat-$UPSTREAM"+"$DOWNSTREAM"_"$METRIC
 
 echo "[NOTE] Padding featues with $UPSTREAM and $DOWNSTREAM bps up- and downstream, respectively"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 	
 if [ -n "$DMGET" ]; then
     dmget -a $FEATUREFILE
     dmget -a ${FILES}
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
-
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="pad and clean features"
+NGSANE_CHECKPOINT_INIT "pad and clean features"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     head $FEATUREFILE
     if [ -z "$FEATURE_END" ];then    
@@ -156,10 +153,10 @@ else
         mv $REGIONS.tmp $REGIONS
     fi
 
-    head $REGIONS
+    head -n 2 $REGIONS
  
     # mark checkpoint
-    if [ -f $REGIONS ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [ -f $REGIONS ] && NGSANE_CHECKPOINT_CHECK 
 fi
 ################################################################################
 
@@ -173,11 +170,9 @@ else
 fi
 
 ################################################################################
-CHECKPOINT="run annotation"
+NGSANE_CHECKPOINT_INIT "run annotation"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     get_coverage() {
         . $CONFIG
@@ -245,16 +240,14 @@ else
     #for i in $FILES; do get_coverage $i; done
 
 	# mark checkpoint
-    if [ -f $(echo $RESULTFILES | cut -d " " -f 1) ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [ -f $(echo $RESULTFILES | cut -d " " -f 1) ] && NGSANE_CHECKPOINT_CHECK 
     
     rm ${RESULTFILES//.txt/.bed}
 fi
 ################################################################################
-CHECKPOINT="summarize"
+NGSANE_CHECKPOINT_INIT "summarize"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     JOINED=$OUTDIR/"joined-"$UPSTREAM"+"$DOWNSTREAM"_"$METRIC${STRAND/-/_}
     echo "[NOTE] plot $JOINED.pdf"
@@ -267,7 +260,7 @@ else
     ls $JOINED.png
 
 	# mark checkpoint
-    if [ -f $JOINED.pdf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    [ -f $JOINED.pdf ] && NGSANE_CHECKPOINT_CHECK 
     
     rm $RESULTFILES
 

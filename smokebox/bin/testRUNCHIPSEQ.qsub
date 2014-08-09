@@ -123,8 +123,8 @@ cat bin/tmpl/configChIPseq.txt | \
     sed 's/RUNMEMECHIP=\"\"/RUNMEMECHIP=\"1\"/g' |\
 	sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryCHIPSEQ\"/g' > tmp/configCHIPSEQ.txt
 
-# Prep and runare the job to generate the html result page and perform the diff 
-echo "[NOTE] Prep and runare evaluation script tmp/testCHIPSEQPR.qsub wait for $HOLDID"
+# Prep and run the job to generate the html result page and perform the diff 
+echo "[NOTE] Prep and run evaluation script tmp/testCHIPSEQPR.qsub wait for $HOLDID"
 sed 's/NAME/NGs_CHIPSEQ/g' bin/tmpl/HPCheader.txt > tmp/testCHIPSEQ.qsub
 echo "trigger.sh tmp/configCHIPSEQ.txt html" >> tmp/testCHIPSEQ.qsub
 echo "diff result/SummaryCHIPSEQ.html result/expected/SummaryCHIPSEQ.html | \
