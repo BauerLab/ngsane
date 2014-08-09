@@ -102,7 +102,7 @@ fi
     
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
-NGSANE_CHECKPOINT_INIT "Make tables of counts"
+NGSANE_CHECKPOINT_INIT "create tables of counts"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
@@ -154,7 +154,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
 fi
 ################################################################################
-NGSANE_CHECKPOINT_INIT "cleanup counts."  
+NGSANE_CHECKPOINT_INIT "cleanup"  
   
   [ -f ${THISTMP}/out.csv ] && rm ${THISTMP}/out.csv
   [ -f ${THISTMP}/joinedfile.txt ] && rm ${THISTMP}/joinedfile.txt
