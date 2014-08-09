@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 # author: Hugh French and Fabian Buske
-# date: April 2014 echo ">>>>> [cuffquant]"
+# date: April 2014 echo ">>>>> [cuffnorm]"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
@@ -22,7 +22,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;;     # location of the NGSANE repository                       
         -f | --file )           shift; FILES=$1 ;;  # input file                                                       
         -o | --outdir )         shift; OUTDIR=$1 ;;     # output dir                                                     
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -36,9 +36,9 @@ done
 
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
-for MODULE in $MODULE_CUFFLINKS; do module load $MODULE; done  # save way to load modules that itself load other modules
+hash module 2>/dev/null && for MODULE in $MODULE_CUFFLINKS; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_CUFFLINKS:$PATH
 
 module list
@@ -48,9 +48,10 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--cufflinks   --\n "$(cufflinks 2>&1 | tee | head -n 2 )
 [ -z "$(which cufflinks)" ] && echo "[ERROR] no cufflinks detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
+
 echo "[NOTE] Files: $FILES"
 DATASETS=""
 for f in $FILES; do
@@ -74,7 +75,7 @@ echo "[NOTE] $DATASETS"
 echo "[NOTE] $OUTDIR"
 
 #mkdir -p "$OUTDIR"
-#if [ -z "$RECOVERFROM" ]; then
+#if [ -z "$NGSANE_RECOVERFROM" ]; then
 #    ## TODO remove primary result files from pervious runs
 #    rm ${OUTDIR}/*
 #fi
@@ -85,47 +86,34 @@ mkdir -p "$THISTMP"
 
 #echo "[NOTE] echo $THISTMP"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a $INPUTFILE
     dmget -a $OUTDIR/*
-    # TODO add additional resources that are required and may need recovery from tape
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
-
+NGSANE_CHECKPOINT_CHECK
 #################################################################################
-CHECKPOINT="Run cuffnorm"
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+NGSANE_CHECKPOINT_INIT "Run cuffnorm"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     RUNCOMMAND="cuffnorm --no-update-check --quiet --output-dir ${OUTDIR}/$MERGED_GTF_NAME -p $CPU_CUFFLINKS $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf $(echo $FILES | tr ',' ' ')"
     echo $RUNCOMMAND && eval $RUNCOMMAND
 
     # mark checkpoint
-    if [ -e $OUTDIR/ ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK && $OUTDIR/genes.count_table $OUTDIR/genes.fpkm_table
 
 fi
 #################################################################################
-CHECKPOINT="cleanup"  
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+NGSANE_CHECKPOINT_INIT "cleanup"  
 
-    [ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
+[ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
      
-    echo -e "\n********* $CHECKPOINT\n"
-fi
+NGSANE_CHECKPOINT_CHECK
 #################################################################################
-echo ">>>>> Experiment merged transcripts (cuffquant) - FINISHED"
+echo ">>>>> Experiment merged transcripts (cuffnorm) - FINISHED"
 echo ">>>>> enddate "`date`
-
-
-
-
-
-

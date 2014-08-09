@@ -119,7 +119,7 @@ for T in $SCRIPTFILES; do
 	done
 
 	echo ">>>>>>>>>> CheckPoints "
-	PROGRESS=$(grep '^CHECKPOINT="' $SCRIPT | awk -F'"' '{print $2}' | tr ' ' '_')
+	PROGRESS=$(grep '^NGSANE_CHECKPOINT_INIT "' $SCRIPT | awk -F'"' '{print $2}' | tr ' ' '_')
 	for i in $PROGRESS; do
 	  i=${i//_/ }
 	  var=$(egrep "^\*{9} $i" $files | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')

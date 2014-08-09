@@ -24,7 +24,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the configuration file
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -38,7 +38,7 @@ done
 if [ -e $NODE_TMP ]; then TMP=$NODE_TMP; fi     # overwrites temp folder variable to node-local temp folder, if specified
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULES_TRINITY; do module load $MODULE; done && module list 
@@ -63,9 +63,9 @@ echo -e "--trinity     --\n "$(Trinity.pl --version)
 
 ulimit -s unlimited
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="detect library"
+NGSANE_CHECKPOINT_INIT "detect library"
 
 # get basename of f
 n=${f##*/}
@@ -95,22 +95,20 @@ else
     echo "[NOTE] Persistent ID found: $PERSISTENT_ID"
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ###############################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 	dmget -a $OUTDIR/$SAMPLE/*
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="Chrysalis"
+NGSANE_CHECKPOINT_INIT "Chrysalis"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     mkdir -p $TMP/$PERSISTENT_ID
     cp -r $OUTDIR/$SAMPLE/* $TMP/$PERSISTENT_ID
@@ -131,16 +129,16 @@ else
     rm -r $TMP/$PERSISTENT_ID/* $OUTDIR/../$TASK_TRINITY/$SAMPLE/target.fa    
     ln -f -s $OUTDIR/../$TASK_TRINITY/$SAMPLE/inchworm.K25.L25.fa $OUTDIR/../$TASK_TRINITY/$SAMPLE/target.fa
 
-    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing}
-    echo "Read count:"$(head -n 1 $OUTDIR/$SAMPLE/chrysalis/readcounts.out) > $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
+    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/$SAMPLE.chrysalis.timing
+    echo "Read count:"$(head -n 1 $OUTDIR/$SAMPLE/chrysalis/readcounts.out) > $OUTDIR/$SAMPLE.summary.txt
     
     echo "[NOTE] Chrysalis pt.1 has completed properly! thank Martin by buying him another beer"
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.chrysalis.timing
 fi 
 
 ################################################################################
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.chrysalis.timing}.dummy
+[ -e $OUTDIR/$SAMPLE.chrysalis.timing.dummy ] && rm $OUTDIR/$SAMPLE.chrysalis.timing.dummy
 echo ">>>>> transcriptome assembly with trinity chrysalis - FINISHED"
 echo ">>>>> enddate "`date`

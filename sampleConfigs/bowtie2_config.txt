@@ -58,6 +58,7 @@ PLATFORM="Illumina"
 FASTQ_PHRED=
 
 # additional parameters passed to Bowtie2 
+# e.g. "--local"
 BOWTIE2ADDPARAM=
 
 #WALLTIME_BOWTIE2=10:00:00
