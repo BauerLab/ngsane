@@ -12,13 +12,14 @@ if [ -n "$RUNMAPPINGBOWTIE2" ]; then
     if [ ! -f ${FASTA%.*}.1.bt2 ];then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE2 -i $INPUT_BOWTIE2 -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" \
+            $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE2 -i $INPUT_BOWTIE2 -e $READONE.$FASTQ \
+            -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" $WAITFORJOB_BOWTIE2 \
             -w $WALLTIME_BOWTIE2 --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
     else
-        INDEXJOBIDS=""
+        INDEXJOBIDS=$WAITFORJOB_BOWTIE2
     fi
     
     $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE2 -i $INPUT_BOWTIE2 -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" -w $WALLTIME_BOWTIE2 $INDEXJOBIDS \

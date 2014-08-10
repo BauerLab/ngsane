@@ -1,71 +1,45 @@
 #!/bin/bash -e
 
 ################################################################################
-#  Gene expression analysis with tophat + cufflinks + htseqcount
-#
-# IN : $SOURCE/$dir/fastq/*read1.fastq
-# OUT: $OUT/$dir/tophat/*.bam/
+#  Gene expression analysis pipeline with tophat + cufflinks + htseqcount
 ################################################################################       
 
 if [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
-    if [ -z "$TASK_TOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
-
-    if [ -z "$TASK_CUFFLINKS" ] || [ -z "$NODES_CUFFLINKS" ] || [ -z "$CPU_CUFFLINKS" ] || [ -z "$MEMORY_CUFFLINKS" ] || [ -z "$WALLTIME_CUFFLINKS" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
-
-    if [ -z "$TASK_HTSEQCOUNT" ] || [ -z "$NODES_HTSEQCOUNT" ] || [ -z "$CPU_HTSEQCOUNT" ] || [ -z "$MEMORY_HTSEQCOUNT" ] || [ -z "$WALLTIME_HTSEQCOUNT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
-
 
 	# check that if runnow has been altered this is done for all successor jobs of tophat
 	if [ -e $QOUT/$TASK_TOPHAT/runnow.tmp ]; then
 		echo "[NOTE] checking runnow.tmp"
 		LENGTHT=$(wc -l $QOUT/$TASK_TOPHAT/runnow.tmp | cut -d " " -f 1)
-		LENGTHC=$(wc -l $QOUT/$TASK_CUFFLINKS/runnow.tmp | cut -d " " -f 1)
+		LENGTHC=$(wc -l $QOUTß/$TASK_CUFFLINKS/runnow.tmp | cut -d " " -f 1)
 		LENGTHH=$(wc -l $QOUT/$TASK_HTSEQCOUNT/runnow.tmp | cut -d " " -f 1)
-		if [[ $LENGTHT != $LENGTHC ]] || [[ $LENGTHT != $LENGTHH ]] || [[ $LENGTHT != $LENGTHB ]] ; then 
-			echo "[ERROR] runnow.tmp files of tophat has different length to its successor jobs ($LENGTHT, $LENGTHC, $LENGTHH, $LENGTHB)"; exit -1; 
+		if [[ $LENGTHT != $LENGTHC ]] || [[ $LENGTHT != $LENGTHH ]]; then 
+			echo "[ERROR] runnow.tmp files of tophat has different length to its successor jobs ($LENGTHT, $LENGTHC, $LENGTHH)"; exit -1; 
 		fi
 	fi
     
-    if [ ! -f ${FASTA%.*}.1.bt2 ];then
-        # submit job for index generation if necessary
-        INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" \
-            -w $WALLTIME_TOPHAT --commontask indexGenome \
-            --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
-        ) && echo -e "$INDEXJOBIDS"
-        INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
-    else
-        INDEXJOBIDS=""
-    fi
-    
     JOBIDS=$( 
-        $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" $INDEXJOBIDS \
-            -w $WALLTIME_TOPHAT \
-            --command "${NGSANE_BASE}/mods/tophat.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_TOPHAT/<NAME>" 
+        RUNTOPHAT=1
+        . $NGSANE_BASE/mods/run.d/TOPHAT
+        RUNTOPHAT=
+        
     ) && echo -e "$JOBIDS"
-
-   JOBIDS_TOPHAT=$(waitForJobIds "$JOBIDS")
-
-    # instruct to wait for TOPHATJOBIDS to finish
-
-
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_HTSEQCOUNT -i $INPUT_HTSEQCOUNT -e $ASD.bam -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT $JOBIDS_TOPHAT \
-        --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HTSEQCOUNT/<NAME>" \
-        --postname postcommand$HTSEQCOUNT_TABLE_FOLDERNAME \
-        --postcommand "${NGSANE_BASE}/mods/countsTable.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_HTSEQCOUNT"   
+    JOBIDS_TOPHAT=$(waitForJobIds "$JOBIDS")
     
+    # instruct to wait for TOPHATJOBIDS to finish
+    JOBIDS=$( 
+        RUNHTSEQCOUNT=1
+        WAITFORJOB_HTSEQCOUNT=$JOBIDS_TOPHAT
+        . $NGSANE_BASE/mods/run.d/HTSEQCOUNT
+        RUNHTSEQCOUNT=
+    ) && echo -e "$JOBIDS"
+    JOBIDS_HTSEQCOUNT=$(waitForJobIds "$JOBIDS")
 
     JOBIDS=$(
-    	$QSUB $ARMED -r -k $CONFIG -t $TASK_CUFFLINKS -i $INPUT_CUFFLINKS -e $ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS $JOBIDS_TOPHAT \
-       		--command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFLINKS/<NAME>" \
-       		--postname "postcommandCuffmerge$MERGED_GTF_NAME" \
-        	--postcommand "${NGSANE_BASE}/mods/cuffpost.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_CUFFLINKS"
-        	) && echo -e "$JOBIDS"
+        RUNCUFFLINKS="1"
+        WAITFORJOB_CUFFLINKS=$JOBIDS_TOPHAT
+        . $NGSANE_BASE/mods/run.d/CUFFLINKS
+        RUNCUFFLINKS=
+	) && echo -e "$JOBIDS"
     JOBIDS_CUFFLINKS=$(waitForJobIds "$JOBIDS")
-
-	$QSUB $ARMED -r -k $CONFIG -t $TASK_CUFFLINKS -i $INPUT_CUFFLINKS -e $ASD.bam -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS $JOBIDS_CUFFLINKS \
-		--command "${NGSANE_BASE}/mods/cuffquant.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFLINKS/<NAME>" \
-		--postname "postcommandCuffnorm$MERGED_GTF_NAME" \
-		--postcommand "${NGSANE_BASE}/mods/cuffnorm.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_CUFFLINKS"
 
 fi

@@ -10,7 +10,8 @@
 if [ -n "$RUNBIGWIG" ]; then
     if [ -z "$TASK_BIGWIG" ] || [ -z "$NODES_BIGWIG" ] || [ -z "$CPU_BIGWIG" ] || [ -z "$MEMORY_BIGWIG" ] || [ -z "$WALLTIME_BIGWIG" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_BIGWIG -i $INPUT_BIGWIG -e $ASD.bam -n $NODES_BIGWIG -c $CPU_BIGWIG -m $MEMORY_BIGWIG"G" -w $WALLTIME_BIGWIG \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_BIGWIG -i $INPUT_BIGWIG -e $ASD.bam \
+        -n $NODES_BIGWIG -c $CPU_BIGWIG -m $MEMORY_BIGWIG"G" -w $WALLTIME_BIGWIG $WAITFORJOB_BIGWIG \
         --command "${NGSANE_BASE}/mods/bigwig.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_BIGWIG"
             
 fi

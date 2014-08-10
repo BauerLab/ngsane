@@ -421,7 +421,7 @@ fi
 
 ################################################################################
 if [[ -n "$RUNHTSEQCOUNT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
-    summaryHeader "Htseq-count" "$TASK_HTSEQCOUNT" "htseqcount.sh,countsTable.sh" "$SUMMARYTMP" ".RPKM.csv"
+    summaryHeader "Htseq-count" "$TASK_HTSEQCOUNT" "htseqcount.sh,countsTable.sh" "$SUMMARYTMP"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_HTSEQCOUNT)" .summary.txt htseqcount >>$SUMMARYTMP
 

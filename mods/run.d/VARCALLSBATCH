@@ -31,19 +31,19 @@ if [ -n "$RUNVARCALLSBATCH" ]; then
    	$QSUB $ARMED --postname joinedSNP --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
 		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
 		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
-				-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.snps.vcf"
+			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.snps.vcf"
 
 	echo "[NOTE] filtered INDELs"
    	$QSUB $ARMED --postname joinedINDEL --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
 		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
 		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
-				-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.indel.vcf"
+			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.indel.vcf"
 
 	echo "[NOTE] recal Vars"
    	$QSUB $ARMED --postname joinedRECAL --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
 		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
 		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
-				-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target recalfilt.vcf"
+			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target recalfilt.vcf"
    
 fi	
 

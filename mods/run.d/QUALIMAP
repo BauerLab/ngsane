@@ -10,7 +10,8 @@
 if [ -n "$RUNQUALIMAP" ]; then
     if [ -z "$TASK_QUALIMAP" ] || [ -z "$NODES_QUALIMAP" ] || [ -z "$CPU_QUALIMAP" ] || [ -z "$MEMORY_QUALIMAP" ] || [ -z "$WALLTIME_QUALIMAP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_QUALIMAP -i $INPUT_QUALIMAP -e $ASD.bam -n $NODES_QUALIMAP -c $CPU_QUALIMAP -m $MEMORY_QUALIMAP"G" -w $WALLTIME_QUALIMAP \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_QUALIMAP -i $INPUT_QUALIMAP -e $ASD.bam \
+    -n $NODES_QUALIMAP -c $CPU_QUALIMAP -m $MEMORY_QUALIMAP"G" -w $WALLTIME_QUALIMAP $WAITFORJOB_QUALIMAP \
         --command "${NGSANE_BASE}/mods/qualimap.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_QUALIMAP/"
 
 fi

@@ -13,13 +13,14 @@ if [ -n "$RUNMRSFAST" ]; then
     if [ ! -f $FASTA.index ];then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_MRSFAST -i $INPUT_MRSFAST -e $READONE.$FASTQ -n $NODES_MRSFAST -c $CPU_MRSFAST -m $MEMORY_MRSFAST"G" \
+            $QSUB $ARMED -k $CONFIG -t $TASK_MRSFAST -i $INPUT_MRSFAST -e $READONE.$FASTQ 
+            -n $NODES_MRSFAST -c $CPU_MRSFAST -m $MEMORY_MRSFAST"G" $WAITFORJOB_MRSFAST \
             -w $WALLTIME_MRSFAST --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/mrsfastIndex.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
     else
-        INDEXJOBIDS=""
+        INDEXJOBIDS=$WAITFORJOB_MRSFAST
     fi
     
     $QSUB $ARMED -k $CONFIG -t $TASK_MRSFAST -i $INPUT_MRSFAST -e $READONE.$FASTQ -n $NODES_MRSFAST -c $CPU_MRSFAST -m $MEMORY_MRSFAST"G" -w $WALLTIME_MRSFAST $INDEXJOBIDS \
