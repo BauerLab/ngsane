@@ -96,10 +96,10 @@ for T in $SCRIPTFILES; do
 	echo ">>>>>>>>>> Finished"
 	finished=$(egrep "^>{5} .* FINISHED" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
 	if [ "$finished" = "$nrfiles" ]; then
-	    echo "QC_PASS .. finished are $finished/$nrfiles"
+	    echo "QC_PASS .. $finished/$nrfiles are finished"
 	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
 	else
-	    echo "**_FAIL .. finished are $finished/$nrfiles"
+	    echo "**_FAIL .. $finished/$nrfiles are finished"
 	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
 	fi
 
@@ -110,10 +110,10 @@ for T in $SCRIPTFILES; do
 	  i=${i//_/ }
 	  var=$(grep -i "$i" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
 	  if [ "$var" = "0" ]; then
-	    echo "QC_PASS .. $var have $i/$nrfiles"
+	    echo "QC_PASS .. $var/$nrfiles have $i"
 	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
 	  else
-	    echo "**_FAIL .. $var have $i/$nrfiles"
+	    echo "**_FAIL .. $var/$nrfiles have $i"
 	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
 	  fi
 	done
@@ -124,10 +124,10 @@ for T in $SCRIPTFILES; do
 	  i=${i//_/ }
 	  var=$(egrep "^\*{9} $i" $files | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
 	  if [ ! "$var" = "$nrfiles" ]; then
-	    echo "**_FAIL .. $var have $i/$nrfiles"
+	    echo "**_FAIL .. $var/$nrfiles have $i"
 	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
 	  else
-	    echo "QC_PASS .. $var have $i/$nrfiles"
+	    echo "QC_PASS .. $var/$nrfiles have $i"
 	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
 	  fi
 	done
