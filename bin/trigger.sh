@@ -103,6 +103,7 @@ function waitForJobIds {
 ################################################################################
 #  task fork
 ################################################################################
+NGSANE_STARTJOB=
 if [ -n "$ADDITIONALTASK" ]; then
 
 	if [ "$ADDITIONALTASK" = "fetchdata" ]; then
@@ -129,9 +130,9 @@ if [ -n "$ADDITIONALTASK" ]; then
 	    echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
 	    ARMED="--armed"
 
-        echo -n -e "Double check! Then type \e[4msafetyoff\e[24m and hit enter to launch the job: "
+        echo -n -e "Do you want to take the safety off? Double check and type \e[4myes\e[24m to launch the job: "
         read safetyoff
-        if [ "$safetyoff" != "safetyoff" ];then
+        if [ "$safetyoff" != "yes" ];then
             echo -e "Holstering..."
             exit 0
         else
