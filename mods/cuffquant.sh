@@ -23,7 +23,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;;     # location of the NGSANE repository                       
         -f | --file )           shift; INPUTFILE=$1 ;;  # input file                                                       
         -o | --outdir )         shift; OUTDIR=$1 ;;     # output dir                                                     
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -36,7 +36,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 for MODULE in $MODULE_CUFFLINKS; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_CUFFLINKS:$PATH
@@ -48,9 +48,9 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--cufflinks   --\n "$(cufflinks 2>&1 | tee | head -n 2 )
 [ -z "$(which cufflinks)" ] && echo "[ERROR] no cufflinks detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 [ ! -f $INPUTFILE ] && echo "[ERROR] input file not found: $INPUTFILE" && exit 1
 
@@ -71,36 +71,33 @@ THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
 mkdir -p $THISTMP
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a $INPUTFILE
     dmget -a $OUTDIR/*
-    # TODO add additional resources that are required and may need recovery from tape
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="Run cuffquant"  
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+NGSANE_CHECKPOINT_INIT "Run cuffquant"  
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     RUNCOMMAND="cuffquant --no-update-check --quiet --output-dir $OUTDIR -p $CPU_CUFFLINKS $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf $INPUTFILE"
     echo $RUNCOMMAND && eval $RUNCOMMAND
 
     # mark checkpoint
-    if [ -e $OUTDIR/abundances.cxb ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/abundances.cxb
 fi
 
 ################################################################################
-CHECKPOINT="cleanup"
+NGSANE_CHECKPOINT_INIT "cleanup"
 
 [ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 [ -e $OUTDIR/../${SAMPLE}.cxb.dummy ] && rm $OUTDIR/../${SAMPLE}.cxb.dummy
 echo ">>>>> Experiment merged transcripts (cuffquant) - FINISHED"

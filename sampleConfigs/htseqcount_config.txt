@@ -65,14 +65,6 @@ HTSEQCOUNT_ADDPARAMS=
 # has a different suffix
 #DOCTOREDGTFSUFFIX=".doctored.gtf"
 
-# keep intermediate bam files generated for htseqcount (default remove bams)
-# e.g. HTSEQCOUNT_KEEPBAMS="yes" to keep files
-HTSEQCOUNT_KEEPBAMS=
-
-# whether to skip output with tRNA, rRNA etc masked in gtf
-# e.g. HTSEQCOUNT_SKIPMASKED="yes" to skip
-HTSEQCOUNT_SKIPMASKED=
-
 # name of the folder that will contain the aggregated counts table over all libraries
 # if not set, defaults to a concatenation of the library folders
 HTSEQCOUNT_TABLE_FOLDERNAME="htseqcount-countstable"

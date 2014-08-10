@@ -14,5 +14,5 @@ if [ -n "$RUNPOOLBAMS" ]; then
     $QSUB $ARMED -r -d -k $CONFIG -t $TASK_POOLBAMS -i $INPUT_POOLBAMS -e $ASD.bam -n $NODES_POOLBAMS \
     	-c $CPU_POOLBAMS -m $MEMORY_POOLBAMS"G" -w $WALLTIME_POOLBAMS \
     	--postname postcommand${POOLED_DATA_NAME} \
-    	--postcommand "${NGSANE_BASE}/mods/poolBams.sh -k $CONFIG" 
+    	--postcommand "${NGSANE_BASE}/mods/poolBams.sh -k $CONFIG --outdir $OUT/<DIR>/$TASK_POOLBAMS" 
 fi

@@ -384,7 +384,7 @@ if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
     echo "<br>[NOTE] the duplication rate is not calculated by tophat and hence zero.<br>" >>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$vali" $ASD.bam.stats tophat >>$SUMMARYTMP
     
-    if [ -n "$RUNANNOTATINGBAM" ] || [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
+    if [ -n "$RUNANNOTATINGBAM" ]; then
         bamAnnotate "$vali" $TASK_TOPHAT  $SUMMARYTMP
     fi
     
@@ -412,17 +412,16 @@ fi
 
 ################################################################################
 if [[ -n "$RUNCUFFLINKS" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
-    summaryHeader "Cufflinks" "$TASK_CUFFLINKS" "cufflinks.sh" "$SUMMARYTMP" "_transcripts.gtf"
+    summaryHeader "Cufflinks" "$TASK_CUFFLINKS" "cufflinks.sh,cuffpost.sh" "$SUMMARYTMP" "_transcripts.gtf"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_CUFFLINKS)" .summary.txt cufflinks >>$SUMMARYTMP
 
     summaryFooter "$TASK_CUFFLINKS" "$SUMMARYTMP"
 fi
 
-
 ################################################################################
 if [[ -n "$RUNHTSEQCOUNT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
-    summaryHeader "Htseq-count" "$TASK_HTSEQCOUNT" "htseqcount.sh" "$SUMMARYTMP" ".RPKM.csv"
+    summaryHeader "Htseq-count" "$TASK_HTSEQCOUNT" "htseqcount.sh,countsTable.sh" "$SUMMARYTMP" ".RPKM.csv"
 
     python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_HTSEQCOUNT)" .summary.txt htseqcount >>$SUMMARYTMP
 

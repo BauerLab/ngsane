@@ -14,18 +14,19 @@ required:
   CONFIG     config.txt file specifying the tasks and location of the resources
 
 options for TASK:
-  [empty]    start dry-run: creates dirs, delete old files, print what will be done
-  new        detect new data that has not been processed yet.
-  fetchdata  get data from remote server (via smbclient)
-  pushresult puts results to remote server (via smbclient)
-  armed      submit tasks to the queue
-  debug      run task directly (e.g. on node after qrsh) output is written to stdout
-  direct     run task directly (e.g. on node after qrsh) output is written to logfiles
-  postonly   run only the post analysis steps of a task (if available)
-  recover    pick up unfinished business (interrupted jobs)
-  html       checks logfiles for errors and creates summary HTML page
-  report     alias for html
-  trackhubs  generate trackhubs
+  [empty]        start dry-run: creates dirs, delete old files, print what will be done
+  new            detect new data that has not been processed yet.
+  fetchdata      get data from remote server (via smbclient)
+  pushresult     puts results to remote server (via smbclient)
+  armed          submit tasks to the queue
+  debug          run task directly (e.g. on node after qrsh) output is written to stdout
+  direct         run task directly (e.g. on node after qrsh) output is written to logfiles
+  postonly       run only the post analysis steps of a task (if available)
+  recover        pick up unfinished business (interrupted jobs)
+  recoverdirect  pick up unfinished business (interrupted jobs) on local machine
+  html           checks logfiles for errors and creates summary HTML page
+  report         alias for html
+  trackhubs      generate trackhubs
 
 other options:
   -h         print this help message.
@@ -169,6 +170,10 @@ if [ -n "$ADDITIONALTASK" ]; then
     elif [ "$ADDITIONALTASK" = "recover" ]; then
         echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
         ARMED="--recover --armed"
+
+    elif [ "$ADDITIONALTASK" = "recoverdirect" ]; then
+        echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
+        ARMED="--recover --direct"
 
     else
         echo -e "\e[91m[ERROR]\e[0m don't understand $ADDITIONALTASK"

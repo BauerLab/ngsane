@@ -1,6 +1,7 @@
 #!/bin/bash -e
 # author: Fabian Buske
 # date: September 2013
+# pool/merge bam files from within a experiment folder subject to a pattern 
 
 echo ">>>>> pool bam datasets"
 echo ">>>>> startdate "`date`
@@ -13,7 +14,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE 
         -h | --help )           usage ;;
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
         * )                     echo "don't understand "$1
     esac
     shift
@@ -24,7 +25,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_POOLBAMS; do module load $MODULE; done && module list 
@@ -51,9 +52,9 @@ echo -e "--gnu parallel --\n "$(parallel --gnu --version 2>&1 | tee | head -n 1)
 [ -z "$(which parallel 2> /dev/null)" ] && echo "[WARN] no gnu parallel detected, processing in serial"
 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="pair input"
+NGSANE_CHECKPOINT_INIT "pair input"
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference defined: FASTA"
@@ -69,7 +70,7 @@ for d in ${DIR[@]}; do
     while read -r -a POOL; do
         PATTERN=$(echo "${POOL[@]:1}" | sed -e 's/ /|/g')
 
-        OUTBAM="$OUT/$d/$INPUT_POOLBAMS/$(echo $POOL | cut -d' ' -f1)$ASD.bam"
+        OUTBAM="$OUT/$d/$TASK_POOLBAMS/$(echo $POOL | cut -d' ' -f1)$ASD.bam"
         [ -f $OUTBAM ] && rm $OUTBAM
 
         INBAMS=""
@@ -87,15 +88,16 @@ for d in ${DIR[@]}; do
     rm $OUT/$d/$INPUT_POOLBAMS/pools.tmp
     
 done
+echo "COMMAND:" $(cat $COMMAND)
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="pool data"
+NGSANE_CHECKPOINT_INIT "pool data"
 
 if hash parallel ; then
-    echo "[NOTE] parallel processing"
 
-    cat $COMMAND | parallel --verbose --joblog $TMP/$TASK_POOLBAMS.log --gnu --eta -j $CPU_POOLBAMS "eval {}" > /dev/null 2&>1
+    echo "[NOTE] parallel processing"
+    cat $COMMAND | parallel --verbose --joblog $TMP/$TASK_POOLBAMS.log --gnu --eta -j $CPU_POOLBAMS "eval {}" > /dev/null 2>&1
 
 else
     # serial processing
@@ -106,9 +108,9 @@ else
     done < $COMMAND
 fi
 
-#rm $COMMAND
+rm $COMMAND
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 echo ">>>>> pool bam datasets - FINISHED"
 echo ">>>>> enddate "`date`

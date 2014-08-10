@@ -36,6 +36,7 @@ QOUT=$OUT/qout
 # BED file with locations of genomic features
 # e.g. downloaded from UCSC 
 FEATUREFILE=
+# Number of bps to consider upstream and downstream
 DOWNSTREAM=
 UPSTREAM=
 
@@ -45,11 +46,16 @@ UPSTREAM=
 # or ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
 FASTA=
 
+# Specify either or both columns to consider landmark or regions
+# e.g. "" 2 or 7 (FEATURE_START) "", 3, 8 (FEATURE_END)
+FEATURE_START=2
+FEATURE_END=3
+
 # summary statistic (mean,median,sum)
 METRIC="mean"
 
 # ending of the files the coverage should be generated over (bam,bed)
-ENDING=".$ASD.bam"
+ENDING="$ASD.bam"
 
 
 # Define the labels for the R plot

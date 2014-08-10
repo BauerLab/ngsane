@@ -40,11 +40,6 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSTOPHATCUFFHTSEQ)"
 JOBIDS="$JOBIDSTOPHATCUFFHTSEQ"
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
-#cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNTOPHAT=\"\"/RUNTOPHAT=\"1\"/g' | \
-#    sed 's/RUNCUFFLINKS=\"\"/RUNCUFFLINKS=\"1\"/g' |\
-#    sed 's/RUNHTSEQCOUNT=\"\"/RUNHTSEQCOUNT=\"1\"/g' |\
-#	sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHATCUFFHTSEQ\"/g' > tmp/configTOPHATCUFFHTSEQ.txt
-
 # prepare the job to generate the html result page and perform the diff 
 echo "[NOTE] prepare evaluation script tmp/testTOPHATCUFFHTSEQ.qsub wait for $HOLDID"
 sed 's/NAME/NGs_TOPHATCUFFHTSEQ/g' bin/tmpl/HPCheader.txt >tmp/testTOPHATCUFFHTSEQ.qsub

@@ -39,7 +39,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --bam )            shift; f=$1 ;; # bam file                                                       
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -52,7 +52,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_BAMANN; do module load $MODULE; done && module list 
@@ -64,9 +64,9 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--bedtools    --\n "$(bedtools -version)
 [ -z "$(which bedtools)" ] && echo "[WARN] bedtools not detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
@@ -81,43 +81,37 @@ else
 fi
 
 # delete old bam files unless attempting to recover
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -e $f.merg.anno.bed ] && rm $f.merg.anno.bed
     [ -e $f.anno.stats ] && rm $f.anno.stats
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 	
 if [ -n "$DMGET" ]; then
     dmget -a $BAMANNLIB/*
 	dmget -a ${f}
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
-
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="bedmerge"
+NGSANE_CHECKPOINT_INIT "bedmerge"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 	bedtools bamtobed -i $f | bedtools merge -i - -n  > $f.merg.bed
 
 	# mark checkpoint
-    if [ -f $f.merg.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $f.merg.bed 
 
 fi
  
-
 ################################################################################
-CHECKPOINT="run annotation"
+NGSANE_CHECKPOINT_INIT "run annotation"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 	NAMES=""
 	NUMBER=$( ls $BAMANNLIB | grep -P "(.gtf|.bed)$" | wc -l )
@@ -135,17 +129,15 @@ else
    	bedtools annotate -counts -i $f.merg.bed -files $ANNFILES -names $NAMES | sed 's/[ \t]*$//g' | awk '{FS=OFS="\t";if (NR==1){print $0,"unannotated"} else{ for(i=5; i<=NF;i++) j+=$i; if (j>0){print $0,0}else{print $0,1}; j=0}}' > $f.merg.anno.bed
 	
 	# mark checkpoint
-    if [ -f $f.merg.anno.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $f.merg.anno.bed 
 
 fi
 [ -e f.merg.bed  ] && rm $f.merg.bed
 
 ################################################################################
-CHECKPOINT="summarize"
+NGSANE_CHECKPOINT_INIT "summarize"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
    	COMMAND="python ${NGSANE_BASE}/tools/sumRows.py -i $f.merg.anno.bed -l 3 -s 4 -e $(expr $NUMBER + 5) -n $(echo $NAMES | sed 's/ /,/g'),unannotated > $f.anno.stats"
 	echo $COMMAND && eval $COMMAND
@@ -154,7 +146,7 @@ else
     cat $f.merg.anno.bed | sort -k4gr | head -n 20 >> $f.anno.stats  
     
 	# mark checkpoint
-    if [ -f $f.anno.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $f.anno.stats 
 
 fi
 

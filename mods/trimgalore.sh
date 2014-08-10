@@ -22,7 +22,7 @@ while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of NGSANE
         -f | --file )           shift; f=$1 ;; # fastq file
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -34,7 +34,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_TRIMGALORE; do module load $MODULE; done && module list 
@@ -48,9 +48,9 @@ echo -e "--trim galore --\n "$(trim_galore --version  | grep version  | tr -d ' 
 echo -e "--cutadapt    --\n" $(cutadapt --version 2>&1)
 [ -z "$(which cutadapt)" ] && echo "[ERROR] no cutadapt detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f (samplename)
 n=${f##*/}
@@ -81,8 +81,6 @@ elif [[ ${f##*.} == "bz2" ]];
     then CAT="bzcat"; 
 fi
 
-echo "********** get contaminators"
-
 if [ ! -n "$TRIMGALORE_ADAPTER1" ] && [ ! -n "$TRIMGALORE_ADAPTER2" ];then echo "TRIMGALORE_ADAPTER1 and 2 not defined in $CONFIG, default to 'AGATCGGAAGAGC'"; fi
 CONTAM=""
 if [ -n "$TRIMGALORE_ADAPTER1" ]; then
@@ -93,22 +91,20 @@ if [ "$PAIRED" = "1" ] && [ -n "$TRIMGALORE_ADAPTER2" ]; then
 fi
 echo $CONTAM
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
     dmget -a ${o/$READONE/"*"}
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="trim"    
+NGSANE_CHECKPOINT_INIT "trim"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     # Paired read
     if [ "$PAIRED" = "1" ]
@@ -122,16 +118,15 @@ else
     fi
 
     # mark checkpoint
-    if [ -f $FASTQDIRTRIM/$n ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $FASTQDIRTRIM/$n
 
 fi
 
 ################################################################################
-CHECKPOINT="zip"    
+NGSANE_CHECKPOINT_INIT "zip"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
     $GZIP -t $FASTQDIRTRIM/$n 2>/dev/null
     if [[ $? -ne 0 ]]; then
         $GZIP -f $FASTQDIRTRIM/$n
@@ -142,11 +137,11 @@ else
         fi
     fi
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT\n"
+    NGSANE_CHECKPOINT_CHECK
 fi
 
 ################################################################################
-CHECKPOINT="count remaining reads"    
+NGSANE_CHECKPOINT_INIT "count remaining reads"    
 
 echo "=== Remaining reads ===" >> $FASTQDIRTRIM/${n}_trimming_report.txt
 echo "remaining reads "$(zcat $FASTQDIRTRIM/$n | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n}_trimming_report.txt
@@ -155,7 +150,7 @@ if [ "$PAIRED" = "1" ]; then
     echo "remaining reads "$(zcat $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ} | wc -l | gawk '{print int($1/4)}') >> $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}_trimming_report.txt
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 [ -e $FASTQDIRTRIM/${n}.dummy ] && rm $FASTQDIRTRIM/${n}.dummy
 echo ">>>>> readtrimming with TRIMGALORE - FINISHED"

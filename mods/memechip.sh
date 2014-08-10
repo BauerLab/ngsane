@@ -29,7 +29,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --bed )            shift; f=$1 ;; # bed file containing enriched regions (peaks)
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir 
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -42,7 +42,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_MEMECHIP; do module load $MODULE; done && module list 
@@ -60,9 +60,9 @@ echo -e "--perl        --\n "$(perl -v | grep "This is perl" )
 echo -e "--meme-chip   --\n "$(cat `which meme` | strings | grep -A 2 "MEME - Motif discovery tool" | tail -n 1)
 [ -z "$(which meme-chip)" ] && echo "[ERROR] meme-chip not detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
@@ -89,22 +89,21 @@ else
     MEMEBACKGROUND=$OUTDIR/$SAMPLE.bg
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f}
 	dmget -a $OUTDIR/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="get sequence data"
+NGSANE_CHECKPOINT_INIT "get sequence data"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
 
     if [ -n "$SLOPBEDADDPARAM" ]; then
         echo "[NOTE] extend bed regions: $EXTENDREGION"
@@ -117,48 +116,43 @@ else
     bedtools getfasta -name -fi $FASTA -bed $f -fo $OUTDIR/$SAMPLE.fasta
 
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.fasta ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.fasta
 
 fi
 
 ################################################################################
-CHECKPOINT="create background model"    
+NGSANE_CHECKPOINT_INIT "create background model"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     # create background from bed file unless provided
     if [ -z "$MEMEBACKGROUNDFILE" ]; then
         echo "[NOTE] create background from peak regions"
         fasta-get-markov -nostatus $FASTAGETMARKOVADDPARAM < $OUTDIR/$SAMPLE.fasta > $MEMEBACKGROUND
     fi
+    
     # mark checkpoint
-    if [ -f "$MEMEBACKGROUND" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK "$MEMEBACKGROUND"
 
 fi
 
 ################################################################################
-CHECKPOINT="meme-chip"    
+NGSANE_CHECKPOINT_INIT "meme-chip"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     RUN_COMMAND="meme-chip $MEMECHIPADDPARAM -oc $OUTDIR/$SAMPLE -bfile $MEMEBACKGROUND -desc $SAMPLE -db $MEMECHIPDATABASES -meme-p $CPU_MEMECHIP $OUTDIR/$SAMPLE.fasta"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE/combined.meme ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/combined.meme
 
 fi
 
 ################################################################################
-CHECKPOINT="classify bound regions"
+NGSANE_CHECKPOINT_INIT "classify bound regions"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     echo "Peak regions: $(wc -l $f |  cut -d' ' -f 1)" > $OUTDIR/$SAMPLE.summary.txt
     
@@ -220,19 +214,19 @@ else
     fi
     
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.summary.txt ];then echo -e "\n********* $CHECKPOINT   \n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.summary.txt
     
 fi
 
 ################################################################################
-CHECKPOINT="cleanup"    
+NGSANE_CHECKPOINT_INIT "cleanup"    
 
 [ -e $OUTDIR/$SAMPLE.fasta ] && rm $OUTDIR/$SAMPLE.fasta
 [ -e $OUTDIR/$SAMPLE.bg ] && rm $OUTDIR/$SAMPLE.bg 
 [ -d $OUTDIR/$SAMPLE"_"fimo ] && rm -r $OUTDIR/$SAMPLE"_"fimo
 [ -f $OUTDIR/$SAMPLE/topmotif.meme ] && rm $OUTDIR/$SAMPLE/topmotif.meme $OUTDIR/$SAMPLE/topmotif_memehit.txt
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 [ -e $OUTDIR/$SAMPLE.summary.txt.dummy ] && rm $OUTDIR/$SAMPLE.summary.txt.dummy
 echo ">>>>> Motif discovery with memechip - FINISHED"

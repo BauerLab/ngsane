@@ -27,7 +27,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;;     # location of the NGSANE repository                       
         -f | --file )           shift; INPUTFILE=$1 ;;  # input file                                                       
         -o | --outdir )         shift; OUTDIR=$1 ;;     # output dir                                                     
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -40,7 +40,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_HOTSPOT; do module load $MODULE; done && module list 
@@ -70,9 +70,9 @@ echo -e "--R           --\n "$(R --version | head -n 3)
 echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
 [ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress bedgraphs"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of input file f
 INPUTFILENAME=${INPUTFILE##*/}
@@ -80,7 +80,7 @@ INPUTFILENAME=${INPUTFILE##*/}
 SAMPLE=${INPUTFILENAME/%$ASD.bam/}
 
 # delete old bam files unless attempting to recover
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -f $OUTDIR/$SAMPLE.bw ] && rm $OUTDIR/$SAMPLE.bw
 fi
 
@@ -110,9 +110,9 @@ mkdir -p $THISTMP
 
 GENOME="hg19"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $(dirname $FASTA)/*
@@ -120,14 +120,11 @@ if [ -n "$DMGET" ]; then
     dmget -a $OUTDIR/*
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
-
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="hotspot config"
+NGSANE_CHECKPOINT_INIT "hotspot config"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     echo "[NOTE] create tokenizer"
     echo "[script-tokenizer]" > $OUTDIR/$SAMPLE.token
@@ -166,30 +163,27 @@ EOF
     chmod 777 $OUTDIR/$SAMPLE.sh
 
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.sh ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.sh
 fi
 
 ################################################################################
-CHECKPOINT="run hotspot"
+NGSANE_CHECKPOINT_INIT "run hotspot"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     cd $THISTMP
     $OUTDIR/$SAMPLE.sh
     cd $SOURCE
     
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.narrowPeak ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    if [ -f $OUTDIR/$SAMPLE.narrowPeak ];then echo -e "\n********* $CHECKPOINT\n"; unset NGSANE_RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 fi
 
 ################################################################################
-#CHECKPOINT="generate bigbed"
+#NGSANE_CHECKPOINT_INIT "generate bigbed"
 #
-#if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-#    echo "::::::::: passed $CHECKPOINT"
-#else
+#if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+#
 #    # convert to bigbed
 #	if hash bedToBigBed ; then 
 #        echo "[NOTE] create bigbed from peaks" 
@@ -197,18 +191,18 @@ fi
 #        bedToBigBed -type=bed4 $OUTDIR/$SAMPLE.peak.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bb
 #        rm $OUTDIR/$SAMPLE.peak.tmp
 #         # mark checkpoint
-#        if [ -f $OUTDIR/$SAMPLE.bb ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+#        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.bb
 #    else
 #        echo "[NOTE] bigbed not generated"
-#        echo -e "\n********* $CHECKPOINT\n"
+#        NGSANE_CHECKPOINT_CHECK
 #    fi
 #fi   
 ###############################################################################
-CHECKPOINT="cleanup"
+NGSANE_CHECKPOINT_INIT "cleanup"
 
 [ -d $THISTMP ] && rm -r $THISTMP
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 [ -e $OUTDIR/$SAMPLE.narrowPeak.dummy ] && rm $OUTDIR/$SAMPLE.narrowPeak.dummy
 echo ">>>>> Peak calling with hotspot - FINISHED"
