@@ -17,29 +17,10 @@ if [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
 		fi
 	fi
     
-    JOBIDS=$( 
-        RUNTOPHAT=1
-        . $NGSANE_BASE/mods/run.d/TOPHAT
-        RUNTOPHAT=
-        
-    ) && echo -e "$JOBIDS"
-    JOBIDS_TOPHAT=$(waitForJobIds "$JOBIDS")
-    
-    # instruct to wait for TOPHATJOBIDS to finish
-    JOBIDS=$( 
-        RUNHTSEQCOUNT=1
-        WAITFORJOB_HTSEQCOUNT=$JOBIDS_TOPHAT
-        . $NGSANE_BASE/mods/run.d/HTSEQCOUNT
-        RUNHTSEQCOUNT=
-    ) && echo -e "$JOBIDS"
-    JOBIDS_HTSEQCOUNT=$(waitForJobIds "$JOBIDS")
+    JOBIDS_TOPHAT=$(NGSANE_PIPELINE_MOD "TOPHAT")
 
-    JOBIDS=$(
-        RUNCUFFLINKS="1"
-        WAITFORJOB_CUFFLINKS=$JOBIDS_TOPHAT
-        . $NGSANE_BASE/mods/run.d/CUFFLINKS
-        RUNCUFFLINKS=
-	) && echo -e "$JOBIDS"
-    JOBIDS_CUFFLINKS=$(waitForJobIds "$JOBIDS")
+    JOBIDS_HTSEQCOUNT=$(NGSANE_PIPELINE_MOD "HTSEQCOUNT" "$JOBIDS_TOPHAT")
+
+    JOBIDS_CUFFLINKS=$(NGSANE_PIPELINE_MOD "CUFFLINKS" "JOBIDS_TOPHAT")
 
 fi
