@@ -1,0 +1,45 @@
+#!/bin/bash -e
+
+# This template should be used to specify the parameter for the pipelines.
+# Pipelines chain together individual mods and require proper staging.
+# In addition a single config file used for job submission needs to contain all 
+# parameters necessary for each individual mod utilized in the pipeline.
+
+# Copy this file and name it after your new module
+# Substitute [MOD] and similar places with the appropriate variables
+
+################################################################################
+#   Trigger command for pipelines
+################################################################################
+
+: ' # [TODO] REMOVE THIS LINE
+
+if [ -n "$RUN[PIPELINE]" ]; then
+        
+    JOBIDS=$( 
+        RUN[MOD1]="1"
+        . $NGSANE_BASE/mods/run.d/[MOD1]
+        RUN[MOD1]=
+         
+    ) && echo -e "$JOBIDS"
+    JOBIDS_[MOD1]=$(waitForJobIds "$JOBIDS")
+
+    JOBIDS=$( 
+        RUN[MOD2]=1
+        WAITFORJOB_[MOD2]=$JOBIDS_[MOD1]
+        . $NGSANE_BASE/mods/run.d/[MOD2]
+        RUN[MOD2]=
+    ) && echo -e "$JOBIDS"
+    JOBIDS_[MOD2]=$(waitForJobIds "$JOBIDS")
+
+    JOBIDS=$( 
+        RUN[MOD3]=1
+        WAITFORJOB_[MOD3]=$JOBIDS_[MOD2]
+        . $NGSANE_BASE/mods/run.d/[MOD3]
+        RUN[MOD2]=
+    ) && echo -e "$JOBIDS"
+    JOBIDS_[MOD3]=$(waitForJobIds "$JOBIDS")
+    
+fi
+
+' # [TODO] REMOVE THIS LINE

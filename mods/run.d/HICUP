@@ -13,24 +13,26 @@ if [ -n "$RUNHICUP" ]; then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
             $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
-    	   -m $MEMORY_HICUP"G" -w $WALLTIME_HICUP --commontask indexGenome \
-            --command "${NGSANE_BASE}/mods/bowtieIndex.sh -k $CONFIG"
+    	   -m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $WAITFORJOB_HICUP \
+    	   --commontask indexGenome \
+           --command "${NGSANE_BASE}/mods/bowtieIndex.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
     else
-        INDEXJOBIDS=""
+        INDEXJOBIDS=$WAITFORJOB_HICUP
     fi
     
     if [ ! -f $OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt ];then
         JOBIDS=$( 
         $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c 1 \
-        	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS --commontask digestGenome \
+        	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS $WAITFORJOB_HICUP \
+        	--commontask digestGenome \
             --command "${NGSANE_BASE}/mods/hicupDigestGenome.sh -k $CONFIG" 
         ) && echo -e "$JOBIDS"
         JOBIDS=$(waitForJobIds "$JOBIDS")
 
     else
-        JOBIDS=""
+        JOBIDS=$WAITFORJOB_HICUP
     fi
 
     $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \

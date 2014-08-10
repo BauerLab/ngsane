@@ -13,13 +13,14 @@ if [ -n "$RUNHICLIB" ]; then
     if [ ! -f ${FASTA%.*}.1.bt2 ];then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ -n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" \
+            $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ 
+            -n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" $WAITFORJOB_HICLIB \
             -w $WALLTIME_HICLIB --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
     else
-        INDEXJOBIDS=""
+        INDEXJOBIDS=$WAITFORJOB_HICLIB
     fi
     
     $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ \

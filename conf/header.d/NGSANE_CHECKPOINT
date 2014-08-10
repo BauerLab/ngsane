@@ -2,6 +2,7 @@
 ##############################################################
 # Function used for checkpoints
 # author Fabian Buske
+
 function NGSANE_CHECKPOINT_INIT() {
     NGSANE_CHECKPOINT_LABEL=$1
     NGSANE_CHECKPOINT_TIME_START=$(date +%s)
@@ -25,7 +26,7 @@ function NGSANE_CHECKPOINT_CHECK() {
     UNSET_NGSANE_RECOVERFROM="0"
     for var in "$@"
     do
-        if [[ ! -e $var ]]; then
+        if [[ ! -s $var ]]; then
             echo "[ERROR] NGSANE_CHECKPOINT failed: $NGSANE_CHECKPOINT_LABEL"; >&2
             exit 1; 
         fi

@@ -10,6 +10,7 @@
 if [ -n "$RUNFSEQ" ]; then
     if [ -z "$TASK_FSEQ" ] || [ -z "$NODES_FSEQ" ] || [ -z "$CPU_FSEQ" ] || [ -z "$MEMORY_FSEQ" ] || [ -z "$WALLTIME_FSEQ" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_FSEQ -i $INPUT_FSEQ -e $ASD.bam -n $NODES_FSEQ -c $CPU_FSEQ -m $MEMORY_FSEQ"G" -w $WALLTIME_FSEQ \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_FSEQ -i $INPUT_FSEQ -e $ASD.bam \
+        -n $NODES_FSEQ -c $CPU_FSEQ -m $MEMORY_FSEQ"G" -w $WALLTIME_FSEQ $WAITFORJOB_FSEQ \
         --command "${NGSANE_BASE}/mods/fseq.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FSEQ"
 fi

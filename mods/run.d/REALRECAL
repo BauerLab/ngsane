@@ -13,7 +13,7 @@
 if [ -n "$RUNREALRECAL" ]; then
 
     $QSUB $ARMED -r -k $CONFIG -t $TASK_RECAL -i $INPUT_REALRECAL -e $ASD.bam \
-        -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
+        -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL $WAITFORJOB_RECAL \
         --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBSNPVCF -o $OUT/<DIR>/$TASK_RECAL"
 
 fi
