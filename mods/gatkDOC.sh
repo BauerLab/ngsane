@@ -53,7 +53,7 @@ while [ "$1" != "" ]; do
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir  +++ THIS DOES NOT USE CONFIG OVERWRITE !! +++
         -G | --gene )           shift; GENE=$1 ;; # gene list
         -L | --list )           shift; LIST=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -66,7 +66,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_GATKDOC; do module load $MODULE; done && module list 
@@ -92,9 +92,9 @@ echo -e "--bedtools    --\n "$(bedtools --version)
 echo -e "--GATK        --\n "$(java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar --version)
 [ ! -f $PATH_GATK/GenomeAnalysisTK.jar ] && echo "[ERROR] no GATK detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
@@ -105,7 +105,7 @@ if [ -n "$LIST" ]; then TASK="-L $LIST"; fi
 if [ -n "$GENE" ]; then TASK="-geneList $GENE"; fi
 
 # delete old bam files unless attempting to recover
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     if [ -e $QOUT/$n.doc ]; then rm $QOUT/$n.doc* ]; fi
 fi
 
@@ -118,13 +118,11 @@ fi
 #java -jar /datastore/cmis/bau04c/SeqAna/apps/prod/Picard_svn/dist/CreateSequenceDictionary.jar R=/datastore/cmis/bau04c//SeqAna/reference/prod/GRCm38/GRCm38_chr.fasta O=/datastore/cmis/bau04c//SeqAna/reference/prod/GRCm38/GRCm38_chr.dict
 # BEDtools has it's own genome index file
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="calculate depthOfCoverage"
+NGSANE_CHECKPOINT_INIT "calculate depthOfCoverage"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar \
 		$ADDPARAMGATKDOC \
@@ -148,16 +146,14 @@ else
     #    --minBaseQuality 20 \
     
     # mark checkpoint
-    if [ -f $OUTDIR/$n.doc.sample_statistics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$n.doc.sample_statistics
 
 fi 
 
 ################################################################################
-CHECKPOINT="on target"
+NGSANE_CHECKPOINT_INIT "on target"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     #statistics for on target proportion
     if [ -n "$LIST" ]; then
@@ -179,7 +175,7 @@ else
     	-abam $f -b stdin -u | $SAMTOOLS flagstat - >> $OUTDIR/$n.stats
 
         # mark checkpoint
-        if [ -f $OUTDIR/$n.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/$n.stats
 
     fi
 fi

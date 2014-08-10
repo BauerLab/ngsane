@@ -1,0 +1,47 @@
+#!/bin/bash -e
+##############################################################
+# Function used for checkpoints
+# author Fabian Buske
+function NGSANE_CHECKPOINT_INIT() {
+    NGSANE_CHECKPOINT_LABEL=$1
+    NGSANE_CHECKPOINT_TIME_START=$(date +%s)
+}
+
+function NGSANE_CHECKPOINT_TASK() {
+    if [[ -n "$NGSANE_RECOVERFROM" ]] && [[ $(egrep "^\*{9} $NGSANE_CHECKPOINT_LABEL" $NGSANE_RECOVERFROM | wc -l ) -gt 0 ]] ; then
+        echo "::::::::: passed $NGSANE_CHECKPOINT_LABEL" >&2
+        return
+    else
+        echo -e "\n################################################################################\n" >&2
+        echo -e "......... $NGSANE_CHECKPOINT_LABEL (started $(date))\n" >&2
+        echo "start"
+        return
+    fi
+}
+
+function NGSANE_CHECKPOINT_CHECK() {
+    NGSANE_CHECKPOINT_TIME_END=$(date +%s)   
+    NGSANE_CHECKPOINT_TIMESPAN=`echo $((NGSANE_CHECKPOINT_TIME_END-NGSANE_CHECKPOINT_TIME_START)) | awk '{print int($1)" sec"}'`
+    UNSET_NGSANE_RECOVERFROM="0"
+    for var in "$@"
+    do
+        if [[ ! -e $var ]]; then
+            echo "[ERROR] NGSANE_CHECKPOINT failed: $NGSANE_CHECKPOINT_LABEL"; >&2
+            exit 1; 
+        fi
+        UNSET_NGSANE_RECOVERFROM=1
+    done
+    if [[ "$UNSET_NGSANE_RECOVERFROM" == "1" ]]; then
+        unset NGSANE_RECOVERFROM
+    fi
+
+    echo -e "\n********* $NGSANE_CHECKPOINT_LABEL (finished in $NGSANE_CHECKPOINT_TIMESPAN)\n" >&2
+    
+    # unset checkpoint
+    NGSANE_CHECKPOINT_TIME_START=
+    NGSANE_CHECKPOINT_LABEL=
+}
+
+export -f NGSANE_CHECKPOINT_INIT
+export -f NGSANE_CHECKPOINT_CHECK
+export -f NGSANE_CHECKPOINT_TASK

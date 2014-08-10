@@ -31,7 +31,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --bam )            shift; f=$1 ;; # bam file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir 
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -44,7 +44,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_MACS2; do module load $MODULE; done && module list 
@@ -64,9 +64,9 @@ echo -e "--convert     --\n "$(convert -version | head -n 1)
 echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
 [ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress bedgraphs"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
@@ -88,10 +88,11 @@ if [ ! -f $GENOME_CHROMSIZES ]; then
 else
     echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
 fi
+cd $OUTDIR  
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $(dirname $FASTA)/*
@@ -100,26 +101,25 @@ if [ -n "$DMGET" ]; then
 	[ -n "$CHIPINPUT" ] && dmget -a $CHIPINPUT
 fi
 
-if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
-    echo "[WARN] input control not provided or invalid (CHIPINPUT)"
+if [[ -z "$CHIPINPUT" ]] || [[ ! -f $CHIPINPUT ]]; then
+    echo "[WARN] input control not provided or invalid ($CHIPINPUT)"
+    ls -la $(basename $CHIPINPUT)
     unset CHIPINPUT
 else
 	echo "[NOTE] CHIPINPUT $CHIPINPUT"
-    CHIPINPUT="--control $SOURCE/$CHIPINPUT"
+    CHIPINPUT="--control $CHIPINPUT"
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="macs 2 - predictd "
+NGSANE_CHECKPOINT_INIT "macs 2 - predictd "
 
-cd $OUTDIR
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
-    
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+ 
     if [ -n "$MACS2_FRAGMENTSIZE" ]; then
         echo "[NOTE] Skip modeling"
-        echo -e "\n********* $CHECKPOINT\n"
+        # mark checkpoint
+        NGSANE_CHECKPOINT_CHECK
         
     else
     
@@ -132,16 +132,15 @@ else
         fi
     
         # mark checkpoint
-        if [ -f $SAMPLE"_"model.R ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        NGSANE_CHECKPOINT_CHECK $SAMPLE"_"model.R
 
     fi    
 fi
 ################################################################################
-CHECKPOINT="macs 2 - call peaks "
+NGSANE_CHECKPOINT_INIT "macs 2 - call peaks "
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
 
     if [ -z "$MACS2_FRAGMENTSIZE" ]; then
         MACS2_FRAGMENTSIZE=$(grep 'alternative fragment length(s) may be' $SAMPLE.summary.txt | sed 's/.* be //' | cut -d' ' -f 1 | tr ',' '\n' | egrep -v "^-" | head -n 1)
@@ -151,14 +150,13 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    if [ -f $SAMPLE"_"peaks.xls ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $SAMPLE"_"peaks.xls
 fi
 ################################################################################
-CHECKPOINT="macs 2 - refine peaks "
+NGSANE_CHECKPOINT_INIT "macs 2 - refine peaks "
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
 
     if [[ "$MACS2_CALLPEAK_ADDPARAM" == *--broad* ]]; then
         echo "[NOTE] convert broadpeaks to 6 bed file for refining"
@@ -182,7 +180,7 @@ else
     echo "Final number of refined peaks: $(wc -l ${SAMPLE}_refinepeak.bed )" >> $SAMPLE.summary.txt
 
     # mark checkpoint
-    if [ -f ${SAMPLE}_refinepeak.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK ${SAMPLE}_refinepeak.bed
 fi
 ################################################################################
 # back to where we came from

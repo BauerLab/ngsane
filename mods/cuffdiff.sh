@@ -56,7 +56,7 @@ while [ "$1" != "" ]; do
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
         -a | --annot )          shift; REFSEQGTF=$1 ;; # refseq annotation
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -69,7 +69,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_CUFFDIFF; do module load $MODULE; done && module list 
@@ -83,12 +83,12 @@ echo -e "--cuffdiff    --\n "$(cuffdiff 2>&1 | head -n 1 )
 echo -e "--cuffcompare --\n "$(cuffcompare 2>&1 | head -n 1 )
 [ -z "$(which cuffcompare)" ] && echo "[ERROR] no cuffcompare detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # delete old bam files unless attempting to recover
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
     mkdir -p $OUTDIR
 fi
@@ -111,20 +111,18 @@ cd $OUTDIR/
 GTF=$REFSEQGTF
     
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a $(dirname $TOPHATOUT)/*
     dmget -a ${OUTDIR}/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="check reference GTF"
+NGSANE_CHECKPOINT_INIT "check reference GTF"
     
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     # Which transcript reference?
     if [ -n $GTF ]; then
@@ -134,25 +132,25 @@ else
         GTF=$OUTDIR/comp.combined.gtf
         
         # mark checkpoint
-        if [ -f $OUTDIR/comp.combined.gtf ] ;then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
-
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/comp.combined.gtf
+    else
+    
+        echo "[NOTE] skip checking reference GTF"
+        # mark checkpoint
+        NGSANE_CHECKPOINT_CHECK
     fi    
 fi
 
 ################################################################################
-CHECKPOINT="run cuff diff"
+NGSANE_CHECKPOINT_INIT "run cuff diff"
     
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     cuffdiff -r $FASTA -p $CPU_CUFFDIFF -o $OUTDIR $GTF $TOPHATBAM
 
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT\n"
+    NGSANE_CHECKPOINT_CHECK
 fi 
-cd ../../
 
 ################################################################################
 echo ">>>>> differential expression with cuffdiff - FINISHED"

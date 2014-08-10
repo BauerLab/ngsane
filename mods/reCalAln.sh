@@ -47,7 +47,7 @@ while [ "$1" != "" ]; do
         -d | --snpdb )          shift; DBSNPVCF=$1 ;; # snpdb
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
         -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -61,7 +61,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_RECAL; do module load $MODULE; done && module list 
@@ -90,9 +90,9 @@ echo -e "--R           --\n "$(R --version | head -n 3)
 echo -e "--GATK        --\n "$(java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar --version)
 [ ! -f $PATH_GATK/GenomeAnalysisTK.jar ] && echo "[ERROR] no GATK detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 f=${f/%.dummy/} #if input came from pipe
@@ -114,7 +114,7 @@ else
 fi
 
 # delete old bam files unless attempting to recover
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -e $OUTDIR/${SAMPLE}$ASR.bam ] && rm $OUTDIR/${SAMPLE}$ASR.bam
     [ -e $OUTDIR/${SAMPLE}$ASR.bam.stats ] && rm $OUTDIR/${SAMPLE}$ASR.bam.stats
 fi
@@ -126,7 +126,7 @@ fi
 
 # parallelization supported (2013): http://gatkforums.broadinstitute.org/discussion/1975/recommendations-for-parallelizing-gatk-tools
 if [[ $(which GenomeAnalysisTK.jar) =~ "2.8" ]]; then 
-    echo "[NOTE] new GATK parallele"
+    echo "[NOTE] GATK multithreading"
     PARALLELENCT="-nct $CPU_RECAL"
 	PARALLELENT="-nt $CPU_RECAL"
 fi
@@ -136,9 +136,9 @@ fi
 ## /reCalAln/name$ASD.bam -> /reCalAln/name$ASD.real
 #f3=${f2/%bam/real.bam}
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $f
@@ -146,14 +146,11 @@ if [ -n "$DMGET" ]; then
 fi
     
 
-echo -e "\n********* $CHECKPOINT\n"    
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="find intervals to improve"
+NGSANE_CHECKPOINT_INIT "find intervals to improve"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
         -T RealignerTargetCreator \
@@ -165,17 +162,14 @@ else
         -nt $CPU_RECAL
         
     # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}.intervals ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.intervals
 
 fi 
 
 ################################################################################
-CHECKPOINT="realign"
+NGSANE_CHECKPOINT_INIT "realign"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 	# parallelization not supported (2013): http://gatkforums.broadinstitute.org/discussion/1975/recommendations-for-parallelizing-gatk-tools
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
@@ -190,17 +184,14 @@ else
     samtools index $OUTDIR/${SAMPLE}.real.bam
 
     # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}.real.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.real.bam
 
 fi 
 
 ################################################################################
-CHECKPOINT="count covariantes "
+NGSANE_CHECKPOINT_INIT "count covariantes "
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     # there seems to be a warning reg. Rscript but it does not affect output
     # BadCigar is necessary in case of "MESSAGE: START (101) > (100) STOP -- this should never happen, please check read" (bwa)
@@ -220,18 +211,15 @@ else
 
 
     # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}.real.covar.grp ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.real.covar.grp
 
 fi 
 
 
 ################################################################################
-CHECKPOINT="adjust score"
+NGSANE_CHECKPOINT_INIT "adjust score"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
         -T PrintReads \
@@ -244,17 +232,14 @@ else
     samtools index $OUTDIR/${SAMPLE}.real.recal.bam
 
     # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}.real.recal.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.real.recal.bam
 
 fi 
 
 ################################################################################
-CHECKPOINT="evaluate performace"
+NGSANE_CHECKPOINT_INIT "evaluate performace"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
          -T RecalibrationPerformance \
@@ -264,40 +249,42 @@ else
          -nct $CPU_RECAL 
     
     # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}.real.recal.performace ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.real.recal.performace
 
 fi 
 
 ################################################################################
-CHECKPOINT="count covariantes after recalibration"
+NGSANE_CHECKPOINT_INIT "count covariantes after recalibration"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 
 	if [[ $(which GenomeAnalysisTK.jar) =~ "2.5" ]]; then 
-	echo "[NOTE] old GATK plotting "
+    	echo "[NOTE] old GATK plotting "
+    
+        # TODO remove the below once it is not experimental anymore
+        echo "[NOTE] counting covariantes after recalibration"
+        java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar  -l WARN \
+            -T BaseRecalibrator \
+            -R $FASTA \
+            -knownSites $DBSNPVCF \
+            -I $OUTDIR/${SAMPLE}.real.recal.bam  \
+            -dcov 1000 \
+            -cov ReadGroupCovariate \
+            -cov QualityScoreCovariate \
+            -cov CycleCovariate \
+            --plot_pdf_file $OUTDIR/GATKrecal.pdf \
+            -rf BadCigar \
+            -o $OUTDIR/${SAMPLE}.real.recal.covar.grp 
+        #    -nt $CPU_RECAL
 
-    # TODO remove the below once it is not experimental anymore
-    echo "********* counting covariantes after recalibration"
-    java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar  -l WARN \
-        -T BaseRecalibrator \
-        -R $FASTA \
-        -knownSites $DBSNPVCF \
-        -I $OUTDIR/${SAMPLE}.real.recal.bam  \
-        -dcov 1000 \
-        -cov ReadGroupCovariate \
-        -cov QualityScoreCovariate \
-        -cov CycleCovariate \
-        --plot_pdf_file $OUTDIR/GATKrecal.pdf \
-        -rf BadCigar \
-        -o $OUTDIR/${SAMPLE}.real.recal.covar.grp 
-    #    -nt $CPU_RECAL
+        # mark checkpoint
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.real.recal.covar.grp
 
 	else
-		touch $OUTDIR/${SAMPLE}.real.recal.covar.grp
+	   echo "[WARN] experimental plotting skipped"
+	   touch $OUTDIR/${SAMPLE}.real.recal.covar.grp
+       NGSANE_CHECKPOINT_CHECK
 	fi
     
     #echo " plotting both"
@@ -314,19 +301,13 @@ else
     #    -recalFile ${f3/%.bam/.recal.covar.csv} \
     #    -outputDir $OUTDIR/GATKrcal/$n  \
     #    -ignoreQ 5
-    
-    # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}.real.recal.covar.grp ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
 
 fi 
 
 ################################################################################
-CHECKPOINT="sort/index"
+NGSANE_CHECKPOINT_INIT "sort/index"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ "$PAIRED" == "1" ]; then
         echo "[NOTE] fixmate"
@@ -346,17 +327,14 @@ else
     samtools index $OUTDIR/${SAMPLE}$ASR.bam
 
     # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}$ASR.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}$ASR.bam
 
 fi 
 
 ################################################################################
-CHECKPOINT="statistics"
+NGSANE_CHECKPOINT_INIT "statistics"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] $CHECKPOINT"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     samtools flagstat $OUTDIR/${SAMPLE}$ASR.bam >> $OUTDIR/${SAMPLE}$ASR.bam.stats
     if [ -n "$SEQREG" ]; then
@@ -383,7 +361,7 @@ else
     fi
     
     # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}$ASR.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}$ASR.bam.stats
 
 fi 
 

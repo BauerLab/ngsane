@@ -29,7 +29,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --bam )            shift; f=$1 ;; # bam file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir 
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -42,7 +42,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_CHANCE; do module load $MODULE; done && module list 
@@ -60,9 +60,9 @@ echo -e "--Matlab (MCR)--\n "$(echo "$MCRROOT")
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
@@ -85,9 +85,9 @@ fi
 CHANCE="`which run_chance_com.sh` `echo $MCRROOT`"
 echo "[NOTE] Chance Environment: $CHANCE"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f}
@@ -95,28 +95,24 @@ if [ -n "$DMGET" ]; then
 	[ -n $CHIPINPUT ] && dmget -a $CHIPINPUT
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="compute IPstrength"
+NGSANE_CHECKPOINT_INIT "compute IPstrength"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     RUN_COMMAND="${CHANCE} IPStrength -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.IPstrength --ipfile $f --ipsample ${n/$ASD.bam/} --inputfile ${CHIPINPUT} --inputsample ${c/$ASD.bam/}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    if [ -f ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.IPstrength ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.IPstrength
 
 fi
 
 ################################################################################
-CHECKPOINT="compare with ENCODE"
+NGSANE_CHECKPOINT_INIT "compare with ENCODE"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ -n "$EXPERIMENTID" ] || [ -n "$EXPERIMENTPATTERN" ]; then
 
@@ -128,25 +124,23 @@ else
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
         # mark checkpoint
-        if [ -f ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.compENCODE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        NGSANE_CHECKPOINT_CHECK ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.compENCODE
 
     else
         echo "[NOTE] skip ENCODE comparison "
-        echo -e "\n********* $CHECKPOINT\n"
+        NGSANE_CHECKPOINT_CHECK
     fi
 fi
 
 ################################################################################
-CHECKPOINT="make plots"
+NGSANE_CHECKPOINT_INIT "make plots"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     Rscript --vanilla ${NGSANE_BASE}/tools/makeChancePlots.R $f $CHIPINPUT ${n/$ASD.bam/} ${c/$ASD.bam/} $OUTDIR
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/$ASD.bam/.pdf} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${n/$ASD.bam/.pdf}
 
 fi
 ################################################################################

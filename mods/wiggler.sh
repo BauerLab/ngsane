@@ -33,7 +33,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
         -f | --bam )            shift; f=$1 ;; # bam file                                                       
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir                                                     
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -46,7 +46,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_WIGGLER; do module load $MODULE; done && module list
@@ -66,9 +66,9 @@ echo -e "--wigToBigWig --\n "$(wigToBigWig 2>&1 | tee | head -n 1)
 echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
 [ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot create bedgraphs"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
@@ -103,37 +103,33 @@ fi
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 mkdir -p $THISTMP
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f}
 	dmget -a $OUTDIR/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="calculate fragment size"
+NGSANE_CHECKPOINT_INIT "calculate fragment size"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     if [ -z "$WIGGLER_FRAGMENTSIZE" ]; then
         macs2 predictd --rfile $OUTDIR/$SAMPLE -i $f > $OUTDIR/$SAMPLE.fragment_size.txt 2>&1
     fi
     
     # mark checkpoint
-    if [[ $WIGGLER_FRAGMENTSIZE =~ '^[0-9]+$' ]] || [ -f $OUTDIR/$SAMPLE.fragment_size.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.fragment_size.txt 
     
 fi 
 ################################################################################
-CHECKPOINT="run align2rawsignal"
+NGSANE_CHECKPOINT_INIT "run align2rawsignal"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     if [ -z "$WIGGLER_FRAGMENTSIZE" ]; then
         WIGGLER_FRAGMENTSIZE=$(grep 'alternative fragment length(s) may be' $OUTDIR/$SAMPLE.fragment_size.txt | sed 's/.* be //' | cut -d' ' -f 1 | tr ',' '\n' | egrep -v "^-" | head -n 1)
@@ -146,22 +142,25 @@ else
 
     if hash bedToBigBed 2>&- && [[ "$WIGGLER_OUTPUTFORMAT" == "bg" ]] && [[ -f $GENOME_CHROMSIZES ]]; then
         bedGraphToBigWig $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bw
+        CHECKPOINTFILE=$OUTDIR/$SAMPLE.bw
     elif hash wigToBigWig 2>&- && [[ "$WIGGLER_OUTPUTFORMAT" == "wig" ]] && [[ -f $GENOME_CHROMSIZES ]]; then 
         wigToBigWig $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bw
+        CHECKPOINTFILE=$OUTDIR/$SAMPLE.bw
     else
-        $GZIP -c $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT > $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz  
+        $GZIP -c $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT > $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz
+        CHECKPOINTFILE=$OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz
     fi
         
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz ] || [ -f $OUTDIR/$SAMPLE.bw ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $CHECKPOINTFILE
     
 fi 
 ################################################################################
-CHECKPOINT="cleanup"
+NGSANE_CHECKPOINT_INIT "cleanup"
 
 if [ -d $THISTMP ]; then rm -r $THISTMP; fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 [ -e $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz.dummy ] && rm $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz.dummy
 echo ">>>>> wiggler - FINISHED"

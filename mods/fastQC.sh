@@ -17,7 +17,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE 
         -f | --file )           shift; INPUTFILE=$1 ;;  # input file                                                       
         -o | --outdir )         shift; OUTDIR=$1 ;;     # output dir                                                     
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -29,7 +29,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_FASTQC; do module load $MODULE; done && module list 
@@ -48,10 +48,10 @@ echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
 echo -e "--FASTqc      --\n" $(fastqc -version 2>&1)
 [ -z "$(which fastqc)" ] && echo "[ERROR] no fastqc detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of input file f
 INPUTFILENAME=${INPUTFILE##*/}
@@ -65,22 +65,20 @@ else
     PAIRED="0"
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $INPUTFILE
     dmget -a $OUTDIR/*
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="fastqc read 1"
+NGSANE_CHECKPOINT_INIT "fastqc read 1"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     RUN_COMMAND="fastqc $FASTQCADDPARAM -t $CPU_FASTQC --outdir $OUTDIR $INPUTFILE"
     echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -94,14 +92,12 @@ else
 
     chmod -R a+rx $OUTDIR/
     
-    if [ -f $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}
 fi
 ################################################################################
-CHECKPOINT="fastqc read 2"
+NGSANE_CHECKPOINT_INIT "fastqc read 2"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ "$PAIRED" = "1" ];then
         RUN_COMMAND="fastqc $FASTQCADDPARAM -t $CPU_FASTQC --outdir $OUTDIR ${INPUTFILE/%$READONE.$FASTQ/$READTWO.$FASTQ}"
@@ -119,7 +115,7 @@ else
     
     chmod -R a+rx $OUTDIR/
     
-    if [ -f $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}
 fi
 ################################################################################
 [ -e $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}.dummy ] && rm $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}.dummy
