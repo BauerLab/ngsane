@@ -180,7 +180,7 @@ def printStats(arrV, arrN, arrS, noSummary, filestructure, filesuffix, modname):
     "bFilter": true,
 	"iDisplayLength": 10,
 	"bJQueryUI": true,
-	"aLengthMenu": [[0, 5, 10, -1], [0, 5, 10, "All"]],
+	"aLengthMenu": [[1, 5, 10, -1], [1, 5, 10, "All"]],
 	"aoColumns": [
 """ + ",\n".join(jsonTitle) + """
 	],	

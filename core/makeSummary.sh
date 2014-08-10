@@ -37,8 +37,8 @@ done
 . $CONFIG
 
 ################################################################################
-for MODULE in $MODULE_SUMMARY; do module load $MODULE; done  # save way to load modules that itself load other modules
-for MODULE in $MODULE_R; do module load $MODULE; done  # save way to load modules that itself load other modules
+hash module 2>/dev/null && for MODULE in $MODULE_SUMMARY; do module load $MODULE; done  # save way to load modules that itself load other modules
+hash module 2>/dev/null && for MODULE in $MODULE_R; do module load $MODULE; done  # save way to load modules that itself load other modules
 
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
@@ -150,126 +150,6 @@ function bamAnnotate {
 
 }
 
-################################################################################
-if [ -n "$RUNFASTQC" ]; then
-    summaryHeader "FASTQC" "$TASK_FASTQC" "fastQC.sh" "$SUMMARYTMP"
-
-echo "<table id='fastQC_id_Table' class='data'></table>" >>$SUMMARYTMP
-
-echo "<script type=\"text/javascript\">
-//<![CDATA[
-fastQC_Table_json ={
-	\"bPaginate\": true,
-	\"bProcessing\": true,
-	\"bAutoWidth\": false,
-	\"bInfo\": true,
-	\"bLengthChange\": true,
-        \"bFilter\": true,
-	\"iDisplayLength\": 10,
-	\"bJQueryUI\": true,
-        \"bStateSave\": true,
-	\"aLengthMenu\": [[0, 5, 10, -1], [0, 5, 10, \"All\"]],
-	\"aoColumns\": [
-                {\"sTitle\": \"Library\"},
-		{\"sTitle\": \"Experiment\"},
-		{\"sTitle\": \"Chart\"},
-		{\"sTitle\": \"Encoding\"},
-		{\"sTitle\": \"Library size\"},
-		{\"sTitle\": \"Read\"},
-		{\"sTitle\": \"Read Length\"},
-		{\"sTitle\": \"%GC\"},
-		{\"sTitle\": \"Read qualities\"},
-		
-			],	
-	\"aaData\": [" >>$SUMMARYTMP 
-
-
-    for dir in ${DIR[@]}; do
-        SAMPLE=${dir%%/*}
-       if [[ -e $SAMPLE/$TASK_FASTQC/ ]]; then
-             for librarylog in $(ls $QOUT/$TASK_FASTQC/$SAMPLE"_"*.out); do           
-                libraryfile=${librarylog/$QOUT\/$TASK_FASTQC\/$SAMPLE"_"/}
-                library=${libraryfile/%.out/}
-                f="$SAMPLE/$TASK_FASTQC/${library}${READONE}_fastqc.zip"
-                if [ ! -e $f ]; then
-                    echo "[NOTE] No result detected: $f"
-                    continue
-                fi
-                # get basename of f
-                n1=${f##*/}
-                n1=${n1/"_fastqc.zip"/}
-                ICO="\"<img height='15px' class='noborder' style='vertical-align:middle' src='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/"$n1"_fastqc/Icons/"
-                P1=$(grep "PASS" -c $SAMPLE/$TASK_FASTQC/$n1"_fastqc/summary.txt")
-                W1=$(grep "WARN" -c $SAMPLE/$TASK_FASTQC/$n1"_fastqc/summary.txt")
-                F1=$(grep "FAIL" -c $SAMPLE/$TASK_FASTQC/$n1"_fastqc/summary.txt")
-                CHART1=$ICO"tick.png' title='$P1'\>$P1\" "
-                if [ "$W1" -ne "0" ]; then CHART1=$CHART1""$ICO"warning.png'\>$W1\" "; fi
-                if [ "$F1" -ne "0" ]; then CHART1=$CHART1""$ICO"error.png'\>$F1\" "; fi
-                ENCODING1=$(grep "Encoding" $SAMPLE/$TASK_FASTQC/$n1"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                LIBRARYSIZE1=$(grep "Total Sequences" $SAMPLE/$TASK_FASTQC/$n1"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                READLENGTH1=$(grep "Sequence length" $SAMPLE/$TASK_FASTQC/$n1"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                GCCONTENT1=$(grep "\%GC" $SAMPLE/$TASK_FASTQC/$n1"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                
-                if [ -n "$READTWO" ] && [ "$f" != "${f/$READONE/$READTWO}" ] && [ -f "${f/$READONE/$READTWO}" ]; then
-                    n2=${n1/%$READONE/$READTWO}
-                    ICO="\"<img height='15px' class='noborder' style='vertical-align:middle' src='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/"$n2"_fastqc/Icons/\""
-                    P2=$(grep "PASS" -c $SAMPLE/$TASK_FASTQC/$n2"_fastqc/summary.txt")
-                    W2=$(grep "WARN" -c $SAMPLE/$TASK_FASTQC/$n2"_fastqc/summary.txt")
-                    F2=$(grep "FAIL" -c $SAMPLE/$TASK_FASTQC/$n2"_fastqc/summary.txt")
-                    CHART2=$ICO"tick.png' title='$P2'\>$P2\" "
-                    if [ "$W2" -ne "0" ]; then CHART2=$CHART2""$ICO"warning.png'\>"$W2; fi
-                    if [ "$F2" -ne "0" ]; then CHART2=$CHART2""$ICO"error.png'\>"$F2; fi
-                    ENCODING2=$(grep "Encoding" $SAMPLE/$TASK_FASTQC/$n2"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                    LIBRARYSIZE2=$(grep "Total Sequences" $SAMPLE/$TASK_FASTQC/$n2"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                    READLENGTH2=$(grep "Sequence length" $SAMPLE/$TASK_FASTQC/$n2"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                    GCCONTENT2=$(grep "\%GC" $SAMPLE/$TASK_FASTQC/$n2"_fastqc/fastqc_data.txt" | head -n 1 | cut -f 2)
-                    READ="2"
-
-                else
-                    CHART2=
-                    ENCODING2=
-                    LIBRARYSIZE2=
-                    READLENGTH2=
-                    GCCONTENT2=
-                    READ=1 #JUST MADE THIS UP->MEL
-                fi
-                #echo "<tr style='vertical-align: middle;'><td>$CHART1<br/>$CHART2</td><td>$ENCODING1<br/>$ENCODING2</td><td>$LIBRARYSIZE1<br/>$LIBRARYSIZE2</td><td>1<br/>$READ</td><td>$READLENGTH1<br/>$READLENGTH2</td><td>$GCCONTENT1<br/>$GCCONTENT2</td><td>" >>$SUMMARYTMP
-                
-                #echo "<a href='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/${n1}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/${n1}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all first reads'/></a>" >>$SUMMARYTMP                   
-                #if [ -n "$READ" ]; then
-                    #echo "<a href='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/${n2/$READONE/$READTWO}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/${n2/$READONE/$READTWO}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all second reads'/></a>" >>$SUMMARYTMP
-                #fi
-               
-               # echo "</td><td class='left'><a href='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/"$n1"_fastqc/fastqc_report.html'>${library}$READONE</a><br/>" >>$SUMMARYTMP
-                #if [ -n "$READ" ]; then
-                    #echo "<a href='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/"$n2"_fastqc/fastqc_report.html'>${library}$READTWO</a>" >>$SUMMARYTMP
-                #fi
-                
-                #echo "</td></tr>" >>$SUMMARYTMP
-
-                #${stringZ//$match/$repl}
-                
-                #echo $CHART1
-                CHART1=${CHART1//\" \"<img/\", \"<img}
-                #echo $CHART1
-
-
-#Don't understand 1 and 2 variables
-#Probably still need to include the if "$READ" statement
-                FASTQC=$FASTQC"[\"<a href='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/"$n1"_fastqc/fastqc_report.html'> '${library}$READONE'</a>\", '$SAMPLE', [$CHART1], '$ENCODING1', '$LIBRARYSIZE1', '$READ',
-                      '$READLENGTH1', '$GCCONTENT1', [\"<a href='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/${n1}_fastqc/fastqc_report.html'><img src='$PROJECT_RELPATH/$SAMPLE/$TASK_FASTQC/${n1}_fastqc/Images/per_base_quality.png' height=75 alt='Quality scores for all first reads'/></a>\"]] "
-                
-            done
-        fi
-        #echo "</tbody></table>">>$SUMMARYTMP
-    done
-    FASTQC=${FASTQC//] [/], 
-[}
-    echo $FASTQC >>$SUMMARYTMP
-    echo "]} </script>" >>$SUMMARYTMP
-    
-    summaryFooter "$TASK_FASTQC" "$SUMMARYTMP"
-fi
 
 ################################################################################
 if [[ -n "$RUNFASTQSCREEN" ]]; then
@@ -824,11 +704,10 @@ rm $SUMMARYCITES
 echo '''
 <!DOCTYPE html><html>
 <head><meta charset="windows-1252"><title>NGSANE project card</title>
-<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
-<link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
-<link rel="stylesheet" type="text/css" href="includes/css/jquery.dataTables.css">
-<script type=text/javascript src="includes/js/jquery.js"></script>
+<script type="text/javascript" src="includes/js/jquery.js"></script>
 <script type="text/javascript" charset="utf8" src="includes/js/jquery.dataTables.min.js"></script>
+<link rel="stylesheet" type="text/css" href="includes/css/jquery.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
 </head><body>
 <div id="center">
 <div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>

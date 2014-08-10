@@ -231,18 +231,18 @@ table {
 	border-spacing: 0;
 }
 
-table.data {
+table.dataTable {
     table-layout: fixed;
 	font-size: 12px;
 	text-align: left;
 	border-collapse: collapse;
-	border: 1px solid #69c;
+	border: 1px dotted #69c;
 	margin: 10px 0 20px 0;
 }
 
 table,caption,tbody,tfoot,thead,tr,th {
 	font-size: 100%;
-	vertical-align: baseline;
+	vertical-align: middle;
 	margin: 0;
 	padding: 0;
 	outline: 0;
@@ -250,36 +250,47 @@ table,caption,tbody,tfoot,thead,tr,th {
 	background: transparent;
 }
 
-table.data tbody{
+table.dataTable tbody tr.odd{
     background: #efecff;
 }
+table.dataTable tbody tr.even{
+    background: #f5f3ff;
+}
 
-table.data th {
+div.dataTables_paginate span {
+    padding: 0 20px 0 20px;
+}
+
+.paginate_button.disabled {
+    visibility:hidden;
+}
+
+table.dataTable th {
 	font-weight: bold;
 	font-size: 12px;
 	color: #17212e;
 	border-bottom: 1px dashed #69c;
 	padding: 12px 5px;
-	text-align:right;
+	text-align:center;
 }
 
-table.data th div{
+table.dataTable th div{
 	width: 100px;
 }
 
-table.data td {
+table.dataTable td {
 	color: #555e66;
 	padding: 3px 5px;
 	text-align:right;
 	white-space: nowrap;
 }
 
-table.data td.left, table.data  th.left{
+table.dataTable td.left, table.dataTable  th.left{
 	text-align:left;
 	width: auto;
 }
 
-table.data tfoot {
+table.dataTable tfoot {
 	border-top: 1px dashed #69c;
 }
 

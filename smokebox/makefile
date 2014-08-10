@@ -1,7 +1,6 @@
 NGSANE := $(shell trigger.sh -v 2>/dev/null)
 
-# all: checkNGSANE result/SummaryCHIPSEQ.html result/SummaryTOPHATCUFFHTSEQ.html  result/SummaryVARCALLS.html result/SummaryHIC.html
-all: checkNGSANE result/SummaryRNASEQ.html
+ all: checkNGSANE result/SummaryCHIPSEQ.html result/SummaryTOPHATCUFFHTSEQ.html  result/SummaryVARCALLS.html result/SummaryHIC.html
 
 checkNGSANE:
 ifdef NGSANE
@@ -59,6 +58,7 @@ clean:
 	rm -f igv.*
 	rm -f core*
 	rm -fr common
+	rm -rf includes
 	rm -f referenceData/chr16.*.bwt
 	rm -f referenceData/chr16.*.ebwt
 	rm -f referenceData/chr16.*.bt2
