@@ -10,36 +10,17 @@ if [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
 	if [ -e $QOUT/$TASK_TOPHAT/runnow.tmp ]; then
 		echo "[NOTE] checking runnow.tmp"
 		LENGTHT=$(wc -l $QOUT/$TASK_TOPHAT/runnow.tmp | cut -d " " -f 1)
-		LENGTHC=$(wc -l $QOUTß/$TASK_CUFFLINKS/runnow.tmp | cut -d " " -f 1)
+		LENGTHC=$(wc -l $QOUT/$TASK_CUFFLINKS/runnow.tmp | cut -d " " -f 1)
 		LENGTHH=$(wc -l $QOUT/$TASK_HTSEQCOUNT/runnow.tmp | cut -d " " -f 1)
 		if [[ $LENGTHT != $LENGTHC ]] || [[ $LENGTHT != $LENGTHH ]]; then 
 			echo "[ERROR] runnow.tmp files of tophat has different length to its successor jobs ($LENGTHT, $LENGTHC, $LENGTHH)"; exit -1; 
 		fi
 	fi
     
-    JOBIDS=$( 
-        RUNTOPHAT=1
-        . $NGSANE_BASE/mods/run.d/TOPHAT
-        RUNTOPHAT=
-        
-    ) && echo -e "$JOBIDS"
-    JOBIDS_TOPHAT=$(waitForJobIds "$JOBIDS")
+    JOBIDS_TOPHAT=$(NGSANE_PIPELINE_MOD "TOPHAT")
     
-    # instruct to wait for TOPHATJOBIDS to finish
-    JOBIDS=$( 
-        RUNHTSEQCOUNT=1
-        WAITFORJOB_HTSEQCOUNT=$JOBIDS_TOPHAT
-        . $NGSANE_BASE/mods/run.d/HTSEQCOUNT
-        RUNHTSEQCOUNT=
-    ) && echo -e "$JOBIDS"
-    JOBIDS_HTSEQCOUNT=$(waitForJobIds "$JOBIDS")
-
-    JOBIDS=$(
-        RUNCUFFLINKS="1"
-        WAITFORJOB_CUFFLINKS=$JOBIDS_TOPHAT
-        . $NGSANE_BASE/mods/run.d/CUFFLINKS
-        RUNCUFFLINKS=
-	) && echo -e "$JOBIDS"
-    JOBIDS_CUFFLINKS=$(waitForJobIds "$JOBIDS")
+    JOBIDS_HTSEQCOUNT=$(NGSANE_PIPELINE_MOD "HTSEQCOUNT" "$JOBIDS_TOPHAT")
+    
+    JOBIDS_CUFFLINKS=$(NGSANE_PIPELINE_MOD "CUFFLINKS" "$JOBIDS_TOPHAT")
 
 fi

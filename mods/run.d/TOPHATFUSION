@@ -13,13 +13,14 @@ if [ -n "$RUNFUSION" ]; then
     if [ ! -f ${FASTA%.*}.1.bt2 ];then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_FUSION -i $INPUT_FUSION -e $READONE.$FASTQ -n $NODES_FUSION -c $CPU_FUSION -m $MEMORY_FUSION"G" $WAITFORJOB_FUSION \
+            $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_FUSION -i $INPUT_FUSION -e $READONE.$FASTQ \
+            -n $NODES_FUSION -c $CPU_FUSION -m $MEMORY_FUSION"G" \
             -w $WALLTIME_FUSION --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
     else
-        INDEXJOBIDS=""
+        INDEXJOBIDS=$NGSANE_WAITFORJOB 
     fi
     
     $QSUB $ARMED -k $CONFIG -t $TASK_FUSION -i $INPUT_FUSION -e $READONE.$FASTQ -n $NODES_FUSION -c $CPU_FUSION -m $MEMORY_FUSION"G" -w $WALLTIME_FUSION $INDEXJOBIDS \

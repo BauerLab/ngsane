@@ -7,20 +7,20 @@
 # OUT: $OUT/$dir/bowtie/*$ASD.bam
 ################################################################################
 
-if [ -n "$RUNMAPPINGBOWTIE" ]; then
+if [ -n "$RUNMAPPINGBOWTIE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_BOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     if [ ! -f ${FASTA%.*}.1.ebwt ];then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE -i $INPUT_BOWTIE -e $READONE.$FASTQ \
-            -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" $WAITFORJOB_BOWTIE \
+            $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_BOWTIE -i $INPUT_BOWTIE -e $READONE.$FASTQ \
+            -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" \
             -w $WALLTIME_BOWTIE --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/bowtieIndex.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
     else
-        INDEXJOBIDS=$WAITFORJOB_BOWTIE
+        INDEXJOBIDS=$NGSANE_WAITFORJOB 
     fi
     
     $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE -i $INPUT_BOWTIE -e $READONE.$FASTQ -n $NODES_BOWTIE -c $CPU_BOWTIE -m $MEMORY_BOWTIE"G" -w $WALLTIME_BOWTIE $INDEXJOBIDS \

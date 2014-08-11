@@ -6,10 +6,10 @@
 # IN : $SOURCE/fastq/$dir/*read1.fastq
 # OUT: $SOURCE/fastq/$dir_trimgalore/*read1.fastq
 ################################################################################ 
-if [ -n "$RUNTRIMGALORE" ]; then
+if [ -n "$RUNTRIMGALORE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_TRIMGALORE" ] || [ -z "$NODES_TRIMGALORE" ] || [ -z "$CPU_TRIMGALORE" ] || [ -z "$MEMORY_TRIMGALORE" ] || [ -z "$WALLTIME_TRIMGALORE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -d -k $CONFIG -t $TASK_TRIMGALORE -i $INPUT_TRIMGALORE -e $READONE.$FASTQ -n $NODES_TRIMGALORE \
-        -c $CPU_TRIMGALORE -m $MEMORY_TRIMGALORE"G" -w $WALLTIME_TRIMGALORE $WAITFORJOB_TRIMGALORE \
+    $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_TRIMGALORE -i $INPUT_TRIMGALORE -e $READONE.$FASTQ -n $NODES_TRIMGALORE \
+        -c $CPU_TRIMGALORE -m $MEMORY_TRIMGALORE"G" -w $WALLTIME_TRIMGALORE \
         --command "${NGSANE_BASE}/mods/trimgalore.sh -k $CONFIG -f <FILE>"
 fi
