@@ -8,11 +8,11 @@
 # OUT: $OUT/TASK_BOWTIE/_pooled*$ASD.bam
 ################################################################################
 
-if [ -n "$RUNPOOLBAMS" ]; then
+if [ -n "$RUNPOOLBAMS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_POOLBAMS" ] || [ -z "$NODES_POOLBAMS" ] || [ -z "$CPU_POOLBAMS" ] || [ -z "$MEMORY_POOLBAMS" ] || [ -z "$WALLTIME_POOLBAMS" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -r -d -k $CONFIG -t $TASK_POOLBAMS -i $INPUT_POOLBAMS -e $ASD.bam -n $NODES_POOLBAMS \
-    	-c $CPU_POOLBAMS -m $MEMORY_POOLBAMS"G" -w $WALLTIME_POOLBAMS $WAITFORJOB_POOLBAMS \
+    $QSUB $ARMED $NGSANE_WAITFORJOB -r -d -k $CONFIG -t $TASK_POOLBAMS -i $INPUT_POOLBAMS -e $ASD.bam -n $NODES_POOLBAMS \
+    	-c $CPU_POOLBAMS -m $MEMORY_POOLBAMS"G" -w $WALLTIME_POOLBAMS \
     	--postname postcommand${POOLED_DATA_NAME} \
     	--postcommand "${NGSANE_BASE}/mods/poolBams.sh -k $CONFIG --outdir $OUT/<DIR>/$TASK_POOLBAMS" 
 fi

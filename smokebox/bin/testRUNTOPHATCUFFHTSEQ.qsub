@@ -31,7 +31,7 @@ cat bin/tmpl/configTopCuffHtseq.txt | sed 's/RUNTOPHATCUFFHTSEQ=\"\"/RUNTOPHATCU
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryTOPHATCUFFHTSEQ\"/g' > tmp/configTOPHATCUFFHTSEQ.txt
 
 # submit the TOPHAT run to the cluster
-JOBIDSTOPHATCUFFHTSEQ=$( trigger.sh tmp/configTOPHATCUFFHTSEQ.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+JOBIDSTOPHATCUFFHTSEQ=$( trigger.sh tmp/configTOPHATCUFFHTSEQ.txt $SB_MODE 2>&1 >/dev/null | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] submitted jobs $(echo -n $JOBIDSTOPHATCUFFHTSEQ)"
 
 ################################################################################

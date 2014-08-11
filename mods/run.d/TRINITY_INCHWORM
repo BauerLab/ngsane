@@ -9,10 +9,10 @@
 ################################################################################
 # individual calls
 #  ##########   Inchworm   ###########
-if [ -n "$RUNINCHWORM" ] && [ -z "$RUNTRINITY" ]; then
+if [ -n "$RUNINCHWORM" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$NODES_INCHWORM" ] || [ -z "$NCPU_INCHWORM" ] || [ -z "$MEMORY_INCHWORM" ] || [ -z "$WALLTIME_INCHWORM" ] || [ -z "$NODETYPE_INCHWORM" ]; then  echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -k $CONFIG -t $TASK_INCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
-        -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM $WAITFORJOB_INCHWORM \
+    $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_INCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
+        -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
         --command "${NGSANE_BASE}/mods/trinity_inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_INCHWORM"
 fi

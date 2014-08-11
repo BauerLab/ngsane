@@ -6,11 +6,11 @@
 # OUT: */bwa_var/*.clean.vcf
 ################################################################################
 
-if [ -n "$RUNSAMVAR" ]; then
+if [ -n "$RUNSAMVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_BWA" ] || [ -z "$NODES_SAMVAR" ] || [ -z "$CPU_SAMVAR" ] || [ -z "$MEMORY_SAMVAR" ] || [ -z "$WALLTIME_SAMVAR" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB -r $ARMED -k $CONFIG -t $INPUT_SAMVAR-$TASK_SAMVAR -i $INPUT_SAMVAR -e $ASD.bam \
-       -n $NODES_SAMVAR -c $CPU_SAMVAR -m $MEMORY_SAMVAR'G' -w $WALLTIME_SAMVAR $WAITFORJOB_SAMVAR \
+    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $INPUT_SAMVAR-$TASK_SAMVAR -i $INPUT_SAMVAR -e $ASD.bam \
+        -n $NODES_SAMVAR -c $CPU_SAMVAR -m $MEMORY_SAMVAR'G' -w $WALLTIME_SAMVAR \
 		--postnodes $NODES_VARCOLLECT --postcpu $CPU_VARCOLLECT \
 		--postwalltime $WALLTIME_VARCOLLECT --postmemory $MEMORY_VARCOLLECT"G" \
         --command "${NGSANE_BASE}/mods/samSNPs.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$INPUT_SAMVAR-$TASK_SAMVAR" \

@@ -7,11 +7,11 @@
 ################################################################################
 
 #  ##########   Butterfly  ###########
-if [ -n "$RUNBUTTERFLY" ]; then
+if [ -n "$RUNBUTTERFLY" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$NODES_BUTTERFLY" ] || [ -z "$NCPU_BUTTERFLY" ] || [ -z "$MEMORY_BUTTERFLY" ] || [ -z "$WALLTIME_BUTTERFLY" ] || [ -z "$NODETYPE_BUTTERFLY" ] ; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -k $CONFIG -t $TASK_BUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
-          -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY $WAITFORJOB_BUTTERFLY \
+    $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_BUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
+          -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY \
           --command "${NGSANE_BASE}/mods/trinity_butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_BUTTERFLY" 
 fi
 
