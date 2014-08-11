@@ -54,7 +54,7 @@ while [ "$1" != "" ]; do
 	-o | --outdir )         shift; OUTDIR=$1 ;; # output dir
 	-R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
 	--forceSingle )         FORCESINGLE=1;;
-    --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+    --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
 	-h | --help )           usage ;;
 	* )                     echo "dont understand $1"
 	esac
@@ -66,7 +66,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_TOPHAT; do module load $MODULE; done && module list 
@@ -101,9 +101,9 @@ echo -e "--bedtools    --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 [ ! -f $f ] && echo "[ERROR] input file not found: $f" 1>&2 && exit 1
 
@@ -120,7 +120,7 @@ fi
 BAMFILE=$OUTDIR/../$SAMPLE$ASD.bam
 
 #remove old files
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
 fi
 
@@ -194,25 +194,6 @@ else
     echo "[NOTE] EXPID $EXPID; LIBRARY $LIBRARY; PLATFORM $PLATFORM"
 fi
 
-
-if [ $RNA_SEQ_LIBRARY_TYPE = "fr-unstranded" ]; then
-    echo "[NOTE] make bigwigs; library is fr-unstranded "
-    BAM2BW_OPTION_1="FALSE"
-    BAM2BW_OPTION_2="FALSE"
-elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-firststrand" ]; then
-    echo "[NOTE] make bigwigs; library is fr-firststrand "
-    BAM2BW_OPTION_1="TRUE"
-    BAM2BW_OPTION_2="TRUE"
-elif [ $RNA_SEQ_LIBRARY_TYPE = "fr-secondstrand" ]; then
-    echo "[NOTE] make bigwigs; library is fr-secondstrand "
-    BAM2BW_OPTION_1="TRUE"
-    BAM2BW_OPTION_2="FALSE"	    
-fi
-
-BIGWIGSDIR=$OUTDIR/../
-
-mkdir -p $OUTDIR
-
 if [ -n "$TOPHATTRANSCRIPTOMEINDEX" ]; then
     echo "[NOTE] RNAseq --transcriptome-index specified: ${TOPHATTRANSCRIPTOMEINDEX}"
     TOPHAT_TRANSCRIPTOME_PARAM="--transcriptome-index=${TOPHATTRANSCRIPTOMEINDEX}"
@@ -227,9 +208,9 @@ THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
 mkdir -p $THISTMP
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a $(dirname $FASTA)/*
@@ -237,13 +218,11 @@ if [ -n "$DMGET" ]; then
     dmget -a $OUTDIR/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="run tophat"
+NGSANE_CHECKPOINT_INIT "run tophat"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     echo "[NOTE] tophat $(date)"
     
@@ -252,16 +231,14 @@ else
     echo "[NOTE] tophat end $(date)"
 
     # mark checkpoint
-    if [ -e $OUTDIR/accepted_hits.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/accepted_hits.bam
 
 fi 
 
 ################################################################################
-CHECKPOINT="merge mapped and unmapped"
+NGSANE_CHECKPOINT_INIT "merge mapped and unmapped"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     echo "[NOTE] add unmapped reads"
     if [ -f $OUTDIR/unmapped.bam ]; then
@@ -309,16 +286,14 @@ else
     rm $THISTMP/$SAMPLE.rg.bam
 
     # mark checkpoint
-    if [ -f $BAMFILE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $BAMFILE
 fi 
 
 ################################################################################
-CHECKPOINT="flagstat"
+NGSANE_CHECKPOINT_INIT "flagstat"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] samtools flagstat"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
     samtools flagstat $BAMFILE > $BAMFILE.stats
     READ1=$($CAT $f | wc -l | gawk '{print int($1/4)}' )
     FASTQREADS=$READ1
@@ -339,20 +314,17 @@ else
     fi
 
     # mark checkpoint
-    if [ -f $BAMFILE.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $BAMFILE.stats
 
 fi 
 
 ################################################################################
-CHECKPOINT="index and calculate inner distance"
+NGSANE_CHECKPOINT_INIT "index and calculate inner distance"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    echo "[NOTE] samtools index"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
     samtools index $BAMFILE
 
-    echo "********* calculate inner distance"
     echo "[NOTE] picard CollectMultipleMetrics"
     if [ ! -e $OUTDIR/../metrices ]; then mkdir -p $OUTDIR/../metrices ; fi
     RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
@@ -371,33 +343,28 @@ else
     done
    
     # mark checkpoint
-    if [ -f $OUTDIR/../metrices/${BAMFILE##*/}.alignment_summary_metrics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/../metrices/${BAMFILE##*/}.alignment_summary_metrics
 
 fi 
 
 ################################################################################
-CHECKPOINT="samstat"    
+NGSANE_CHECKPOINT_INIT "samstat"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     echo "[NOTE] samstat"
-    samstat $BAMFILE 2>&1 | tee | grep -v -P "Bad x in routine betai"
+    samstat $BAMFILE 2>&1 | tee | fgrep -v "Bad x in routine betai"
   
     # mark checkpoint
-    if [ -f $BAMFILE.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $BAMFILE.stats
 
 fi
 
 ################################################################################
-CHECKPOINT="extract mapped reads"    
+NGSANE_CHECKPOINT_INIT "extract mapped reads"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    echo "[NOTE] extract mapped reads"
     if [ "$PAIRED" = "1" ]; then
         samtools view -@ $CPU_TOPHAT -f 3 -h -b $BAMFILE > ${BAMFILE/$ASD/$ALN}
     else
@@ -406,34 +373,18 @@ else
     samtools index ${BAMFILE/$ASD/$ALN}
 
     # mark checkpoint
-    if [ -f ${BAMFILE/$ASD/$ALN} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK ${BAMFILE/$ASD/$ALN}
 
 fi
 
 ###############################################################################
-CHECKPOINT="create bigwigs"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-    
-    #file_arg sample_arg stranded_arg firststrand_arg paired_arg
-	RUN_COMMAND="Rscript --vanilla ${NGSANE_BASE}/tools/BamToBw.R ${BAMFILE/$ASD/$ALN} ${n/%$READONE.$FASTQ/} $BAM2BW_OPTION_1 $OUTDIR/../ $BAM2BW_OPTION_2 $BAM2BW_OPTION_ISPAIRED"
-	echo $RUN_COMMAND && eval $RUN_COMMAND
-
-    # mark checkpoint
-    if [ -f $OUTDIR/../${n/%$READONE.$FASTQ/.bw} ] || [ -f $OUTDIR/../${n/%$READONE.$FASTQ/_+.bw} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
-fi
-
-###############################################################################
-CHECKPOINT="cleanup"
+NGSANE_CHECKPOINT_INIT "cleanup"
 
 [ -e ${BAMFILE/$ASD/$ALN} ] && rm ${BAMFILE/$ASD/$ALN} 
 [ -e ${BAMFILE/$ASD/$ALN}.bai ] && rm ${BAMFILE/$ASD/$ALN}.bai
 [ -d $THISTMP ] && rm -r $THISTMP
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 [ -e ${BAMFILE}.dummy ] && rm ${BAMFILE}.dummy
 echo ">>>>> alignment with TopHat - FINISHED"

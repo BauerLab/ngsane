@@ -6,9 +6,10 @@
 # IN: $SOURCE/$dir/bowtie/*.bam
 # OUT: $OUT/$dir/wiggler/
 ################################################################################
-if [ -n "$RUNWIGGLER" ]; then
+if [ -n "$RUNWIGGLER" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_WIGGLER" ] || [ -z "$NODES_WIGGLER" ] || [ -z "$CPU_WIGGLER" ] || [ -z "$MEMORY_WIGGLER" ] || [ -z "$WALLTIME_WIGGLER" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_WIGGLER -i $INPUT_WIGGLER -e $ASD.bam -n $NODES_WIGGLER -c $CPU_WIGGLER -m $MEMORY_WIGGLER"G" -w $WALLTIME_WIGGLER \
+    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_WIGGLER -i $INPUT_WIGGLER -e $ASD.bam \
+        -n $NODES_WIGGLER -c $CPU_WIGGLER -m $MEMORY_WIGGLER"G" -w $WALLTIME_WIGGLER \
         --command "${NGSANE_BASE}/mods/wiggler.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_WIGGLER" 
 fi

@@ -7,21 +7,23 @@
 # OUT: $OUT/$dir/bwa/*$ASD.bam
 ################################################################################
 
-if [ -n "$RUNMAPPINGBWA" ]; then
+if [ -n "$RUNMAPPINGBWA" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_BWA" ] || [ -z "$NODES_BWA" ] || [ -z "$CPU_BWA" ] || [ -z "$MEMORY_BWA" ] || [ -z "$WALLTIME_BWA" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     if [ ! -f $FASTA.bwt ];then
         # submit job for index generation if necessary
         JOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_BWA -i $INPUT_BWA -e $READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" \
+            $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_BWA -i $INPUT_BWA -e $READONE.$FASTQ \
+            -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" \
             -w $WALLTIME_BWA --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/bwaIndex.sh -k $CONFIG"
         ) && echo -e "$JOBIDS"
         JOBIDS=$(waitForJobIds "$JOBIDS")
     else
-        JOBIDS=""
+        JOBIDS=$NGSANE_WAITFORJOB
     fi
 
-    $QSUB $ARMED -k $CONFIG -t $TASK_BWA -i $INPUT_BWA -e $READONE.$FASTQ -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA $JOBIDS \
+    $QSUB $ARMED -k $CONFIG -t $TASK_BWA -i $INPUT_BWA -e $READONE.$FASTQ \
+        -n $NODES_BWA -c $CPU_BWA -m $MEMORY_BWA"G" -w $WALLTIME_BWA $JOBIDS \
         --command "${NGSANE_BASE}/mods/bwa.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_BWA --rgsi <DIR>"
 fi

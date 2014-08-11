@@ -7,11 +7,11 @@
 # OUT: $OUT/$dir_healed/*.
 ################################################################################
 
-if [ -n "$RUNBLUE" ]; then
+if [ -n "$RUNBLUE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_BLUE" ] || [ -z "$NODES_BLUE" ] || [ -z "$CPU_BLUE" ] || [ -z "$MEMORY_BLUE" ] || [ -z "$WALLTIME_BLUE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -d -k $CONFIG -t $TASK_BLUE -i $INPUT_BLUE -e $READONE.$FASTQ -n $NODES_BLUE \
-	   -c $CPU_BLUE -m $MEMORY_BLUE"G" -w $WALLTIME_BLUE \
-	   --command "${NGSANE_BASE}/mods/blue.sh -k $CONFIG -f <FILE> -o $INPUT_BLUE/<DIR>"_"$TASK_BLUE/" 
+    $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_BLUE -i $INPUT_BLUE -e $READONE.$FASTQ \
+        -n $NODES_BLUE -c $CPU_BLUE -m $MEMORY_BLUE"G" -w $WALLTIME_BLUE \
+        --command "${NGSANE_BASE}/mods/blue.sh -k $CONFIG -f <FILE> -o $INPUT_BLUE/<DIR>"_"$TASK_BLUE/" 
 
 fi

@@ -6,22 +6,23 @@
 # IN: $SOURCE/$dir/bowtie/*.bam
 # OUT: $OUT/$dir/homerchipseq/
 ################################################################################
-if [ -n "$RUNHOMERCHIPSEQ" ]; then
+if [ -n "$RUNHOMERCHIPSEQ" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_HOMERCHIPSEQ" ] || [ -z "$NODES_HOMERCHIPSEQ" ] || [ -z "$CPU_HOMERCHIPSEQ" ] || [ -z "$MEMORY_HOMERCHIPSEQ" ] || [ -z "$WALLTIME_HOMERCHIPSEQ" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     if  [ -n "$CHIPINPUT" ];then
         JOBIDS=$( 
-        $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e $ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ \
-        	-m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ --commontask ${CONFIG##*/} \
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e $ASD.bam \
+            -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ \
+            --commontask ${CONFIG##*/} \
             --command "${NGSANE_BASE}/mods/chipseqHomerInput.sh -k $CONFIG" 
         ) && echo -e "$JOBIDS"
         JOBIDS=$(waitForJobIds "$JOBIDS")
 
     else
-        JOBIDS=""
+        JOBIDS=$NGSANE_WAITFORJOB 
     fi
     
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e $ASD.bam -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m \
-        $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ $JOBIDS \
+    $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e $ASD.bam \
+        -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ $JOBIDS \
         --command "${NGSANE_BASE}/mods/chipseqHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERCHIPSEQ"
 fi

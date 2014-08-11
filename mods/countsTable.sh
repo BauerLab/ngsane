@@ -22,7 +22,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;;     # location of the NGSANE repository                       
         -f | --file )           shift; FILES=$1 ;;  # input file                                                       
         -o | --outdir )         shift; OUTDIR=$1 ;;     # output dir                                                     
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -35,7 +35,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_HTSEQCOUNT; do module load $MODULE; done && module list 
@@ -46,9 +46,9 @@ echo "PATH=$PATH"
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 ## [TODO] test and output versions of software utilized in this mod 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 echo "[NOTE] Files: $FILES"
 OLDFS=$IFS
 IFS=","
@@ -80,7 +80,7 @@ echo "[NOTE] ${OUTDIR}"
 
 # delete old files unless attempting to recover
 #remove old files
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
 fi
 
@@ -90,9 +90,9 @@ mkdir -p $OUTDIR
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
 mkdir -p $THISTMP
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a $INPUTFILE
@@ -100,12 +100,11 @@ if [ -n "$DMGET" ]; then
     # TODO add additional resources that are required and may need recovery from tape
 fi
     
-echo -e "\n********* $CHECKPOINT\n"   
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="Make tables of counts."
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+NGSANE_CHECKPOINT_INIT "create tables of counts"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     echo "[NOTE] Make tables of counts."
          
@@ -151,22 +150,17 @@ else
     done
         
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT\n"
+    NGSANE_CHECKPOINT_CHECK
     
 fi
 ################################################################################
-CHECKPOINT="cleanup counts."  
+NGSANE_CHECKPOINT_INIT "cleanup"  
   
   [ -f ${THISTMP}/out.csv ] && rm ${THISTMP}/out.csv
   [ -f ${THISTMP}/joinedfile.txt ] && rm ${THISTMP}/joinedfile.txt
   [ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
 
-echo -e "\n********* $CHECKPOINT\n"
-
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-
-
-
-
 echo ">>>>> Count tables from htseqcount output - FINISHED"
 echo ">>>>> enddate "`date`

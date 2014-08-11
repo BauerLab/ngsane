@@ -31,7 +31,7 @@ while [ "$1" != "" ]; do
         -f | --fastq )          shift; f=$1 ;; # fastq file                                                       
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir                                                     
         -s | --rgsi )           shift; SAMPLEID=$1 ;; # SAMPLEID
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -44,7 +44,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_BOWTIE2; do module load $MODULE; done && module list 
@@ -76,9 +76,9 @@ echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
 echo -e "--convert     --\n "$(convert -version | head -n 1)
 [ -z "$(which convert)" ] && echo "[WARN] imagemagick convert not detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
@@ -103,7 +103,7 @@ else
 fi
 
 # delete old bam files unless attempting to recover
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -e $OUTDIR/$SAMPLE$ASD.bam ] && rm $OUTDIR/$SAMPLE$ASD.bam
     [ -e $OUTDIR/$SAMPLE$ASD.bam.stats ] && rm $OUTDIR/$SAMPLE$ASD.bam.stats
     [ -e $OUTDIR/$SAMPLE$ASD.bam.dupl ] && rm $OUTDIR/$SAMPLE$ASD.bam.dupl
@@ -154,9 +154,9 @@ FULLSAMPLEID=$SAMPLEID"${n/%$READONE.$FASTQ/}"
 RG="--sam-rg \"ID:$EXPID\" --sam-rg \"SM:$FULLSAMPLEID\" --sam-rg \"LB:$LIBRARY\" --sam-rg \"PL:$PLATFORM\""
 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 	
 if [ -n "$DMGET" ]; then
     dmget -a $FASTA*
@@ -164,12 +164,10 @@ if [ -n "$DMGET" ]; then
 	dmget -a ${OUTDIR}
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="map with bowtie2"
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+NGSANE_CHECKPOINT_INIT "map with bowtie2"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     RUN_COMMAND="bowtie2 $RG $BOWTIE2ADDPARAM $FASTQ_PHRED -t -x ${FASTA%.*} -p $CPU_BOWTIE2 $READS | samtools view -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE$ALN.bam"
     echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -192,16 +190,14 @@ else
     [ -e $OUTDIR/$SAMPLE$ALN.bam ] && rm $OUTDIR/$SAMPLE$ALN.bam
        
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.ash.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.ash.bam 
     
 fi
 
 ################################################################################
-CHECKPOINT="clean sam"
+NGSANE_CHECKPOINT_INIT "clean sam"
 # create bam files for discarded reads and remove fastq files
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
    
     if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
     java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
@@ -211,18 +207,16 @@ else
         TMP_DIR=$THISTMP
 
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.cleaned.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.cleaned.bam 
     
     # cleanup
     [ -e $OUTDIR/$SAMPLE.ash.bam ] && rm $OUTDIR/$SAMPLE.ash.bam
 fi
 
 ################################################################################
-CHECKPOINT="mark duplicates"
+NGSANE_CHECKPOINT_INIT "mark duplicates"
 # create bam files for discarded reads and remove fastq files
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
    
     if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
@@ -236,7 +230,7 @@ else
     samtools index $OUTDIR/$SAMPLE$ASD.bam
           
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE$ASD.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam 
     
     #cleanup
     [ -e $OUTDIR/$SAMPLE.cleaned.bam ] && rm $OUTDIR/$SAMPLE.cleaned.bam
@@ -244,11 +238,9 @@ else
 fi
 
 ################################################################################
-CHECKPOINT="statistics"                                                                                                
+NGSANE_CHECKPOINT_INIT "statistics"                                                                                                
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     STATSOUT=$OUTDIR/$SAMPLE$ASD.bam.stats
     samtools flagstat $OUTDIR/$SAMPLE$ASD.bam > $STATSOUT
@@ -259,15 +251,13 @@ else
     fi
 
     # mark checkpoint
-    if [ -e $STATSOUT ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $STATSOUT 
 fi
 
 ################################################################################
-CHECKPOINT="calculate inner distance"                                                                                                
+NGSANE_CHECKPOINT_INIT "calculate inner distance"                                                                                                
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
         INPUT=$OUTDIR/$SAMPLE$ASD.bam \
@@ -283,25 +273,23 @@ else
     done
 
     # mark checkpoint
-    if [ -f $OUTDIR/metrices/$SAMPLE$ASD.bam.alignment_summary_metrics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/metrices/$SAMPLE$ASD.bam.alignment_summary_metrics 
 fi
 
 ################################################################################
-CHECKPOINT="samstat"    
+NGSANE_CHECKPOINT_INIT "samstat"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     samstat $OUTDIR/$SAMPLE$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
 
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE$ASD.bam.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam.stats 
     
 fi
 
 ###############################################################################
-CHECKPOINT="verify"    
+NGSANE_CHECKPOINT_INIT "verify"    
 
 BAMREADS=`head -n1 $OUTDIR/$SAMPLE$ASD.bam.stats | cut -d " " -f 1`
 if [ "$BAMREADS" = "" ]; then let BAMREADS="0"; fi
@@ -312,13 +300,13 @@ else
     exit 1
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ###############################################################################
-CHECKPOINT="cleanup"
+NGSANE_CHECKPOINT_INIT "cleanup"
 
 [ -d $THISTMP ] && rm -r $THISTMP
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 [ -e $OUTDIR/$SAMPLE$ASD.bam.dummy ] && rm $OUTDIR/$SAMPLE$ASD.bam.dummy
 echo ">>>>> readmapping with Bowtie2 - FINISHED"

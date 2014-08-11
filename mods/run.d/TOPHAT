@@ -7,19 +7,20 @@
 # OUT: $OUT/$dir/tophat/*.bam/
 ################################################################################       
 
-if [ -n "$RUNTOPHAT" ]; then
+if [ -n "$RUNTOPHAT" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
     if [ -z "$TASK_TOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     if [ ! -f ${FASTA%.*}.1.bt2 ];then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" \
+            $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ \
+            -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" \
             -w $WALLTIME_TOPHAT --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
     else
-        INDEXJOBIDS=""
+        INDEXJOBIDS=$NGSANE_WAITFORJOB
     fi
 
     $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT $INDEXJOBIDS \
