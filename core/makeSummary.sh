@@ -747,7 +747,8 @@ echo "});
 
 echo "<script type='text/javascript' src='includes/js/genericJavaScript.js'></script></html>" >> $SUMMARYTMP
 
-cp -r $NGSANE_BASE/core/includes $(dirname $SUMMARYTMP)
+# copy includes folder ommitting hidden files and folders
+rsync -av --exclude=".*" $NGSANE_BASE/core/includes $(dirname $SUMMARYTMP)
 ################################################################################
 cat $SUMMARYFILE.tmp $SUMMARYTMP > $SUMMARYFILE
 
