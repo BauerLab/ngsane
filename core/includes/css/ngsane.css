@@ -109,8 +109,13 @@ div.headbagb {
 	background-image: linear-gradient(top, #8a9aa6, #17212e);
 }
 
-.box{
+div.box{
     padding: 5px;
+}
+
+div.scroll{
+    overflow:scroll; 
+    height:300px;
 }
 
 div.panel {

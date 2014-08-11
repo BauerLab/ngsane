@@ -143,7 +143,7 @@ done
 
 if [ -n "$HTMLOUTPUT" ]; then
     echo "</pre></div></div>"
-    echo "<div class='tabContent_hide' id='DC_${TASK}_notes'><div><pre>"
+    echo "<div class='tabContent_hide' id='DC_${TASK}_notes'><div class='box scroll'><pre>"
 else
     echo ">>>>>>>>>> Notes"
 fi
@@ -164,7 +164,7 @@ done
 
 if [ -n "$HTMLOUTPUT" ]; then
     echo "</pre></div></div>"
-    echo "<div class='tabContent_hide' id='DC_${TASK}_errors'><div><pre>"
+    echo "<div class='tabContent_hide' id='DC_${TASK}_errors'><div class='box scroll'><pre>"
 else
     echo ">>>>>>>>>> Errors"
 fi
@@ -188,14 +188,14 @@ done
 if [ -n "$HTMLOUTPUT" ]; then
 
     echo "</pre></div></div>"
-    echo "<div class='tabContent_hide' id='DC_${TASK}_logfiles'><div><div class='box'>"
+    echo "<div class='tabContent_hide' id='DC_${TASK}_logfiles'><div><div class='box scroll'>"
     for i in $LOGFILES ;do
         FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
         echo "<a href='$FN'>${i/$QOUT\/$TASK\//}</a><br/>"
     done
     echo "</div></div></div>"
     if [ -n "$RESULTSUFFIX" ]; then
-        echo "<div class='tabContent_hide' id='DC_${TASK}_PRIMARY_RESULT_FILES'><div><div class='box'>"
+        echo "<div class='tabContent_hide' id='DC_${TASK}_PRIMARY_RESULT_FILES'><div><div class='box scroll'>"
         for dir in ${DIR[@]}; do
             if [ ! -d $OUTDIR/${dir%%/*}/$OUTTASK/ ]; then
                 echo "[NOTE] No result detected: $dir" 1>&2
