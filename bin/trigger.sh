@@ -193,9 +193,6 @@ if [ ! -d $TMP ]; then mkdir -p $TMP; fi
 ################################################################################
 ################################################################################
 
-# source NGSANE functions
-for RUN_FUNCTIONS in ${NGSANE_BASE}/core/functions.d/* ; do source $RUN_FUNCTIONS; done
-
 # source module triggers
 for RUN_MODS in ${NGSANE_BASE}/mods/run.d/* ; do source $RUN_MODS; done
 

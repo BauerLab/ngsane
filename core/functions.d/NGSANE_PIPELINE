@@ -27,15 +27,14 @@ function waitForJobIds {
 function NGSANE_PIPELINE_MOD() {
 
     JOBIDS=$( 
-        eval "RUN$1=1"
-        eval "WAITFORJOB_$1=$2"
-        RUNTOPHAT=1
-        . $NGSANE_BASE/mods/run.d/$1
-        eval "RUN$1="
+        eval "export RUN$1=1"
+        eval "export WAITFORJOB_$1=$2"
+        source $NGSANE_BASE/mods/run.d/$1 >&2
+        eval "unset RUN$1"
                 
     ) && echo -e "$JOBIDS"
     JOBIDS=$(waitForJobIds "$JOBIDS")
-    echo JOBIDS
+    echo "$JOBIDS"
 }
 
-export -f PIPELINE
+export -f NGSANE_PIPELINE_MOD

@@ -18,33 +18,14 @@ if [ -n "$RUNTRINITY" ]; then
     
     #  ##########   Inchworm   ###########
     
-    JOBIDS=$( 
-        RUNINCHWORM="1"
-        . $NGSANE_BASE/mods/run.d/TRINITY_INCHWORM
-        RUNINCHWORM=
-         
-    ) && echo -e "$JOBIDS"
-    JOBIDS_TRINITY_INCHWORM=$(waitForJobIds "$JOBIDS")
+    JOBIDS_TRINITY_INCHWORM=$(NGSANE_PIPELINE_MOD "TRINITY_INCHWORM")
 
     #  ##########   Chrysalis   ###########
 
-    JOBIDS=$( 
-        RUNCHRYSALIS="1"
-        WAITFORJOB_TRINITY_CHRYSALIS=$JOBIDS_TRINITY_INCHWORM
-        . $NGSANE_BASE/mods/run.d/TRINITY_CHRYSALIS
-        RUNCHRYSALIS=
-    ) && echo -e "$JOBIDS"
-    JOBIDS_TRINITY_CHRYSALIS=$(waitForJobIds "$JOBIDS")
-
+    JOBIDS_TRINITY_CHRYSALIS=$(NGSANE_PIPELINE_MOD "TRINITY_CHRYSALIS" "$JOBIDS_TRINITY_INCHWORM")
+    
     #  ##########   Butterfly   ###########
 
-    JOBIDS=$( 
-        RUNBUTTERFLY=1
-        WAITFORJOB_TRINITY_BUTTERFLY=$JOBIDS_TRINITY_CHRYSALIS
-        . $NGSANE_BASE/mods/run.d/TRINITY_BUTTERFLY
-        RUNBUTTERFLY=
-    ) && echo -e "$JOBIDS"
-    JOBIDS_TRINITY_BUTTERFLY=$(waitForJobIds "$JOBIDS")
-    
+    JOBIDS_TRINITY_BUTTERFLY=$(NGSANE_PIPELINE_MOD "TRINITY_BUTTERFLY" "JOBIDS_TRINITY_CHRYSALIS")
 
 fi
