@@ -295,6 +295,10 @@ table.dataTable td.left, table.dataTable  th.left{
 	width: auto;
 }
 
+.top{
+	vertical-align:text-top
+}
+
 table.dataTable tfoot {
 	border-top: 1px dashed #69c;
 }

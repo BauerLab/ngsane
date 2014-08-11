@@ -690,7 +690,7 @@ echo '<table class="data"><thead><tr><th><div style="width:10px"></div></th><th>
 
 COUNT=1
 while read -r line; do
-    echo "<tr class='citation'><td>[$COUNT]</td><td class='left' >${line//\"/}</td></tr>" >>$SUMMARYTMP
+    echo "<tr class='citation'><td class='top'>[$COUNT]</td><td class='left' >${line//\"/}</td></tr>" >>$SUMMARYTMP
     COUNT=$(( $COUNT + 1 ))
 done <<< "$(cat $SUMMARYCITES | cut -d']' -f 2 | sort -u )"
 
