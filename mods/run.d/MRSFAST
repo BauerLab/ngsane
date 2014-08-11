@@ -7,19 +7,20 @@
 # OUT: $OUT/$dir/bowtie/*$ASD.bam
 ################################################################################
 
-if [ -n "$RUNMRSFAST" ]; then
+if [ -n "$RUNMRSFAST" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_MRSFAST" ] || [ -z "$NODES_MRSFAST" ] || [ -z "$CPU_MRSFAST" ] || [ -z "$MEMORY_MRSFAST" ] || [ -z "$WALLTIME_MRSFAST" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     if [ ! -f $FASTA.index ];then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_MRSFAST -i $INPUT_MRSFAST -e $READONE.$FASTQ -n $NODES_MRSFAST -c $CPU_MRSFAST -m $MEMORY_MRSFAST"G" \
+            $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_MRSFAST -i $INPUT_MRSFAST -e $READONE.$FASTQ 
+            -n $NODES_MRSFAST -c $CPU_MRSFAST -m $MEMORY_MRSFAST"G" \
             -w $WALLTIME_MRSFAST --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/mrsfastIndex.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
     else
-        INDEXJOBIDS=""
+        INDEXJOBIDS=$WAITFORJOB_MRSFAST
     fi
     
     $QSUB $ARMED -k $CONFIG -t $TASK_MRSFAST -i $INPUT_MRSFAST -e $READONE.$FASTQ -n $NODES_MRSFAST -c $CPU_MRSFAST -m $MEMORY_MRSFAST"G" -w $WALLTIME_MRSFAST $INDEXJOBIDS \

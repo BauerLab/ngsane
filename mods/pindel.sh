@@ -216,8 +216,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 	fi
 	
 	# mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_"BP
-
+    NGSANE_CHECKPOINT_CHECK
 fi 
 
 ################################################################################
@@ -231,10 +230,9 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 	done
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_BP".vcf
+    NGSANE_CHECKPOINT_CHECK
 
 fi 
-
 
 ################################################################################
 NGSANE_CHECKPOINT_INIT "join vcf files"

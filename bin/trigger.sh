@@ -83,25 +83,6 @@ fi
 . $CONFIG
 
 ################################################################################
-# define functions 
-#
-# getJobIds takes 1 parameter
-# $1=QSUB output
-function waitForJobIds {
-    JOBIDS=$(echo -e "$1" | grep "Jobnumber")
-    if [ -n "$JOBIDS" ]; then 
-		#JOBIDS=$(echo -e $JOBIDS | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-        JOBIDS=$(echo -e $JOBIDS | gawk '{ ORS=" "; print; }' | sed 's/Jobnumber //g' | sed 's/ /:/g' )
-
-    fi
-    if [ "$JOBIDS" != "" ]; then
-        echo "-W $JOBIDS"
-    else
-        echo ""
-    fi
-} 
-
-################################################################################
 #  task fork
 ################################################################################
 NGSANE_STARTJOB=

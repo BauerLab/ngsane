@@ -7,21 +7,23 @@
 # OUT: $OUT/$dir/yara/*.bam
 ################################################################################
 
-if [ -n "$RUNYARA" ]; then
+if [ -n "$RUNYARA" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_YARA" ] || [ -z "$NODES_YARA" ] || [ -z "$CPU_YARA" ] || [ -z "$MEMORY_YARA" ] || [ -z "$WALLTIME_YARA" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     if [ ! -f ${FASTA%.*}.sa.val ];then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_YARA -i $INPUT_YARA -e $READONE.$FASTQ -n $NODES_YARA -c $CPU_YARA -m $MEMORY_YARA"G" \
+            $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_YARA -i $INPUT_YARA -e $READONE.$FASTQ \
+            -n $NODES_YARA -c $CPU_YARA -m $MEMORY_YARA"G" \
             -w $WALLTIME_YARA --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/yaraIndex.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
     else
-        INDEXJOBIDS=""
+        INDEXJOBIDS=$NGSANE_WAITFORJOB
     fi
     
-    $QSUB $ARMED -k $CONFIG -t $TASK_YARA -i $INPUT_YARA -e $READONE.$FASTQ -n $NODES_YARA -c $CPU_YARA -m $MEMORY_YARA"G" -w $WALLTIME_YARA  $INDEXJOBIDS \
+    $QSUB $ARMED -k $CONFIG -t $TASK_YARA -i $INPUT_YARA -e $READONE.$FASTQ \
+        -n $NODES_YARA -c $CPU_YARA -m $MEMORY_YARA"G" -w $WALLTIME_YARA  $INDEXJOBIDS \
         --command "${NGSANE_BASE}/mods/yara.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_YARA --rgsi <DIR>"        
 fi

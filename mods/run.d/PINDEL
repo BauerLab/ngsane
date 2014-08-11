@@ -4,9 +4,11 @@
 #   Pindel
 ################################################################################
 
-if [ -n "$RUNPINDEL" ]; then
+if [ -n "$RUNPINDEL" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
 
-    $QSUB $ARMED -r -k $CONFIG -t $INPUT_PINDEL-$TASK_PINDEL -i $INPUT_PINDEL -e $ASD.bam \
+    if [ -z "$TASK_PINDEL" ] || [ -z "$NODES_PINDEL" ] || [ -z "$CPU_PINDEL" ] || [ -z "$MEMORY_PINDEL" ] || [ -z "$WALLTIME_PINDEL" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $INPUT_PINDEL-$TASK_PINDEL -i $INPUT_PINDEL -e $ASD.bam \
         -n $NODES_PINDEL -c $CPU_PINDEL -m $MEMORY_PINDEL"G" -w $WALLTIME_PINDEL \
 		--postnodes $NODES_VARCOLLECT --postcpu $CPU_VARCOLLECT \
 		--postwalltime $WALLTIME_VARCOLLECT --postmemory $MEMORY_VARCOLLECT"G" \

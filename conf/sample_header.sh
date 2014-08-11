@@ -158,5 +158,8 @@ hash module 2>/dev/null && [ -n "$MODULE_GZIP" ] && module load $MODULE_GZIP
 for NGSANE_DEFAULTS in ${NGSANE_BASE}/conf/header.d/* ; do source $NGSANE_DEFAULTS; done
 for NGSANE_DEFAULTS in ${NGSANE_BASE}/conf/header.d/* ; do source $NGSANE_DEFAULTS; done
 
+# source NGSANE functions
+for NGSANE_FUNCTIONS in ${NGSANE_BASE}/core/functions.d/* ; do source $NGSANE_FUNCTIONS; done
+
 # Location of the meme motif database of choice
 MEMECHIPDATABASES=

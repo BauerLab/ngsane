@@ -7,19 +7,20 @@
 # OUT: $OUT/$dir/hiclib/*.hdf5
 ################################################################################
 
-if [ -n "$RUNHICLIB" ]; then
+if [ -n "$RUNHICLIB" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_HICLIB" ] || [ -z "$NODES_HICLIB" ] || [ -z "$CPU_HICLIB" ] || [ -z "$MEMORY_HICLIB" ] || [ -z "$WALLTIME_HICLIB" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     if [ ! -f ${FASTA%.*}.1.bt2 ];then
         # submit job for index generation if necessary
         INDEXJOBIDS=$(
-            $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ -n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" \
+            $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ 
+            -n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" \
             -w $WALLTIME_HICLIB --commontask indexGenome \
             --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
         ) && echo -e "$INDEXJOBIDS"
         INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
     else
-        INDEXJOBIDS=""
+        INDEXJOBIDS=$NGSANE_WAITFORJOB 
     fi
     
     $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ \
