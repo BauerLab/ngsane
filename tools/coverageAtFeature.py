@@ -1,4 +1,4 @@
-import argparse, sys, numpy, math
+import argparse, sys, numpy, math, traceback
 #import pandas as pd
 #import matplotlib.pyplot as plt
 #import numpy as np
@@ -32,15 +32,19 @@ def processStream2(file, up, down, bin, length, args):
     matrix=numpy.empty(shape=(length,up+down))
     counter=0
     for f in open(file):
-        #arr=map(float,f.split("\t"))
-        arr=f.split("\t")
-        #print "%i %s %s %i %s" % (counter/(up+down), arr[0], arr[1], len(arr),str(arr))
-#        if (len(arr)>2 and arr[2]=="-"):
-#       matrix[counter/(up+down),((up+down)-int(arr[0]))/bin]=float(arr[1])   
-#        else:
-        matrix[counter/(up+down),(int(arr[0])-1)/bin]=float(arr[1])
-        counter+=1
-
+        try:
+            #arr=map(float,f.split("\t"))
+            arr=f.split("\t")
+            #print "%i %s %s %i %s" % (counter/(up+down), arr[0], arr[1], len(arr),str(arr))
+    #        if (len(arr)>2 and arr[2]=="-"):
+    #       matrix[counter/(up+down),((up+down)-int(arr[0]))/bin]=float(arr[1])   
+    #        else:
+            matrix[counter/(up+down),(int(arr[0])-1)/bin]=float(arr[1])
+            counter+=1
+        except:
+            print arr
+            print traceback.format_exc()
+        
     print "shape of matrix %s" % (str(matrix.shape))
 
     #ignore all genomic locations that have zero coverage
