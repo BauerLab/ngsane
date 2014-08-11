@@ -16,7 +16,7 @@
 
 : ' # [TODO] REMOVE THIS LINE
 
-if [ -n "$RUN[MOD]" ]; then
+if [ -n "$RUN[MOD]" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/[MOD]
     if [ -z "$TASK_[MOD]" ] || [ -z "$NODES_[MOD]" ] || [ -z "$CPU_[MOD]" ] || [ -z "$MEMORY_[MOD]" ] || [ -z "$WALLTIME_[MOD]" ]; then 
         echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
@@ -25,23 +25,23 @@ if [ -n "$RUN[MOD]" ]; then
     # Choose ONE qsub call from below and fill in the variables as required and adapt as required
 
     # 1) SINGLE command working on fastq files (see FASTQC as example)
-    $QSUB $ARMED -d -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e $READONE.$FASTQ -n $NODES_[MOD] \
-    	-c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] $WAITFORJOB_[MOD] \
+    $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e $READONE.$FASTQ \
+        -n $NODES_[MOD] -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] \
     	--command "${NGSANE_BASE}/mods/[MOD].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD]" 
     	
     # 2) SINGLE command working on fastq files	and producing fastq files as well (see TRIMMOMATIC as example)
-    $QSUB $ARMED -d -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e $READONE.$FASTQ -n $NODES_[MOD] \
-        -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] $WAITFORJOB_[MOD] \
+    $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e $READONE.$FASTQ 
+        -n $NODES_[MOD] -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] \
         --command "$NGSANE_BASE/mods/[MOD].sh -k $CONFIG -f <FILE>"
        
     # 3) SINGLE command NOT working on fastq files (see MACS2 as example)
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e [inputfile.suffix] -n $NODES_[MOD] \
-        -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] $WAITFORJOB_[MOD] \
-	   --command "${NGSANE_BASE}/mods/[MOD].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD]"
+    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e [inputfile.suffix] \
+        -n $NODES_[MOD] -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] \
+        --command "${NGSANE_BASE}/mods/[MOD].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD]"
 
     # 4) COMMAND and POSTCOMMAND NOT working on fastq files (see HTSEQCOUNT as example)
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e [inputfile.suffix] -n $NODES_[MOD] \
-        -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] $WAITFORJOB_[MOD] \
+    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e [inputfile.suffix] \
+        -n $NODES_[MOD] -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] \
         --command "${NGSANE_BASE}/mods/[MOD].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD]" \
         --postname postcommand$[MOD] \
         --postcommand "${NGSANE_BASE}/mods/[MODPOSTCOMMAND].sh -f <FILE> -k $CONFIG --outdir $OUT/[MODPOSTCOMMAND]/<DIR>"

@@ -9,10 +9,10 @@
 ################################################################################
 # individual calls
 #  ##########   Chrysalis  ###########
-if [ -n "$RUNCHRYSALIS" ] && [ -z "$RUNTRINITY" ]; then
+if [ -n "$RUNCHRYSALIS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$NODES_CHRYSALIS" ] || [ -z "$NCPU_CHRYSALIS" ] || [ -z "$MEMORY_CHRYSALIS" ] || [ -z "$WALLTIME_CHRYSALIS" ] || [ -z "$NODETYPE_CHRYSALIS" ] ; then  echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
     $QSUB $ARMED -k $CONFIG -t $TASK_CHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
-        -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS $WAITFORJOB_CHRYSALIS \
+        -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS $NGSANE_WAITFORJOB \
         --command "${NGSANE_BASE}/mods/trinity_chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CHRYSALIS"
 fi

@@ -1,8 +1,7 @@
 #!/bin/bash -e
 ##############################################################
-# Function for staging mods (pipelining)
+# Functions for staging mods (pipelining)
 # author Fabian Buske
-
 
 ################################################################################
 # getJobIds takes 1 parameter
@@ -20,21 +19,20 @@ function waitForJobIds {
         echo ""
     fi
 } 
+
 ################################################################################
 # NGSANE_PIPELINE_MOD takes 2 parameter
 # $1=MOD as specified in mods/run.d/
 # $1=JOBIDs to wait for
 function NGSANE_PIPELINE_MOD() {
 
-    JOBIDS=$( 
-        eval "export RUN$1=1"
-        eval "export WAITFORJOB_$1=$2"
-        source $NGSANE_BASE/mods/run.d/$1 >&2
-        eval "unset RUN$1"
-                
-    ) && echo -e "$JOBIDS"
+    NGSANE_PIPELINECALL="1"
+    NGSANE_WAITFORJOB="$2"
+
+    JOBIDS="$(. $NGSANE_BASE/mods/run.d/$1)" && echo -e "$JOBIDS" >& 2
+    
+    NGSANE_WAITFORJOB=
+    
     JOBIDS=$(waitForJobIds "$JOBIDS")
     echo "$JOBIDS"
 }
-
-export -f NGSANE_PIPELINE_MOD

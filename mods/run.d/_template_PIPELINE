@@ -1,4 +1,5 @@
 #!/bin/bash -e
+# autor Fabian Buske
 
 # This template should be used to specify the parameter for the pipelines.
 # Pipelines chain together individual mods and require proper staging.
@@ -16,29 +17,13 @@
 
 if [ -n "$RUN[PIPELINE]" ]; then
         
-    JOBIDS=$( 
-        RUN[MOD1]="1"
-        . $NGSANE_BASE/mods/run.d/[MOD1]
-        RUN[MOD1]=
-         
-    ) && echo -e "$JOBIDS"
-    JOBIDS_[MOD1]=$(waitForJobIds "$JOBIDS")
+    JOBIDS_[MOD1]=$(NGSANE_PIPELINE_MOD "[MOD1]")
+    
+    JOBIDS_[MOD2]=$(NGSANE_PIPELINE_MOD "[MOD2]" "$[MOD1]")
+    
+    JOBIDS_[MOD3]=$(NGSANE_PIPELINE_MOD "[MOD3]" "$[MOD1]")
 
-    JOBIDS=$( 
-        RUN[MOD2]=1
-        WAITFORJOB_[MOD2]=$JOBIDS_[MOD1]
-        . $NGSANE_BASE/mods/run.d/[MOD2]
-        RUN[MOD2]=
-    ) && echo -e "$JOBIDS"
-    JOBIDS_[MOD2]=$(waitForJobIds "$JOBIDS")
-
-    JOBIDS=$( 
-        RUN[MOD3]=1
-        WAITFORJOB_[MOD3]=$JOBIDS_[MOD2]
-        . $NGSANE_BASE/mods/run.d/[MOD3]
-        RUN[MOD2]=
-    ) && echo -e "$JOBIDS"
-    JOBIDS_[MOD3]=$(waitForJobIds "$JOBIDS")
+    JOBIDS_[MOD4]=$(NGSANE_PIPELINE_MOD "[MOD4]" "$[MOD3]")
     
 fi
 
