@@ -100,7 +100,7 @@ if [[ -z "$FEATURE_START" && -z "$FEATURE_END" ]]; then
     exit 1
 fi
 
-if [ -n "$FEATURE_START" && $(head -n 1 $FEATUREFILE | awk '{FS = "\t"};{print NF}') -lt $FEATURE_START ]; then
+if [[ -n "$FEATURE_START" && $(head -n 1 $FEATUREFILE | awk '{FS = "\t"};{print NF}') -lt $FEATURE_START ]]; then
     echo "[ERROR] Feature bed file contains too few columns"
     exit 1
 fi
@@ -114,6 +114,9 @@ FEATURENAME=${FEATUREFILE##*/}
 export REGIONS=$OUTDIR/${FEATURENAME/bed/}feat-$UPSTREAM"+"$DOWNSTREAM"_"$METRIC${STRAND/-/_}.bed
 
 echo "[NOTE] Padding featues with $UPSTREAM and $DOWNSTREAM bps up- and downstream, respectively"
+if [ -n "$BIN" ]; then
+    echo "[NOTE] bin with $BIN"
+fi
 
 echo -e "\n********* $CHECKPOINT\n"
 ################################################################################
@@ -133,7 +136,7 @@ if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | w
     echo "::::::::: passed $CHECKPOINT"
 else 
 
-    head $FEATUREFILE
+#    head  -n 2 $FEATUREFILE
     if [ -z "$FEATURE_END" ];then    
         awk -v c=$FEATURE_START 'BEGIN{OFS=FS="\t"}{if(NF >= 6){print $1,$c,$c+1,$4,$5,$6}else{print $1,$c,$c+1,$4,0,"."}}' $FEATUREFILE | sort -u -k1,1 -k2,2g | bedtools slop $STRAND -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $REGIONS
     elif [ -z "$FEATURE_START" ];then    
@@ -156,7 +159,7 @@ else
         mv $REGIONS.tmp $REGIONS
     fi
 
-    head $REGIONS
+#    head -n 2 $REGIONS
  
     # mark checkpoint
     if [ -f $REGIONS ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
@@ -197,7 +200,9 @@ else
                     echo "[NOTE] flagstat"
                     samtools flagstat $1 >$1.stats
                 fi
-                TOTALREADS="--normalize "$(head -n 1 $1.stats | cut -d " " -f 1)
+                # normalize by mapped reads
+                TOTALREADS="--normalize "$(head -n 3 $1.stats | tail -n 1 | cut -d " " -f 1)
+                echo "[NOTE] normalize by $TOTALREADS"
             fi
             A="-abam"
         elif [[ "$ENDING" =~ ".bed" ]]; then
@@ -219,7 +224,6 @@ else
         if [ $EXPREG != 0 ]; then
             echo "[NOTE] nonzero regions $EXPREG"
             if [ -n "$BIN" ]; then
-                echo "bin with $BIN"
                 bedtools coverage $STRAND -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len"\t"$3}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
             else
                 bedtools coverage $STRAND -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' > $OUTDIR/$name.bed
@@ -260,7 +264,12 @@ else
     echo "[NOTE] plot $JOINED.pdf"
     head -n 1 $(echo $RESULTFILES | cut -d " " -f 1) > $JOINED.txt
     cat $RESULTFILES | grep -v "x" >> $JOINED.txt
-    python ${NGSANE_BASE}/tools/coverageAtFeature.py -o $JOINED $PYBIN -u $UPSTREAM -d $DOWNSTREAM -l $LENGTH -g "TSS" -i $JOINED --metric $METRIC
+    if [ -z "$FEATURE_END" ];then    
+        FEATURELABEL="Feature start"
+    elif [ -z "$FEATURE_START" ];then  
+        FEATURELABEL="Feature end"
+    fi
+    python ${NGSANE_BASE}/tools/coverageAtFeature.py -o $JOINED $PYBIN -u $UPSTREAM -d $DOWNSTREAM -l $LENGTH -g "$FEATURELABEL" -i $JOINED --metric $METRIC
     Rscript $JOINED.R
     convert $JOINED.pdf $JOINED.png
     
