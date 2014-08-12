@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # author: Fabian Buske
-# date: Aug 2013
+# date: Aug 2014
 
 echo ">>>>> Generate HTML report "
 echo ">>>>> startdate "`date`
@@ -50,78 +50,12 @@ echo -e "--Python      --\n "$(python --version 2>&1 | tee | head -n 1)
 SUMMARYTMP=$HTMLOUT".tmp"
 SUMMARYFILE=$HTMLOUT".html"
 SUMMARYCITES=$HTMLOUT".cites"
+NGSANE_COMPILE_REPORT="TRUE"
 
 mkdir -p $(dirname $SUMMARYTMP) && cat /dev/null > $SUMMARYTMP && cat /dev/null > $SUMMARYCITES # clean temporary content
 
 PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',os.path.realpath('$(dirname $SUMMARYTMP)'))")
 [ -z "$PROJECT_RELPATH" ] && PROJECT_RELPATH="."
-
-
-################################################################################
-# define functions for generating summary scaffold
-#
-# summaryHeader takes 4 parameters
-# $1=PIPELINE name
-# $2=TASK (e.g. $TASK_BWA)
-# $3=pipeline mod script (e.g. bwa.sh)
-# $4=html report file ($SUMMARYTMP)
-# $5=result file suffix (e.g. asb.bwa)
-# $6=output location if different to the default ($TASK)
-# $7=dir folder
-function summaryHeader {
-    LINKS=$LINKS" $2"   
-    echo "<div class='panel' id='$2_panel'><div class='tabs headbagb' id='$2_panel_tabs'><a name='$2'></a>
-            <a class='selected' href='#$2_results'><h2 id='$2_h_results' class='sub'>$1</h2></a>
-            <a href='#$2_checklist'><h2 id='$2_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='$2_counter_checkpoints_passed'></span><span class='failed' id='$2_counter_checkpoints_failed'></span></span></h2></a>
-            <a href='#$2_notes'><h2 id='$2_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='$2_counter_notes'></span></span></span></h2></a>
-            <a href='#$2_errors'><h2 id='$2_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='$2_counter_errors'></span></span></h2></a>
-            <a href='#$2_logfiles'><h2 id='$2_h_logfiles' class='sub inactive' rel='errors'>Log files</h2></a>" >> $4
-    if [ -n "$5" ]; then 
-        SUFFIX="--filesuffix $5"; 
-        echo "<a href='#$2_PRIMARY_RESULT_FILES'><h2 id='$2_h_nrfiles' class='sub inactive' rel='files'>Primary result files</h2></a>" >> $4
-    fi
-    echo "</div>" >> $4
-    echo "QC - $2"
-    #check of resultfiles are redirected into to a different folder
-
-    if [ -n "$6" ]; then 
-        RESULTLOCATION="--results-task $6"
-    else 
-        RESULTLOCATION=""
-    fi
-    
-    ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $4 --modscript $3 --log $QOUT --toolkit $CONFIG --task $2 $RESULTLOCATION $SUFFIX >> $4    
-    grep -r '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES
-    echo "<div class='tabContent' id='DC_$2_results'><div>" >> $4   
-} 
-# summaryFooter takes 2 parameters
-# $1=TASK (e.g. $TASK_BWA)
-# $2=output file ($SUMMARYTMP)
-function summaryFooter {
-    echo "</div></div></div>" >> $2
-    
-    
-}
-
-# gatherDirs takes 1 parameter
-# $1=TASK (e.g. $TASK_BWA)
-function gatherDirs {
-    vali=""
-    for dir in ${DIR[@]}; do
-        [ -d $OUT/${dir%%/*}/$1/ ] && vali=$vali" $OUT/${dir%%/*}/$1/"
-    done
-	echo $vali
-}
-
-# gatherDirsAggregate takes 1 parameter
-# $1=TASK (e.g. $TASK_VAR)
-function gatherDirsAggregate {
-    vali=""
-	for dir in ${DIR[@]}; do
-	   [ -d $OUT/$1/${dir%%/*}/ ] && vali=$vali" $OUT/$1/${dir%%/*}/"
-    done
-	echo $vali
-}
 
 # add bamannotate section
 # $1=vali 
@@ -153,9 +87,9 @@ function bamAnnotate {
 
 ################################################################################
 if [[ -n "$RUNFASTQSCREEN" ]]; then
-    summaryHeader "FASTQ screen" "$TASK_FASTQSCREEN" "fastqscreen.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "FASTQ screen" "$TASK_FASTQSCREEN" "fastqscreen.sh" "$SUMMARYTMP"
 
-    vali=$(gatherDirs $TASK_FASTQSCREEN)
+    vali=$(NGSANE_REPORT_GATHERDIRS $TASK_FASTQSCREEN)
     python ${NGSANE_BASE}/core/Summary.py "$TASK_FASTQSCREEN" "$vali" _screen.txt fastqscreen --noSummary --noOverallSummary >>$SUMMARYTMP
 
     imgs=""
@@ -167,13 +101,13 @@ if [[ -n "$RUNFASTQSCREEN" ]]; then
     done
     echo "<div>$imgs</div>" >> $SUMMARYTMP
     
-    summaryFooter "$TASK_FASTQSCREEN" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 
 ################################################################################
 if [[ -n "$RUNBLUE" ]]; then
-    summaryHeader "BLUE error correction" "$TASK_BLUE" "blue.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "BLUE error correction" "$TASK_BLUE" "blue.sh" "$SUMMARYTMP"
 
     vali=""
     for dir in ${DIR[@]}; do
@@ -196,13 +130,13 @@ if [[ -n "$RUNBLUE" ]]; then
 	echo "<h3>Annotation of mapped reads</h3>" >> $SUMMARYTMP
 	echo "<a href=$PROJECT_RELPATH/$IMAGE><img src=\""$PROJECT_RELPATH/${IMAGE/.pdf/}".jpg\"></a>">>$SUMMARYTMP
 
-    summaryFooter "$TASK_BLUE" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 
 ################################################################################
 if [ -n "$RUNTRIMGALORE" ];then
-    summaryHeader "Trimgalore trimming" "$TASK_TRIMGALORE" "trimgalore.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "Trimgalore trimming" "$TASK_TRIMGALORE" "trimgalore.sh" "$SUMMARYTMP"
 
     vali=""
     for dir in ${DIR[@]}; do
@@ -210,12 +144,12 @@ if [ -n "$RUNTRIMGALORE" ];then
     done
     python ${NGSANE_BASE}/core/Summary.py "$TASK_TRIMGALORE" "$vali" "_trimming_report.txt" trimgalore --noSummary >> $SUMMARYTMP
 
-    summaryFooter "$TASK_TRIMGALORE" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [ -n "$RUNTRIMMOMATIC" ];then
-    summaryHeader "Trimmomatic trimming" "$TASK_TRIMMOMATIC" "trimmomatic.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "Trimmomatic trimming" "$TASK_TRIMMOMATIC" "trimmomatic.sh" "$SUMMARYTMP"
 
     vali=""
     for dir in ${DIR[@]}; do
@@ -223,12 +157,12 @@ if [ -n "$RUNTRIMMOMATIC" ];then
     done
     python ${NGSANE_BASE}/core/Summary.py "$TASK_TRIMMOMATIC" "$vali" ".log" trimmomatic --noSummary >> $SUMMARYTMP
 
-    summaryFooter "$TASK_TRIMMOMATIC" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [ -n "$RUNCUTADAPT" ];then
-    summaryHeader "Cutadapt trimming" "$TASK_CUTADAPT" "cutadapt.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "Cutadapt trimming" "$TASK_CUTADAPT" "cutadapt.sh" "$SUMMARYTMP"
 
     vali=""
     for dir in ${DIR[@]}; do
@@ -236,66 +170,66 @@ if [ -n "$RUNCUTADAPT" ];then
     done
     python ${NGSANE_BASE}/core/Summary.py "$TASK_CUTADAPT" "$vali" ".stats" cutadapt --noSummary >> $SUMMARYTMP
 
-    summaryFooter "$TASK_CUTADAPT" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 
 ################################################################################
 if [[ -n "$RUNBWA" ]]; then
-    summaryHeader "BWA mapping" "$TASK_BWA" "bwa.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "BWA mapping" "$TASK_BWA" "bwa.sh" "$SUMMARYTMP"
 
-    vali=$(gatherDirs $TASK_BWA)
+    vali=$(NGSANE_REPORT_GATHERDIRS $TASK_BWA)
     python ${NGSANE_BASE}/core/Summary.py "$TASK_BWA" "$vali" $ASD.bam.stats samstats >>$SUMMARYTMP
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
         bamAnnotate "$vali" $TASK_BWA  $SUMMARYTMP
     fi
 
-    summaryFooter "$TASK_BWA" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 
 ################################################################################
 if [[ -n "$RUNREALRECAL" ]]; then 
-    summaryHeader "Recalibrate + Realign" "$TASK_RECAL" "reCalAln.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "Recalibrate + Realign" "$TASK_RECAL" "reCalAln.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$TASK_RECAL" "$(gatherDirs $TASK_RECAL)" $ASR.bam.stats samstatsrecal >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$TASK_RECAL" "$(NGSANE_REPORT_GATHERDIRS $TASK_RECAL)" $ASR.bam.stats samstatsrecal >>$SUMMARYTMP
 
-    summaryFooter "$TASK_RECAL" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [[ -n "$RUNBOWTIE" ]]; then
-    summaryHeader "Bowtie v1 mapping" "$TASK_BOWTIE" "bowtie.sh" "$SUMMARYTMP" "$ASD.bam"
+    NGSANE_REPORT_HEADER "Bowtie v1 mapping" "$TASK_BOWTIE" "bowtie.sh" "$SUMMARYTMP" "$ASD.bam"
 
-    vali=$(gatherDirs $TASK_BOWTIE)
-    python ${NGSANE_BASE}/core/Summary.py "$TASK_BOWTIE" "$(gatherDirs $TASK_BOWTIE)" $ASD.bam.stats samstats >>$SUMMARYTMP
+    vali=$(NGSANE_REPORT_GATHERDIRS $TASK_BOWTIE)
+    python ${NGSANE_BASE}/core/Summary.py "$TASK_BOWTIE" "$(NGSANE_REPORT_GATHERDIRS $TASK_BOWTIE)" $ASD.bam.stats samstats >>$SUMMARYTMP
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
         bamAnnotate "$vali" $TASK_BOWTIE  $SUMMARYTMP
     fi
     
-    summaryFooter "$TASK_BOWTIE" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [[ -n "$RUNBOWTIE2" ]]; then
-    summaryHeader "Bowtie v2 mapping" "$TASK_BOWTIE2" "bowtie2.sh" "$SUMMARYTMP" "$ASD.bam"
+    NGSANE_REPORT_HEADER "Bowtie v2 mapping" "$TASK_BOWTIE2" "bowtie2.sh" "$SUMMARYTMP" "$ASD.bam"
 
-    python ${NGSANE_BASE}/core/Summary.py "$TASK_BOWTIE2" "$(gatherDirs $TASK_BOWTIE2)" $ASD.bam.stats samstats >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$TASK_BOWTIE2" "$(NGSANE_REPORT_GATHERDIRS $TASK_BOWTIE2)" $ASD.bam.stats samstats >>$SUMMARYTMP
 
     if [ -n "$RUNANNOTATINGBAM" ]; then
         bamAnnotate "$vali" $TASK_BOWTIE2 $SUMMARYTMP
     fi
     
-    summaryFooter "$TASK_BOWTIE2" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
-    summaryHeader "Tophat" "$TASK_TOPHAT" "tophat.sh" "$SUMMARYTMP" "$ASD.bam"
+    NGSANE_REPORT_HEADER "Tophat" "$TASK_TOPHAT" "tophat.sh" "$SUMMARYTMP" "$ASD.bam"
 
-	vali=$(gatherDirs $TASK_TOPHAT)
+	vali=$(NGSANE_REPORT_GATHERDIRS $TASK_TOPHAT)
     echo "<br>[NOTE] the duplication rate is not calculated by tophat and hence zero.<br>" >>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$TASK_TOPHAT" "$vali" $ASD.bam.stats tophat >>$SUMMARYTMP
     
@@ -303,13 +237,13 @@ if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
         bamAnnotate "$vali" $TASK_TOPHAT  $SUMMARYTMP
     fi
     
-    summaryFooter "$TASK_TOPHAT" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 
 fi
 
 ################################################################################
 if [[ -n "$RUNRNASEQC" ]]; then
-    summaryHeader "RNA-SeQC" "$TASK_RNASEQC" "rnaseqc.sh" "$SUMMARYTMP" "$ASD.bam"
+    NGSANE_REPORT_HEADER "RNA-SeQC" "$TASK_RNASEQC" "rnaseqc.sh" "$SUMMARYTMP" "$ASD.bam"
 
 	vali=""
     CURDIR=$(pwd -P)
@@ -323,32 +257,32 @@ if [[ -n "$RUNRNASEQC" ]]; then
     cd $CURDIR
     python ${NGSANE_BASE}/core/Summary.py "$TASK_RNASEQC" "$vali" $ASD.bam.stats tophat >>$SUMMARYTMP
     
-    summaryFooter "$TASK_RNASEQC" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [[ -n "$RUNCUFFLINKS" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
-    summaryHeader "Cufflinks" "$TASK_CUFFLINKS" "cufflinks.sh,cuffpost.sh" "$SUMMARYTMP" "_transcripts.gtf"
+    NGSANE_REPORT_HEADER "Cufflinks" "$TASK_CUFFLINKS" "cufflinks.sh,cuffpost.sh" "$SUMMARYTMP" "_transcripts.gtf"
 
-    python ${NGSANE_BASE}/core/Summary.py "$TASK_CUFFLINKS" "$(gatherDirs $TASK_CUFFLINKS)" .summary.txt cufflinks >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$TASK_CUFFLINKS" "$(NGSANE_REPORT_GATHERDIRS $TASK_CUFFLINKS)" .summary.txt cufflinks >>$SUMMARYTMP
 
-    summaryFooter "$TASK_CUFFLINKS" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [[ -n "$RUNHTSEQCOUNT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
-    summaryHeader "Htseq-count" "$TASK_HTSEQCOUNT" "htseqcount.sh,countsTable.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "Htseq-count" "$TASK_HTSEQCOUNT" "htseqcount.sh,countsTable.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$TASK_HTSEQCOUNT" "$(gatherDirs $TASK_HTSEQCOUNT)" .summary.txt htseqcount >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$TASK_HTSEQCOUNT" "$(NGSANE_REPORT_GATHERDIRS $TASK_HTSEQCOUNT)" .summary.txt htseqcount >>$SUMMARYTMP
 
-    summaryFooter "$TASK_HTSEQCOUNT" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
-    summaryHeader "Coverage" "$TASK_VAR" "gatkSNPs.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "Coverage" "$TASK_VAR" "gatkSNPs.sh" "$SUMMARYTMP"
 
-    vali=$(gatherDirs $TASK_GATKDOC)
+    vali=$(NGSANE_REPORT_GATHERDIRS $TASK_GATKDOC)
     echo "<h3>Average coverage</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$TASK_VAR" "$vali" $ASR".bam.doc.sample_summary" coverage >>$SUMMARYTMP
     echo "<h3>Base pair coverage over all intervals</h3>" >>$SUMMARYTMP
@@ -358,12 +292,12 @@ if [[ -n "$DEPTHOFCOVERAGE"  || -n "$DEPTHOFCOVERAGE2" ]]; then
     echo "<h3>On Target</h3>" >>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$TASK_VAR" "$vali" $ASR".bam.stats" target >>$SUMMARYTMP
 
-    summaryFooter "$TASK_VAR" "$SUMMARYTMP" 
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP" 
 fi
 
 ################################################################################
 if [ -n "$RUNVARCALLS" ]; then 
-    summaryHeader "Variant calling" "$TASK_GATKVAR" "gatkVARs.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "Variant calling" "$TASK_GATKVAR" "gatkVARs.sh" "$SUMMARYTMP"
 
 	vali=$OUT/$TASK_GATKVAR/$(echo ${DIR[@]}|sed 's/ /_/g')/
     echo "<h3>SNPs</h3>">>$SUMMARYTMP
@@ -372,12 +306,12 @@ if [ -n "$RUNVARCALLS" ]; then
     echo "<h3>INDELs</h3>" >>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$TASK_GATKVAR" "$vali" "filter.indel.eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
 
-    summaryFooter "$TASK_GATKVAR" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [ -n "$RUNANNOTATION" ]; then
-    summaryHeader "Variant annotation" "$TASK_ANNOVAR" "annovar.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "Variant annotation" "$TASK_ANNOVAR" "annovar.sh" "$SUMMARYTMP"
 
     vali=""
     for dir in ${DIR[@]}; do
@@ -392,14 +326,14 @@ if [ -n "$RUNANNOTATION" ]; then
     done
     echo "<br>More information about the columns can be found on the <a target=new href=\"http://redmine.qbi.uq.edu.au/knowledgebase/articles/12\">Project Server</a> (uqlogin). and the description of the <a href=\"http://www.broadinstitute.org/gsa/wiki/index.php/Understanding_the_Unified_Genotyper%27s_VCF_files\">vcf file</a>">> $SUMMARYTMP
     
-    summaryFooter "$TASK_ANNOVAR" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [ -n "$RUNHICLIB" ];then
-    summaryHeader "HiClib" "$TASK_HICLIB" "hiclibMapping.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "HiClib" "$TASK_HICLIB" "hiclibMapping.sh" "$SUMMARYTMP"
 
-    vali=$(gatherDirs $TASK_HICLIB)
+    vali=$(NGSANE_REPORT_GATHERDIRS $TASK_HICLIB)
     python ${NGSANE_BASE}/core/Summary.py "$TASK_HICLIB" "$vali" ".log" hiclibMapping >> $SUMMARYTMP
     for dir in $vali; do
         for pdf in $(ls -f ${dir%%/*}/*.pdf 2>/dev/null ); do
@@ -407,14 +341,14 @@ if [ -n "$RUNHICLIB" ];then
         done
     done
 
-    summaryFooter "$TASK_HICLIB" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [ -n "$RUNHICUP" ];then
-    summaryHeader "HiCUP" "$TASK_HICUP" "hicup.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "HiCUP" "$TASK_HICUP" "hicup.sh" "$SUMMARYTMP"
 
-    vali=$(gatherDirs $TASK_HICUP)
+    vali=$(NGSANE_REPORT_GATHERDIRS $TASK_HICUP)
     echo "<h4>truncater</h4>">>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$TASK_HICUP" "$vali" "_truncater_summary.txt" hicup --noSummary --noOverallSummary >> $SUMMARYTMP
     echo "<h4>mapper</h4>">>$SUMMARYTMP
@@ -437,23 +371,23 @@ if [ -n "$RUNHICUP" ];then
     done
     echo "<div>$imgs</div>" >> $SUMMARYTMP
     
-    summaryFooter "$TASK_HICUP" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [ -n "$RUNFITHIC" ];then
-    summaryHeader "Fit-hi-c" "$TASK_FITHIC" "fithic.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "Fit-hi-c" "$TASK_FITHIC" "fithic.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$2" "$(gatherDirs $TASK_FITHIC)" ".log" fithic >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$2" "$(NGSANE_REPORT_GATHERDIRS $TASK_FITHIC)" ".log" fithic >> $SUMMARYTMP
     
-    summaryFooter "$TASK_FITHIC" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [ -n "$RUNCHANCE" ];then
-    summaryHeader "Chance" "$TASK_CHANCE" "chance.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "Chance" "$TASK_CHANCE" "chance.sh" "$SUMMARYTMP"
 
-    vali=$(gatherDirs $TASK_CHANCE)
+    vali=$(NGSANE_REPORT_GATHERDIRS $TASK_CHANCE)
     python ${NGSANE_BASE}/core/Summary.py "$TASK_CHANCE" "$vali" ".IPstrength" chance >> $SUMMARYTMP
 
     imgs=""
@@ -465,50 +399,50 @@ if [ -n "$RUNCHANCE" ];then
     done
     echo "<div>$imgs</div>" >> $SUMMARYTMP
 
-    summaryFooter "$TASK_CHANCE" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [ -n "$RUNBIGWIG" ];then
-    summaryHeader "BigWig" "$TASK_BIGWIG" "bigwig.sh" "$SUMMARYTMP" ".bw"
+    NGSANE_REPORT_HEADER "BigWig" "$TASK_BIGWIG" "bigwig.sh" "$SUMMARYTMP" ".bw"
 
-    python ${NGSANE_BASE}/core/Summary.py "$TASK_BIGWIG" "$(gatherDirs $TASK_BIGWIG)" ".bw.stats" bigwig  --noSummary --noOverallSummary >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$TASK_BIGWIG" "$(NGSANE_REPORT_GATHERDIRS $TASK_BIGWIG)" ".bw.stats" bigwig  --noSummary --noOverallSummary >> $SUMMARYTMP
     
-    summaryFooter "$TASK_BIGWIG" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [ -n "$RUNFSEQ" ];then
-    summaryHeader "Fseq" "$TASK_FSEQ" "fseq.sh" "$SUMMARYTMP" ".narrowPeak"
+    NGSANE_REPORT_HEADER "Fseq" "$TASK_FSEQ" "fseq.sh" "$SUMMARYTMP" ".narrowPeak"
 
-    python ${NGSANE_BASE}/core/Summary.py "$(gatherDirs $TASK_FSEQ)" ".narrowPeak" fseq >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$(NGSANE_REPORT_GATHERDIRS $TASK_FSEQ)" ".narrowPeak" fseq >> $SUMMARYTMP
 
-    summaryFooter "$TASK_FSEQ" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 ################################################################################
 if [ -n "$RUNHOMERCHIPSEQ" ];then
-    summaryHeader "Homer ChIP-Seq" "$TASK_HOMERCHIPSEQ" "chipseqHomer.sh" "$SUMMARYTMP" ".bed"
+    NGSANE_REPORT_HEADER "Homer ChIP-Seq" "$TASK_HOMERCHIPSEQ" "chipseqHomer.sh" "$SUMMARYTMP" ".bed"
 
-    python ${NGSANE_BASE}/core/Summary.py "$TASK_HOMERCHIPSEQ" "$(gatherDirs $TASK_HOMERCHIPSEQ)" ".summary.txt" homerchipseq >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$TASK_HOMERCHIPSEQ" "$(NGSANE_REPORT_GATHERDIRS $TASK_HOMERCHIPSEQ)" ".summary.txt" homerchipseq >> $SUMMARYTMP
 
-    summaryFooter "$TASK_HOMERCHIPSEQ" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [ -n "$RUNPEAKRANGER" ];then
-    summaryHeader "Peakranger" "$TASK_PEAKRANGER" "peakranger.sh" "$SUMMARYTMP" "_region.bed"
+    NGSANE_REPORT_HEADER "Peakranger" "$TASK_PEAKRANGER" "peakranger.sh" "$SUMMARYTMP" "_region.bed"
 
-    python ${NGSANE_BASE}/core/Summary.py "$TASK_PEAKRANGER" "$(gatherDirs $TASK_PEAKRANGER)" ".summary.txt" peakranger >> $SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$TASK_PEAKRANGER" "$(NGSANE_REPORT_GATHERDIRS $TASK_PEAKRANGER)" ".summary.txt" peakranger >> $SUMMARYTMP
 
-    summaryFooter "$TASK_PEAKRANGER" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [ -n "$RUNMACS2" ];then
-    summaryHeader "MACS2" "$TASK_MACS2" "macs2.sh" "$SUMMARYTMP" "_refinepeak.bed"
+    NGSANE_REPORT_HEADER "MACS2" "$TASK_MACS2" "macs2.sh" "$SUMMARYTMP" "_refinepeak.bed"
 
 
-    vali=$(gatherDirs $TASK_MACS2)
+    vali=$(NGSANE_REPORT_GATHERDIRS $TASK_MACS2)
     python ${NGSANE_BASE}/core/Summary.py "$TASK_MACS2" "$vali" ".summary.txt" macs2 >> $SUMMARYTMP
 
     imgs=""
@@ -520,12 +454,12 @@ if [ -n "$RUNMACS2" ];then
     done
     echo "<div>$imgs</div>" >> $SUMMARYTMP
 
-    summaryFooter "$TASK_MACS2" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 ################################################################################
 if [ -n "$RUNMEMECHIP" ]; then
-    summaryHeader "MEME-chip Motif discovery" "$TASK_MEMECHIP" "memechip.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "MEME-chip Motif discovery" "$TASK_MEMECHIP" "memechip.sh" "$SUMMARYTMP"
 
 echo "<table id='memechip_id_Table' class='data'>" >>$SUMMARYTMP
 echo "</table>" >>$SUMMARYTMP
@@ -533,9 +467,9 @@ echo "<script type=\"text/javascript\">
 //<![CDATA[
 memechip_Table_json ={
 	\"bAutoWidth\": false,
-        \"bFilter\": true,
+    \"bFilter\": true,
 	\"aoColumns\": [
-                {\"sWidth\": \"15%\", \"sTitle\": \"Library\"},
+        {\"sWidth\": \"15%\", \"sTitle\": \"Library\"},
 		{\"sWidth\": \"10%\", \"sTitle\": \"Experiment\"},
 		{\"sWidth\": \"15%\", \"sTitle\": \"Logo\"},
 		{\"sWidth\": \"10%\", \"sTitle\": \"Consensus motif\"},
@@ -545,7 +479,7 @@ memechip_Table_json ={
 		{\"sWidth\": \"5%\", \"sTitle\": \"Peaks\"},
 		{\"sWidth\": \"5%\", \"sTitle\": \"With strong sites\"},
 		{\"sWidth\": \"5%\", \"sTitle\": \"%\"},
-                {\"sWidth\": \"5%\", \"sTitle\": \"With weak sites\"},
+        {\"sWidth\": \"5%\", \"sTitle\": \"With weak sites\"},
 		{\"sWidth\": \"5%\", \"sTitle\": \"%\"},
 		
 			],	
@@ -594,31 +528,31 @@ MEMECHIP=${MEMECHIP//] [/],
 [}
     echo $MEMECHIP >>$SUMMARYTMP
     echo "]} </script>" >>$SUMMARYTMP
-    summaryFooter "$TASK_MEMECHIP" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
 
 ################################################################################
 if [ -n "$RUNTRINITY" ] || [ -n "$RUNINCHWORM" ];then
-    summaryHeader "Trinity - Inchworm" "$TASK_INCHWORM" "trinity_inchworm.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "Trinity - Inchworm" "$TASK_INCHWORM" "trinity_inchworm.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$TASK_INCHWORM" "$(gatherDirs $TASK_INCHWORM)" .summary.txt "trinity_inchworm" --noSummary  >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$TASK_INCHWORM" "$(NGSANE_REPORT_GATHERDIRS $TASK_INCHWORM)" .summary.txt "trinity_inchworm" --noSummary  >>$SUMMARYTMP
 
-    summaryFooter "$TASK_INCHWORM" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi  
 if [ -n "$RUNTRINITY" ] || [ -n "$RUNCHRYSALIS" ];then
-    summaryHeader "Trinity - Chrysalis" "$TASK_CHRYSALIS" "trinity_chrysalis.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "Trinity - Chrysalis" "$TASK_CHRYSALIS" "trinity_chrysalis.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$TASK_INCHWORM" "$(gatherDirs $TASK_CHRYSALIS)" .summary.txt "trinity_chrysalis" --noSummary  >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$TASK_INCHWORM" "$(NGSANE_REPORT_GATHERDIRS $TASK_CHRYSALIS)" .summary.txt "trinity_chrysalis" --noSummary  >>$SUMMARYTMP
 
-    summaryFooter "$TASK_CHRYSALIS" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi    
 if [ -n "$RUNTRINITY" ] || [ -n "$RUNBUTTERFLY" ];then
-    summaryHeader "Trinity - Butterfly" "$TASK_BUTTERFLY" "trinity_butterfly.sh" "$SUMMARYTMP"
+    NGSANE_REPORT_HEADER "Trinity - Butterfly" "$TASK_BUTTERFLY" "trinity_butterfly.sh" "$SUMMARYTMP"
 
-    python ${NGSANE_BASE}/core/Summary.py "$TASK_INCHWORM" "$(gatherDirs $TASK_BUTTERFLY)" .summary.txt "trinity_butterfly" --noSummary  >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$TASK_INCHWORM" "$(NGSANE_REPORT_GATHERDIRS $TASK_BUTTERFLY)" .summary.txt "trinity_butterfly" --noSummary  >>$SUMMARYTMP
 
-    summaryFooter "$TASK_BUTTERFLY" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi 
 
 
@@ -626,14 +560,14 @@ fi
 # pindel
 ################################################################################
 if [ -n "$RUNPINDEL" ]; then 
-    summaryHeader "Structural Variants" "$INPUT_PINDEL-$TASK_PINDEL" "pindel.sh,variantcollect.sh" "$SUMMARYTMP" 
+    NGSANE_REPORT_HEADER "Structural Variants" "$INPUT_PINDEL-$TASK_PINDEL" "pindel.sh,variantcollect.sh" "$SUMMARYTMP" 
 #$OUT/variant/${INPUT_PINDEL}-${TASK_PINDEL}-$(echo ${DIR[@]}|sed 's/ /_/g')/ "joined.eval.txt"
 
 	vali=$OUT/variant/${INPUT_PINDEL}-${TASK_PINDEL}-$(echo ${DIR[@]}|sed 's/ /_/g')/
     echo "<h3>Variants</h3>">>$SUMMARYTMP
     python ${NGSANE_BASE}/core/Summary.py "$INPUT_PINDEL-$TASK_PINDEL" "$vali" "eval.txt" variant --n --l "../$PROJECT_RELPATH" >>$SUMMARYTMP
 
-    summaryFooter "$INPUT_PINDEL-$TASK_PINDEL" "$SUMMARYTMP"
+    NGSANE_REPORT_FOOTER "$SUMMARYTMP"
 fi
 
  
