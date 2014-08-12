@@ -7,7 +7,7 @@
 # OUT: $OUT/$dir/bowtie/*$ASD.bam
 ################################################################################
 
-if [ -n "$RUNMAPPINGBOWTIE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+if [ -n "$RUNBOWTIE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_BOWTIE" ] || [ -z "$NODES_BOWTIE" ] || [ -z "$CPU_BOWTIE" ] || [ -z "$MEMORY_BOWTIE" ] || [ -z "$WALLTIME_BOWTIE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     if [ ! -f ${FASTA%.*}.1.ebwt ];then

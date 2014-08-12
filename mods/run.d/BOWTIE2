@@ -6,7 +6,7 @@
 # IN:  $SOURCE/$dir/fastq/*read1.fastq
 # OUT: $OUT/$dir/bowtie2/*$ASD.bam
 ################################################################################
-if [ -n "$RUNMAPPINGBOWTIE2" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+if [ -n "$RUNBOWTIE2" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_BOWTIE2" ] || [ -z "$NODES_BOWTIE2" ] || [ -z "$CPU_BOWTIE2" ] || [ -z "$MEMORY_BOWTIE2" ] || [ -z "$WALLTIME_BOWTIE2" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
     if [ ! -f ${FASTA%.*}.1.bt2 ];then

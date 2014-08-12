@@ -7,7 +7,7 @@
 # OUT: $OUT/$dir/rrbsmap/*.bam
 ################################################################################
 
-if [ -n "$RUNMAPPINGRRBS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+if [ -n "$RUNRRBS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_RRBSMAP" ] || [ -z "$NODES_RRBSMAP" ] || [ -z "$CPU_RRBSMAP" ] || [ -z "$MEMORY_RRBSMAP" ] || [ -z "$WALLTIME_RRBSMAP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_RRBSMAP -i $INPUT_RRBSMAP -e $READONE.$FASTQ \

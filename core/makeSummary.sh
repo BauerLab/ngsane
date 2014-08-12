@@ -241,7 +241,7 @@ fi
 
 
 ################################################################################
-if [[ -n "$RUNMAPPINGBWA" || -n "$RUNMAPPINGBWA2" ]]; then
+if [[ -n "$RUNBWA" ]]; then
     summaryHeader "BWA mapping" "$TASK_BWA" "bwa.sh" "$SUMMARYTMP"
 
     vali=$(gatherDirs $TASK_BWA)
@@ -265,7 +265,7 @@ if [[ -n "$RUNREALRECAL" ]]; then
 fi
 
 ################################################################################
-if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
+if [[ -n "$RUNBOWTIE" ]]; then
     summaryHeader "Bowtie v1 mapping" "$TASK_BOWTIE" "bowtie.sh" "$SUMMARYTMP" "$ASD.bam"
 
     vali=$(gatherDirs $TASK_BOWTIE)
@@ -279,7 +279,7 @@ if [[ -n "$RUNMAPPINGBOWTIE" ]]; then
 fi
 
 ################################################################################
-if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then
+if [[ -n "$RUNBOWTIE2" ]]; then
     summaryHeader "Bowtie v2 mapping" "$TASK_BOWTIE2" "bowtie2.sh" "$SUMMARYTMP" "$ASD.bam"
 
     python ${NGSANE_BASE}/core/Summary.py "$TASK_BOWTIE2" "$(gatherDirs $TASK_BOWTIE2)" $ASD.bam.stats samstats >>$SUMMARYTMP
@@ -297,7 +297,7 @@ if [[ -n "$RUNTOPHAT" || -n "$RUNTOPHATCUFFHTSEQ" ]]; then
 
 	vali=$(gatherDirs $TASK_TOPHAT)
     echo "<br>[NOTE] the duplication rate is not calculated by tophat and hence zero.<br>" >>$SUMMARYTMP
-    python ${NGSANE_BASE}/core/Summary.py "$vali" $ASD.bam.stats tophat >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$TASK_TOPHAT" "$vali" $ASD.bam.stats tophat >>$SUMMARYTMP
     
     if [ -n "$RUNANNOTATINGBAM" ]; then
         bamAnnotate "$vali" $TASK_TOPHAT  $SUMMARYTMP
@@ -321,7 +321,7 @@ if [[ -n "$RUNRNASEQC" ]]; then
 		done
     done
     cd $CURDIR
-    python ${NGSANE_BASE}/core/Summary.py "$TASK_TOPHAT" "$vali" $ASD.bam.stats tophat >>$SUMMARYTMP
+    python ${NGSANE_BASE}/core/Summary.py "$TASK_RNASEQC" "$vali" $ASD.bam.stats tophat >>$SUMMARYTMP
     
     summaryFooter "$TASK_RNASEQC" "$SUMMARYTMP"
 fi

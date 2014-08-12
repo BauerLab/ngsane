@@ -33,8 +33,8 @@ NODES_HTSEQCOUNT="nodes=1:ppn=1"
 #********************
 # Tasks
 #********************
-RUNMAPPINGBOWTIE=""  # mapping with bowtie1
-RUNMAPPINGBOWTIE2="" # mapping with bowtie2
+RUNBOWTIE=""  # mapping with bowtie1
+RUNBOWTIE2="" # mapping with bowtie2
 RUNTOPHAT=""         # mapping with tophat (RNAseq)
 RUNCUFFLINKS=""      # mapping with cufflinks (RNAseq)
 RUNHTSEQCOUNT=""     # mapping with htseqcount (RNAseq)

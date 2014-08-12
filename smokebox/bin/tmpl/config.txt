@@ -58,12 +58,12 @@ NODES_SAMVAR="nodes=1:ppn=1"
 #********************
 RUNFASTQC=""
 RUNCUTADAPT=""
-RUNMAPPINGBOWTIE=""  # mapping with bowtie1
-RUNMAPPINGBOWTIE2="" # mapping with bowtie2
+RUNBOWTIE=""  # mapping with bowtie1
+RUNBOWTIE2="" # mapping with bowtie2
 RUNTOPHAT=""         # mapping with tophat (RNAseq)
 RUNCUFFLINKS=""      # mapping with cufflinks (RNAseq)
 RUNHTSEQCOUNT=""     # mapping with htseqcount (RNAseq)
-RUNMAPPINGBWA=""     # mapping with bwa
+RUNBWA=""     # mapping with bwa
 RUNREALRECAL=""      # recalibration/realignment
 DEPTHOFCOVERAGE=""   # determine mean coverage
 RUNVARCALLS=""       # SNP/Variant detection

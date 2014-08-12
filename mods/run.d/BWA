@@ -7,7 +7,7 @@
 # OUT: $OUT/$dir/bwa/*$ASD.bam
 ################################################################################
 
-if [ -n "$RUNMAPPINGBWA" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+if [ -n "$RUNBWA" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     if [ -z "$TASK_BWA" ] || [ -z "$NODES_BWA" ] || [ -z "$CPU_BWA" ] || [ -z "$MEMORY_BWA" ] || [ -z "$WALLTIME_BWA" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
     if [ ! -f $FASTA.bwt ];then

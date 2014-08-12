@@ -33,7 +33,7 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSFASTQC)"
 # modify the template config file to flip the RUNBOWTIE2 switch
 # specify the resulting html file
 echo "[NOTE] Prep and run config file tmp/configBOWTIE2.txt"
-cat bin/tmpl/configChIPseq.txt | sed 's/RUNMAPPINGBOWTIE2=\"\"/RUNMAPPINGBOWTIE2=\"1\"/g' | \
+cat bin/tmpl/configChIPseq.txt | sed 's/RUNBOWTIE2=\"\"/RUNBOWTIE2=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBOWTIE2\"/g' > tmp/configBOWTIE2.txt
 
 # submit the BOWTIE2 run to the cluster
@@ -116,7 +116,7 @@ JOBIDS="$JOBIDSFASTQC:$JOBIDSPR:$JOBIDBW:$JOBIDSMACS:$JOBIDSMEME" #other things
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configChIPseq.txt | \
     sed 's/RUNFASTQC=\"\"/RUNFASTQC=\"1\"/g' |\
-    sed 's/RUNMAPPINGBOWTIE2=\"\"/RUNMAPPINGBOWTIE2=\"1\"/g' | \
+    sed 's/RUNBOWTIE2=\"\"/RUNBOWTIE2=\"1\"/g' | \
     sed 's/RUNBIGWIG=\"\"/RUNBIGWIG=\"1\"/g' |\
     sed 's/RUNPEAKRANGER=\"\"/RUNPEAKRANGER=\"1\"/g' |\
     sed 's/RUNMACS2=\"\"/RUNMACS2=\"1\"/g' |\

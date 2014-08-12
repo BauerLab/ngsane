@@ -45,8 +45,8 @@ NODES_BIGWIG="nodes=1:ppn=1"
 # Tasks
 #********************
 RUNFASTQC=""	       # fastqc
-RUNMAPPINGBOWTIE=""   # mapping with bowtie1
-RUNMAPPINGBOWTIE2=""  # mapping with bowtie2
+RUNBOWTIE=""   # mapping with bowtie1
+RUNBOWTIE2=""  # mapping with bowtie2
 RUNPEAKRANGER=""      # peak calling Peakranger
 RUNMACS2=""           # peak calling Macs2
 RUNMEMECHIP=""        # motif discovery with MEME

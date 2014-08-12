@@ -82,7 +82,7 @@ RNA3kChr16_read1.fastq  RNA3kChr16_read2.fastq
 \begin{small}\begin{verbatim}
 -bash-4.1$ wget http://www.hpsc.csiro.au/users/bau04c/datahome/Sandbox/NGSANEDEMO/config.txt .
 \end{verbatim}\end{small}
-\item display the configuration file; it is currently  set up to perform mapping with Bowtie2~\citep{Langmead2012} (set RUNMAPPINGBWA="1" activates mapping with BWA~\citep{Li2009})
+\item display the configuration file; it is currently  set up to perform mapping with Bowtie2~\citep{Langmead2012} (set RUNBWA="1" activates mapping with BWA~\citep{Li2009})
 \begin{small}\begin{verbatim}
 -bash-4.1$ cat config.txt
 # author: Denis C. Bauer
@@ -91,8 +91,8 @@ RNA3kChr16_read1.fastq  RNA3kChr16_read2.fastq
 #********************
 # Tasks
 #********************
-RUNMAPPINGBOWTIE2="1" # mapping with bowtie2 set to 1 to run
-RUNMAPPINGBWA="" # mapping with bwa
+RUNBOWTIE2="1" # mapping with bowtie2 set to 1 to run
+RUNBWA="" # mapping with bwa
 
 #********************
 # Paths
