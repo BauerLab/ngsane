@@ -9,7 +9,7 @@
 # Tasks
 #********************
 
-RUNANNOTATINGFEATURE="1"   
+RUNFEATANN="1"   
 
 #********************
 # Paths

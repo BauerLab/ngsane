@@ -8,9 +8,31 @@
 ################################################################################
 
 if [ -n "$RUNTRIMMOMATIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_TRIMMOMATIC" ] || [ -z "$NODES_TRIMMOMATIC" ] || [ -z "$CPU_TRIMMOMATIC" ] || [ -z "$MEMORY_TRIMMOMATIC" ] || [ -z "$WALLTIME_TRIMMOMATIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_TRIMMOMATIC -i $INPUT_TRIMMOMATIC -e $READONE.$FASTQ -n $NODES_TRIMMOMATIC \
-        -c $CPU_TRIMMOMATIC -m $MEMORY_TRIMMOMATIC"G" -w $WALLTIME_TRIMMOMATIC \
-        --command "$NGSANE_BASE/mods/trimmomatic.sh -k $CONFIG -f <FILE>"
-fi
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined       
+        if [ -z "$TASK_TRIMMOMATIC" ] || [ -z "$NODES_TRIMMOMATIC" ] || [ -z "$CPU_TRIMMOMATIC" ] || [ -z "$MEMORY_TRIMMOMATIC" ] || [ -z "$WALLTIME_TRIMMOMATIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+        
+        $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_TRIMMOMATIC -i $INPUT_TRIMMOMATIC -e $READONE.$FASTQ -n $NODES_TRIMMOMATIC \
+            -c $CPU_TRIMMOMATIC -m $MEMORY_TRIMMOMATIC"G" -w $WALLTIME_TRIMMOMATIC \
+            --command "$NGSANE_BASE/mods/trimmomatic.sh -k $CONFIG -f <FILE>"
+            
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Trimmomatic" "$TASK_TRIMMOMATIC" "trimmomatic.sh"
+
+        echo "[NOTE] the trimmomatic.sh mod does not provide a report"
+  
+          # finish the section
+        NGSANE_REPORT_FOOTER 
+     
+    fi
+fi	
+
+	

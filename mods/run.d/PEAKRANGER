@@ -7,9 +7,31 @@
 # OUT: $OUT/$dir/peakranger/
 ################################################################################
 if [ -n "$RUNPEAKRANGER" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_PEAKRANGER" ] || [ -z "$NODES_PEAKRANGER" ] || [ -z "$CPU_PEAKRANGER" ] || [ -z "$MEMORY_PEAKRANGER" ] || [ -z "$WALLTIME_PEAKRANGER" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_PEAKRANGER -i $INPUT_PEAKRANGER -e $ASD.bam \
-        -n $NODES_PEAKRANGER -c $CPU_PEAKRANGER -m $MEMORY_PEAKRANGER"G" -w $WALLTIME_PEAKRANGER \
-	   --command "${NGSANE_BASE}/mods/peakranger.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_PEAKRANGER"
-fi
+        # check if resources are properly defined
+        if [ -z "$TASK_PEAKRANGER" ] || [ -z "$NODES_PEAKRANGER" ] || [ -z "$CPU_PEAKRANGER" ] || [ -z "$MEMORY_PEAKRANGER" ] || [ -z "$WALLTIME_PEAKRANGER" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_PEAKRANGER -i $INPUT_PEAKRANGER -e $ASD.bam \
+            -n $NODES_PEAKRANGER -c $CPU_PEAKRANGER -m $MEMORY_PEAKRANGER"G" -w $WALLTIME_PEAKRANGER \
+            --command "${NGSANE_BASE}/mods/peakranger.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_PEAKRANGER"
+            
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Peakranger" "$TASK_PEAKRANGER" "peakranger.sh"
+
+        echo "[NOTE] the peakranger.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+  
+    fi
+fi	
+
+	

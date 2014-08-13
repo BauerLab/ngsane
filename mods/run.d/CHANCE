@@ -7,9 +7,31 @@
 # OUT: $OUT/$dir/chance/
 ################################################################################
 if [ -n "$RUNCHANCE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_CHANCE" ] || [ -z "$NODES_CHANCE" ] || [ -z "$CPU_CHANCE" ] || [ -z "$MEMORY_CHANCE" ] || [ -z "$WALLTIME_CHANCE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_CHANCE -i $INPUT_CHANCE -e $ASD.bam \
-        -n $NODES_CHANCE -c $CPU_CHANCE -m $MEMORY_CHANCE"G" -w $WALLTIME_CHANCE \
-        --command "${NGSANE_BASE}/mods/chance.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CHANCE"
-fi
+        # check if resources are properly defined
+        if [ -z "$TASK_CHANCE" ] || [ -z "$NODES_CHANCE" ] || [ -z "$CPU_CHANCE" ] || [ -z "$MEMORY_CHANCE" ] || [ -z "$WALLTIME_CHANCE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_CHANCE -i $INPUT_CHANCE -e $ASD.bam \
+            -n $NODES_CHANCE -c $CPU_CHANCE -m $MEMORY_CHANCE"G" -w $WALLTIME_CHANCE \
+            --command "${NGSANE_BASE}/mods/chance.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CHANCE"
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Chance" "$TASK_CHANCE" "chance.sh"
+
+        echo "[NOTE] the chance.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER  
+  
+    fi
+fi	
+
+	

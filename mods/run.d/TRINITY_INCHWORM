@@ -6,13 +6,32 @@
 # OUT: $OUT/$dir/trinity/*.Trinity.fasta.gz
 ################################################################################
 
-################################################################################
-# individual calls
 #  ##########   Inchworm   ###########
 if [ -n "$RUNINCHWORM" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$NODES_INCHWORM" ] || [ -z "$NCPU_INCHWORM" ] || [ -z "$MEMORY_INCHWORM" ] || [ -z "$WALLTIME_INCHWORM" ] || [ -z "$NODETYPE_INCHWORM" ]; then  echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
 
-    $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_INCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
-        -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
-        --command "${NGSANE_BASE}/mods/trinity_inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_INCHWORM"
-fi
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        if [ -z "$NODES_INCHWORM" ] || [ -z "$NCPU_INCHWORM" ] || [ -z "$MEMORY_INCHWORM" ] || [ -z "$WALLTIME_INCHWORM" ] || [ -z "$NODETYPE_INCHWORM" ]; then  echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_INCHWORM -i $INPUT_INCHWORM -e $READONE.$FASTQ -n $NODES_INCHWORM \
+            -c $NCPU_INCHWORM -m $MEMORY_INCHWORM"G" -w $WALLTIME_INCHWORM -q $NODETYPE_INCHWORM \
+            --command "${NGSANE_BASE}/mods/trinity_inchworm.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_INCHWORM"
+            
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Trinity Inchworm" "$TASK_INCHWORM" "trinity_inchworm.sh"
+
+        echo "[NOTE] the trinity_inchworm.sh mod does not provide a report"
+        
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+fi	
+
+	

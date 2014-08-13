@@ -8,7 +8,33 @@
 ################################################################################
 
 if [ -n "$RUNFASTQSCREEN" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_FASTQSCREEN -i $INPUT_FASTQSCREEN -e $READONE.$FASTQ 
-        -n $NODES_FASTQSCREEN -c $CPU_FASTQSCREEN -m $MEMORY_FASTQSCREEN"G" -w $WALLTIME_FASTQSCREEN \
-        --command "$NGSANE_BASE/mods/fastqscreen.sh -k $CONFIG -f <FILE>  -o $OUT/<DIR>/$TASK_FASTQSCREEN"
-fi
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_FASTQSCREEN" ] || [ -z "$NODES_FASTQSCREEN" ] || [ -z "$CPU_FASTQSCREEN" ] || [ -z "$MEMORY_FASTQSCREEN" ] || [ -z "$WALLTIME_FASTQSCREEN" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+        
+        $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_FASTQSCREEN -i $INPUT_FASTQSCREEN -e $READONE.$FASTQ 
+            -n $NODES_FASTQSCREEN -c $CPU_FASTQSCREEN -m $MEMORY_FASTQSCREEN"G" -w $WALLTIME_FASTQSCREEN \
+            --command "$NGSANE_BASE/mods/fastqscreen.sh -k $CONFIG -f <FILE>  -o $OUT/<DIR>/$TASK_FASTQSCREEN"
+        
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Fastqscreen" "$TASK_FASTQSCREEN" "fastqscreen.sh"
+
+        echo "[NOTE] the fastqscreen.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER   
+    fi
+fi	
+
+	

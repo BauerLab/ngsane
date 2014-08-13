@@ -8,11 +8,34 @@
 ################################################################################       
 
 if [ -n "$RUNHTSEQCOUNT" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
-    if [ -z "$TASK_HTSEQCOUNT" ] || [ -z "$NODES_HTSEQCOUNT" ] || [ -z "$CPU_HTSEQCOUNT" ] || [ -z "$MEMORY_HTSEQCOUNT" ] || [ -z "$WALLTIME_HTSEQCOUNT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_HTSEQCOUNT -i $INPUT_HTSEQCOUNT -e $ASD.bam \
-        -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT \
-        --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HTSEQCOUNT/<NAME>" \
-        --postname "postcommandHtseq$HTSEQCOUNT_TABLE_FOLDERNAME" \
-        --postcommand "${NGSANE_BASE}/mods/countsTable.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$HTSEQCOUNT_TABLE_FOLDERNAME"
-fi
+        # check if resources are properly defined
+        if [ -z "$TASK_HTSEQCOUNT" ] || [ -z "$NODES_HTSEQCOUNT" ] || [ -z "$CPU_HTSEQCOUNT" ] || [ -z "$MEMORY_HTSEQCOUNT" ] || [ -z "$WALLTIME_HTSEQCOUNT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_HTSEQCOUNT -i $INPUT_HTSEQCOUNT -e $ASD.bam \
+            -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT \
+            --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HTSEQCOUNT/<NAME>" \
+            --postname "postcommandHtseq$HTSEQCOUNT_TABLE_FOLDERNAME" \
+            --postcommand "${NGSANE_BASE}/mods/countsTable.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$HTSEQCOUNT_TABLE_FOLDERNAME"
+
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Htseqcount" "$TASK_HTSEQCOUNT" "htseqcount.sh,countsTable.sh"
+
+        echo "[NOTE] the htseqcount.sh,countsTable.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+  
+    fi
+fi	
+
+	

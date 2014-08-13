@@ -7,10 +7,31 @@
 ################################################################################
 
 if [ -n "$RUNFITHIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_FITHIC" ] || [ -z "$NODES_FITHIC" ] || [ -z "$CPU_FITHIC" ] || [ -z "$MEMORY_FITHIC" ] || [ -z "$WALLTIME_FITHIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $FRAGMENTLIST \
-        -n $NODES_FITHIC -c $CPU_FITHIC -m $MEMORY_FITHIC"G" -w $WALLTIME_FITHIC \
-        --command "${NGSANE_BASE}/mods/fithic.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FITHIC"
+        # check if resources are properly defined
+        if [ -z "$TASK_FITHIC" ] || [ -z "$NODES_FITHIC" ] || [ -z "$CPU_FITHIC" ] || [ -z "$MEMORY_FITHIC" ] || [ -z "$WALLTIME_FITHIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $FRAGMENTLIST \
+            -n $NODES_FITHIC -c $CPU_FITHIC -m $MEMORY_FITHIC"G" -w $WALLTIME_FITHIC \
+            --command "${NGSANE_BASE}/mods/fithic.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FITHIC"
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-fi
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Fithic" "$TASK_FITHIC" "fithic.sh"
+
+        echo "[NOTE] the fithic.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+  
+    fi
+fi	
+
+	

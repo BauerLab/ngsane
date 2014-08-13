@@ -8,10 +8,31 @@
 ################################################################################
 
 if [ -n "$RUNBLUE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_BLUE" ] || [ -z "$NODES_BLUE" ] || [ -z "$CPU_BLUE" ] || [ -z "$MEMORY_BLUE" ] || [ -z "$WALLTIME_BLUE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_BLUE -i $INPUT_BLUE -e $READONE.$FASTQ \
-        -n $NODES_BLUE -c $CPU_BLUE -m $MEMORY_BLUE"G" -w $WALLTIME_BLUE \
-        --command "${NGSANE_BASE}/mods/blue.sh -k $CONFIG -f <FILE> -o $INPUT_BLUE/<DIR>"_"$TASK_BLUE/" 
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-fi
+        # check if resources are properly defined
+        if [ -z "$TASK_BLUE" ] || [ -z "$NODES_BLUE" ] || [ -z "$CPU_BLUE" ] || [ -z "$MEMORY_BLUE" ] || [ -z "$WALLTIME_BLUE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+        
+        $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_BLUE -i $INPUT_BLUE -e $READONE.$FASTQ \
+            -n $NODES_BLUE -c $CPU_BLUE -m $MEMORY_BLUE"G" -w $WALLTIME_BLUE \
+            --command "${NGSANE_BASE}/mods/blue.sh -k $CONFIG -f <FILE> -o $INPUT_BLUE/<DIR>"_"$TASK_BLUE/" 
+
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Blue" "$TASK_BLUE" "blue.sh"
+
+        echo "[NOTE] the blue.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER  
+  
+    fi
+fi	
+
+	

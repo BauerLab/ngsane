@@ -8,21 +8,51 @@
 ################################################################################       
 
 if [ -n "$RUNCUFFLINKS" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
-    if [ -z "$TASK_CUFFLINKS" ] || [ -z "$NODES_CUFFLINKS" ] || [ -z "$CPU_CUFFLINKS" ] || [ -z "$MEMORY_CUFFLINKS" ] || [ -z "$WALLTIME_CUFFLINKS" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-	JOBIDS=$(
-        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_CUFFLINKS -i $INPUT_CUFFLINKS -e $ASD.bam \
-            -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS  \
-       		--command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFLINKS/<NAME>" \
-       		--postname "postcommandCuffmerge$MERGED_GTF_NAME" \
-        	--postcommand "${NGSANE_BASE}/mods/cuffpost.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_CUFFLINKS"
-    	) && echo -e "$JOBIDS"
-    JOBIDS=$(waitForJobIds "$JOBIDS")
+        # check if resources are properly defined
+        if [ -z "$TASK_CUFFLINKS" ] || [ -z "$NODES_CUFFLINKS" ] || [ -z "$CPU_CUFFLINKS" ] || [ -z "$MEMORY_CUFFLINKS" ] || [ -z "$WALLTIME_CUFFLINKS" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    	JOBIDS=$(
+            $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_CUFFLINKS -i $INPUT_CUFFLINKS -e $ASD.bam \
+                -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS  \
+           		--command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFLINKS/<NAME>" \
+           		--postname "postcommandCuffmerge$MERGED_GTF_NAME" \
+            	--postcommand "${NGSANE_BASE}/mods/cuffpost.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_CUFFLINKS"
+        	) && echo -e "$JOBIDS"
+        JOBIDS=$(waitForJobIds "$JOBIDS")
+    
+        $QSUB $ARMED -r -k $CONFIG -t ${TASK_CUFFLINKS}Cuffquant -i $INPUT_CUFFLINKS -e $ASD.bam \
+            -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS $JOBIDS \
+    		--command "${NGSANE_BASE}/mods/cuffquant.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFLINKS/<NAME>" \
+    		--postname "postcommandCuffnorm$MERGED_GTF_NAME" \
+    		--postcommand "${NGSANE_BASE}/mods/cuffnorm.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_HTSEQCOUNT"
 
-    $QSUB $ARMED -r -k $CONFIG -t ${TASK_CUFFLINKS}Cuffquant -i $INPUT_CUFFLINKS -e $ASD.bam \
-        -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS $JOBIDS \
-		--command "${NGSANE_BASE}/mods/cuffquant.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFLINKS/<NAME>" \
-		--postname "postcommandCuffnorm$MERGED_GTF_NAME" \
-		--postcommand "${NGSANE_BASE}/mods/cuffnorm.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_HTSEQCOUNT"
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Cufflinks" "$TASK_CUTADAPT" "cufflinks.sh,cuffpost.sh"
+
+        echo "[NOTE] the cufflinks.sh,cuffpost.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER  
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Cuffquant" "$TASK_CUTADAPT" "cuffquant.sh,cuffnorm.sh"
+
+        echo "[NOTE] the cuffquant.sh,cuffnorm.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER  
   
-fi
+    fi
+fi	
+
+	

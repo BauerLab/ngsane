@@ -7,9 +7,31 @@
 # OUT: $OUT/$dir/macs2/
 ################################################################################
 if [ -n "$RUNMACS2" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_MACS2" ] || [ -z "$NODES_MACS2" ] || [ -z "$CPU_MACS2" ] || [ -z "$MEMORY_MACS2" ] || [ -z "$WALLTIME_MACS2" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_MACS2 -i $INPUT_MACS2 -e $ASD.bam \
-        -n $NODES_MACS2 -c $CPU_MACS2 -m $MEMORY_MACS2"G" -w $WALLTIME_MACS2 \
-        --command "${NGSANE_BASE}/mods/macs2.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_MACS2"
-fi
+        # check if resources are properly defined
+        if [ -z "$TASK_MACS2" ] || [ -z "$NODES_MACS2" ] || [ -z "$CPU_MACS2" ] || [ -z "$MEMORY_MACS2" ] || [ -z "$WALLTIME_MACS2" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_MACS2 -i $INPUT_MACS2 -e $ASD.bam \
+            -n $NODES_MACS2 -c $CPU_MACS2 -m $MEMORY_MACS2"G" -w $WALLTIME_MACS2 \
+            --command "${NGSANE_BASE}/mods/macs2.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_MACS2"
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Macs2" "$TASK_MACS2" "macs2.sh"
+
+        echo "[NOTE] the macs2.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+  
+    fi
+fi	
+
+	

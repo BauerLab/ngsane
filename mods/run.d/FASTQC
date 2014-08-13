@@ -7,9 +7,31 @@
 # OUT: $OUT/$dir/fastQC/*
 ################################################################################
 if [ -n "$RUNFASTQC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_FASTQC" ] || [ -z "$NODES_FASTQC" ] || [ -z "$CPU_FASTQC" ] || [ -z "$MEMORY_FASTQC" ] || [ -z "$WALLTIME_FASTQC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_FASTQC -i $INPUT_FASTQC -e $READONE.$FASTQ \
-        -n $NODES_FASTQC -c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
-    	--command "${NGSANE_BASE}/mods/fastQC.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FASTQC" 
-fi
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_FASTQC" ] || [ -z "$NODES_FASTQC" ] || [ -z "$CPU_FASTQC" ] || [ -z "$MEMORY_FASTQC" ] || [ -z "$WALLTIME_FASTQC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+        
+        $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_FASTQC -i $INPUT_FASTQC -e $READONE.$FASTQ \
+            -n $NODES_FASTQC -c $CPU_FASTQC -m $MEMORY_FASTQC"G" -w $WALLTIME_FASTQC \
+        	--command "${NGSANE_BASE}/mods/fastQC.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FASTQC" 
+
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+    
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "FastQC" "$TASK_FASTQC" "fastQC.sh"
+
+        echo "[NOTE] the fastQC.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER   
+  
+    fi
+fi	
+
+	

@@ -11,9 +11,30 @@
 ################################################################################
 
 if [ -n "$RUNREALRECAL" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_RECAL -i $INPUT_REALRECAL -e $ASD.bam \
-        -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
-        --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBSNPVCF -o $OUT/<DIR>/$TASK_RECAL"
+        # check if resources are properly defined
 
-fi
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_RECAL -i $INPUT_REALRECAL -e $ASD.bam \
+            -n $NODES_RECAL -c $CPU_RECAL -m $MEMORY_RECAL"G" -w $WALLTIME_RECAL \
+            --command "${NGSANE_BASE}/mods/reCalAln.sh -k $CONFIG -f <FILE> -r $FASTA -d $DBSNPVCF -o $OUT/<DIR>/$TASK_RECAL"
+
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Recalibration Realignment" "$TASK_RECAL" "reCalAln.sh"
+
+        echo "[NOTE] the reCalAln.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+fi	
+
+	

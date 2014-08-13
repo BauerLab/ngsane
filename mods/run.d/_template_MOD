@@ -17,7 +17,8 @@
 : ' # [TODO] REMOVE THIS LINE
 
 if [ -n "$RUN[MOD]" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-
+    
+    ############################################################################
     # Wether to submit a job or compile a report
     if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
@@ -51,28 +52,32 @@ if [ -n "$RUN[MOD]" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             --postcommand "${NGSANE_BASE}/mods/[MODPOSTCOMMAND].sh -f <FILE> -k $CONFIG --outdir $OUT/<DIR>/$TASK_[MOD]"
       
                    
-    
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
-    # compile a report for this mod
 
         # start a new section for a mod
         NGSANE_REPORT_HEADER "[MOD]" "$TASK_[MOD]" "[MOD].sh,[MODPOSTCOMMAND].sh" "[PRIMARY OUTPUT FILE SUFFIX - optional]"
 
-        # add as many tables as needed. One table per result file
-        NGSANE_REPORT_TABLE "[MOD]" \
+        # 1) add as many tables as needed.         
+        NGSANE_REPORT_TABLE "$TASK_[MOD]" \
             "[FOLDER_PATTERN]"                 \ # how the output is arranged, see -o parameter above e.g. $OUT/<DIR>/$TASK_[MOD]/<SAMPLE>/
-            "[FILE_SUFFIX]"                    \ # which files to parse
+            "[FILE_SUFFIX]"                    \ # which files to parse, .e.g $ASD.bam.stats
             "LINK:[LINK]"                      \ # one external link permitted
             "FIGURE:TABLEHEAD:[FIGURE]"        \ # place a figure in the table cell (multiple times possible)
             "PATTERN:TABLEHEAD:[GREP COMMAND]" \ # parse file for this pattern (multiple times possible)
             "CALCULATE:TABLEHEAD:[FORMULA]"      # use formular to calculate from previousely defined columns 
-                                                 #  - use '[x]' to specify the x-th column, e.g. [3]/[1]*100
-        
+                                                 #  - use '#x' to specify the x-th column, e.g. #4*100/#2
+
+        # 2) or provide information that there will be no 
+        echo "[NOTE] the [MOD].sh mod does not provide a report"
+
         # finish the section
         NGSANE_REPORT_FOOTER 
         
     fi
-
+    
+    # done
 fi
 
 ' # [TODO] REMOVE THIS LINE

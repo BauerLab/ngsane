@@ -8,10 +8,32 @@
 ################################################################################
 
 if [ -n "$RUNRRBS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_RRBSMAP" ] || [ -z "$NODES_RRBSMAP" ] || [ -z "$CPU_RRBSMAP" ] || [ -z "$MEMORY_RRBSMAP" ] || [ -z "$WALLTIME_RRBSMAP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-    $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_RRBSMAP -i $INPUT_RRBSMAP -e $READONE.$FASTQ \
-    -n $NODES_RRBSMAP -c $CPU_RRBSMAP -m $MEMORY_RRBSMAP"G" -w $WALLTIME_RRBSMAP \
-    --command "${NGSANE_BASE}/mods/rrbsmap.sh -k $CONFIG -f <FILE> -r $FASTA \
-        -o $OUT/<DIR>/$TASK_RRBSMAP --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
-fi
+        # check if resources are properly defined
+        if [ -z "$TASK_RRBSMAP" ] || [ -z "$NODES_RRBSMAP" ] || [ -z "$CPU_RRBSMAP" ] || [ -z "$MEMORY_RRBSMAP" ] || [ -z "$WALLTIME_RRBSMAP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_RRBSMAP -i $INPUT_RRBSMAP -e $READONE.$FASTQ \
+            -n $NODES_RRBSMAP -c $CPU_RRBSMAP -m $MEMORY_RRBSMAP"G" -w $WALLTIME_RRBSMAP \
+            --command "${NGSANE_BASE}/mods/rrbsmap.sh -k $CONFIG -f <FILE> -r $FASTA \
+                -o $OUT/<DIR>/$TASK_RRBSMAP --rgid $EXPID --rglb $LIBRARY --rgpl $PLATFORM --rgsi <DIR>"
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Rrbs" "$TASK_RRBSMAP" "rrbsmap.sh"
+
+        echo "[NOTE] the rrbsmap.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+fi	
+
+	

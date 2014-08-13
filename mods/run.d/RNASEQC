@@ -8,10 +8,31 @@
 ################################################################################       
 
 if [ -n "$RUNRNASEQC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_RNASEQC" ] || [ -z "$NODES_RNASEQC" ] || [ -z "$CPU_RNASEQC" ] || [ -z "$MEMORY_RNASEQC" ] || [ -z "$WALLTIME_RNASEQC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_RNASEQC -i $INPUT_RNASEQC -e $ASD.bam \
-        -n $NODES_RNASEQC -c $CPU_RNASEQC -m $MEMORY_RNASEQC"G" -w $WALLTIME_RNASEQC \
-        --command "${NGSANE_BASE}/mods/rnaseqc.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_RNASEQC/<NAME>"
+        # check if resources are properly defined
+        if [ -z "$TASK_RNASEQC" ] || [ -z "$NODES_RNASEQC" ] || [ -z "$CPU_RNASEQC" ] || [ -z "$MEMORY_RNASEQC" ] || [ -z "$WALLTIME_RNASEQC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_RNASEQC -i $INPUT_RNASEQC -e $ASD.bam \
+            -n $NODES_RNASEQC -c $CPU_RNASEQC -m $MEMORY_RNASEQC"G" -w $WALLTIME_RNASEQC \
+            --command "${NGSANE_BASE}/mods/rnaseqc.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_RNASEQC/<NAME>"
 
-fi
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "RNA-SeQC" "$TASK_RNASEQC" "rnaseqc.sh"
+
+        echo "[NOTE] the rnaseqc.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+    fi
+fi	
+
+	
