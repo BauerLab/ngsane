@@ -120,6 +120,7 @@ echo '''
 <script type="text/javascript" charset="utf8" src="includes/js/jquery.dataTables.min.js"></script>
 <link rel="stylesheet" type="text/css" href="includes/css/jquery.dataTables.min.css">
 <link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
+<script type='text/javascript' src='includes/js/genericJavaScript.js'></script>
 </head><body>
 <div id="center">
 <div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>
@@ -156,7 +157,7 @@ done
 echo "}); 
 } ); </script>" >> $SUMMARYTMP
 
-echo "<script type='text/javascript' src='includes/js/genericJavaScript.js'></script></html>" >> $SUMMARYTMP
+echo "</html>" >> $SUMMARYTMP
 
 # copy includes folder ommitting hidden files and folders
 rsync -av --exclude=".*" $NGSANE_BASE/core/includes $(dirname $SUMMARYTMP)
