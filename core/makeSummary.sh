@@ -84,8 +84,10 @@ function bamAnnotate {
 
 }
 
-# source module triggers
-for RUN_MODS in ${NGSANE_BASE}/mods/run.d/* ; do source $RUN_MODS; done
+# source module requested for report generation (in order provided by the config)
+for RUN_MODS in $(cat $CONFIG | egrep '^RUN.*=' | cut -d'=' -f 1); do 
+    eval "if [ -n $RUN_MODS ]; then source ${NGSANE_BASE}/mods/run.d/${RUN_MODS/RUN}; fi"; 
+done
 
 ################################################################################
 # citation list
