@@ -49,11 +49,121 @@ function NGSANE_REPORT_FOOTER {
 
 # NGSANE_REPORT_HEADER takes 4 parameters
 # $1=MOD (e.g. $TASK_BWA)
-# $2=FILE SUFFIX (e.g. $ASD.bam.stats)
-# $3=LINK (link to other html reports)
-# $4..$x=COLUMNS (pattern or figures to appear in columns in the given order, starting with either "PATTERN:" or "FIGURE:")
+# $2=FOLDERPATTERN (e.g. $OUT/<DIR>/$TASK_[MOD]/<FILE>)
+# $3=FILE SUFFIX (e.g. $ASD.bam.stats)
+# $4=LINK (link to other html reports)
+# $5..$x=COLUMNS (pattern or figures to appear in columns in the given order, starting with either "PATTERN:" or "FIGURE:")
 function NGSANE_REPORT_TABLE {
+
+    NGSANE_VAR_CHECK_FOR_NUMBER_RE="^-?[0-9]+([.][0-9]+)?$"  
+    NGSANE_VAR_REPORT_TABLE_HEADER=$(cat <<EOF
+<script type="text/javascript">
+//<![CDATA[
+${1}_Table_json ={
+	"bPaginate": true,
+	"bProcessing": true,
+	"bAutoWidth": false,
+	"bInfo": true,
+	"bLengthChange": true,
+    "bFilter": true,
+	"iDisplayLength": 10,
+	"bJQueryUI": true,
+	"aLengthMenu": [[1, 5, 10, -1], [1, 5, 10, "All"]],
+	"aoColumns": [
+EOF
+    NGSANE_VAR_REPORT_TABLE_CENTER=" ], "aaData": ["
+    NGSANE_VAR_REPORT_TABLE_FOOTER=$(cat <<EOF
+    ]
+}
+//]]>
+</script>
+EOF
     
+    NGSANE_VAR_REPORT_TABLE_TITLES=""
+    NGSANE_VAR_FIRSTROW="TRUE"
+     
+    for dir in ${DIR[@]}; do
+        # separate folder from sample pattern
+        DIRNAME=${dir%%/*}
+        SAMPLEPATTERN=${dir/$DIRNAME/}
+
+        for SAMPLE in $FOLDER/$SAMPLEPATTERN*$3; do 
+            # create table header once
+            if [ -n "$NGSANE_VAR_REPORT_TABLE_TITLES" ]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="'{\"sTitle\": \"Experiment\", \"sTitle\": \"Filename\"}'"
+                if [ $(echo $var | grep '^FIGURE:') != "" ]; then
+                    NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ',{\"sTitle\": \"'$(echo ${var/FIGURE:/} | cut -d':' -f 1)\"'"
+
+                elif [ $(echo $var | grep '^PATTERN:') != "" ]; then
+                    NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ',{\"sTitle\": \"'$(echo ${var/PATTERN:/} | cut -d':' -f 1)\"'"
+
+                elif [ $(echo $var | grep '^CALCULATE:') != "" ]; then
+                    NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ',{\"sTitle\": \"'$(echo ${var/CALCULATE:/} | cut -d':' -f 1)\"'"
+                fi
+                
+                echo $NGSANE_VAR_REPORT_TABLE_HEADER >&2 
+                echo $NGSANE_VAR_REPORT_TABLE_TITLES >&2
+                echo $NGSANE_VAR_REPORT_TABLE_CENTER >&2
+            fi
+            # populate table row starting from parameter 3
+            # check for link first
+            NGSANE_VAR_TABLE_LINK=""
+            for var in "$@:4"
+                if [ $(echo $var | grep '^LINK:') != "" ]; then
+                    NGSANE_VAR_TABLE_LINK=${var/LINK:/}
+                fi
+            done
+            
+            if [[ -n "$NGSANE_VAR_TABLE_LINK" ]]; then
+                NGSANE_VAR_SAMPLE_LINK="'<a href=\"$NGSANE_VAR_TABLE_LINK\">$SAMPLE</a>'"
+            else 
+                NGSANE_VAR_SAMPLE_LINK="'$SAMPLE'"
+            fi
+            
+            if [[ "$NGSANE_VAR_FIRSTROW" == "TRUE" ]]; then
+                NGSANE_VAR_REPORT_TABLE_ROW="['$DIRNAME' , '$NGSANE_VAR_SAMPLE_LINK'"            
+                NGSANE_VAR_FIRSTROW="FALSE"
+            else
+                NGSANE_VAR_REPORT_TABLE_ROW=",['$DIRNAME' , '$NGSANE_VAR_SAMPLE_LINK'"            
+            fi
+            
+            for var in "$@:4"
+                if [ $(echo $var | grep '^FIGURE:') != "" ]; then
+                    NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , '<img src=\"$(echo ${var/FIGURE:/} | cut -d':' -f 2)\" height=50px/>'"
+
+                elif [ $(echo $var | grep '^PATTERN:') != "" ]; then
+                    PATTERN="cat $SAMPLE | $(echo ${var/PATTERN:/} | cut -d':' -f 2)"
+                    PATTERN_RESULT=$(eval $PATTERN)
+                    if ! [[ $PATTERN_RESULT =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
+                        # convert into string
+                        $PATTERN_RESULT="'$PATTERN_RESULT'"
+                    else
+                        # format pretty
+                        $PATTERN_RESULT=$(printf "%'.2f\n" $PATTERN_RESULT)
+                    fi
+                    NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $PATTERN_RESULT"
+
+                elif [ $(echo $var | grep '^CALCULATE:') != "" ]; then
+                    COMMAND=$(echo ${var/CALCULATE:/} | cut -d':' -f 1 | sed 's|\([0-9]+\)|\$NGSANE_VAR_REPORT_TABLE_ROW\1|'g | bc )
+                    echo $COMMAND
+                    CALCULATE_RESULT=$(eval $COMMAND)
+                    if ! [[ $PATTERN_RESULT =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
+                        # convert into string
+                        $CALCULATE_RESULT="'$CALCULATE_RESULT'"
+                    else
+                        # format pretty
+                        $CALCULATE_RESULT=$(printf "%'.2f\n" $CALCULATE_RESULT)
+                    fi
+                    NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES , $CALCULATE_RESULT"
+
+                fi
+            done
+            NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW ]"
+            echo $NGSANE_VAR_REPORT_TABLE_ROW >&2
+
+        fi
+    done
+    echo $NGSANE_VAR_REPORT_TABLE_FOOTER >&2
 }
 
 # NGSANE_REPORT_GATHERDIRS takes 1 parameter
