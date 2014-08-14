@@ -92,7 +92,7 @@ EOF
 #            echo "$SAMPLE $SAMPLENAME">&2
             # create table header once
             if [ -z "$NGSANE_VAR_REPORT_TABLE_TITLES" ]; then
-                NGSANE_VAR_REPORT_TABLE_TITLES="{'sTitle': 'Experiment'}, {'sTitle': 'Filename'}"
+                NGSANE_VAR_REPORT_TABLE_TITLES="{'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'}"
                 for var in "${@:4}"; do
 #                    echo "Iterating through $var" >&2
                     if [[ $(echo $var | grep '^FIGURE:') != "" ]]; then
