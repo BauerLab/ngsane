@@ -62,7 +62,7 @@ for dir in ${DIR[@]}; do
 done
 # remove potential duplicates
 LOGFILES=$(echo "${LOGFILES}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
-echo $LOGFILES
+#echo $LOGFILES
 
 if [ ! -z "$LOGFILES" ]; then # if there is really more than just the postcommand
 	SCRIPTFILES=$(echo $LOGFILES | tr ' ' '*')":"${NGSANE_BASE}/mods/${SCRIPT/%,*/}
