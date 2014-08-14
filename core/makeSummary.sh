@@ -120,19 +120,19 @@ echo '''
 <script type="text/javascript" charset="utf8" src="includes/js/jquery.dataTables.min.js"></script>
 <link rel="stylesheet" type="text/css" href="includes/css/jquery.dataTables.min.css">
 <link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
-<script type='text/javascript' src='includes/js/genericJavaScript.js'></script>
+<script type='text/javascript' src='includes/js/ngsane.js'></script>
 </head><body>
 <div id="center">
 <div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>
 ''' >> $SUMMARYFILE.tmp
 declare -a LINKSET=( )
 for i in $LINKS; do
-    LINKSET=("${LINKSET[@]}" "<a href='#"$i"_panel'>$i</a>")
+    LINKSET=("${LINKSET[@]}" "<a href='#"$i"_panel' class='quicklinks'>$i</a>")
 done
 echo $(IFS='|' ; echo "${LINKSET[*]}") >> $SUMMARYFILE.tmp
 
 echo '''
-<div id ="Right" style="float:right;width:285px;padding:2px 2px 2px 2px;"> Search: <input type="text" id="search"></div>
+<div id ="right"><label>Global Filter: <input type="search" id="search" /></label></div>
 </div><!-- Links -->
 </div><!-- panel -->''' >>$SUMMARYFILE.tmp
 
@@ -141,23 +141,20 @@ echo "</div><!-- center --></body>" >> $SUMMARYTMP
 
 
 echo "<script type='text/javascript'>" >> $SUMMARYTMP
-echo '$(document).ready(function() {' >> $SUMMARYTMP
-
+echo "\$(document).ready(function() {" >> $SUMMARYTMP
 for i in $LINKS; do
     if [ "$i" != "References" ]; then #[ "$i" != "fastQC" ] && [ "$i" != "memechip" ] && 
 	    echo "if (typeof ${i}_Table_json !== 'undefined'){var ${i}_Table = \$("\'"#${i}_id_Table"\'").dataTable(${i}_Table_json);}" >> $SUMMARYTMP
      fi
 done
-echo "\$("\'"#search"\'").keyup(function(){" >> $SUMMARYTMP
+echo "\$('#search').keyup(function(){" >> $SUMMARYTMP
 for i in $LINKS; do
 	if [ "$i" != "References" ]; then
-		echo "    ${i}_Table.fnDraw();" >> $SUMMARYTMP
+		echo "    if (typeof ${i}_Table !== 'undefined'){${i}_Table.fnDraw();}" >> $SUMMARYTMP
 	fi
 done
-echo "}); 
-} ); </script>" >> $SUMMARYTMP
-
-echo "</html>" >> $SUMMARYTMP
+echo "});} ); </script>" >> $SUMMARYTMP
+echo "<script type='text/javascript' src='includes/js/genericJavaScript.js'></script></html>" >> $SUMMARYTMP
 
 # copy includes folder ommitting hidden files and folders
 rsync -av --exclude=".*" $NGSANE_BASE/core/includes $(dirname $SUMMARYTMP)

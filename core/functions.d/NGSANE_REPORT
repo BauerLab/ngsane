@@ -99,10 +99,10 @@ EOF
                         NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle': '$(echo ${var/FIGURE:/} | cut -d':' -f 1)'}"
     
                     elif [[ $(echo $var | grep '^PATTERN:') != "" ]]; then
-                        NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle': '$(echo ${var/PATTERN:/} | cut -d':' -f 1)', 'mRender': function( data, type, full ) {return formatNumber(data);}}"
+                        NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle': '$(echo ${var/PATTERN:/} | cut -d':' -f 1)', 'mRender': function(data){return formatNumber(data);}}"
     
                     elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
-                        NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle': '$(echo ${var/CALCULATE:/} | cut -d':' -f 1)', 'mRender': function( data, type, full ) {return formatNumber(data);}}"
+                        NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle': '$(echo ${var/CALCULATE:/} | cut -d':' -f 1)', 'mRender': function(data){return formatNumber(data);}}"
                     fi
                 done                
                 echo -e $NGSANE_VAR_REPORT_TABLE_HEADER >> $SUMMARYTMP
