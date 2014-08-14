@@ -266,14 +266,6 @@ table.dataTable tbody tr.even{
     background: #f5f3ff;
 }
 
-div.dataTables_paginate span {
-    padding: 0 20px 0 20px;
-}
-
-.paginate_button.disabled {
-    visibility:hidden;
-}
-
 table.dataTable th {
 	font-weight: bold;
 	font-size: 12px;
