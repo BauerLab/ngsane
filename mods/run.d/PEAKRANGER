@@ -33,7 +33,7 @@ if [ -n "$RUNPEAKRANGER" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN:Unique::fgrep 'Unique reads' | awk '{print \$(NF)}'" \
             "CALCULATE:Unique %:80:#4*100/#3" \
             "PATTERN:Noise rate:100:fgrep 'Estimated noise rate' | awk '{print \$(NF)}'" \
-            "PATTERN:Library complexity:100:fgrep 'Library complexity' | awk '{print \$(NF-1)}'" \
+            "PATTERN:Library complexity:100:fgrep 'Library complexity' | sed 's/.* \([0-9]*\.[0-9]\+\)%/\1/g'" \
             "PATTERN:Peaks::fgrep 'Peaks' | awk '{print \$(NF)}'" \
             "PATTERN:Nucleotides covered::fgrep 'Nucleotides covered' | awk '{print \$(NF)}'"
 
