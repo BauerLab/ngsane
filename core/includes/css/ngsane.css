@@ -235,9 +235,8 @@ p {
 	color: blue;
 }
 
-table {
-	border-collapse: collapse;
-	border-spacing: 0;
+.dataTables_filter{
+    height:30px;
 }
 
 table.dataTable {
@@ -246,7 +245,10 @@ table.dataTable {
 	text-align: left;
 	border-collapse: collapse;
 	border: 1px dotted #69c;
-	margin: 10px 0 20px 0;
+}
+
+table.dataTable thead .sorting, table.dataTable thead .sorting_asc, table.dataTable thead .sorting_desc{
+    padding-right:15px;
 }
 
 table,caption,tbody,tfoot,thead,tr,th {

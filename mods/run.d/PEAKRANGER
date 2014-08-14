@@ -23,12 +23,20 @@ if [ -n "$RUNPEAKRANGER" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
-        NGSANE_REPORT_HEADER "Peakranger" "$TASK_PEAKRANGER" "peakranger.sh"
+        NGSANE_REPORT_HEADER "Peakranger" "$TASK_PEAKRANGER" "peakranger.sh" "_region.bed"
 
-        echo "[NOTE] the peakranger.sh mod does not provide a report"
+        NGSANE_REPORT_TABLE "$TASK_PEAKRANGER" \
+            "$OUT/<DIR>/$TASK_PEAKRANGER"  \
+            ".summary.txt" \
+            "PATTERN:Input::fgrep 'ChIP input' | awk '{print \$(NF)}'" \
+            "PATTERN:Total reads::fgrep 'Total reads' | awk '{print \$(NF)}'" \
+            "PATTERN:Unique::fgrep 'Unique reads' | awk '{print \$(NF)}'" \
+            "CALCULATE:Unique %:80:#4*100/#3" \
+            "PATTERN:Noise rate:100:fgrep 'Estimated noise rate' | awk '{print \$(NF)}'" \
+            "PATTERN:Library complexity:100:fgrep 'Library complexity' | awk '{print \$(NF-1)}'" \
+            "PATTERN:Peaks::fgrep 'Peaks' | awk '{print \$(NF)}'" \
+            "PATTERN:Nucleotides covered::fgrep 'Nucleotides covered' | awk '{print \$(NF)}'"
 
-        # finish the section
         NGSANE_REPORT_FOOTER 
   
     fi

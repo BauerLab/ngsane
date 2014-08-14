@@ -23,12 +23,24 @@ if [ -n "$RUNMACS2" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
-        NGSANE_REPORT_HEADER "Macs2" "$TASK_MACS2" "macs2.sh"
+        NGSANE_REPORT_HEADER "Macs2" "$TASK_MACS2" "macs2.sh" "_peaks.bed"
 
-        echo "[NOTE] the macs2.sh mod does not provide a report"
+        NGSANE_REPORT_TABLE "$TASK_MACS2" \
+            "$OUT/<DIR>/$TASK_MACS2"  \
+            ".summary.txt" \
+            "PATTERN:Input::fgrep 'ChIP input' | awk '{print \$(NF)}'" \
+            "PATTERN:IP tags::egrep 'total (tags|fragments) in treatment' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:IP (filtered)::egrep '(tags|fragments) after filtering in treatment' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:Control tags::egrep 'total (tags|fragments) in control' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:Control (filtered)::egrep '(tags|fragments) after filtering in control' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:Paired peaks:100:egrep 'number of paired peaks' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:Fragment length:100:egrep 'predicted fragment length is'  | tail -n 1 | awk '{print \$(NF-1)}'" \
+            "PATTERN:Refined summits::fgrep 'Final number of refined summits' | tail -n 1 | awk '{print \$(NF-1)}'" \
+            "PATTERN:Nucleotides covered::fgrep 'Nucleotides covered' | awk '{print \$(NF)}'" \
+            "FIGURE::60:<SAMPLE>_model-0.png:60:1" \
+            "FIGURE::60:<SAMPLE>_model-1.png:60:1" 
 
-        # finish the section
+
         NGSANE_REPORT_FOOTER 
   
     fi

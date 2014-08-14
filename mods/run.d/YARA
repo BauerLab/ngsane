@@ -42,15 +42,16 @@ if [ -n "$RUNYARA" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_TABLE "$TASK_YARA" \
             "$OUT/<DIR>/$TASK_YARA"  \
             "$ASD.bam.stats" \
-            "PATTERN:Total reads:sed -n 1p | cut -d' ' -f 1" \
-            "PATTERN:Qfail:sed -n 1p | cut -d' ' -f 3" \
-            "PATTERN:Duplicates:sed -n 2p | cut -d' ' -f 1" \
-            "CALCULATE:Duplicates %:#4*100/#2" \
-            "PATTERN:Mapped:sed -n 3p | cut -d' ' -f 1" \
-            "CALCULATE:Mapped %:#6*100/#2" \
-            "PATTERN:Mapped pairs:sed -n 7p | cut -d' ' -f 1 | xargs echo 0.5* | bc " \
-            "CALCULATE:Mapped pairs %:#8*2*100/#2" \
-            "PATTERN:Singletons:sed -n 9p | cut -d' ' -f 1" 
+            "LINK:<SAMPLE>$ASD.bam.html" \
+            "PATTERN:Total reads::sed -n 1p | cut -d' ' -f 1" \
+            "PATTERN:Qfail::sed -n 1p | cut -d' ' -f 3" \
+            "PATTERN:Duplicates::sed -n 2p | cut -d' ' -f 1" \
+            "CALCULATE:Duplicates %:80:#4*100/#2" \
+            "PATTERN:Mapped::sed -n 3p | cut -d' ' -f 1" \
+            "CALCULATE:Mapped %:70:#6*100/#2" \
+            "PATTERN:Mapped pairs::sed -n 7p | cut -d' ' -f 1 | xargs echo 0.5* | bc " \
+            "CALCULATE:Mapped pairs %:70:#8*2*100/#2" \
+            "PATTERN:Singletons::sed -n 9p | cut -d' ' -f 1" 
         
         NGSANE_REPORT_FOOTER 
         

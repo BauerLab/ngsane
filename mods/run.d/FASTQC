@@ -23,7 +23,6 @@ if [ -n "$RUNFASTQC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
     
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "FastQC" "$TASK_FASTQC" "fastQC.sh"
 
         NGSANE_REPORT_TABLE "$TASK_FASTQC" \
@@ -43,11 +42,8 @@ if [ -n "$RUNFASTQC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "FIGURE::90:<SAMPLE>/Images/per_base_quality.png:60:1" \
             "FIGURE::90:<SAMPLE>/Images/duplication_levels.png:60:1" \
             "FIGURE::90:<SAMPLE>/Images/per_sequence_gc_content.png:60:1" \
-            "FIGURE::90:<SAMPLE>/Images/per_base_sequence_content.png:60:1" \
-            "FIGURE::90:<SAMPLE>/Images/per_base_n_content.png:60:1" 
-            
+            "FIGURE::90:<SAMPLE>/Images/per_base_sequence_content.png:60:1" 
         
-        # finish the section
         NGSANE_REPORT_FOOTER   
   
     fi
