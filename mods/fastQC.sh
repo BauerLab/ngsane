@@ -3,7 +3,7 @@
 # date: Feb.2011
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>$READONE"_"fastqc.zip
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>$READONE.html
 
 echo ">>>>> fastQC"
 echo ">>>>> startdate "`date`
@@ -56,7 +56,7 @@ NGSANE_CHECKPOINT_INIT "parameters"
 # get basename of input file f
 INPUTFILENAME=${INPUTFILE##*/}
 # get sample prefix
-SAMPLE=${INPUTFILENAME/%$READONE.$INPUTFILEASTQ/}
+SAMPLE=${INPUTFILENAME/%$READONE.$FASTQ/}
 
 #is paired ?                                                                                                      
 if [ "$INPUTFILE" != "${INPUTFILE/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${INPUTFILE/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
@@ -64,6 +64,13 @@ if [ "$INPUTFILE" != "${INPUTFILE/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e $
 else
     PAIRED="0"
 fi
+
+
+    [ -d $OUTDIR/$SAMPLE$READONE ] && rm -r $OUTDIR/$SAMPLE$READONE
+    [ -e $OUTDIR/$SAMPLE$READONE.html ] && rm $OUTDIR/$SAMPLE$READONE.html
+    [ -d $OUTDIR/$SAMPLE$READTWO ] && rm -r $OUTDIR/$SAMPLE$READTWO
+    [ -e $OUTDIR/$SAMPLE$READTWO.html ] && rm $OUTDIR/$SAMPLE$READTWO.html
+
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -80,19 +87,24 @@ NGSANE_CHECKPOINT_INIT "fastqc read 1"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="fastqc $FASTQCADDPARAM -t $CPU_FASTQC --outdir $OUTDIR $INPUTFILE"
+    RUN_COMMAND="fastqc $FASTQCADDPARAM --threads $CPU_FASTQC --outdir $OUTDIR $INPUTFILE"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     # check for ".fastq.gz" suffix as FASTQC removes both suffixes then
     if [ "$FASTQ" != "fastq.gz" ];then 
-        [ -e $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip} ] && rm $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}
-        [ -e $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc} ] && rm -r $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc}
-        mv $OUTDIR/${INPUTFILENAME%.*}"_"fastqc.zip $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}
-        mv $OUTDIR/${INPUTFILENAME%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc}
+
+        unzip -q -d $OUTDIR -o -u $OUTDIR/${INPUTFILENAME%.*}"_"fastqc.zip
+        mv $OUTDIR/${INPUTFILENAME%.*}"_"fastqc $OUTDIR/$SAMPLE$READONE
+        mv $OUTDIR/${INPUTFILENAME%.*}"_"fastqc.html $OUTDIR/$SAMPLE$READONE.html
+    else
+        unzip -q -d $OUTDIR -o -u $OUTDIR/$SAMPLE$READONE"_"fastqc.zip
+        mv $OUTDIR/$SAMPLE$READONE"_"fastqc $OUTDIR/$SAMPLE$READONE
+        mv $OUTDIR/$SAMPLE$READONE"_"fastqc.html $OUTDIR/$SAMPLE$READONE.html
     fi
+    cp $OUTDIR/$SAMPLE$READONE/fastqc_data.txt $OUTDIR/$SAMPLE$READONE.txt
 
     chmod -R a+rx $OUTDIR/
     
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$READONE.txt
 fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "fastqc read 2"
@@ -100,25 +112,33 @@ NGSANE_CHECKPOINT_INIT "fastqc read 2"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ "$PAIRED" = "1" ];then
-        RUN_COMMAND="fastqc $FASTQCADDPARAM -t $CPU_FASTQC --outdir $OUTDIR ${INPUTFILE/%$READONE.$FASTQ/$READTWO.$FASTQ}"
+        RUN_COMMAND="fastqc $FASTQCADDPARAM --threads $CPU_FASTQC --outdir $OUTDIR ${INPUTFILE/%$READONE.$FASTQ/$READTWO.$FASTQ}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         R2=${INPUTFILENAME/%$READONE.$FASTQ/$READTWO.$FASTQ}
         if [ "$FASTQ" != "fastq.gz" ];then 
-            [ -e $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc.zip} ] && rm $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc.zip}
-            [ -e $OUTDIR/${R2%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc} ] && rm -r $OUTDIR/${R2%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc}
-            mv $OUTDIR/${R2%.*}"_"fastqc.zip $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc.zip}
-            mv $OUTDIR/${R2%.*}"_"fastqc $OUTDIR/${INPUTFILENAME/%$READONE.$FASTQ/$READTWO"_"fastqc}
+
+            unzip -q -d $OUTDIR -o -u $OUTDIR/${R2%.*}"_"fastqc.zip
+            mv $OUTDIR/${R2%.*}"_"fastqc $OUTDIR/$SAMPLE$READTWO
+            mv $OUTDIR/${R2%.*}"_"fastqc.html $OUTDIR/$SAMPLE$READTWO.html
+        else
+            unzip -q -d $OUTDIR -o -u $OUTDIR/$SAMPLE$READTWO"_"fastqc.zip
+            mv $OUTDIR/$SAMPLE$READTWO"_"fastqc $OUTDIR/$SAMPLE$READTWO
+            mv $OUTDIR/$SAMPLE$READTWO"_"fastqc.html $OUTDIR/$SAMPLE$READTWO.html
         fi
+        cp $OUTDIR/$SAMPLE$READTWO/fastqc_data.txt $OUTDIR/$SAMPLE$READTWO.txt
+
+        chmod -R a+rx $OUTDIR/
+        
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$READTWO.txt
+
     else
         echo "[NOTE] Single-end pair library detected. No second read to process."
+        NGSANE_CHECKPOINT_CHECK
     fi
     
-    chmod -R a+rx $OUTDIR/
-    
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}
 fi
 ################################################################################
-[ -e $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}.dummy ] && rm $OUTDIR/${INPUTFILENAME/%.$FASTQ/"_"fastqc.zip}.dummy
+[ -e $OUTDIR/$SAMPLE$READONE.html.dummy ] && rm $OUTDIR/$SAMPLE$READONE.html.dummy
 echo ">>>>> fastQC - FINISHED"
 echo ">>>>> enddate "`date`
 

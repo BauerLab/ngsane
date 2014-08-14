@@ -275,6 +275,14 @@ table.dataTable th {
 	text-align:center;
 }
 
+table.dataTable thead th div.DataTables_sort_wrapper {
+  padding: 0
+}
+
+table.dataTable thead th {
+  padding: 3px
+}
+
 table.dataTable th div{
 	width: 100px;
 }
@@ -318,11 +326,11 @@ span {
     font-size:10px;
 }
 
-img {
+img.border {
     border: 1px solid #8a9aa6;
 }
 
-img.noborder {
+img {
     border: 0px;
 }
 

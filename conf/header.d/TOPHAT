@@ -1,5 +1,5 @@
 ##############################################################
-# Tophat (2.0.10) 
+# Tophat (2.0.12) 
 # http://tophat.cbcb.umd.edu/
 TASK_TOPHAT="tophat"
 WALLTIME_TOPHAT=62:00:00

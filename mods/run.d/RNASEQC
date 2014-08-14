@@ -18,7 +18,7 @@ if [ -n "$RUNRNASEQC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     
         $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_RNASEQC -i $INPUT_RNASEQC -e $ASD.bam \
             -n $NODES_RNASEQC -c $CPU_RNASEQC -m $MEMORY_RNASEQC"G" -w $WALLTIME_RNASEQC \
-            --command "${NGSANE_BASE}/mods/rnaseqc.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_RNASEQC/<NAME>"
+            --command "${NGSANE_BASE}/mods/rnaseqc.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_RNASEQC/<SAMPLE>"
 
     
     ############################################################################

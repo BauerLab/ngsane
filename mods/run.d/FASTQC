@@ -26,8 +26,27 @@ if [ -n "$RUNFASTQC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         # start a new section for a mod
         NGSANE_REPORT_HEADER "FastQC" "$TASK_FASTQC" "fastQC.sh"
 
-        echo "[NOTE] the fastQC.sh mod does not provide a report"
-
+        NGSANE_REPORT_TABLE "$TASK_FASTQC" \
+            "$OUT/<DIR>/$TASK_FASTQC"  \
+            ".txt" \
+            "LINK:<SAMPLE>.html" \
+            "FIGURE::20:<SAMPLE>/Icons/tick.png:15:0" \
+            "PATTERN::20:grep '>>.*pass' | wc -l" \
+            "FIGURE::20:<SAMPLE>/Icons/warning.png:15:0" \
+            "PATTERN::20:grep '>>.*warn' | wc -l" \
+            "FIGURE::20:<SAMPLE>/Icons/error.png:15:0" \
+            "PATTERN::20:grep '>>.*fail' | wc -l" \
+            "PATTERN:Encoding::grep 'Encoding' | head -n 1 | cut -f 2" \
+            "PATTERN:Library size::grep 'Total Sequences' | head -n 1 | cut -f 2" \
+            "PATTERN:Length:80:grep 'Sequence length' | head -n 1 | cut -f 2" \
+            "PATTERN:%GC:80:grep '%GC' | head -n 1 | cut -f 2" \
+            "FIGURE::90:<SAMPLE>/Images/per_base_quality.png:60:1" \
+            "FIGURE::90:<SAMPLE>/Images/duplication_levels.png:60:1" \
+            "FIGURE::90:<SAMPLE>/Images/per_sequence_gc_content.png:60:1" \
+            "FIGURE::90:<SAMPLE>/Images/per_base_sequence_content.png:60:1" \
+            "FIGURE::90:<SAMPLE>/Images/per_base_n_content.png:60:1" 
+            
+        
         # finish the section
         NGSANE_REPORT_FOOTER   
   
