@@ -35,11 +35,8 @@ if [ -n "$RUNBOWTIE2" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "Bowtie2" "$TASK_BOWTIE2" "bowtie2.sh" "$ASD.bam"
 
-        # add as many tables as needed. One table per result file
         NGSANE_REPORT_TABLE "$TASK_BOWTIE2" \
             "$OUT/<DIR>/$TASK_BOWTIE2"  \
             "$ASD.bam.stats" \
@@ -49,11 +46,10 @@ if [ -n "$RUNBOWTIE2" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "CALCULATE:Duplicates %:#4*100/#2" \
             "PATTERN:Mapped:sed -n 3p | cut -d' ' -f 1" \
             "CALCULATE:Mapped %:#6*100/#2" \
-            "PATTERN:Paired:sed -n 7p | cut -d' ' -f 1" \
-            "CALCULATE:Paired %:#8*100/#2" \
+            "PATTERN:Mapped pairs:sed -n 7p | cut -d' ' -f 1 | xargs echo 0.5* | bc " \
+            "CALCULATE:Mapped pairs %:#8*2*100/#2" \
             "PATTERN:Singletons:sed -n 9p | cut -d' ' -f 1" 
         
-        # finish the section
         NGSANE_REPORT_FOOTER 
         
     fi
