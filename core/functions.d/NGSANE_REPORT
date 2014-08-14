@@ -62,13 +62,13 @@ function NGSANE_REPORT_TABLE {
 //<![CDATA[
 ${1}_Table_json={
 	"bPaginate": true,
-	"bProcessing": true,
+	"bProcessing": false,
 	"bAutoWidth": false,
 	"bInfo": true,
 	"bLengthChange": true,
     "bFilter": true,
 	"iDisplayLength": 10,
-	"bJQueryUI": true,
+	"bJQueryUI": false,
 	"aLengthMenu": [[1, 5, 10, -1], [1, 5, 10, "All"]],
 	"aoColumns": [
 EOF
