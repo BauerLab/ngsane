@@ -47,8 +47,8 @@ if [ -n "$RUNHOMERCHIPSEQ" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN:Autocorr. diff. strand::fgrep 'Diff strand fold enrichment' | tail -n 1 | awk '{print \$(NF)}'" \
             "PATTERN:Autocorr. same/diff::fgrep 'Same / Diff fold enrichment' | tail -n 1 | awk '{print \$(NF)}'" \
             "PATTERN:Peaks:100:fgrep '# total peaks =' | tail -n 1 | awk '{print \$(NF)}'" \
-            "PATTERN:Peak size:100:fgrep '# peak size ='  | tail -n 1 | awk '{print \$(NF-1)}'" \
-            "PATTERN:IP efficiency %::fgrep '# Approximate IP efficiency =' | tail -n 1 | awk '{print \$(NF-1)}'"
+            "PATTERN:Peak size:100:fgrep '# peak size ='  | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:IP efficiency %::fgrep '# Approximate IP efficiency =' | tail -n 1 | awk '{print \$(NF)}' | cut -d'%' -f 1"
 
         NGSANE_REPORT_FOOTER 
   
