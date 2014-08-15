@@ -51,6 +51,10 @@ export PATH=$PATH_CHANCE:$PATH
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_CHANCE*800)")"m"
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--chance      --\n "$(which run_chance_com.sh 2>&1)
@@ -101,6 +105,7 @@ NGSANE_CHECKPOINT_INIT "compute IPstrength"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
+    echo "$JAVAPARAMS" | tr ' ' '\n'  > java.opts
     RUN_COMMAND="${CHANCE} IPStrength -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.IPstrength --ipfile $f --ipsample ${n/$ASD.bam/} --inputfile ${CHIPINPUT} --inputsample ${c/$ASD.bam/}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
@@ -119,7 +124,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         if [ -z "$EXPERIMENTID" ]; then
             EXPERIMENTID=$(echo "$n" | sed -rn $EXPERIMENTPATTERN)
         fi
-        
+
         RUN_COMMAND="${CHANCE} compENCODE -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n}-${c}.compENCODE -e $EXPERIMENTID --ipfile ${f} --ipsample ${n/$ASD.bam/} --inputfile ${CHIPINPUT} --inputsample ${c/$ASD.bam/}"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
