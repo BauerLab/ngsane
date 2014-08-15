@@ -27,21 +27,19 @@ if [ -n "$RUNCHANCE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Chance" "$TASK_CHANCE" "chance.sh"
 
         NGSANE_REPORT_TABLE "$TASK_CHANCE"      \
-            "$OUT/<DIR>/$TASK_CHANCE             \
+            "$OUT/<DIR>/$TASK_CHANCE"             \
             ".IPstrength"                    \
-            "PATTERN:Cumulative % enrichment:grep 'percent_genome_enriched' | head -n 1 | cut -d',' -f 1" \
-            "PATTERN:Input scaling factor:grep 'input_scaling_factor,' | head -n 1 | cut -d',' -f 1" \
-            "PATTERN:Diff. Enrichment:grep 'differential_percentage_enrichment,' | head -n 1 | cut -d',' -f 1" \
-            "PATTERN:FDR (overall):grep 'fdr,' | head -n 1 | cut -d',' -f 1" \
-            "PATTERN:FDR (TF normal):grep 'tfbs_normal_fdr,' | head -n 1 | cut -d',' -f 1" \
-            "PATTERN:FDR (Histone normal):grep 'histone_normal_fdr,' | head -n 1 | cut -d',' -f 1" \
-            "PATTERN:FDR (TF cancer):grep 'tfbs_cancer_fdr,' | head -n 1 | cut -d',' -f 1" \
-            "PATTERN:FDR (Histone cancer):grep 'histone_cancer_fdr,' | head -n 1 | cut -d',' -f 1" \
-            "FIGURE:Plot1:[FIGURE]"
-            "FIGURE:Plot2:[FIGURE]"
+            "PATTERN:Cumulative % enrichment::grep 'percent_genome_enriched' | head -n 1 | cut -d',' -f 2" \
+            "PATTERN:Input scaling factor::grep 'input_scaling_factor,' | head -n 1 | cut -d',' -f 2" \
+            "PATTERN:Diff. Enrichment::grep 'differential_percentage_enrichment,' | head -n 1 | cut -d',' -f 2" \
+            "PATTERN:FDR overall::grep 'fdr,' | head -n 1 | cut -d',' -f 2" \
+            "PATTERN:FDR TF normal::grep 'tfbs_normal_fdr,' | head -n 1 | cut -d',' -f 2" \
+            "PATTERN:FDR Histone normal::grep 'histone_normal_fdr,' | head -n 1 | cut -d',' -f 2" \
+            "PATTERN:FDR TF cancer::grep 'tfbs_cancer_fdr,' | head -n 1 | cut -d',' -f 2" \
+            "PATTERN:FDR Histone cancer::grep 'histone_cancer_fdr,' | head -n 1 | cut -d',' -f 2" \
+            "FIGURE::" \
+            "FIGURE::"
 
-
-        # finish the section
         NGSANE_REPORT_FOOTER  
   
     fi
