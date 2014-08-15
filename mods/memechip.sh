@@ -178,6 +178,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         MEMECONSENSUS=$(sed -n '2,2p' $OUTDIR/$SAMPLE/motif_alignment.txt | cut -f 8)
     fi
     echo "MEME motif: $MEMEMOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
+    cp $OUTDIR/$SAMPLE/meme_out/logo$MEMEMOTIFNUM.png $OUTDIR/${SAMPLE}_topmememotif.png
     echo "Combined motif: $MOTIFNUM" >> $OUTDIR/$SAMPLE.summary.txt
     echo "Query consensus: $MEMECONSENSUS" >> $OUTDIR/$SAMPLE.summary.txt
        

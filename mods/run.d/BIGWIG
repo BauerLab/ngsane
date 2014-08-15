@@ -24,12 +24,15 @@ if [ -n "$RUNBIGWIG" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
     
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "Bigwig" "$TASK_BIGWIG" "bigwig.sh" ".bw"
 
-        echo "[NOTE] the bigwig.sh mod does not provide a report"
-
-        # finish the section
+        NGSANE_REPORT_TABLE "$TASK_BIGWIG" \
+            "$OUT/<DIR>/$TASK_BIGWIG"  \
+            ".bw.stats" \
+            "PATTERN:library size::sed -n 1p | awk '{print \$(NF)}'" \
+            "PATTERN:normalize to::sed -n 2p | awk '{print \$(NF)}'" \
+            "PATTERN:scale factor::sed -n 3p | awk '{print \$(NF)}'" 
+            
         NGSANE_REPORT_FOOTER  
         
     fi

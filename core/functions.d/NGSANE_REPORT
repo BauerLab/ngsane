@@ -72,12 +72,45 @@ ${1}_Table_json={
 	"aoColumns": [
 EOF
     NGSANE_VAR_REPORT_TABLE_HEADER=
-    NGSANE_VAR_REPORT_TABLE_CENTER=' ], "aaData": ['
-    
     NGSANE_VAR_REPORT_TABLE_TITLES=""
     NGSANE_VAR_REPORT_TABLE_COLUMNS=""
+    NGSANE_VAR_REPORT_TABLE_CENTER=' ], "aaData": ['
+    
+    # create table header once
+    if [ -z "$NGSANE_VAR_REPORT_TABLE_TITLES" ]; then
+        NGSANE_VAR_REPORT_TABLE_TITLES="{'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'}"
+        NGSANE_VAR_REPORT_TABLE_COLUMNS="<td></td><td></td>"
+        for var in "${@:4}"; do
+            if [ "$(echo $var | cut -d':' -f 2)" == "" ]; then 
+                NGSANE_VAR_REPORT_TABLE_BSORTABLE=", 'bSortable':false"; 
+            else 
+                NGSANE_VAR_REPORT_TABLE_BSORTABLE=""; 
+            fi
+            NGSANE_VAR_REPORT_TABLE_SWIDTH=$(echo $var | cut -d':' -f 3) 
+            if [ -n "$NGSANE_VAR_REPORT_TABLE_SWIDTH" ]; then 
+                NGSANE_VAR_REPORT_TABLE_SWIDTH=", 'sWidth':'${NGSANE_VAR_REPORT_TABLE_SWIDTH}px'"
+            fi
+                                    
+            if [[ $(echo $var | grep '^FIGURE:') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'bSortable':false $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+                NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"
+            elif [[ $(echo $var | grep '^PATTERN:') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+                NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"    
+            elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+                NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"
+            fi
+        done                
+        echo -e $NGSANE_VAR_REPORT_TABLE_HEADER >> $SUMMARYTMP
+        echo -e $NGSANE_VAR_REPORT_TABLE_TITLES >> $SUMMARYTMP
+        echo -e $NGSANE_VAR_REPORT_TABLE_CENTER >> $SUMMARYTMP
+    fi
+    
     NGSANE_VAR_FIRSTROW="TRUE"
 
+    
+    [[ -z "$2" ]] && return
     
     for dir in ${DIR[@]}; do
         # separate folder from sample pattern
@@ -98,36 +131,7 @@ EOF
             SAMPLENAME=${SAMPLE##*/}
             SAMPLENAME=${SAMPLENAME/%$3/}
 #            echo "$SAMPLE $SAMPLENAME">&2
-            # create table header once
-            if [ -z "$NGSANE_VAR_REPORT_TABLE_TITLES" ]; then
-                NGSANE_VAR_REPORT_TABLE_TITLES="{'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'}"
-                NGSANE_VAR_REPORT_TABLE_COLUMNS="<td></td><td></td>"
-                for var in "${@:4}"; do
-                    if [ "$(echo $var | cut -d':' -f 2)" == "" ]; then 
-                        NGSANE_VAR_REPORT_TABLE_BSORTABLE=", 'bSortable':false"; 
-                    else 
-                        NGSANE_VAR_REPORT_TABLE_BSORTABLE=""; 
-                    fi
-                    NGSANE_VAR_REPORT_TABLE_SWIDTH=$(echo $var | cut -d':' -f 3) 
-                    if [ -n "$NGSANE_VAR_REPORT_TABLE_SWIDTH" ]; then 
-                        NGSANE_VAR_REPORT_TABLE_SWIDTH=", 'sWidth':'${NGSANE_VAR_REPORT_TABLE_SWIDTH}px'"
-                    fi
-                                            
-                    if [[ $(echo $var | grep '^FIGURE:') != "" ]]; then
-                        NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'bSortable':false $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
-                        NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"
-                    elif [[ $(echo $var | grep '^PATTERN:') != "" ]]; then
-                        NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
-                        NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"    
-                    elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
-                        NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
-                        NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"
-                    fi
-                done                
-                echo -e $NGSANE_VAR_REPORT_TABLE_HEADER >> $SUMMARYTMP
-                echo -e $NGSANE_VAR_REPORT_TABLE_TITLES >> $SUMMARYTMP
-                echo -e $NGSANE_VAR_REPORT_TABLE_CENTER >> $SUMMARYTMP
-            fi
+
 
             # populate table row starting from parameter 3
             # check for link first
