@@ -55,22 +55,6 @@ echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBOWTIE//:/$QUEUEWAITSEP}\"" >>t
 JOBIDBW=$( trigger.sh tmp/configBIGWIG.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
 echo "[NOTE] submitted jobs $(echo -n $JOBIDBW)"
 
-
-################################################################################
-#  Chance
-################################################################################
-
-# modify the template config file to flip the RUNCHANCE switch
-# specify the resulting html file
-echo "[NOTE] Prep and run config file tmp/configCHANCE.txt"
-cat bin/tmpl/configChIPseq.txt | sed 's/RUNCHANCE=\"\"/RUNCHANCE=\"1\"/g' | \
-    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryCHANCE\"/g' > tmp/configCHANCE.txt
-echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBOWTIE//:/$QUEUEWAITSEP}\"" >>tmp/configCHANCE.txt
-
-# submit the CHANCE run to the cluster
-JOBIDSCHANCE=$( trigger.sh tmp/configCHANCE.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] submitted jobs $(echo -n $JOBIDSCHANCE)"
-
 ################################################################################
 #  PEAKRANGER
 ################################################################################
@@ -145,7 +129,7 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSMEME)"
 ################################################################################
 # TEST
 ################################################################################
-JOBIDS="$JOBIDSFASTQC:$JOBIDSPR:$JOBIDBW:$JOBIDSCHANCE:$JOBIDSMACS:$JOBIDSHOMER:$JOBIDSMEME" #other things
+JOBIDS="$JOBIDSFASTQC:$JOBIDSPR:$JOBIDBW:$JOBIDSMACS:$JOBIDSHOMER:$JOBIDSMEME" #other things
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configChIPseq.txt | \
@@ -155,7 +139,6 @@ cat bin/tmpl/configChIPseq.txt | \
     sed 's/RUNPEAKRANGER=\"\"/RUNPEAKRANGER=\"1\"/g' |\
     sed 's/RUNMACS2=\"\"/RUNMACS2=\"1\"/g' |\
     sed 's/RUNHOMERCHIPSEQ=\"\"/RUNHOMERCHIPSEQ=\"1\"/g' |\
-    sed 's/RUNCHANCE=\"\"/RUNCHANCE=\"1\"/g' |\
     sed 's/RUNMEMECHIP=\"\"/RUNMEMECHIP=\"1\"/g' |\
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryCHIPSEQ\"/g' > tmp/configCHIPSEQ.txt
 
