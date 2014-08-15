@@ -70,7 +70,9 @@ NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$ASD.bam/}
 c=${CHIPINPUT##*/}
+CONTROL=${c/%$ASD.bam/}
 
 if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
     echo "[ERROR] input control not provided or invalid (CHIPINPUT)"
@@ -95,7 +97,7 @@ NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f}
-	dmget -a ${OUTDIR}
+	dmget -a $OUTDIR
 	[ -n $CHIPINPUT ] && dmget -a $CHIPINPUT
 fi
 
@@ -106,11 +108,11 @@ NGSANE_CHECKPOINT_INIT "compute IPstrength"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     echo "$JAVAPARAMS" | tr ' ' '\n'  > java.opts
-    RUN_COMMAND="${CHANCE} IPStrength -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.IPstrength --ipfile $f --ipsample ${n/$ASD.bam/} --inputfile ${CHIPINPUT} --inputsample ${c/$ASD.bam/}"
+    RUN_COMMAND="${CHANCE} IPStrength -b ${GENOME_ASSEMBLY} -t bam -o $OUTDIR/$SAMPLE.IPstrength --ipfile $f --ipsample $SAMPLE --inputfile ${CHIPINPUT} --inputsample $CONTROL"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.IPstrength
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.IPstrength
 
 fi
 
@@ -124,12 +126,12 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         if [ -z "$EXPERIMENTID" ]; then
             EXPERIMENTID=$(echo "$n" | sed -rn $EXPERIMENTPATTERN)
         fi
-
-        RUN_COMMAND="${CHANCE} compENCODE -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n}-${c}.compENCODE -e $EXPERIMENTID --ipfile ${f} --ipsample ${n/$ASD.bam/} --inputfile ${CHIPINPUT} --inputsample ${c/$ASD.bam/}"
+        
+        RUN_COMMAND="${CHANCE} compENCODE -b ${GENOME_ASSEMBLY} -t bam -o $OUTDIR/$SAMPLE.compENCODE -e $EXPERIMENTID --ipfile ${f} --ipsample $SAMPLE --inputfile ${CHIPINPUT} --inputsample $CONTROL"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
         # mark checkpoint
-        NGSANE_CHECKPOINT_CHECK ${OUTDIR}/${n/$ASD.bam/}-${c/$ASD.bam/}.compENCODE
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.compENCODE
 
     else
         echo "[NOTE] skip ENCODE comparison "
@@ -142,13 +144,13 @@ NGSANE_CHECKPOINT_INIT "make plots"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
-    Rscript --vanilla ${NGSANE_BASE}/tools/makeChancePlots.R $f $CHIPINPUT ${n/$ASD.bam/} ${c/$ASD.bam/} $OUTDIR
+    Rscript --vanilla ${NGSANE_BASE}/tools/makeChancePlots.R $f $CHIPINPUT $SAMPLE $CONTROL $OUTDIR
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/${n/$ASD.bam/.pdf}
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.pdf
 
 fi
 ################################################################################
-[ -e $OUTDIR/${n/$ASD.bam/.pdf}.dummy ] && rm $OUTDIR/${n/$ASD.bam/.pdf}.dummy
+[ -e $OUTDIR/$SAMPLE.pdf.dummy ] && rm $OUTDIR/$SAMPLE.pdf.dummy
 echo ">>>>> ChIPseq QC with Chance - FINISHED"
 echo ">>>>> enddate "`date`
