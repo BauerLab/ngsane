@@ -36,12 +36,20 @@ if [ -n "$RUNHOMERCHIPSEQ" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
-        NGSANE_REPORT_HEADER "Homer ChIP-seq" "$TASK_HOMERCHIPSEQ" "chipseqHomer.sh"
+        NGSANE_REPORT_HEADER "Homer ChIP-seq" "$TASK_HOMERCHIPSEQ" "chipseqHomer.sh" ".bed"
 
-        echo "[NOTE] the chipseqHomer.sh mod does not provide a report"
+        NGSANE_REPORT_TABLE "$TASK_HOMERCHIPSEQ" \
+            "$OUT/<DIR>/$TASK_HOMERCHIPSEQ"  \
+            ".summary.txt" \
+            "PATTERN:Control::fgrep 'ChIP input' | awk '{print \$(NF)}'" \
+            "PATTERN:Est. fragment length::fgrep '# fragment length' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:Autocorr. same strand::fgrep 'Same strand fold enrichment' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:Autocorr. diff. strand::fgrep 'Diff strand fold enrichment' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:Autocorr. same/diff::fgrep 'Same / Diff fold enrichment' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:Peaks:100:fgrep '# total peaks =' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:Peak size:100:fgrep '# peak size ='  | tail -n 1 | awk '{print \$(NF-1)}'" \
+            "PATTERN:IP efficiency %::fgrep '# Approximate IP efficiency =' | tail -n 1 | awk '{print \$(NF-1)}'"
 
-        # finish the section
         NGSANE_REPORT_FOOTER 
   
     fi

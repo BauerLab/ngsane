@@ -28,7 +28,7 @@ if [ -n "$RUNMACS2" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_TABLE "$TASK_MACS2" \
             "$OUT/<DIR>/$TASK_MACS2"  \
             ".summary.txt" \
-            "PATTERN:Input::fgrep 'ChIP input' | awk '{print \$(NF)}'" \
+            "PATTERN:Control::fgrep 'ChIP input' | awk '{print \$(NF)}'" \
             "PATTERN:IP tags::egrep 'total (tags|fragments) in treatment' | tail -n 1 | awk '{print \$(NF)}'" \
             "PATTERN:IP (filtered)::egrep '(tags|fragments) after filtering in treatment' | tail -n 1 | awk '{print \$(NF)}'" \
             "PATTERN:Control tags::egrep 'total (tags|fragments) in control' | tail -n 1 | awk '{print \$(NF)}'" \
@@ -39,7 +39,6 @@ if [ -n "$RUNMACS2" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN:Nucleotides covered::fgrep 'Nucleotides covered' | awk '{print \$(NF)}'" \
             "FIGURE::60:<SAMPLE>_model-0.png:60:1" \
             "FIGURE::60:<SAMPLE>_model-1.png:60:1" 
-
 
         NGSANE_REPORT_FOOTER 
   

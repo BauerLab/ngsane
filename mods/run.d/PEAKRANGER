@@ -28,7 +28,7 @@ if [ -n "$RUNPEAKRANGER" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_TABLE "$TASK_PEAKRANGER" \
             "$OUT/<DIR>/$TASK_PEAKRANGER"  \
             ".summary.txt" \
-            "PATTERN:Input::fgrep 'ChIP input' | awk '{print \$(NF)}'" \
+            "PATTERN:Control::fgrep 'ChIP input' | awk '{print \$(NF)}'" \
             "PATTERN:Total reads::fgrep 'Total reads' | awk '{print \$(NF)}'" \
             "PATTERN:Unique::fgrep 'Unique reads' | awk '{print \$(NF)}'" \
             "CALCULATE:Unique %:80:#4*100/#3" \
