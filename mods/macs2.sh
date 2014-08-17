@@ -123,7 +123,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         
     else
     
-        RUN_COMMAND="macs2 predictd $MACS2_PREDICTD_ADDPARAM --ifile $f --gsize $MACS2_GENOMESIZE --rfile $SAMPLE > $SAMPLE.summary.txt 2>&1"    
+        RUN_COMMAND="macs2 predictd $MACS2_PREDICTD_ADDPARAM --ifile $f --gsize $MACS2_GENOMESIZE --rfile $SAMPLE"_"model.R > $SAMPLE.summary.txt 2>&1"    
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
         Rscript $SAMPLE"_"model.R
