@@ -220,7 +220,7 @@ for DIR in ${DIR[@]}; do
     cat /dev/null > $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
     
     if [[ -n "$RUNBIGWIG" ]]; then        
-        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $INPUT_BIGWIG "bigWig" "$SAMPLEPATTERN" ".bw" ""
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BIGWIG "bigWig" "$SAMPLEPATTERN" ".bw" ""
     fi
 
     if [[ -n "$RUNWIGGLER" ]]; then        
