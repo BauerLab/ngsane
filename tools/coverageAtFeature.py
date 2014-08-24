@@ -28,8 +28,8 @@ import argparse, sys, numpy, math, traceback
 #    return (numpy.mean(matrix, axis=0), numpy.std(matrix, axis=0))
                     
 
-def processStream2(file, up, down, bin, length, args):
-    matrix=numpy.empty(shape=(length,up+down))
+def processStream2(file, up, center, down, bin, length, args):
+    matrix=numpy.empty(shape=(length,up+center+down))
     counter=0
     for f in open(file):
         try:
@@ -39,7 +39,7 @@ def processStream2(file, up, down, bin, length, args):
     #        if (len(arr)>2 and arr[2]=="-"):
     #       matrix[counter/(up+down),((up+down)-int(arr[0]))/bin]=float(arr[1])   
     #        else:
-            matrix[counter/(up+down),(int(arr[0])-1)/bin]=float(arr[1])
+            matrix[counter/(up+center+down),(int(arr[0])-1)/bin]=float(arr[1])
             counter+=1
         except:
             print arr
@@ -58,6 +58,9 @@ def processStream2(file, up, down, bin, length, args):
 
     #normalize by total reads in library
     if (args.normalize):
+        # add pseudocount just in case
+        if (args.normalize == 0):
+            args.normalize = 0.001
         matrix=matrix*(1.0/args.normalize)
         print "normalize by %i" % (args.normalize)
 
@@ -110,16 +113,16 @@ def processStream2(file, up, down, bin, length, args):
 #    p.plot()
 
 
-def writeR(metric,ste,xvalue,file,name,args):
-    data=open(file+".txt","w")
+def writeR(metric,ste,xvalue,file,name,category,args):
+    data=open(file+".txt","a")
     if (args.metric!="sum"):
-        data.write("x\tmetric\tste\tmark\n")
+        data.write("x\tmetric\tste\tmark\tcategory\n")
         for a,s,x in zip(metric,ste,xvalue):
-            data.write("%i\t%g\t%g\t%s\n" % (x,a,s,name))
+            data.write("%i\t%g\t%g\t%s\t%s\n" % (x,a,s,name,category))
     else:
-        data.write("x\tmetric\tmark\n")
+        data.write("x\tmetric\tmark\tcategory\n")
         for a,x in zip(metric,xvalue):
-            data.write("%i\t%g\t%s\n" % (x,a,name))
+            data.write("%i\t%g\t%s\t%s\n" % (x,a,name,category))
         
     data.close()
 
@@ -137,27 +140,33 @@ def writeCode(file, label, args):
     """
     library("ggplot2")
     library("plyr")
-    pdf('%s.pdf', width=10, height=5)
     result <- read.table('%s', header=T)
-    result2<-ddply(.data=result, .(x,mark), summarize, metric=mean(metric)%s)
+    result2<-ddply(.data=result, .(x,mark,category), summarize, metric=mean(metric)%s)
+    pdf('%s.pdf', width=10, height=5*length(levels(result$category)))
     ggplot(result2, aes(x=x)) + %s
         geom_line(aes(y=metric, col=mark)) +
-        labs(title = "Coverage Distribution", y = "%s coverage", x = "region") +
+        labs(title = "Coverage Distribution", y = "%s coverage", x = "") +
         geom_vline(xintercept = 0, colour = "gray65") +
-        annotate("text", x = (max(result$x)-min(result$x))*0.03, y = min(result$metric%s)*0.9, label = "%s")
+        geom_vline(xintercept = %d, colour = "gray65") +
+        facet_grid(category ~ ., scales = "free_y") +
+        annotate("text", x = %d, y = 0, label = "%s") + 
+        scale_x_continuous(breaks=c(seq(%d, 0, 200),seq(%d,%d,200)), labels=c(seq(%d, 0, 200),seq(0,%d,200)))
     dev.off()
-    """ % (file,file+".txt",ddply,geomribbon,args.metric, anno ,label))
+    """ % (file+".txt",ddply,file,geomribbon,args.metric, args.center,args.center/2, label,-args.upstream,args.center,args.center+args.downstream,-args.upstream,args.downstream))
     code.close()
     
+#        annotate("text", x = %d, y = 1, label = "test %s") + 
 
 def main(args):
     # Parse the user supplied arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', dest='inputfile', help='The coverage file')
     parser.add_argument('-n', dest='name', help='Name of feature')
+    parser.add_argument('-C', dest='category', help='Name of feature category')
     parser.add_argument('-g', dest='genomic', help='Name of genomic feature')
     parser.add_argument('-u', type=int, dest='upstream', help='Downstream')
     parser.add_argument('-d', type=int, dest='downstream', help='Upstream')
+    parser.add_argument('-c', type=int, dest='center', help='center', default=0)
     parser.add_argument('-l', type=int, dest='length', help='length')
     parser.add_argument('-i', dest='image', help='image name')
     parser.add_argument('-o', dest='rfile', help='R file')
@@ -176,9 +185,9 @@ def main(args):
     #processNumpy(args.inputfile,args.upstream,args.downstream,args.length)
     #mean,std=processStream(args.inputfile,args.upstream,args.downstream,args.length)
     if (args.inputfile):
-        metric,ste=processStream2(args.inputfile,upstream,downstream,args.bin,args.length, args)
-        x=range(-(args.upstream),args.downstream,args.bin)
-        writeR(metric,ste,x,args.rfile,args.name,args)
+        metric,ste=processStream2(args.inputfile,upstream,args.center,downstream,args.bin,args.length, args)
+        x=range(-(args.upstream),args.center+args.downstream,args.bin)
+        writeR(metric,ste,x,args.rfile,args.name,args.category,args)
     if (args.image) :
         writeCode(args.rfile,args.genomic,args)
     #print mean

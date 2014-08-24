@@ -33,12 +33,18 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
-# BED file with locations of genomic features
+# BED file with locations of genomic features, multiple files can be added, 
+# can be compressed with gz or bzip2
 # e.g. downloaded from UCSC 
 FEATUREFILE=
+
 # Number of bps to consider upstream and downstream
 DOWNSTREAM=
 UPSTREAM=
+
+# segregate annotations by column, leave empty to consider all annotations to be of the same class
+# usually "4" for bed files (name/id)
+FEATANN_SEGREGATEBY=
 
 # reference genome -- actually we just need the chrom sizes 
 # genome.fa -> genome.chrom.sizes
@@ -64,6 +70,8 @@ ENDING="$ASD.bam"
 <<FEATANN_LABS
 FEATANN_LABS
 
+# name for result file
+EXPERIMENTNAME= 
 
 #********************
 # PARAMETER (optional overwriting defaults)
@@ -73,9 +81,11 @@ FEATANN_LABS
 # options: yes, comment out
 REMOVEMULTIFEATURE="yes"
 
-# normalize coverage by library size (total reads, bam) or element number (bed) 
-# options: yes, comment out
-NORMALIZE="yes"
+# normalize coverage by library size (mapped reads, bam) or element number (bed) 
+# options: "genome" across the genome, 
+#          "features", subsetted across the features
+#          "" to deactivate
+NORMALIZE="genome"
 
 # remove features which have no coverage anyway -- they do not contribute to the shape
 # options: yes, comment out
