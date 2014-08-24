@@ -243,7 +243,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         
         for FEATURES in $(ls $OUTDIR/$FEATURENAME/*.bed 2> /dev/null); do
             F=${FEATURES##*/}
-            F=${F/.bed.tmp/}
+            F=${F/.bed/}
             FEATURE_REGIONS=$OUTDIR/$FEATURENAME/${F}${STRAND/-/_}.bed
 #            head  -n 2 $FEATURES    
             echo $FEATURE_REGIONS
@@ -429,7 +429,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     #            head $OUTDIR/$name.bed
     
                 echo "[NOTE] process file"
-                RUNCOMMAND="python ${NGSANE_BASE}/tools/coverageAtFeature.py -f $OUTDIR/$name.bed -C $F -u $UPSTREAM -d $DOWNSTREAM -c $CENTERBINS -l $FEATURE_LENGTH -n $mark -o $OUTDIR/$name $IGNOREUNCOVERED $REMOVEOUTLIER $TOTALREADS --metric $METRIC"
+                RUNCOMMAND="python ${NGSANE_BASE}/tools/coverageAtFeature.py -f $OUTDIR/$name.bed -C $F $PYBIN -u $UPSTREAM -d $DOWNSTREAM -c $CENTERBINS -l $FEATURE_LENGTH -n $mark -o $OUTDIR/$name $IGNOREUNCOVERED $REMOVEOUTLIER $TOTALREADS --metric $METRIC"
                 echo $RUNCOMMAND && eval $RUNCOMMAND
     
             else
@@ -469,14 +469,22 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     head -n 1 $(echo $RESULTFILES | cut -d " " -f 1) > $JOINED.txt
     cat $RESULTFILES | grep -v "x" >> $JOINED.txt
     
-    if [[ -z "$FEATURELABEL" && -z "$FEATURE_END" ]];then    
-        FEATURELABEL="Feature start"
-    elif [[ -z "$FEATURELABEL" && -z "$FEATURE_START" ]];then  
-        FEATURELABEL="Feature end"
-    else 
-        FEATURELABEL="Feature"
+    if [[ -z "$FEATURELABEL" ]]; then
+        if [[ -z "$FEATURE_END" ]];then    
+            FEATURELABEL="Feature start"
+        elif [[ -z "$FEATURE_START" ]];then  
+            FEATURELABEL="Feature end"
+        else 
+            FEATURELABEL="Feature"
+        fi
     fi
-    python ${NGSANE_BASE}/tools/coverageAtFeature.py -o $JOINED $PYBIN -u $UPSTREAM -c $CENTERBINS -d $DOWNSTREAM -g "$FEATURELABEL" -i $JOINED --metric $METRIC
+        
+    if [[ -n "$FEATURE_END"  && -n "$FEATURE_END" ]]; then
+        python ${NGSANE_BASE}/tools/coverageAtFeature.py -o $JOINED $PYBIN -u $UPSTREAM -c $CENTERBINS -d $DOWNSTREAM -g "$FEATURELABEL" -i $JOINED --metric $METRIC
+    else
+        python ${NGSANE_BASE}/tools/coverageAtFeature.py -o $JOINED $PYBIN -u $UPSTREAM -d $DOWNSTREAM -g "$FEATURELABEL" -i $JOINED --metric $METRIC
+    fi
+        
     Rscript $JOINED.R
     convert $JOINED.pdf $JOINED.png
     

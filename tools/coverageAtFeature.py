@@ -136,23 +136,40 @@ def writeCode(file, label, args):
         geomribbon="geom_ribbon(aes(ymin=metric-ste, ymax=metric+ste, fill=mark), alpha=1/3) +\n"
 
     code=open(file+".R","w")
-    code.write(
-    """
-    library("ggplot2")
-    library("plyr")
-    result <- read.table('%s', header=T)
-    result2<-ddply(.data=result, .(x,mark,category), summarize, metric=mean(metric)%s)
-    pdf('%s.pdf', width=10, height=5*length(levels(result$category)))
-    ggplot(result2, aes(x=x)) + %s
-        geom_line(aes(y=metric, col=mark)) +
-        labs(title = "Coverage Distribution", y = "%s coverage", x = "") +
-        geom_vline(xintercept = 0, colour = "gray65") +
-        geom_vline(xintercept = %d, colour = "gray65") +
-        facet_grid(category ~ ., scales = "free_y") +
-        annotate("text", x = %d, y = 0, label = "%s") + 
-        scale_x_continuous(breaks=c(seq(%d, 0, 200),seq(%d,%d,200)), labels=c(seq(%d, 0, 200),seq(0,%d,200)))
-    dev.off()
-    """ % (file+".txt",ddply,file,geomribbon,args.metric, args.center,args.center/2, label,-args.upstream,args.center,args.center+args.downstream,-args.upstream,args.downstream))
+    if (args.center > 0 ):
+        code.write(
+        """
+        library("ggplot2")
+        library("plyr")
+        result <- read.table('%s', header=T)
+        result2<-ddply(.data=result, .(x,mark,category), summarize, metric=mean(metric)%s)
+        pdf('%s.pdf', width=10, height=5*length(levels(result$category)))
+        ggplot(result2, aes(x=x)) + %s
+            geom_line(aes(y=metric, col=mark)) +
+            labs(title = "Coverage Distribution", y = "%s coverage", x = "") +
+            geom_vline(xintercept = 0, colour = "gray65") +
+            geom_vline(xintercept = %d, colour = "gray65") +
+            facet_grid(category ~ ., scales = "free_y") +
+            annotate("text", x = %d, y = 0, label = "%s") + 
+            scale_x_continuous(breaks=c(seq(%d, 0, 200),seq(%d,%d,200)), labels=c(seq(%d, 0, 200),seq(0,%d,200)))
+        dev.off()
+        """ % (file+".txt",ddply,file,geomribbon,args.metric, args.center,args.center/2, label,-args.upstream,args.center,args.center+args.downstream,-args.upstream,args.downstream))
+    else:
+        code.write(
+        """
+        library("ggplot2")
+        library("plyr")
+        result <- read.table('%s', header=T)
+        result2<-ddply(.data=result, .(x,mark,category), summarize, metric=mean(metric)%s)
+        pdf('%s.pdf', width=10, height=5*length(levels(result$category)))
+        ggplot(result2, aes(x=x)) + %s
+            geom_line(aes(y=metric, col=mark)) +
+            labs(title = "Coverage Distribution", y = "%s coverage", x = "") +
+            geom_vline(xintercept = 0, colour = "gray65") +
+            facet_grid(category ~ ., scales = "free_y") +
+            annotate("text", x = %d, y = 0, label = "%s")
+        dev.off()
+        """ % (file+".txt",ddply,file,geomribbon,args.metric, 0, label))    
     code.close()
     
 #        annotate("text", x = %d, y = 1, label = "test %s") + 
