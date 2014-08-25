@@ -452,12 +452,12 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     if [[ -z "$FEATURE_END" || -z "$FEATURE_START" ]];then    
         echo "[NOTE] one-sided coverage"
-    #    parallel --gnu -env get_coverage_onesided ::: $FILES
-        for i in $FILES; do get_coverage_onesided $i; done
+        parallel --gnu -env get_coverage_onesided ::: $FILES
+#        for i in $FILES; do get_coverage_onesided $i; done
     else
         echo "[NOTE] two-sided coverage"
-    #    parallel --gnu -env get_coverage_twosided ::: $FILES
-         for i in $FILES; do get_coverage_twosided $i; done
+        parallel --gnu -env get_coverage_twosided ::: $FILES
+#         for i in $FILES; do get_coverage_twosided $i; done
 
     fi
     echo "[NOTE] Files $FILES"
