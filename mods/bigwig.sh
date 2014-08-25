@@ -149,6 +149,8 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         echo "[NOTE] generate bigwig for properly paired reads on the same chromosomes"
         
         if [ -z "$FRAGMENTMIDPOINT" ]; then    
+ 
+            echo "[NOTE] signal spans readpair fragment"
             samtools view -@ $CPU_BIGWIG -b -F $DUPLICATEFILTERFLAG -f 0x2 $THISTMP/$SAMPLE.tmp.bam | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,$2,$6,$7,$8,$9}' | sort -k1,1 -k2,3g | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.bw
             
             if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
@@ -159,6 +161,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         	fi
         	
         else
+            echo "[NOTE] considered midpoint of fragment only"
             samtools view -@ $CPU_BIGWIG -b -F $DUPLICATEFILTERFLAG -f 0x2 $THISTMP/$SAMPLE.tmp.bam | bamToBed -bedpe | awk '($1 == $4){OFS="\t"; print $1,int(($6+$2)/2),int(($6+$2)/2)+1,$7,$8,$9}' | sort -k1,1 -k2,3g | genomeCoverageBed -scale $SCALEFACTOR -g ${GENOME_CHROMSIZES} -i stdin -bg | wigToBigWig stdin  ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.bw
             
             if [ "$BIGWIGSTRANDS" = "strand-specific" ]; then 
