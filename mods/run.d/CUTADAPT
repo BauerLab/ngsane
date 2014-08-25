@@ -24,12 +24,21 @@ if [ -n "$RUNCUTADAPT" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
     
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "Cutadapt" "$TASK_CUTADAPT" "cutadapt.sh"
 
-        echo "[NOTE] the cutadapt.sh mod does not provide a report"
+        NGSANE_REPORT_TABLE "$TASK_CUTADAPT" \
+            "$OUT/<DIR>/$TASK_CUTADAPT"  \
+            ".stats" \
+            "PATTERN:Reads::fgrep -w 'Processed reads' | head -n 1 | cut -d' ' -f 3" \
+            "PATTERN:Trimmed::fgrep -w 'Trimmed reads' | head -n 1 | cut -d' ' -f 3" \
+            "CALCULATE:%:80:#3*100/#2" \
+            "PATTERN:Filtered short reads::fgrep -w 'Too short reads' | head -n 1 | cut -d' ' -f 4" \
+            "CALCULATE:%:80:#5*100/#2" \
+            "PATTERN:Filtered long reads::fgrep -w 'Too long reads' | head -n 1 | cut -d' ' -f 4" \
+            "CALCULATE:%:80:#7*100/#2" \
+            "PATTERN:Remaining::fgrep -w 'remaining reads' | head -n 1 | cut -d' ' -f 3" \
+            "CALCULATE:%:80:#9*100/#2"
 
-        # finish the section
         NGSANE_REPORT_FOOTER   
   
     fi

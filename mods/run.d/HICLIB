@@ -44,7 +44,22 @@ if [ -n "$RUNHICLIB" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         # start a new section for a mod
         NGSANE_REPORT_HEADER "Hiclib" "$TASK_HICLIB" "hiclibMapping.sh,hiclibCorrelate.sh"
 
-        echo "[NOTE] the hiclibMapping.sh,hiclibCorrelate.sh mod does not provide a report"
+        NGSANE_REPORT_TABLE "$TASK_HICLIB" \
+            "$OUT/<DIR>/$TASK_HICLIB"  \
+            ".log" \
+            "LINK:<SAMPLE>.pdf" \
+            "PATTERN:Total reads::fgrep -w 'Original reads' | head -n 1 | sed 's/^[ ]*//g' | cut -d' ' -f 3" \
+            "PATTERN:Semi-dangling::| fgrep -w -A 1 'Semi-dangling end filter'  | tail -n 1 | awk '{print \$5-\$7}' \
+            "CALCULATE:%:80:#3*100/#2" \
+            "PATTERN:Duplicates::| fgrep -w -A 1 'Filtering duplicates' | tail -n 1 | sed 's/^[ ]*//g' | awk '{print \$7-\$9}'" \
+            "CALCULATE:%:80:#5*100/#2" \
+            "PATTERN:Sm/Lg Fragments::fgrep -w -A 1 'Small/large fragments filter'  | tail -n 1 | awk '{print \$5-\$7}'" \
+            "CALCULATE:%:80:#7*100/#2" \
+            "PATTERN:Extreme Fragments::fgrep -w -A 1 'Extreme fragments filter'  | tail -n 1 | awk '{print \$5-\$7}'" \
+            "CALCULATE:%:80:#9*100/#2" \
+            "PATTERN:Final reads::fgrep -w -A 1 'Extreme fragments filter'  | tail -n 1 | awk '{print $7}'" \
+            "PATTERN:%::sed -n 3p | cut -d' ' -f 4" \
+            "PATTERN:Final fragments::fgrep -w -A 1 'Extreme fragments filter'  | tail -n 1 |  awk '{print $NF}'" 
 
         # finish the section
         NGSANE_REPORT_FOOTER 

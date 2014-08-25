@@ -37,8 +37,7 @@ if [ -n "$RUNCHANCE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN:FDR Histone normal::grep 'histone_normal_fdr,' | head -n 1 | cut -d',' -f 2" \
             "PATTERN:FDR TF cancer::grep 'tfbs_cancer_fdr,' | head -n 1 | cut -d',' -f 2" \
             "PATTERN:FDR Histone cancer::grep 'histone_cancer_fdr,' | head -n 1 | cut -d',' -f 2" \
-            "FIGURE::" \
-            "FIGURE::"
+            "FIGURE::60:<SAMPLE>.png:60:1" \
 
         NGSANE_REPORT_FOOTER  
   

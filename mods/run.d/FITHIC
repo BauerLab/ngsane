@@ -26,7 +26,17 @@ if [ -n "$RUNFITHIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         # start a new section for a mod
         NGSANE_REPORT_HEADER "Fithic" "$TASK_FITHIC" "fithic.sh"
 
-        echo "[NOTE] the fithic.sh mod does not provide a report"
+        NGSANE_REPORT_TABLE "$TASK_FITHIC" \
+            "$OUT/<DIR>/$TASK_FITHIC"  \
+            ".log" \
+            "PATTERN:Min distance::fgrep -w 'distLowThres' | tail -n 1 | cut -f 1 | cut -d' ' -f 2" \
+            "PATTERN:Max distance::fgrep -w 'distLowThres' | tail -n 1 | cut -f 2 | cut -d' ' -f 2" \
+            "PATTERN:Possible Intra In Range::fgrep -w 'possibleIntraInRangeCount' | tail -n 1 | cut -d' ' -f 2" \
+            "PATTERN:Intra In Range Count::fgrep -w 'intraInRangeCount' | tail -n 1 | cut -f 1 | cut -d' ' -f 2" \
+            "PATTERN:Intra Out Of Range Count::fgrep -w 'intraOutOfRangeCount' | tail -n 1 | cut -f 2 | cut -d' ' -f2" \
+            "PATTERN:Intra Very Proximal Count::fgrep -w 'intraVeryProximalCount' | tail -n 1 | cut -f 3 | cut -d' ' -f2" \
+            "PATTERN:Inter Count::fgrep -w 'interCount' | tail -n 1 | cut -f 4 | cut -d' ' -f2" \
+            "PATTERN:Significant interactions::fgrep -w 'Significant interactions' | cut -d' ' -f3"
 
         # finish the section
         NGSANE_REPORT_FOOTER 

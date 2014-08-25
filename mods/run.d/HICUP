@@ -52,8 +52,67 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         # start a new section for a mod
         NGSANE_REPORT_HEADER "HiCuP" "$TASK_HICUP" "hicup.sh"
 
-        echo "[NOTE] the hicup.sh mod does not provide a report"
+        NGSANE_REPORT_TABLE "$TASK_HICUP" \
+            "$OUT/<DIR>/$TASK_HICUP"  \
+            "_truncater_summary.txt" \
+            "PATTERN:P1 non-trunc reads::sed -n 2p | cut -d' ' -f 5" \
+            "PATTERN:%::sed -n 2p | cut -d' ' -f 6" \
+            "PATTERN:P1 trunc reads::sed -n 2p | cut -d' ' -f 3" \
+            "PATTERN:%::sed -n 2p | cut -d' ' -f 4" \
+            "PATTERN:P2 non-trunc reads::sed -n 3p | cut -d' ' -f 5" \
+            "PATTERN:%::sed -n 3p | cut -d' ' -f 6" \
+            "PATTERN:P2 trunc reads::sed -n 3p | cut -d' ' -f 3" \
+            "PATTERN:%::sed -n 3p | cut -d' ' -f 4"
 
+
+        NGSANE_REPORT_TABLE "$TASK_HICUP" \
+            "$OUT/<DIR>/$TASK_HICUP"  \
+            "_mapper_summary.txt" \
+            "PATTERN:P1 reads::sed -n 2p | cut -d' ' -f 2" \
+            "PATTERN:P2 reads::sed -n 3p | cut -d' ' -f 2" \
+            "PATTERN:Unique P1::sed -n 2p | cut -d' ' -f 5" \
+            "PATTERN:%::sed -n 2p | cut -d' ' -f 6" \
+            "PATTERN:Unique P2::sed -n 3p | cut -d' ' -f 5" \
+            "PATTERN:%::sed -n 3p | cut -d' ' -f 6" \
+            "PATTERN:Multi P1::sed -n 2p | cut -d' ' -f 7" \
+            "PATTERN:%::sed -n 2p | cut -d' ' -f 8" \
+            "PATTERN:Multi P2::sed -n 3p | cut -d' ' -f 7" \
+            "PATTERN:%::sed -n 3p | cut -d' ' -f 8" \
+            "PATTERN:Nonaligned P1::sed -n 2p | cut -d' ' -f 9" \
+            "PATTERN:%::sed -n 2p | cut -d' ' -f 10" \
+            "PATTERN:Nonaligned P2::sed -n 3p | cut -d' ' -f 9" \
+            "PATTERN:%::sed -n 3p | cut -d' ' -f 10" \
+            "PATTERN:Paired P1::sed -n 2p | cut -d' ' -f 11" \
+            "PATTERN:%::sed -n 2p | cut -d' ' -f 12" \
+            "PATTERN:Paired P2::sed -n 3p | cut -d' ' -f 11" \
+            "PATTERN:%::sed -n 3p | cut -d' ' -f 12"
+
+        NGSANE_REPORT_TABLE "$TASK_HICUP" \
+            "$OUT/<DIR>/$TASK_HICUP"  \
+            "_filter_summary.txt" \
+            "PATTERN:Total pairs::sed -n 2p | cut -d' ' -f 2" \
+            "PATTERN:Valid::sed -n 2p | cut -d' ' -f 3" \
+            "PATTERN:Cis <10kb::sed -n 2p | cut -d' ' -f 4" \
+            "PATTERN:Cis >10kb::sed -n 2p | cut -d' ' -f 5" \
+            "PATTERN:Trans::sed -n 2p | cut -d' ' -f 6" \
+            "PATTERN:Invalid::sed -n 2p | cut -d' ' -f 7" \
+            "PATTERN:Circularised::sed -n 2p | cut -d' ' -f 8" \
+            "PATTERN:Internal::sed -n 2p | cut -d' ' -f 9" \
+            "PATTERN:Re-ligation::sed -n 2p | cut -d' ' -f 10" \
+            "PATTERN:Contiguous::sed -n 2p | cut -d' ' -f 11" \
+            "PATTERN:Wrong size::sed -n 2p | cut -d' ' -f 12"
+
+        NGSANE_REPORT_TABLE "$TASK_HICUP" \
+            "$OUT/<DIR>/$TASK_HICUP"  \
+            "_deduplicator_summary.txt" \
+            "PATTERN:Processed reads::sed -n 2p | cut -d' ' -f 2" \
+            "PATTERN:Unique di-tags::sed -n 2p | cut -d' ' -f 3" \
+            "PATTERN:Cis <10kb uniques::sed -n 2p | cut -d' ' -f 4" \
+            "PATTERN:Cis >10kb uniques::sed -n 2p | cut -d' ' -f 5" \
+            "PATTERN:Trans uniques::sed -n 2p | cut -d' ' -f 6" \
+            "FIGURE::60:<SAMPLE>_uniques_cis-trans.png:60:1" \
+            "FIGURE::60:<SAMPLE>_ditag_size_distribution.png:60:1"
+                   
         # finish the section
         NGSANE_REPORT_FOOTER 
   

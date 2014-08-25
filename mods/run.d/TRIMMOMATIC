@@ -24,12 +24,21 @@ if [ -n "$RUNTRIMMOMATIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "Trimmomatic" "$TASK_TRIMMOMATIC" "trimmomatic.sh"
 
-        echo "[NOTE] the trimmomatic.sh mod does not provide a report"
+        NGSANE_REPORT_TABLE "$TASK_TRIMMOMATIC" \
+            "$OUT/<DIR>/$TASK_TRIMMOMATIC"  \
+            ".log" \
+            "PATTERN:Reads/Read pairs::fgrep -w 'Input' | sed '.*s/\([0-9]\+\).*Surviving.*/\1/g'" \
+            "PATTERN:Surviving::fgrep -w 'Surviving' | cut -d'(' -f1 | cut -d' ' -f 1" \
+            "CALCULATE:%:80:#3*100/#2" \
+            "PATTERN:Forward only::fgrep -w 'Forward Only Surviving' | cut -d'(' -f1  | cut -d' ' -f 1" \
+            "CALCULATE:%:80:#5*100/#2" \
+            "PATTERN:Reverse only::fgrep -w 'Reverse Only Surviving' | cut -d'(' -f1 | cut -d' ' -f 1" \
+            "CALCULATE:%:80:#7*100/#2" \
+            "PATTERN:Dropped::fgrep -w 'Dropped' | cut -d'(' -f1 | cut -d' ' -f 1" \
+            "CALCULATE:%:80:#9*100/#2"
   
-          # finish the section
         NGSANE_REPORT_FOOTER 
      
     fi
