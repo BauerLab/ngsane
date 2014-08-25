@@ -2,7 +2,7 @@
 # http://bowtie-bio.sourceforge.net/index.shtml
 TASK_BOWTIE="bowtie"
 WALLTIME_BOWTIE=72:00:00
-MEMORY_BOWTIE=60
+MEMORY_BOWTIE=8
 CPU_BOWTIE=8
 NODES_BOWTIE="nodes=1:ppn=8"
 INPUT_BOWTIE="fastq"

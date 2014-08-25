@@ -8,19 +8,20 @@
 ################################################################################
 
 if [ -n "$RUNPOOLBAMS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    
+
     ############################################################################
     # Wether to submit a job or compile a report
     if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+    
 
         # check if resources are properly defined
         if [ -z "$TASK_POOLBAMS" ] || [ -z "$NODES_POOLBAMS" ] || [ -z "$CPU_POOLBAMS" ] || [ -z "$MEMORY_POOLBAMS" ] || [ -z "$WALLTIME_POOLBAMS" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
-        
-        $QSUB $ARMED $NGSANE_WAITFORJOB -r -d -k $CONFIG -t $TASK_POOLBAMS -i $INPUT_POOLBAMS -e $ASD.bam -n $NODES_POOLBAMS \
-        	-c $CPU_POOLBAMS -m $MEMORY_POOLBAMS"G" -w $WALLTIME_POOLBAMS \
+
+        $QSUB $ARMED $NGSANE_WAITFORJOB -d -r -k $CONFIG -t $TASK_POOLBAMS -i $INPUT_POOLBAMS -e $ASD.bam -n $NODES_POOLBAMS \
+    	    -c $CPU_POOLBAMS -m $MEMORY_POOLBAMS"G" -w $WALLTIME_POOLBAMS \
         	--postname postcommand${POOLED_DATA_NAME} \
-        	--postcommand "${NGSANE_BASE}/mods/poolBams.sh -k $CONFIG --outdir $OUT/<DIR>/$TASK_POOLBAMS" 
-        	
+    	    --postcommand "${NGSANE_BASE}/mods/poolBams.sh -k $CONFIG" 
+ 
     ############################################################################
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
@@ -48,3 +49,4 @@ if [ -n "$RUNPOOLBAMS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         
     fi
 fi
+

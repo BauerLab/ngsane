@@ -70,8 +70,9 @@ for d in ${DIR[@]}; do
     while read -r -a POOL; do
         PATTERN=$(echo "${POOL[@]:1}" | sed -e 's/ /|/g')
 
-        OUTBAM="$OUT/$d/$TASK_POOLBAMS/$(echo $POOL | cut -d' ' -f1)$ASD.bam"
+        OUTBAM="$OUT/$d/$TASK_POOLBAMS/${POOL[0]}$ASD.bam"
         [ -f $OUTBAM ] && rm $OUTBAM
+        mkdir -p $OUT/$d/$TASK_POOLBAMS
 
         INBAMS=""
         COMMENT=""

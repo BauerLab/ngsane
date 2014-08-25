@@ -1,5 +1,5 @@
 # author: Fabian Buske
-# date: May 2013
+# date: August 2014
 
 #####################################
 # Resources
@@ -53,10 +53,6 @@ PLATFORM="Illumina"
 # PARAMETER (optional overwriting defaults)
 #********************
 
-# FASTQ encoding (Phred score), leave empty to detect automatically
-# e.g. "Phred33" (Sanger, Illumina 1.8+), "Phred64" (Solexa, Illumina 1.5)
-FASTQ_ENCODING=
-
 # additional MRSFAST parameters
 # e.g. "-e 3 --best"
 MRSFASTADDPARAM=
@@ -66,7 +62,7 @@ MRSFASTADDPARAM=
 MRSFASTINDEXADDPARAM=
 
 #WALLTIME_MRSFAST=10:00:00
-#MEMORY_MRSFAST=60
+#MEMORY_MRSFAST=63
 #CPU_MRSFAST=8
 #NODES_MRSFAST="nodes=1:ppn=8"
 #MODULE_MRSFAST=

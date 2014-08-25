@@ -1320,6 +1320,34 @@ chmod 777 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
 module load $SOFTWARE/$VERSION
 
 ################################################################################
+VERSION=3.3.2
+SOFTWARE=mrsfast
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+git clone git://git.code.sf.net/p/mrsfast/code mrsfast
+cd mrsfast
+git checkout v$VERSION
+make
+
+mv mrsfast $PACKAGEPATH/$SOFTWARE/$VERSION/
+mv snp_indexer $PACKAGEPATH/$SOFTWARE/$VERSION/
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
 VERSION=1.0
 SOFTWARE=qualimap
 
@@ -1458,9 +1486,10 @@ sed -i 's|^NG_TRINITY=|NG_TRINITY=trinityrnaseq/2013_08_14|' $PACKAGEPATH/$NGSAN
 sed -i 's|^NG_PINDEL=|NG_PINDEL=pindel/0.2.5|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CIRCOS=|NG_CIRCOS=circos/0.64|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_QUALIMAP=|NG_QUALIMAP=qualimap/1.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_MRSFAST=|NG_MRSFAST=mrsfast/3.3.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 
 # databases
-sed -i 's|^MEMECHIPDATABASES=|MEMECHIPDATABASES=/packages/meme/4.9.1/db/motif_databases/jolma2013.meme|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^MEMECHIPDATABASES=|MEMECHIPDATABASES=/packages/meme/4.10.0/db/motif_databases/jolma2013.meme|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 
 # activate SGE
 sed -i 's|^SUBMISSIONSYSTEM="PBS"|SUBMISSIONSYSTEM="SGE"|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh

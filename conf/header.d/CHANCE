@@ -3,7 +3,7 @@
 # https://github.com/songlab/chance/downloads
 TASK_CHANCE="chance"
 WALLTIME_CHANCE=4:00:00
-MEMORY_CHANCE=20
+MEMORY_CHANCE=8
 CPU_CHANCE=1
 NODES_CHANCE="nodes=1:ppn=1"
 INPUT_CHANCE=$TASK_BOWTIE

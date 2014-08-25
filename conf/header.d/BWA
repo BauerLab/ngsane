@@ -3,7 +3,7 @@
 # http://bio-bwa.sourceforge.net/
 TASK_BWA="bwa"
 WALLTIME_BWA=50:00:00
-MEMORY_BWA=50
+MEMORY_BWA=8
 CPU_BWA=32
 NODES_BWA="nodes=4:ppn=8"
 INPUT_BWA="fastq"

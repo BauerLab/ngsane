@@ -124,16 +124,16 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         
     else
     
-        RUN_COMMAND="macs2 predictd $MACS2_PREDICTD_ADDPARAM --ifile $f --gsize $MACS2_GENOMESIZE --rfile $SAMPLE > $SAMPLE.summary.txt 2>&1"    
+        RUN_COMMAND="macs2 predictd $MACS2_PREDICTD_ADDPARAM --ifile $f --gsize $MACS2_GENOMESIZE --rfile $SAMPLE.R > $SAMPLE.summary.txt 2>&1"    
         echo $RUN_COMMAND && eval $RUN_COMMAND
     
-        Rscript ${SAMPLE}_model.R
+        Rscript $SAMPLE.R
         if hash convert; then 
-            convert -format png ${SAMPLE}_model.pdf ${SAMPLE}_model.png
+            convert -format png $SAMPLE.R"_"model.pdf $SAMPLE.R"_"model.png
         fi
     
         # mark checkpoint
-        NGSANE_CHECKPOINT_CHECK ${SAMPLE}_model.R
+        NGSANE_CHECKPOINT_CHECK $SAMPLE.R
 
     fi    
 fi
