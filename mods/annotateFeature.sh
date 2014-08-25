@@ -450,16 +450,24 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     export -f get_coverage_onesided
     export -f get_coverage_twosided
     
-    if [[ -z "$FEATURE_END" || -z "$FEATURE_START" ]];then    
-        echo "[NOTE] one-sided coverage"
-        parallel --gnu -env get_coverage_onesided ::: $FILES
-#        for i in $FILES; do get_coverage_onesided $i; done
+    if hash parallel ; then
+        if [[ -z "$FEATURE_END" || -z "$FEATURE_START" ]];then    
+            echo "[NOTE] one-sided coverage"
+            parallel --gnu -env get_coverage_onesided ::: $FILES
+        else
+            echo "[NOTE] two-sided coverage"
+            parallel --gnu -env get_coverage_twosided ::: $FILES
+        fi
     else
-        echo "[NOTE] two-sided coverage"
-        parallel --gnu -env get_coverage_twosided ::: $FILES
-#         for i in $FILES; do get_coverage_twosided $i; done
-
+        if [[ -z "$FEATURE_END" || -z "$FEATURE_START" ]];then    
+            echo "[NOTE] one-sided coverage"
+            for i in $FILES; do get_coverage_onesided $i; done
+        else
+            echo "[NOTE] two-sided coverage"
+             for i in $FILES; do get_coverage_twosided $i; done
+        fi
     fi
+    
     echo "[NOTE] Files $FILES"
 
 	# mark checkpoint
@@ -504,6 +512,13 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     rm $RESULTFILES
 
 fi
+################################################################################
+NGSANE_CHECKPOINT_INIT "cleanup"
+
+rm ${RESULTFILES} 2> /dev/null
+[ -d $OUTDIR/$FEATURENAME/ ] && rm -r $OUTDIR/$FEATURENAME
+
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 #[ -e $f.merg.anno.bed.dummy ] && rm $f.merg.anno.bed.dummy
 echo ">>>>> Coverage at genomic regions - FINISHED"

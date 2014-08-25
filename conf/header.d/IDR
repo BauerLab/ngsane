@@ -1,0 +1,12 @@
+##############################################################
+# Irreproducible Discovery Rate 
+# https://sites.google.com/site/anshulkundaje/projects/idr
+TASK_IDR="idr"
+WALLTIME_IDR=12:00:00
+MEMORY_IDR=8
+CPU_IDR=1
+NODES_IDR="nodes=1:ppn=1"
+INPUT_IDR=$TASK_MACS2
+MODULE_IDR="${NG_BEDTOOLS} ${NG_R}"
+PATH_IDR=
+

@@ -42,7 +42,7 @@ DELETEORIGINALBAMS=
 FASTA=
 
 # define as many pools as needed one per line (order matters)
-# POOL_BAMS output_folder output_prefix <pattern1> [<pattern2>]
+# POOL_BAMS output_prefix <pattern1> [<pattern2>]
 # e.g. POOL_BAM label library_Rep1 library_Rep2
 # or   POOL_BAM H2AZ H2AZ_Rep*
 <<POOL_BAMS
