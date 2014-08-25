@@ -130,9 +130,8 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         echo "[NOTE] single-end library detected"
     fi
 
-	if [ -z "$NORMALIZETO" ]; then NORMALIZETO=1000000; fi
     NUMBEROFREADS=$(samtools view -c -F $DUPLICATEFILTERFLAG $f )
-	if [ -z "$SCALEFACTOR" ]; then 
+	if [[ -n "$NORMALIZETO" ]] && [[ -z "$SCALEFACTOR" ]]; then 
 		SCALEFACTOR=`echo "scale=3; $NORMALIZETO/$NUMBEROFREADS" | bc`; 
 	else
 		NORMALIZETO="NA"

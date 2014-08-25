@@ -202,10 +202,12 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         elif [ -z "$FEATURE_START" ];then    
             awk -v c=$FEATURE_END 'BEGIN{OFS=FS="\t"}{if(NF >= 6){print $1,$c-1,$c,$4,$5,$6}else{print $1,$c-1,$c,$4,0,"."}}' $FEATURES | sort -u -k1,1 -k2,2g | bedtools slop $STRAND -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $FEATURE_REGIONS
         else
+            awk -v s=$FEATURE_START -v e=$FEATURE_END 'BEGIN{OFS=FS="\t"}{if(NF >= 6){print $1,$s,$e,$4,$5,$6}else{print $1,$s,$e,$4,0,"."}}' $FEATURES | sort -u -k1,1 -k2,2g | bedtools slop $STRAND -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $FEATURE_REGIONS
+
             # split into up center and downstream
             awk -v s=$FEATURE_START -v e=$FEATURE_END 'BEGIN{OFS=FS="\t"}{if(NF >= 6){print $1,$s,$e,$4,$5,$6}else{print $1,$s,$e,$4,0,"."}}' $FEATURES | sort -u -k1,1 -k2,2g | bedtools flank $STRAND -r 0 -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > ${FEATURE_REGIONS}_upstream
+            awk -v s=$FEATURE_START -v e=$FEATURE_END 'BEGIN{OFS=FS="\t"}{if(NF >= 6){print $1,$s,$e,$4,$5,$6}else{print $1,$s,$e,$4,0,"."}}' $FEATURES | bedtools sort > ${FEATURE_REGIONS}_center
             awk -v s=$FEATURE_START -v e=$FEATURE_END 'BEGIN{OFS=FS="\t"}{if(NF >= 6){print $1,$s,$e,$4,$5,$6}else{print $1,$s,$e,$4,0,"."}}' $FEATURES | sort -u -k1,1 -k2,2g | bedtools flank $STRAND -r $DOWNSTREAM -l 0 -g $GENOMESIZE -i - | bedtools sort > ${FEATURE_REGIONS}_downstream
-            cp $FEATURES ${FEATURE_REGIONS}
 
         fi 
 #        head -n 2 $FEATURE_REGIONS       
@@ -369,9 +371,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     #        bedtools coverage -d $STRAND $A $1 -b $FEATURE_REGIONS | head -n 2
 
     
-            EXPREGUP=$(bedtools coverage $STRAND $A $1 -b ${FEATURE_REGIONS}_upstream | gawk -v v=$VAL '{if ($v!=0) {print $0}}' | wc -l)  
-            EXPREGCENTER=$(bedtools coverage $STRAND $A $1 -b ${FEATURE_REGIONS} | gawk -v v=$VAL '{if ($v!=0) {print $0}}' | wc -l)  
-            EXPREGDOWN=$(bedtools coverage $STRAND $A $1 -b ${FEATURE_REGIONS}_downstream | gawk -v v=$VAL '{if ($v!=0) {print $0}}' | wc -l)  
+            EXPREG=$(bedtools coverage $STRAND $A $1 -b $FEATURE_REGIONS | gawk -v v=$VAL '{if ($v!=0) {print $0}}' | wc -l)  # non-zero covered features
             # non-zero covered features
             if [[ $EXPREGUP != 0 || $EXPREGCENTER != 0 || $EXPREGDOWN != 0 ]]; then
                 echo "[NOTE] nonzero FEATURE_REGIONS $EXPREG"
@@ -381,12 +381,13 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
                         gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' | \
                         gawk -v bin=$BIN  'BEGIN{OFS="\t";sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1,sum/len,$3}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
 
-                    bedtools coverage $STRAND -d $A $1 -b $FEATURE_REGIONS | \
+                    bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_center | \
                     gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $3-$2,$i,$v,$s}' | \
-                    gawk -v upstream=$UPSTREAM -v bins=$CENTERBINS 'BEGIN{OFS="\t";sum=0;len=1;bin=0; lastbin=0}
+                    gawk -v upstream=$UPSTREAM -v flankbinsize=$BIN -v bins=$CENTERBINS \
+                    'BEGIN{OFS="\t";sum=0;len=1;bin=0;lastbin=0;offset=int(upstream/flankbinsize);
                         {bin=$1/bins; 
                         if(lastbin < int($2/bin)){
-                            for (i=lastbin;i<int($2/bin);i++){print upstream+i,(sum+$3)/len,$4};
+                            for (i=lastbin;i<int($2/bin);i++){print offset+i,(sum+$3)/len,$4};
                             lastbin=int($2/bin);
                             len=1;
                             sum=0;
@@ -401,15 +402,16 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
                     bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_downstream | \
                         gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' | 
-                        gawk -v bin=$BIN -v upstream=$UPSTREAM -v center=$CENTERBINS 'BEGIN{OFS="\t";sum=0;len=1}{if ($1%bin==0){if(len==bin){print upstream+center+$1,sum/len,$3}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' >> $OUTDIR/$name.bed
+                        gawk -v bin=$BIN -v upstream=$UPSTREAM -v flankbinsize=$BIN  -v center=$CENTERBINS \
+                        'BEGIN{OFS="\t";sum=0;len=1;offset=int(upstream/flankbinsize)+center;}
+                        {if ($1%bin==0){if(len==bin){print center+$1,sum/len,$3}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' >> $OUTDIR/$name.bed
 
                 else
                 
                     bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_upstream | \
                         gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' > $OUTDIR/$name.bed
 
-
-                    bedtools coverage $STRAND -d $A $1 -b $FEATURE_REGIONS | \
+                    bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_center | \
                        gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $3-$2,$i,$v,$s}' | \
                        gawk -v upstream=$UPSTREAM -v bins=$CENTERBINS 'BEGIN{OFS="\t";sum=0;len=1;bin=0;lastbin=0}
                            {bin=$1/bins; 
