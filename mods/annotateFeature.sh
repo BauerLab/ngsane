@@ -384,7 +384,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
                     bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_center | \
                     gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $3-$2,$i,$v,$s}' | \
                     gawk -v upstream=$UPSTREAM -v flankbinsize=$BIN -v bins=$CENTERBINS \
-                    'BEGIN{OFS="\t";sum=0;len=1;bin=0;lastbin=0;offset=int(upstream/flankbinsize);
+                    'BEGIN{OFS="\t";sum=0;len=1;bin=0;lastbin=0;offset=int(upstream/flankbinsize);}
                         {bin=$1/bins; 
                         if(lastbin < int($2/bin)){
                             for (i=lastbin;i<int($2/bin);i++){print offset+i,(sum+$3)/len,$4};
