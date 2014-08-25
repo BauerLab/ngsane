@@ -75,7 +75,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
         if [ -z "$NODIR" ]; then
             if [ ! -d $OUT/$DIRNAME/$TASK ]; then 
                 mkdir -p $OUT/$DIRNAME/$TASK; 
-                echo "DIR created $OUT/$DIRNAME/$TASK"
+                echo "[NOTE] DIR created $OUT/$DIRNAME/$TASK"
             fi
         fi
         

@@ -49,9 +49,9 @@ NODES_PINDEL="nodes=1:ppn=2"
 #********************
 # Tasks
 #********************
-RUNMAPPINGBOWTIE=""  # mapping with bowtie1
-RUNMAPPINGBOWTIE2="" # mapping with bowtie2
-RUNMAPPINGBWA=""     # mapping with bwa
+RUNBOWTIE=""  # mapping with bowtie1
+RUNBOWTIE2="" # mapping with bowtie2
+RUNBWA=""     # mapping with bwa
 RUNREALRECAL=""      # recalibration/realignment
 DEPTHOFCOVERAGE=""   # determine mean coverage
 RUNVARCALLS=""       # SNP/Variant detection

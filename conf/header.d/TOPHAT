@@ -1,9 +1,9 @@
 ##############################################################
-# Tophat (2.0.10) 
+# Tophat (2.0.12) 
 # http://tophat.cbcb.umd.edu/
 TASK_TOPHAT="tophat"
 WALLTIME_TOPHAT=62:00:00
-MEMORY_TOPHAT=50
+MEMORY_TOPHAT=8
 CPU_TOPHAT=16
 NODES_TOPHAT="nodes=2:ppn=8"
 INPUT_TOPHAT="fastq"

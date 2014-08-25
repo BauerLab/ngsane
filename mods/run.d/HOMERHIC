@@ -7,19 +7,42 @@
 # OUT: $OUT/$dir/TASK_HOMERHIC/
 ################################################################################
 if [ -n "$RUNHOMERHIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_HOMERHIC" ] || [ -z "$NODES_HOMERHIC" ] || [ -z "$CPU_HOMERHIC" ] || [ -z "$MEMORY_HOMERHIC" ] || [ -z "$WALLTIME_HOMERHIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    if [ -z "$POOLED_DATA_NAME" ]; then 
-        # don't pool data
-        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_HOMERHIC -i $INPUT_HOMERHIC -e $READONE$ASD.bam \
-            -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
-            --command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERHIC"
-    else
-        # pool data
-        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_HOMERHIC -i $INPUT_HOMERHIC -e $READONE$ASD.bam \
-            -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
-            --postname postcommand$POOLED_DATA_NAME \
-            --postcommand "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERHIC"
-   
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_HOMERHIC" ] || [ -z "$NODES_HOMERHIC" ] || [ -z "$CPU_HOMERHIC" ] || [ -z "$MEMORY_HOMERHIC" ] || [ -z "$WALLTIME_HOMERHIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+        
+        if [ -z "$POOLED_DATA_NAME" ]; then 
+            # don't pool data
+            $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_HOMERHIC -i $INPUT_HOMERHIC -e $READONE$ASD.bam \
+                -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
+                --command "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERHIC"
+        else
+            # pool data
+            $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_HOMERHIC -i $INPUT_HOMERHIC -e $READONE$ASD.bam \
+                -n $NODES_HOMERHIC -c $CPU_HOMERHIC -m $MEMORY_HOMERHIC"G" -w $WALLTIME_HOMERHIC \
+                --postname postcommand$POOLED_DATA_NAME \
+                --postcommand "${NGSANE_BASE}/mods/hicHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERHIC"
+       
+        fi
+    
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Homer HiC" "$TASK_HOMERHIC" "hicHomer.sh"
+
+        echo "[NOTE] the hicHomer.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+  
     fi
-fi
+fi	
+
+	

@@ -6,13 +6,33 @@
 # OUT: $OUT/$dir/trinity/*.Trinity.fasta.gz
 ################################################################################
 
-################################################################################
-# individual calls
 #  ##########   Chrysalis  ###########
 if [ -n "$RUNCHRYSALIS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$NODES_CHRYSALIS" ] || [ -z "$NCPU_CHRYSALIS" ] || [ -z "$MEMORY_CHRYSALIS" ] || [ -z "$WALLTIME_CHRYSALIS" ] || [ -z "$NODETYPE_CHRYSALIS" ] ; then  echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -k $CONFIG -t $TASK_CHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
-        -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS $NGSANE_WAITFORJOB \
-        --command "${NGSANE_BASE}/mods/trinity_chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CHRYSALIS"
-fi
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$NODES_CHRYSALIS" ] || [ -z "$NCPU_CHRYSALIS" ] || [ -z "$MEMORY_CHRYSALIS" ] || [ -z "$WALLTIME_CHRYSALIS" ] || [ -z "$NODETYPE_CHRYSALIS" ] ; then  echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+        
+        $QSUB $ARMED -k $CONFIG -t $TASK_CHRYSALIS -i $INPUT_CHRYSALIS -e $READONE.$FASTQ -n $NODES_CHRYSALIS \
+            -c $NCPU_CHRYSALIS -m $MEMORY_CHRYSALIS"G" -w $WALLTIME_CHRYSALIS -q $NODETYPE_CHRYSALIS $NGSANE_WAITFORJOB \
+            --command "${NGSANE_BASE}/mods/trinity_chrysalis.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CHRYSALIS"
+        
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Trinity Chrysalis" "$TASK_CHRYSALIS" "trinity_chrysalis.sh"
+
+        echo "[NOTE] the trinity_chrysalis.sh mod does not provide a report"
+        
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+fi	
+
+	

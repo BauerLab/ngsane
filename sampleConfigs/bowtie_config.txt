@@ -8,7 +8,7 @@
 #********************
 # Tasks
 #********************
-RUNMAPPINGBOWTIE="1"    # mapping with bowtie
+RUNBOWTIE="1"    # mapping with bowtie
 
 #********************
 # Paths

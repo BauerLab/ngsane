@@ -7,9 +7,43 @@
 # OUT: $OUT/$dir/memechip/
 ################################################################################
 if [ -n "$RUNMEMECHIP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_MEMECHIP" ] || [ -z "$NODES_MEMECHIP" ] || [ -z "$CPU_MEMECHIP" ] || [ -z "$MEMORY_MEMECHIP" ] || [ -z "$WALLTIME_MEMECHIP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_MEMECHIP -i $INPUT_MEMECHIP -e $BED \
-    -n $NODES_MEMECHIP -c $CPU_MEMECHIP -m $MEMORY_MEMECHIP"G" -w $WALLTIME_MEMECHIP \
-	   --command "${NGSANE_BASE}/mods/memechip.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_MEMECHIP"
-fi
+        # check if resources are properly defined
+        if [ -z "$TASK_MEMECHIP" ] || [ -z "$NODES_MEMECHIP" ] || [ -z "$CPU_MEMECHIP" ] || [ -z "$MEMORY_MEMECHIP" ] || [ -z "$WALLTIME_MEMECHIP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_MEMECHIP -i $INPUT_MEMECHIP -e $BED \
+            -n $NODES_MEMECHIP -c $CPU_MEMECHIP -m $MEMORY_MEMECHIP"G" -w $WALLTIME_MEMECHIP \
+    	   --command "${NGSANE_BASE}/mods/memechip.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_MEMECHIP"
+    	   
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "MemeChip" "$TASK_MEMECHIP" "memechip.sh"
+
+        NGSANE_REPORT_TABLE "$TASK_MEMECHIP" \
+            "$OUT/<DIR>/$TASK_MEMECHIP"  \
+            ".summary.txt" \
+            "LINK":"<SAMPLE>/index.html" \
+            "PATTERN:Query consensus::grep 'Query consensus' | awk '{print \$(NF)}'" \
+            "PATTERN:E-value:80:grep 'E-value' | awk '{print \$(NF)}'" \
+            "PATTERN:Q-value:80:grep 'Q-value' | awk '{print \$(NF)}'" \
+            "PATTERN:Similar to::grep 'Most similar known motif' | awk '{print \$(NF)}'" \
+            "PATTERN:Peaks::grep 'Peak regions' | awk '{print \$(NF)}'" \
+            "PATTERN:Strongly bound::grep 'bound directly' | awk '{print \$(NF)}'" \
+            "PATTERN:Weakly bound::grep 'bound indirectly' | awk '{print \$(NF)}'" \
+            "FIGURE::150:<SAMPLE>_topmememotif.png:60:1"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+  
+    fi
+fi	
+
+	

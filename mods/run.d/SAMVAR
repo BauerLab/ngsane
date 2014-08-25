@@ -7,15 +7,35 @@
 ################################################################################
 
 if [ -n "$RUNSAMVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_BWA" ] || [ -z "$NODES_SAMVAR" ] || [ -z "$CPU_SAMVAR" ] || [ -z "$MEMORY_SAMVAR" ] || [ -z "$WALLTIME_SAMVAR" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $INPUT_SAMVAR-$TASK_SAMVAR -i $INPUT_SAMVAR -e $ASD.bam \
-        -n $NODES_SAMVAR -c $CPU_SAMVAR -m $MEMORY_SAMVAR'G' -w $WALLTIME_SAMVAR \
-		--postnodes $NODES_VARCOLLECT --postcpu $CPU_VARCOLLECT \
-		--postwalltime $WALLTIME_VARCOLLECT --postmemory $MEMORY_VARCOLLECT"G" \
-        --command "${NGSANE_BASE}/mods/samSNPs.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$INPUT_SAMVAR-$TASK_SAMVAR" \
-	    --postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 $INPUT_SAMVAR \
-				-i2 $INPUT_SAMVAR-$TASK_SAMVAR -o $OUT/variant/${INPUT_SAMVAR}-$INPUT_SAMVAR-$TASK_SAMVAR-<DIR> "
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-	#   --postcommand "${NGSANE_BASE}/mods/samSNPscollect.sh -k $CONFIG -f <FILE> -o $OUT/variant/$TASK_BWA-$TASK_SAMVAR"-"<DIR>"
-fi
+        # check if resources are properly defined
+    if [ -z "$TASK_SAMVAR" ] || [ -z "$NODES_SAMVAR" ] || [ -z "$CPU_SAMVAR" ] || [ -z "$MEMORY_SAMVAR" ] || [ -z "$WALLTIME_SAMVAR" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $INPUT_SAMVAR-$TASK_SAMVAR -i $INPUT_SAMVAR -e $ASD.bam \
+            -n $NODES_SAMVAR -c $CPU_SAMVAR -m $MEMORY_SAMVAR'G' -w $WALLTIME_SAMVAR \
+    		--postnodes $NODES_VARCOLLECT --postcpu $CPU_VARCOLLECT \
+    		--postwalltime $WALLTIME_VARCOLLECT --postmemory $MEMORY_VARCOLLECT"G" \
+            --command "${NGSANE_BASE}/mods/samSNPs.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$INPUT_SAMVAR-$TASK_SAMVAR" \
+    	    --postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 $INPUT_SAMVAR \
+    				-i2 $INPUT_SAMVAR-$TASK_SAMVAR -o $OUT/variant/${INPUT_SAMVAR}-$INPUT_SAMVAR-$TASK_SAMVAR-<DIR> "
+  	
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "SamVar" "$TASK_SAMVAR" "samSNPs.sh,variantcollect.sh"
+
+        echo "[NOTE] the samSNPs.sh,variantcollect.sh mod does not provide a report"
+  
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+fi	
+
+	

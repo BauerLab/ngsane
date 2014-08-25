@@ -7,22 +7,52 @@
 # OUT: $OUT/$dir/homerchipseq/
 ################################################################################
 if [ -n "$RUNHOMERCHIPSEQ" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_HOMERCHIPSEQ" ] || [ -z "$NODES_HOMERCHIPSEQ" ] || [ -z "$CPU_HOMERCHIPSEQ" ] || [ -z "$MEMORY_HOMERCHIPSEQ" ] || [ -z "$WALLTIME_HOMERCHIPSEQ" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
-
-    if  [ -n "$CHIPINPUT" ];then
-        JOBIDS=$( 
-        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e $ASD.bam \
-            -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ \
-            --commontask ${CONFIG##*/} \
-            --command "${NGSANE_BASE}/mods/chipseqHomerInput.sh -k $CONFIG" 
-        ) && echo -e "$JOBIDS"
-        JOBIDS=$(waitForJobIds "$JOBIDS")
-
-    else
-        JOBIDS=$NGSANE_WAITFORJOB 
-    fi
     
-    $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e $ASD.bam \
-        -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ $JOBIDS \
-        --command "${NGSANE_BASE}/mods/chipseqHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERCHIPSEQ"
-fi
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_HOMERCHIPSEQ" ] || [ -z "$NODES_HOMERCHIPSEQ" ] || [ -z "$CPU_HOMERCHIPSEQ" ] || [ -z "$MEMORY_HOMERCHIPSEQ" ] || [ -z "$WALLTIME_HOMERCHIPSEQ" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        if  [ -n "$CHIPINPUT" ];then
+            JOBIDS=$( 
+            $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e $ASD.bam \
+                -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ \
+                --commontask ${CONFIG##*/} \
+                --command "${NGSANE_BASE}/mods/chipseqHomerInput.sh -k $CONFIG" 
+            ) && echo -e "$JOBIDS"
+            JOBIDS=$(waitForJobIds "$JOBIDS")
+    
+        else
+            JOBIDS=$NGSANE_WAITFORJOB 
+        fi
+        
+        $QSUB $ARMED -r -k $CONFIG -t $TASK_HOMERCHIPSEQ -i $INPUT_HOMERCHIPSEQ -e $ASD.bam \
+            -n $NODES_HOMERCHIPSEQ -c $CPU_HOMERCHIPSEQ -m $MEMORY_HOMERCHIPSEQ"G" -w $WALLTIME_HOMERCHIPSEQ $JOBIDS \
+            --command "${NGSANE_BASE}/mods/chipseqHomer.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOMERCHIPSEQ"
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        NGSANE_REPORT_HEADER "Homer ChIP-seq" "$TASK_HOMERCHIPSEQ" "chipseqHomer.sh" ".bed"
+
+        NGSANE_REPORT_TABLE "$TASK_HOMERCHIPSEQ" \
+            "$OUT/<DIR>/$TASK_HOMERCHIPSEQ"  \
+            ".summary.txt" \
+            "PATTERN:Control::fgrep 'ChIP input' | awk '{print \$(NF)}'" \
+            "PATTERN:Est. fragment length::fgrep '# fragment length' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:Autocorr. same strand::fgrep 'Same strand fold enrichment' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:Autocorr. diff. strand::fgrep 'Diff strand fold enrichment' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:Autocorr. same/diff::fgrep 'Same / Diff fold enrichment' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:Peaks:100:fgrep '# total peaks =' | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:Peak size:100:fgrep '# peak size ='  | tail -n 1 | awk '{print \$(NF)}'" \
+            "PATTERN:IP efficiency %::fgrep '# Approximate IP efficiency =' | tail -n 1 | awk '{print \$(NF)}' | cut -d'%' -f 1"
+
+        NGSANE_REPORT_FOOTER 
+  
+    fi
+fi	
+
+	

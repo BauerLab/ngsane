@@ -7,23 +7,44 @@
 # OUT: $OUT/$dir/tophatfusion_out/*
 ################################################################################       
 
-if [ -n "$RUNFUSION" ]; then
-    if [ -z "$TASK_FUSION" ] || [ -z "$NODES_FUSION" ] || [ -z "$CPU_FUSION" ] || [ -z "$MEMORY_FUSION" ] || [ -z "$WALLTIME_FUSION" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+if [ -n "$RUNTOPHATFUSION" ]; then
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-    if [ ! -f ${FASTA%.*}.1.bt2 ];then
-        # submit job for index generation if necessary
-        INDEXJOBIDS=$(
-            $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_FUSION -i $INPUT_FUSION -e $READONE.$FASTQ \
-            -n $NODES_FUSION -c $CPU_FUSION -m $MEMORY_FUSION"G" \
-            -w $WALLTIME_FUSION --commontask indexGenome \
-            --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
-        ) && echo -e "$INDEXJOBIDS"
-        INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
-    else
-        INDEXJOBIDS=$NGSANE_WAITFORJOB 
-    fi
+        # check if resources are properly defined
+        if [ -z "$TASK_TOPHATFUSION" ] || [ -z "$NODES_TOPHATFUSION" ] || [ -z "$CPU_TOPHATFUSION" ] || [ -z "$MEMORY_TOPHATFUSION" ] || [ -z "$WALLTIME_TOPHATFUSION" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED -k $CONFIG -t $TASK_FUSION -i $INPUT_FUSION -e $READONE.$FASTQ -n $NODES_FUSION -c $CPU_FUSION -m $MEMORY_FUSION"G" -w $WALLTIME_FUSION $INDEXJOBIDS \
-        --command "${NGSANE_BASE}/mods/fusion.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FUSION/<NAME>"
+        if [ ! -f ${FASTA%.*}.1.bt2 ];then
+            # submit job for index generation if necessary
+            INDEXJOBIDS=$(
+                $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_TOPHATFUSION -i $INPUT_TOPHATFUSION -e $READONE.$FASTQ \
+                -n $NODES_TOPHATFUSION -c $CPU_TOPHATFUSION -m $MEMORY_TOPHATFUSION"G" \
+                -w $WALLTIME_TOPHATFUSION --commontask indexGenome \
+                --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
+            ) && echo -e "$INDEXJOBIDS"
+            INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+        else
+            INDEXJOBIDS=$NGSANE_WAITFORJOB 
+        fi
+        
+        $QSUB $ARMED -k $CONFIG -t $TASK_TOPHATFUSION -i $INPUT_TOPHATFUSION -e $READONE.$FASTQ -n $NODES_TOPHATFUSION -c $CPU_TOPHATFUSION -m $MEMORY_TOPHATFUSION"G" -w $WALLTIME_TOPHATFUSION $INDEXJOBIDS \
+            --command "${NGSANE_BASE}/mods/tophatfusion.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_TOPHATFUSION/<SAMPLE>"
+    
 
-fi
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Tophat Fusion" "$TASK_TOPHATFUSION" "tophatfusion.sh"
+
+        echo "[NOTE] the tophatfusion.sh mod does not provide a report"
+  
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+fi	
+
+	

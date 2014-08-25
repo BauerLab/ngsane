@@ -220,7 +220,7 @@ for DIR in ${DIR[@]}; do
     cat /dev/null > $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
     
     if [[ -n "$RUNBIGWIG" ]]; then        
-        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $INPUT_BIGWIG "bigWig" "$SAMPLEPATTERN" ".bw" ""
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BIGWIG "bigWig" "$SAMPLEPATTERN" ".bw" ""
     fi
 
     if [[ -n "$RUNWIGGLER" ]]; then        
@@ -276,11 +276,11 @@ for DIR in ${DIR[@]}; do
     SUBGROUP1="READ"
     cat /dev/null > $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY/$SUBGROUP1.txt
     
-    if [[ -n "$RUNMAPPINGBOWTIE" ]]; then        
+    if [[ -n "$RUNBOWTIE" ]]; then        
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BOWTIE "bam" "$SAMPLEPATTERN" "$ASD.bam" "bamColorMode=strand"
     fi
 
-    if [[ -n "$RUNMAPPINGBOWTIE2" ]]; then        
+    if [[ -n "$RUNBOWTIE2" ]]; then        
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BOWTIE2 "bam" "$SAMPLEPATTERN" "$ASD.bam" "bamColorMode=strand"
     fi
 
@@ -288,7 +288,7 @@ for DIR in ${DIR[@]}; do
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_TOPHAT "bam" "$SAMPLEPATTERN" "$ASD.bam" "bamColorMode=strand"
     fi
 
-    if [[ -n "$RUNMAPPINGBWA" ]]; then        
+    if [[ -n "$RUNBWA" ]]; then        
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_BWA "bam" "$SAMPLEPATTERN" "$ASD.bam" "bamColorMode=strand"
     fi
 

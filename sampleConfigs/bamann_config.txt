@@ -9,7 +9,7 @@
 # Tasks
 #********************
 
-RUNANNOTATINGBAM="1"     # bam annotation
+RUNBAMANN="1"     # bam annotation
 
 #********************
 # Paths

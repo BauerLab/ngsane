@@ -92,6 +92,9 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     zcat $OUTDIR/${SAMPLE}.spline_pass1.pvals.txt.gz | awk '$7<=0.05' | sort -k7g | gzip > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz
 
+    SIG_INTERACTIONS=$(zcat $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz | wc -l | cut -d' ' -f 2)
+    echo "Significant interactions $SIG_INTERACTIONS" >> $OUTDIR/$SAMPLE.log
+    
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz 
 fi

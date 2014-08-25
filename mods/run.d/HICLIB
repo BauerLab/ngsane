@@ -8,25 +8,63 @@
 ################################################################################
 
 if [ -n "$RUNHICLIB" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_HICLIB" ] || [ -z "$NODES_HICLIB" ] || [ -z "$CPU_HICLIB" ] || [ -z "$MEMORY_HICLIB" ] || [ -z "$WALLTIME_HICLIB" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
-
-    if [ ! -f ${FASTA%.*}.1.bt2 ];then
-        # submit job for index generation if necessary
-        INDEXJOBIDS=$(
-            $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ 
-            -n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" \
-            -w $WALLTIME_HICLIB --commontask indexGenome \
-            --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
-        ) && echo -e "$INDEXJOBIDS"
-        INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
-    else
-        INDEXJOBIDS=$NGSANE_WAITFORJOB 
-    fi
     
-    $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ \
-    	-n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
-    	--postnodes $NODES_HICLIB_POSTCOMMAND \
-    	--postcpu $CPU_HICLIB_POSTCOMMAND $INDEXJOBIDS \
-        --command "${NGSANE_BASE}/mods/hiclibMapping.sh -k $CONFIG --fastq <FILE> --outdir $OUT/<DIR>/$TASK_HICLIB" \
-        --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh -f <FILE> -k $CONFIG --outdir $OUT/$TASK_HICLIB/$TASK_HICLIB-<DIR>"
-fi
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_HICLIB" ] || [ -z "$NODES_HICLIB" ] || [ -z "$CPU_HICLIB" ] || [ -z "$MEMORY_HICLIB" ] || [ -z "$WALLTIME_HICLIB" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        if [ ! -f ${FASTA%.*}.1.bt2 ];then
+            # submit job for index generation if necessary
+            INDEXJOBIDS=$(
+                $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ 
+                -n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" \
+                -w $WALLTIME_HICLIB --commontask indexGenome \
+                --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
+            ) && echo -e "$INDEXJOBIDS"
+            INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+        else
+            INDEXJOBIDS=$NGSANE_WAITFORJOB 
+        fi
+        
+        $QSUB $ARMED -k $CONFIG -t $TASK_HICLIB -i $INPUT_HICLIB -e $READONE.$FASTQ \
+        	-n $NODES_HICLIB -c $CPU_HICLIB -m $MEMORY_HICLIB"G" -w $WALLTIME_HICLIB \
+        	--postnodes $NODES_HICLIB_POSTCOMMAND \
+        	--postcpu $CPU_HICLIB_POSTCOMMAND $INDEXJOBIDS \
+            --command "${NGSANE_BASE}/mods/hiclibMapping.sh -k $CONFIG --fastq <FILE> --outdir $OUT/<DIR>/$TASK_HICLIB" \
+            --postcommand "${NGSANE_BASE}/mods/hiclibCorrelate.sh -f <FILE> -k $CONFIG --outdir $OUT/$TASK_HICLIB/$TASK_HICLIB-<DIR>"
+        
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Hiclib" "$TASK_HICLIB" "hiclibMapping.sh,hiclibCorrelate.sh"
+
+        NGSANE_REPORT_TABLE "$TASK_HICLIB" \
+            "$OUT/<DIR>/$TASK_HICLIB"  \
+            ".log" \
+            "LINK:<SAMPLE>.pdf" \
+            "PATTERN:Total reads::fgrep -w 'Original reads' | head -n 1 | sed 's/^[ ]*//g' | cut -d' ' -f 3" \
+            "PATTERN:Semi-dangling::| fgrep -w -A 1 'Semi-dangling end filter'  | tail -n 1 | awk '{print \$5-\$7}' \
+            "CALCULATE:%:80:#3*100/#2" \
+            "PATTERN:Duplicates::| fgrep -w -A 1 'Filtering duplicates' | tail -n 1 | sed 's/^[ ]*//g' | awk '{print \$7-\$9}'" \
+            "CALCULATE:%:80:#5*100/#2" \
+            "PATTERN:Sm/Lg Fragments::fgrep -w -A 1 'Small/large fragments filter'  | tail -n 1 | awk '{print \$5-\$7}'" \
+            "CALCULATE:%:80:#7*100/#2" \
+            "PATTERN:Extreme Fragments::fgrep -w -A 1 'Extreme fragments filter'  | tail -n 1 | awk '{print \$5-\$7}'" \
+            "CALCULATE:%:80:#9*100/#2" \
+            "PATTERN:Final reads::fgrep -w -A 1 'Extreme fragments filter'  | tail -n 1 | awk '{print $7}'" \
+            "PATTERN:%::sed -n 3p | cut -d' ' -f 4" \
+            "PATTERN:Final fragments::fgrep -w -A 1 'Extreme fragments filter'  | tail -n 1 |  awk '{print $NF}'" 
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+  
+    fi
+fi	
+
+	

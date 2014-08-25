@@ -884,7 +884,7 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=0.10.1
+VERSION=0.11.2
 SOFTWARE=fastqc
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -909,7 +909,7 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=0.4.2
+VERSION=0.4.4
 SOFTWARE=fastq_screen
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -918,6 +918,8 @@ mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 wget http://www.bioinformatics.babraham.ac.uk/projects/$SOFTWARE/$SOFTWARE"_v"$VERSION.tar.gz
 tar -xf $SOFTWARE"_v"$VERSION.tar.gz
 mv $SOFTWARE"_v"$VERSION/* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cpan install IO/Uncompress/Gunzip.pm
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
@@ -1318,6 +1320,34 @@ chmod 777 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
 module load $SOFTWARE/$VERSION
 
 ################################################################################
+VERSION=3.3.2
+SOFTWARE=mrsfast
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+git clone git://git.code.sf.net/p/mrsfast/code mrsfast
+cd mrsfast
+git checkout v$VERSION
+make
+
+mv mrsfast $PACKAGEPATH/$SOFTWARE/$VERSION/
+mv snp_indexer $PACKAGEPATH/$SOFTWARE/$VERSION/
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+
+################################################################################
 VERSION=1.0
 SOFTWARE=qualimap
 
@@ -1414,7 +1444,7 @@ sed -i 's|^NG_R=|NG_R=R/3.0.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/co
 sed -i 's|^NG_PYTHON=|NG_PYTHON=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_GZIP=|NG_GZIP=pigz/2.3.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_JAVA=|NG_JAVA=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_FASTQC=|NG_FASTQC=fastqc/0.10.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_FASTQC=|NG_FASTQC=fastqc/0.11.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_SAMTOOLS=|NG_SAMTOOLS=samtools/0.1.19|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_IGVTOOLS=|NG_IGVTOOLS=igvtools/2.3.23|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_GATK=|NG_GATK=gatk/2.8-1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1430,7 +1460,7 @@ sed -i 's|^NG_BOWTIE=|NG_BOWTIE=bowtie/1.0.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NG
 sed -i 's|^NG_BOWTIE2=|NG_BOWTIE2=bowtie/2.2.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BOOST=|NG_BOOST=boost/1.53.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_PEAKRANGER=|NG_PEAKRANGER=peakranger/1.16|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_MEME=|NG_MEME=meme/4.9.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_MEME=|NG_MEME=meme/4.10.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_TOPHAT=|NG_TOPHAT=tophat/2.0.12|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_RNASEQC=|NG_RNASEQC=RNA-SeQC/1.1.7|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CUFFLINKS=|NG_CUFFLINKS=cufflinks/2.2.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1448,7 +1478,7 @@ sed -i 's|^NG_HDF5=|NG_HDF5=hdf5/1.8.12|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_
 sed -i 's|^NG_HICLIB=|NG_HICLIB=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HICUP=|NG_HICUP=hicup/0.4.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_FITHIC=|NG_FITHIC=fit-hi-c/1.0.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_FASTQSCREEN=|NG_FASTQSCREEN=fastq_screen/0.4.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_FASTQSCREEN=|NG_FASTQSCREEN=fastq_screen/0.4.4|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_MATLAB=|NG_MATLAB=mcr/2012b|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CHANCE=|NG_CHANCE=chance/com|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_PARALLEL=|NG_PARALLEL=parallel/20131022|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1456,9 +1486,10 @@ sed -i 's|^NG_TRINITY=|NG_TRINITY=trinityrnaseq/2013_08_14|' $PACKAGEPATH/$NGSAN
 sed -i 's|^NG_PINDEL=|NG_PINDEL=pindel/0.2.5|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CIRCOS=|NG_CIRCOS=circos/0.64|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_QUALIMAP=|NG_QUALIMAP=qualimap/1.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_MRSFAST=|NG_MRSFAST=mrsfast/3.3.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 
 # databases
-sed -i 's|^MEMECHIPDATABASES=|MEMECHIPDATABASES=/packages/meme/4.9.1/db/motif_databases/jolma2013.meme|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^MEMECHIPDATABASES=|MEMECHIPDATABASES=/packages/meme/4.10.0/db/motif_databases/jolma2013.meme|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 
 # activate SGE
 sed -i 's|^SUBMISSIONSYSTEM="PBS"|SUBMISSIONSYSTEM="SGE"|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh

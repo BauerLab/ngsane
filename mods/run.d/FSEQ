@@ -8,9 +8,31 @@
 ################################################################################
 
 if [ -n "$RUNFSEQ" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_FSEQ" ] || [ -z "$NODES_FSEQ" ] || [ -z "$CPU_FSEQ" ] || [ -z "$MEMORY_FSEQ" ] || [ -z "$WALLTIME_FSEQ" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_FSEQ -i $INPUT_FSEQ -e $ASD.bam \
-        -n $NODES_FSEQ -c $CPU_FSEQ -m $MEMORY_FSEQ"G" -w $WALLTIME_FSEQ \
-        --command "${NGSANE_BASE}/mods/fseq.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FSEQ"
-fi
+        # check if resources are properly defined
+        if [ -z "$TASK_FSEQ" ] || [ -z "$NODES_FSEQ" ] || [ -z "$CPU_FSEQ" ] || [ -z "$MEMORY_FSEQ" ] || [ -z "$WALLTIME_FSEQ" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_FSEQ -i $INPUT_FSEQ -e $ASD.bam \
+            -n $NODES_FSEQ -c $CPU_FSEQ -m $MEMORY_FSEQ"G" -w $WALLTIME_FSEQ \
+            --command "${NGSANE_BASE}/mods/fseq.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FSEQ"
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Fseq" "$TASK_FSEQ" "fseq.sh"
+
+        echo "[NOTE] the fseq.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+  
+    fi
+fi	
+
+	

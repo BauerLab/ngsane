@@ -7,7 +7,30 @@
 ################################################################################
 
 if [ -n "$RUNDEPTHOFCOVERAGE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_GATKDOC -i $INPUT_GATKDOC -e $ASR.bam \
-	   -n $NODES_GATKDOC -c $CPU_GATKDOC -m $MEMORY_GATKDOC"G" -w $WALLTIME_GATKDOC \
-	   --command "${NGSANE_BASE}/mods/gatkDOC.sh -k $CONFIG -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASK_GATKDOC -t $CPU_GATKDOC"
-fi
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_GATKDOC -i $INPUT_GATKDOC -e $ASR.bam \
+    	   -n $NODES_GATKDOC -c $CPU_GATKDOC -m $MEMORY_GATKDOC"G" -w $WALLTIME_GATKDOC \
+    	   --command "${NGSANE_BASE}/mods/gatkDOC.sh -k $CONFIG -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASK_GATKDOC -t $CPU_GATKDOC"
+	       
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+    
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "DepthOfCoverage" "$TASK_GATKDOC" "gatkDOC.sh"
+
+        echo "[NOTE] the gatkDOC.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER   
+  
+    fi
+fi	
+
+	
