@@ -3,7 +3,7 @@
 # http://fureylab.web.unc.edu/software/fseq/
 TASK_FSEQ="fseq"
 WALLTIME_FSEQ=72:00:00
-MEMORY_FSEQ=40
+MEMORY_FSEQ=10
 CPU_FSEQ=1
 NODES_FSEQ="nodes=1:ppn=1"
 INPUT_FSEQ=$TASK_BOWTIE

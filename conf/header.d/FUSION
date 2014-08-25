@@ -3,7 +3,7 @@
 # http://tophat.cbcb.umd.edu/
 TASK_FUSION="tophatfusion"
 WALLTIME_FUSION=62:00:00
-MEMORY_FUSION=50
+MEMORY_FUSION=8
 CPU_FUSION=16
 NODES_FUSION="nodes=2:ppn=8"
 INPUT_FUSION="fastq"
