@@ -153,7 +153,7 @@ if [ -n "$BIN" ]; then
     echo "[NOTE] bin with $BIN"
 fi
 
-CENTERBINS=100
+export CENTERBINS=100
 
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$FEATURENAME | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
@@ -309,7 +309,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
                 echo "[NOTE] no regions overlap features"
                 touch $OUTDIR/$name.txt $OUTDIR/$name.bed;
             fi
-            head $OUTDIR/$name.bed
+
         done
     }
     
@@ -373,7 +373,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
             EXPREG=$(bedtools coverage $STRAND $A $1 -b $FEATURE_REGIONS | gawk -v v=$VAL '{if ($v!=0) {print $0}}' | wc -l)  # non-zero covered features
             # non-zero covered features
-            if [[ $EXPREGUP != 0 || $EXPREGCENTER != 0 || $EXPREGDOWN != 0 ]]; then
+            if [[ $EXPREG != 0 ]]; then
                 echo "[NOTE] nonzero FEATURE_REGIONS $EXPREG"
                 if [ -n "$BIN" ]; then
 
@@ -392,7 +392,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
                             len=1;
                             sum=0;
                         } else {
-                            len = len+1;
+                            len=len+1;
                             sum=sum+$3;
                         }
                         if (lastbin >= bins){
@@ -421,7 +421,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
                                len=1;
                                sum=0;
                            } else {
-                               len = len+1;
+                               len=len+1;
                                sum=sum+$3;
                            }
                            if (lastbin >= bins){
