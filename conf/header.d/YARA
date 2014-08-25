@@ -2,7 +2,7 @@
 # https://www.seqan.de/projects/yara/
 TASK_YARA="yara"
 WALLTIME_YARA=24:00:00
-MEMORY_YARA=30
+MEMORY_YARA=8
 CPU_YARA=8
 NODES_YARA="nodes=1:ppn=8"
 INPUT_YARA="fastq"

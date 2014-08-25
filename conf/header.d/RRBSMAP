@@ -3,7 +3,7 @@
 # https://code.google.com/p/bsmap/
 TASK_RRBSMAP="rrbs"
 WALLTIME_RRBSMAP=60:00:00
-MEMORY_RRBSMAP=50
+MEMORY_RRBSMAP=8
 CPU_RRBSMAP=32
 NODES_RRBSMAP="nodes=4:ppn=8"
 INPUT_RRBSMAP="fastq"

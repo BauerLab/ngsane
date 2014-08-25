@@ -3,7 +3,7 @@
 # https://code.google.com/p/cutadapt/
 TASK_CUTADAPT="cutadapt"
 WALLTIME_CUTADAPT=4:00:00
-MEMORY_CUTADAPT=40
+MEMORY_CUTADAPT=8
 CPU_CUTADAPT=1
 NODES_CUTADAPT="nodes=1:ppn=1"
 INPUT_CUTADAPT="fastq"
