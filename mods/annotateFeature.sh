@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# Coverage of bam/bed files around genomic regions
+# Coverage of reads (bam) or regions (bed) around genomic features
 # author: Denis C. Bauer
 # date: Mar.2014
 
@@ -67,6 +67,12 @@ echo "PATH=$PATH"
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--bedtools    --\n "$(bedtools -version)
 [ -z "$(which bedtools)" ] && echo "[WARN] bedtools not detected" && exit 1
+echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
+echo -e "--R           --\n "$(R --version | head -n 3)
+[ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
+echo -e "--Python      --\n" $(python --version)
+[ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
