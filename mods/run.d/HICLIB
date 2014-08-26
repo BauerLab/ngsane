@@ -49,7 +49,7 @@ if [ -n "$RUNHICLIB" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             ".log" \
             "LINK:<SAMPLE>.pdf" \
             "PATTERN:Total reads::fgrep -w 'Original reads' | head -n 1 | sed 's/^[ ]*//g' | cut -d' ' -f 3" \
-            "PATTERN:Semi-dangling::| fgrep -w -A 1 'Semi-dangling end filter'  | tail -n 1 | awk '{print \$5-\$7}' \
+            "PATTERN:Semi-dangling::| fgrep -w -A 1 'Semi-dangling end filter'  | tail -n 1 | awk '{print \$5-\$7}'" \
             "CALCULATE:%:80:#3*100/#2" \
             "PATTERN:Duplicates::| fgrep -w -A 1 'Filtering duplicates' | tail -n 1 | sed 's/^[ ]*//g' | awk '{print \$7-\$9}'" \
             "CALCULATE:%:80:#5*100/#2" \
