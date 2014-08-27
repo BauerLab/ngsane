@@ -67,6 +67,7 @@ ${1}_Table_json={
 	"bLengthChange": true,
     "bFilter": true,
 	"iDisplayLength": 10,
+	"responsive": true,
 	"bJQueryUI": false,
 	"aLengthMenu": [[1, 5, 10, -1], [1, 5, 10, "All"]],
 	"aoColumns": [

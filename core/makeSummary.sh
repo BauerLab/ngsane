@@ -118,7 +118,9 @@ echo '''
 <head><meta charset="windows-1252"><title>NGSANE project card</title>
 <script type="text/javascript" src="includes/js/jquery.js"></script>
 <script type="text/javascript" charset="utf8" src="includes/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="includes/js/dataTables.responsive.js"></script>
 <link rel="stylesheet" type="text/css" href="includes/css/jquery.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="includes/css/dataTables.responsive.css">
 <link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
 <script type='text/javascript' src='includes/js/ngsane.js'></script>
 </head><body>
