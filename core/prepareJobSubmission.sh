@@ -156,7 +156,8 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
                
     COMMAND2=${COMMAND//<FILE>/$i} # insert files for which parallele jobs are submitted
     COMMAND2=${COMMAND2//<DIR>/$dir} # insert output dir
-    COMMAND2=${COMMAND2//<NAME>/$name} # insert ??
+    COMMAND2=${COMMAND2//<NAME>/$name} # legacy TODO : remove in next version
+    COMMAND2=${COMMAND2//<SAMPLE>/$name} # insert ??
 
     if [ -n "$COMMONTASK" ]; then 
         LOGFILE=$QOUT/$TASK/$dir"_"$COMMONTASK".log"    

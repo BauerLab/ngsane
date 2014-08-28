@@ -36,20 +36,29 @@ if [ -n "$RUNCUFFLINKS" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
-        NGSANE_REPORT_HEADER "Cufflinks" "$TASK_CUTADAPT" "cufflinks.sh,cuffpost.sh"
+        NGSANE_REPORT_HEADER "Cufflinks" "$TASK_CUFFLINKS" "cufflinks.sh,cuffpost.sh"
 
-        echo "[NOTE] the cufflinks.sh,cuffpost.sh mod does not provide a report"
-
-        # finish the section
+        NGSANE_REPORT_TABLE "$TASK_CUFFLINKS" \
+            "$OUT/<DIR>/$TASK_CUFFLINKS/" \
+            ".summary.txt" \
+            "PATTERN:Genes::fgrep -w 'genes.fpkm_tracking' | tail -n 1 | sed 's/.* \([0-9]\+\) OK;/\1/g''" \
+            "PATTERN:Isoforms::fgrep -w 'isoforms.fpkm_tracking' | tail -n 1 | sed 's/.* \([0-9]\+\) OK;/\1/g''" \
+            "PATTERN:Transcripts::fgrep -w 'transcripts.gtf' | cut -f 2" \
+            "PATTERN:Skipped::fgrep -w 'skipped.gtf' | cut -f 2"
+                        
         NGSANE_REPORT_FOOTER  
 
         # start a new section for a mod
-        NGSANE_REPORT_HEADER "Cuffquant" "$TASK_CUTADAPT" "cuffquant.sh,cuffnorm.sh"
+        NGSANE_REPORT_HEADER "Cuffquant" "$TASK_CUFFLINKS" "cuffquant.sh,cuffnorm.sh"
 
-        echo "[NOTE] the cuffquant.sh,cuffnorm.sh mod does not provide a report"
+        NGSANE_REPORT_TABLE "${TASK_CUFFLINKS}Cuffquant" \
+            "$OUT/<DIR>/${TASK_CUFFLINKS}Cuffquant/" \
+            ".summary.txt" \
+            "PATTERN:Genes::fgrep -w 'genes.fpkm_tracking' | tail -n 1 | sed 's/.* \([0-9]\+\) OK;/\1/g''" \
+            "PATTERN:Isoforms::fgrep -w 'isoforms.fpkm_tracking' | tail -n 1 | sed 's/.* \([0-9]\+\) OK;/\1/g''" \
+            "PATTERN:Transcripts::fgrep -w 'transcripts.gtf' | cut -f 2" \
+            "PATTERN:Skipped::fgrep -w 'skipped.gtf' | cut -f 2"
 
-        # finish the section
         NGSANE_REPORT_FOOTER  
   
     fi

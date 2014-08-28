@@ -5,12 +5,15 @@
 ################################################################################
 
 if [ -n "$RUNVARCALLS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+
+#    TODO: make sure it shorter than 64
+    NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
+
     
     ############################################################################
     # Wether to submit a job or compile a report
     if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-        NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
         $QSUB $ARMED $NGSANE_WAITFORJOB -r -d -k $CONFIG -t $TASK_GATKVAR -i $INPUT_GATKVAR  -e $ASR.bam -n $NODES_GATKVAR \
             -c $CPU_GATKVAR -m $MEMORY_GATKVAR"G" -w $WALLTIME_GATKVAR \
             --postcommand "${NGSANE_BASE}/mods/gatkVARs.sh -k $CONFIG \
@@ -26,8 +29,42 @@ if [ -n "$RUNVARCALLS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         # start a new section for a mod
         NGSANE_REPORT_HEADER "VARCALLS" "$TASK_GATKVAR" "gatkVARs.sh"
 
-        echo "[NOTE] the gatkVARs.sh mod does not provide a report"
-        
+        NGSANE_REPORT_TABLE "$TASK_GATKVAR SNP" \
+            "$OUT/$TASK_GATKVAR/$NAME" \
+            ".filter.snps.eval.txt" \
+            "PATTERN:Total::fgrep -w 'CountVariants' | sed -n 3p | awk '{print $7}'" \
+            "PATTERN:Known::fgrep -w 'CompOverlap' | sed -n 4p | awk '{print $6}'" \
+            "PATTERN:SNPdb Conc::fgrep -w 'CompOverlap' | sed -n 4p | awk '{print $11}'" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 4p | awk '{print $11}'" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 4p | awk '{print $27}'" \
+            "PATTERN:Novel::fgrep -w 'CompOverlap' | sed -n 5p | awk '{print $6}'" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 5p | awk '{print $11}'" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 5p | awk '{print $27}'"
+
+        NGSANE_REPORT_TABLE "{$TASK_GATKVAR} SNP recalibrated" \
+            "$OUT/$TASK_GATKVAR/$NAME" \
+            ".recalfilt.snps.eval.txt" \
+            "PATTERN:Total::fgrep -w 'CountVariants' | sed -n 3p | awk '{print $7}'" \
+            "PATTERN:Known::fgrep -w 'CompOverlap' | sed -n 4p | awk '{print $6}'" \
+            "PATTERN:SNPdb Conc::fgrep -w 'CompOverlap' | sed -n 4p | awk '{print $11}'" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 4p | awk '{print $11}'" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 4p | awk '{print $27}'" \
+            "PATTERN:Novel::fgrep -w 'CompOverlap' | sed -n 5p | awk '{print $6}'" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 5p | awk '{print $11}'" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 5p | awk '{print $27}'"
+
+        NGSANE_REPORT_TABLE "$TASK_GATKVAR Indel" \
+            "$OUT/$TASK_GATKVAR/$NAME" \
+            ".filter.indel.eval.txt" \
+            "PATTERN:Total::fgrep -w 'CountVariants' | sed -n 3p | awk '{print $7}'" \
+            "PATTERN:Known::fgrep -w 'CompOverlap' | sed -n 4p | awk '{print $6}'" \
+            "PATTERN:SNPdb Conc::fgrep -w 'CompOverlap' | sed -n 4p | awk '{print $11}'" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 4p | awk '{print $11}'" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 4p | awk '{print $27}'" \
+            "PATTERN:Novel::fgrep -w 'CompOverlap' | sed -n 5p | awk '{print $6}'" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 5p | awk '{print $11}'" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 5p | awk '{print $27}'"
+
         # finish the section
         NGSANE_REPORT_FOOTER 
         

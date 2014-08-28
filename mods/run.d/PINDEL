@@ -27,9 +27,19 @@ if [ -n "$RUNPINDEL" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
         # start a new section for a mod
-        NGSANE_REPORT_HEADER "Pindel" "$TASK_PINDEL" "pindel.sh,variantcollect.sh"
+        NGSANE_REPORT_HEADER "Structural Variants (Pindel)" "$TASK_PINDEL" "pindel.sh,variantcollect.sh"
 
-        echo "[NOTE] the pindel.sh,variantcollect.sh mod does not provide a report"
+        NGSANE_REPORT_TABLE "$TASK_PINDEL" \
+            "$OUT/variant/${INPUT_PINDEL}-${TASK_PINDEL}-<DIR>" \
+            ".eval.txt" \
+            "PATTERN:Total::fgrep -w 'CountVariants' | sed -n 3p | awk '{print $7}'" \
+            "PATTERN:Known::fgrep -w 'CompOverlap' | sed -n 4p | awk '{print $6}'" \
+            "PATTERN:SNPdb Conc::fgrep -w 'CompOverlap' | sed -n 4p | awk '{print $11}'" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 4p | awk '{print $11}'" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 4p | awk '{print $27}'" \
+            "PATTERN:Novel::fgrep -w 'CompOverlap' | sed -n 5p | awk '{print $6}'" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 5p | awk '{print $11}'" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 5p | awk '{print $27}'"
 
         # finish the section
         NGSANE_REPORT_FOOTER 
