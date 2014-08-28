@@ -150,16 +150,16 @@ echo "</div><!-- center --></body>" >> $SUMMARYTMP
 
 echo '''
 <script type='text/javascript'>
-    \$(document).ready(function() { 
+    $(document).ready(function() { 
         var tables = [];
         for (var i = 0; i < datatable_array.length; i++) { 
-            eval(var datatable_array[0]["html"] = datatable_array[0]["json"]);
-            eval(\$('#'+var datatable_array[0]["html"]).dataTable(datatable_array[0]["json"]));
-            eval(tables.push(datatable_array[0]["html"]));
+            eval("var "+datatable_array[i]["html"]+" = "+datatable_array[i]["json"]);
+            eval("$(\"#"+datatable_array[i]["html"]+"\").dataTable("+datatable_array[i]["json"]+")");
+            eval("tables.push("+datatable_array[i]["html"]+")");
         }
-        \$('#search').keyup(function(){
+        $("#search").keyup(function(){
             for (var i=0;i<tables.length;i++){
-                tables[0].fnDraw();
+                tables[i].fnDraw();
             }
         });
     }); 

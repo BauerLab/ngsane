@@ -216,10 +216,10 @@ EOF
     # add table footer
     cat >> $SUMMARYTMP <<EOF
         ]};
-        datatable_array.push({"json":"${1}_Table_${NGSANE_REPORT_TABLE_COUNTER}_json","html":"${1}_id_Table_${NGSANE_REPORT_TABLE_COUNTER}"})
+        datatable_array.push({"json":"${1}_Table_${NGSANE_REPORT_TABLE_COUNTER}_json","html":"${1}_id_Table_${NGSANE_REPORT_TABLE_COUNTER}"});
         //]]>
         </script>
-    <table id="${1}_id_Table" class="display responsive no-wrap" width="100%"><thead><tr>${NGSANE_VAR_REPORT_TABLE_COLUMNS//td/th}</tr></thead><tbody><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tbody><tfoot><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tfoot></table>
+    <table id="${1}_id_Table_${NGSANE_REPORT_TABLE_COUNTER}" class="display responsive no-wrap" width="100%"><thead><tr>${NGSANE_VAR_REPORT_TABLE_COLUMNS//td/th}</tr></thead><tbody><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tbody><tfoot><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tfoot></table>
 EOF
 
 }
