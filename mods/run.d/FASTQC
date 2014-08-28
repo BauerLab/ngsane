@@ -30,11 +30,11 @@ if [ -n "$RUNFASTQC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             ".txt" \
             "LINK:<SAMPLE>.html" \
             "FIGURE::20:<SAMPLE>/Icons/tick.png:15:0" \
-            "PATTERN::20:grep '>>.*pass' | wc -l" \
+            "PATTERN::15:grep '>>.*pass' | wc -l" \
             "FIGURE::20:<SAMPLE>/Icons/warning.png:15:0" \
-            "PATTERN::20:grep '>>.*warn' | wc -l" \
+            "PATTERN::15:grep '>>.*warn' | wc -l" \
             "FIGURE::20:<SAMPLE>/Icons/error.png:15:0" \
-            "PATTERN::20:grep '>>.*fail' | wc -l" \
+            "PATTERN::15:grep '>>.*fail' | wc -l" \
             "PATTERN:Encoding::grep 'Encoding' | head -n 1 | cut -f 2" \
             "PATTERN:Library size::grep 'Total Sequences' | head -n 1 | cut -f 2" \
             "PATTERN:Length:80:grep 'Sequence length' | head -n 1 | cut -f 2" \
