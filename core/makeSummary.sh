@@ -124,6 +124,12 @@ echo '''
 <link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
 <script type='text/javascript' src='includes/js/ngsane.js'></script>
 </head><body>
+<script type="text/javascript">
+//<![CDATA[
+    var datatable_array=[];
+//]]>
+</script>
+
 <div id="center">
 <div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>
 ''' >> $SUMMARYFILE.tmp
@@ -142,20 +148,38 @@ echo "<hr><span>Report generated with "`$NGSANE_BASE/bin/trigger.sh -v`"</span><
 echo "</div><!-- center --></body>" >> $SUMMARYTMP
 
 
-echo "<script type='text/javascript'>" >> $SUMMARYTMP
-echo "\$(document).ready(function() {" >> $SUMMARYTMP
-for i in $LINKS; do
-    if [ "$i" != "References" ]; then #[ "$i" != "fastQC" ] && [ "$i" != "memechip" ] && 
-	    echo "if (typeof ${i}_Table_json !== 'undefined'){var ${i}_Table = \$("\'"#${i}_id_Table"\'").dataTable(${i}_Table_json);}" >> $SUMMARYTMP
-     fi
-done
-echo "\$('#search').keyup(function(){" >> $SUMMARYTMP
-for i in $LINKS; do
-	if [ "$i" != "References" ]; then
-		echo "    if (typeof ${i}_Table !== 'undefined'){${i}_Table.fnDraw();}" >> $SUMMARYTMP
-	fi
-done
-echo "});} ); </script>" >> $SUMMARYTMP
+echo '''
+<script type='text/javascript'>
+    \$(document).ready(function() { 
+        var tables = [];
+        for (var i = 0; i < datatable_array.length; i++) { 
+            eval(var datatable_array[0]["html"] = datatable_array[0]["json"]);
+            eval(\$('#'+var datatable_array[0]["html"]).dataTable(datatable_array[0]["json"]));
+            eval(tables.push(datatable_array[0]["html"]));
+        }
+        \$('#search').keyup(function(){
+            for (var i=0;i<tables.length;i++){
+                tables[0].fnDraw();
+            }
+        });
+    }); 
+</script>
+''' >> $SUMMARYTMP
+
+#for i in $LINKS; do
+#    if [ "$i" != "References" ]; then 
+#	    echo "if (typeof ${i}_Table_json !== 'undefined'){var ${i}_Table = \$("\'"#${i}_id_Table"\'").dataTable(${i}_Table_json);}" >> $SUMMARYTMP
+#     fi
+#done
+#echo "\$('#search').keyup(function(){" >> $SUMMARYTMP
+#for i in $LINKS; do
+#	if [ "$i" != "References" ]; then
+#		echo "    if (typeof ${i}_Table !== 'undefined'){${i}_Table.fnDraw();}" >> $SUMMARYTMP
+#	fi
+#done
+#echo "});} ); </script>" >> $SUMMARYTMP
+
+
 echo "<script type='text/javascript' src='includes/js/genericJavaScript.js'></script></html>" >> $SUMMARYTMP
 
 # copy includes folder ommitting hidden files and folders
