@@ -17,7 +17,7 @@ SOURCE=$(pwd)
 # leave empty, as all data except the raw data (fastq folder) will be copied 
 declare -a DIR; DIR=(  )
 
-# server location e.g. '//gagri/diverse’
+# server location e.g. '//Gagri/diverse’
 TARGET_SERVER=
 
 # location (folder) on the target server to put the result into (should already exist)

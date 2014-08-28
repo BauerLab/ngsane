@@ -134,12 +134,14 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 	if [[ -n "$NORMALIZETO" ]] && [[ -z "$SCALEFACTOR" ]]; then 
 		SCALEFACTOR=`echo "scale=3; $NORMALIZETO/$NUMBEROFREADS" | bc`; 
 	else
+    	SCALEFACTOR="1"
 		NORMALIZETO="NA"
 	fi
     
     echo "library size: $NUMBEROFREADS" > $OUTDIR/$SAMPLE.bw.stats
     echo "normalize to: $NORMALIZETO" >> $OUTDIR/$SAMPLE.bw.stats
     echo "scale factor: $SCALEFACTOR" >> $OUTDIR/$SAMPLE.bw.stats
+    
         
     if [ "$PAIRED" = "1" ]; then 
     	echo "[NOTE] Paired end libaray detected, ignore fragment length parameter"
