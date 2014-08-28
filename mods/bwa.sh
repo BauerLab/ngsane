@@ -335,8 +335,9 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         CREATE_MD5_FILE=true \
         COMPRESSION_LEVEL=9 \
         VALIDATION_STRINGENCY=SILENT \
-        CREATE_INDEX=true \
         TMP_DIR=$THISTMP
+
+    samtools index $OUTDIR/$SAMPLE$ASD.bam
 
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam

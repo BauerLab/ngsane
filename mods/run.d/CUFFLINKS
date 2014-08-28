@@ -51,13 +51,13 @@ if [ -n "$RUNCUFFLINKS" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
         # start a new section for a mod
         NGSANE_REPORT_HEADER "Cuffquant" "$TASK_CUFFLINKS" "cuffquant.sh,cuffnorm.sh"
 
-        NGSANE_REPORT_TABLE "${TASK_CUFFLINKS}Cuffquant" \
-            "$OUT/<DIR>/${TASK_CUFFLINKS}Cuffquant/" \
-            ".summary.txt" \
-            "PATTERN:Genes::fgrep -w 'genes.fpkm_tracking' | tail -n 1 | sed 's/.* \([0-9]\+\) OK;/\1/g''" \
-            "PATTERN:Isoforms::fgrep -w 'isoforms.fpkm_tracking' | tail -n 1 | sed 's/.* \([0-9]\+\) OK;/\1/g''" \
-            "PATTERN:Transcripts::fgrep -w 'transcripts.gtf' | cut -f 2" \
-            "PATTERN:Skipped::fgrep -w 'skipped.gtf' | cut -f 2"
+#        NGSANE_REPORT_TABLE "${TASK_CUFFLINKS}Cuffquant" \
+#            "$OUT/<DIR>/${TASK_CUFFLINKS}Cuffquant/" \
+#            ".summary.txt" \
+#            "PATTERN:Genes::fgrep -w 'genes.fpkm_tracking' | tail -n 1 | sed 's/.* \([0-9]\+\) OK;/\1/g''" \
+#            "PATTERN:Isoforms::fgrep -w 'isoforms.fpkm_tracking' | tail -n 1 | sed 's/.* \([0-9]\+\) OK;/\1/g''" \
+#            "PATTERN:Transcripts::fgrep -w 'transcripts.gtf' | cut -f 2" \
+#            "PATTERN:Skipped::fgrep -w 'skipped.gtf' | cut -f 2"
 
         NGSANE_REPORT_FOOTER  
   
