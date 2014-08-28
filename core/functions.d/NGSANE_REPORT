@@ -1,0 +1,232 @@
+#!/bin/bash -e
+##############################################################
+# Functions for reports
+# author Fabian Buske
+
+################################################################################
+# define functions for generating summary scaffold
+
+# NGSANE_REPORT_HEADER takes 4 parameters
+# $1=MOD description
+# $2=MOD (e.g. $TASK_BWA)
+# $3=pipeline mod script (e.g. bwa.sh)
+# $4=result file suffix (e.g. $ASD.bam)
+# $5=output location if different to the default ($TASK)
+
+function NGSANE_REPORT_HEADER {
+    export LINKS=$LINKS" $2"   
+    echo "<div class='panel' id='$2_panel'><div class='tabs headbagb' id='$2_panel_tabs'><a name='$2'></a>
+            <a class='selected' href='#$2_results'><h2 id='$2_h_results' class='sub'>$1</h2></a>
+            <a href='#$2_checklist'><h2 id='$2_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='$2_counter_checkpoints_passed'></span><span class='failed' id='$2_counter_checkpoints_failed'></span></span></h2></a>
+            <a href='#$2_notes'><h2 id='$2_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='$2_counter_notes'></span></span></span></h2></a>
+            <a href='#$2_errors'><h2 id='$2_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='$2_counter_errors'></span></span></h2></a>
+            <a href='#$2_logfiles'><h2 id='$2_h_logfiles' class='sub inactive' rel='errors'>Log files</h2></a>" >> $SUMMARYTMP
+    if [ -n "$4" ]; then 
+        SUFFIX="--filesuffix $4"; 
+        echo "<a href='#$2_PRIMARY_RESULT_FILES'><h2 id='$2_h_nrfiles' class='sub inactive' rel='files'>Primary result files</h2></a>" >> $SUMMARYTMP
+    fi
+    echo "</div>" >> $SUMMARYTMP
+    echo "QC - $2"
+    #check of resultfiles are redirected into to a different folder
+
+    if [ -n "$5" ]; then 
+        RESULTLOCATION="--results-task $5"
+    else 
+        RESULTLOCATION=""
+    fi
+    
+    ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $SUMMARYTMP --modscript $3 --log $QOUT --toolkit $CONFIG --task $2 $RESULTLOCATION $SUFFIX >> $SUMMARYTMP
+    grep -r '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES
+    echo "<div class='tabContent' id='DC_$2_results'><div>" >> $SUMMARYTMP   
+} 
+
+# NGSANE_REPORT_FOOTER takes 1 parameters
+# $1=output file ($SUMMARYTMP)
+function NGSANE_REPORT_FOOTER {
+    echo "</div></div></div>" >> $SUMMARYTMP
+}
+
+
+# NGSANE_REPORT_HEADER takes 4 parameters
+# $1=MOD (e.g. $TASK_BWA)
+# $2=FOLDERPATTERN (e.g. $OUT/<DIR>/$TASK_[MOD]/<SAMPLE>)
+# $3=FILE SUFFIX (e.g. $ASD.bam.stats)
+# $4=LINK (link to other html reports)
+# $5..$x=COLUMNS (pattern or figures to appear in columns in the given order, starting with either "PATTERN:" or "FIGURE:")
+function NGSANE_REPORT_TABLE {
+
+    NGSANE_VAR_CHECK_FOR_NUMBER_RE="^-?[0-9]+([.][0-9]+)?$"  
+    cat >> $SUMMARYTMP <<EOF
+<script type="text/javascript">
+//<![CDATA[
+${1}_Table_json={
+	"bPaginate": true,
+	"bProcessing": false,
+	"bAutoWidth": false,
+	"bInfo": true,
+	"bLengthChange": true,
+    "bFilter": true,
+	"iDisplayLength": 10,
+	"responsive": true,
+	"bJQueryUI": false,
+	"aLengthMenu": [[1, 5, 10, -1], [1, 5, 10, "All"]],
+	"aoColumns": [
+EOF
+    NGSANE_VAR_REPORT_TABLE_HEADER=
+    NGSANE_VAR_REPORT_TABLE_TITLES=""
+    NGSANE_VAR_REPORT_TABLE_COLUMNS=""
+    NGSANE_VAR_REPORT_TABLE_CENTER=' ], "aaData": ['
+    
+    # create table header once
+    if [ -z "$NGSANE_VAR_REPORT_TABLE_TITLES" ]; then
+        NGSANE_VAR_REPORT_TABLE_TITLES="{'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'}"
+        NGSANE_VAR_REPORT_TABLE_COLUMNS="<td></td><td></td>"
+        for var in "${@:4}"; do
+            if [ "$(echo $var | cut -d':' -f 2)" == "" ]; then 
+                NGSANE_VAR_REPORT_TABLE_BSORTABLE=", 'bSortable':false"; 
+            else 
+                NGSANE_VAR_REPORT_TABLE_BSORTABLE=""; 
+            fi
+            NGSANE_VAR_REPORT_TABLE_SWIDTH=$(echo $var | cut -d':' -f 3) 
+            if [ -n "$NGSANE_VAR_REPORT_TABLE_SWIDTH" ]; then 
+                NGSANE_VAR_REPORT_TABLE_SWIDTH=", 'sWidth':'${NGSANE_VAR_REPORT_TABLE_SWIDTH}px'"
+            fi
+                                    
+            if [[ $(echo $var | grep '^FIGURE:') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'bSortable':false $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+                NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"
+            elif [[ $(echo $var | grep '^PATTERN:') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+                NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"    
+            elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+                NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"
+            fi
+        done                
+        echo -e $NGSANE_VAR_REPORT_TABLE_HEADER >> $SUMMARYTMP
+        echo -e $NGSANE_VAR_REPORT_TABLE_TITLES >> $SUMMARYTMP
+        echo -e $NGSANE_VAR_REPORT_TABLE_CENTER >> $SUMMARYTMP
+    fi
+    
+    NGSANE_VAR_FIRSTROW="TRUE"
+
+    
+    [[ -z "$2" ]] && return
+    
+    for dir in ${DIR[@]}; do
+        # separate folder from sample pattern
+        DIRNAME=${dir%%/*}
+        SAMPLEPATTERN=${dir/$DIRNAME/}
+#        echo "$dir $DIRNAME $SAMPLEPATTERN" >&2
+        FOLDER=${2/<DIR>/$DIRNAME}
+#        echo "$FOLDER/$SAMPLEPATTERN*$3" >&2
+        if [[ "$FOLDER" =~ "<SAMPLE>" ]]; then
+            SEARCHPATH=${FOLDER/<SAMPLE>/$SAMPLEPATTERN*$3}/
+        else
+            SEARCHPATH=$FOLDER/$SAMPLEPATTERN*$3
+        fi
+        for SAMPLE in $(ls $SEARCHPATH 2> /dev/null); do
+            echo $SAMPLE >&2
+            PROJECT_RELPATH2=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$FOLDER'),'$(pwd -P)')")
+
+            SAMPLENAME=${SAMPLE##*/}
+            SAMPLENAME=${SAMPLENAME/%$3/}
+#            echo "$SAMPLE $SAMPLENAME">&2
+
+
+            # populate table row starting from parameter 3
+            # check for link first
+            NGSANE_VAR_TABLE_LINK=""
+            for var in "$@:4"; do
+                if [[ $(echo $var | grep '^LINK:') != "" ]]; then
+                    NGSANE_VAR_TABLE_LINK=${var/LINK:/}
+                    NGSANE_VAR_TABLE_LINK=${NGSANE_VAR_TABLE_LINK/<SAMPLE>/$SAMPLENAME}
+                    NGSANE_VAR_TABLE_LINK=${NGSANE_VAR_TABLE_LINK/<DIR>/$DIRNAME}
+                fi
+            done
+            
+            if [[ -n "$NGSANE_VAR_TABLE_LINK" ]]; then
+                NGSANE_VAR_SAMPLE_LINK="<a target=\"detail\" href=\"$PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_LINK\">$SAMPLENAME</a>"
+            else 
+                NGSANE_VAR_SAMPLE_LINK="$SAMPLENAME"
+            fi
+            
+            if [[ "$NGSANE_VAR_FIRSTROW" == "TRUE" ]]; then
+                NGSANE_VAR_REPORT_TABLE_ROW="['$DIRNAME' , '$NGSANE_VAR_SAMPLE_LINK'"            
+                NGSANE_VAR_FIRSTROW="FALSE"
+            else
+                NGSANE_VAR_REPORT_TABLE_ROW=",['$DIRNAME' , '$NGSANE_VAR_SAMPLE_LINK'"            
+            fi
+            
+            for var in "$@:4"; do
+            
+                if [[ $(echo $var | grep '^FIGURE:') != "" ]]; then
+                    NGSANE_VAR_TABLE_FIGURE=$(echo $var | cut -d':' -f 4)
+                    NGSANE_VAR_TABLE_FIGURE=${NGSANE_VAR_TABLE_FIGURE/<SAMPLE>/$SAMPLENAME}
+                    NGSANE_VAR_TABLE_FIGURE=${NGSANE_VAR_TABLE_FIGURE/<DIR>/$DIRNAME}
+                    
+                    NGSANE_VAR_TABLE_FIGURE_HEIGHT=$(echo $var | cut -d':' -f 5)
+                    [ -z "$NGSANE_VAR_TABLE_FIGURE_HEIGHT" ] && NGSANE_VAR_TABLE_FIGURE_HEIGHT='50'
+                    
+                    NGSANE_VAR_TABLE_FIGURE_BORDER=$(echo $var | cut -d':' -f 6)
+                    [ "$NGSANE_VAR_TABLE_FIGURE_BORDER" == "1" ] && NGSANE_VAR_TABLE_FIGURE_BORDER='class=\"border\"'
+                    
+                    if [ -f $PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE ]; then
+                        # add image only if we can detect the file
+                        NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , '<a target=\"img\" href=\"$PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE\"><img $NGSANE_VAR_TABLE_FIGURE_BORDER src=\"$PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE\" height=$NGSANE_VAR_TABLE_FIGURE_HEIGHT/></a>'"
+                    else
+                        NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , ''"
+                    fi
+
+                elif [[ $(echo $var | grep '^PATTERN:') != "" ]]; then
+                    PATTERN="cat $SAMPLE | $(echo $var | cut -d':' -f 4)"
+                    PATTERN_RESULT=$(eval $PATTERN)
+#                    echo "$PATTERN $PATTERN_RESULT" >&2
+
+                    if ! [[ "$PATTERN_RESULT" =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
+                        # convert into string
+                        PATTERN_RESULT="'$PATTERN_RESULT'"
+                    else
+                        # format pretty
+                        PATTERN_RESULT="$(printf '%.2f' $PATTERN_RESULT)"
+                    fi
+                    NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $PATTERN_RESULT"
+#                    echo $NGSANE_VAR_REPORT_TABLE_ROW >&2
+
+                elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
+
+                    CALCULATE="echo '$(echo $var | cut -d':' -f 4)' | sed 's/#\([0-9]\+\)/\${NGSANE_VAR_REPORT_TABLE_ROW_ARRAY[\1]}/g'  "
+#                    echo "$CALCULATE" >&2
+                    CALCULATE="OLDIFS=IFS; IFS='@' read -r -a NGSANE_VAR_REPORT_TABLE_ROW_ARRAY <<< \"$(echo $NGSANE_VAR_REPORT_TABLE_ROW | sed -r 's/^.{1}//' | sed 's/ , /@/g')\" && echo $(eval $CALCULATE) && IFS=$IFS"
+#                    echo "$CALCULATE" >&2
+                    CALCULATE="echo 'scale=2; $(eval $CALCULATE)' | bc "
+                    CALCULATE_RESULT="$(eval $CALCULATE)"
+#                    echo "$CALCULATE $CALCULATE_RESULT" >&2
+                    NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $CALCULATE_RESULT"
+
+                fi
+            done
+            NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW ]"
+            echo $NGSANE_VAR_REPORT_TABLE_ROW >> $SUMMARYTMP
+
+        done
+    done
+    # add table footer
+    cat >> $SUMMARYTMP <<EOF
+        ]}
+        //]]>
+        </script>
+    <table id="${1}_id_Table" class="display responsive no-wrap" width="100%"><thead><tr>${NGSANE_VAR_REPORT_TABLE_COLUMNS//td/th}</tr></thead><tbody><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tbody><tfoot><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tfoot></table>
+EOF
+
+}
+
+# NGSANE_REPORT_GATHERDIRS takes 1 parameter
+# $1=TASK (e.g. $TASK_BWA)
+function NGSANE_REPORT_GATHERDIRS {
+    vali=""
+#    for dir in ${DIR[@]}; do
+#        [ -d $OUT/${dir%%/*}/$1/ ] && vali=$vali" $OUT/${dir%%/*}/$1/"
+#    done
+	echo $vali
+}

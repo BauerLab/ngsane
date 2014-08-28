@@ -33,7 +33,7 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSFASTQC)"
 # modify the template config file to flip the RUNBOWTIE2 switch
 # specify the resulting html file
 echo "[NOTE] Prep and run config file tmp/configBOWTIE2.txt"
-cat bin/tmpl/configChIPseq.txt | sed 's/RUNMAPPINGBOWTIE2=\"\"/RUNMAPPINGBOWTIE2=\"1\"/g' | \
+cat bin/tmpl/configChIPseq.txt | sed 's/RUNBOWTIE2=\"\"/RUNBOWTIE2=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBOWTIE2\"/g' > tmp/configBOWTIE2.txt
 
 # submit the BOWTIE2 run to the cluster
@@ -91,6 +91,24 @@ JOBIDSMACS=$( trigger.sh tmp/configMACS2.txt $SB_MODE | grep "Jobnumber" | cut -
 echo "[NOTE] submitted jobs $(echo -n $JOBIDSMACS) "
 
 ################################################################################
+#  Homer
+################################################################################
+
+# modify the template config file to flip the RUNHOMERCHIPSEQ switch
+# specify the resulting html file
+echo "[NOTE] Prep and run config file tmp/configHOMERCHIPSEQ.txt"
+cat bin/tmpl/configChIPseq.txt | sed 's/RUNHOMERCHIPSEQ=\"\"/RUNHOMERCHIPSEQ=\"1\"/g' | \
+    sed 's/ ChIPseq_input / /g' | \
+    sed 's/ ChIPseq_Histone / /g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHOMERCHIPSEQ\"/g' > tmp/configHOMERCHIPSEQ.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBOWTIE//:/$QUEUEWAITSEP}\"" >>tmp/configHOMERCHIPSEQ.txt
+
+# submit the Homer run to the cluster
+JOBIDSHOMER=$( trigger.sh tmp/configHOMERCHIPSEQ.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSHOMER) "
+
+
+################################################################################
 #  MEMEchip
 ################################################################################
 
@@ -111,15 +129,16 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSMEME)"
 ################################################################################
 # TEST
 ################################################################################
-JOBIDS="$JOBIDSFASTQC:$JOBIDSPR:$JOBIDBW:$JOBIDSMACS:$JOBIDSMEME" #other things
+JOBIDS="$JOBIDSFASTQC:$JOBIDSPR:$JOBIDBW:$JOBIDSMACS:$JOBIDSHOMER:$JOBIDSMEME" #other things
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configChIPseq.txt | \
     sed 's/RUNFASTQC=\"\"/RUNFASTQC=\"1\"/g' |\
-    sed 's/RUNMAPPINGBOWTIE2=\"\"/RUNMAPPINGBOWTIE2=\"1\"/g' | \
+    sed 's/RUNBOWTIE2=\"\"/RUNBOWTIE2=\"1\"/g' | \
     sed 's/RUNBIGWIG=\"\"/RUNBIGWIG=\"1\"/g' |\
     sed 's/RUNPEAKRANGER=\"\"/RUNPEAKRANGER=\"1\"/g' |\
     sed 's/RUNMACS2=\"\"/RUNMACS2=\"1\"/g' |\
+    sed 's/RUNHOMERCHIPSEQ=\"\"/RUNHOMERCHIPSEQ=\"1\"/g' |\
     sed 's/RUNMEMECHIP=\"\"/RUNMEMECHIP=\"1\"/g' |\
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryCHIPSEQ\"/g' > tmp/configCHIPSEQ.txt
 

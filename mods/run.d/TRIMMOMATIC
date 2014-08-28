@@ -8,9 +8,40 @@
 ################################################################################
 
 if [ -n "$RUNTRIMMOMATIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_TRIMMOMATIC" ] || [ -z "$NODES_TRIMMOMATIC" ] || [ -z "$CPU_TRIMMOMATIC" ] || [ -z "$MEMORY_TRIMMOMATIC" ] || [ -z "$WALLTIME_TRIMMOMATIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_TRIMMOMATIC -i $INPUT_TRIMMOMATIC -e $READONE.$FASTQ -n $NODES_TRIMMOMATIC \
-        -c $CPU_TRIMMOMATIC -m $MEMORY_TRIMMOMATIC"G" -w $WALLTIME_TRIMMOMATIC \
-        --command "$NGSANE_BASE/mods/trimmomatic.sh -k $CONFIG -f <FILE>"
-fi
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined       
+        if [ -z "$TASK_TRIMMOMATIC" ] || [ -z "$NODES_TRIMMOMATIC" ] || [ -z "$CPU_TRIMMOMATIC" ] || [ -z "$MEMORY_TRIMMOMATIC" ] || [ -z "$WALLTIME_TRIMMOMATIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+        
+        $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_TRIMMOMATIC -i $INPUT_TRIMMOMATIC -e $READONE.$FASTQ -n $NODES_TRIMMOMATIC \
+            -c $CPU_TRIMMOMATIC -m $MEMORY_TRIMMOMATIC"G" -w $WALLTIME_TRIMMOMATIC \
+            --command "$NGSANE_BASE/mods/trimmomatic.sh -k $CONFIG -f <FILE>"
+            
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        NGSANE_REPORT_HEADER "Trimmomatic" "$TASK_TRIMMOMATIC" "trimmomatic.sh"
+
+        NGSANE_REPORT_TABLE "$TASK_TRIMMOMATIC" \
+            "$OUT/<DIR>/$TASK_TRIMMOMATIC"  \
+            ".log" \
+            "PATTERN:Reads/Read pairs::fgrep -w 'Input' | sed '.*s/\([0-9]\+\).*Surviving.*/\1/g'" \
+            "PATTERN:Surviving::fgrep -w 'Surviving' | cut -d'(' -f1 | cut -d' ' -f 1" \
+            "CALCULATE:%:80:#3*100/#2" \
+            "PATTERN:Forward only::fgrep -w 'Forward Only Surviving' | cut -d'(' -f1  | cut -d' ' -f 1" \
+            "CALCULATE:%:80:#5*100/#2" \
+            "PATTERN:Reverse only::fgrep -w 'Reverse Only Surviving' | cut -d'(' -f1 | cut -d' ' -f 1" \
+            "CALCULATE:%:80:#7*100/#2" \
+            "PATTERN:Dropped::fgrep -w 'Dropped' | cut -d'(' -f1 | cut -d' ' -f 1" \
+            "CALCULATE:%:80:#9*100/#2"
+  
+        NGSANE_REPORT_FOOTER 
+     
+    fi
+fi	
+
+	

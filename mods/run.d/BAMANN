@@ -5,9 +5,31 @@
 # OUT: */bwa/*.ann
 ################################################################################ 
 if [ -n "$RUNANNOTATINGBAM" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_BAMANN" ] || [ -z "$NODES_BAMANN" ] || [ -z "$CPU_BAMANN" ] || [ -z "$MEMORY_BAMANN" ] || [ -z "$WALLTIME_BAMANN" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED $NGSANE_WAITFORJOB --nodir -r -k $CONFIG -t $TASK_BAMANN -i $INPUT_BAMANN -e $ASD.bam \
-        -n $NODES_BAMANN -c $CPU_BAMANN -m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN \
-        --command "${NGSANE_BASE}/mods/annotateBam.sh -k $CONFIG -f <FILE>"
-fi
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_BAMANN" ] || [ -z "$NODES_BAMANN" ] || [ -z "$CPU_BAMANN" ] || [ -z "$MEMORY_BAMANN" ] || [ -z "$WALLTIME_BAMANN" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+        
+        $QSUB $ARMED $NGSANE_WAITFORJOB --nodir -r -k $CONFIG -t $TASK_BAMANN -i $INPUT_BAMANN -e $ASD.bam \
+            -n $NODES_BAMANN -c $CPU_BAMANN -m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN \
+            --command "${NGSANE_BASE}/mods/annotateBam.sh -k $CONFIG -f <FILE>"
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+    
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "AnnotateBam" "$TASK_BAMANN" "annotateBam.sh"
+
+        echo "[NOTE] the annotateBam.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER  
+  
+    fi
+fi	
+
+	

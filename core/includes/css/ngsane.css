@@ -1,7 +1,15 @@
-<style type="text/css">
 body {
 	font: 12px/19px "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode",
 		Verdana, sans-serif;
+}
+
+div.tabContent { margin: 0.5em; }
+div.tabContent_hide { display: none; }
+div#right{
+	float:right;
+	text-align:right;
+	width:285px;
+	padding:2px 12px 2px 12px;
 }
 
 h2 {
@@ -49,7 +57,7 @@ h4 {
 	text-transform: small_caps;
 }
 
-div.panel h2,div.panel h2.sub.inactive {
+div.panel h2,div.panel a h2.sub {
 	background: #888;
 	background-image: -webkit-gradient(linear, left top, left bottom, from(#8a9aa6),
 		to(#17212e));
@@ -77,11 +85,19 @@ div.panel#quicklinks h2{
 	background-image: linear-gradient(top, #8a9aa6, #17212e);
 }
 
-div.panel h2.sub.inactive {
+div.panel h2.sub {
+	margin-left: 2px;
+	margin-top: 2px;
+	border-radius: 10px 10px 0 0;
+	border: 1px solid #666;
+	border-top-color: #EEE;
+	border-left-color: #DDD;
+	border-bottom: none;
+	display: inline-block;
+	vertical-align: top;
+	width: 165px;
 	color: #dedede;
 	cursor: pointer;
-	border-top-color: #ccc;
-	border-left-color: #aaa;
 }
 
 div.headbagb {
@@ -97,8 +113,13 @@ div.headbagb {
 	background-image: linear-gradient(top, #8a9aa6, #17212e);
 }
 
-.box{
+div.box{
     padding: 5px;
+}
+
+div.scroll{
+    overflow:scroll; 
+    height:300px;
 }
 
 div.panel {
@@ -137,19 +158,9 @@ a {
 	transform: scale(1.05);
 }
 
-div.panel h2.sub {
-	margin-left: 2px;
-	margin-top: 2px;
+div.panel a.selected h2.sub {
 	background: #fafaff;
-	border-radius: 10px 10px 0 0;
-	border: 1px solid #666;
-	border-top-color: #EEE;
-	border-left-color: #DDD;
 	color: #444;
-	border-bottom: none;
-	display: inline-block;
-	vertical-align: top;
-	width: 165px;
 }
 
 div.panel span.counter {
@@ -224,23 +235,24 @@ p {
 	color: blue;
 }
 
-table {
-	border-collapse: collapse;
-	border-spacing: 0;
+.dataTables_filter{
+    height:30px;
 }
 
-table.data {
-    table-layout: fixed;
-	font-size: 12px;
+table.dataTable.display {
+	font-size: 11px;
 	text-align: left;
 	border-collapse: collapse;
-	border: 1px solid #69c;
-	margin: 10px 0 20px 0;
+	border: 1px dotted #69c;
+}
+
+table.dataTable.display thead .sorting, table.dataTable.display thead .sorting_asc, table.dataTable.display thead .sorting_desc{
+    padding-right:15px;
 }
 
 table,caption,tbody,tfoot,thead,tr,th {
 	font-size: 100%;
-	vertical-align: baseline;
+	vertical-align: middle;
 	margin: 0;
 	padding: 0;
 	outline: 0;
@@ -248,36 +260,58 @@ table,caption,tbody,tfoot,thead,tr,th {
 	background: transparent;
 }
 
-table.data tbody{
+table.dataTable.display tbody tr.odd, table.dataTable.display tbody tr.odd, 
+table.dataTable.display tbody tr.even>.sorting_1, table.dataTable.order-column.stripe tbody tr.even>.sorting_1,
+table.dataTable.display tbody tr.even>.sorting_2, table.dataTable.order-column.stripe tbody tr.even>.sorting_2,
+table.dataTable.display tbody tr.even>.sorting_3, table.dataTable.order-column.stripe tbody tr.even>.sorting_3{
     background: #efecff;
 }
+table.dataTable.display tbody tr.odd>.sorting_1, table.dataTable.order-column.stripe tbody tr.odd>.sorting_1,
+table.dataTable.display tbody tr.odd>.sorting_2, table.dataTable.order-column.stripe tbody tr.odd>.sorting_2,
+table.dataTable.display tbody tr.odd>.sorting_3, table.dataTable.order-column.stripe tbody tr.odd>.sorting_3{
+    background: #dfdcef;
+}
+table.dataTable.display tbody tr.even, table.dataTable.display tbody tr.even{
+    background: #f5f3ff;
+}
 
-table.data th {
+table.dataTable.display th {
 	font-weight: bold;
-	font-size: 12px;
 	color: #17212e;
 	border-bottom: 1px dashed #69c;
 	padding: 12px 5px;
-	text-align:right;
+	text-align:center;
 }
 
-table.data th div{
+table.dataTable.display thead th div.DataTables_sort_wrapper {
+  padding: 0
+}
+
+table.dataTable.display thead th {
+  padding: 3px
+}
+
+table.dataTable.display th div{
 	width: 100px;
 }
 
-table.data td {
+table.dataTable.display tbody td {
 	color: #555e66;
 	padding: 3px 5px;
 	text-align:right;
 	white-space: nowrap;
 }
 
-table.data td.left, table.data  th.left{
+table.dataTable.display td.left, table.dataTable.display  th.left{
 	text-align:left;
 	width: auto;
 }
 
-table.data tfoot {
+.top{
+	vertical-align:text-top
+}
+
+table.dataTable.display tfoot {
 	border-top: 1px dashed #69c;
 }
 
@@ -300,11 +334,11 @@ span {
     font-size:10px;
 }
 
-img {
+img.border {
     border: 1px solid #8a9aa6;
 }
 
-img.noborder {
+img {
     border: 0px;
 }
 
@@ -316,4 +350,3 @@ div.inset_image {
     border-width:1px;
     border-style:dotted;
 }
-</style>

@@ -1,0 +1,11 @@
+##############################################################
+# Tophat (2.0.12) 
+# http://tophat.cbcb.umd.edu/
+TASK_TOPHATFUSION="tophatfusion"
+WALLTIME_TOPHATFUSION=62:00:00
+MEMORY_TOPHATFUSION=50
+CPU_TOPHATFUSION=16
+NODES_TOPHATFUSION="nodes=2:ppn=8"
+INPUT_TOPHATFUSION="fastq"
+MODULE_TOPHATFUSION=" ${NG_PERL} ${NG_CIRCOS} ${NG_BOOST} ${NG_SAMTOOLS} ${NG_BOWTIE} ${NG_TOPHAT}"
+

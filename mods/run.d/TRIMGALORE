@@ -7,9 +7,31 @@
 # OUT: $SOURCE/fastq/$dir_trimgalore/*read1.fastq
 ################################################################################ 
 if [ -n "$RUNTRIMGALORE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-    if [ -z "$TASK_TRIMGALORE" ] || [ -z "$NODES_TRIMGALORE" ] || [ -z "$CPU_TRIMGALORE" ] || [ -z "$MEMORY_TRIMGALORE" ] || [ -z "$WALLTIME_TRIMGALORE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-    $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_TRIMGALORE -i $INPUT_TRIMGALORE -e $READONE.$FASTQ -n $NODES_TRIMGALORE \
-        -c $CPU_TRIMGALORE -m $MEMORY_TRIMGALORE"G" -w $WALLTIME_TRIMGALORE \
-        --command "${NGSANE_BASE}/mods/trimgalore.sh -k $CONFIG -f <FILE>"
-fi
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_TRIMGALORE" ] || [ -z "$NODES_TRIMGALORE" ] || [ -z "$CPU_TRIMGALORE" ] || [ -z "$MEMORY_TRIMGALORE" ] || [ -z "$WALLTIME_TRIMGALORE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+        
+        $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_TRIMGALORE -i $INPUT_TRIMGALORE -e $READONE.$FASTQ -n $NODES_TRIMGALORE \
+            -c $CPU_TRIMGALORE -m $MEMORY_TRIMGALORE"G" -w $WALLTIME_TRIMGALORE \
+            --command "${NGSANE_BASE}/mods/trimgalore.sh -k $CONFIG -f <FILE>"
+        
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Trimgalore" "$TASK_TRIMGALORE" "trimgalore.sh"
+
+        echo "[NOTE] the trimmomatic.sh mod does not provide a report"
+  
+          # finish the section
+        NGSANE_REPORT_FOOTER 
+     
+    fi
+fi	
+
+	

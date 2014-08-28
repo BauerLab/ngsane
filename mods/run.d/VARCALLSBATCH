@@ -5,46 +5,59 @@
 ################################################################################
 
 if [ -n "$RUNVARCALLSBATCH" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-	if [ ! -e "$FASTA.fai" ] ; then echo -e "\e[91m[ERROR]\e[0m $FASTA.fai missing"; exit 1; fi
-  	BATCHES=$(cut -f 1 $FASTA.fai | grep -v GL | sort -u)
-	NAME=$(echo ${DIR[@]} | sort -u |sed 's/ /_/g')
 
-	if [[ ! "$ARMED" -eq "postonly" ]]; then
-	  	for i in $BATCHES; do
-			echo "[NOTE] Batch $i"
-			export ADDDUMMY=$i
-	    	JOBID=$( $QSUB $ARMED $NGSANE_WAITFORJOB --postname postcommand$i -r -d -k $CONFIG -t ${TASK_GATKVAR}batch -i $INPUT_GATKVAR  \
-				-e $ASR.bam -n $NODES_GATKVAR -c $CPU_GATKVAR -m $MEMORY_GATKVAR"G" -w $WALLTIME_GATKVAR \
-	        	--postcommand "${NGSANE_BASE}/mods/gatkVARs.sh -k $CONFIG \
-	                        -i <FILE> -t $CPU_GATKVAR \
-	                        -r $FASTA -d $DBSNPVCF -o $OUT/${TASK_GATKVAR}batch/$NAME -n $NAME$ADDDUMMY \
-	                        -H $HAPMAPVCF -L $i " 
-			) && echo -e "$JOBID"
-			if [ -n "$(echo $JOBID | grep Jobnumber)" ]; then JOBIDS=$(waitForJobIds "$JOBID")":"$JOBIDS; fi
-	  	done
-		JOBIDS=${JOBIDS//-W /}
-		JOBIDS=${JOBIDS//::/:}
-        [ -n "$JOBIDS" ] && JOBIDS="-W $JOBIDS"
-	fi
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+    
+    	if [ ! -e "$FASTA.fai" ] ; then echo -e "\e[91m[ERROR]\e[0m $FASTA.fai missing"; exit 1; fi
+      	BATCHES=$(cut -f 1 $FASTA.fai | grep -v GL | sort -u)
+    	NAME=$(echo ${DIR[@]} | sort -u |sed 's/ /_/g')
+    
+    	if [[ ! "$ARMED" -eq "postonly" ]]; then
+    	  	for i in $BATCHES; do
+    			echo "[NOTE] Batch $i"
+    			export ADDDUMMY=$i
+    	    	JOBID=$( $QSUB $ARMED $NGSANE_WAITFORJOB --postname postcommand$i -r -d -k $CONFIG -t ${TASK_GATKVAR}batch -i $INPUT_GATKVAR  \
+    				-e $ASR.bam -n $NODES_GATKVAR -c $CPU_GATKVAR -m $MEMORY_GATKVAR"G" -w $WALLTIME_GATKVAR \
+    	        	--postcommand "${NGSANE_BASE}/mods/gatkVARs.sh -k $CONFIG \
+    	                        -i <FILE> -t $CPU_GATKVAR \
+    	                        -r $FASTA -d $DBSNPVCF -o $OUT/${TASK_GATKVAR}batch/$NAME -n $NAME$ADDDUMMY \
+    	                        -H $HAPMAPVCF -L $i " 
+    			) && echo -e "$JOBID"
+    			if [ -n "$(echo $JOBID | grep Jobnumber)" ]; then JOBIDS=$(waitForJobIds "$JOBID")":"$JOBIDS; fi
+    	  	done
+    		JOBIDS=${JOBIDS//-W /}
+    		JOBIDS=${JOBIDS//::/:}
+            [ -n "$JOBIDS" ] && JOBIDS="-W $JOBIDS"
+    	fi
+    
+    	echo "[NOTE] filtered SNPs"
+       	$QSUB $ARMED --postname joinedSNP --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
+    		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
+    		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
+    			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.snps.vcf"
+    
+    	echo "[NOTE] filtered INDELs"
+       	$QSUB $ARMED --postname joinedINDEL --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
+    		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
+    		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
+    			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.indel.vcf"
+    
+    	echo "[NOTE] recal Vars"
+       	$QSUB $ARMED --postname joinedRECAL --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
+    		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
+    		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
+    			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target recalfilt.vcf"
+       
 
-	echo "[NOTE] filtered SNPs"
-   	$QSUB $ARMED --postname joinedSNP --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
-		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
-		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
-			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.snps.vcf"
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-	echo "[NOTE] filtered INDELs"
-   	$QSUB $ARMED --postname joinedINDEL --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
-		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
-		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
-			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.indel.vcf"
-
-	echo "[NOTE] recal Vars"
-   	$QSUB $ARMED --postname joinedRECAL --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
-		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
-		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
-			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target recalfilt.vcf"
-   
+        echo "[NOTE] the gatkVARs.sh mod does not provide a report"
+  
+    fi
 fi	
 
 	

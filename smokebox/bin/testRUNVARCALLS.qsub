@@ -19,7 +19,7 @@ echo "[NOTE] run in $SB_MODE mode $(date)"
 # modify the template config file to flip the RUNBWA switch
 # specify the resulting html file
 echo "[NOTE] Prep and run config file tmp/configBWA.txt"
-cat bin/tmpl/configVarCall.txt | sed 's/RUNMAPPINGBWA=\"\"/RUNMAPPINGBWA=\"1\"/g' | \
+cat bin/tmpl/configVarCall.txt | sed 's/RUNBWA=\"\"/RUNBWA=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBWA\"/g' > tmp/configBWA.txt
 
 # submit the BWA run to the cluster
@@ -102,7 +102,7 @@ QUEUEWAIT=${QUEUEWAIT/afterok/afterany}
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configVarCall.txt | sed 's/RUNVARCALLS=\"\"/RUNVARCALLS=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryVARCALLS\"/g' | \
-    sed 's/RUNMAPPINGBWA=\"\"/RUNMAPPINGBWA=\"1\"/g' | \
+    sed 's/RUNBWA=\"\"/RUNBWA=\"1\"/g' | \
 	sed 's/RUNANNOTATINGBAM=\"\"/RUNANNOTATINGBAM=\"1\"/g' | \
 	sed 's/RUNPINDEL=\"\"/RUNPINDEL=\"1\"/g' | \
     sed 's/RUNREALRECAL=\"\"/RUNREALRECAL=\"1\"/g' > tmp/configVARCALLS.txt

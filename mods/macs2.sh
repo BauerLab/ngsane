@@ -101,9 +101,8 @@ if [ -n "$DMGET" ]; then
 	[ -n "$CHIPINPUT" ] && dmget -a $CHIPINPUT
 fi
 
-if [[ -z "$CHIPINPUT" ]] || [[ ! -f $CHIPINPUT ]]; then
+if [[ -z "$CHIPINPUT" || ! -f $CHIPINPUT ]]; then
     echo "[WARN] input control not provided or invalid ($CHIPINPUT)"
-    ls -la $(basename $CHIPINPUT)
     unset CHIPINPUT
 else
 	echo "[NOTE] CHIPINPUT $CHIPINPUT"
@@ -118,6 +117,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
  
     if [ -n "$MACS2_FRAGMENTSIZE" ]; then
         echo "[NOTE] Skip modeling"
+        cat /dev/null > $SAMPLE.summary.txt
         # mark checkpoint
         NGSANE_CHECKPOINT_CHECK
         
@@ -148,45 +148,42 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM --nomodel --extsize $MACS2_FRAGMENTSIZE --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name $SAMPLE >> $SAMPLE.summary.txt 2>&1"    
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    
+
+    if [[ "$MACS2_CALLPEAK_ADDPARAM" == *--broad* ]]; then
+        echo "[NOTE] convert broadpeaks to 6 bed file for refining"
+        cat ${SAMPLE}_peaks.broadPeak | awk '{OFS="\t"; print $1,$2,$3,$4,$9,$6}'  > ${SAMPLE}_peaks.bed
+    else
+        echo "[NOTE] convert narrowpeaks to 6 bed file for refining"
+        cat ${SAMPLE}_peaks.narrowPeak | awk '{OFS="\t"; print $1,$2,$3,$4,$9,$6}' > ${SAMPLE}_peaks.bed
+    fi
+    echo "ChIP input: $CONTROL" >> $SAMPLE.summary.txt
+    echo "Nucleotides covered: $(awk '{sum+=$3-$2}END{print sum}' ${SAMPLE}_peaks.bed)" >> $SAMPLE.summary.txt
+
+	if hash bedToBigBed ; then 
+        echo "[NOTE] create bigbed from peaks" 
+        awk '{OFS="\t"; print $1,$2,$3,$5}' ${SAMPLE}_peaks.bed > ${SAMPLE}_peaks.tmp
+        bedToBigBed -type=bed4 ${SAMPLE}_peaks.tmp $GENOME_CHROMSIZES $SAMPLE.bb
+        rm ${SAMPLE}_peaks.tmp
+    fi
+ 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $SAMPLE"_"peaks.xls
+    NGSANE_CHECKPOINT_CHECK ${SAMPLE}_peaks.bed
 fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "macs 2 - refine peaks "
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-
-    if [[ "$MACS2_CALLPEAK_ADDPARAM" == *--broad* ]]; then
-        echo "[NOTE] convert broadpeaks to 6 bed file for refining"
-        cat $SAMPLE"_"peaks.broadPeak | awk '{OFS="\t"; print $1,$2,$3,$4,$9,$6}'  > $SAMPLE"_"peaks.bed
-    else
-        echo "[NOTE] convert narrowpeaks to 6 bed file for refining"
-        cat $SAMPLE"_"peaks.narrowPeak | awk '{OFS="\t"; print $1,$2,$3,$4,$9,$6}' > $SAMPLE"_"peaks.bed
-    fi
-    
-    RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b $SAMPLE"_"peaks.bed -i $f --o-prefix $SAMPLE >> $SAMPLE.summary.txt 2>&1"
+    RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b ${SAMPLE}_peaks.bed -i $f --o-prefix $SAMPLE >> $SAMPLE.summary.txt 2>&1"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-	if hash bedToBigBed ; then 
-        echo "[NOTE] create bigbed from peaks" 
-        awk '{OFS="\t"; print $1,$2,$3,$5}' $SAMPLE"_"peaks.bed > $SAMPLE"_"peaks.tmp
-        bedToBigBed -type=bed4 $SAMPLE"_"peaks.tmp $GENOME_CHROMSIZES $SAMPLE.bb
-        rm $SAMPLE"_"peaks.tmp
-    fi
-    [ -e $SAMPLE"_"peaks.bed ] && rm $SAMPLE"_"peaks.bed    
-
-    echo "Final number of refined peaks: $(wc -l ${SAMPLE}_refinepeak.bed )" >> $SAMPLE.summary.txt
-
+    echo "Final number of refined summits: $(wc -l ${SAMPLE}_refinepeak.bed )" >> $SAMPLE.summary.txt
+    
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK ${SAMPLE}_refinepeak.bed
 fi
 ################################################################################
-# back to where we came from
-cd $SOURCE
-################################################################################
-[ -e $OUTDIR/$SAMPLE"_"refinepeak.bed.dummy ] && rm $OUTDIR/$SAMPLE"_"refinepeak.bed.dummy
+[ -e $OUTDIR/${SAMPLE}_refinepeak.bed.dummy ] && rm $OUTDIR/${SAMPLE}_refinepeak.bed.dummy
 echo ">>>>> ChIPseq analysis with MACS2 - FINISHED"
 echo ">>>>> enddate "`date`
 
