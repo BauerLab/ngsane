@@ -199,7 +199,6 @@ NGSANE_CHECKPOINT_INIT "clean sam"
 # create bam files for discarded reads and remove fastq files
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
    
-    if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
     java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
         INPUT=$OUTDIR/$SAMPLE.ash.bam \
         OUTPUT=$OUTDIR/$SAMPLE.cleaned.bam \
