@@ -402,14 +402,14 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
                     bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_center | \
                        gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $3-$2,$i,$v,$s}' | \
-                       gawk -v bins=$CENTERBINS 'BEGIN{OFS="\t";sum=0;len=0;bin=1;lastbin=0;} \
+                       gawk -v bins=$CENTERBINS 'BEGIN{OFS="\t";sum=0;len=0;bin=1;lastbin=1;} \
                            {binsize=$1/bins;  \
                            if($2 == $1){
                                len=len+1; \
                                sum=sum+$3; \
                                while(len>0 && lastbin <= bins){print lastbin,sum/len,$4; lastbin++;}; \
                                bin=1; \
-                               lastbin=0; \
+                               lastbin=1; \
                                len=0; \
                                sum=0; \
                            } else if ($2/binsize > bin){ \
@@ -437,14 +437,14 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
                     bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_center | \
                        gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $3-$2,$i,$v,$s}' | \
-                       gawk -v bins=$CENTERBINS 'BEGIN{OFS="\t";sum=0;len=0;bin=1;lastbin=0;} \
+                       gawk -v bins=$CENTERBINS 'BEGIN{OFS="\t";sum=0;len=0;bin=1;lastbin=1;} \
                            {binsize=$1/bins;  \
                            if($2 == $1){
                                len=len+1; \
                                sum=sum+$3; \
                                while(len>0 && lastbin <= bins){print lastbin,sum/len,$4; lastbin++;}; \
                                bin=1; \
-                               lastbin=0; \
+                               lastbin=1; \
                                len=0; \
                                sum=0; \
                            } else if ($2/binsize > bin){ \

@@ -199,10 +199,10 @@ def writeCode(file, label, args):
         result2<-ddply(.data=result, .(x,mark,category), summarize, metric=mean(metric)%s)
         pdf('%s.pdf', width=10, height=5*length(levels(result$category)))
         ggplot(result2, aes(x=x)) + %s
-            geom_line(aes(y=metric, col=mark)) +
-            labs(title = "Coverage Distribution", y = "%s coverage", x = "") +
             geom_vline(xintercept = 0, colour = "gray65") +
             geom_vline(xintercept = center, colour = "gray65") +
+            geom_line(aes(y=metric, col=mark)) +
+            labs(title = "Coverage Distribution", y = "%s coverage", x = "") +
             facet_grid(category ~ ., scales = "free_y") +
             annotate("text", x = center/2, y = 0, label = "%s") + 
             scale_x_continuous(breaks=c(seq(-upstream, 0, upstream/5),seq(center,center+downstream,downstream/ 5)), labels=c(seq(-upstream, 0, upstream/5),seq(0,downstream,downstream/5)))
