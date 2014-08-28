@@ -300,7 +300,7 @@ for DIR in ${DIR[@]}; do
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_HICUP "bam" "$SAMPLEPATTERN" ".bam" "bamColorMode=strand"
     fi
 
-    if [[ -n "$RUNREALRECAL" ]]; then        
+    if [[ -n "$RUNRECALALN" ]]; then        
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_RECAL "bam" "$SAMPLEPATTERN" "$ASR.bam" "bamColorMode=strand"
     fi
     

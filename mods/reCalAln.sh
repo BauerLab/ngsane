@@ -132,7 +132,7 @@ if [[ $(which GenomeAnalysisTK.jar) =~ "2.8" ]]; then
 fi
 #
 ## bwa/name$ASD.bam -> /reCalAln/name$ASD.bam
-#f2=${f/$INPUT_REALRECAL/$TASK_RECALALN}
+#f2=${f/$INPUT_RECALALN/$TASK_RECALALN}
 ## /reCalAln/name$ASD.bam -> /reCalAln/name$ASD.real
 #f3=${f2/%bam/real.bam}
 
