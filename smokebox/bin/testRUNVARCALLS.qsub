@@ -33,7 +33,7 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSBWA)"
 # modify the template config file to flip the BAMANN switch
 # specify the resulting html file
 echo "[NOTE] Prep and run config file tmp/configBAMANN.txt"
-cat bin/tmpl/configVarCall.txt | sed 's/RUNANNOTATINGBAM=\"\"/RUNANNOTATINGBAM=\"1\"/g' | \
+cat bin/tmpl/configVarCall.txt | sed 's/RUNBAMANN=\"\"/RUNBAMANN=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBAMANN\"/g' > tmp/configBAMANN.txt
 echo QSUBEXTRA='$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBWA//:/$QUEUEWAITSEP}\"" >>tmp/configBAMANN.txt
 
@@ -103,7 +103,7 @@ HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
 cat bin/tmpl/configVarCall.txt | sed 's/RUNVARCALLS=\"\"/RUNVARCALLS=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryVARCALLS\"/g' | \
     sed 's/RUNBWA=\"\"/RUNBWA=\"1\"/g' | \
-    sed 's/RUNANNOTATINGBAM=\"\"/RUNANNOTATINGBAM=\"1\"/g' | \
+    sed 's/RUNBAMANN=\"\"/RUNBAMANN=\"1\"/g' | \
     sed 's/RUNPINDEL=\"\"/RUNPINDEL=\"1\"/g' | \
     sed 's/RUNRECALALN=\"\"/RUNRECALALN=\"1\"/g' > tmp/configVARCALLS.txt
 

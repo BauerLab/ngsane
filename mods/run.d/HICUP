@@ -62,8 +62,8 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN:P2 non-trunc reads::sed -n 3p | cut -f 5" \
             "PATTERN:%::sed -n 3p | cut -f 6" \
             "PATTERN:P2 trunc reads::sed -n 3p | cut -f 3" \
-            "PATTERN:%::sed -n 3p | cut -f 4"
-
+            "PATTERN:%::sed -n 3p | cut -f 4" \
+            "FIGURE::60:<SAMPLE>_ditag_size_distribution.png:60:1"
 
         NGSANE_REPORT_TABLE "$TASK_HICUP" \
             "$OUT/<DIR>/$TASK_HICUP"  \
@@ -92,27 +92,33 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "_filter_summary.txt" \
             "PATTERN:Total pairs::sed -n 2p | cut -f 2" \
             "PATTERN:Valid::sed -n 2p | cut -f 3" \
+            "CALCULATE:%:40:#3*100/#2" \
             "PATTERN:Cis <10kb::sed -n 2p | cut -f 4" \
             "PATTERN:Cis >10kb::sed -n 2p | cut -f 5" \
             "PATTERN:Trans::sed -n 2p | cut -f 6" \
             "PATTERN:Invalid::sed -n 2p | cut -f 7" \
-            "PATTERN:Circularised::sed -n 2p | cut -f 8" \
-            "PATTERN:Internal::sed -n 2p | cut -f 9" \
-            "PATTERN:Re-ligation::sed -n 2p | cut -f 10" \
-            "PATTERN:Contiguous::sed -n 2p | cut -f 11" \
-            "PATTERN:Wrong size::sed -n 2p | cut -f 12"
-
+            "CALCULATE:%:40:#8*100/#2" \
+            "PATTERN:Circular::sed -n 2p | cut -f 8" \
+            "PATTERN:Dangling::sed -n 2p | cut -f 9" \
+            "PATTERN:Internal::sed -n 2p | cut -f 10" \
+            "PATTERN:Re-ligation::sed -n 2p | cut -f 11" \
+            "PATTERN:Contiguous::sed -n 2p | cut -f 12" \
+            "PATTERN:Wrong size::sed -n 2p | cut -f 13" \
+            "FIGURE::60:<SAMPLE>_ditag_classification.png:60:1"
+            
         NGSANE_REPORT_TABLE "$TASK_HICUP" \
             "$OUT/<DIR>/$TASK_HICUP"  \
             "_deduplicator_summary.txt" \
-            "PATTERN:Processed reads::sed -n 2p | cut -f 2" \
+            "PATTERN:Valid reads::sed -n 2p | cut -f 2" \
             "PATTERN:Unique di-tags::sed -n 2p | cut -f 3" \
-            "PATTERN:Cis <10kb uniques::sed -n 2p | cut -f 4" \
-            "PATTERN:Cis >10kb uniques::sed -n 2p | cut -f 5" \
-            "PATTERN:Trans uniques::sed -n 2p | cut -f 6" \
-            "FIGURE::60:<SAMPLE>_uniques_cis-trans.png:60:1" \
-            "FIGURE::60:<SAMPLE>_ditag_classification.png:60:1" \
-            "FIGURE::60:<SAMPLE>_ditag_size_distribution.png:60:1"
+            "CALCULATE:%:40:#3*100/#2" \
+            "PATTERN:Unique cis <10kb::sed -n 2p | cut -f 4" \
+            "CALCULATE:%:40:#5*100/#2" \
+            "PATTERN:Unique cis >10kb::sed -n 2p | cut -f 5" \
+            "CALCULATE:%:40:#7*100/#2" \
+            "PATTERN:Unique trans::sed -n 2p | cut -f 6" \
+            "CALCULATE:%:40:#9*100/#2" \
+            "FIGURE::60:<SAMPLE>_uniques_cis-trans.png:60:1"
                    
         # finish the section
         NGSANE_REPORT_FOOTER 

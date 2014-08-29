@@ -26,46 +26,45 @@ if [ -n "$RUNVARCALLS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "VARCALLS" "$TASK_GATKVAR" "gatkVARs.sh"
 
-        NGSANE_REPORT_TABLE "$TASK_GATKVAR SNP" \
+        NGSANE_REPORT_TABLE "${TASK_GATKVAR}_SNP" \
             "$OUT/$TASK_GATKVAR/$NAME" \
             ".filter.snps.eval.txt" \
-            "PATTERN:Total::fgrep -w 'CountVariants' | sed -n 3p | awk -F' ' '{print $7}'" \
-            "PATTERN:Known::fgrep -w 'CompOverlap' | sed -n 4p | awk -F' ' '{print $6}'" \
-            "PATTERN:SNPdb Conc::fgrep -w 'CompOverlap' | sed -n 4p | awk -F' ' '{print $11}'" \
-            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 4p | awk -F' ' '{print $11}'" \
-            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 4p | awk -F' ' '{print $27}'" \
-            "PATTERN:Novel::fgrep -w 'CompOverlap' | sed -n 5p | awk -F' ' '{print $6}'" \
-            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 5p | awk -F' ' '{print $11}'" \
-            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 5p | awk -F' ' '{print $27}'"
+            "PATTERN:Total::fgrep -w 'CountVariants' | sed -n 3p | sed -e 's/ \+/\t/g' | cut -f7" \
+            "PATTERN:Known::fgrep -w 'CompOverlap' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f6" \
+            "PATTERN:SNPdb Conc::fgrep -w 'CompOverlap' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f11" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f11" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f27" \
+            "PATTERN:Novel::fgrep -w 'CompOverlap' | sed -n 5p | sed -e 's/ \+/\t/g' | cut -f6" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 5p | sed -e 's/ \+/\t/g' | cut -f11" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 5p | sed -e 's/ \+/\t/g' | cut -f27"
 
 
-        NGSANE_REPORT_TABLE "{$TASK_GATKVAR} SNP recalibrated" \
+        NGSANE_REPORT_TABLE "${TASK_GATKVAR}_SNP_recalibrated" \
             "$OUT/$TASK_GATKVAR/$NAME" \
             ".recalfilt.snps.eval.txt" \
-            "PATTERN:Total::fgrep -w 'CountVariants' | sed -n 3p | awk -F' ' '{print $7}'" \
-            "PATTERN:Known::fgrep -w 'CompOverlap' | sed -n 4p | awk -F' ' '{print $6}'" \
-            "PATTERN:SNPdb Conc::fgrep -w 'CompOverlap' | sed -n 4p | awk -F' ' '{print $11}'" \
-            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 4p | awk -F' ' '{print $11}'" \
-            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 4p | awk -F' ' '{print $27}'" \
-            "PATTERN:Novel::fgrep -w 'CompOverlap' | sed -n 5p | awk -F' ' '{print $6}'" \
-            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 5p | awk -F' ' '{print $11}'" \
-            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 5p | awk -F' ' '{print $27}'"
+            "PATTERN:Total::fgrep -w 'CountVariants' | sed -n 3p | sed -e 's/ \+/\t/g' | cut -f7" \
+            "PATTERN:Known::fgrep -w 'CompOverlap' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f6" \
+            "PATTERN:SNPdb Conc::fgrep -w 'CompOverlap' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f11" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f11" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f27" \
+            "PATTERN:Novel::fgrep -w 'CompOverlap' | sed -n 5p | sed -e 's/ \+/\t/g' | cut -f6" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 5p | sed -e 's/ \+/\t/g' | cut -f11" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 5p | sed -e 's/ \+/\t/g' | cut -f27"
 
 
-        NGSANE_REPORT_TABLE "$TASK_GATKVAR Indel" \
+        NGSANE_REPORT_TABLE "${TASK_GATKVAR}_Indel" \
             "$OUT/$TASK_GATKVAR/$NAME" \
             ".filter.indel.eval.txt" \
-            "PATTERN:Total::fgrep -w 'CountVariants' | sed -n 3p | awk -F' ' '{print $7}'" \
-            "PATTERN:Known::fgrep -w 'CompOverlap' | sed -n 4p | awk -F' ' '{print $6}'" \
-            "PATTERN:SNPdb Conc::fgrep -w 'CompOverlap' | sed -n 4p | awk -F' ' '{print $11}'" \
-            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 4p | awk -F' ' '{print $11}'" \
-            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 4p | awk -F' ' '{print $27}'" \
-            "PATTERN:Novel::fgrep -w 'CompOverlap' | sed -n 5p | awk -F' ' '{print $6}'" \
-            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 5p | awk -F' ' '{print $11}'" \
-            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 5p | awk -F' ' '{print $27}'"
+            "PATTERN:Total::fgrep -w 'CountVariants' | sed -n 3p | sed -e 's/ \+/\t/g' | cut -f7" \
+            "PATTERN:Known::fgrep -w 'CompOverlap' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f6" \
+            "PATTERN:SNPdb Conc::fgrep -w 'CompOverlap' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f11" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f11" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f27" \
+            "PATTERN:Novel::fgrep -w 'CompOverlap' | sed -n 5p | sed -e 's/ \+/\t/g' | cut -f6" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 5p | sed -e 's/ \+/\t/g' | cut -f11" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 5p | sed -e 's/ \+/\t/g' | cut -f27"
 
 
         # finish the section

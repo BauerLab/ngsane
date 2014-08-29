@@ -55,10 +55,10 @@ RUNBWA=""     # mapping with bwa
 RUNRECALALN=""      # recalibration/realignment
 DEPTHOFCOVERAGE=""   # determine mean coverage
 RUNVARCALLS=""       # SNP/Variant detection
-RUNANNOTATINGBAM=""  # annotate bam file with Gencode
+RUNBAMANN=""  # annotate bam file with Gencode
 RUNSAMVAR=""         # run variant call 
-RUNANNOTATINGBAM=""  # run bam file annotation
 RUNPINDEL=""
+
 
 HTMLOUT="Summary"
 

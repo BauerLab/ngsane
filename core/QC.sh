@@ -80,59 +80,65 @@ fi
 #########################################################################################
 
 for T in $SCRIPTFILES; do
-
 	# unpack script name and files
 	SCRIPT=${T/*:/}
+	
 	files=$(echo ${T/%:*/} | tr "*" " "files=${FILES/*/ })
+	
 	nrfiles=$(echo $files | wc -w | sed -e 's/^[ \t]*//')
 
-	echo "###################################################"
-	echo "# NGSANE ${SCRIPT/.sh/} "
-	echo "###################################################"
+    # nr might be emtpy if its a postcommand only job
+    if [[ "$nrfiles" -ge "1" ]]; then
 
-	CHECKPOINTS_PASSED=0
-	CHECKPOINTS_FAILED=0
+    	echo "###################################################"
+    	echo "# NGSANE ${SCRIPT/.sh/} "
+    	echo "###################################################"
+    
+    	CHECKPOINTS_PASSED=0
+    	CHECKPOINTS_FAILED=0
+    	
+    	echo ">>>>>>>>>> Finished"
+    	finished=$(egrep "^>{5} .* FINISHED" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
+    	if [ "$finished" = "$nrfiles" ]; then
+    	    echo "QC_PASS .. $finished/$nrfiles are finished"
+    	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
+    	else
+    	    echo "**_FAIL .. $finished/$nrfiles are finished"
+    	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
+    	fi
+    
+    	echo ">>>>>>>>>> Errors"
+    	ERROR=$(egrep QCVARIABLES $SCRIPT | tr ' ' '_' | tr ',' ' ')
+    	ERROR=${ERROR/"# QCVARIABLES"/}
+    	for i in $ERROR; do
+    	  i=${i//_/ }
+    	  var=$(grep -i "$i" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
+    	  if [ "$var" = "0" ]; then
+    	    echo "QC_PASS .. $var/$nrfiles have $i"
+    	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
+    	  else
+    	    echo "**_FAIL .. $var/$nrfiles have $i"
+    	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
+    	  fi
+    	done
+    
+    	echo ">>>>>>>>>> CheckPoints "
+    	PROGRESS=$(grep '^NGSANE_CHECKPOINT_INIT "' $SCRIPT | awk -F'"' '{print $2}' | tr ' ' '_')
+    	for i in $PROGRESS; do
+    	  i=${i//_/ }
+    	  var=$(egrep "^\*{9} $i" $files | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
+    	  if [ ! "$var" = "$nrfiles" ]; then
+    	    echo "**_FAIL .. $var/$nrfiles have $i"
+    	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
+    	  else
+    	    echo "QC_PASS .. $var/$nrfiles have $i"
+    	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
+    	  fi
+    	done
+    
+    	echo ""
 	
-	echo ">>>>>>>>>> Finished"
-	finished=$(egrep "^>{5} .* FINISHED" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
-	if [ "$finished" = "$nrfiles" ]; then
-	    echo "QC_PASS .. $finished/$nrfiles are finished"
-	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
-	else
-	    echo "**_FAIL .. $finished/$nrfiles are finished"
-	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
 	fi
-
-	echo ">>>>>>>>>> Errors"
-	ERROR=$(egrep QCVARIABLES $SCRIPT | tr ' ' '_' | tr ',' ' ')
-	ERROR=${ERROR/"# QCVARIABLES"/}
-	for i in $ERROR; do
-	  i=${i//_/ }
-	  var=$(grep -i "$i" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
-	  if [ "$var" = "0" ]; then
-	    echo "QC_PASS .. $var/$nrfiles have $i"
-	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
-	  else
-	    echo "**_FAIL .. $var/$nrfiles have $i"
-	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
-	  fi
-	done
-
-	echo ">>>>>>>>>> CheckPoints "
-	PROGRESS=$(grep '^NGSANE_CHECKPOINT_INIT "' $SCRIPT | awk -F'"' '{print $2}' | tr ' ' '_')
-	for i in $PROGRESS; do
-	  i=${i//_/ }
-	  var=$(egrep "^\*{9} $i" $files | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
-	  if [ ! "$var" = "$nrfiles" ]; then
-	    echo "**_FAIL .. $var/$nrfiles have $i"
-	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
-	  else
-	    echo "QC_PASS .. $var/$nrfiles have $i"
-	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
-	  fi
-	done
-
-	echo ""
 
 done
 
