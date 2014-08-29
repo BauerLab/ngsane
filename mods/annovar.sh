@@ -32,7 +32,7 @@ if [ ! $# -gt 3 ]; then usage ; fi
 
 #DEFAULTS
 THREADS=1
-ADDRECAL="" # additional commands for variant recalibrator
+ADDRECALALN="" # additional commands for variant recalibrator
 
 #INPUTS
 while [ "$1" != "" ]; do
@@ -51,8 +51,8 @@ while [ "$1" != "" ]; do
         -d | --dbsnp )          shift; DBSNPVCF=$1 ;; # dbsnp
         -K | --1kg )            shift; ONEKGVCF=$1 ;; # 1000genomes data
         -L | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
-        --maxGaussians )        shift; ADDRECAL=$ADDRECAL" --maxGaussians "$1 ;; #(additional params for recal)
-        --percentBadVariants )  shift; ADDRECAL=$ADDRECAL" --percentBadVariants "$1 ;; #(additional params for recal)
+        --maxGaussians )        shift; ADDRECALALN=$ADDRECALALN" --maxGaussians "$1 ;; #(additional params for recal)
+        --percentBadVariants )  shift; ADDRECALALN=$ADDRECALALN" --percentBadVariants "$1 ;; #(additional params for recal)
         --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
         -h | --help )           usage ;;
         * )                     usage

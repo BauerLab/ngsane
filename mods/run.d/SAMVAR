@@ -21,18 +21,26 @@ if [ -n "$RUNSAMVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     		--postwalltime $WALLTIME_VARCOLLECT --postmemory $MEMORY_VARCOLLECT"G" \
             --command "${NGSANE_BASE}/mods/samSNPs.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$INPUT_SAMVAR-$TASK_SAMVAR" \
     	    --postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 $INPUT_SAMVAR \
-    				-i2 $INPUT_SAMVAR-$TASK_SAMVAR -o $OUT/variant/${INPUT_SAMVAR}-$INPUT_SAMVAR-$TASK_SAMVAR-<DIR> "
+    				-i2 $INPUT_SAMVAR-$TASK_SAMVAR -o $OUT/variant/${INPUT_SAMVAR}-$INPUT_SAMVAR-$TASK_SAMVAR-<DIR>"
   	
     ############################################################################
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "SamVar" "$TASK_SAMVAR" "samSNPs.sh,variantcollect.sh"
 
-        echo "[NOTE] the samSNPs.sh,variantcollect.sh mod does not provide a report"
-  
-        # finish the section
+        NGSANE_REPORT_TABLE "$TASK_GATKVAR SNP" \
+            "$OUT/variant/${INPUT_SAMVAR}-$INPUT_SAMVAR-$TASK_SAMVAR-<DIR>" \
+            ".filter.snps.eval.txt" \
+            "PATTERN:Total::fgrep -w 'CountVariants' | sed -n 3p | sed -e 's/ \+/\t/g' | cut -f7" \
+            "PATTERN:Known::fgrep -w 'CompOverlap' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f6" \
+            "PATTERN:SNPdb Conc::fgrep -w 'CompOverlap' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f11" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f11" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 4p | sed -e 's/ \+/\t/g' | cut -f27" \
+            "PATTERN:Novel::fgrep -w 'CompOverlap' | sed -n 5p | sed -e 's/ \+/\t/g' | cut -f6" \
+            "PATTERN:Variant Rate/Bp::fgrep -w 'CountVariants' | sed -n 5p | sed -e 's/ \+/\t/g' | cut -f11" \
+            "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 5p | sed -e 's/ \+/\t/g' | cut -f27"
+
         NGSANE_REPORT_FOOTER 
         
     fi

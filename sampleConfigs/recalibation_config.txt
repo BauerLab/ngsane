@@ -8,7 +8,7 @@
 #********************
 # Tasks
 #********************
-RUNREALRECAL="1"
+RUNRECALALN="1"
 
 #********************
 # Paths
@@ -19,7 +19,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_REALRECAL=$TASK_BWA
+INPUT_RECALALN=$TASK_BWA
 
 # where to write the output
 OUT=$SOURCE
@@ -45,10 +45,10 @@ DBSNPVCF=
 # PARAMETER (optional)
 #********************
 
-#WALLTIME_RECAL=60:00:00
-#MEMORY_RECAL=50
-#CPU_RECAL=8
-#NODES_RECAL="nodes=1:ppn=8" 
+#WALLTIME_RECALALN=60:00:00
+#MEMORY_RECALALN=50
+#CPU_RECALALN=8
+#NODES_RECALALN="nodes=1:ppn=8" 
 
-#MODULE_RECAL=
-#PATH_RECAL=
+#MODULE_RECALALN=
+#PATH_RECALALN=

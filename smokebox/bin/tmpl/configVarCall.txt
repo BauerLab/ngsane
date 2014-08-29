@@ -25,10 +25,10 @@ MEMORY_GATKVAR=8
 CPU_GATKVAR=2
 NODES_GATKVAR="nodes=1:ppn=2"
 
-WALLTIME_RECAL=00:30:00
-MEMORY_RECAL=8
-CPU_RECAL=2
-NODES_RECAL="nodes=1:ppn=2"
+WALLTIME_RECALALN=00:30:00
+MEMORY_RECALALN=8
+CPU_RECALALN=2
+NODES_RECALALN="nodes=1:ppn=2"
 
 WALLTIME_SAMVAR=00:20:00
 MEMORY_SAMVAR=4
@@ -52,13 +52,13 @@ NODES_PINDEL="nodes=1:ppn=2"
 RUNBOWTIE=""  # mapping with bowtie1
 RUNBOWTIE2="" # mapping with bowtie2
 RUNBWA=""     # mapping with bwa
-RUNREALRECAL=""      # recalibration/realignment
+RUNRECALALN=""      # recalibration/realignment
 DEPTHOFCOVERAGE=""   # determine mean coverage
 RUNVARCALLS=""       # SNP/Variant detection
-RUNANNOTATINGBAM=""  # annotate bam file with Gencode
+RUNBAMANN=""  # annotate bam file with Gencode
 RUNSAMVAR=""         # run variant call 
-RUNANNOTATINGBAM=""  # run bam file annotation
 RUNPINDEL=""
+
 
 HTMLOUT="Summary"
 
@@ -78,7 +78,7 @@ READTWO="_read2"
 FASTQ=fastq
 BAMANNLIB=$(pwd)/referenceData/bamann/
 TASK_BAMANN="bamann_bwa"
-INPUT_PINDEL=${TASK_RECAL}
+INPUT_PINDEL=${TASK_RECALALN}
 INPUT_IS_BWA="false" # if the aligner was not bwa you also have to specify the library type
 INPUT_TYPE="Illumina-PairEnd" # or (Illumina-MatePair)
 REFERENCE_DATE="20090201"
@@ -90,10 +90,10 @@ HAPMAPVCF=$(pwd)/referenceData/hapmap_3.3.chr16.vcf
 ONEKGVCF=$(pwd)/referenceData/1000G_omni2.5.chr16.vcf
 REFSEQGTF=$(pwd)/referenceData/UCSC_GencodeV12.gtf
 CONTAMINANTS=$(pwd)/adapters.txt
-GTF=$(pwd)/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+GTF=$(pwd)/referenceData/gencode.v19.annotation.reduced.chr16.gtf
 
 #REF=16:
-#RECALADDPARAM="-L $REF"
+#RECALALNADDPARAM="-L $REF"
 #DOCADDPARAM="-L $REF"
 #VARADDPARAM="-L $REF"
 # --maxGaussians 3 --percentBadVariants 0.05"

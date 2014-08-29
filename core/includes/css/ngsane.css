@@ -239,15 +239,14 @@ p {
     height:30px;
 }
 
-table.dataTable {
-    table-layout: fixed;
-	font-size: 12px;
+table.dataTable.display {
+	font-size: 11px;
 	text-align: left;
 	border-collapse: collapse;
 	border: 1px dotted #69c;
 }
 
-table.dataTable thead .sorting, table.dataTable thead .sorting_asc, table.dataTable thead .sorting_desc{
+table.dataTable.display thead .sorting, table.dataTable.display thead .sorting_asc, table.dataTable.display thead .sorting_desc{
     padding-right:15px;
 }
 
@@ -261,42 +260,49 @@ table,caption,tbody,tfoot,thead,tr,th {
 	background: transparent;
 }
 
-table.dataTable tbody tr.odd{
+table.dataTable.display tbody tr.odd, table.dataTable.display tbody tr.odd, 
+table.dataTable.display tbody tr.even>.sorting_1, table.dataTable.order-column.stripe tbody tr.even>.sorting_1,
+table.dataTable.display tbody tr.even>.sorting_2, table.dataTable.order-column.stripe tbody tr.even>.sorting_2,
+table.dataTable.display tbody tr.even>.sorting_3, table.dataTable.order-column.stripe tbody tr.even>.sorting_3{
     background: #efecff;
 }
-table.dataTable tbody tr.even{
+table.dataTable.display tbody tr.odd>.sorting_1, table.dataTable.order-column.stripe tbody tr.odd>.sorting_1,
+table.dataTable.display tbody tr.odd>.sorting_2, table.dataTable.order-column.stripe tbody tr.odd>.sorting_2,
+table.dataTable.display tbody tr.odd>.sorting_3, table.dataTable.order-column.stripe tbody tr.odd>.sorting_3{
+    background: #dfdcef;
+}
+table.dataTable.display tbody tr.even, table.dataTable.display tbody tr.even{
     background: #f5f3ff;
 }
 
-table.dataTable th {
+table.dataTable.display th {
 	font-weight: bold;
-	font-size: 12px;
 	color: #17212e;
 	border-bottom: 1px dashed #69c;
 	padding: 12px 5px;
 	text-align:center;
 }
 
-table.dataTable thead th div.DataTables_sort_wrapper {
+table.dataTable.display thead th div.DataTables_sort_wrapper {
   padding: 0
 }
 
-table.dataTable thead th {
+table.dataTable.display thead th {
   padding: 3px
 }
 
-table.dataTable th div{
+table.dataTable.display th div{
 	width: 100px;
 }
 
-table.dataTable tbody td {
+table.dataTable.display tbody td {
 	color: #555e66;
 	padding: 3px 5px;
 	text-align:right;
 	white-space: nowrap;
 }
 
-table.dataTable td.left, table.dataTable  th.left{
+table.dataTable.display td.left, table.dataTable.display  th.left{
 	text-align:left;
 	width: auto;
 }
@@ -305,7 +311,7 @@ table.dataTable td.left, table.dataTable  th.left{
 	vertical-align:text-top
 }
 
-table.dataTable tfoot {
+table.dataTable.display tfoot {
 	border-top: 1px dashed #69c;
 }
 

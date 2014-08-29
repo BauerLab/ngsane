@@ -14,6 +14,7 @@
 # $5=output location if different to the default ($TASK)
 
 function NGSANE_REPORT_HEADER {
+    export NGSANE_REPORT_TABLE_COUNTER=0
     export LINKS=$LINKS" $2"   
     echo "<div class='panel' id='$2_panel'><div class='tabs headbagb' id='$2_panel_tabs'><a name='$2'></a>
             <a class='selected' href='#$2_results'><h2 id='$2_h_results' class='sub'>$1</h2></a>
@@ -54,12 +55,13 @@ function NGSANE_REPORT_FOOTER {
 # $4=LINK (link to other html reports)
 # $5..$x=COLUMNS (pattern or figures to appear in columns in the given order, starting with either "PATTERN:" or "FIGURE:")
 function NGSANE_REPORT_TABLE {
-
+    export NGSANE_REPORT_TABLE_COUNTER=$(( $NGSANE_REPORT_TABLE_COUNTER + 1 ))
+    
     NGSANE_VAR_CHECK_FOR_NUMBER_RE="^-?[0-9]+([.][0-9]+)?$"  
     cat >> $SUMMARYTMP <<EOF
 <script type="text/javascript">
 //<![CDATA[
-${1}_Table_json={
+${1}_Table_${NGSANE_REPORT_TABLE_COUNTER}_json={
 	"bPaginate": true,
 	"bProcessing": false,
 	"bAutoWidth": false,
@@ -67,6 +69,7 @@ ${1}_Table_json={
 	"bLengthChange": true,
     "bFilter": true,
 	"iDisplayLength": 10,
+	"responsive": true,
 	"bJQueryUI": false,
 	"aLengthMenu": [[1, 5, 10, -1], [1, 5, 10, "All"]],
 	"aoColumns": [
@@ -212,10 +215,11 @@ EOF
     done
     # add table footer
     cat >> $SUMMARYTMP <<EOF
-        ]}
+        ]};
+        datatable_array.push({"json":"${1}_Table_${NGSANE_REPORT_TABLE_COUNTER}_json","html":"${1}_id_Table_${NGSANE_REPORT_TABLE_COUNTER}"});
         //]]>
         </script>
-    <table id="${1}_id_Table" width="100%"><thead><tr>${NGSANE_VAR_REPORT_TABLE_COLUMNS//td/th}</tr></thead><tbody><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tbody><tfoot><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tfoot></table>
+    <table id="${1}_id_Table_${NGSANE_REPORT_TABLE_COUNTER}" class="display responsive no-wrap" width="100%"><thead><tr>${NGSANE_VAR_REPORT_TABLE_COLUMNS//td/th}</tr></thead><tbody><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tbody><tfoot><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tfoot></table>
 EOF
 
 }

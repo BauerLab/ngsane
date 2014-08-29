@@ -60,7 +60,7 @@ NGSANE_CHECKPOINT_INIT "programs"
  # save way to load modules that itself load other modules
 hash module 2>/dev/null && for MODULE in $MODULE_PINDEL; do module load $MODULE; done && module list
 
-export PATH=$PATH_RECAL:$PATH
+export PATH=$PATH_RECALALN:$PATH
 echo $PATH
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)

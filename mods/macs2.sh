@@ -101,9 +101,8 @@ if [ -n "$DMGET" ]; then
 	[ -n "$CHIPINPUT" ] && dmget -a $CHIPINPUT
 fi
 
-if [[ -z "$CHIPINPUT" ]] || [[ ! -f $CHIPINPUT ]]; then
+if [[ -z "$CHIPINPUT" || ! -f $CHIPINPUT ]]; then
     echo "[WARN] input control not provided or invalid ($CHIPINPUT)"
-    ls -la $(basename $CHIPINPUT)
     unset CHIPINPUT
 else
 	echo "[NOTE] CHIPINPUT $CHIPINPUT"

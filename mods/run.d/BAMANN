@@ -4,7 +4,7 @@
 # IN : */bwa/*.bam
 # OUT: */bwa/*.ann
 ################################################################################ 
-if [ -n "$RUNANNOTATINGBAM" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+if [ -n "$RUNBAMANN" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     
     ############################################################################
     # Wether to submit a job or compile a report

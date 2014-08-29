@@ -30,7 +30,14 @@ if [ -n "$RUNHTSEQCOUNT" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
         # start a new section for a mod
         NGSANE_REPORT_HEADER "Htseqcount" "$TASK_HTSEQCOUNT" "htseqcount.sh,countsTable.sh"
 
-        echo "[NOTE] the htseqcount.sh,countsTable.sh mod does not provide a report"
+        NGSANE_REPORT_TABLE "$TASK_HTSEQCOUNT" \
+            "$OUT/<DIR>/$TASK_HTSEQCOUNT/" \
+            ".summary.txt" \
+            "PATTERN:No feature::head -n 1 | sed 's/.*__no_feature \([0-9]\+\).*/\1/g'" \
+            "PATTERN:Ambiguous::head -n 1 | sed 's/.*__ambiguous \([0-9]\+\).*/\1/g'" \
+            "PATTERN:Low aQual::head -n 1 | sed 's/.*__too_low_aQual \([0-9]\+\).*/\1/g'" \
+            "PATTERN:Not aligned::head -n 1 | sed 's/.*__not_aligned \([0-9]\+\).*/\1/g'" \
+            "PATTERN:Alignment not unique::head -n 1 | sed 's/.*__alignment_not_unique \([0-9]\+\).*/\1/g'"
 
         # finish the section
         NGSANE_REPORT_FOOTER 

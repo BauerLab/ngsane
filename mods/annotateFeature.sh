@@ -153,7 +153,7 @@ if [ -n "$BIN" ]; then
     echo "[NOTE] bin with $BIN"
 fi
 
-export CENTERBINS=100
+export CENTERBINS=$(( ($UPSTREAM+$DOWNSTREAM)/2 ))
 
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$FEATURENAME | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
@@ -216,6 +216,22 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
             bedtools merge $STRAND -n -i $FEATURE_REGIONS | awk '{if ($4==1){$5==""?$5=".":$5=$5;OFS="\t"; print $1,$2,$3,".",".",$5}}' | bedtools sort > $FEATURE_REGIONS.tmp2
             echo "[NOTE] drop "$(echo $(wc -l $FEATURE_REGIONS | cut -d " " -f 1 )-$(wc -l $FEATURE_REGIONS.tmp2 | cut -d " " -f 1) | bc)" multi-feature regions from "$(echo $(wc -l $FEATURE_REGIONS | cut -d " " -f 1 ))
             mv $FEATURE_REGIONS.tmp2 $FEATURE_REGIONS
+            
+            # SUBSET individual regions too
+            if [ -f ${FEATURE_REGIONS}_upstream ]; then
+                bedtools intersect -wa -a ${FEATURE_REGIONS}_upstream -b $FEATURE_REGIONS > ${FEATURE_REGIONS}_upstream.tmp 
+                mv ${FEATURE_REGIONS}_upstream.tmp ${FEATURE_REGIONS}_upstream
+            fi
+
+            if [ -f ${FEATURE_REGIONS}_center ]; then 
+                bedtools intersect -wa -a ${FEATURE_REGIONS}_center -b $FEATURE_REGIONS > ${FEATURE_REGIONS}_center.tmp 
+                mv ${FEATURE_REGIONS}_center.tmp ${FEATURE_REGIONS}_center
+            fi
+            
+            if [ -f ${FEATURE_REGIONS}_downstream ]; then 
+                bedtools intersect -wa -a ${FEATURE_REGIONS}_downstream -b $FEATURE_REGIONS > ${FEATURE_REGIONS}_downstream.tmp   
+                mv ${FEATURE_REGIONS}_downstream.tmp ${FEATURE_REGIONS}_downstream
+            fi
         fi
 #        head -n 2 $FEATURE_REGIONS
     done 
@@ -330,7 +346,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         fgrep -w "$fileloc" $CONFIG
         mark=$(fgrep "$fileloc" $CONFIG | cut -d " " -f 3)
         if [ -z "$mark" ]; then echo "[WARN] skipped undefined mark (provide FEATANN_LAB definition in the config file if you want to consider this data)"; exit; fi
-        
+               
         for FEATURES in $(ls $OUTDIR/$FEATURENAME/*.bed 2> /dev/null); do
             F=${FEATURES##*/}
             F=${F/.bed/}
@@ -373,64 +389,78 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
             EXPREG=$(bedtools coverage $STRAND $A $1 -b $FEATURE_REGIONS | gawk -v v=$VAL '{if ($v!=0) {print $0}}' | wc -l)  # non-zero covered features
             # non-zero covered features
+            cat /dev/null > $OUTDIR/$name.bed
             if [[ $EXPREG != 0 ]]; then
                 echo "[NOTE] nonzero FEATURE_REGIONS $EXPREG"
                 if [ -n "$BIN" ]; then
 
                     bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_upstream | \
                         gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' | \
-                        gawk -v bin=$BIN  'BEGIN{OFS="\t";sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1,sum/len,$3}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
+                        gawk -v bin=$BIN  'BEGIN{OFS="\t";sum=0;len=1} \
+                        {if ($1%bin==0){if(len==bin){print $1,sum/len,$3}; sum=0;len=1} \
+                        else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed_upstream
 
                     bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_center | \
-                    gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $3-$2,$i,$v,$s}' | \
-                    gawk -v upstream=$UPSTREAM -v flankbinsize=$BIN -v bins=$CENTERBINS \
-                    'BEGIN{OFS="\t";sum=0;len=1;bin=0;lastbin=0;offset=int(upstream/flankbinsize);}
-                        {bin=$1/bins; 
-                        if(lastbin < int($2/bin)){
-                            for (i=lastbin;i<int($2/bin);i++){print offset+i,(sum+$3)/len,$4};
-                            lastbin=int($2/bin);
-                            len=1;
-                            sum=0;
-                        } else {
-                            len=len+1;
-                            sum=sum+$3;
-                        }
-                        if (lastbin >= bins){
-                            lastbin=0;
-                        }                             
-                    }' >> $OUTDIR/$name.bed >> $OUTDIR/$name.bed
+                       gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $3-$2,$i,$v,$s}' | \
+                       gawk -v bins=$CENTERBINS 'BEGIN{OFS="\t";sum=0;len=0;bin=1;lastbin=1;} \
+                           {binsize=$1/bins;  \
+                           if($2 == $1){
+                               len=len+1; \
+                               sum=sum+$3; \
+                               while(len>0 && lastbin <= bins){print lastbin,sum/len,$4; lastbin++;}; \
+                               bin=1; \
+                               lastbin=1; \
+                               len=0; \
+                               sum=0; \
+                           } else if ($2/binsize > bin){ \
+                               while(len>0 && lastbin < int($2/binsize)){print lastbin,sum/len,$4; lastbin++;}; \
+                               bin=int($2/binsize); \
+                               len=1; \
+                               sum=$3; \
+                           } else { \
+                               len=len+1; \
+                               sum=sum+$3; \
+                           } \
+                       }' > $OUTDIR/$name.bed_center
 
                     bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_downstream | \
-                        gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' | 
-                        gawk -v bin=$BIN -v upstream=$UPSTREAM -v flankbinsize=$BIN  -v center=$CENTERBINS \
-                        'BEGIN{OFS="\t";sum=0;len=1;offset=int(upstream/flankbinsize)+center;}
-                        {if ($1%bin==0){if(len==bin){print center+$1,sum/len,$3}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' >> $OUTDIR/$name.bed
+                        gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' | \
+                        gawk -v bin=$BIN -v upstream=$UPSTREAM -v center=$CENTERBINS \
+                        'BEGIN{OFS="\t";sum=0;len=1;} \
+                        {if ($1%bin==0){if(len==bin){print $1,sum/len,$3}; sum=0;len=1} \
+                        else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed_downstream
 
                 else
                 
                     bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_upstream | \
-                        gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' > $OUTDIR/$name.bed
+                        gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' > $OUTDIR/$name.bed_upstream 
 
                     bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_center | \
                        gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $3-$2,$i,$v,$s}' | \
-                       gawk -v upstream=$UPSTREAM -v bins=$CENTERBINS 'BEGIN{OFS="\t";sum=0;len=1;bin=0;lastbin=0}
-                           {bin=$1/bins; 
-                           if(lastbin < int($2/bin)){
-                               for (i=lastbin;i<int($2/bin);i++){print upstream+i,(sum+$3)/len,$4};
-                               lastbin=int($2/bin);
-                               len=1;
-                               sum=0;
-                           } else {
-                               len=len+1;
-                               sum=sum+$3;
-                           }
-                           if (lastbin >= bins){
-                               lastbin=0;
-                           }                             
-                       }' >> $OUTDIR/$name.bed
+                       gawk -v bins=$CENTERBINS 'BEGIN{OFS="\t";sum=0;len=0;bin=1;lastbin=1;} \
+                           {binsize=$1/bins;  \
+                           if($2 == $1){
+                               len=len+1; \
+                               sum=sum+$3; \
+                               while(len>0 && lastbin <= bins){print lastbin,sum/len,$4; lastbin++;}; \
+                               bin=1; \
+                               lastbin=1; \
+                               len=0; \
+                               sum=0; \
+                           } else if ($2/binsize > bin){ \
+                               while(len>0 && lastbin < int($2/binsize)){print lastbin,sum/len,$4; lastbin++;}; \
+                               bin=int($2/binsize); \
+                               len=1; \
+                               sum=$3; \
+                           } else { \
+                               len=len+1; \
+                               sum=sum+$3; \
+                           } \
+                       }' > $OUTDIR/$name.bed_center
 
                     bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_downstream | \
-                    gawk -v i=$IND -v v=$VAL -v s=$STR -v upstream=$UPSTREAM -v center=$CENTERBINS '{OFS="\t";print upstream+center+$i,$v,$s}' >> $OUTDIR/$name.bed
+                        gawk -v i=$IND -v v=$VAL -v s=$STR -v upstream=$UPSTREAM -v center=$CENTERBINS \
+                        '{OFS="\t";print $i,$v,$s}' > $OUTDIR/$name.bed_downstream
 
                 fi
         
@@ -439,12 +469,12 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
                 echo "[NOTE] process file"
                 RUNCOMMAND="python ${NGSANE_BASE}/tools/coverageAtFeature.py -f $OUTDIR/$name.bed -C $F $PYBIN -u $UPSTREAM -d $DOWNSTREAM -c $CENTERBINS -l $FEATURE_LENGTH -n $mark -o $OUTDIR/$name $IGNOREUNCOVERED $REMOVEOUTLIER $TOTALREADS --metric $METRIC"
                 echo $RUNCOMMAND && eval $RUNCOMMAND
-    
+
             else
                 echo "[NOTE] no regions overlap features"
                 touch $OUTDIR/$name.txt $OUTDIR/$name.bed;
             fi
-            head $OUTDIR/$name.bed
+#            [ -f $OUTDIR/$name.bed ] && rm $OUTDIR/$name.bed
         done
     }
     export -f get_coverage_onesided

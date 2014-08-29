@@ -64,10 +64,10 @@ RUNTOPHAT=""         # mapping with tophat (RNAseq)
 RUNCUFFLINKS=""      # mapping with cufflinks (RNAseq)
 RUNHTSEQCOUNT=""     # mapping with htseqcount (RNAseq)
 RUNBWA=""     # mapping with bwa
-RUNREALRECAL=""      # recalibration/realignment
+RUNRECALALN=""      # recalibration/realignment
 DEPTHOFCOVERAGE=""   # determine mean coverage
 RUNVARCALLS=""       # SNP/Variant detection
-RUNANNOTATINGBAM=""  # annotate bam file with Gencode
+RUNBAMANN=""  # annotate bam file with Gencode
 RUNSAMVAR=""         # run variant call 
 RUNPEAKRANGER=""     # Peakranger
 
@@ -106,7 +106,7 @@ HAPMAPVCF=$(pwd)/referenceData/hapmap_3.3.chr16.vcf
 ONEKGVCF=$(pwd)/referenceData/1000G_omni2.5.chr16.vcf
 REFSEQGTF=$(pwd)/referenceData/UCSC_GencodeV12.gtf
 CONTAMINANTS=$(pwd)/adapters.txt
-GTF=$(pwd)/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+GTF=$(pwd)/referenceData/gencode.v19.annotation.reduced.chr16.gtf
 
 #REF=16:
 #RECALADDPARAM="-L $REF"

@@ -86,11 +86,6 @@ echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n 1 )
 [ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
-if [ -n "$ITERATIVE_MAPPING" ]; then 
-    PATH_TRIMMOMATIC=$(dirname $(which trimmomatic.jar))
-    echo -e "--trimmomatic --\n " $(which $PATH_TRIMMOMATIC/trimmomatic.jar)
-    [ ! -f $PATH_TRIMMOMATIC/trimmomatic.jar ] && echo "[ERROR] no trimmomatic detected" && exit 1
-fi
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -146,6 +141,23 @@ else
     let FASTQREADS=`$CAT $f | wc -l | gawk '{print int($1/4)}' `
 fi
 
+if [[ -z "$BWA_ALGORITHM" ||  "$BWA_ALGORITHM" == sam* ]]; then
+    if [ "$PAIRED" == "1" ]; then
+        echo "[NOTE] BWA algorithm is sampe"
+        BWA_ALGORITHM=sampe
+    else
+        echo "[NOTE] BWA algorithm is samse"
+        BWA_ALGORITHM=samse
+    fi
+elif [[ "$BWA_ALGORITHM" == "mem" ]]; then
+    echo "[NOTE] BWA algorithm is mem"
+elif [[ "$BWA_ALGORITHM" == "bwasw" ]]; then
+    echo "[NOTE] BWA algorithm is mem"
+else
+    echo "[ERROR] specified BWA algorithm invalid"
+    exit 1
+fi
+    
 # get encoding unless specified
 if [ -z "$FASTQ_ENCODING" ]; then 
     echo "[NOTE] Detect fastq Phred encoding"
@@ -187,207 +199,123 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     if [ "$PAIRED" = 1 ]; then
 
         echo "[NOTE] PAIRED READS"
-        # clever use of named pipes to avoid IO
-        [ -e $OUTDIR/$SAMPLE$READONE.sai ] && rm $OUTDIR/$SAMPLE$READONE.sai
-        [ -e $OUTDIR/$SAMPLE$READTWO.sai ] && rm $OUTDIR/$SAMPLE$READTWO.sai
-        mkfifo $OUTDIR/$SAMPLE$READONE.sai $OUTDIR/${n/%$READONE.$FASTQ/$READTWO.sai}
-    
-        bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $f > $OUTDIR/$SAMPLE$READONE.sai &
-        bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $OUTDIR/$SAMPLE$READTWO.sai &
         
-        bwa sampe $FASTA $OUTDIR/$SAMPLE$READONE.sai $OUTDIR/$SAMPLE$READTWO.sai\
-    	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-	       $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | samtools view -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE$ALN.bam
+        if [[ "$BWA_ALGORITHM" == "sampe" ]]; then
+            bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $f > $THISTMP/$SAMPLE$READONE.sai
+            bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/$SAMPLE$READTWO.sai
+            bwa sampe $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
+                $FASTA $THISTMP/$SAMPLE$READONE.sai $THISTMP/$SAMPLE$READTWO.sai \
+                $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | samtools view -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE$ALN.bam
 
-        [ -e $OUTDIR/$SAMPLE$READONE.sai ] && rm $OUTDIR/$SAMPLE$READONE.sai
-        [ -e $OUTDIR/$SAMPLE$READTWO.sai ] && rm $OUTDIR/$SAMPLE$READTWO.sai
+            [ -f $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
+            [ -f $THISTMP/$SAMPLE$READTWO.sai ] && rm $THISTMP/$SAMPLE$READTWO.sai
+            
+        elif [[ "$BWA_ALGORITHM" == "mem" ]]; then
+        
+            bwa mem $BWASAMPLEADDPARAM -t $CPU_BWA -R "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
+    	       $FASTA $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | samtools view -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE$ALN.bam
 
+        elif [[ "$BWA_ALGORITHM" == "bwasw" ]]; then
+
+            bwa bwasw $BWASAMPLEADDPARAM -t $CPU_BWA
+    	       $FASTA $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} | samtools view -bS -t $FASTA.fai - > $THISTMP/$SAMPLE$ALN.bam
+
+            # add readgroup
+            java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
+                INPUT=$THISTMP/$SAMPLE$ALN.bam \
+                OUTPUT=$OUTDIR/$SAMPLE$ALN.bam \
+                RGID=$EXPID RGLB=$LIBRARY RGPL=$PLATFORM \
+                RGSM=$FULLSAMPLEID RGPU="XXXXXX"
+                METRICS_FILE=$OUTDIR/metrices/$SAMPLE$ASD.bam.dupl \
+                VALIDATION_STRINGENCY=SILENT \
+                TMP_DIR=$THISTMP
+
+        fi
     else
         echo "[NOTE] SINGLE READS"
-        # clever use of named pipes to avoid IO
-        [ -e $OUTDIR/$SAMPLE$READONE.sai ] && rm $OUTDIR/$SAMPLE$READONE.sai
-        mkfifo $OUTDIR/$SAMPLE$READONE.sai
         
-        bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA $f > $OUTDIR/$SAMPLE$READONE.sai &
+        if [[ "$BWA_ALGORITHM" == "samse" ]]; then
+
+            bwa aln $QUAL $BWAALNADDPARAM -t $CPU_BWA $FASTA $f > $THISTMP/$SAMPLE$READONE.sai
+            bwa samse $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \ \
+                $FASTA $THISTMP/$SAMPLE$READONE.sai \
+            	$f | samtools view -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE$ALN.bam
     
-        bwa samse $FASTA $OUTDIR/$SAMPLE$READONE.sai \
-            $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-        	$f | samtools view -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE$ALN.bam
-    
-        [ -e $OUTDIR/$SAMPLE$READONE.sai ] && rm $OUTDIR/$SAMPLE$READONE.sai
+            [ -f $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
+            
+        elif [[ "$BWA_ALGORITHM" == "mem" ]]; then
+
+            bwa mem $BWASAMPLEADDPARAM -t $CPU_BWA -R "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
+                $FASTA $f | samtools view -bS -t $FASTA.fai - > $OUTDIR/$SAMPLE$ALN.bam
+        
+        elif [[ "$BWA_ALGORITHM" == "bwasw" ]]; then
+        
+            bwa bwasw $BWASAMPLEADDPARAM -t $CPU_BWA $FASTA $f | samtools view -bS -t $FASTA.fai - > $THISTMP/$SAMPLE$ALN.bam
+
+            # add readgroup
+            java $JAVAPARAMS -jar $PATH_PICARD/AddOrReplaceReadGroups.jar \
+                INPUT=$THISTMP/$SAMPLE$ALN.bam \
+                OUTPUT=$OUTDIR/$SAMPLE$ALN.bam \
+                RGID=$EXPID RGLB=$LIBRARY RGPL=$PLATFORM \
+                RGSM=$FULLSAMPLEID RGPU="XXXXXX"
+                METRICS_FILE=$OUTDIR/metrices/$SAMPLE$ASD.bam.dupl \
+                VALIDATION_STRINGENCY=SILENT \
+                TMP_DIR=$THISTMP
+                
+            [ -f $THISTMP/$SAMPLE$ALN.bam ] && rm $THISTMP/$SAMPLE$ALN.bam
+        fi
+   
     fi
     
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ALN.bam
 fi
 
+
 ################################################################################
-NGSANE_CHECKPOINT_INIT "Iterative Mapping"
+NGSANE_CHECKPOINT_INIT "bam sorting"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    # iterative mapping    
-    if [ -z "$ITERATIVE_MAPPING" ]; then
-        echo "[NOTE] Skip iterative mapping"
-        NGSANE_CHECKPOINT_CHECK
-        
+    if [ "$PAIRED" = "1" ]; then
+        # fix and sort
+        echo "[NOTE] fixmate"
+        RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar \
+            I=$OUTDIR/$SAMPLE$ALN.bam \
+            O=$OUTDIR/$SAMPLE.ash.bam \
+            VALIDATION_STRINGENCY=SILENT \
+            SORT_ORDER=coordinate \
+            TMP_DIR=$THISTMP"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
     else
-        ITERATIVEINPUT=$OUTDIR/$SAMPLE$ALN.bam
-        samtools view -H $ITERATIVEINPUT > $THISTMP/$SAMPLE$ALN.fullsize.header
-        
-        if [ "$PAIRED" = 1 ]; then
-            echo "[NOTE] iterative mapping of paired-end libary"
-            
-            for COUNTER in $(seq $ITERATIVE_MAPPING); do
-                # skip ahead if possible
-                if [ -f $OUTDIR/$SAMPLE$ALN.$COUNTER.bam ]; then
-                    echo "[NOTE] found results for iterative mapping $COUNTER"
-                else    
-                    echo "[NOTE] Iterative Mapping with read length $COUNTER"
-                    # get exactly one end mapped
-                    samtools view -bh -F 4 -f 8 $ITERATIVEINPUT > $THISTMP/$SAMPLE$UNM.1.bam
-                    samtools view -bh -F 8 -f 4 $ITERATIVEINPUT > $THISTMP/$SAMPLE$UNM.2.bam
-                    
-                    # both two ends unmapped
-                    samtools view -bh -f 12 $ITERATIVEINPUT > $THISTMP/$SAMPLE$UNM.3.bam
-                    
-                    # merge and sort
-                    samtools merge $THISTMP/$SAMPLE$UNM.all.bam $THISTMP/$SAMPLE$UNM.1.bam $THISTMP/$SAMPLE$UNM.2.bam $THISTMP/$SAMPLE$UNM.3.bam               
-                    samtools sort $THISTMP/$SAMPLE$UNM.all.bam $THISTMP/$SAMPLE$UNM.tmp
-                    
-                    # check for premature exit from loop
-                    if [ $(samtools view -c $THISTMP/$SAMPLE$UNM.tmp.bam) == 0 ]; then 
-                        break
-                    fi               
-    
-                    # properly paired reads
-                    samtools view -bh -f 1 -F 12 $ITERATIVEINPUT > $OUTDIR/$SAMPLE$ALN.$COUNTER.iterative
-    
-                    rm $THISTMP/$SAMPLE$UNM.1.bam $THISTMP/$SAMPLE$UNM.2.bam $THISTMP/$SAMPLE$UNM.3.bam $THISTMP/$SAMPLE$UNM.all.bam
-    
-                    # convert
-                    [ -e $THISTMP/$SAMPLE$READONE.fastq.gz ] && rm $THISTMP/$SAMPLE$READONE.fastq.gz
-                    [ -e $THISTMP/$SAMPLE$READTWO.fastq.gz ] && rm $THISTMP/$SAMPLE$READTWO.fastq.gz
-                    
-                    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
-                        I=$THISTMP/$SAMPLE$UNM.tmp.bam \
-                        O=$THISTMP/$SAMPLE$UNM.bam \
-                        VALIDATION_STRINGENCY=SILENT \
-                        TMP_DIR=$THISTMP"
-                    echo $RUN_COMMAND && eval $RUN_COMMAND
-    
-                    samtools index $THISTMP/$SAMPLE$UNM.bam
-    
-                    java $JAVAPARAMS -jar $PATH_PICARD/SamToFastq.jar INPUT=$THISTMP/$SAMPLE$UNM.bam FASTQ=$THISTMP/$SAMPLE$READONE.fastq SECOND_END_FASTQ=$THISTMP/$SAMPLE$READTWO.fastq
-                    $GZIP $THISTMP/$SAMPLE$READONE.fastq $THISTMP/$SAMPLE$READTWO.fastq
-                    
-                    # crop reads using trimmomatic
-                    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_TRIMMOMATIC/trimmomatic.jar PE $FASTQ_PHRED_TRIM -threads $CPU_BWA -trimlog $THISTMP/$SAMPLE.trim.log $THISTMP/$SAMPLE$READONE.fastq.gz $THISTMP/$SAMPLE$READTWO.fastq.gz $THISTMP/$SAMPLE$READONE.cropped.fastq.gz $THISTMP/$SAMPLE$READONE.unpaired.fastq.gz $THISTMP/$SAMPLE$READTWO.cropped.fastq.gz $THISTMP/$SAMPLE$READTWO.unpaired.fastq.gz CROP:$COUNTER"
-                    echo $RUN_COMMAND && eval $RUN_COMMAND
-                    
-                    [ -e $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
-                    [ -e $THISTMP/$SAMPLE$READTWO.sai ] && rm $THISTMP/$SAMPLE$READTWO.sai
-                    mkfifo $THISTMP/$SAMPLE$READONE.sai $THISTMP/${n/%$READONE.$FASTQ/$READTWO.sai}
-                
-                    bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $THISTMP/$SAMPLE$READONE.cropped.fastq.gz > $THISTMP/$SAMPLE$READONE.sai &
-                    bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $THISTMP/$SAMPLE$READTWO.cropped.fastq.gz > $THISTMP/$SAMPLE$READTWO.sai &
-                    
-                    bwa sampe $FASTA $THISTMP/$SAMPLE$READONE.sai $THISTMP/$SAMPLE$READTWO.sai\
-            	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-            	       $THISTMP/$SAMPLE$READONE.cropped.fastq.gz $THISTMP/$SAMPLE$READTWO.cropped.fastq.gz | samtools -bS -t $FASTA.fai - > $THISTMP/$SAMPLE$ALN.$COUNTER.bam
-            
-                    [ -e $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
-                    [ -e $THISTMP/$SAMPLE$READTWO.sai ] && rm $THISTMP/$SAMPLE$READTWO.sai
-                        
-                    rm $THISTMP/$SAMPLE$READONE.cropped.* $THISTMP/$SAMPLE$READTWO.cropped.* $THISTMP/$SAMPLE$UNM.bam*
-                    mv $THISTMP/$SAMPLE$ALN.$COUNTER.bam $OUTDIR/$SAMPLE$ALN.$COUNTER.bam
-                fi
-                
-                ITERATIVEINPUT=$OUTDIR/$SAMPLE$ALN.$COUNTER.bam
-            done
-
-        elif [ "$PAIRED" = 0 ]; then
-            echo "[NOTE] iterative mapping of single-end libary"
-
-            for COUNTER in $(seq $ITERATIVE_MAPPING); do
-                # skip ahead if possible
-                if [ -f $OUTDIR/$SAMPLE$ALN.$COUNTER.bam ]; then
-                    echo "[NOTE] found results for iterative mapping $COUNTER"
-                else    
-                    echo "[NOTE] Iterative Mapping with read length $COUNTER"
-                    
-                    # exactly unmapped
-                    samtools view -bh -f 4 $ITERATIVEINPUT > $THISTMP/$SAMPLE$UNM.tmp.bam
-    
-                    # check for premature exit from loop
-                    if [ $(samtools view -c $THISTMP/$SAMPLE$UNM.tmp.bam) == 0 ]; then 
-                        break
-                    fi
-    
-                    # properly mapped reads
-                    samtools view -bh -F 4 $ITERATIVEINPUT > $OUTDIR/$SAMPLE$ALN.$COUNTER.iterative
-                    
-                                    
-                    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
-                        I=$THISTMP/$SAMPLE$UNM.tmp.bam \
-                        O=$THISTMP/$SAMPLE$UNM.bam \
-                        VALIDATION_STRINGENCY=SILENT \
-                        TMP_DIR=$THISTMP"
-                    echo $RUN_COMMAND && eval $RUN_COMMAND
-    
-                    samtools index $THISTMP/$SAMPLE$UNM.bam
-    
-                    # convert
-                    [ -e $THISTMP/$SAMPLE$READONE.fastq.gz ] && rm $THISTMP/$SAMPLE$READONE.fastq.gz
-                    java $JAVAPARAMS -jar $PATH_PICARD/SamToFastq.jar INPUT=$THISTMP/$SAMPLE$UNM.bam FASTQ=$THISTMP/$SAMPLE$READONE.fastq
-                    $GZIP $THISTMP/$SAMPLE$READONE.fastq
-                    
-                    # crop reads using trimmomatic
-                    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_TRIMMOMATIC/trimmomatic.jar SE $FASTQ_PHRED_TRIM -threads $CPU_BWA -trimlog $THISTMP/$SAMPLE.trim.log $THISTMP/$SAMPLE$READONE.fastq.gz $THISTMP/$SAMPLE$READONE.cropped.fastq.gz CROP:$COUNTER"
-                    echo $RUN_COMMAND && eval $RUN_COMMAND
-                    
-                    [ -e $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
-                    mkfifo $THISTMP/$SAMPLE$READONE.sai
-                
-                    bwa aln $QUAL $BWAALNADDPARAM $FASTQ_PHRED -t $CPU_BWA $FASTA $THISTMP/$SAMPLE$READONE.cropped.fastq.gz > $THISTMP/$SAMPLE$READONE.sai &
-                    
-                    bwa samse $FASTA $THISTMP/$SAMPLE$READONE.sai \
-            	       $BWASAMPLEADDPARAM -r "@RG\tID:$EXPID\tSM:$FULLSAMPLEID\tPL:$PLATFORM\tLB:$LIBRARY" \
-            	       $THISTMP/$SAMPLE$READONE.cropped.fastq.gz | samtools view -bS -t $FASTA.fai - > $THISTMP/$SAMPLE$ALN.$COUNTER.bam
-            
-                    [ -e $THISTMP/$SAMPLE$READONE.sai ] && rm $THISTMP/$SAMPLE$READONE.sai
-                        
-                    rm $THISTMP/$SAMPLE$READONE.cropped.* $THISTMP/$SAMPLE$UNM.bam*
-                    mv $THISTMP/$SAMPLE$ALN.$COUNTER.bam $OUTDIR/$SAMPLE$ALN.$COUNTER.bam
-                fi
-                ITERATIVEINPUT=$OUTDIR/$SAMPLE$ALN.$COUNTER.bam
-
-            done
-        fi
-        
-        # merge iterative mapped reads
-        samtools merge -h $THISTMP/$SAMPLE$ALN.fullsize.header $THISTMP/$SAMPLE$ALN.tmp $ITERATIVEINPUT $OUTDIR/$SAMPLE$ALN.[0-9]*.iterative
-        mv $THISTMP/$SAMPLE$ALN.tmp $OUTDIR/$SAMPLE$ALN.bam
-        
-        rm $THISTMP/$SAMPLE$ALN.fullsize.header $ITERATIVEINPUT $OUTDIR/$SAMPLE$ALN.[0-9]*.bam $OUTDIR/$SAMPLE$ALN.[0-9]*.iterative
-
-        # mark checkpoint
-        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ALN.bam
+        # just sort
+        samtools sort -@ $CPU_BOWTIE $OUTDIR/$SAMPLE$ALN.bam $OUTDIR/$SAMPLE.ash
     fi
-fi
-
-################################################################################
-NGSANE_CHECKPOINT_INIT "bam conversion and sorting"
-
-if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-
-    samtools sort -@ $CPU_BWA $OUTDIR/$SAMPLE$ALN.bam $OUTDIR/$SAMPLE.ash
-    [ -e $OUTDIR/$SAMPLE$ALN.bam ] && rm $OUTDIR/$SAMPLE$ALN.bam
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.ash.bam
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.ash.bam 
+    
+    # cleanup
+    [ -e $OUTDIR/$SAMPLE$ALN.bam ] && rm $OUTDIR/$SAMPLE$ALN.bam
 fi
 
+################################################################################
+NGSANE_CHECKPOINT_INIT "clean sam"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+   
+    java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
+        INPUT=$OUTDIR/$SAMPLE.ash.bam \
+        OUTPUT=$OUTDIR/$SAMPLE.cleaned.bam \
+        VALIDATION_STRINGENCY=LENIENT \
+        TMP_DIR=$THISTMP
+
+    # mark checkpoint
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.cleaned.bam
+    
+    # cleanup
+    [ -e $OUTDIR/$SAMPLE.ash.bam  ] && rm $OUTDIR/$SAMPLE.ash.bam 
+fi
 
 ################################################################################
 NGSANE_CHECKPOINT_INIT "mark duplicates"
@@ -400,7 +328,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     #http://seqanswers.com/forums/showthread.php?t=4246
     if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
     java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
-        INPUT=$OUTDIR/$SAMPLE.ash.bam \
+        INPUT=$OUTDIR/$SAMPLE.cleaned.bam \
         OUTPUT=$OUTDIR/$SAMPLE$ASD.bam \
         METRICS_FILE=$OUTDIR/metrices/$SAMPLE$ASD.bam.dupl \
         AS=true \
@@ -408,10 +336,14 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         COMPRESSION_LEVEL=9 \
         VALIDATION_STRINGENCY=SILENT \
         TMP_DIR=$THISTMP
+
     samtools index $OUTDIR/$SAMPLE$ASD.bam
 
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam
+    
+    # cleanup 
+    [ -f $OUTDIR/$SAMPLE.cleaned.bam ] && rm $OUTDIR/$SAMPLE.cleaned.bam
 fi
 
 ################################################################################

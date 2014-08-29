@@ -64,9 +64,9 @@ done
 NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
-hash module 2>/dev/null && for MODULE in $MODULE_RECAL; do module load $MODULE; done && module list 
+hash module 2>/dev/null && for MODULE in $MODULE_RECALALN; do module load $MODULE; done && module list 
 
-export PATH=$PATH_RECAL:$PATH
+export PATH=$PATH_RECALALN:$PATH
 echo $PATH
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -74,7 +74,7 @@ echo $PATH
 [ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which FixMateInformation.jar))
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_RECAL*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_RECALALN*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -127,12 +127,12 @@ fi
 # parallelization supported (2013): http://gatkforums.broadinstitute.org/discussion/1975/recommendations-for-parallelizing-gatk-tools
 if [[ $(which GenomeAnalysisTK.jar) =~ "2.8" ]]; then 
     echo "[NOTE] GATK multithreading"
-    PARALLELENCT="-nct $CPU_RECAL"
-	PARALLELENT="-nt $CPU_RECAL"
+    PARALLELENCT="-nct $CPU_RECALALN"
+	PARALLELENT="-nt $CPU_RECALALN"
 fi
 #
 ## bwa/name$ASD.bam -> /reCalAln/name$ASD.bam
-#f2=${f/$INPUT_REALRECAL/$TASK_RECAL}
+#f2=${f/$INPUT_RECALALN/$TASK_RECALALN}
 ## /reCalAln/name$ASD.bam -> /reCalAln/name$ASD.real
 #f3=${f2/%bam/real.bam}
 
@@ -159,7 +159,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         -o $OUTDIR/${SAMPLE}.intervals \
         -known $DBSNPVCF \
         $REGION \
-        -nt $CPU_RECAL
+        -nt $CPU_RECALALN
         
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.intervals
@@ -227,7 +227,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         -I $OUTDIR/${SAMPLE}.real.bam \
         -o $OUTDIR/${SAMPLE}.real.recal.bam \
         -BQSR $OUTDIR/${SAMPLE}.real.covar.grp \
-        -nct $CPU_RECAL
+        -nct $CPU_RECALALN
        
     samtools index $OUTDIR/${SAMPLE}.real.recal.bam
 
@@ -246,7 +246,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
          -o $OUTDIR/${SAMPLE}.real.recal.performace \
          -R $FASTA \
          --recal $OUTDIR/${SAMPLE}.real.covar.grp \
-         -nct $CPU_RECAL 
+         -nct $CPU_RECALALN 
     
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.real.recal.performace
@@ -276,7 +276,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
             --plot_pdf_file $OUTDIR/GATKrecal.pdf \
             -rf BadCigar \
             -o $OUTDIR/${SAMPLE}.real.recal.covar.grp 
-        #    -nt $CPU_RECAL
+        #    -nt $CPU_RECALALN
 
         # mark checkpoint
         NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.real.recal.covar.grp
@@ -321,7 +321,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
             
         echo $RUN_COMMAND && eval $RUN_COMMAND       
     else
-        samtools sort -@ $CPU_RECAL $OUTDIR/${SAMPLE}.real.recal.bam $OUTDIR/${SAMPLE}$ASR 
+        samtools sort -@ $CPU_RECALALN $OUTDIR/${SAMPLE}.real.recal.bam $OUTDIR/${SAMPLE}$ASR 
     fi
     
     samtools index $OUTDIR/${SAMPLE}$ASR.bam
@@ -339,8 +339,8 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samtools flagstat $OUTDIR/${SAMPLE}$ASR.bam >> $OUTDIR/${SAMPLE}$ASR.bam.stats
     if [ -n "$SEQREG" ]; then
         echo "#custom region " >> $OUTDIR/${SAMPLE}$ASR.bam.stats
-        echo $(samtools view -@ $CPU_RECAL -c -F 4 $OUTDIR/${SAMPLE}$ASR.bam $SEQREG )" total reads in region " >> $OUTDIR/${SAMPLE}$ASR.bam.stats
-        echo $(samtools view -@ $CPU_RECAL -c -f 3 $OUTDIR/${SAMPLE}$ASR.bam $SEQREG )" properly paired reads in region " >> $OUTDIR/${SAMPLE}$ASR.bam.stats
+        echo $(samtools view -@ $CPU_RECALALN -c -F 4 $OUTDIR/${SAMPLE}$ASR.bam $SEQREG )" total reads in region " >> $OUTDIR/${SAMPLE}$ASR.bam.stats
+        echo $(samtools view -@ $CPU_RECALALN -c -f 3 $OUTDIR/${SAMPLE}$ASR.bam $SEQREG )" properly paired reads in region " >> $OUTDIR/${SAMPLE}$ASR.bam.stats
     fi
    
     BAMREADSRERE=`head -n1 $OUTDIR/${SAMPLE}$ASR.bam.stats | cut -d " " -f 1`

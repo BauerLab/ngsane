@@ -118,10 +118,35 @@ echo '''
 <head><meta charset="windows-1252"><title>NGSANE project card</title>
 <script type="text/javascript" src="includes/js/jquery.js"></script>
 <script type="text/javascript" charset="utf8" src="includes/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="includes/js/dataTables.responsive.js"></script>
 <link rel="stylesheet" type="text/css" href="includes/css/jquery.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="includes/css/dataTables.responsive.css">
 <link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
 <script type='text/javascript' src='includes/js/ngsane.js'></script>
+<link rel="shortcut icon" href="includes/images/favicon.ico">
+<link rel="apple-touch-icon" sizes="57x57" href="includes/images/apple-touch-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="114x114" href="includes/images/apple-touch-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="72x72" href="includes/images/apple-touch-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="144x144" href="includes/images/apple-touch-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="60x60" href="includes/images/apple-touch-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="120x120" href="includes/images/apple-touch-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="76x76" href="includes/images/apple-touch-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="152x152" href="includes/images/apple-touch-icon-152x152.png">
+<link rel="icon" type="image/png" href="includes/images/favicon-196x196.png" sizes="196x196">
+<link rel="icon" type="image/png" href="includes/images/favicon-160x160.png" sizes="160x160">
+<link rel="icon" type="image/png" href="includes/images/favicon-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="includes/images/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="includes/images/favicon-32x32.png" sizes="32x32">
+<meta name="msapplication-TileColor" content="#da532c">
+<meta name="msapplication-TileImage" content="includes/images/mstile-144x144.png">
+<meta name="msapplication-config" content="includes/images/browserconfig.xml">
 </head><body>
+<script type="text/javascript">
+//<![CDATA[
+    var datatable_array=[];
+//]]>
+</script>
+
 <div id="center">
 <div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>
 ''' >> $SUMMARYFILE.tmp
@@ -140,20 +165,38 @@ echo "<hr><span>Report generated with "`$NGSANE_BASE/bin/trigger.sh -v`"</span><
 echo "</div><!-- center --></body>" >> $SUMMARYTMP
 
 
-echo "<script type='text/javascript'>" >> $SUMMARYTMP
-echo "\$(document).ready(function() {" >> $SUMMARYTMP
-for i in $LINKS; do
-    if [ "$i" != "References" ]; then #[ "$i" != "fastQC" ] && [ "$i" != "memechip" ] && 
-	    echo "if (typeof ${i}_Table_json !== 'undefined'){var ${i}_Table = \$("\'"#${i}_id_Table"\'").dataTable(${i}_Table_json);}" >> $SUMMARYTMP
-     fi
-done
-echo "\$('#search').keyup(function(){" >> $SUMMARYTMP
-for i in $LINKS; do
-	if [ "$i" != "References" ]; then
-		echo "    if (typeof ${i}_Table !== 'undefined'){${i}_Table.fnDraw();}" >> $SUMMARYTMP
-	fi
-done
-echo "});} ); </script>" >> $SUMMARYTMP
+echo '''
+<script type='text/javascript'>
+    $(document).ready(function() { 
+        var tables = [];
+        for (var i = 0; i < datatable_array.length; i++) { 
+            eval("var "+datatable_array[i]["html"]+" = "+datatable_array[i]["json"]);
+            eval("$(\"#"+datatable_array[i]["html"]+"\").dataTable("+datatable_array[i]["json"]+")");
+            eval("tables.push("+datatable_array[i]["html"]+")");
+        }
+        $("#search").keyup(function(){
+            for (var i=0;i<tables.length;i++){
+                tables[i].fnDraw();
+            }
+        });
+    }); 
+</script>
+''' >> $SUMMARYTMP
+
+#for i in $LINKS; do
+#    if [ "$i" != "References" ]; then 
+#	    echo "if (typeof ${i}_Table_json !== 'undefined'){var ${i}_Table = \$("\'"#${i}_id_Table"\'").dataTable(${i}_Table_json);}" >> $SUMMARYTMP
+#     fi
+#done
+#echo "\$('#search').keyup(function(){" >> $SUMMARYTMP
+#for i in $LINKS; do
+#	if [ "$i" != "References" ]; then
+#		echo "    if (typeof ${i}_Table !== 'undefined'){${i}_Table.fnDraw();}" >> $SUMMARYTMP
+#	fi
+#done
+#echo "});} ); </script>" >> $SUMMARYTMP
+
+
 echo "<script type='text/javascript' src='includes/js/genericJavaScript.js'></script></html>" >> $SUMMARYTMP
 
 # copy includes folder ommitting hidden files and folders
