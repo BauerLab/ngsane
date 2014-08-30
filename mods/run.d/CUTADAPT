@@ -27,7 +27,7 @@ if [ -n "$RUNCUTADAPT" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Cutadapt" "$TASK_CUTADAPT" "cutadapt.sh"
 
         NGSANE_REPORT_TABLE "$TASK_CUTADAPT" \
-            "$OUT/<DIR>/$TASK_CUTADAPT"  \
+            "$OUT/fastq/<DIR>_$TASK_CUTADAPT"  \
             ".stats" \
             "PATTERN:Reads::fgrep -w 'Processed reads' | head -n 1 | cut -d' ' -f 3" \
             "PATTERN:Trimmed::fgrep -w 'Trimmed reads' | head -n 1 | cut -d' ' -f 3" \

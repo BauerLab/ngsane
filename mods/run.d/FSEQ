@@ -24,12 +24,11 @@ if [ -n "$RUNFSEQ" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "Fseq" "$TASK_FSEQ" "fseq.sh"
 
         echo "[NOTE] the fseq.sh mod does not provide a report"
+#        TODO: add reprot
 
-        # finish the section
         NGSANE_REPORT_FOOTER 
   
     fi

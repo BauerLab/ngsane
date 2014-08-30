@@ -41,6 +41,9 @@ if [ -n "$RUNRECALALN" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN:Mapped pairs::sed -n 7p | cut -d' ' -f 1 | xargs echo 0.5* | bc " \
             "CALCULATE:%:40:#8*2*100/#2" \
             "PATTERN:Singletons::sed -n 9p | cut -d' ' -f 1" 
+#            "PATTERN:Imprparied::sed -n 10p | cut -d' ' -f 1" \
+#            "PATTERN:Imprregpaired::sed -n 11p | cut -d' ' -f 1" \
+#            TODO check last two entried
 
         NGSANE_REPORT_FOOTER 
         

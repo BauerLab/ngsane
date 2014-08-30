@@ -24,12 +24,11 @@ if [ -n "$RUNQUALIMAP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "QualiMap" "$TASK_QUALIMAP" "qualimap.sh"
 
         echo "[NOTE] the qualimap.sh mod does not provide a report"
-
-        # finish the section
+        # TODO add report
+        
         NGSANE_REPORT_FOOTER 
         
     fi

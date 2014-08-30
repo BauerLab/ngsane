@@ -24,12 +24,10 @@ if [ -n "$RUNCHRYSALIS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "Trinity Chrysalis" "$TASK_CHRYSALIS" "trinity_chrysalis.sh"
 
         echo "[NOTE] the trinity_chrysalis.sh mod does not provide a report"
         
-        # finish the section
         NGSANE_REPORT_FOOTER 
         
     fi

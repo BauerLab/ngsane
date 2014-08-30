@@ -26,7 +26,7 @@ if [ -n "$RUNVARCALLS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        NGSANE_REPORT_HEADER "VARCALLS" "$TASK_GATKVAR" "gatkVARs.sh"
+        NGSANE_REPORT_HEADER "VarCalls" "$TASK_GATKVAR" "gatkVARs.sh"
 
         NGSANE_REPORT_TABLE "${TASK_GATKVAR}_SNP" \
             "$OUT/$TASK_GATKVAR/$NAME" \
@@ -67,7 +67,6 @@ if [ -n "$RUNVARCALLS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN:Het/Hom::fgrep -w 'CountVariants' | sed -n 5p | sed -e 's/ \+/\t/g' | cut -f27"
 
 
-        # finish the section
         NGSANE_REPORT_FOOTER 
         
     fi

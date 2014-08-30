@@ -23,7 +23,11 @@ if [ -n "$RUNWIGGLER" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
+        NGSANE_REPORT_HEADER "Wiggler" "$TASK_WIGGLER" "wiggler.sh"
+
         echo "[NOTE] the wiggler.sh mod does not provide a report"
-   
+  
+        NGSANE_REPORT_FOOTER 
+
     fi
 fi

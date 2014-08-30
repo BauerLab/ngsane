@@ -26,13 +26,13 @@ if [ -n "$RUNIDR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # Select either of the one below to provide a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "IDR" "$TASK_IDR" "idr.sh" ".bed"
 
-        # 2) or provide information that there will be no 
-        echo "[NOTE] the idr.sh mod does not provide a report"
+        NGSANE_REPORT_TABLE "$TASK_IDR" \
+            "$OUT/<DIR>/$TASK_IDR"  \
+            "-overlapped-peaks.txt" \
+            "PATTERN:IDR Peaks::wc -l | cut -f 1" 
 
-        # finish the section
         NGSANE_REPORT_FOOTER 
         
     fi

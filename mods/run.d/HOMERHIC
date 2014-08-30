@@ -34,12 +34,11 @@ if [ -n "$RUNHOMERHIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "Homer HiC" "$TASK_HOMERHIC" "hicHomer.sh"
 
         echo "[NOTE] the hicHomer.sh mod does not provide a report"
-
-        # finish the section
+        #TODO add report
+        
         NGSANE_REPORT_FOOTER 
   
     fi

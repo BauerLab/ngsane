@@ -52,8 +52,13 @@ if [ -n "$RUNTOPHAT" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
             "CALCULATE:%:40:#6*100/#2" \
             "PATTERN:Mapped pairs::sed -n 7p | cut -d' ' -f 1 | xargs echo 0.5* | bc " \
             "CALCULATE:%:40:#8*2*100/#2" \
-            "PATTERN:Singletons::sed -n 9p | cut -d' ' -f 1" 
-        
+            "PATTERN:Singletons::sed -n 9p | cut -d' ' -f 1" \
+            "PATTERN:Junction::sed -n 9p | cut -d' ' -f 1" \
+            "CALCULATE:%:40:#11*100/#2" \
+            "PATTERN:Junction::sed -n 9p | cut -d' ' -f 1" \
+            "CALCULATE:%:40:#13*100/#11"
+            # TODO check junction extraction
+            
         # finish the section
         NGSANE_REPORT_FOOTER 
         

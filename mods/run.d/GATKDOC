@@ -6,13 +6,15 @@
 # OUT: */bwa_var/*.clean.vcf
 ################################################################################
 
-if [ -n "$RUNDEPTHOFCOVERAGE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+if [ -n "$RUNGATKDOC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     
     ############################################################################
     # Wether to submit a job or compile a report
     if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
         # check if resources are properly defined
+        if [ -z "$TASK_GATKDOC" ] || [ -z "$NODES_GATKDOC" ] || [ -z "$CPU_GATKDOC" ] || [ -z "$MEMORY_GATKDOC" ] || [ -z "$WALLTIME_GATKDOC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
 
         $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_GATKDOC -i $INPUT_GATKDOC -e $ASR.bam \
     	   -n $NODES_GATKDOC -c $CPU_GATKDOC -m $MEMORY_GATKDOC"G" -w $WALLTIME_GATKDOC \
@@ -25,8 +27,15 @@ if [ -n "$RUNDEPTHOFCOVERAGE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         # start a new section for a mod
         NGSANE_REPORT_HEADER "DepthOfCoverage" "$TASK_GATKDOC" "gatkDOC.sh"
 
-        echo "[NOTE] the gatkDOC.sh mod does not provide a report"
-
+        NGSANE_REPORT_TABLE "$TASK_GATKDOC" \
+            "$OUT/<DIR>/$TASK_GATKDOC/" \
+            "$ASR.bam.doc.sample_summary" \
+            "PATTERN:Col1::sed-n 2p | cut -f 2" \
+            "PATTERN:Col2::sed-n 2p | cut -f 3" \
+            "PATTERN:Col3::sed-n 2p | cut -f 4" \
+            "PATTERN:Col4::sed-n 2p | cut -f 5" \
+            #TODO: get column names and number of them
+                                    
         # finish the section
         NGSANE_REPORT_FOOTER   
   

@@ -25,12 +25,10 @@ if [ -n "$RUNRRBS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "Rrbs" "$TASK_RRBSMAP" "rrbsmap.sh"
 
         echo "[NOTE] the rrbsmap.sh mod does not provide a report"
 
-        # finish the section
         NGSANE_REPORT_FOOTER 
         
     fi
