@@ -167,12 +167,11 @@ echo "</div><!-- center --></body>" >> $SUMMARYTMP
 
 echo '''
 <script type='text/javascript'>
+    var tables = [];
     $(document).ready(function() { 
-        var tables = [];
         for (var i = 0; i < datatable_array.length; i++) { 
-            eval("var "+datatable_array[i]["html"]+" = "+datatable_array[i]["json"]);
-            eval("$(\"#"+datatable_array[i]["html"]+"\").dataTable("+datatable_array[i]["json"]+")");
-            eval("tables.push("+datatable_array[i]["html"]+")");
+            eval("var "+datatable_array[i].html+" = "+datatable_array[i].json);
+            eval("tables.push($(\"#"+datatable_array[i].html+"\").dataTable("+datatable_array[i].json+"));");
         }
         $("#search").keyup(function(){
             for (var i=0;i<tables.length;i++){
