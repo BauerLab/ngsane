@@ -87,16 +87,16 @@ for T in $SCRIPTFILES; do
 	
 	nrfiles=$(echo $files | wc -w | sed -e 's/^[ \t]*//')
 
+	CHECKPOINTS_PASSED=0
+	CHECKPOINTS_FAILED=0
+
     # nr might be emtpy if its a postcommand only job
     if [[ "$nrfiles" -ge "1" ]]; then
 
     	echo "###################################################"
     	echo "# NGSANE ${SCRIPT/.sh/} "
     	echo "###################################################"
-    
-    	CHECKPOINTS_PASSED=0
-    	CHECKPOINTS_FAILED=0
-    	
+        	
     	echo ">>>>>>>>>> Finished"
     	finished=$(egrep "^>{5} .* FINISHED" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
     	if [ "$finished" = "$nrfiles" ]; then
