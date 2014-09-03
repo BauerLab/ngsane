@@ -82,7 +82,7 @@ ${1}_Table_${NGSANE_REPORT_TABLE_COUNTER}_json={
             \$( api.column( 1 ).footer() ).html("insufficient data for aggregation");
         } else {
         
-            \$( api.column( 1 ).footer() ).html("sum<br>max<br>median</br>min");
+            \$( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
             
             for (var c=2; c<this.fnSettings().aoColumns.length; c++){
     
@@ -105,8 +105,10 @@ ${1}_Table_${NGSANE_REPORT_TABLE_COUNTER}_json={
                 max = Math.max.apply(null, data);
                 min = Math.min.apply(null, data);
                 median = Math.median.apply(Math,data);
+                mean = Math.mean.apply(Math,data);
+                stdev = Math.variance.apply(Math,data);
         
-                \$( api.column( c ).footer() ).html(formatNumber(total)+"<br>"+formatNumber(max)+"<br>"+formatNumber(median)+"<br>"+formatNumber(min));
+                \$( api.column( c ).footer() ).html(formatNumber(total)+"<br>"+formatNumber(min)+"<br>"+formatNumber(max)+"<br>"+formatNumber(median)+"<br>"+formatNumber(mean)+"<br>"+formatNumber(stdev));
             }
         }
     },
