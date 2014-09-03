@@ -96,7 +96,7 @@ ${1}_Table_${NGSANE_REPORT_TABLE_COUNTER}_json={
                 };
         
                 // Total over all pages
-                data = api.column( c ).data();
+                data = api.column( c, {"filter":"applied"} ).data();
                 total = data.length ?
                     data.reduce( function (a, b) {
                         return intVal(a) + intVal(b);
