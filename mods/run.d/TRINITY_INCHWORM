@@ -23,12 +23,10 @@ if [ -n "$RUNINCHWORM" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "Trinity Inchworm" "$TASK_INCHWORM" "trinity_inchworm.sh"
 
         echo "[NOTE] the trinity_inchworm.sh mod does not provide a report"
         
-        # finish the section
         NGSANE_REPORT_FOOTER 
         
     fi

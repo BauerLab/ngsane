@@ -69,9 +69,49 @@ ${1}_Table_${NGSANE_REPORT_TABLE_COUNTER}_json={
 	"bLengthChange": true,
     "bFilter": true,
 	"iDisplayLength": 10,
-	"responsive": true,
 	"bJQueryUI": false,
 	"aLengthMenu": [[1, 5, 10, -1], [1, 5, 10, "All"]],
+    "footerCallback": function ( row, data, start, end, display ) {
+        var api = this.api(), data;
+        // empty footer
+        if (! \$("#showAggregation")[0].checked){
+            for (var c=0; c<this.fnSettings().aoColumns.length; c++){
+                \$( api.column( c ).footer() ).html("");
+            }
+        } else if (data.length <= 1){
+            \$( api.column( 1 ).footer() ).html("insufficient data for aggregation");
+        } else {
+        
+            \$( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
+            
+            for (var c=2; c<this.fnSettings().aoColumns.length; c++){
+    
+                // Remove the formatting to get integer data for summation
+                var intVal = function ( i ) {
+                    var f = parseFloat(i);
+                    if (!isNaN(f))
+                        return f;
+                    else
+                        return 0;
+                };
+        
+                // Total over all pages
+                data = api.column( c, {"filter":"applied"} ).data();
+                total = data.length ?
+                    data.reduce( function (a, b) {
+                        return intVal(a) + intVal(b);
+                    } ) :
+                    0;
+                max = Math.max.apply(null, data);
+                min = Math.min.apply(null, data);
+                median = Math.median.apply(Math,data);
+                mean = Math.mean.apply(Math,data);
+                stdev = Math.variance.apply(Math,data);
+        
+                \$( api.column( c ).footer() ).html(formatNumber(total)+"<br>"+formatNumber(min)+"<br>"+formatNumber(max)+"<br>"+formatNumber(median)+"<br>"+formatNumber(mean)+"<br>"+formatNumber(stdev));
+            }
+        }
+    },
 	"aoColumns": [
 EOF
     NGSANE_VAR_REPORT_TABLE_HEADER=
@@ -197,15 +237,14 @@ EOF
 
                 elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
 
-                    CALCULATE="echo '$(echo $var | cut -d':' -f 4)' | sed 's/#\([0-9]\+\)/\${NGSANE_VAR_REPORT_TABLE_ROW_ARRAY[\1]}/g'  "
-#                    echo "$CALCULATE" >&2
-                    CALCULATE="OLDIFS=IFS; IFS='@' read -r -a NGSANE_VAR_REPORT_TABLE_ROW_ARRAY <<< \"$(echo $NGSANE_VAR_REPORT_TABLE_ROW | sed -r 's/^.{1}//' | sed 's/ , /@/g')\" && echo $(eval $CALCULATE) && IFS=$IFS"
-#                    echo "$CALCULATE" >&2
+                    CALCULATE="echo '$(echo $var | cut -d':' -f 4)' | sed 's/#\([0-9]*\)/\${NGSANE_VAR_REPORT_TABLE_ROW_ARRAY[\1]}/g'  "
+#                    echo "1 $CALCULATE" >&2
+                    CALCULATE="OLDIFS=IFS; IFS='@' read -r -a NGSANE_VAR_REPORT_TABLE_ROW_ARRAY <<< \"$(echo $NGSANE_VAR_REPORT_TABLE_ROW | sed 's/^.{1}//' | sed 's/ , /@/g')\" && echo $(eval $CALCULATE) && IFS=$IFS"
+#                    echo "2 $CALCULATE" >&2
                     CALCULATE="echo 'scale=2; $(eval $CALCULATE)' | bc "
                     CALCULATE_RESULT="$(eval $CALCULATE)"
-#                    echo "$CALCULATE $CALCULATE_RESULT" >&2
+#                    echo "3 $CALCULATE $CALCULATE_RESULT" >&2
                     NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $CALCULATE_RESULT"
-
                 fi
             done
             NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW ]"
@@ -213,13 +252,20 @@ EOF
 
         done
     done
-    # add table footer
+    # register table
     cat >> $SUMMARYTMP <<EOF
         ]};
         datatable_array.push({"json":"${1}_Table_${NGSANE_REPORT_TABLE_COUNTER}_json","html":"${1}_id_Table_${NGSANE_REPORT_TABLE_COUNTER}"});
         //]]>
         </script>
-    <table id="${1}_id_Table_${NGSANE_REPORT_TABLE_COUNTER}" class="display responsive no-wrap" width="100%"><thead><tr>${NGSANE_VAR_REPORT_TABLE_COLUMNS//td/th}</tr></thead><tbody><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tbody><tfoot><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tfoot></table>
+EOF
+    # add spacer
+    if [ "$NGSANE_REPORT_TABLE_COUNTER" -gt 1 ]; then
+        echo "<hr class='spacer' />" >> $SUMMARYTMP 
+    fi
+
+    cat >> $SUMMARYTMP <<EOF
+    <table id="${1}_id_Table_${NGSANE_REPORT_TABLE_COUNTER}" class="display no-wrap" width="100%"><thead><tr>${NGSANE_VAR_REPORT_TABLE_COLUMNS//td/th}</tr></thead><tbody><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tbody><tfoot><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tfoot></table>
 EOF
 
 }

@@ -9,7 +9,7 @@
 # Tasks
 #********************
 
-RUNDEPTHOFCOVERAGE="1"     # variance  calling with GATK
+RUNGATKDOC="1"     # variance  calling with GATK
 
 #********************
 # Paths

@@ -27,12 +27,14 @@ if [ -n "$RUNFASTQSCREEN" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "Fastqscreen" "$TASK_FASTQSCREEN" "fastqscreen.sh"
 
-        echo "[NOTE] the fastqscreen.sh mod does not provide a report"
+        NGSANE_REPORT_TABLE "$TASK_FASTQSCREEN" \
+            "$OUT/<DIR>/$TASK_FASTQSCREEN"  \
+            "_screen.txt" \
+            "PATTERN:Hit no libraries::awk '{print NR}'" 
+        # TODO reformat fastqcsreen output for parsing
 
-        # finish the section
         NGSANE_REPORT_FOOTER   
     fi
 fi	

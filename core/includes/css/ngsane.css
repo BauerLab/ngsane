@@ -8,7 +8,7 @@ div.tabContent_hide { display: none; }
 div#right{
 	float:right;
 	text-align:right;
-	width:285px;
+	width:385px;
 	padding:2px 12px 2px 12px;
 }
 
@@ -246,6 +246,11 @@ table.dataTable.display {
 	border: 1px dotted #69c;
 }
 
+table.dataTable.display tbody td.dataTables_empty{
+    text-align: center;
+    font-style: italic;
+}
+
 table.dataTable.display thead .sorting, table.dataTable.display thead .sorting_asc, table.dataTable.display thead .sorting_desc{
     padding-right:15px;
 }
@@ -282,6 +287,9 @@ table.dataTable.display th {
 	padding: 12px 5px;
 	text-align:center;
 }
+table.dataTable tfoot td{
+	border-top: 1px dashed #69c;
+}
 
 table.dataTable.display thead th div.DataTables_sort_wrapper {
   padding: 0
@@ -295,11 +303,14 @@ table.dataTable.display th div{
 	width: 100px;
 }
 
-table.dataTable.display tbody td {
+table.dataTable.display tbody td, table.dataTable tfoot td {
 	color: #555e66;
 	padding: 3px 5px;
 	text-align:right;
 	white-space: nowrap;
+}
+table.dataTable tfoot td{
+    font-style: italic;       
 }
 
 table.dataTable.display td.left, table.dataTable.display  th.left{
@@ -328,6 +339,11 @@ pre {
 hr {
 	border: 0;
 	border-top: 1px solid #ccc;
+}
+hr.spacer {
+    padding-top:10px;
+	border: 0;
+	border-bottom: 1px dotted #69c;
 }
 span {
     color:#666;

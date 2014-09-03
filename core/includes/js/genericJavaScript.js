@@ -8,7 +8,7 @@ $( "div.panel div.tabs a" ).click(function() {
     //Sets new tab heading to selected
 //    console.log($(this).attr('href'));
     $(this).attr('class', "selected");
-    console.log($(this));
+//    console.log($(this));
     
     //Using id from tab heading find content div id
     var id = getHash ($(this).attr('href'));
@@ -30,13 +30,12 @@ $( "div.panel div.tabs a" ).click(function() {
 $.fn.dataTableExt.afnFiltering.push(
 	 function( oSettings, aData, iDataIndex ) {
 		
-		var search = document.getElementById("search");
-		if (search.value.length == 0) {
-                        console.log("No search value");
+		var search = $("#search");
+		if ($("#search")[0].value=="") {
+             console.log("No search value");
 			return true;
 		} else {
-
-			var searchArray = search.value.split(/\s+/);
+			var searchArray = $("#search")[0].value.split(/\s+/);
 			console.log(searchArray);
 			var sArrayLength = searchArray.length;
 			var numColumns = oSettings.aoColumns.length;

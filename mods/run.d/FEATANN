@@ -20,8 +20,12 @@ if [ -n "$RUNFEATANN" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
+        NGSANE_REPORT_HEADER "$TASK_FEATANN" "$TASK_FEATANN" "annotateFeature.sh" "$ENDING"
+
         echo "[NOTE] the annotateFeature.sh mod does not provide a report"
   
+        NGSANE_REPORT_FOOTER 
+        
     fi
 fi
 

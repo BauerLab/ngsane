@@ -36,12 +36,10 @@ if [ -n "$RUNTOPHATFUSION" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "Tophat Fusion" "$TASK_TOPHATFUSION" "tophatfusion.sh"
 
         echo "[NOTE] the tophatfusion.sh mod does not provide a report"
   
-        # finish the section
         NGSANE_REPORT_FOOTER 
         
     fi

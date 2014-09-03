@@ -55,7 +55,11 @@ if [ -n "$RUNVARCALLSBATCH" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
+        NGSANE_REPORT_HEADER "VarCallsBatch" "$TASK_GATKVAR" "gatkVARs.sh,variantcollect.sh"
+        
         echo "[NOTE] the gatkVARs.sh mod does not provide a report"
+        
+        NGSANE_REPORT_FOOTER 
   
     fi
 fi	

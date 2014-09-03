@@ -15,3 +15,5 @@ conf/header.sh
 .fuse*
 
 *~
+
+core/includes/css/.Rhistory

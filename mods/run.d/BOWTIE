@@ -36,7 +36,7 @@ if [ -n "$RUNBOWTIE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        NGSANE_REPORT_HEADER "BOWTIE" "$TASK_BOWTIE" "bowtie.sh" "$ASD.bam"
+        NGSANE_REPORT_HEADER "Bowtie" "$TASK_BOWTIE" "bowtie.sh" "$ASD.bam"
 
         NGSANE_REPORT_TABLE "$TASK_BOWTIE" \
             "$OUT/<DIR>/$TASK_BOWTIE"  \
