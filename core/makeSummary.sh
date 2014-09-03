@@ -157,7 +157,7 @@ done
 echo $(IFS='|' ; echo "${LINKSET[*]}") >> $SUMMARYFILE.tmp
 
 echo '''
-<div id ="right"><label>Global Filter: <input type="search" id="search" /></label></div>
+<div id ="right"><label>Aggregate: <input id="showAggregation" type="checkbox" /></label> <label>Global Filter: <input type="search" id="search" /></label></div>
 </div><!-- Links -->
 </div><!-- panel -->''' >>$SUMMARYFILE.tmp
 
@@ -174,6 +174,11 @@ echo '''
             eval("tables.push($(\"#"+datatable_array[i].html+"\").dataTable("+datatable_array[i].json+"));");
         }
         $("#search").keyup(function(){
+            for (var i=0;i<tables.length;i++){
+                tables[i].fnDraw();
+            }
+        });
+        $("#showAggregation").click(function(){
             for (var i=0;i<tables.length;i++){
                 tables[i].fnDraw();
             }
