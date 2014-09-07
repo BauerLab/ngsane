@@ -161,7 +161,7 @@ echo '''
 </div><!-- Links -->
 </div><!-- panel -->''' >>$SUMMARYFILE.tmp
 
-echo "<hr><span>Report generated with "`$NGSANE_BASE/bin/trigger.sh -v`"</span><span style='float:right;'>Last modified: "`date`"</span>" >> $SUMMARYTMP
+echo "<hr><span><img src='includes/images/favicon-32x32.png' /> Report generated with "`$NGSANE_BASE/bin/trigger.sh -v`"</span><span style='float:right;'>Last modified: "`date`"</span>" >> $SUMMARYTMP
 echo "</div><!-- center --></body>" >> $SUMMARYTMP
 
 
@@ -186,20 +186,6 @@ echo '''
     }); 
 </script>
 ''' >> $SUMMARYTMP
-
-#for i in $LINKS; do
-#    if [ "$i" != "References" ]; then 
-#	    echo "if (typeof ${i}_Table_json !== 'undefined'){var ${i}_Table = \$("\'"#${i}_id_Table"\'").dataTable(${i}_Table_json);}" >> $SUMMARYTMP
-#     fi
-#done
-#echo "\$('#search').keyup(function(){" >> $SUMMARYTMP
-#for i in $LINKS; do
-#	if [ "$i" != "References" ]; then
-#		echo "    if (typeof ${i}_Table !== 'undefined'){${i}_Table.fnDraw();}" >> $SUMMARYTMP
-#	fi
-#done
-#echo "});} ); </script>" >> $SUMMARYTMP
-
 
 echo "<script type='text/javascript' src='includes/js/genericJavaScript.js'></script></html>" >> $SUMMARYTMP
 
