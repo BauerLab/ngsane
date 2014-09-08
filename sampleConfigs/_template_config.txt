@@ -1,5 +1,6 @@
 # author: 
 # date: 
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources

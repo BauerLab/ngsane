@@ -1,5 +1,6 @@
 # author: Fabian Buske
 # date: May 2013, August 2014
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources
