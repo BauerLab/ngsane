@@ -92,23 +92,19 @@ ${1}_Table_${NGSANE_REPORT_TABLE_COUNTER}_json={
                     if (!isNaN(f))
                         return f;
                     else
-                        return 0;
+                        return "";
                 };
         
                 // Total over all pages
-                data = api.column( c, {"filter":"applied"} ).data();
-                total = data.length ?
-                    data.reduce( function (a, b) {
-                        return intVal(a) + intVal(b);
-                    } ) :
-                    0;
-                max = Math.max.apply(null, data);
-                min = Math.min.apply(null, data);
-                median = Math.median.apply(Math,data);
-                mean = Math.mean.apply(Math,data);
-                stdev = Math.variance.apply(Math,data);
+                var data = api.column( c, {"filter":"applied"} ).data();
+                var total = data.length ? data.reduce( function (a, b) {  return intVal(a) + intVal(b); } ) : "";
+                var maxV = Math.max.apply(null, data);
+                var minV = Math.min.apply(null, data);
+                var median = Math.median.apply(Math,data);
+                var mean = Math.mean.apply(Math,data);
+                var stdev = Math.std.apply(Math,data);
         
-                \$( api.column( c ).footer() ).html(formatNumber(total)+"<br>"+formatNumber(min)+"<br>"+formatNumber(max)+"<br>"+formatNumber(median)+"<br>"+formatNumber(mean)+"<br>"+formatNumber(stdev));
+                \$( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev));
             }
         }
     },

@@ -14,49 +14,54 @@ function formatNumber(n) {
             return t.toExponential();
         else {
             // treat pre and post differently
-            var n= t.toString().split(".");
+            var n= (Math.round(t * 100) / 100).toString().split(".");
             // add comma to decimal positions only
             n[0] = n[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
             //Combine both sections again
             return n.join(".");
         }
     } else
-        return n;
+        return "";
 }
 
 Array.prototype.max = function() {
-  return Math.max.apply(null, this);
+    var m = Math.max.apply(null, this);
+    if (!isNaN(m) && isFinite(m))
+        return m;
+    return "";
 };
 
 Array.prototype.min = function() {
-  return Math.min.apply(null, this);
+    var m = Math.min.apply(null, this);
+    if (!isNaN(m) && isFinite(m))
+        return m;
+    return "";
 };
 
 Math.median = function() {
-    var ary, numA, i, median;
+    var ary, numA, i, m;
     ary = Array.prototype.slice.call(arguments);
-    for (i = ary.length-1; i >= 0; i--) {if (ary[i] !== +ary[i]) ary[i] = Number.NEGATIVE_INFINITY;}
     numA = function(a, b){return (a-b);};
     ary.sort(numA);
-    while (ary.length > 1 && !isFinite(ary[0])) ary.shift();
-    median = ary[Math.floor(ary.length/2)];
-    if (!isNaN(median))
-        return median;
+    m = ary[Math.floor(ary.length/2)];
+    if (!isNaN(m) && isFinite(m))
+        return m;
     return "";
 }
+
 
 var isArray = function (obj) {
 	return Object.prototype.toString.call(obj) === "[object Array]";
 };
 
 Math.mean = function( ){
-    var ary, i, mean, sum=0;
+    var ary, i, m, sum=0;
     ary = Array.prototype.slice.call(arguments);
     for (i = ary.length-1; i >= 0; i--) {sum += ary[i];}
-	mean = (sum / ary.length );
+	m = (sum / ary.length );
     
-    if (!isNaN(mean))
-        return mean;
+    if (!isNaN(m) && isFinite(m))
+        return m;
     return "";
 
 }
@@ -72,23 +77,24 @@ Math.variance = function( ){
 		v += Math.pow( (ary[ i ] - mean), 2 );
 	}
 	v /= ary.length;
-    if (!isNaN(v))
+    if (!isNaN(v) && isFinite(v))
         return v;
     return "";
 	
 }
 
 Math.std = function( ){
-    var ary, numA, i;
+    var ary, avg, i, sddev, v=0, sum=0 ;
     ary = Array.prototype.slice.call(arguments);
-	var sum = 0;
     for (i = ary.length-1; i >= 0; i--) {sum += ary[i];}
-	var avg = (sum / ary.length );
-	var i = ary.length;
-	var v=0;
+	avg = (sum / ary.length );
+    i = ary.length;
 	while( i-- ){
 		v += Math.pow( (ary[ i ] - avg), 2 );
 	}
-	return Math.sqrt(v / ary.length);
+	sddev = Math.sqrt(v / ary.length);
+    if (!isNaN(sddev) && isFinite(sddev))
+        return sddev;
+    return "";
 	
 }
