@@ -98,13 +98,13 @@ ${1}_Table_${NGSANE_REPORT_TABLE_COUNTER}_json={
                 // Total over all pages
                 var data = api.column( c, {"filter":"applied"} ).data();
                 var total = data.length ? data.reduce( function (a, b) {  return intVal(a) + intVal(b); } ) : "";
-                var maxV = Math.max.apply(null, data);
-                var minV = Math.min.apply(null, data);
+                var maxV = Math.max.apply(Math, data);
+                var minV = Math.min.apply(Math, data);
                 var median = Math.median.apply(Math,data);
                 var mean = Math.mean.apply(Math,data);
                 var stdev = Math.std.apply(Math,data);
         
-                \$( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev));
+                \$( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev)+"<br/>");
             }
         }
     },

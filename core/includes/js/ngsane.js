@@ -21,18 +21,26 @@ function formatNumber(n) {
             return n.join(".");
         }
     } else
-        return "";
+        return n;
 }
 
-Array.prototype.max = function() {
-    var m = Math.max.apply(null, this);
+Math.max = function() {
+    var ary, m;
+    ary = Array.prototype.slice.call(arguments);
+    numA = function(a, b){return (b-a);};
+    ary.sort(numA);
+    m = ary[0];
     if (!isNaN(m) && isFinite(m))
         return m;
     return "";
 };
 
-Array.prototype.min = function() {
-    var m = Math.min.apply(null, this);
+Math.min = function() {
+    var ary, m;
+    ary = Array.prototype.slice.call(arguments);
+    numA = function(a, b){return (a-b);};
+    ary.sort(numA);
+    m = ary[0];
     if (!isNaN(m) && isFinite(m))
         return m;
     return "";
