@@ -32,7 +32,7 @@ if [ -n "$RUNMACS2" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN:IP reads (filtered)::egrep '(tags|fragments) after filtering in treatment' | tail -n 1 | awk '{print \$(NF)}'" \
             "PATTERN:Control reads (filtered)::egrep '(tags|fragments) after filtering in control' | tail -n 1 | awk '{print \$(NF)}'" \
             "PATTERN:Paired peaks:100:fgrep 'number of paired peaks' | tail -n 1 | awk '{print \$(NF)}'" \
-            "PATTERN:Fragment size:100:fgrep 'Determined fragment size'  | tail -n 1 | awk '{print \$(NF-1)}'" \
+            "PATTERN:Fragment size:100:fgrep 'Determined fragment size'  | tail -n 1 | awk '{print \$(NF)}'" \
             "PATTERN:Refined summits::fgrep 'Final number of refined summits' | tail -n 1 | awk '{print \$(NF-1)}'" \
             "PATTERN:Nucleotides covered::fgrep 'Nucleotides covered' | awk '{print \$(NF)}'" \
             "FIGURE::60:<SAMPLE>.R_model-0.png:60:1" \
