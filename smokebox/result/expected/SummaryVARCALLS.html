@@ -1,13 +1,8 @@
 
 <!DOCTYPE html><html>
-<head><meta charset="windows-1252"><title>NGSANE project card</title>
-<script type="text/javascript" src="includes/js/jquery.js"></script>
-<script type="text/javascript" charset="utf8" src="includes/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" charset="utf8" src="includes/js/dataTables.responsive.js"></script>
-<link rel="stylesheet" type="text/css" href="includes/css/jquery.dataTables.min.css">
-<link rel="stylesheet" type="text/css" href="includes/css/dataTables.responsive.css">
-<link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
-<script type=text/javascript src=includes/js/ngsane.js></script>
+<head>
+<meta charset="windows-1252">
+<title>NGSANE project card</title>
 <link rel="shortcut icon" href="includes/images/favicon.ico">
 <link rel="apple-touch-icon" sizes="57x57" href="includes/images/apple-touch-icon-57x57.png">
 <link rel="apple-touch-icon" sizes="114x114" href="includes/images/apple-touch-icon-114x114.png">
@@ -25,13 +20,508 @@
 <meta name="msapplication-TileColor" content="#da532c">
 <meta name="msapplication-TileImage" content="includes/images/mstile-144x144.png">
 <meta name="msapplication-config" content="includes/images/browserconfig.xml">
-</head><body>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script type="text/javascript">
+if (!window.jQuery) {
+    document.write("<script src=includes/js/jquery.js><\/script>");
+}
+</script>
+<script type="text/javascript" src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript">
+if (!$.fn.dataTableExt) { 
+    document.write("<script src=includes/js/jquery.dataTables.min.js><\/script>");
+}
+</script>
+<link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.2/css/jquery.dataTables.css">
+<style>
+body {
+	font: 12px/19px "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode",
+		Verdana, sans-serif;
+}
+
+div.tabContent { margin: 0.5em; }
+div.tabContent_hide { display: none; }
+div#right{
+	float:right;
+	text-align:right;
+	width:385px;
+	padding:2px 12px 2px 12px;
+}
+
+h2 {
+	display: block;
+	font-size: 1.17em;
+	-webkit-margin-before: 1em;
+	-webkit-margin-after: 1em;
+	-webkit-margin-start: 0px;
+	-webkit-margin-end: 0px;
+	font-weight: bold;
+}
+
+h4 {
+	display: block;
+	-webkit-margin-before: 1em;
+    -webkit-margin-after: 0em;
+	-webkit-margin-start: 0px;
+	-webkit-margin-end: 0px;
+}
+
+.panel h2 {
+	background-color: #999;
+	border-radius: 10px;
+	color: white;
+	font-size: 100%;
+	font-weight: normal;
+	font-variant:small-caps;
+	padding: 2px 10px;
+	margin: 0px;
+}
+
+.panel h3 {
+    border-top: 1px solid #69c;
+    border-bottom: 1px dotted #69c;
+	background-color: #efecff;
+	color: #17212e;
+	font-size: 100%;
+	font-weight: normal;
+	padding: 2px 10px;
+	margin: 0 0 6 0;
+}
+
+.panel h3.overall {
+	border-top: 3px double #69c;
+	text-transform: small_caps;
+}
+
+div.panel h2,div.panel a h2.sub {
+	background: #888;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#8a9aa6),
+		to(#17212e));
+	background-image: -webkit-linear-gradient(top, #8a9aa6, #17212e);
+	background-image: -moz-linear-gradient(top, #8a9aa6, #17212e);
+	background-image: -ms-linear-gradient(top, #8a9aa6, #17212e);
+	background-image: -o-linear-gradient(top, #8a9aa6, #17212e);
+	background-image: linear-gradient(top, #8a9aa6, #17212e);
+}
+
+.panel#quicklinks h3{
+	background-color: #8b5;
+	color: white;
+	text-transform: small_caps;
+}
+
+div.panel#quicklinks h2{
+	background: #888;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#8a9aa6),
+		to(#17212e));
+	background-image: -webkit-linear-gradient(top, #8a9aa6, #17212e);
+	background-image: -moz-linear-gradient(top, #8a9aa6, #17212e);
+	background-image: -ms-linear-gradient(top, #8a9aa6, #17212e);
+	background-image: -o-linear-gradient(top, #8a9aa6, #17212e);
+	background-image: linear-gradient(top, #8a9aa6, #17212e);
+}
+
+div.panel h2.sub {
+	margin-left: 2px;
+	margin-top: 2px;
+	border-radius: 10px 10px 0 0;
+	border: 1px solid #666;
+	border-top-color: #EEE;
+	border-left-color: #DDD;
+	border-bottom: none;
+	display: inline-block;
+	vertical-align: top;
+	width: 165px;
+	color: #dedede;
+	cursor: pointer;
+}
+
+div.headbagb {
+	width: 100%;
+	border-radius: 10px 10px 0 0;
+	background: #555;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#8a9aa6),
+		to(#17212e));
+	background-image: -webkit-linear-gradient(top, #8a9aa6, #17212e);
+	background-image: -moz-linear-gradient(top, #8a9aa6, #17212e);
+	background-image: -ms-linear-gradient(top, #8a9aa6, #17212e);
+	background-image: -o-linear-gradient(top, #8a9aa6, #17212e);
+	background-image: linear-gradient(top, #8a9aa6, #17212e);
+}
+
+div.box{
+    padding: 5px;
+}
+
+div.scroll{
+    overflow:scroll; 
+    height:300px;
+}
+
+div.panel {
+	background: #fafaff;
+	border: 1px solid #999;
+	border-radius: 12px;
+	padding: 2px;
+	margin-bottom: 25px;
+	min-width:1170px;
+}
+
+#controls div,#gallery div {
+	margin: 2px 0;
+	width: 240px;
+}
+
+a {
+	display: inline-block;
+	outline: 0;
+	color: #333;
+}
+
+#quicklinks a {
+	padding: 2px;
+	margin: 2px;
+	transition-duration: 0.25s;
+	transition-property: transform;
+	transform: scale(1);
+}
+
+#quicklinks a:hover {
+	background: #17212e;
+	text-decoration: none;
+	color: #fff;
+	border-radius: 10px;
+	transform: scale(1.05);
+}
+
+div.panel a.selected h2.sub {
+	background: #fafaff;
+	color: #444;
+}
+
+div.panel span.counter {
+    background: none repeat scroll 0 0 #444;
+    border-radius: 7px 7px 7px 7px;
+    color: #333;
+    display: inline;
+    font-size: 90%;
+    font-weight:bold;
+    letter-spacing: 0;
+    margin-left: 6px;
+    text-transform: none;
+}
+
+div.panel span.counter span.passed{
+    background: none repeat scroll 0 0 #dfd;
+    border-radius: 7px 0px 0px 7px;
+    padding: 0px 5px;
+    color:#060;
+    border: 1px solid #0a0;
+}
+
+div.panel span.counter span.failed{
+    background: none repeat scroll 0 0 #866;
+    border-radius: 0px 7px 7px 0px;
+    padding: 0px 5px;
+    color:#eee;
+    border: 1px solid #a00
+}
+
+div.panel span.counter span.nofailed{
+    background: none repeat scroll 0 0 #ddd;
+    border-radius: 0px 7px 7px 0px;
+    padding: 0px 5px;
+    color:#666;
+    border: 1px solid #444
+}
+
+div.panel span.counter span.errors{
+    background: none repeat scroll 0 0 #866;
+    border-radius: 7px 7px 7px 7px;
+    padding: 0px 5px;
+    color:#eee;
+    border: 1px solid #a00;
+}
+
+div.panel span.counter span.neutral{
+    background: none repeat scroll 0 0 #ddd;
+    border-radius: 7px 7px 7px 7px;
+    padding: 0px 5px;
+    color:#666;
+    border: 1px solid #444;
+}
+
+div.wrapper {
+	margin: auto; 
+	width: 100%;
+	padding-top: 5px;
+}
+
+div.display {
+	overflow-x: scroll;
+	overflow-y: hidden;
+	margin-bottom: 10px;
+}
+
+div.hidden {
+    display:none;
+}
+
+p {
+	color: blue;
+}
+
+.dataTables_filter{
+    height:30px;
+}
+
+table.dataTable.display {
+	font-size: 11px;
+	text-align: left;
+	border-collapse: collapse;
+	border: 1px dotted #69c;
+}
+
+table.dataTable.display tbody td.dataTables_empty{
+    text-align: center;
+    font-style: italic;
+}
+
+table.dataTable.display thead .sorting, table.dataTable.display thead .sorting_asc, table.dataTable.display thead .sorting_desc{
+    padding-right:15px;
+}
+
+table,caption,tbody,tfoot,thead,tr,th {
+	font-size: 100%;
+	vertical-align: middle;
+	margin: 0;
+	padding: 0;
+	outline: 0;
+	border: 0;
+	background: transparent;
+}
+
+table.dataTable.display tbody tr.odd, table.dataTable.display tbody tr.odd, 
+table.dataTable.display tbody tr.even>.sorting_1, table.dataTable.order-column.stripe tbody tr.even>.sorting_1,
+table.dataTable.display tbody tr.even>.sorting_2, table.dataTable.order-column.stripe tbody tr.even>.sorting_2,
+table.dataTable.display tbody tr.even>.sorting_3, table.dataTable.order-column.stripe tbody tr.even>.sorting_3{
+    background: #efecff;
+}
+table.dataTable.display tbody tr.odd>.sorting_1, table.dataTable.order-column.stripe tbody tr.odd>.sorting_1,
+table.dataTable.display tbody tr.odd>.sorting_2, table.dataTable.order-column.stripe tbody tr.odd>.sorting_2,
+table.dataTable.display tbody tr.odd>.sorting_3, table.dataTable.order-column.stripe tbody tr.odd>.sorting_3{
+    background: #dfdcef;
+}
+table.dataTable.display tbody tr.even, table.dataTable.display tbody tr.even{
+    background: #f5f3ff;
+}
+
+table.dataTable.display th {
+	font-weight: bold;
+	color: #17212e;
+	border-bottom: 1px dashed #69c;
+	padding: 12px 5px;
+	text-align:center;
+}
+table.dataTable tfoot td{
+	border-top: 1px dashed #69c;
+}
+
+table.dataTable.display thead th div.DataTables_sort_wrapper {
+  padding: 0
+}
+
+table.dataTable.display thead th {
+  padding: 3px
+}
+
+table.dataTable.display th div{
+	width: 100px;
+}
+
+table.dataTable.display tbody td, table.dataTable tfoot td {
+	color: #555e66;
+	padding: 3px 5px;
+	text-align:right;
+	white-space: nowrap;
+}
+table.dataTable tfoot td{
+    font-style: italic;       
+}
+
+table.dataTable.display td.left, table.dataTable.display  th.left{
+	text-align:left;
+	width: auto;
+}
+
+.top{
+	vertical-align:text-top
+}
+
+table.dataTable.display tfoot {
+	border-top: 1px dashed #69c;
+}
+
+div.library {
+	background: #fff;
+	padding: 10px;
+	max-width: 1200px;
+}
+
+pre {
+    padding: 0 10px 0 10px;
+}
+
+hr {
+	border: 0;
+	border-top: 1px solid #ccc;
+}
+hr.spacer {
+    padding-top:10px;
+	border: 0;
+	border-bottom: 1px dotted #69c;
+}
+span {
+    color:#666;
+    font-size:10px;
+}
+
+img.border {
+    border: 1px solid #8a9aa6;
+}
+
+img {
+    border: 0px;
+    vertical-align: middle;
+}
+
+div.inset_image {
+    float:left;
+    text-align: center; 
+    margin:2px; 
+    padding:2px;
+    border-width:1px;
+    border-style:dotted;
+}
+
+</style>
+</head>
+<body>
 <script type="text/javascript">
 //<![CDATA[
     var datatable_array=[];
+
+function getHash( url ) {
+    var hashPos = url.lastIndexOf ( '#' );
+    return url.substring( hashPos + 1 );
+}
+
+// format number with comma
+function formatNumber(n) {
+    // only attempt conversion if n is numberic
+    if (!isNaN(parseFloat(n))){
+        var t = Math.abs(parseFloat(n));
+        if (t == 0)
+            return n;
+        else if (t < 0.01)
+            return t.toExponential();
+        else {
+            // treat pre and post differently
+            var n= (Math.round(t * 100) / 100).toString().split(".");
+            // add comma to decimal positions only
+            n[0] = n[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            //Combine both sections again
+            return n.join(".");
+        }
+    } else
+        return n;
+}
+
+Math.max = function() {
+    var ary, m;
+    ary = Array.prototype.slice.call(arguments);
+    numA = function(a, b){return (b-a);};
+    ary.sort(numA);
+    m = ary[0];
+    if (!isNaN(m) && isFinite(m))
+        return m;
+    return "";
+};
+
+Math.min = function() {
+    var ary, m;
+    ary = Array.prototype.slice.call(arguments);
+    numA = function(a, b){return (a-b);};
+    ary.sort(numA);
+    m = ary[0];
+    if (!isNaN(m) && isFinite(m))
+        return m;
+    return "";
+};
+
+Math.median = function() {
+    var ary, numA, i, m;
+    ary = Array.prototype.slice.call(arguments);
+    numA = function(a, b){return (a-b);};
+    ary.sort(numA);
+    m = ary[Math.floor(ary.length/2)];
+    if (!isNaN(m) && isFinite(m))
+        return m;
+    return "";
+}
+
+
+var isArray = function (obj) {
+	return Object.prototype.toString.call(obj) === "[object Array]";
+};
+
+Math.mean = function( ){
+    var ary, i, m, sum=0;
+    ary = Array.prototype.slice.call(arguments);
+    for (i = ary.length-1; i >= 0; i--) {sum += ary[i];}
+	m = (sum / ary.length );
+    
+    if (!isNaN(m) && isFinite(m))
+        return m;
+    return "";
+
+}
+
+Math.variance = function( ){
+    var ary, i, mean, v=0, sum=0;
+    ary = Array.prototype.slice.call(arguments);
+    for (i = ary.length-1; i >= 0; i--) {sum += ary[i];}
+	mean = (sum / ary.length );
+    console.log(ary)
+    console.log(mean)
+    for (i = ary.length-1; i >= 0; i--) {
+		v += Math.pow( (ary[ i ] - mean), 2 );
+	}
+	v /= ary.length;
+    if (!isNaN(v) && isFinite(v))
+        return v;
+    return "";
+	
+}
+
+Math.std = function( ){
+    var ary, avg, i, sddev, v=0, sum=0 ;
+    ary = Array.prototype.slice.call(arguments);
+    for (i = ary.length-1; i >= 0; i--) {sum += ary[i];}
+	avg = (sum / ary.length );
+    i = ary.length;
+	while( i-- ){
+		v += Math.pow( (ary[ i ] - avg), 2 );
+	}
+	sddev = Math.sqrt(v / ary.length);
+    if (!isNaN(sddev) && isFinite(sddev))
+        return sddev;
+    return "";
+	
+}
+
 //]]>
 </script>
-
 <div id="center">
 <div class=panel id=quicklinks><h2>Quicklinks</h2><div>
 
@@ -80,7 +570,7 @@ QC_PASS .. 2/2 have cleanup
 <div class='tabContent_hide' id='DC_bwa_notes'><div class='box scroll'><pre>
 
 qout/bwa/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/bwa/job.20140910.log
+[NOTE] Jobfile: qout/bwa
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] BWA algorithm is sampe
@@ -91,7 +581,7 @@ qout/bwa/Transcript_RNA3kChr16.out
 [NOTE] PASS check mapping: 7030 == 7030
 
 qout/bwa/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/bwa/job.20140910.log
+[NOTE] Jobfile: qout/bwa
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] BWA algorithm is sampe
@@ -240,7 +730,7 @@ QC_PASS .. 2/2 have statistics
 <div class='tabContent_hide' id='DC_reCalAln_notes'><div class='box scroll'><pre>
 
 qout/reCalAln/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/reCalAln/job.20140910.log
+[NOTE] Jobfile: qout/reCalAln
 [NOTE] set java parameters
 [NOTE] PAIRED
 [NOTE] GATK multithreading
@@ -248,7 +738,7 @@ qout/reCalAln/Transcript_RNA3kChr16.out
 [NOTE] PASS check recalibration and realignment: 7030 == 7030
 
 qout/reCalAln/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/reCalAln/job.20140910.log
+[NOTE] Jobfile: qout/reCalAln
 [NOTE] set java parameters
 [NOTE] PAIRED
 [NOTE] GATK multithreading
@@ -622,12 +1112,12 @@ QC_PASS .. 2/2 have summarize
 <div class='tabContent_hide' id='DC_bamann_bwa_notes'><div class='box scroll'><pre>
 
 qout/bamann_bwa/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/bamann_bwa/job.20140910.log
+[NOTE] Jobfile: qout/bamann_bwa
 [NOTE] using libraries in /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann/
 [NOTE] annotate with  exon intron lincRNA small_ncRNA tRNA UCSC_rRNA  /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//exon.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//intron.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//lincRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//small_ncRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//tRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//UCSC_rRNA.gtf
 
 qout/bamann_bwa/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/qout/bamann_bwa/job.20140910.log
+[NOTE] Jobfile: qout/bamann_bwa
 [NOTE] using libraries in /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann/
 [NOTE] annotate with  exon intron lincRNA small_ncRNA tRNA UCSC_rRNA  /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//exon.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//intron.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//lincRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//small_ncRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//tRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//UCSC_rRNA.gtf
 </pre></div></div>
@@ -789,7 +1279,7 @@ pindel_Table_1_json={
 <tr class='citation'><td class='top'>[11]</td><td class='left' >R: A language and environment for statistical computing; R Core Team. R Foundation for Statistical Computing, Vienna, Austria, (2013)</td></tr>
 </tbody></table>
 </div></div>
-<hr><span><img src='includes/images/favicon-32x32.png' /> Report generated with NGSANE version: da79b398b0186a1acd1ffedc36ead4cdddc71955 (git hash)</span><span style='float:right;'>Last modified: Wed Sep 10 11:01:00 EST 2014</span>
+<hr><span><img src='includes/images/favicon-32x32.png' /> Report generated with NGSANE version: f40d3eec0d1fb69307d44b3528fa3873b9f89251 (git hash)</span><span style='float:right;'>Last modified: Wed Sep 10 15:48:16 EST 2014</span>
 </div><!-- center --></body>
 
 <script type=text/javascript>
@@ -810,6 +1300,80 @@ pindel_Table_1_json={
             }
         });
     }); 
+
+//This script onclick shows different tabs
+$( "div.panel div.tabs a" ).click(function() {
+
+    //Finds old selected tablink (heading) and sets to unselected
+//    console.log($(this).parent().find("a.selected"));
+    $(this).parent().find("a.selected").attr('class', "");
+    
+    //Sets new tab heading to selected
+//    console.log($(this).attr('href'));
+    $(this).attr('class', "selected");
+//    console.log($(this));
+    
+    //Using id from tab heading find content div id
+    var id = getHash ($(this).attr('href'));
+    var ContentDivId = "DC_"+id;
+    //console.log(ContentDivId);
+    
+    //Sets old content div to tabContent hide
+//    console.log($('#' + ContentDivId).parent().find("div.tabContent"));
+    $('#' + ContentDivId).parent().find("div.tabContent").attr('class', "tabContent_hide");
+    
+    //Sets new content div to tabContent (able to be seen)
+    //console.log($('#' + ContentDivId).attr('class'));
+    $('#' + ContentDivId).attr('class', "tabContent");
+    //console.log($('#' + ContentDivId).attr('class'));
+
+});
+
+// add filtering for invalid rows
+$.fn.dataTableExt.afnFiltering.push(
+	 function( oSettings, aData, iDataIndex ) {
+		
+		var search = $("#search");
+		if ($("#search")[0].value=="") {
+             console.log("No search value");
+			return true;
+		} else {
+			var searchArray = $("#search")[0].value.split(/\s+/);
+			console.log(searchArray);
+			var sArrayLength = searchArray.length;
+			var numColumns = oSettings.aoColumns.length;
+			//check relevant columns using 
+			// cycle through columns
+			var display = 0;
+			//document.write(searchArray[0]);
+			
+			//document.write(sArrayLength);
+			//document.write(numColumns);
+			var iColumn = 0;
+			while (iColumn < numColumns && display == 0) {
+						
+				//go through search array and check if cell regex matches any search items..
+				for (isTerm = 0; isTerm < sArrayLength; isTerm++) {
+					//alert (
+					//document.write(searchArray[isTerm].length);
+					if (searchArray[isTerm].length != 0) {
+						var patt1=new RegExp(searchArray[isTerm]);
+						//document.write(patt1);
+						if(patt1.test(aData[iColumn])) {
+							display = 1;
+						}
+					}
+
+				}
+				iColumn++;
+			}
+			if (display == 1) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+);
 </script>
 
-<script type='text/javascript' src='includes/js/genericJavaScript.js'></script></html>
