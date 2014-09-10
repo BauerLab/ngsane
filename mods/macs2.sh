@@ -144,7 +144,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ -z "$MACS2_FRAGMENTSIZE" ]; then
         # estimated fragment sizes up to the tagsize are usually artifacts
-        TAGSIZE=$(fgrep '# tag size =' $SAMPLE.summary.txt | cut -d'=' -f 2)
+        TAGSIZE=$(fgrep '# tag size =' $SAMPLE.summary.txt | cut -d'=' -f 2 | tr -d ' \t\r\f')
         
         MACS2_FRAGMENTSIZE=$(grep 'alternative fragment length(s) may be' $SAMPLE.summary.txt | sed 's/.* be //' | cut -d' ' -f 1 | tr ',' '\n' | awk -v t=$TAGSIZE '($1>t){print $1; exit;}')
         
