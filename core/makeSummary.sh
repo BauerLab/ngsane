@@ -115,14 +115,9 @@ rm $SUMMARYCITES
 ################################################################################
 echo '''
 <!DOCTYPE html><html>
-<head><meta charset="windows-1252"><title>NGSANE project card</title>
-<script type="text/javascript" src="includes/js/jquery.js"></script>
-<script type="text/javascript" charset="utf8" src="includes/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" charset="utf8" src="includes/js/dataTables.responsive.js"></script>
-<link rel="stylesheet" type="text/css" href="includes/css/jquery.dataTables.min.css">
-<link rel="stylesheet" type="text/css" href="includes/css/dataTables.responsive.css">
-<link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
-<script type='text/javascript' src='includes/js/ngsane.js'></script>
+<head>
+<meta charset="windows-1252">
+<title>NGSANE project card</title>
 <link rel="shortcut icon" href="includes/images/favicon.ico">
 <link rel="apple-touch-icon" sizes="57x57" href="includes/images/apple-touch-icon-57x57.png">
 <link rel="apple-touch-icon" sizes="114x114" href="includes/images/apple-touch-icon-114x114.png">
@@ -140,13 +135,33 @@ echo '''
 <meta name="msapplication-TileColor" content="#da532c">
 <meta name="msapplication-TileImage" content="includes/images/mstile-144x144.png">
 <meta name="msapplication-config" content="includes/images/browserconfig.xml">
-</head><body>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script type="text/javascript">
+if (!window.jQuery) {
+    document.write("<script src=includes/js/jquery.js><\/script>");
+}
+</script>
+<script type="text/javascript" src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript">
+if (!$.fn.dataTableExt) { 
+    document.write("<script src=includes/js/jquery.dataTables.min.js><\/script>");
+}
+</script>
+<link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.2/css/jquery.dataTables.css">
+<style>''' >> $SUMMARYFILE.tmp
+cat $NGSANE_BASE/core/includes/css/ngsane.css >> $SUMMARYFILE.tmp
+echo '''
+</style>
+</head>
+<body>
 <script type="text/javascript">
 //<![CDATA[
     var datatable_array=[];
+''' >> $SUMMARYFILE.tmp
+cat $NGSANE_BASE/core/includes/js/ngsane.js >> $SUMMARYFILE.tmp
+echo '''
 //]]>
 </script>
-
 <div id="center">
 <div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>
 ''' >> $SUMMARYFILE.tmp
@@ -163,7 +178,6 @@ echo '''
 
 echo "<hr><span><img src='includes/images/favicon-32x32.png' /> Report generated with "`$NGSANE_BASE/bin/trigger.sh -v`"</span><span style='float:right;'>Last modified: "`date`"</span>" >> $SUMMARYTMP
 echo "</div><!-- center --></body>" >> $SUMMARYTMP
-
 
 echo '''
 <script type='text/javascript'>
@@ -184,10 +198,13 @@ echo '''
             }
         });
     }); 
+''' >> $SUMMARYTMP
+cat $NGSANE_BASE/core/includes/js/genericJavaScript.js >> $SUMMARYTMP
+echo '''
 </script>
 ''' >> $SUMMARYTMP
 
-echo "<script type='text/javascript' src='includes/js/genericJavaScript.js'></script></html>" >> $SUMMARYTMP
+#echo "<script type='text/javascript' src='includes/js/genericJavaScript.js'></script></html>" >> $SUMMARYTMP
 
 # copy includes folder ommitting hidden files and folders
 rsync -av --exclude=".*" $NGSANE_BASE/core/includes $(dirname $SUMMARYTMP)

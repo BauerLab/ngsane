@@ -207,7 +207,9 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
         fi
 
-        echo "[NOTE] Jobfile: "$JOBLOG >> $LOGFILE
+
+
+        echo "[NOTE] Jobfile: "$(python -c "import os.path; print os.path.relpath(os.path.realpath('$(dirname $JOBLOG)'),'$(pwd -P)')") >> $LOGFILE
 
         # add citations unless in recover mode
         if [ -z "$RECOVER" ]; then 
