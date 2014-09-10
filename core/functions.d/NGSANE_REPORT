@@ -85,24 +85,17 @@ ${1}_Table_${NGSANE_REPORT_TABLE_COUNTER}_json={
             \$( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
             
             for (var c=2; c<this.fnSettings().aoColumns.length; c++){
-    
-                // Remove the formatting to get integer data for summation
-                var intVal = function ( i ) {
-                    var f = parseFloat(i);
-                    if (!isNaN(f))
-                        return f;
-                    else
-                        return "";
-                };
-        
-                // Total over all pages
                 var data = api.column( c, {"filter":"applied"} ).data();
-                var total = data.length ? data.reduce( function (a, b) {  return intVal(a) + intVal(b); } ) : "";
+                var total = Math.sum.apply(Math, data);
                 var maxV = Math.max.apply(Math, data);
                 var minV = Math.min.apply(Math, data);
                 var median = Math.median.apply(Math,data);
                 var mean = Math.mean.apply(Math,data);
                 var stdev = Math.std.apply(Math,data);
+                if (isInt(total) && total >= 10000){
+                    mean=Math.round(mean)
+                    stdev=Math.round(stdev)
+                }
         
                 \$( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev)+"<br/>");
             }
@@ -208,10 +201,16 @@ EOF
                     
                     NGSANE_VAR_TABLE_FIGURE_BORDER=$(echo $var | cut -d':' -f 6)
                     [ "$NGSANE_VAR_TABLE_FIGURE_BORDER" == "1" ] && NGSANE_VAR_TABLE_FIGURE_BORDER='class=\"border\"'
-                    
+
+                    # add image only if we can detect the file
                     if [ -f $PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE ]; then
-                        # add image only if we can detect the file
-                        NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , '<a target=\"img\" href=\"$PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE\"><img $NGSANE_VAR_TABLE_FIGURE_BORDER src=\"$PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE\" height=$NGSANE_VAR_TABLE_FIGURE_HEIGHT/></a>'"
+                        # resize and base63 encode image
+                        convert -geometry x$NGSANE_VAR_TABLE_FIGURE_HEIGHT $PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE PNG8:$PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE.tmp.png
+                        IMGSRC="data:image/png;base64,$(cat $PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE.tmp.png | base64 )"
+                        rm $PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE.tmp.png
+                        
+                        NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , '<a target=\"img\" href=\"$PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE\"><img $NGSANE_VAR_TABLE_FIGURE_BORDER src=\"$IMGSRC\" height=$NGSANE_VAR_TABLE_FIGURE_HEIGHT/></a>'"                       
+
                     else
                         NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , ''"
                     fi

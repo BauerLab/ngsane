@@ -3,10 +3,15 @@ function getHash( url ) {
     return url.substring( hashPos + 1 );
 }
 
+// Check if number is integer
+function isInt(n){
+    return typeof n== "number" && isFinite(n) && n%1===0;
+}
+
 // format number with comma
 function formatNumber(n) {
     // only attempt conversion if n is numberic
-    if (!isNaN(parseFloat(n))){
+    if (n != "" && !isNaN(Number(n))){
         var t = Math.abs(parseFloat(n));
         if (t == 0)
             return n;
@@ -23,6 +28,15 @@ function formatNumber(n) {
     } else
         return n;
 }
+
+Math.sum = function() {
+    var ary, m, sum=0;
+    ary = Array.prototype.slice.call(arguments);
+    for (i = ary.length-1; i >= 0; i--) {sum += ary[i];}
+    if (!isNaN(sum) && isFinite(sum))
+        return sum;
+    return "";
+};
 
 Math.max = function() {
     var ary, m;

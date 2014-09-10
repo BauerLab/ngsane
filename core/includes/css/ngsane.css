@@ -310,7 +310,7 @@ table.dataTable.display tbody td, table.dataTable tfoot td {
 	white-space: nowrap;
 }
 table.dataTable tfoot td{
-    font-style: italic;       
+    font-family: "Courier New", Courier, monospace;
 }
 
 table.dataTable.display td.left, table.dataTable.display  th.left{
@@ -345,9 +345,10 @@ hr.spacer {
 	border: 0;
 	border-bottom: 1px dotted #69c;
 }
-span {
+div.footerline {
     color:#666;
-    font-size:10px;
+    font: 10px/15px "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode",
+		Verdana, sans-serif;
 }
 
 img.border {
