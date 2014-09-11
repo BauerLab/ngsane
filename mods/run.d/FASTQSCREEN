@@ -18,7 +18,7 @@ if [ -n "$RUNFASTQSCREEN" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
         fi
         
-        $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_FASTQSCREEN -i $INPUT_FASTQSCREEN -e $READONE.$FASTQ 
+        $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_FASTQSCREEN -i $INPUT_FASTQSCREEN -e $READONE.$FASTQ \
             -n $NODES_FASTQSCREEN -c $CPU_FASTQSCREEN -m $MEMORY_FASTQSCREEN"G" -w $WALLTIME_FASTQSCREEN \
             --command "$NGSANE_BASE/mods/fastqscreen.sh -k $CONFIG -f <FILE>  -o $OUT/<DIR>/$TASK_FASTQSCREEN"
         

@@ -4,14 +4,6 @@
 <meta charset="windows-1252">
 <title>NGSANE project card</title>
 <link rel="shortcut icon" href="includes/images/favicon.ico">
-<link rel="apple-touch-icon" sizes="57x57" href="includes/images/apple-touch-icon-57x57.png">
-<link rel="apple-touch-icon" sizes="114x114" href="includes/images/apple-touch-icon-114x114.png">
-<link rel="apple-touch-icon" sizes="72x72" href="includes/images/apple-touch-icon-72x72.png">
-<link rel="apple-touch-icon" sizes="144x144" href="includes/images/apple-touch-icon-144x144.png">
-<link rel="apple-touch-icon" sizes="60x60" href="includes/images/apple-touch-icon-60x60.png">
-<link rel="apple-touch-icon" sizes="120x120" href="includes/images/apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" sizes="76x76" href="includes/images/apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" sizes="152x152" href="includes/images/apple-touch-icon-152x152.png">
 <link rel="icon" type="image/png" href="includes/images/favicon-196x196.png" sizes="196x196">
 <link rel="icon" type="image/png" href="includes/images/favicon-160x160.png" sizes="160x160">
 <link rel="icon" type="image/png" href="includes/images/favicon-96x96.png" sizes="96x96">
@@ -346,7 +338,7 @@ table.dataTable.display tbody td, table.dataTable tfoot td {
 	white-space: nowrap;
 }
 table.dataTable tfoot td{
-    font-style: italic;       
+    font-family: "Courier New", Courier, monospace;
 }
 
 table.dataTable.display td.left, table.dataTable.display  th.left{
@@ -381,9 +373,10 @@ hr.spacer {
 	border: 0;
 	border-bottom: 1px dotted #69c;
 }
-span {
+div.footerline {
     color:#666;
-    font-size:10px;
+    font: 10px/15px "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode",
+		Verdana, sans-serif;
 }
 
 img.border {
@@ -416,10 +409,15 @@ function getHash( url ) {
     return url.substring( hashPos + 1 );
 }
 
+// Check if number is integer
+function isInt(n){
+    return typeof n== "number" && isFinite(n) && n%1===0;
+}
+
 // format number with comma
 function formatNumber(n) {
     // only attempt conversion if n is numberic
-    if (!isNaN(parseFloat(n))){
+    if (n != "" && !isNaN(Number(n))){
         var t = Math.abs(parseFloat(n));
         if (t == 0)
             return n;
@@ -436,6 +434,15 @@ function formatNumber(n) {
     } else
         return n;
 }
+
+Math.sum = function() {
+    var ary, m, sum=0;
+    ary = Array.prototype.slice.call(arguments);
+    for (i = ary.length-1; i >= 0; i--) {sum += ary[i];}
+    if (!isNaN(sum) && isFinite(sum))
+        return sum;
+    return "";
+};
 
 Math.max = function() {
     var ary, m;
@@ -658,24 +665,17 @@ bwa_Table_1_json={
             $( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
             
             for (var c=2; c<this.fnSettings().aoColumns.length; c++){
-    
-                // Remove the formatting to get integer data for summation
-                var intVal = function ( i ) {
-                    var f = parseFloat(i);
-                    if (!isNaN(f))
-                        return f;
-                    else
-                        return "";
-                };
-        
-                // Total over all pages
                 var data = api.column( c, {"filter":"applied"} ).data();
-                var total = data.length ? data.reduce( function (a, b) {  return intVal(a) + intVal(b); } ) : "";
+                var total = Math.sum.apply(Math, data);
                 var maxV = Math.max.apply(Math, data);
                 var minV = Math.min.apply(Math, data);
                 var median = Math.median.apply(Math,data);
                 var mean = Math.mean.apply(Math,data);
                 var stdev = Math.std.apply(Math,data);
+                if (isInt(total) && total >= 10000){
+                    mean=Math.round(mean)
+                    stdev=Math.round(stdev)
+                }
         
                 $( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev)+"<br/>");
             }
@@ -812,24 +812,17 @@ reCalAln_Table_1_json={
             $( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
             
             for (var c=2; c<this.fnSettings().aoColumns.length; c++){
-    
-                // Remove the formatting to get integer data for summation
-                var intVal = function ( i ) {
-                    var f = parseFloat(i);
-                    if (!isNaN(f))
-                        return f;
-                    else
-                        return "";
-                };
-        
-                // Total over all pages
                 var data = api.column( c, {"filter":"applied"} ).data();
-                var total = data.length ? data.reduce( function (a, b) {  return intVal(a) + intVal(b); } ) : "";
+                var total = Math.sum.apply(Math, data);
                 var maxV = Math.max.apply(Math, data);
                 var minV = Math.min.apply(Math, data);
                 var median = Math.median.apply(Math,data);
                 var mean = Math.mean.apply(Math,data);
                 var stdev = Math.std.apply(Math,data);
+                if (isInt(total) && total >= 10000){
+                    mean=Math.round(mean)
+                    stdev=Math.round(stdev)
+                }
         
                 $( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev)+"<br/>");
             }
@@ -931,24 +924,17 @@ variant_Table_1_json={
             $( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
             
             for (var c=2; c<this.fnSettings().aoColumns.length; c++){
-    
-                // Remove the formatting to get integer data for summation
-                var intVal = function ( i ) {
-                    var f = parseFloat(i);
-                    if (!isNaN(f))
-                        return f;
-                    else
-                        return "";
-                };
-        
-                // Total over all pages
                 var data = api.column( c, {"filter":"applied"} ).data();
-                var total = data.length ? data.reduce( function (a, b) {  return intVal(a) + intVal(b); } ) : "";
+                var total = Math.sum.apply(Math, data);
                 var maxV = Math.max.apply(Math, data);
                 var minV = Math.min.apply(Math, data);
                 var median = Math.median.apply(Math,data);
                 var mean = Math.mean.apply(Math,data);
                 var stdev = Math.std.apply(Math,data);
+                if (isInt(total) && total >= 10000){
+                    mean=Math.round(mean)
+                    stdev=Math.round(stdev)
+                }
         
                 $( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev)+"<br/>");
             }
@@ -990,24 +976,17 @@ variant_Table_2_json={
             $( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
             
             for (var c=2; c<this.fnSettings().aoColumns.length; c++){
-    
-                // Remove the formatting to get integer data for summation
-                var intVal = function ( i ) {
-                    var f = parseFloat(i);
-                    if (!isNaN(f))
-                        return f;
-                    else
-                        return "";
-                };
-        
-                // Total over all pages
                 var data = api.column( c, {"filter":"applied"} ).data();
-                var total = data.length ? data.reduce( function (a, b) {  return intVal(a) + intVal(b); } ) : "";
+                var total = Math.sum.apply(Math, data);
                 var maxV = Math.max.apply(Math, data);
                 var minV = Math.min.apply(Math, data);
                 var median = Math.median.apply(Math,data);
                 var mean = Math.mean.apply(Math,data);
                 var stdev = Math.std.apply(Math,data);
+                if (isInt(total) && total >= 10000){
+                    mean=Math.round(mean)
+                    stdev=Math.round(stdev)
+                }
         
                 $( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev)+"<br/>");
             }
@@ -1049,24 +1028,17 @@ variant_Table_3_json={
             $( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
             
             for (var c=2; c<this.fnSettings().aoColumns.length; c++){
-    
-                // Remove the formatting to get integer data for summation
-                var intVal = function ( i ) {
-                    var f = parseFloat(i);
-                    if (!isNaN(f))
-                        return f;
-                    else
-                        return "";
-                };
-        
-                // Total over all pages
                 var data = api.column( c, {"filter":"applied"} ).data();
-                var total = data.length ? data.reduce( function (a, b) {  return intVal(a) + intVal(b); } ) : "";
+                var total = Math.sum.apply(Math, data);
                 var maxV = Math.max.apply(Math, data);
                 var minV = Math.min.apply(Math, data);
                 var median = Math.median.apply(Math,data);
                 var mean = Math.mean.apply(Math,data);
                 var stdev = Math.std.apply(Math,data);
+                if (isInt(total) && total >= 10000){
+                    mean=Math.round(mean)
+                    stdev=Math.round(stdev)
+                }
         
                 $( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev)+"<br/>");
             }
@@ -1229,24 +1201,17 @@ pindel_Table_1_json={
             $( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
             
             for (var c=2; c<this.fnSettings().aoColumns.length; c++){
-    
-                // Remove the formatting to get integer data for summation
-                var intVal = function ( i ) {
-                    var f = parseFloat(i);
-                    if (!isNaN(f))
-                        return f;
-                    else
-                        return "";
-                };
-        
-                // Total over all pages
                 var data = api.column( c, {"filter":"applied"} ).data();
-                var total = data.length ? data.reduce( function (a, b) {  return intVal(a) + intVal(b); } ) : "";
+                var total = Math.sum.apply(Math, data);
                 var maxV = Math.max.apply(Math, data);
                 var minV = Math.min.apply(Math, data);
                 var median = Math.median.apply(Math,data);
                 var mean = Math.mean.apply(Math,data);
                 var stdev = Math.std.apply(Math,data);
+                if (isInt(total) && total >= 10000){
+                    mean=Math.round(mean)
+                    stdev=Math.round(stdev)
+                }
         
                 $( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev)+"<br/>");
             }
@@ -1279,7 +1244,48 @@ pindel_Table_1_json={
 <tr class='citation'><td class='top'>[11]</td><td class='left' >R: A language and environment for statistical computing; R Core Team. R Foundation for Statistical Computing, Vienna, Austria, (2013)</td></tr>
 </tbody></table>
 </div></div>
-<hr><span><img src='includes/images/favicon-32x32.png' /> Report generated with NGSANE version: f40d3eec0d1fb69307d44b3528fa3873b9f89251 (git hash)</span><span style='float:right;'>Last modified: Wed Sep 10 15:48:16 EST 2014</span>
+<hr><div class=footerline><img style='float:left;padding-right:10px;' src='data:image/png;base64,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' /> Report generated with NGSANE version: 525a08c80c632ccaea59c585780f328f5d347e36 (git hash)<br/>Last modified: Thu Sep 11 10:29:37 EST 2014</div>
 </div><!-- center --></body>
 
 <script type=text/javascript>

@@ -69,7 +69,7 @@ echo -e "--bedtools    --\n "$(bedtools --version)
 echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar --version 2>&1)
 [ ! -f $PATH_PICARD/FixMateInformation.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--htSeq       --\n "$(htseq-count | tail -n 1)
-[ -z "$(which htseq-count)" ] && [ -n "$GTF" ] && echo "[ERROR] no htseq-count or GTF detected" && exit 1
+[ -z "$(which htseq-count)" ] && echo "[ERROR] no htseq-count" && exit 1
 echo -e "--Python      --\n" $(python --version 2>&1 | tee | head -n 1 )
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 hash module 2>/dev/null && echo -e "--Python libs --\n "$(yolk -l)
