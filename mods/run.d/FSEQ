@@ -26,8 +26,10 @@ if [ -n "$RUNFSEQ" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
 
         NGSANE_REPORT_HEADER "Fseq" "$TASK_FSEQ" "fseq.sh"
 
-        echo "[NOTE] the fseq.sh mod does not provide a report"
-#        TODO: add reprot
+        NGSANE_REPORT_TABLE "$TASK_FSEQ" \
+            "$OUT/<DIR>/$TASK_FSEQ"  \
+            ".narrowPeak" \
+            "PATTERN:Peak::wc -l | awk '{print $1}'"
 
         NGSANE_REPORT_FOOTER 
   
