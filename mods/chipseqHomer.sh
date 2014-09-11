@@ -110,7 +110,6 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_homer/tagLengthDistribution.txt
 
 fi
-
 ################################################################################
 NGSANE_CHECKPOINT_INIT "find peaks"
 
@@ -125,17 +124,17 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     cat $OUTDIR/${SAMPLE}.findpeaks.log # put into qout log too
     
     if [ "$HOMER_CHIPSEQ_STYLE" == "factor" ]; then
-        pos2bed.pl $OUTDIR/${SAMPLE}_homer/peaks.txt > $OUTDIR/$SAMPLE-$INPUT.bed
+        pos2bed.pl $OUTDIR/${SAMPLE}_homer/peaks.txt > $OUTDIR/$SAMPLE.bed
     
     elif [ "$HOMER_CHIPSEQ_STYLE" == "histone" ]; then
-        pos2bed.pl $OUTDIR/${SAMPLE}_homer/regions.txt > $OUTDIR/$SAMPLE-$INPUT.bed
+        pos2bed.pl $OUTDIR/${SAMPLE}_homer/regions.txt > $OUTDIR/$SAMPLE.bed
     fi
 
     # make bigbed
     if hash bedToBigBed && [ -f $GENOME_CHROMSIZES ]; then
-        bedtools intersect -a <(cut -f1-3,5 $OUTDIR/$SAMPLE-$INPUT.bed | grep -v "^#" | sort -k1,1 -k2,2n) -b <( awk '{OFS="\t"; print $1,1,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/$SAMPLE-$INPUT.tmp
-        bedToBigBed -type=bed4 $OUTDIR/$SAMPLE-$INPUT.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE-$INPUT.bb
-        rm $OUTDIR/$SAMPLE-$INPUT.tmp
+        bedtools intersect -a <(cut -f1-3,5 $OUTDIR/$SAMPLE.bed | grep -v "^#" | sort -k1,1 -k2,2n) -b <( awk '{OFS="\t"; print $1,1,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/$SAMPLE.tmp
+        bedToBigBed -type=bed4 $OUTDIR/$SAMPLE.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bb
+        rm $OUTDIR/$SAMPLE.tmp
     fi
         
     # mark checkpoint
