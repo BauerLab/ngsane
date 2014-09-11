@@ -4,14 +4,6 @@
 <meta charset="windows-1252">
 <title>NGSANE project card</title>
 <link rel="shortcut icon" href="includes/images/favicon.ico">
-<link rel="apple-touch-icon" sizes="57x57" href="includes/images/apple-touch-icon-57x57.png">
-<link rel="apple-touch-icon" sizes="114x114" href="includes/images/apple-touch-icon-114x114.png">
-<link rel="apple-touch-icon" sizes="72x72" href="includes/images/apple-touch-icon-72x72.png">
-<link rel="apple-touch-icon" sizes="144x144" href="includes/images/apple-touch-icon-144x144.png">
-<link rel="apple-touch-icon" sizes="60x60" href="includes/images/apple-touch-icon-60x60.png">
-<link rel="apple-touch-icon" sizes="120x120" href="includes/images/apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" sizes="76x76" href="includes/images/apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" sizes="152x152" href="includes/images/apple-touch-icon-152x152.png">
 <link rel="icon" type="image/png" href="includes/images/favicon-196x196.png" sizes="196x196">
 <link rel="icon" type="image/png" href="includes/images/favicon-160x160.png" sizes="160x160">
 <link rel="icon" type="image/png" href="includes/images/favicon-96x96.png" sizes="96x96">
@@ -346,7 +338,7 @@ table.dataTable.display tbody td, table.dataTable tfoot td {
 	white-space: nowrap;
 }
 table.dataTable tfoot td{
-    font-style: italic;       
+    font-family: "Courier New", Courier, monospace;
 }
 
 table.dataTable.display td.left, table.dataTable.display  th.left{
@@ -381,9 +373,10 @@ hr.spacer {
 	border: 0;
 	border-bottom: 1px dotted #69c;
 }
-span {
+div.footerline {
     color:#666;
-    font-size:10px;
+    font: 10px/15px "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode",
+		Verdana, sans-serif;
 }
 
 img.border {
@@ -416,10 +409,15 @@ function getHash( url ) {
     return url.substring( hashPos + 1 );
 }
 
+// Check if number is integer
+function isInt(n){
+    return typeof n== "number" && isFinite(n) && n%1===0;
+}
+
 // format number with comma
 function formatNumber(n) {
     // only attempt conversion if n is numberic
-    if (!isNaN(parseFloat(n))){
+    if (n != "" && !isNaN(Number(n))){
         var t = Math.abs(parseFloat(n));
         if (t == 0)
             return n;
@@ -436,6 +434,15 @@ function formatNumber(n) {
     } else
         return n;
 }
+
+Math.sum = function() {
+    var ary, m, sum=0;
+    ary = Array.prototype.slice.call(arguments);
+    for (i = ary.length-1; i >= 0; i--) {sum += ary[i];}
+    if (!isNaN(sum) && isFinite(sum))
+        return sum;
+    return "";
+};
 
 Math.max = function() {
     var ary, m;
@@ -624,24 +631,17 @@ hicup_Table_1_json={
             $( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
             
             for (var c=2; c<this.fnSettings().aoColumns.length; c++){
-    
-                // Remove the formatting to get integer data for summation
-                var intVal = function ( i ) {
-                    var f = parseFloat(i);
-                    if (!isNaN(f))
-                        return f;
-                    else
-                        return "";
-                };
-        
-                // Total over all pages
                 var data = api.column( c, {"filter":"applied"} ).data();
-                var total = data.length ? data.reduce( function (a, b) {  return intVal(a) + intVal(b); } ) : "";
+                var total = Math.sum.apply(Math, data);
                 var maxV = Math.max.apply(Math, data);
                 var minV = Math.min.apply(Math, data);
                 var median = Math.median.apply(Math,data);
                 var mean = Math.mean.apply(Math,data);
                 var stdev = Math.std.apply(Math,data);
+                if (isInt(total) && total >= 10000){
+                    mean=Math.round(mean)
+                    stdev=Math.round(stdev)
+                }
         
                 $( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev)+"<br/>");
             }
@@ -651,7 +651,7 @@ hicup_Table_1_json={
 
 {'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'} ,{'sTitle':'P1 non-trunc reads', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'P1 trunc reads', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'P2 non-trunc reads', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'P2 trunc reads', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'', 'bSortable':false , 'sWidth':'60px'}
 ], "aaData": [
-['HiC' , 'GMall_Ncol' , 17695.00 , 100.00 , 0.00 , 0.00 , 17695.00 , 100.00 , 0.00 , 0.00 , '<a target="img" href="../HiC/hicup/GMall_Ncol_ditag_size_distribution.png"><img class=\"border\" src="../HiC/hicup/GMall_Ncol_ditag_size_distribution.png" height=60/></a>' ]
+['HiC' , 'GMall_Ncol' , 17695.00 , 100.00 , 0.00 , 0.00 , 17695.00 , 100.00 , 0.00 , 0.00 , '<a target="img" href="../HiC/hicup/GMall_Ncol_ditag_size_distribution.png"><img class=\"border\" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAA8CAMAAACac46aAAAABGdBTUEAALGPC/xhBQAAACBjSFJN AAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAACK1BMVEX+/v/5+fz7+/38/P7e 3u/V1erc3O3f3+/e3u7a2uzZ2ezY2Ozd3e7X1+vg4O/S0ujT0+nb2+3U1OnW1uva2u3Ly+Xl5fLW 1urKyuXk5PLj4/Hh4fDNzebi4vHm5vL8/P39/f7o6PTv7/fx8fjw8Pfs7Pbr6/Xs7PXt7fbq6vXq 6vTn5/Pp6fT////y8vj6+v309Pn+/v7o6PP6+vzw8Pju7vf//v7y8vn/+vr/7e3u7vb/8/P/7+// 9/f//Pz/8fH/+/v/9vb/8PD//f3/8vL/+fn/9fX/+Pj39/vi4vD/9PT19fr/+fjw7PP37fH26/Dz 6O726+/36+/16e7z5ev36e736e315uv36/D06u/07PH38PT39vrz9Pr09Prz8/n29vv29vr19vrz 7fP26e336u/16/Dz6u/37PD06e/16vD27PHz6e/17PD27fH16u/06e706vDp5vHr5/H17PH27fLx 6fDj2+r17/T28PTs5/Hg3e318PX28/fn5vLm5/Pg4PD08vj28PXm3uvg1+f17vP27/Tl3uzl3er1 7fLf2Ojo4Ov27vLj2+nq4uz07PLe1ubt5e7y6fDd1ebw6O/v5u7b0+Xz6vDs5O3f1ubp4uz27/Pm 3+ze1+fh2Off1+fc1Obm3+vy6vDb0uTr4uzv5+/X0OTu5u/t5O3x6O/p4Ova0uTz7PLn4Oz07fLi 2+rl3uvY1un9/v7j5PLc3O7e3+/o6fTc3e78/f4kGxLUAAAAAWJLR0QtzdpBPQAAA4ZJREFUWMPt l/lbEkEYx9cQFnE1TbPMVARdWGVV1NBSQA5xlVpNzZQOoYMw8Sqt7D60tLa07Da77L7DDv+8BpBE 3PltR3oemn3enX1mZvfzzHfeeeddDItbI+ItcfFiCS5NkCWKCTxRliRNTsAl8WtTiNQUMSGW4uvS UqSSVJxIT1+flrGBIDbKMsV4cvImaZZsM44nZSdmZ0kyZHgOnsv/eUyel6NQ8pX8AlKlJkkSVKBQ KhWpJtVUIUkVUSrQWkgW+htIDUlS4Cqg/IUEY8lCKtACXiQ1KkrD+3ElhdF0cQm9+qX0P3j1wFpl WXl0wBVlcVEBx94axx5YnpcdJecq3xJjUscguEQRJa/WRMurY2+N/0WwDiW4Ep4IVG1FRy7FiG3Q RKC6Ro8QjItgUhuMtUaE4DRRJQRsMtFmCzqwRgubsdFAW+vQgQmY1H6da62o3KsUk2VAQqbJBm7V 9cjASQwkEbDpwa2+Ghm4QQ6ROjBZixmR1qVYJsyrrVUBvAkNGUidCwEba/13S00jIrCYgSQCZkOg MpgRgbPUDfxeHQoeRgMacDnkdNKF3CqwrRCAYceixfz3AYV7wcFLa4skbsLBSycTkiACwHb+RKDO GnrSGU2IwLxerV/avyh2FFxqW9g0g7FklcDh5xKCHQUHB0N1sFiEDyJwsDmcVSX4XgZgBW8ioFue boXPXyhwLm8iYFnuyYKvMlTqiMxW8EQXCo4MV0K7FxRsi4hWJoGjl3+NeROByJNBaK0BOJ83ETBH SKsTeEPBpF4ZnquFPRxhYP2KFM9iFPQ/CgI28DhxIMFHBtZZDNvrTY1Gnj8Xg6D/UQCMFexg2abm nS2tbbvad7e1d3Q69uzdt59huuyMs9LFOLucjKvSyRw4eOiw+4ino7WTZbuPsp5uN9vj7WX7vD2g 7guY2+vx9A+w7OAgMLfH4+339IEhPc1Nge5eb1NLPxgyMMC6j2G01n58aPjEyVMjp8+cPXe+weXM vOB0JRe57BdVri6JwqUkil2K1C4nGX/p8pXRsavXxocnrt/gxm7e4ianbnN3pu9y9+4/4B4+cnCP pyZmnsw6hp8+G3KMjo9NPn8x83LuFff6zVvu3dx77sPHTyOfp7/MfJ0d/vYdSE37zQcqOU1rgcm1 i4YtWrArZD5fsFnL3y331xXzP+Z//vrNgG4R0NRvC+ANYL7gEPnCH7M5I8fhf0wlAAAAJXRFWHRk YXRlOmNyZWF0ZQAyMDE0LTA5LTExVDEwOjE4OjMxKzEwOjAwi5tQZQAAACV0RVh0ZGF0ZTptb2Rp ZnkAMjAxNC0wOS0xMVQxMDoxODozMSsxMDowMPrG6NkAAAAASUVORK5CYII=" height=60/></a>' ]
         ]};
         datatable_array.push({"json":"hicup_Table_1_json","html":"hicup_id_Table_1"});
         //]]>
@@ -683,24 +683,17 @@ hicup_Table_2_json={
             $( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
             
             for (var c=2; c<this.fnSettings().aoColumns.length; c++){
-    
-                // Remove the formatting to get integer data for summation
-                var intVal = function ( i ) {
-                    var f = parseFloat(i);
-                    if (!isNaN(f))
-                        return f;
-                    else
-                        return "";
-                };
-        
-                // Total over all pages
                 var data = api.column( c, {"filter":"applied"} ).data();
-                var total = data.length ? data.reduce( function (a, b) {  return intVal(a) + intVal(b); } ) : "";
+                var total = Math.sum.apply(Math, data);
                 var maxV = Math.max.apply(Math, data);
                 var minV = Math.min.apply(Math, data);
                 var median = Math.median.apply(Math,data);
                 var mean = Math.mean.apply(Math,data);
                 var stdev = Math.std.apply(Math,data);
+                if (isInt(total) && total >= 10000){
+                    mean=Math.round(mean)
+                    stdev=Math.round(stdev)
+                }
         
                 $( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev)+"<br/>");
             }
@@ -743,24 +736,17 @@ hicup_Table_3_json={
             $( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
             
             for (var c=2; c<this.fnSettings().aoColumns.length; c++){
-    
-                // Remove the formatting to get integer data for summation
-                var intVal = function ( i ) {
-                    var f = parseFloat(i);
-                    if (!isNaN(f))
-                        return f;
-                    else
-                        return "";
-                };
-        
-                // Total over all pages
                 var data = api.column( c, {"filter":"applied"} ).data();
-                var total = data.length ? data.reduce( function (a, b) {  return intVal(a) + intVal(b); } ) : "";
+                var total = Math.sum.apply(Math, data);
                 var maxV = Math.max.apply(Math, data);
                 var minV = Math.min.apply(Math, data);
                 var median = Math.median.apply(Math,data);
                 var mean = Math.mean.apply(Math,data);
                 var stdev = Math.std.apply(Math,data);
+                if (isInt(total) && total >= 10000){
+                    mean=Math.round(mean)
+                    stdev=Math.round(stdev)
+                }
         
                 $( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev)+"<br/>");
             }
@@ -770,7 +756,7 @@ hicup_Table_3_json={
 
 {'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'} ,{'sTitle':'Total pairs', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Valid', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} , 'sWidth':'40px'} ,{'sTitle':'Cis <10kb', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Cis >10kb', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Trans', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Invalid', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} , 'sWidth':'40px'} ,{'sTitle':'Circular', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Dangling', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Internal', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Re-ligation', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Contiguous', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Wrong size', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'', 'bSortable':false , 'sWidth':'60px'}
 ], "aaData": [
-['HiC' , 'GMall_Ncol' , 17695.00 , 17695.00 , 100.00 , 2045.00 , 15650.00 , 0.00 , 0.00 , 0 , 0.00 , 0.00 , 0.00 , 0.00 , 0.00 , 0.00 , '<a target="img" href="../HiC/hicup/GMall_Ncol_ditag_classification.png"><img class=\"border\" src="../HiC/hicup/GMall_Ncol_ditag_classification.png" height=60/></a>' ]
+['HiC' , 'GMall_Ncol' , 17695.00 , 17695.00 , 100.00 , 2045.00 , 15650.00 , 0.00 , 0.00 , 0 , 0.00 , 0.00 , 0.00 , 0.00 , 0.00 , 0.00 , '<a target="img" href="../HiC/hicup/GMall_Ncol_ditag_classification.png"><img class=\"border\" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA8CAMAAAANIilAAAAABGdBTUEAALGPC/xhBQAAACBjSFJN AAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAbFBMVEX////u3d3dqqrdiIjM VVW7MzO7IiK7ERHuu7v/7u7MRETMIiK7AADMAADdmZnMZmbMMzPuzMz/3d3Md3fdd3fMERHuqqrd ZmaqAACZAADu7v/d3e7u7u7d7v/u///d3f/MzO67u92qqt3MzN0W/1sEAAAAAWJLR0QAiAUdSAAA AcNJREFUSMellw2TgiAQhhExEDaUq7sruQ/t/v9/PPBrrFRge6YxaHqHfRdmFwlZJaM5Kw7ccShY LkoSTZZLBZ4jjCimsxhlSRmHFVQlglpawyZyX24k7MJ2gs85BFB6K08sJPVUq5k3dYzWOV8JXag4 LUBt8NpntUnQOvWd77dIvxNsqa7StAD54lilaoHPh61MDNoj54OVrgUYj1qWlOmJMeOohQEo1vHs Oj3VA9xg9njC7XWJStcYNzbqPm5krj0Ub9mbRm6UpyIHvFiSYMHcpiB4LRxeE7/kucCLGYlqE+uc yAkv1q+dbYPeaF+I0KYrVww0VuxLNzZu1ZdPZNznobuitHzs8ailT1NjR7hWGbrDLntsllyL5KK7 pwb+fncrSSvA/OP+RnPGGR75fPzH0QHDJ6TdWvvyHPPq9VMvs3aEqwMu14t7LlF0/eYqInZMGrJB GUobz/feNsTubZ0Zsg+VGweGs/BLhqsO52fvXOZRrzfeu9CsngPgdaVD8T6SGUG1psLsLNnYxjqa nq+msePAfjc//udfP7Wt/9kuR8RaQmzXtt2tc0/36Dp7c6Nh6L7/WtvPWjez9ta66Tzq2uYfToSO PC7BpIcAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTQtMDktMTFUMTA6MTg6MzErMTA6MDCLm1BlAAAA JXRFWHRkYXRlOm1vZGlmeQAyMDE0LTA5LTExVDEwOjE4OjMxKzEwOjAw+sbo2QAAAABJRU5ErkJg gg==" height=60/></a>' ]
         ]};
         datatable_array.push({"json":"hicup_Table_3_json","html":"hicup_id_Table_3"});
         //]]>
@@ -803,24 +789,17 @@ hicup_Table_4_json={
             $( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
             
             for (var c=2; c<this.fnSettings().aoColumns.length; c++){
-    
-                // Remove the formatting to get integer data for summation
-                var intVal = function ( i ) {
-                    var f = parseFloat(i);
-                    if (!isNaN(f))
-                        return f;
-                    else
-                        return "";
-                };
-        
-                // Total over all pages
                 var data = api.column( c, {"filter":"applied"} ).data();
-                var total = data.length ? data.reduce( function (a, b) {  return intVal(a) + intVal(b); } ) : "";
+                var total = Math.sum.apply(Math, data);
                 var maxV = Math.max.apply(Math, data);
                 var minV = Math.min.apply(Math, data);
                 var median = Math.median.apply(Math,data);
                 var mean = Math.mean.apply(Math,data);
                 var stdev = Math.std.apply(Math,data);
+                if (isInt(total) && total >= 10000){
+                    mean=Math.round(mean)
+                    stdev=Math.round(stdev)
+                }
         
                 $( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev)+"<br/>");
             }
@@ -830,7 +809,7 @@ hicup_Table_4_json={
 
 {'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'} ,{'sTitle':'Valid reads', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Unique di-tags', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} , 'sWidth':'40px'} ,{'sTitle':'Unique cis <10kb', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} , 'sWidth':'40px'} ,{'sTitle':'Unique cis >10kb', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} , 'sWidth':'40px'} ,{'sTitle':'Unique trans', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} , 'sWidth':'40px'} ,{'sTitle':'', 'bSortable':false , 'sWidth':'60px'}
 ], "aaData": [
-['HiC' , 'GMall_Ncol' , 17695.00 , 17693.00 , 99.98 , 2045.00 , 11.55 , 15648.00 , 88.43 , 0.00 , 0 , '<a target="img" href="../HiC/hicup/GMall_Ncol_uniques_cis-trans.png"><img class=\"border\" src="../HiC/hicup/GMall_Ncol_uniques_cis-trans.png" height=60/></a>' ]
+['HiC' , 'GMall_Ncol' , 17695.00 , 17693.00 , 99.98 , 2045.00 , 11.55 , 15648.00 , 88.43 , 0.00 , 0 , '<a target="img" href="../HiC/hicup/GMall_Ncol_uniques_cis-trans.png"><img class=\"border\" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA8CAMAAAANIilAAAAABGdBTUEAALGPC/xhBQAAACBjSFJN AAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAz1BMVEX////d7t2qzKqIu4hV mVUziDMiiCIRiBEidxGqERG7ERG7IiK7MzPMVVXdiIjuu7v/7u5EmUQAiAAAdwAidwC7AADMAADM IiLdmZnu3d3u/+5VqlXMZmYzmTPMRETM3cwiZgCZZkS73bsRVQCIAACqAACZAACIMwDM7syIIgAR dwCZIgDu7u5mqmaqEQAzZgBEVQCZzJlVVQBVRABmRAAimSJ3MwCZEQCZIhEiZhF3u3eZu5l3qneI zIgAZgDu7v/d3e7MzO7/7v+7u92qqt0+inI9AAAAAWJLR0QAiAUdSAAAAlhJREFUSMedlgt7mjAU hkOopLu4LjkL7aQMx9RZxW5sXbfZbUrp//9NS0AtQi6Y79HAQ3g5lxxyQEgpD/tng4Ccv3j56vXw zcVb1FueTwMGQuwdD7nU5fDqfR9yhCMCOx1gyV9fWFkcMwAVLPTBjCe0gXZgzocG530CYIT55ZUu TxGADeb8Wpn5JIaOxl2Yf/S6bBp0UAafJtOZ0HQ2mcymXBxn/DPE8x6stDxt271ZsA49V7IyZiHO q0GOy4Vcjjg7ylUMOrhpNlyO66WMRg14BX3g8Ha8LwO/UVasDxzefjncR9I9m6mdbsFNFoAeCgt6 wCH/euRfvstW0ANusxCPzIYbcMi/tfOCjRE34JB/70xWUWOwwiG/606SRL/GR5bvVLNirbMfVji8 B1UhUH2BNOD7hfIe4bc+1zs4vFGzwLAp5Pqt0rEy6NgCL7UsrFBghn+O9TmhiJjg8S8DCwMEJi1+ G1gIzDCYWAEH4CyKBu5whM7c4TVaO7MsN9a2WaK258QVllt/5AqvxGbw4Bqy3Lpd/Q6qhuXo97ru rk75Jrse72T6z76xO0QdeJYOa9Jzj/XiU1na6O6nOl51i4P+npRxgo+/aBovF7NsIMB81NJqT/6T qsberLDd03OSq74f8zprjMmf+KsfFmCkVNpjxegcaZTZXCf+COmVUlPHjRJkFqaagiFRiuxK1nHH PKG+1wOVGqUPUUzqdDNG4lVu87ctL01xnuM0sZvcVELbIhPDVpwVm8f6ynZzuFLfk203LbYsyqey 2JalGIqyEGfiWKivPBU76j/ysO6/pzEZ7gAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNC0wOS0xMVQx MDoxODozMSsxMDowMIubUGUAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTQtMDktMTFUMTA6MTg6MzEr MTA6MDD6xujZAAAAAElFTkSuQmCC" height=60/></a>' ]
         ]};
         datatable_array.push({"json":"hicup_Table_4_json","html":"hicup_id_Table_4"});
         //]]>
@@ -925,24 +904,17 @@ fithic_Table_1_json={
             $( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
             
             for (var c=2; c<this.fnSettings().aoColumns.length; c++){
-    
-                // Remove the formatting to get integer data for summation
-                var intVal = function ( i ) {
-                    var f = parseFloat(i);
-                    if (!isNaN(f))
-                        return f;
-                    else
-                        return "";
-                };
-        
-                // Total over all pages
                 var data = api.column( c, {"filter":"applied"} ).data();
-                var total = data.length ? data.reduce( function (a, b) {  return intVal(a) + intVal(b); } ) : "";
+                var total = Math.sum.apply(Math, data);
                 var maxV = Math.max.apply(Math, data);
                 var minV = Math.min.apply(Math, data);
                 var median = Math.median.apply(Math,data);
                 var mean = Math.mean.apply(Math,data);
                 var stdev = Math.std.apply(Math,data);
+                if (isInt(total) && total >= 10000){
+                    mean=Math.round(mean)
+                    stdev=Math.round(stdev)
+                }
         
                 $( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev)+"<br/>");
             }
@@ -952,7 +924,7 @@ fithic_Table_1_json={
 
 {'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'} ,{'sTitle':'Min distance', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Max distance', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Possible Intra In Range', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Intra In Range Count', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Intra Out Of Range Count', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Intra Very Proximal Count', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Inter Count', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Significant interactions', 'mRender': function(data){return formatNumber(data);} }
 ], "aaData": [
-['HiC' , 'GMall_Ncol' , 5000.00 , 5000000.00 , 30531.00 , 7665.00 , 642.00 , 0.00 , 0.00 , 0.00 ]
+['HiC' , 'GMall_Ncol' , 5000.00 , 5000000.00 , 30531.00 , 7658.00 , 642.00 , 0.00 , 0.00 , 0.00 ]
         ]};
         datatable_array.push({"json":"fithic_Table_1_json","html":"fithic_id_Table_1"});
         //]]>
@@ -971,7 +943,48 @@ fithic_Table_1_json={
 <tr class='citation'><td class='top'>[7]</td><td class='left' >R: A language and environment for statistical computing; R Core Team. R Foundation for Statistical Computing, Vienna, Austria, (2013)</td></tr>
 </tbody></table>
 </div></div>
-<hr><span><img src='includes/images/favicon-32x32.png' /> Report generated with NGSANE version: f40d3eec0d1fb69307d44b3528fa3873b9f89251 (git hash)</span><span style='float:right;'>Last modified: Wed Sep 10 15:38:44 EST 2014</span>
+<hr><div class=footerline><img style='float:left;padding-right:10px;' src='data:image/png;base64,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' /> Report generated with NGSANE version: 525a08c80c632ccaea59c585780f328f5d347e36 (git hash)<br/>Last modified: Thu Sep 11 10:19:34 EST 2014</div>
 </div><!-- center --></body>
 
 <script type=text/javascript>
