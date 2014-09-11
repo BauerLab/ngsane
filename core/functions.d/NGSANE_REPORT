@@ -205,9 +205,10 @@ EOF
                     # add image only if we can detect the file
                     if [ -f $PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE ]; then
                         # resize and base63 encode image
-                        convert -geometry x$NGSANE_VAR_TABLE_FIGURE_HEIGHT $PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE PNG8:$PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE.tmp.png
-                        IMGSRC="data:image/png;base64,$(cat $PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE.tmp.png | base64 )"
-                        rm $PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE.tmp.png
+                        COMMAND="convert -geometry x$NGSANE_VAR_TABLE_FIGURE_HEIGHT $FOLDER/$NGSANE_VAR_TABLE_FIGURE PNG8:$FOLDER/$NGSANE_VAR_TABLE_FIGURE.tmp.png"
+                        eval $COMMAND
+                        IMGSRC="data:image/png;base64,$(cat $FOLDER/$NGSANE_VAR_TABLE_FIGURE.tmp.png | base64 )"
+                        rm $FOLDER/$NGSANE_VAR_TABLE_FIGURE.tmp.png
                         
                         NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , '<a target=\"img\" href=\"$PROJECT_RELPATH/$PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE\"><img $NGSANE_VAR_TABLE_FIGURE_BORDER src=\"$IMGSRC\" height=$NGSANE_VAR_TABLE_FIGURE_HEIGHT/></a>'"                       
 
