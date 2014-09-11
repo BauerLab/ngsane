@@ -18,25 +18,50 @@ if [ -n "$RUNGATKDOC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
 
         $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_GATKDOC -i $INPUT_GATKDOC -e $ASR.bam \
     	   -n $NODES_GATKDOC -c $CPU_GATKDOC -m $MEMORY_GATKDOC"G" -w $WALLTIME_GATKDOC \
-    	   --command "${NGSANE_BASE}/mods/gatkDOC.sh -k $CONFIG -f <FILE> -r $FASTA -o $OUT/<DIR>/$TASK_GATKDOC -t $CPU_GATKDOC"
+    	   --command "${NGSANE_BASE}/mods/gatkDOC.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_GATKDOC"
 	       
     ############################################################################
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
     
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "DepthOfCoverage" "$TASK_GATKDOC" "gatkDOC.sh"
 
         NGSANE_REPORT_TABLE "$TASK_GATKDOC" \
             "$OUT/<DIR>/$TASK_GATKDOC/" \
-            "$ASR.bam.doc.sample_summary" \
+            ".doc.sample_summary" \
+            "PATTERN:Col1::sed-n 2p | cut -f 2" \
+            "PATTERN:Col2::sed-n 2p | cut -f 3" \
+            "PATTERN:Col3::sed-n 2p | cut -f 4" \
+            "PATTERN:Col4::sed-n 2p | cut -f 5" 
+        #TODO check pattern
+        
+        NGSANE_REPORT_TABLE "$TASK_GATKDOC" \
+            "$OUT/<DIR>/$TASK_GATKDOC/" \
+            ".doc.sample_cumulative_coverage_counts" \
             "PATTERN:Col1::sed-n 2p | cut -f 2" \
             "PATTERN:Col2::sed-n 2p | cut -f 3" \
             "PATTERN:Col3::sed-n 2p | cut -f 4" \
             "PATTERN:Col4::sed-n 2p | cut -f 5" \
-            #TODO: get column names and number of them
-                                    
-        # finish the section
+
+        NGSANE_REPORT_TABLE "$TASK_GATKDOC" \
+            "$OUT/<DIR>/$TASK_GATKDOC/" \
+            ".doc.sample_interval_statistics" \
+            "PATTERN:Col1::sed-n 2p | cut -f 2" \
+            "PATTERN:Col2::sed-n 2p | cut -f 3" \
+            "PATTERN:Col3::sed-n 2p | cut -f 4" \
+            "PATTERN:Col4::sed-n 2p | cut -f 5" \
+            
+        NGSANE_REPORT_TABLE "$TASK_GATKDOC" \
+            "$OUT/<DIR>/$TASK_GATKDOC/" \
+            "$ASR.bam.stats"" \
+            "PATTERN:Total reads::sed -n 1p | cut -d' ' -f 1" \
+            "PATTERN:Paired::sed-n 2p | cut -f 3" \
+            "CALCULATE:%:40:#3*100/#2" \
+            "PATTERN:On target::sed-n 2p | cut -f 5" \
+            "CALCULATE:%:40:#5*100/#2" \
+            "PATTERN:Paired on target::sed-n 2p | cut -f 5" \
+            "CALCULATE:%:40:#7*100/#2"
+                                            
         NGSANE_REPORT_FOOTER   
   
     fi

@@ -10,7 +10,7 @@
 # Tasks
 #********************
 
-RUNVARCALLS="1"     # variance  calling with GATK
+RUNGATKVAR="1"     # variance  calling with GATK
 
 #********************
 # Paths

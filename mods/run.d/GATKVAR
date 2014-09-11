@@ -4,16 +4,20 @@
 #   call indels with GATK -- call one vcf file over all folders
 ################################################################################
 
-if [ -n "$RUNVARCALLS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+if [ -n "$RUNGATKVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
 
 #    TODO: make sure it shorter than 64
     NAME=$(echo ${DIR[@]}|sed 's/ /_/g')
-
     
     ############################################################################
     # Wether to submit a job or compile a report
     if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
+        if [ -z "$TASK_GATKVAR" ] || [ -z "$NODES_GATKVAR" ] || [ -z "$CPU_GATKVAR" ] || [ -z "$MEMORY_GATKVAR" ] || [ -z "$WALLTIME_GATKVAR" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+        
+        
         $QSUB $ARMED $NGSANE_WAITFORJOB -r -d -k $CONFIG -t $TASK_GATKVAR -i $INPUT_GATKVAR  -e $ASR.bam -n $NODES_GATKVAR \
             -c $CPU_GATKVAR -m $MEMORY_GATKVAR"G" -w $WALLTIME_GATKVAR \
             --postcommand "${NGSANE_BASE}/mods/gatkVARs.sh -k $CONFIG \
