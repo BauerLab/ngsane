@@ -237,9 +237,9 @@ NGSANE_CHECKPOINT_INIT "cleanup"
 [ -e $OUTDIR/$SAMPLE.fixed.bam ] && rm $OUTDIR/$SAMPLE.fixed.bam
 [ -e $OUTDIR/$SAMPLE.fixed.bam.bai ] && rm $OUTDIR/$SAMPLE.fixed.bam.bai
 [ -e $OUTDIR/GTF.summary.txt ] && rm $OUTDIR/GTF.summary.txt
-[ -e $OUTDIR/..//${SAMPLE}.summary.txt.dummy ] && rm $OUTDIR/..//${SAMPLE}.summary.txt.dummy
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
+[ -e $OUTDIR/../${SAMPLE}.summary.txt.dummy ] && rm $OUTDIR/../${SAMPLE}.summary.txt.dummy
 echo ">>>>> feature counting with HTSEQ-COUNT - FINISHED"
 echo ">>>>> enddate "`date`

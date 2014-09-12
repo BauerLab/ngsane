@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 # author: Hugh French and Fabian Buske
-# date: April 2014 echo ">>>>> [cuffnorm]"
+# date: March 2014 echo ">>>>> [cuffnorm]"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
@@ -38,55 +38,59 @@ done
 ################################################################################
 NGSANE_CHECKPOINT_INIT "programs"
 
-hash module 2>/dev/null && for MODULE in $MODULE_CUFFLINKS; do module load $MODULE; done  # save way to load modules that itself load other modules
-export PATH=$PATH_CUFFLINKS:$PATH
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_CUFFLINKS; do module load $MODULE; done && module list 
 
-module list
+export PATH=$PATH_CUFFLINKS:$PATH
 echo "PATH=$PATH"
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--cufflinks   --\n "$(cufflinks 2>&1 | tee | head -n 2 )
 [ -z "$(which cufflinks)" ] && echo "[ERROR] no cufflinks detected" && exit 1
-echo -e "--R           --\n "$(R --version | head -n 3)
-[ -z "$(which R)" ] && echo "[WARN] no R detected"
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
 NGSANE_CHECKPOINT_INIT "parameters"
 
+if [ -z "$MERGED_GTF_NAME" ]; then
+    echo "[ERROR] MERGED_GTF_NAME not specified"
+    exit 1
+fi
+
+if [ -z "$FASTA" ]; then
+    echo "[ERROR] no reference provided (FASTA)"
+    exit 1
+fi
+
 echo "[NOTE] Files: $FILES"
+OLDFS=$IFS
+IFS=","
 DATASETS=""
 for f in $FILES; do
-    n=$(dirname ${f})
-#    n=$(dirname ${f/%$ASD.bam/.cxb}
-    FILE=${n/$TASK_TOPHAT/$TASK_CUFFLINKS}/abundances.cxb
+    # get basename of f
 
-#     get directory
-#    d=$(dirname $f)
-#    d=${d##*/}    # add to dataset
+    n=${f/%$ASD.bam/}
+    FILE=${n/$TASK_TOPHAT/$TASK_CUFFLINKS}
+    # get directory
+    d=$(dirname $f)
+    d=${d##*/}    # add to dataset
     if [ -n "$FILE" ]; then 
         DATASETS="${DATASETS[@]} ${FILE[@]}"
     fi
 done
+IFS=" "
 
-echo "[NOTE] ${FILE[@]}"
+echo "[NOTE] datasets: $DATASETS"
 
-echo "[NOTE] datasets"
-echo "[NOTE] $DATASETS"
+if [ -z "$NGSANE_RECOVERFROM" ]; then
+    [ -f $OUTDIR/$MERGED_GTF_NAME.gtf ] && rm $OUTDIR/$MERGED_GTF_NAME.gtf
+fi
 
-echo "[NOTE] $OUTDIR"
-
-#mkdir -p "$OUTDIR"
-#if [ -z "$NGSANE_RECOVERFROM" ]; then
-#    ## TODO remove primary result files from pervious runs
-#    rm ${OUTDIR}/*
-#fi
+mkdir -p $OUTDIR
 
 # unique temp folder that should be used to store temporary files
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
 mkdir -p "$THISTMP"
-
-#echo "[NOTE] echo $THISTMP"
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -95,60 +99,44 @@ NGSANE_CHECKPOINT_INIT "recall files from tape"
 if [ -n "$DMGET" ]; then
     dmget -a $INPUTFILE
     dmget -a $OUTDIR/*
+    # TODO add additional resources that are required and may need recovery from tape
 fi
     
-NGSANE_CHECKPOINT_CHECK
-#################################################################################
-NGSANE_CHECKPOINT_INIT "Run cuffnorm"
+NGSANE_CHECKPOINT_CHECK   
+################################################################################
+NGSANE_CHECKPOINT_INIT "Run cuffmerge"  
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-    
-    RUNCOMMAND="cuffnorm --no-update-check --quiet --output-dir ${OUTDIR}/$MERGED_GTF_NAME -p $CPU_CUFFLINKS $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf $(echo $FILES | tr ',' ' ')"
-    echo $RUNCOMMAND && eval $RUNCOMMAND
 
+    array=(${DATASETS[@]})
+    
+    
+    [ -f ${THISTMP}/files.txt ] &&  rm ${THISTMP}/files.txt
+    touch ${THISTMP}/files.txt
+    
+    array=( "${array[@]/%//transcripts.gtf}" )                  
+    
+    for THIS_FILE in "${array[@]}"; do
+        [ -f $THIS_FILE ] && echo $THIS_FILE >> ${THISTMP}/files.txt 
+    done
+    
+    cat ${THISTMP}/files.txt
+    
+    RUNCOMMAND="cuffmerge -p $CPU_CUFFLINKS -o $THISTMP --ref-sequence $FASTA --ref-gtf $GTF ${THISTMP}/files.txt"
+    echo $RUNCOMMAND && eval $RUNCOMMAND
+    
+    mv $THISTMP/merged.gtf $OUTDIR/$MERGED_GTF_NAME.gtf
+    
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$MERGED_GTF_NAME/genes.count_table $OUTDIR/$MERGED_GTF_NAME/genes.fpkm_table
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$MERGED_GTF_NAME.gtf
 
 fi
 ################################################################################
-NGSANE_CHECKPOINT_INIT "MDS plot"
-
-if hash Rscript 2>&- ; then
-    for TABLE in $OUTDIR/$MERGED_GTF_NAME/*.count_table; do
-        
-        COLUMNS=$(cat $TABLE| head -n 1 | tr '\t\s,' '\n'  | wc -l  | cut -f 1)
-        if [[ $COLUMNS < 4 ]]; then
-            echo "[NOTE] At least 3 columns needed for MDS plot, skipping $TABLE"    
-        else
-        
-            cat > $TABLE.R <<EOF
-library(limma)
-
-pdf("${TABLE}.pdf", width=12, height=3)
-dt <- read.delim("$TABLE", row.names = 1)
-samples <- read.delim("$OUTDIR/$MERGED_GTF_NAME/samples.table")
-samples["file"] <- sub(".*/(.*)$ASD.bam","\\\\1",samples["file"])
-colnames(dt) <- samples["file"][match(colnames(dt), samples["sample_id"])]
-
-par(mfrow=c(1,4), mar=c(5,4,2,2))
-for (top in c(100, 500, 1000, 5000)) {
-    plotMDS(dt,main=top, top=top)
-}
-dev.off()
-EOF
-
-            Rscript --vanilla $TABLE.R
-        fi
-    done
-fi
-    
-NGSANE_CHECKPOINT_CHECK
-#################################################################################
 NGSANE_CHECKPOINT_INIT "cleanup"  
-
+  
 [ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
-     
+  
 NGSANE_CHECKPOINT_CHECK
-#################################################################################
-echo ">>>>> Experiment merged transcripts (cuffnorm) - FINISHED"
+################################################################################
+echo ">>>>> Experiment merged transcripts (cuffmerge) - FINISHED"
 echo ">>>>> enddate "`date`
