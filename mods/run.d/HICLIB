@@ -59,7 +59,7 @@ if [ -n "$RUNHICLIB" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "CALCULATE:%:80:#9*100/#2" \
             "PATTERN:Final reads::fgrep -w -A 1 'Extreme fragments filter'  | tail -n 1 | awk '{print $7}'" \
             "PATTERN:%::sed -n 3p | cut -d' ' -f 4" \
-            "PATTERN:Final fragments::fgrep -w -A 1 'Extreme fragments filter'  | tail -n 1 |  awk '{print $NF}'" 
+            "PATTERN:Final fragments::fgrep -w -A 1 'Extreme fragments filter'  | tail -n 1 |  awk '{print \$NF}'" 
 
         # finish the section
         NGSANE_REPORT_FOOTER 

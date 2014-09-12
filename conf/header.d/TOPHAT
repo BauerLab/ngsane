@@ -3,7 +3,7 @@
 # http://tophat.cbcb.umd.edu/
 TASK_TOPHAT="tophat"
 WALLTIME_TOPHAT=62:00:00
-MEMORY_TOPHAT=8
+MEMORY_TOPHAT=64
 CPU_TOPHAT=16
 NODES_TOPHAT="nodes=2:ppn=8"
 INPUT_TOPHAT="fastq"

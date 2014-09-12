@@ -54,7 +54,7 @@ while [ "$1" != "" ]; do
 	-o | --outdir )         shift; OUTDIR=$1 ;; # output dir
 	-R | --region )         shift; SEQREG=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
 	--forceSingle )         FORCESINGLE=1;;
-    --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
 	-h | --help )           usage ;;
 	* )                     echo "dont understand $1"
 	esac

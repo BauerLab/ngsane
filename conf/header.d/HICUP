@@ -1,9 +1,9 @@
 ##############################################################
-# HICUP + fit-hi-c
+# HICUP 
 # http://www.bioinformatics.babraham.ac.uk/projects/hicup/
 TASK_HICUP="hicup"
 WALLTIME_HICUP=60:00:00
-MEMORY_HICUP=8
+MEMORY_HICUP=64
 CPU_HICUP=8
 NODES_HICUP="nodes=1:ppn=8"
 INPUT_HICUP="fastq"

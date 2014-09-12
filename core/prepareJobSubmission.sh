@@ -209,7 +209,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
 
 
-        echo "[NOTE] Jobfile: "$(python -c "import os.path; print os.path.relpath(os.path.realpath('$(dirname $JOBLOG)'),'$(pwd -P)')") >> $LOGFILE
+        echo "[NOTE] Jobfile: "$(python -c "import os.path; print os.path.relpath(os.path.realpath('$JOBLOG'),'$(pwd -P)')") >> $LOGFILE
 
         # add citations unless in recover mode
         if [ -z "$RECOVER" ]; then 

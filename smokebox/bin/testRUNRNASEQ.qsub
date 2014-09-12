@@ -12,12 +12,9 @@ if [[ -z "$SB_MODE" ]]; then
         fi
 fi
 
-# use chr20 copy to not interfere with other tasks
-[ -e referenceData/chr20_RNAseqcopy.fasta ] && unlink referenceData/chr20_RNAseqcopy.fasta && unlink referenceData/chr20_RNAseqcopy.chrom.sizes && unlink referenceData/chr20_RNAseqcopy.dict
-
-[ ! -e referenceData/chr20_RNAseqcopy.fasta ] && ln -s chr20.fasta referenceData/chr20_RNAseqcopy.fasta
-[ ! -e referenceData/chr20_RNAseqcopy.chrom.sizes ] && ln -s chr20.chrom.sizes referenceData/chr20_RNAseqcopy.chrom.sizes
-[ ! -e referenceData/chr20_RNAseqcopy.dict ] && ln -s chr20.dict referenceData/chr20_RNAseqcopy.dict
+[ ! -e referenceData/chr20_RNAseqcopy.fasta ] && cp referenceData/chr20.fasta referenceData/chr20_RNAseqcopy.fasta
+[ ! -e referenceData/chr20_RNAseqcopy.chrom.sizes ] && cp referenceData/chr20.chrom.sizes referenceData/chr20_RNAseqcopy.chrom.sizes
+[ ! -e referenceData/chr20_RNAseqcopy.dict ] && cp referenceData/chr20.dict referenceData/chr20_RNAseqcopy.dict
 
 echo "[NOTE] run in $SB_MODE mode $(date)"
 ################################################################################

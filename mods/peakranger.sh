@@ -72,7 +72,7 @@ if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
 fi
 
 # get basename of f
-f=${f/%.dummy/} #if input came from pip
+f=${f/%.dummy/}
 n=${f##*/}
 SAMPLE=${n/%$ASD.bam/}
 c=${CHIPINPUT##*/}

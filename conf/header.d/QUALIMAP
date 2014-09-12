@@ -3,7 +3,7 @@
 # http://qualimap.bioinfo.cipf.es/
 TASK_QUALIMAP="qualimap"
 WALLTIME_QUALIMAP=10:00:00
-MEMORY_QUALIMAP=8
+MEMORY_QUALIMAP=16
 CPU_QUALIMAP=4
 NODES_QUALIMAP="nodes=1:ppn=4"
 INPUT_QUALIMAP="bowtie"

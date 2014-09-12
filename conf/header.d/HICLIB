@@ -3,7 +3,7 @@
 # https://bitbucket.org/mirnylab/hiclib
 TASK_HICLIB="hiclib"
 WALLTIME_HICLIB=50:00:00
-MEMORY_HICLIB=8
+MEMORY_HICLIB=64
 CPU_HICLIB=8
 NODES_HICLIB="nodes=1:ppn=8"
 CPU_HICLIB_POSTCOMMAND=1
