@@ -76,6 +76,8 @@ GENOMESIZE=${FASTA%.*}.chrom.sizes
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
 mkdir -p $THISTMP
 
+mkdir -p $OUTDIR
+
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
 NGSANE_CHECKPOINT_INIT "recall files from tape"
