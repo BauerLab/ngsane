@@ -76,8 +76,6 @@ GENOMESIZE=${FASTA%.*}.chrom.sizes
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
 mkdir -p $THISTMP
 
-mkdir -p $OUTDIR
-
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
 NGSANE_CHECKPOINT_INIT "recall files from tape"
@@ -99,6 +97,7 @@ cat /dev/null > $COMMAND
 egrep '^IDR_REPLICATE ' $CONFIG | cut -d' ' -f 2- > $COMMAND.tmp
 for d in ${DIR[@]}; do
     OUTDIR="$OUT/$d/$TASK_IDR"
+    mkdir -p $OUTDIR
     while read -r -a REPLICATE; do
         R1=
         R2=
