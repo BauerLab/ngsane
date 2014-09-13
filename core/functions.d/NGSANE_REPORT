@@ -48,7 +48,7 @@ function NGSANE_REPORT_FOOTER {
 }
 
 
-# NGSANE_REPORT_HEADER takes 4 parameters
+# NGSANE_REPORT_TABLE takes at least 3 parameters
 # $1=MOD (e.g. $TASK_BWA)
 # $2=FOLDERPATTERN (e.g. $OUT/<DIR>/$TASK_[MOD]/<SAMPLE>)
 # $3=FILE SUFFIX (e.g. $ASD.bam.stats)
@@ -205,7 +205,7 @@ EOF
                     # add image only if we can detect the file
                     if [ -f $PROJECT_RELPATH2/$NGSANE_VAR_TABLE_FIGURE ]; then
                         # resize and base63 encode image
-                        COMMAND="convert -geometry x$NGSANE_VAR_TABLE_FIGURE_HEIGHT $FOLDER/$NGSANE_VAR_TABLE_FIGURE PNG8:$FOLDER/$NGSANE_VAR_TABLE_FIGURE.tmp.png"
+                        COMMAND="convert -geometry x$NGSANE_VAR_TABLE_FIGURE_HEIGHT $FOLDER/$NGSANE_VAR_TABLE_FIGURE $AFILE$FOLDER/$NGSANE_VAR_TABLE_FIGURE.tmp.png"
                         eval $COMMAND
                         IMGSRC="data:image/png;base64,$(cat $FOLDER/$NGSANE_VAR_TABLE_FIGURE.tmp.png | base64 )"
                         rm $FOLDER/$NGSANE_VAR_TABLE_FIGURE.tmp.png
@@ -265,6 +265,160 @@ EOF
 EOF
 
 }
+
+# NGSANE_REPORT_TABLE_AGGREGATE at least 3 parameters
+# $1=MOD (e.g. $TASK_BWA)
+# $2=FOLDERPATTERN (e.g. $OUT/<DIR>/$TASK_[MOD]/<SAMPLE>)
+# $3=FILE SUFFIX (e.g. $ASD.bam.stats)
+# $4=LINK (link to other html reports)
+# $5..$x=COLUMNS (pattern or figures to appear in columns in the given order, starting with either "PATTERN:" or "FIGURE:")
+function NGSANE_REPORT_TABLE_AGGREGATE {
+    export NGSANE_REPORT_TABLE_COUNTER=$(( $NGSANE_REPORT_TABLE_COUNTER + 1 ))
+    
+    NGSANE_VAR_CHECK_FOR_NUMBER_RE="^-?[0-9]+([.][0-9]+)?$"  
+    cat >> $SUMMARYTMP <<EOF
+<script type="text/javascript">
+//<![CDATA[
+${1}_Table_${NGSANE_REPORT_TABLE_COUNTER}_json={
+	"bPaginate": true,
+	"bProcessing": false,
+	"bAutoWidth": false,
+	"bInfo": true,
+	"bLengthChange": true,
+    "bFilter": true,
+	"iDisplayLength": 5,
+	"bJQueryUI": false,
+	"aLengthMenu": [[1, 5, 10, -1], [1, 5, 10, "All"]],
+	"aoColumns": [
+EOF
+    NGSANE_VAR_REPORT_TABLE_HEADER=
+    NGSANE_VAR_REPORT_TABLE_TITLES=""
+    NGSANE_VAR_REPORT_TABLE_COLUMNS=""
+    NGSANE_VAR_REPORT_TABLE_CENTER=' ], "aaData": ['
+    
+    # create table header once
+    if [ -z "$NGSANE_VAR_REPORT_TABLE_TITLES" ]; then
+        NGSANE_VAR_REPORT_TABLE_TITLES="{'sTitle':'Aggregate', 'sClass':'left'}"
+        NGSANE_VAR_REPORT_TABLE_COLUMNS="<td></td>"
+        for var in "${@:4}"; do
+            if [ "$(echo $var | cut -d':' -f 2)" == "" ]; then 
+                NGSANE_VAR_REPORT_TABLE_BSORTABLE=", 'bSortable':false"; 
+            else 
+                NGSANE_VAR_REPORT_TABLE_BSORTABLE=""; 
+            fi
+            NGSANE_VAR_REPORT_TABLE_SWIDTH=$(echo $var | cut -d':' -f 3) 
+            if [ -n "$NGSANE_VAR_REPORT_TABLE_SWIDTH" ]; then 
+                NGSANE_VAR_REPORT_TABLE_SWIDTH=", 'sWidth':'${NGSANE_VAR_REPORT_TABLE_SWIDTH}px'"
+            fi
+                                    
+            if [[ $(echo $var | grep '^FIGURE:') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'bSortable':false $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+                NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"
+            elif [[ $(echo $var | grep '^PATTERN:') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+                NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"    
+            elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+                NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"
+            fi
+        done                
+        echo -e $NGSANE_VAR_REPORT_TABLE_HEADER >> $SUMMARYTMP
+        echo -e $NGSANE_VAR_REPORT_TABLE_TITLES >> $SUMMARYTMP
+        echo -e $NGSANE_VAR_REPORT_TABLE_CENTER >> $SUMMARYTMP
+    fi
+    
+    NGSANE_VAR_FIRSTROW="TRUE"
+
+    
+    [[ -z "$2" ]] && return
+
+    echo "Filepattern $2/*$3" >&2 
+    for AFILE in $(ls $2/*$3); do
+        AFILENAME=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$AFILE'),'$(pwd -P)')")
+        AFILENAME=${AFILENAME/%$3/}
+#        AFILENAME=${AFILENAME##*/}
+        echo "File:  $AFILE $AFILENAME" >&2
+
+        if [[ "$NGSANE_VAR_FIRSTROW" == "TRUE" ]]; then
+            NGSANE_VAR_REPORT_TABLE_ROW="['${AFILENAME##*/}'" 
+            NGSANE_VAR_FIRSTROW="FALSE"
+        else
+            NGSANE_VAR_REPORT_TABLE_ROW=",['${AFILENAME##*/}'"
+        fi
+        for var in "$@:4"; do
+        
+            if [[ $(echo $var | grep '^FIGURE:') != "" ]]; then
+                NGSANE_VAR_TABLE_FIGURE=$(echo $var | cut -d':' -f 4)
+                NGSANE_VAR_TABLE_FIGURE=${NGSANE_VAR_TABLE_FIGURE/<AGGREGATE>/$AFILENAME}
+                echo $NGSANE_VAR_TABLE_FIGURE >&2
+                NGSANE_VAR_TABLE_FIGURE_HEIGHT=$(echo $var | cut -d':' -f 5)
+                [ -z "$NGSANE_VAR_TABLE_FIGURE_HEIGHT" ] && NGSANE_VAR_TABLE_FIGURE_HEIGHT='50'
+                
+                NGSANE_VAR_TABLE_FIGURE_BORDER=$(echo $var | cut -d':' -f 6)
+                [ "$NGSANE_VAR_TABLE_FIGURE_BORDER" == "1" ] && NGSANE_VAR_TABLE_FIGURE_BORDER='class=\"border\"'
+
+                # add image only if we can detect the file
+                if [ -f $NGSANE_VAR_TABLE_FIGURE ]; then
+                    # resize and base63 encode image
+                    COMMAND="convert -geometry x$NGSANE_VAR_TABLE_FIGURE_HEIGHT $NGSANE_VAR_TABLE_FIGURE $NGSANE_VAR_TABLE_FIGURE.tmp.png"
+                    eval $COMMAND
+                    IMGSRC="data:image/png;base64,$(cat $NGSANE_VAR_TABLE_FIGURE.tmp.png | base64 )"
+                    rm $NGSANE_VAR_TABLE_FIGURE.tmp.png
+                    
+                    NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , '<a target=\"img\" href=\"$PROJECT_RELPATH/$NGSANE_VAR_TABLE_FIGURE\"><img $NGSANE_VAR_TABLE_FIGURE_BORDER src=\"$IMGSRC\" height=$NGSANE_VAR_TABLE_FIGURE_HEIGHT/></a>'"                       
+
+                else
+                    NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , ''"
+                fi
+
+            elif [[ $(echo $var | grep '^PATTERN:') != "" ]]; then
+                PATTERN="cat $AFILE | $(echo $var | cut -d':' -f 4)"
+                PATTERN_RESULT=$(eval $PATTERN)
+#                    echo "$PATTERN $PATTERN_RESULT" >&2
+
+                if ! [[ "$PATTERN_RESULT" =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
+                    # convert into string
+                    PATTERN_RESULT="'$PATTERN_RESULT'"
+                else
+                    # format pretty
+                    PATTERN_RESULT="$(printf '%.2f' $PATTERN_RESULT)"
+                fi
+                NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $PATTERN_RESULT"
+#                    echo $NGSANE_VAR_REPORT_TABLE_ROW >&2
+
+            elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
+
+                CALCULATE="echo '$(echo $var | cut -d':' -f 4)' | sed 's/#\([0-9]*\)/\${NGSANE_VAR_REPORT_TABLE_ROW_ARRAY[\1]}/g'  "
+#                    echo "1 $CALCULATE" >&2
+                CALCULATE="OLDIFS=IFS; IFS='@' read -r -a NGSANE_VAR_REPORT_TABLE_ROW_ARRAY <<< \"$(echo $NGSANE_VAR_REPORT_TABLE_ROW | sed 's/^.{1}//' | sed 's/ , /@/g')\" && echo $(eval $CALCULATE) && IFS=$IFS"
+#                    echo "2 $CALCULATE" >&2
+                CALCULATE="echo 'scale=2; $(eval $CALCULATE)' | bc "
+                CALCULATE_RESULT="$(eval $CALCULATE)"
+#                    echo "3 $CALCULATE $CALCULATE_RESULT" >&2
+                NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $CALCULATE_RESULT"
+            fi
+        done
+        NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW ]"
+        echo $NGSANE_VAR_REPORT_TABLE_ROW >> $SUMMARYTMP
+    done
+    # register table
+    cat >> $SUMMARYTMP <<EOF
+        ]};
+        datatable_array.push({"json":"${1}_Table_${NGSANE_REPORT_TABLE_COUNTER}_json","html":"${1}_id_Table_${NGSANE_REPORT_TABLE_COUNTER}"});
+        //]]>
+        </script>
+EOF
+    # add spacer
+    if [ "$NGSANE_REPORT_TABLE_COUNTER" -gt 1 ]; then
+        echo "<hr class='spacer' />" >> $SUMMARYTMP 
+    fi
+
+    cat >> $SUMMARYTMP <<EOF
+    <table id="${1}_id_Table_${NGSANE_REPORT_TABLE_COUNTER}" class="display no-wrap" width="100%"><thead><tr>${NGSANE_VAR_REPORT_TABLE_COLUMNS//td/th}</tr></thead><tbody><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tbody><tfoot><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tfoot></table>
+EOF
+
+}
+
 
 # NGSANE_REPORT_GATHERDIRS takes 1 parameter
 # $1=TASK (e.g. $TASK_BWA)

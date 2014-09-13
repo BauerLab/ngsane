@@ -16,27 +16,7 @@ echo ">>>>> $(basename $0) $*"
 
 
 function usage {
-echo -e "usage: $(basename $0) -k NGSANE -f  -r REFERENCE -o OUTDIR [OPTIONS]
-
-Script running read mapping for single and paired DNA reads from fastq files
-It expects a fastq file, pairdend, reference genome  as input and 
-It runs BWA, converts the output to .bam files, adds header information and
-writes the coverage information for IGV.
-
-required:
-  -k | --toolkit <path>     location of the NGSANE repository 
-  -b | --basename <b1[,b2]> basename comma separated
-  -r | --reference <file>   reference genome
-  -o | --outdir <path>      output dir
-
-options:
-  -t | --threads <nr>       number of CPUs to use (default: 1)
-  -i | --rgid <name>        read group identifier RD ID (default: exp)
-  -l | --rglb <name>        read group library RD LB (default: qbi)
-  -p | --rgpl <name>        read group platform RD PL (default: illumna)
-  -s | --rgsi <name>        read group sample RG SM prefac (default: )
-  -R | --region <ps>        region of specific interest, e.g. targeted reseq
-                             format chr:pos-pos
+echo -e "usage: $(basename $0) -k NGSANE -f -o OUTDIR [OPTIONS]
 "
 exit
 }
@@ -51,11 +31,8 @@ THREADS=1
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
-        -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -b | --basename )       shift; fs=$1 ;; # basename
-        -r | --reference )      shift; FASTA=$1 ;; # reference genome
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
-        -a | --annot )          shift; REFSEQGTF=$1 ;; # refseq annotation
         --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     usage
@@ -93,20 +70,24 @@ if [ -z "$NGSANE_RECOVERFROM" ]; then
     mkdir -p $OUTDIR
 fi
 
-# get basename of f (samplename)
-n=${fs/,/:}
-O=${OUT/$n/}
-CUFOUT=${O/$TASK_CUFFDIFF/Run\/$TASK_CUFF/}
-TOPHATOUT=${O/$TASK_CUFFDIFF/Run\/$TASK_TOPHAT/}
+FILES=${FILES//,/ }
 
-CUFGTFS=""
-TOPHATBAM=""
-for v in ${fs//,/ }; do
-    f=$(basename $v)
-    CUFGTFS=$CUFGTFS" "$CUFOUT/$f/transcripts.gtf
-    TOPHATBAM=$TOPHATBAM" "$TOPHATOUT/$f/accepted_hits.bam
-done
+echo "[NOTE] Files: $FILES"
+DATASETS=""
+egrep '^REPLICATE ' $CONFIG | cut -d' ' -f 2- > $COMMAND.tmp
 
+while read -r -a REPLICATE; do
+    for f in $FILES; do
+        echo $f
+    #     get directory
+    #    d=$(dirname $f)
+    #    d=${d##*/}    # add to dataset
+        if [ -n "$FILE" ]; then 
+            DATASETS="${DATASETS[@]} ${FILE[@]}"
+        fi
+    done
+done < $COMMAND.tmp
+exit 1
 cd $OUTDIR/
 GTF=$REFSEQGTF
     

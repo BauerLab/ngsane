@@ -69,7 +69,14 @@ if [ -n "$RUN[MOD]" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "CALCULATE:TABLEHEAD:WIDTH:[FORMULA]"                # use formular to calculate from previousely defined columns 
                                                                  #  - use '#x' to specify the x-th column, e.g. #4*100/#2
 
-        # 2) or provide information that there will be no 
+        # 2) Postcommand agregates can be summarized in a similar 
+        NGSANE_REPORT_TABLE_AGGREGATE "$TASK_[MODPOSTCOMMAND]" \
+            "[FOLDER_PATTERN]" \
+            "[FILE_SUFFIX]" \
+            "PATTERN:TABLEHEAD:WIDTH:[GREP COMMAND]"           \ # parse file for this pattern (multiple times possible)
+            "FIGURE:TABLEHEAD:WIDTH:<AGGREGATE>[FIGURESUFFIX]:HEIGHT:IMGBORDER"  # place a figure in the table cell (multiple times possible)
+                    
+        # 3) or provide information that there will be no 
         echo "[NOTE] the [MOD].sh mod does not provide a report"
 
         # finish the section

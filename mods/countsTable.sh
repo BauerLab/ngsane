@@ -78,7 +78,7 @@ echo "[NOTE] GTF $anno_version"
 # delete old files unless attempting to recover
 #remove old files
 if [ -z "$NGSANE_RECOVERFROM" ]; then
-    if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
+    if [ -d $OUTDIR ]; then rm -rf $OUTDIR/*.csv; fi
 fi
 
 mkdir -p $OUTDIR 

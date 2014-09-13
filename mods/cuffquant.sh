@@ -85,21 +85,26 @@ NGSANE_CHECKPOINT_CHECK
 NGSANE_CHECKPOINT_INIT "Run cuffquant"  
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
-    RUNCOMMAND="cuffquant --no-update-check --quiet --output-dir $OUTDIR -p $CPU_CUFFLINKS $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf $INPUTFILE"
+    mkdir -p $OUTDIR/$SAMPLE
+    
+    RUNCOMMAND="cuffquant --no-update-check --quiet --output-dir $OUTDIR/$SAMPLE -p $CPU_CUFFLINKS $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf $INPUTFILE"
     echo $RUNCOMMAND && eval $RUNCOMMAND
 
+    mv $OUTDIR/$SAMPLE/abundances.cxb $OUTDIR/$SAMPLE.cxb
+
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/abundances.cxb
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.cxb
 fi
 
 ################################################################################
 NGSANE_CHECKPOINT_INIT "cleanup"
 
 [ -f ${THISTMP}/files.txt ] && rm ${THISTMP}/files.txt
+[ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
-[ -e $OUTDIR/../${SAMPLE}.cxb.dummy ] && rm $OUTDIR/../${SAMPLE}.cxb.dummy
+[ -e $OUTDIR/$SAMPLE.cxb.dummy ] && rm $OUTDIR/$SAMPLE.cxb.dummy
 echo ">>>>> Experiment merged transcripts (cuffquant) - FINISHED"
 echo ">>>>> enddate "`date`
 

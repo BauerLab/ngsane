@@ -1,5 +1,5 @@
 # author: Fabian Buske
-# date: September 2013
+# date: September 2014
 # compatible: NGSANE v0.5.x
 
 #####################################
@@ -16,8 +16,8 @@ RUNCUFFLINKS="1"    # Cufflinks (RNAseq)
 #********************
 SOURCE=$(pwd)
 
-# which folder to run on (i.e. folders within fastq directory)
-declare -a DIR; DIR=( sample1 sample2 )
+# which experiment folder to run on
+declare -a DIR; DIR=( experiment1 experiment2 )
 
 # folder/task containing the data this task operates on
 INPUT_CUFFLINKS=$TASK_TOPHAT
@@ -56,7 +56,7 @@ CUFFLINKSADDPARAM=
 # see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
 # conversion scripts
 # Also either specify a doctored GTF or uncomment the DOCTOREDGTFSUFFIX below
-# e.g. /share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.gtf
+# e.g. /share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v19.annotation.gtf
 # or   ${NGSANE_REFERENCE}/b37/annotation/gencode.v14.annotation.b37.gtf
 GTF=
 
