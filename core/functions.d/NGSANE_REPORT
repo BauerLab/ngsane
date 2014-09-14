@@ -336,8 +336,7 @@ EOF
     for AFILE in $(ls $2/*$3); do
         AFILENAME=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$AFILE'),'$(pwd -P)')")
         AFILENAME=${AFILENAME/%$3/}
-#        AFILENAME=${AFILENAME##*/}
-        echo "File:  $AFILE $AFILENAME" >&2
+#        echo "File:  $AFILE $AFILENAME" >&2
 
         if [[ "$NGSANE_VAR_FIRSTROW" == "TRUE" ]]; then
             NGSANE_VAR_REPORT_TABLE_ROW="['${AFILENAME##*/}'" 
