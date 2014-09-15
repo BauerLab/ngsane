@@ -136,6 +136,9 @@ EOF
             elif [[ $(echo $var | grep '^DYNAMIC_COLS:') != "" ]]; then
                 NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES DYNAMIC_COLS_JSON"
                 NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS DYNAMIC_COLS_HTML"
+            elif [[ $(echo $var | grep '^DYNAMIC_ROWS:') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES DYNAMIC_ROWS_JSON"
+                NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS DYNAMIC_ROWS_HTML"
             fi
         done                
     fi
@@ -195,6 +198,17 @@ EOF
                         done
                         NGSANE_VAR_REPORT_TABLE_TITLES="${NGSANE_VAR_REPORT_TABLE_TITLES/DYNAMIC_COLS_JSON/$THEAD}"
                         NGSANE_VAR_REPORT_TABLE_COLUMNS="${NGSANE_VAR_REPORT_TABLE_COLUMNS/DYNAMIC_COLS_HTML/$TCOLS}"
+                    elif [[ $(echo $var | grep '^DYNAMIC_ROWS:') != "" ]]; then
+                        THEAD=""
+                        TCOLS=""
+                        FILEROWS=$(wc -l $SAMPLE | cut -d' ' -f 1)
+                        let "$(echo $var | cut -d':' -f 2 | cut -d':' -f 2 | sed 's/^,/1,/' | sed "s/,$/,$FILEROWS/" | sed "s/,-\([0-9]\)\+$/,$FILEROWS-\1/" | sed 's/^/FROMROW=/' | sed 's/,/,TOROW=/')"
+                        for COLUMN in $(cut -f1 $SAMPLE | sed -n ${FROMROW},${TOROW}p); do
+                            THEAD="$THEAD , {'sTitle':'$COLUMN', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+                            TCOLS="$TCOLS <td></td>"
+                        done
+                        NGSANE_VAR_REPORT_TABLE_TITLES="${NGSANE_VAR_REPORT_TABLE_TITLES/DYNAMIC_ROWS_JSON/$THEAD}"
+                        NGSANE_VAR_REPORT_TABLE_COLUMNS="${NGSANE_VAR_REPORT_TABLE_COLUMNS/DYNAMIC_ROWS_HTML/$TCOLS}"
                     fi
                 done
 
@@ -259,12 +273,31 @@ EOF
    
                 elif [[ $(echo $var | grep '^DYNAMIC_COLS:') != "" ]]; then
                     
-                    FILECOLS=$(head -n 1 $SAMPLE | tr '\t' '\n' | wc -l  | cut -f 1)
+                    FILECOLS=$(wc -l $SAMPLE  | cut -d' ' -f 1)
                     COLRANGE=$(echo $var | cut -d':' -f 2 | sed 's/^-/1-/' | sed "s/-$/-$FILECOLS/" | sed 's/-/ /')
                     COMMAND=$(echo $var | cut -d':' -f 4)                                        
                     for COLUMN in `seq $COLRANGE`; do
 
                         PATTERN="cut -f$COLUMN $SAMPLE | tail -n+2 | $COMMAND"
+                        PATTERN_RESULT=$(eval $PATTERN)
+                        if ! [[ "$PATTERN_RESULT" =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
+                            # convert into string
+                            PATTERN_RESULT="'$PATTERN_RESULT'"
+                        else
+                            # format pretty
+                            PATTERN_RESULT="$(printf '%.2f' $PATTERN_RESULT)"
+                        fi
+                        NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $PATTERN_RESULT"
+                    
+                    done
+#                    echo $NGSANE_VAR_REPORT_TABLE_ROW >&2
+                elif [[ $(echo $var | grep '^DYNAMIC_ROWS:') != "" ]]; then
+                    FILEROWS=$(wc -l $SAMPLE | cut -d' ' -f 1)
+
+                    let "$(echo $var | cut -d':' -f 2 | cut -d':' -f 2 | sed 's/^,/1,/'  | sed "s/,$/,$FILEROWS/" | sed "s/,-\([0-9]\)\+$/,$FILEROWS-\1/" | sed 's/^/FROMROW=/' | sed 's/,/,TOROW=/')"                    
+                    COMMAND=$(echo $var | cut -d':' -f 4)                                        
+                    for COLUMN in `seq $FROMROW $TOROW `; do
+                        PATTERN="sed -n ${COLUMN}p $SAMPLE | $COMMAND"
                         PATTERN_RESULT=$(eval $PATTERN)
                         if ! [[ "$PATTERN_RESULT" =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
                             # convert into string

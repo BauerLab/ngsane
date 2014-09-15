@@ -68,6 +68,8 @@ if [ -n "$RUN[MOD]" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN:TABLEHEAD:WIDTH:[GREP COMMAND]"           \ # parse file for this pattern (multiple times possible)
             "DYNAMIC_COLS:[x-y]:WIDTH:[COLUMN COMMAND]"        \ # parse columns x to y from tsv file using the first row as header, 
                                                                \ # and passing the remainder onto the column command
+            "DYNAMIC_ROWS:[x,y]:WIDTH:[ROW COMMAND]"           \ # parse row x to y from tsv file using the first column as header, 
+                                                               \ # and passing the remainder onto the row command
             "CALCULATE:TABLEHEAD:WIDTH:[FORMULA]"                # use formular to calculate from previousely defined columns 
                                                                  #  - use '#x' to specify the x-th column, e.g. #4*100/#2
 
