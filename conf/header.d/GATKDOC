@@ -1,10 +1,10 @@
 ##############################################################
 # GATK depth of coverage
 #
-TASK_GATKDOC="coverage"
+TASK_GATKDOC="GATK_coverage"
 WALLTIME_GATKDOC=50:00:00
 MEMORY_GATKDOC=50
 CPU_GATKDOC=1
 NODES_GATKDOC="nodes=1:ppn=1"
 INPUT_GATKDOC=$TASK_RECALALN
-MODULE_GATKDOC="${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_BEDTOOLS} ${NG_IGVTOOLS} ${NG_GATK}"
+MODULE_GATKDOC="${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_BEDTOOLS} ${NG_GATK}"

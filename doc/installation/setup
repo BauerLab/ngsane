@@ -160,6 +160,7 @@ setenv  BOOST_ROOT  $PACKAGEPATH/$SOFTWARE/$VERSION
 prepend-path    LD_LIBRARY_PATH $PACKAGEPATH/$SOFTWARE/$VERSION/lib
 prepend-path    DYLD_LIBRARY_PATH       $PACKAGEPATH/$SOFTWARE/$VERSION/lib
 prepend-path    CPLUS_INCLUDE_PATH      $PACKAGEPATH/$SOFTWARE/$VERSION/include
+prepend-path    C_INCLUDE_PATH      $PACKAGEPATH/$SOFTWARE/$VERSION/include
 DELIM
 
 module load $SOFTWARE/$VERSION
@@ -681,7 +682,7 @@ module load $SOFTWARE/$VERSION
 
 
 ################################################################################
-VERSION=1.16
+VERSION=1.17
 SOFTWARE=peakranger
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -689,14 +690,10 @@ mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 
 wget http://downloads.sourceforge.net/project/ranger/Source%20codes/PeakRanger-$VERSION-src.zip
 mkdir -p $SOFTWARE/
-mv PeakRanger-$VERSION-src.zip $SOFTWARE/
+unzip PeakRanger-$VERSION-src.zip -d $SOFTWARE/
 cd $SOFTWARE
-unzip PeakRanger-$VERSION-src.zip
-sed -i 's| = -lboost_unit_test_framework|= -lboost_unit_test_framework -lboost_system|' boost_tests/makefile
-sed -i 's|/Users/xfeng/Downloads/boost_1_47_0/|/packages/boost/1.53.0/include/|' boost_tests/makefile
-sed -i 's|/packages/boost/1.53.0/include/stage/lib|/packages/boost/1.53.0/lib|' boost_tests/makefile
-sed -i 's|/Users/xfeng/Downloads/boost_1_47_0/|/packages/boost/1.53.0/include/|' Makefile
-sed -i 's|/packages/boost/1.53.0/include/stage/lib|/packages/boost/1.53.0/lib|' Makefile
+sed -i 's/g++ /g++ -I \$BOOST_ROOT/include -L \$BOOST_ROOT/lib /g' boost_tests/makefile
+sed -i 's/g++ /g++ -I \$BOOST_ROOT/include -L \$BOOST_ROOT/lib /g' Makefile
 make
 
 cp bin/peakranger $PACKAGEPATH/$SOFTWARE/$VERSION
@@ -1466,7 +1463,7 @@ sed -i 's|^NG_FSEQ=|NG_FSEQ=fseq/1.84|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VE
 sed -i 's|^NG_BOWTIE=|NG_BOWTIE=bowtie/1.0.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BOWTIE2=|NG_BOWTIE2=bowtie/2.2.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BOOST=|NG_BOOST=boost/1.53.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_PEAKRANGER=|NG_PEAKRANGER=peakranger/1.16|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_PEAKRANGER=|NG_PEAKRANGER=peakranger/1.17|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_MEME=|NG_MEME=meme/4.10.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_TOPHAT=|NG_TOPHAT=tophat/2.0.12|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_RNASEQC=|NG_RNASEQC=RNA-SeQC/1.1.7|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh

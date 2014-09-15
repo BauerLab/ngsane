@@ -16,4 +16,5 @@ conf/header.sh
 
 *~
 
-core/includes/css/.Rhistory
+*.Rhistory
+smokebox/*

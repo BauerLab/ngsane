@@ -2,7 +2,7 @@
 # http://mrsfast.sourceforge.net/Home
 TASK_MRSFAST="mrsfast"
 WALLTIME_MRSFAST=24:00:00
-MEMORY_MRSFAST=8
+MEMORY_MRSFAST=32
 CPU_MRSFAST=8
 NODES_MRSFAST="nodes=1:ppn=8"
 INPUT_MRSFAST="fastq"

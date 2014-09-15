@@ -44,7 +44,8 @@ export PATH=$PATH_HTSEQCOUNT:$PATH
 echo "PATH=$PATH"
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-## [TODO] test and output versions of software utilized in this mod 
+echo -e "--R           --\n "$(R --version | head -n 3)
+[ -z "$(which R)" ] && echo "[WARN] no R detected"
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -67,21 +68,17 @@ for f in $FILES; do
 done
 IFS=" "
 
-echo "[NOTE] datasets"
-echo "[NOTE] echo $DATASETS"
+echo "[NOTE] datasets $DATASETS"
 
 annoF=${GTF##*/}
 anno_version=${annoF%.*}
 
-echo "[NOTE] GTF"
-echo "[NOTE] echo $anno_version"
-
-echo "[NOTE] ${OUTDIR}"
+echo "[NOTE] GTF $anno_version"
 
 # delete old files unless attempting to recover
 #remove old files
 if [ -z "$NGSANE_RECOVERFROM" ]; then
-    if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
+    if [ -d $OUTDIR ]; then rm -rf $OUTDIR/*.csv; fi
 fi
 
 mkdir -p $OUTDIR 
@@ -105,8 +102,6 @@ NGSANE_CHECKPOINT_CHECK
 NGSANE_CHECKPOINT_INIT "create tables of counts"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-
-    echo "[NOTE] Make tables of counts."
          
     for GTF in  "$anno_version" ; do
         for MODE in "union" "intersection-strict" "intersection-nonempty"; do
@@ -143,7 +138,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
                     awk '{print "gene," $0;}' ${THISTMP}/tmp.txt > ${THISTMP}/out.csv
                     cat ${THISTMP}/joinedfile.txt | sed 's/\t/,/g' >> ${THISTMP}/out.csv
                     mv ${THISTMP}/out.csv ${OUTDIR}/${anno_version}.${MODE}.${ATTR}.csv
-                    echo "[NOTE] OUTFILE ${OUTDIR}/${anno_version}.${MODE}.${ATTR}.csv "
+                    echo "[NOTE] OUTFILE ${OUTDIR}/${anno_version}.${MODE}.${ATTR}.csv"
                 fi
             done
         done
@@ -153,6 +148,35 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     NGSANE_CHECKPOINT_CHECK
     
 fi
+################################################################################
+NGSANE_CHECKPOINT_INIT "MDS plot"
+
+if hash Rscript 2>&- ; then    
+    for TABLE in $OUTDIR/*.csv; do
+
+        COLUMNS=$(cat $TABLE| head -n 1 | tr ',' '\n'  | wc -l  | cut -f 1)
+        if [[ $COLUMNS < 4 ]]; then
+            echo "[NOTE] At least 3 columns needed for MDS plot, skipping $TABLE"    
+        else
+            
+            cat > $TABLE.R <<EOF
+library(limma)
+
+pdf("${TABLE}.pdf", width=12, height=3)
+dt <- read.csv("$TABLE", row.names = 1)
+par(mfrow=c(1,4), mar=c(5,4,2,2))
+for (top in c(100, 500, 1000, 5000)) {
+    plotMDS(dt,main=top, top=top)
+}
+dev.off()
+EOF
+    
+            Rscript --vanilla $TABLE.R
+        fi
+    done
+fi
+    
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 NGSANE_CHECKPOINT_INIT "cleanup"  
   

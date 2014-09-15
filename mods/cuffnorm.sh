@@ -47,6 +47,8 @@ echo "PATH=$PATH"
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--cufflinks   --\n "$(cufflinks 2>&1 | tee | head -n 2 )
 [ -z "$(which cufflinks)" ] && echo "[ERROR] no cufflinks detected" && exit 1
+echo -e "--R           --\n "$(R --version | head -n 3)
+[ -z "$(which R)" ] && echo "[WARN] no R detected"
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -56,8 +58,6 @@ echo "[NOTE] Files: $FILES"
 DATASETS=""
 for f in $FILES; do
     n=$(dirname ${f})
-#    n=$(dirname ${f/%$ASD.bam/.cxb}
-    FILE=${n/$TASK_TOPHAT/$TASK_CUFFLINKS}/abundances.cxb
 
 #     get directory
 #    d=$(dirname $f)
@@ -105,9 +105,42 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUNCOMMAND && eval $RUNCOMMAND
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK && $OUTDIR/genes.count_table $OUTDIR/genes.fpkm_table
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$MERGED_GTF_NAME/genes.count_table $OUTDIR/$MERGED_GTF_NAME/genes.fpkm_table
 
 fi
+################################################################################
+NGSANE_CHECKPOINT_INIT "MDS plot"
+
+if hash Rscript 2>&- ; then
+    for TABLE in $OUTDIR/$MERGED_GTF_NAME/*.count_table; do
+        
+        COLUMNS=$(cat $TABLE| head -n 1 | tr '\t\s,' '\n'  | wc -l  | cut -f 1)
+        if [[ $COLUMNS < 4 ]]; then
+            echo "[NOTE] At least 3 columns needed for MDS plot, skipping $TABLE"    
+        else
+        
+            cat > $TABLE.R <<EOF
+library(limma)
+
+pdf("${TABLE}.pdf", width=12, height=3)
+dt <- read.delim("$TABLE", row.names = 1)
+samples <- read.delim("$OUTDIR/$MERGED_GTF_NAME/samples.table")
+samples[["file"]] <- sub(".*/(.*).cxb","\\\\1",samples[["file"]])
+colnames(dt) <- samples[["file"]][match(colnames(dt), samples[["sample_id"]])]
+
+par(mfrow=c(1,4), mar=c(5,4,2,2))
+for (top in c(100, 500, 1000, 5000)) {
+    plotMDS(dt,main=top, top=top)
+}
+dev.off()
+EOF
+
+            Rscript --vanilla $TABLE.R
+        fi
+    done
+fi
+    
+NGSANE_CHECKPOINT_CHECK
 #################################################################################
 NGSANE_CHECKPOINT_INIT "cleanup"  
 

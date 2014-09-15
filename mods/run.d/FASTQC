@@ -35,14 +35,14 @@ if [ -n "$RUNFASTQC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN::15:grep '>>.*warn' | wc -l" \
             "FIGURE::20:<SAMPLE>/Icons/error.png:15:0" \
             "PATTERN::15:grep '>>.*fail' | wc -l" \
-            "PATTERN:Encoding::grep 'Encoding' | head -n 1 | cut -f 2" \
-            "PATTERN:Library size::grep 'Total Sequences' | head -n 1 | cut -f 2" \
-            "PATTERN:Length:80:grep 'Sequence length' | head -n 1 | cut -f 2" \
-            "PATTERN:%GC:40:grep '%GC' | head -n 1 | cut -f 2" \
-            "FIGURE::90:<SAMPLE>/Images/per_base_quality.png:60:1" \
-            "FIGURE::90:<SAMPLE>/Images/duplication_levels.png:60:1" \
-            "FIGURE::90:<SAMPLE>/Images/per_sequence_gc_content.png:60:1" \
-            "FIGURE::90:<SAMPLE>/Images/per_base_sequence_content.png:60:1" 
+            "PATTERN:Encoding::fgrep 'Encoding' | head -n 1 | cut -f 2" \
+            "PATTERN:Library size::fgrep 'Total Sequences' | head -n 1 | cut -f 2" \
+            "PATTERN:Length:80:fgrep 'Sequence length' | head -n 1 | cut -f 2" \
+            "PATTERN:%GC:40:fgrep '%GC' | head -n 1 | cut -f 2" \
+            "FIGURE:Base quality:90:<SAMPLE>/Images/per_base_quality.png:60:1" \
+            "FIGURE:Base content:90:<SAMPLE>/Images/per_base_sequence_content.png:60:1" \
+            "FIGURE:GC content:90:<SAMPLE>/Images/per_sequence_gc_content.png:60:1" \
+            "FIGURE:Duplication:90:<SAMPLE>/Images/duplication_levels.png:60:1" 
         
         NGSANE_REPORT_FOOTER   
   

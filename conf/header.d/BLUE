@@ -3,7 +3,7 @@
 # http://www.bioinformatics.csiro.au/blue/
 TASK_BLUE="blue"
 WALLTIME_BLUE=10:00:00
-MEMORY_BLUE=8
+MEMORY_BLUE=16
 CPU_BLUE=4
 NODES_BLUE="nodes=1:ppn=4"
 INPUT_BLUE="fastq"

@@ -62,10 +62,10 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSRECALALN)"
 #  VARCALL
 ################################################################################
 
-# modify the template config file to flip the RUNVARCALLS switch
+# modify the template config file to flip the RUNGATKVAR switch
 # specify the resulting html file
 echo "[NOTE] Prep and run config file tmp/configVARCALLS.txt"
-cat bin/tmpl/configVarCall.txt | sed 's/RUNVARCALLS=\"\"/RUNVARCALLS=\"1\"/g' | \
+cat bin/tmpl/configVarCall.txt | sed 's/RUNGATKVAR=\"\"/RUNGATKVAR=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryVARCALLS\"/g' > tmp/configVARCALLS.txt
 echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSRECALALN//:/$QUEUEWAITSEP}\"" >>tmp/configVARCALLS.txt
 
@@ -78,7 +78,7 @@ echo "[NOTE] submitted jobs $(echo -n $JOBIDSVARCALL)"
 #  PINDEL
 ################################################################################
 
-# modify the template config file to flip the RUNVARCALLS switch
+# modify the template config file to flip the RUNPINDEL switch
 # specify the resulting html file
 echo "[NOTE] Prep and run config file tmp/configPINDEL.txt"
 cat bin/tmpl/configVarCall.txt | sed 's/RUNPINDEL=\"\"/RUNPINDEL=\"1\"/g' | \
@@ -100,7 +100,7 @@ JOBIDS="$JOBIDSBAMANN:$JOBIDSVARCALL:$JOBIDSPINDEL" #other things
 QUEUEWAIT=${QUEUEWAIT/afterok/afterany}
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
-cat bin/tmpl/configVarCall.txt | sed 's/RUNVARCALLS=\"\"/RUNVARCALLS=\"1\"/g' | \
+cat bin/tmpl/configVarCall.txt | sed 's/RUNGATKVAR=\"\"/RUNGATKVAR=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryVARCALLS\"/g' | \
     sed 's/RUNBWA=\"\"/RUNBWA=\"1\"/g' | \
     sed 's/RUNBAMANN=\"\"/RUNBAMANN=\"1\"/g' | \

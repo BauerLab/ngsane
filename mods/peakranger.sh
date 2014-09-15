@@ -7,7 +7,7 @@
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>-${CHIPINPUT##*/} | sed "s/$ASD.bam/"_region.bed"/"
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>_region.bed
 
 echo ">>>>> ChIPseq analysis with Peakranger"
 echo ">>>>> startdate "`date`
@@ -72,7 +72,7 @@ if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
 fi
 
 # get basename of f
-f=${f/%.dummy/} #if input came from pip
+f=${f/%.dummy/}
 n=${f##*/}
 SAMPLE=${n/%$ASD.bam/}
 c=${CHIPINPUT##*/}

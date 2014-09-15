@@ -97,6 +97,7 @@ cat /dev/null > $COMMAND
 egrep '^IDR_REPLICATE ' $CONFIG | cut -d' ' -f 2- > $COMMAND.tmp
 for d in ${DIR[@]}; do
     OUTDIR="$OUT/$d/$TASK_IDR"
+    mkdir -p $OUTDIR
     while read -r -a REPLICATE; do
         R1=
         R2=

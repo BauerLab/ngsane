@@ -40,6 +40,7 @@ done
 hash module 2>/dev/null && for MODULE in $MODULE_SUMMARY; do module load $MODULE; done  # save way to load modules that itself load other modules
 hash module 2>/dev/null && for MODULE in $MODULE_R; do module load $MODULE; done  # save way to load modules that itself load other modules
 
+
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--Python      --\n "$(python --version 2>&1 | tee | head -n 1)
@@ -115,23 +116,10 @@ rm $SUMMARYCITES
 ################################################################################
 echo '''
 <!DOCTYPE html><html>
-<head><meta charset="windows-1252"><title>NGSANE project card</title>
-<script type="text/javascript" src="includes/js/jquery.js"></script>
-<script type="text/javascript" charset="utf8" src="includes/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" charset="utf8" src="includes/js/dataTables.responsive.js"></script>
-<link rel="stylesheet" type="text/css" href="includes/css/jquery.dataTables.min.css">
-<link rel="stylesheet" type="text/css" href="includes/css/dataTables.responsive.css">
-<link rel="stylesheet" type="text/css" href="includes/css/ngsane.css">
-<script type='text/javascript' src='includes/js/ngsane.js'></script>
+<head>
+<meta charset="windows-1252">
+<title>NGSANE project card</title>
 <link rel="shortcut icon" href="includes/images/favicon.ico">
-<link rel="apple-touch-icon" sizes="57x57" href="includes/images/apple-touch-icon-57x57.png">
-<link rel="apple-touch-icon" sizes="114x114" href="includes/images/apple-touch-icon-114x114.png">
-<link rel="apple-touch-icon" sizes="72x72" href="includes/images/apple-touch-icon-72x72.png">
-<link rel="apple-touch-icon" sizes="144x144" href="includes/images/apple-touch-icon-144x144.png">
-<link rel="apple-touch-icon" sizes="60x60" href="includes/images/apple-touch-icon-60x60.png">
-<link rel="apple-touch-icon" sizes="120x120" href="includes/images/apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" sizes="76x76" href="includes/images/apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" sizes="152x152" href="includes/images/apple-touch-icon-152x152.png">
 <link rel="icon" type="image/png" href="includes/images/favicon-196x196.png" sizes="196x196">
 <link rel="icon" type="image/png" href="includes/images/favicon-160x160.png" sizes="160x160">
 <link rel="icon" type="image/png" href="includes/images/favicon-96x96.png" sizes="96x96">
@@ -140,13 +128,33 @@ echo '''
 <meta name="msapplication-TileColor" content="#da532c">
 <meta name="msapplication-TileImage" content="includes/images/mstile-144x144.png">
 <meta name="msapplication-config" content="includes/images/browserconfig.xml">
-</head><body>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script type="text/javascript">
+if (!window.jQuery) {
+    document.write("<script src=includes/js/jquery.js><\/script>");
+}
+</script>
+<script type="text/javascript" src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript">
+if (!$.fn.dataTableExt) { 
+    document.write("<script src=includes/js/jquery.dataTables.min.js><\/script>");
+}
+</script>
+<link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.2/css/jquery.dataTables.css">
+<style>''' >> $SUMMARYFILE.tmp
+cat $NGSANE_BASE/core/includes/css/ngsane.css >> $SUMMARYFILE.tmp
+echo '''
+</style>
+</head>
+<body>
 <script type="text/javascript">
 //<![CDATA[
     var datatable_array=[];
+''' >> $SUMMARYFILE.tmp
+cat $NGSANE_BASE/core/includes/js/ngsane.js >> $SUMMARYFILE.tmp
+echo '''
 //]]>
 </script>
-
 <div id="center">
 <div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>
 ''' >> $SUMMARYFILE.tmp
@@ -161,9 +169,49 @@ echo '''
 </div><!-- Links -->
 </div><!-- panel -->''' >>$SUMMARYFILE.tmp
 
-echo "<hr><span><img src='includes/images/favicon-32x32.png' /> Report generated with "`$NGSANE_BASE/bin/trigger.sh -v`"</span><span style='float:right;'>Last modified: "`date`"</span>" >> $SUMMARYTMP
+echo "<hr><div class="footerline"><img style='float:left;padding-right:10px;' src='data:image/png;base64,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' /> Report generated with "`$NGSANE_BASE/bin/trigger.sh -v`"<br/>Last modified: "`date`"</div>" >> $SUMMARYTMP
 echo "</div><!-- center --></body>" >> $SUMMARYTMP
-
 
 echo '''
 <script type='text/javascript'>
@@ -184,10 +232,13 @@ echo '''
             }
         });
     }); 
+''' >> $SUMMARYTMP
+cat $NGSANE_BASE/core/includes/js/genericJavaScript.js >> $SUMMARYTMP
+echo '''
 </script>
 ''' >> $SUMMARYTMP
 
-echo "<script type='text/javascript' src='includes/js/genericJavaScript.js'></script></html>" >> $SUMMARYTMP
+#echo "<script type='text/javascript' src='includes/js/genericJavaScript.js'></script></html>" >> $SUMMARYTMP
 
 # copy includes folder ommitting hidden files and folders
 rsync -av --exclude=".*" $NGSANE_BASE/core/includes $(dirname $SUMMARYTMP)

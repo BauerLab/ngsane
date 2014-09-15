@@ -7,7 +7,8 @@ QUEUEWAITSEP=":"
 #QUEUEWAIT=" -hold_jid "                          # SGE
 #QUEUEWAITSEP=","
 #QUEUEPARENV="smp"     
-DMGET=""                    # or Yes when storing data on tape
+QUEUEMEMORYPERSLOT=   # or Yes if vmem is per CPU slot not job
+DMGET=                # or Yes when storing data on tape
 TMP=$(pwd)/tmp                                       # TMP dir
 
 ##############################################################

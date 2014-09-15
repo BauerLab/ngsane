@@ -31,13 +31,13 @@ if [ -n "$RUNMEMECHIP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "$OUT/<DIR>/$TASK_MEMECHIP"  \
             ".summary.txt" \
             "LINK":"<SAMPLE>/index.html" \
-            "PATTERN:Query consensus::grep 'Query consensus' | awk '{print \$(NF)}'" \
-            "PATTERN:E-value:80:grep 'E-value' | awk '{print \$(NF)}'" \
-            "PATTERN:Q-value:80:grep 'Q-value' | awk '{print \$(NF)}'" \
-            "PATTERN:Similar to::grep 'Most similar known motif' | awk '{print \$(NF)}'" \
-            "PATTERN:Peaks::grep 'Peak regions' | awk '{print \$(NF)}'" \
-            "PATTERN:With strong motif::grep 'bound directly' | awk '{print \$(NF)}'" \
-            "FIGURE::150:<SAMPLE>_topmememotif.png:60:1"
+            "PATTERN:Query consensus::fgrep 'Query consensus' | awk '{print \$(NF)}'" \
+            "PATTERN:E-value:80:fgrep 'E-value' | awk '{print \$(NF)}'" \
+            "PATTERN:Q-value:80:fgrep 'Q-value' | awk '{print \$(NF)}'" \
+            "PATTERN:Similar to::fgrep 'Most similar known motif' | awk '{print \$(NF)}'" \
+            "PATTERN:Peaks::fgrep 'Peak regions' | awk '{print \$(NF)}'" \
+            "PATTERN:With strong motif::fgrep 'bound directly' | awk '{print \$(NF)}'" \
+            "FIGURE:Logo:150:<SAMPLE>_topmememotif.png:60:1"
 
         # finish the section
         NGSANE_REPORT_FOOTER 

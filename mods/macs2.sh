@@ -125,7 +125,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
         RUN_COMMAND="macs2 predictd $MACS2_PREDICTD_ADDPARAM --ifile $f --gsize $MACS2_GENOMESIZE --rfile $SAMPLE.R > $SAMPLE.summary.txt 2>&1"    
         echo $RUN_COMMAND && eval $RUN_COMMAND
-    
+        
         Rscript $SAMPLE.R
         if hash convert; then 
             convert -format png $SAMPLE.R"_"model.pdf $SAMPLE.R"_"model.png
@@ -143,8 +143,17 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 
     if [ -z "$MACS2_FRAGMENTSIZE" ]; then
-        MACS2_FRAGMENTSIZE=$(grep 'alternative fragment length(s) may be' $SAMPLE.summary.txt | sed 's/.* be //' | cut -d' ' -f 1 | tr ',' '\n' | egrep -v "^-" | head -n 1)
+        # estimated fragment sizes up to the tagsize are usually artifacts
+        TAGSIZE=$(fgrep '# tag size =' $SAMPLE.summary.txt | cut -d'=' -f 2 | tr -d ' \t\r\f')
+        
+        MACS2_FRAGMENTSIZE=$(grep 'alternative fragment length(s) may be' $SAMPLE.summary.txt | sed 's/.* be //' | cut -d' ' -f 1 | tr ',' '\n' | awk -v t=$TAGSIZE '($1>t){print $1; exit;}')
+        
+        if [[ -z "$MACS2_FRAGMENTSIZE" || $MACS2_FRAGMENTSIZE -le 0 ]]; then
+            echo "[ERROR] could not determine fragments size, please provide the parameter MACS2_FRAGMENTSIZE."
+            exit 1
+        fi
     fi
+    echo "Determined fragment size: $MACS2_FRAGMENTSIZE" >> $SAMPLE.summary.txt
     
     RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM --nomodel --extsize $MACS2_FRAGMENTSIZE --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name $SAMPLE >> $SAMPLE.summary.txt 2>&1"    
     echo $RUN_COMMAND && eval $RUN_COMMAND

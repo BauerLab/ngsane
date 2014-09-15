@@ -3,7 +3,7 @@
 # http://www.broadinstitute.org/cancer/cga/rna-seqc
 TASK_RNASEQC="rnaseqc"
 WALLTIME_RNASEQC=12:00:00
-MEMORY_RNASEQC=8
+MEMORY_RNASEQC=32
 CPU_RNASEQC=8
 NODES_RNASEQC="nodes=1:ppn=8"
 INPUT_RNASEQC="tophat"

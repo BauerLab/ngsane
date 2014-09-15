@@ -36,10 +36,8 @@ if [ -n "$RUNTOPHAT" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
         NGSANE_REPORT_HEADER "Tophat" "$TASK_TOPHAT" "tophat.sh" "$ASD.bam"
 
-        # add as many tables as needed. One table per result file
         NGSANE_REPORT_TABLE "$TASK_TOPHAT" \
             "$OUT/<DIR>/$TASK_TOPHAT"  \
             "$ASD.bam.stats" \
@@ -53,13 +51,12 @@ if [ -n "$RUNTOPHAT" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
             "PATTERN:Mapped pairs::sed -n 7p | cut -d' ' -f 1 | xargs echo 0.5* | bc " \
             "CALCULATE:%:40:#8*2*100/#2" \
             "PATTERN:Singletons::sed -n 9p | cut -d' ' -f 1" \
-            "PATTERN:Junction::sed -n 9p | cut -d' ' -f 1" \
-            "CALCULATE:%:40:#11*100/#2" \
-            "PATTERN:Junction::sed -n 9p | cut -d' ' -f 1" \
-            "CALCULATE:%:40:#13*100/#11"
-            # TODO check junction extraction
+            "CALCULATE:%:40:#10*100/#2" \
+            "PATTERN:Junction reads::sed -n 13p | cut -d' ' -f 1" \
+            "CALCULATE:%:40:#12*100/#2" \
+            "PATTERN:GTF Junctions::sed -n 14p | cut -d' ' -f 1" \
+            "CALCULATE:%:40:#14*100/#2"
             
-        # finish the section
         NGSANE_REPORT_FOOTER 
         
     fi

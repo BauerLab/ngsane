@@ -1,5 +1,6 @@
 # author: Denis Bauer
 # date: Mar.2014
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources

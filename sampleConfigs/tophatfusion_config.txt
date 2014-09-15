@@ -1,5 +1,6 @@
 # author: Hugh French and Fabian Buske
 # date: March 2014
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources

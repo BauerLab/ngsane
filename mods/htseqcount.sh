@@ -69,7 +69,7 @@ echo -e "--bedtools    --\n "$(bedtools --version)
 echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar --version 2>&1)
 [ ! -f $PATH_PICARD/FixMateInformation.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--htSeq       --\n "$(htseq-count | tail -n 1)
-[ -z "$(which htseq-count)" ] && [ -n "$GTF" ] && echo "[ERROR] no htseq-count or GTF detected" && exit 1
+[ -z "$(which htseq-count)" ] && echo "[ERROR] no htseq-count" && exit 1
 echo -e "--Python      --\n" $(python --version 2>&1 | tee | head -n 1 )
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 hash module 2>/dev/null && echo -e "--Python libs --\n "$(yolk -l)
@@ -237,9 +237,9 @@ NGSANE_CHECKPOINT_INIT "cleanup"
 [ -e $OUTDIR/$SAMPLE.fixed.bam ] && rm $OUTDIR/$SAMPLE.fixed.bam
 [ -e $OUTDIR/$SAMPLE.fixed.bam.bai ] && rm $OUTDIR/$SAMPLE.fixed.bam.bai
 [ -e $OUTDIR/GTF.summary.txt ] && rm $OUTDIR/GTF.summary.txt
-[ -e $OUTDIR/..//${SAMPLE}.summary.txt.dummy ] && rm $OUTDIR/..//${SAMPLE}.summary.txt.dummy
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
+[ -e $OUTDIR/../${SAMPLE}.summary.txt.dummy ] && rm $OUTDIR/../${SAMPLE}.summary.txt.dummy
 echo ">>>>> feature counting with HTSEQ-COUNT - FINISHED"
 echo ">>>>> enddate "`date`
