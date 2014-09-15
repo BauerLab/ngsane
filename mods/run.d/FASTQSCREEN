@@ -32,8 +32,9 @@ if [ -n "$RUNFASTQSCREEN" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_TABLE "$TASK_FASTQSCREEN" \
             "$OUT/<DIR>/$TASK_FASTQSCREEN"  \
             "_screen.txt" \
-            "PATTERN:Hit no libraries::awk '{print \$NR}'" 
-        # TODO reformat fastqcsreen output for parsing
+            "FIGURE:Distribution:100:<SAMPLE>_screen.png:60:1"\
+            "DYNAMIC_ROWS:3,-2::awk '{print \$8}'" 
+
 
         NGSANE_REPORT_FOOTER   
     fi
