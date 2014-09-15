@@ -66,6 +66,8 @@ if [ -n "$RUN[MOD]" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "LINK:[LINK]"                                      \ # one external link permitted
             "FIGURE:TABLEHEAD:WIDTH:[FIGURE]:HEIGHT:IMGBORDER" \ # place a figure in the table cell (multiple times possible)
             "PATTERN:TABLEHEAD:WIDTH:[GREP COMMAND]"           \ # parse file for this pattern (multiple times possible)
+            "DYNAMIC_COLS:[x-y]:WIDTH:[COLUMN COMMAND]"        \ # parse columns x to y from tsv file using the first row as header, 
+                                                               \ # and passing the remainder onto the column command
             "CALCULATE:TABLEHEAD:WIDTH:[FORMULA]"                # use formular to calculate from previousely defined columns 
                                                                  #  - use '#x' to specify the x-th column, e.g. #4*100/#2
 

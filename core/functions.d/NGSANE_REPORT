@@ -107,6 +107,7 @@ EOF
     NGSANE_VAR_REPORT_TABLE_TITLES=""
     NGSANE_VAR_REPORT_TABLE_COLUMNS=""
     NGSANE_VAR_REPORT_TABLE_CENTER=' ], "aaData": ['
+    NGSANE_VAR_REPORT_TABLE_CONTENT=""
     
     # create table header once
     if [ -z "$NGSANE_VAR_REPORT_TABLE_TITLES" ]; then
@@ -132,11 +133,11 @@ EOF
             elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
                 NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
                 NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"
+            elif [[ $(echo $var | grep '^DYNAMIC_COLS:') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES DYNAMIC_COLS_JSON"
+                NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS DYNAMIC_COLS_HTML"
             fi
         done                
-        echo -e $NGSANE_VAR_REPORT_TABLE_HEADER >> $SUMMARYTMP
-        echo -e $NGSANE_VAR_REPORT_TABLE_TITLES >> $SUMMARYTMP
-        echo -e $NGSANE_VAR_REPORT_TABLE_CENTER >> $SUMMARYTMP
     fi
     
     NGSANE_VAR_FIRSTROW="TRUE"
@@ -183,6 +184,20 @@ EOF
             fi
             
             if [[ "$NGSANE_VAR_FIRSTROW" == "TRUE" ]]; then
+                # add dynamic table header by peeking into the first file
+                for var in "$@:4"; do
+                    if [[ $(echo $var | grep '^DYNAMIC_COLS:') != "" ]]; then
+                        THEAD=""
+                        TCOLS=""
+                        for COLUMN in `head -n 1 $SAMPLE | cut -f$(echo $var | cut -d':' -f 2)`; do
+                            THEAD="$THEAD , {'sTitle':'$COLUMN', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+                            TCOLS="$TCOLS <td></td>"
+                        done
+                        NGSANE_VAR_REPORT_TABLE_TITLES="${NGSANE_VAR_REPORT_TABLE_TITLES/DYNAMIC_COLS_JSON/$THEAD}"
+                        NGSANE_VAR_REPORT_TABLE_COLUMNS="${NGSANE_VAR_REPORT_TABLE_COLUMNS/DYNAMIC_COLS_HTML/$TCOLS}"
+                    fi
+                done
+
                 NGSANE_VAR_REPORT_TABLE_ROW="['$DIRNAME' , '$NGSANE_VAR_SAMPLE_LINK'"            
                 NGSANE_VAR_FIRSTROW="FALSE"
             else
@@ -241,13 +256,39 @@ EOF
                     CALCULATE_RESULT="$(eval $CALCULATE)"
 #                    echo "3 $CALCULATE $CALCULATE_RESULT" >&2
                     NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $CALCULATE_RESULT"
+   
+                elif [[ $(echo $var | grep '^DYNAMIC_COLS:') != "" ]]; then
+                    
+                    FILECOLS=$(head -n 1 $SAMPLE | tr '\t' '\n' | wc -l  | cut -f 1)
+                    COLRANGE=$(echo $var | cut -d':' -f 2 | sed 's/^-/1-/' | sed "s/-$/-$FILECOLS/" | sed 's/-/ /')
+                    COMMAND=$(echo $var | cut -d':' -f 4)                                        
+                    for COLUMN in `seq $COLRANGE`; do
+
+                        PATTERN="cut -f$COLUMN $SAMPLE | tail -n+2 | $COMMAND"
+                        PATTERN_RESULT=$(eval $PATTERN)
+                        if ! [[ "$PATTERN_RESULT" =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
+                            # convert into string
+                            PATTERN_RESULT="'$PATTERN_RESULT'"
+                        else
+                            # format pretty
+                            PATTERN_RESULT="$(printf '%.2f' $PATTERN_RESULT)"
+                        fi
+                        NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $PATTERN_RESULT"
+                    
+                    done
+#                    echo $NGSANE_VAR_REPORT_TABLE_ROW >&2
                 fi
             done
             NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW ]"
-            echo $NGSANE_VAR_REPORT_TABLE_ROW >> $SUMMARYTMP
+            NGSANE_VAR_REPORT_TABLE_CONTENT="$NGSANE_VAR_REPORT_TABLE_CONTENT \n $NGSANE_VAR_REPORT_TABLE_ROW"
 
         done
     done
+    echo -e $NGSANE_VAR_REPORT_TABLE_HEADER >> $SUMMARYTMP
+    echo -e $NGSANE_VAR_REPORT_TABLE_TITLES >> $SUMMARYTMP
+    echo -e $NGSANE_VAR_REPORT_TABLE_CENTER >> $SUMMARYTMP
+    echo -e $NGSANE_VAR_REPORT_TABLE_CONTENT >> $SUMMARYTMP
+    
     # register table
     cat >> $SUMMARYTMP <<EOF
         ]};

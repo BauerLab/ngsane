@@ -63,15 +63,17 @@ def per(max,arr):
 
 def printStats(arrV, arrN, arrS):
     out=[[],[],[],[],[],[],[],[]]
-    string="    "
+    string=" "
     #normaliziation
     normsum=0
     normnZe=0
 
     for c in range(0,len(arrV)):
-        string+="%17s " % arrN[c]
+        string+="\t%17s" % arrN[c]
         formatString="%17.2f"
-        if(min(arrV[c])<0.009):
+        if(min(arrV[c])==0):
+            formatString="%1d"
+        elif(min(arrV[c])<0.009):
             formatString="%17.2e"
             #formatString="%17.2f"     
 
@@ -119,14 +121,14 @@ def printStats(arrV, arrN, arrS):
             print "-----------------------------"
     if(arrS==0 or len(arrS)>1):
         print string
-        print "nZe "+" ".join(out[6])
-        print "sum "+" ".join(out[5])
-        print "min "+" ".join(out[0])
-        print "max "+" ".join(out[1])
-        print " av "+" ".join(out[2])
-        print "ste "+" ".join(out[3])
+        print "nZe\t"+"\t".join(out[6])
+        print "sum\t"+"\t".join(out[5])
+        print "min\t"+"\t".join(out[0])
+        print "max\t"+"\t".join(out[1])
+        print " av\t"+"\t".join(out[2])
+        print "ste\t"+"\t".join(out[3])
         if (percent):
-            print "av% "+" ".join(out[4])
+            print "av% "+"\t".join(out[4])
 
 
 sumarr=[]
