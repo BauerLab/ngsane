@@ -39,6 +39,7 @@ if [ -n "$RUNTOPHAT" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
         NGSANE_REPORT_HEADER "Tophat" "$TASK_TOPHAT" "tophat.sh" "$ASD.bam"
 
         NGSANE_REPORT_TABLE "$TASK_TOPHAT" \
+            "-" \
             "$OUT/<DIR>/$TASK_TOPHAT"  \
             "$ASD.bam.stats" \
             "LINK:<SAMPLE>$ASD.bam.html" \

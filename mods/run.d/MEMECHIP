@@ -28,6 +28,7 @@ if [ -n "$RUNMEMECHIP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "MemeChip" "$TASK_MEMECHIP" "memechip.sh"
 
         NGSANE_REPORT_TABLE "$TASK_MEMECHIP" \
+            "-" \
             "$OUT/<DIR>/$TASK_MEMECHIP"  \
             ".summary.txt" \
             "LINK":"<SAMPLE>/index.html" \

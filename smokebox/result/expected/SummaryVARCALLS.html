@@ -397,6 +397,13 @@ div.inset_image {
     border-style:dotted;
 }
 
+div.datatable_header{
+    background-image: -webkit-linear-gradient(left, #e4dfe3, #fbfaff); 
+    padding:2px 5px 2px 5px; 
+    margin:5px 0 5px 0; 
+    border-bottom:1px solid #aaa
+}
+
 </style>
 </head>
 <body>
@@ -532,7 +539,7 @@ Math.std = function( ){
 <div id="center">
 <div class=panel id=quicklinks><h2>Quicklinks</h2><div>
 
-<a href='#bwa_panel' class='quicklinks'>bwa</a>|<a href='#reCalAln_panel' class='quicklinks'>reCalAln</a>|<a href='#variant_panel' class='quicklinks'>variant</a>|<a href='#bamann_bwa_panel' class='quicklinks'>bamann_bwa</a>|<a href='#pindel_panel' class='quicklinks'>pindel</a>|<a href='#References_panel' class='quicklinks'>References</a>
+<a href='#bwa_panel' class='quicklinks'>bwa</a>|<a href='#bamann_bwa_panel' class='quicklinks'>bamann_bwa</a>|<a href='#reCalAln_panel' class='quicklinks'>reCalAln</a>|<a href='#variant_panel' class='quicklinks'>variant</a>|<a href='#pindel_panel' class='quicklinks'>pindel</a>|<a href='#References_panel' class='quicklinks'>References</a>
 
 <div id ="right"><label>Aggregate: <input id="showAggregation" type="checkbox" /></label> <label>Global Filter: <input type="search" id="search" /></label></div>
 </div><!-- Links -->
@@ -577,7 +584,7 @@ QC_PASS .. 2/2 have cleanup
 <div class='tabContent_hide' id='DC_bwa_notes'><div class='box scroll'><pre>
 
 qout/bwa/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: qout/bwa
+[NOTE] Jobfile: qout/bwa/job.20140915.log
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] BWA algorithm is sampe
@@ -588,7 +595,7 @@ qout/bwa/Transcript_RNA3kChr16.out
 [NOTE] PASS check mapping: 7030 == 7030
 
 qout/bwa/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: qout/bwa
+[NOTE] Jobfile: qout/bwa/job.20140915.log
 [NOTE] set java parameters
 [NOTE] EXPID OmicsRNA; LIBRARY AGRF; PLATFORM Illumina
 [NOTE] BWA algorithm is sampe
@@ -685,13 +692,145 @@ bwa_Table_1_json={
 
 {'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'} ,{'sTitle':'Total reads', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Qfail', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Duplicates', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} , 'sWidth':'40px'} ,{'sTitle':'Mapped', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} , 'sWidth':'40px'} ,{'sTitle':'Mapped pairs', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} , 'sWidth':'40px'} ,{'sTitle':'Singletons', 'mRender': function(data){return formatNumber(data);} }
 ], "aaData": [
-['Transcript' , '<a target="detail" href="../Transcript/bwa/RNA3kChr16.asd.bam.html">RNA3kChr16</a>' , 7030.00 , 0.00 , 433.00 , 6.15 , 5638.00 , 80.19 , 2615.00 , 74.39 , 354.00 ]
-,['Transcript' , '<a target="detail" href="../Transcript/bwa/RNA3kChr16rep.asd.bam.html">RNA3kChr16rep</a>' , 7030.00 , 0.00 , 433.00 , 6.15 , 5638.00 , 80.19 , 2615.00 , 74.39 , 354.00 ]
+
+ ['Transcript' , '<a target="detail" href="../Transcript/bwa/RNA3kChr16.asd.bam.html">RNA3kChr16</a>' , 7030.00 , 0.00 , 433.00 , 6.15 , 5638.00 , 80.19 , 2615.00 , 74.39 , 354.00 ] 
+ ,['Transcript' , '<a target="detail" href="../Transcript/bwa/RNA3kChr16rep.asd.bam.html">RNA3kChr16rep</a>' , 7030.00 , 0.00 , 433.00 , 6.15 , 5638.00 , 80.19 , 2615.00 , 74.39 , 354.00 ]
         ]};
         datatable_array.push({"json":"bwa_Table_1_json","html":"bwa_id_Table_1"});
         //]]>
         </script>
     <table id="bwa_id_Table_1" class="display no-wrap" width="100%"><thead><tr><th></th><th></th> <th></th> <th></th> <th></th> <th></th> <th></th> <th></th> <th></th> <th></th> <th></th></tr></thead><tbody><tr><td></td><td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td></tr></tbody><tfoot><tr><td></td><td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td></tr></tfoot></table>
+</div></div></div>
+<div class='panel' id='bamann_bwa_panel'><div class='tabs headbagb' id='bamann_bwa_panel_tabs'><a name='bamann_bwa'></a>
+            <a class='selected' href='#bamann_bwa_results'><h2 id='bamann_bwa_h_results' class='sub'>AnnotateBam</h2></a>
+            <a href='#bamann_bwa_checklist'><h2 id='bamann_bwa_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='bamann_bwa_counter_checkpoints_passed'></span><span class='failed' id='bamann_bwa_counter_checkpoints_failed'></span></span></h2></a>
+            <a href='#bamann_bwa_notes'><h2 id='bamann_bwa_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='bamann_bwa_counter_notes'></span></span></span></h2></a>
+            <a href='#bamann_bwa_errors'><h2 id='bamann_bwa_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='bamann_bwa_counter_errors'></span></span></h2></a>
+            <a href='#bamann_bwa_logfiles'><h2 id='bamann_bwa_h_logfiles' class='sub inactive' rel='errors'>Log files</h2></a>
+</div>
+<div class='tabContent_hide' id='DC_bamann_bwa_checklist'><div><pre>
+###################################################
+# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/annotateBam 
+###################################################
+>>>>>>>>>> Finished
+QC_PASS .. 2/2 are finished
+>>>>>>>>>> Errors
+QC_PASS .. 0/2 have # QCVARIABLES
+QC_PASS .. 0/2 have Resource temporarily unavailable
+>>>>>>>>>> CheckPoints 
+QC_PASS .. 2/2 have programs
+QC_PASS .. 2/2 have parameters
+QC_PASS .. 2/2 have recall files from tape
+QC_PASS .. 2/2 have bedmerge
+QC_PASS .. 2/2 have run annotation
+QC_PASS .. 2/2 have summarize
+
+</pre></div></div>
+<div class='tabContent_hide' id='DC_bamann_bwa_notes'><div class='box scroll'><pre>
+
+qout/bamann_bwa/Transcript_RNA3kChr16.out
+[NOTE] Jobfile: qout/bamann_bwa/job.20140915.log
+[NOTE] using libraries in /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann/
+[NOTE] annotate with MergedReads exon intron lincRNA small_ncRNA tRNA UCSC_rRNA  /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//exon.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//intron.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//lincRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//small_ncRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//tRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//UCSC_rRNA.gtf
+
+qout/bamann_bwa/Transcript_RNA3kChr16rep.out
+[NOTE] Jobfile: qout/bamann_bwa/job.20140915.log
+[NOTE] using libraries in /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann/
+[NOTE] annotate with MergedReads exon intron lincRNA small_ncRNA tRNA UCSC_rRNA  /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//exon.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//intron.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//lincRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//small_ncRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//tRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//UCSC_rRNA.gtf
+</pre></div></div>
+<div class='tabContent_hide' id='DC_bamann_bwa_errors'><div class='box scroll'><pre>
+
+qout/bamann_bwa/Transcript_RNA3kChr16.out
+-- all good, no errors
+
+qout/bamann_bwa/Transcript_RNA3kChr16rep.out
+-- all good, no errors
+</pre></div></div>
+<div class='tabContent_hide' id='DC_bamann_bwa_logfiles'><div><div class='box scroll'>
+<a href='../qout/bamann_bwa/Transcript_RNA3kChr16.out'>Transcript_RNA3kChr16.out</a><br/>
+<a href='../qout/bamann_bwa/Transcript_RNA3kChr16rep.out'>Transcript_RNA3kChr16rep.out</a><br/>
+</div></div></div>
+<div class='tabContent_hide' id='DC_bamann_bwa_PRIMARY_RESULT_FILES'><div><div class='box scroll'>
+</div></div></div>
+<script type='text/javascript'> 
+        if (typeof jQuery === 'undefined') {
+            console.log('jquery not loaded');
+        } else {
+            $('#bamann_bwa_counter_notes').text('6');
+            $('#bamann_bwa_counter_errors').text('0');
+            $('#bamann_bwa_counter_checkpoints_passed').text('9');
+            $('#bamann_bwa_counter_checkpoints_failed').text('0'); 
+            if (0==0){
+                $('#bamann_bwa_counter_errors').toggleClass('errors neutral');
+            }; 
+            if(0==0){
+                $('#bamann_bwa_counter_checkpoints_failed').toggleClass('failed nofailed');
+            };
+
+            $('#bamann_bwa_panelback h2').click(function() {
+                $(this).parent().children().addClass('inactive');
+                $(this).removeClass('inactive');
+                console.log();
+                var panel=$(this).attr('id').replace('_h_','_');
+                $('#bamann_bwa_panel div.wrapper div.display').html($('#'+ panel).html());
+            });
+        }
+    </script>
+<div class='tabContent' id='DC_bamann_bwa_results'><div>
+<script type="text/javascript">
+//<![CDATA[
+bamann_bwa_Table_1_json={
+	"bPaginate": true,
+	"bProcessing": false,
+	"bAutoWidth": false,
+	"bInfo": true,
+	"bLengthChange": true,
+    "bFilter": true,
+	"iDisplayLength": 10,
+	"bJQueryUI": false,
+	"aLengthMenu": [[1, 5, 10, -1], [1, 5, 10, "All"]],
+    "footerCallback": function ( row, data, start, end, display ) {
+        var api = this.api(), data;
+        // empty footer
+        if (! $("#showAggregation")[0].checked){
+            for (var c=0; c<this.fnSettings().aoColumns.length; c++){
+                $( api.column( c ).footer() ).html("");
+            }
+        } else if (data.length <= 1){
+            $( api.column( 1 ).footer() ).html("insufficient data for aggregation");
+        } else {
+        
+            $( api.column( 1 ).footer() ).html("sum</br>min<br>max<br>median</br>mean</br>stdev");
+            
+            for (var c=2; c<this.fnSettings().aoColumns.length; c++){
+                var data = api.column( c, {"filter":"applied"} ).data();
+                var total = Math.sum.apply(Math, data);
+                var maxV = Math.max.apply(Math, data);
+                var minV = Math.min.apply(Math, data);
+                var median = Math.median.apply(Math,data);
+                var mean = Math.mean.apply(Math,data);
+                var stdev = Math.std.apply(Math,data);
+                if (isInt(total) && total >= 10000){
+                    mean=Math.round(mean)
+                    stdev=Math.round(stdev)
+                }
+        
+                $( api.column( c ).footer() ).html(formatNumber(total)+"<br/>"+formatNumber(minV)+"<br/>"+formatNumber(maxV)+"<br/>"+formatNumber(median)+"<br/>"+formatNumber(mean)+"<br/>"+formatNumber(stdev)+"<br/>");
+            }
+        }
+    },
+	"aoColumns": [
+
+{'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'} , {'sTitle':'exon', 'mRender': function(data){return formatNumber(data);} } , {'sTitle':'intron', 'mRender': function(data){return formatNumber(data);} } , {'sTitle':'lincRNA', 'mRender': function(data){return formatNumber(data);} } , {'sTitle':'small_ncRNA', 'mRender': function(data){return formatNumber(data);} } , {'sTitle':'tRNA', 'mRender': function(data){return formatNumber(data);} } , {'sTitle':'UCSC_rRNA', 'mRender': function(data){return formatNumber(data);} }
+], "aaData": [
+
+ ['Transcript' , 'RNA3kChr16' , 5320.00 , 0.00 , 0.00 , 0.00 , 0.00 , 42.00 ] 
+ ,['Transcript' , 'RNA3kChr16rep' , 5320.00 , 0.00 , 0.00 , 0.00 , 0.00 , 42.00 ]
+        ]};
+        datatable_array.push({"json":"bamann_bwa_Table_1_json","html":"bamann_bwa_id_Table_1"});
+        //]]>
+        </script>
+    <table id="bamann_bwa_id_Table_1" class="display no-wrap" width="100%"><thead><tr><th></th><th></th>  <th></th> <th></th> <th></th> <th></th> <th></th> <th></th></tr></thead><tbody><tr><td></td><td></td>  <td></td> <td></td> <td></td> <td></td> <td></td> <td></td></tr></tbody><tfoot><tr><td></td><td></td>  <td></td> <td></td> <td></td> <td></td> <td></td> <td></td></tr></tfoot></table>
 </div></div></div>
 <div class='panel' id='reCalAln_panel'><div class='tabs headbagb' id='reCalAln_panel_tabs'><a name='reCalAln'></a>
             <a class='selected' href='#reCalAln_results'><h2 id='reCalAln_h_results' class='sub'>Recalibrate + Realign</h2></a>
@@ -730,7 +869,7 @@ QC_PASS .. 2/2 have statistics
 <div class='tabContent_hide' id='DC_reCalAln_notes'><div class='box scroll'><pre>
 
 qout/reCalAln/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: qout/reCalAln
+[NOTE] Jobfile: qout/reCalAln/job.20140915.log
 [NOTE] set java parameters
 [NOTE] PAIRED
 [NOTE] GATK multithreading
@@ -738,7 +877,7 @@ qout/reCalAln/Transcript_RNA3kChr16.out
 [NOTE] PASS check recalibration and realignment: 7030 == 7030
 
 qout/reCalAln/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: qout/reCalAln
+[NOTE] Jobfile: qout/reCalAln/job.20140915.log
 [NOTE] set java parameters
 [NOTE] PAIRED
 [NOTE] GATK multithreading
@@ -832,8 +971,9 @@ reCalAln_Table_1_json={
 
 {'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'} ,{'sTitle':'Total reads', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Qfail', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Duplicates', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} , 'sWidth':'40px'} ,{'sTitle':'Mapped', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} , 'sWidth':'40px'} ,{'sTitle':'Mapped pairs', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'%', 'mRender': function(data){return formatNumber(data);} , 'sWidth':'40px'} ,{'sTitle':'Singletons', 'mRender': function(data){return formatNumber(data);} }
 ], "aaData": [
-['Transcript' , 'RNA3kChr16' , 7030.00 , 0.00 , 433.00 , 6.15 , 5638.00 , 80.19 , 2615.00 , 74.39 , 354.00 ]
-,['Transcript' , 'RNA3kChr16rep' , 7030.00 , 0.00 , 433.00 , 6.15 , 5638.00 , 80.19 , 2615.00 , 74.39 , 354.00 ]
+
+ ['Transcript' , 'RNA3kChr16' , 7030.00 , 0.00 , 433.00 , 6.15 , 5638.00 , 80.19 , 2615.00 , 74.39 , 354.00 ] 
+ ,['Transcript' , 'RNA3kChr16rep' , 7030.00 , 0.00 , 433.00 , 6.15 , 5638.00 , 80.19 , 2615.00 , 74.39 , 354.00 ]
         ]};
         datatable_array.push({"json":"reCalAln_Table_1_json","html":"reCalAln_id_Table_1"});
         //]]>
@@ -944,11 +1084,13 @@ variant_Table_1_json={
 
 {'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'} ,{'sTitle':'Total', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Known', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'SNPdb Conc', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Variant Rate/Bp', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Het/Hom', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Novel', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Variant Rate/Bp', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Het/Hom', 'mRender': function(data){return formatNumber(data);} }
 ], "aaData": [
-['Transcript' , 'Transcript' , 92.00 , 44.00 , 97.73 , 2053517.00 , 0.33 , 48.00 , 1882390.00 , 0.07 ]
+
+ ['Transcript' , 'Transcript' , 92.00 , 44.00 , 97.73 , 2053517.00 , 0.33 , 48.00 , 1882390.00 , 0.07 ]
         ]};
         datatable_array.push({"json":"variant_Table_1_json","html":"variant_id_Table_1"});
         //]]>
         </script>
+<div class='datatable_header'>SNPs</div>
     <table id="variant_id_Table_1" class="display no-wrap" width="100%"><thead><tr><th></th><th></th> <th></th> <th></th> <th></th> <th></th> <th></th> <th></th> <th></th> <th></th></tr></thead><tbody><tr><td></td><td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td></tr></tbody><tfoot><tr><td></td><td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td></tr></tfoot></table>
 <script type="text/javascript">
 //<![CDATA[
@@ -996,11 +1138,13 @@ variant_Table_2_json={
 
 {'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'} ,{'sTitle':'Total', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Known', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'SNPdb Conc', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Variant Rate/Bp', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Het/Hom', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Novel', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Variant Rate/Bp', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Het/Hom', 'mRender': function(data){return formatNumber(data);} }
 ], "aaData": [
+
         ]};
         datatable_array.push({"json":"variant_Table_2_json","html":"variant_id_Table_2"});
         //]]>
         </script>
 <hr class='spacer' />
+<div class='datatable_header'>SNPs after recalibration</div>
     <table id="variant_id_Table_2" class="display no-wrap" width="100%"><thead><tr><th></th><th></th> <th></th> <th></th> <th></th> <th></th> <th></th> <th></th> <th></th> <th></th></tr></thead><tbody><tr><td></td><td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td></tr></tbody><tfoot><tr><td></td><td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td></tr></tfoot></table>
 <script type="text/javascript">
 //<![CDATA[
@@ -1048,90 +1192,15 @@ variant_Table_3_json={
 
 {'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'} ,{'sTitle':'Total', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Known', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'SNPdb Conc', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Variant Rate/Bp', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Het/Hom', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Novel', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Variant Rate/Bp', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Het/Hom', 'mRender': function(data){return formatNumber(data);} }
 ], "aaData": [
-['Transcript' , 'Transcript' , 5.00 , 0.00 , 0.00 , 0.00 , 0.00 , 5.00 , 18070950.00 , 0.67 ]
+
+ ['Transcript' , 'Transcript' , 5.00 , 0.00 , 0.00 , 0.00 , 0.00 , 5.00 , 18070950.00 , 0.67 ]
         ]};
         datatable_array.push({"json":"variant_Table_3_json","html":"variant_id_Table_3"});
         //]]>
         </script>
 <hr class='spacer' />
+<div class='datatable_header'>Indels</div>
     <table id="variant_id_Table_3" class="display no-wrap" width="100%"><thead><tr><th></th><th></th> <th></th> <th></th> <th></th> <th></th> <th></th> <th></th> <th></th> <th></th></tr></thead><tbody><tr><td></td><td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td></tr></tbody><tfoot><tr><td></td><td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td></tr></tfoot></table>
-</div></div></div>
-<div class='panel' id='bamann_bwa_panel'><div class='tabs headbagb' id='bamann_bwa_panel_tabs'><a name='bamann_bwa'></a>
-            <a class='selected' href='#bamann_bwa_results'><h2 id='bamann_bwa_h_results' class='sub'>AnnotateBam</h2></a>
-            <a href='#bamann_bwa_checklist'><h2 id='bamann_bwa_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='bamann_bwa_counter_checkpoints_passed'></span><span class='failed' id='bamann_bwa_counter_checkpoints_failed'></span></span></h2></a>
-            <a href='#bamann_bwa_notes'><h2 id='bamann_bwa_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='bamann_bwa_counter_notes'></span></span></span></h2></a>
-            <a href='#bamann_bwa_errors'><h2 id='bamann_bwa_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='bamann_bwa_counter_errors'></span></span></h2></a>
-            <a href='#bamann_bwa_logfiles'><h2 id='bamann_bwa_h_logfiles' class='sub inactive' rel='errors'>Log files</h2></a>
-</div>
-<div class='tabContent_hide' id='DC_bamann_bwa_checklist'><div><pre>
-###################################################
-# NGSANE /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/mods/annotateBam 
-###################################################
->>>>>>>>>> Finished
-QC_PASS .. 2/2 are finished
->>>>>>>>>> Errors
-QC_PASS .. 0/2 have # QCVARIABLES
-QC_PASS .. 0/2 have Resource temporarily unavailable
->>>>>>>>>> CheckPoints 
-QC_PASS .. 2/2 have programs
-QC_PASS .. 2/2 have parameters
-QC_PASS .. 2/2 have recall files from tape
-QC_PASS .. 2/2 have bedmerge
-QC_PASS .. 2/2 have run annotation
-QC_PASS .. 2/2 have summarize
-
-</pre></div></div>
-<div class='tabContent_hide' id='DC_bamann_bwa_notes'><div class='box scroll'><pre>
-
-qout/bamann_bwa/Transcript_RNA3kChr16.out
-[NOTE] Jobfile: qout/bamann_bwa
-[NOTE] using libraries in /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann/
-[NOTE] annotate with  exon intron lincRNA small_ncRNA tRNA UCSC_rRNA  /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//exon.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//intron.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//lincRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//small_ncRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//tRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//UCSC_rRNA.gtf
-
-qout/bamann_bwa/Transcript_RNA3kChr16rep.out
-[NOTE] Jobfile: qout/bamann_bwa
-[NOTE] using libraries in /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann/
-[NOTE] annotate with  exon intron lincRNA small_ncRNA tRNA UCSC_rRNA  /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//exon.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//intron.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//lincRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//small_ncRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//tRNA.gtf /share/ClusterShare/software/contrib/fabbus/ngsane/dev1/smokebox/referenceData/bamann//UCSC_rRNA.gtf
-</pre></div></div>
-<div class='tabContent_hide' id='DC_bamann_bwa_errors'><div class='box scroll'><pre>
-
-qout/bamann_bwa/Transcript_RNA3kChr16.out
--- all good, no errors
-
-qout/bamann_bwa/Transcript_RNA3kChr16rep.out
--- all good, no errors
-</pre></div></div>
-<div class='tabContent_hide' id='DC_bamann_bwa_logfiles'><div><div class='box scroll'>
-<a href='../qout/bamann_bwa/Transcript_RNA3kChr16.out'>Transcript_RNA3kChr16.out</a><br/>
-<a href='../qout/bamann_bwa/Transcript_RNA3kChr16rep.out'>Transcript_RNA3kChr16rep.out</a><br/>
-</div></div></div>
-<div class='tabContent_hide' id='DC_bamann_bwa_PRIMARY_RESULT_FILES'><div><div class='box scroll'>
-</div></div></div>
-<script type='text/javascript'> 
-        if (typeof jQuery === 'undefined') {
-            console.log('jquery not loaded');
-        } else {
-            $('#bamann_bwa_counter_notes').text('6');
-            $('#bamann_bwa_counter_errors').text('0');
-            $('#bamann_bwa_counter_checkpoints_passed').text('9');
-            $('#bamann_bwa_counter_checkpoints_failed').text('0'); 
-            if (0==0){
-                $('#bamann_bwa_counter_errors').toggleClass('errors neutral');
-            }; 
-            if(0==0){
-                $('#bamann_bwa_counter_checkpoints_failed').toggleClass('failed nofailed');
-            };
-
-            $('#bamann_bwa_panelback h2').click(function() {
-                $(this).parent().children().addClass('inactive');
-                $(this).removeClass('inactive');
-                console.log();
-                var panel=$(this).attr('id').replace('_h_','_');
-                $('#bamann_bwa_panel div.wrapper div.display').html($('#'+ panel).html());
-            });
-        }
-    </script>
-<div class='tabContent' id='DC_bamann_bwa_results'><div>
 </div></div></div>
 <div class='panel' id='pindel_panel'><div class='tabs headbagb' id='pindel_panel_tabs'><a name='pindel'></a>
             <a class='selected' href='#pindel_results'><h2 id='pindel_h_results' class='sub'>Structural Variants (Pindel)</h2></a>
@@ -1221,7 +1290,8 @@ pindel_Table_1_json={
 
 {'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'} ,{'sTitle':'Total', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Known', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'SNPdb Conc', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Variant Rate/Bp', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Het/Hom', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Novel', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Variant Rate/Bp', 'mRender': function(data){return formatNumber(data);} } ,{'sTitle':'Het/Hom', 'mRender': function(data){return formatNumber(data);} }
 ], "aaData": [
-['Transcript' , 'joined.vcf' , 16.00 , 0.00 , 0.00 , 0.00 , 0.00 , 11.00 , 8214068.00 , 0.00 ]
+
+ ['Transcript' , 'joined.vcf' , 16.00 , 0.00 , 0.00 , 0.00 , 0.00 , 11.00 , 8214068.00 , 0.00 ]
         ]};
         datatable_array.push({"json":"pindel_Table_1_json","html":"pindel_id_Table_1"});
         //]]>
@@ -1285,7 +1355,7 @@ ggKUUnxZGGs52tPDwQP72bVzB5n2Nl9KuTEajd5VU1u7piOTMa+9+caJ3famHy3lwYd/x1fmzkt3
 dXV9I5fLXe04zlm+70e+zIZzauK6rtdnrd3ged7qRCKx+t3161puX34bd997DwD/A0B01Vln/qXc
 AAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE0LTA4LTI5VDExOjM4OjUyKzAyOjAwmeSGkwAAACV0RVh0
 ZGF0ZTptb2RpZnkAMjAxNC0wOC0yOVQxMTozODo1MiswMjowMOi5Pi8AAAAZdEVYdFNvZnR3YXJl
-AEFkb2JlIEltYWdlUmVhZHlxyWU8AAAAAElFTkSuQmCC' /> Report generated with NGSANE version: 525a08c80c632ccaea59c585780f328f5d347e36 (git hash)<br/>Last modified: Thu Sep 11 10:29:37 EST 2014</div>
+AEFkb2JlIEltYWdlUmVhZHlxyWU8AAAAAElFTkSuQmCC' /> Report generated with NGSANE version: 12898308e83464e7ab671e1013bf94c507d61df8 (git hash)<br/>Last modified: Mon Sep 15 21:45:37 EST 2014</div>
 </div><!-- center --></body>
 
 <script type=text/javascript>

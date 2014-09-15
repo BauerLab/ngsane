@@ -53,6 +53,7 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "HiCuP" "$TASK_HICUP" "hicup.sh"
 
         NGSANE_REPORT_TABLE "$TASK_HICUP" \
+            "Truncater" \
             "$OUT/<DIR>/$TASK_HICUP"  \
             "_truncater_summary.txt" \
             "PATTERN:P1 non-trunc reads::sed -n 2p | cut -f 5" \
@@ -66,6 +67,7 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "FIGURE::60:<SAMPLE>_ditag_size_distribution.png:60:1"
 
         NGSANE_REPORT_TABLE "$TASK_HICUP" \
+            "Mapper" \
             "$OUT/<DIR>/$TASK_HICUP"  \
             "_mapper_summary.txt" \
             "PATTERN:P1 reads::sed -n 2p | cut -f 2" \
@@ -88,6 +90,7 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN:%::sed -n 3p | cut -f 12"
 
         NGSANE_REPORT_TABLE "$TASK_HICUP" \
+            "Filter" \
             "$OUT/<DIR>/$TASK_HICUP"  \
             "_filter_summary.txt" \
             "PATTERN:Total pairs::sed -n 2p | cut -f 2" \
@@ -107,6 +110,7 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "FIGURE::60:<SAMPLE>_ditag_classification.png:60:1"
             
         NGSANE_REPORT_TABLE "$TASK_HICUP" \
+            "Deduplicator" \
             "$OUT/<DIR>/$TASK_HICUP"  \
             "_deduplicator_summary.txt" \
             "PATTERN:Valid reads::sed -n 2p | cut -f 2" \

@@ -2,6 +2,7 @@
 ##############################################################
 # Functions for reports
 # author Fabian Buske
+# September 2014
 
 ################################################################################
 # define functions for generating summary scaffold
@@ -50,10 +51,11 @@ function NGSANE_REPORT_FOOTER {
 
 # NGSANE_REPORT_TABLE takes at least 3 parameters
 # $1=MOD (e.g. $TASK_BWA)
-# $2=FOLDERPATTERN (e.g. $OUT/<DIR>/$TASK_[MOD]/<SAMPLE>)
-# $3=FILE SUFFIX (e.g. $ASD.bam.stats)
-# $4=LINK (link to other html reports)
-# $5..$x=COLUMNS (pattern or figures to appear in columns in the given order, starting with either "PATTERN:" or "FIGURE:")
+# $2=HEADLINE (e.g. Samstats)
+# $3=FOLDERPATTERN (e.g. $OUT/<DIR>/$TASK_[MOD]/<SAMPLE>)
+# $4=FILE SUFFIX (e.g. $ASD.bam.stats)
+# $5=LINK (link to other html reports)
+# $6..$x=COLUMNS (pattern or figures to appear in columns in the given order, starting with either "PATTERN:" or "FIGURE:")
 function NGSANE_REPORT_TABLE {
     export NGSANE_REPORT_TABLE_COUNTER=$(( $NGSANE_REPORT_TABLE_COUNTER + 1 ))
     
@@ -145,34 +147,33 @@ EOF
     
     NGSANE_VAR_FIRSTROW="TRUE"
 
-    
-    [[ -z "$2" ]] && return
+    [[ -z "$3" ]] && return
     
     for dir in ${DIR[@]}; do
         # separate folder from sample pattern
         DIRNAME=${dir%%/*}
         SAMPLEPATTERN=${dir/$DIRNAME/}
 #        echo "$dir $DIRNAME $SAMPLEPATTERN" >&2
-        FOLDER=${2/<DIR>/$DIRNAME}
-#        echo "$FOLDER/$SAMPLEPATTERN*$3" >&2
+        FOLDER=${3/<DIR>/$DIRNAME}
+#        echo "$FOLDER/$SAMPLEPATTERN*$4" >&2
         if [[ "$FOLDER" =~ "<SAMPLE>" ]]; then
-            SEARCHPATH=${FOLDER/<SAMPLE>/$SAMPLEPATTERN*$3}/
+            SEARCHPATH=${FOLDER/<SAMPLE>/$SAMPLEPATTERN*$4}/
         else
-            SEARCHPATH=$FOLDER/$SAMPLEPATTERN*$3
+            SEARCHPATH=$FOLDER/$SAMPLEPATTERN*$4
         fi
         for SAMPLE in $(ls $SEARCHPATH 2> /dev/null); do
             echo $SAMPLE >&2
             PROJECT_RELPATH2=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$FOLDER'),'$(pwd -P)')")
 
             SAMPLENAME=${SAMPLE##*/}
-            SAMPLENAME=${SAMPLENAME/%$3/}
+            SAMPLENAME=${SAMPLENAME/%$4/}
 #            echo "$SAMPLE $SAMPLENAME">&2
 
 
             # populate table row starting from parameter 3
             # check for link first
             NGSANE_VAR_TABLE_LINK=""
-            for var in "$@:4"; do
+            for var in "$@:5"; do
                 if [[ $(echo $var | grep '^LINK:') != "" ]]; then
                     NGSANE_VAR_TABLE_LINK=${var/LINK:/}
                     NGSANE_VAR_TABLE_LINK=${NGSANE_VAR_TABLE_LINK/<SAMPLE>/$SAMPLENAME}
@@ -188,11 +189,13 @@ EOF
             
             if [[ "$NGSANE_VAR_FIRSTROW" == "TRUE" ]]; then
                 # add dynamic table header by peeking into the first file
-                for var in "$@:4"; do
+                for var in "$@:5"; do
                     if [[ $(echo $var | grep '^DYNAMIC_COLS:') != "" ]]; then
                         THEAD=""
                         TCOLS=""
-                        for COLUMN in `head -n 1 $SAMPLE | cut -f$(echo $var | cut -d':' -f 2)`; do
+                        FILECOLS=$(awk -F\\t 'NR==1{print NF}' $SAMPLE)
+                        let "$(echo $var | cut -d':' -f 2 | sed 's/^,/1,/' | sed "s/,$/,$FILECOLS/" | sed "s/,-\([0-9]\)\+$/,$FILECOLS-\1/" | sed 's/^/FROMCOL=/' | sed 's/,/,TOCOL=/')"
+                        for COLUMN in $(head -n 1 $SAMPLE | cut -f${FROMCOL}-${TOCOL}); do
                             THEAD="$THEAD , {'sTitle':'$COLUMN', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
                             TCOLS="$TCOLS <td></td>"
                         done
@@ -202,7 +205,7 @@ EOF
                         THEAD=""
                         TCOLS=""
                         FILEROWS=$(wc -l $SAMPLE | cut -d' ' -f 1)
-                        let "$(echo $var | cut -d':' -f 2 | cut -d':' -f 2 | sed 's/^,/1,/' | sed "s/,$/,$FILEROWS/" | sed "s/,-\([0-9]\)\+$/,$FILEROWS-\1/" | sed 's/^/FROMROW=/' | sed 's/,/,TOROW=/')"
+                        let "$(echo $var | cut -d':' -f 2 | sed 's/^,/1,/' | sed "s/,$/,$FILEROWS/" | sed "s/,-\([0-9]\)\+$/,$FILEROWS-\1/" | sed 's/^/FROMROW=/' | sed 's/,/,TOROW=/')"
                         for COLUMN in $(cut -f1 $SAMPLE | sed -n ${FROMROW},${TOROW}p); do
                             THEAD="$THEAD , {'sTitle':'$COLUMN', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
                             TCOLS="$TCOLS <td></td>"
@@ -218,7 +221,7 @@ EOF
                 NGSANE_VAR_REPORT_TABLE_ROW=",['$DIRNAME' , '$NGSANE_VAR_SAMPLE_LINK'"            
             fi
             
-            for var in "$@:4"; do
+            for var in "$@:5"; do
             
                 if [[ $(echo $var | grep '^FIGURE:') != "" ]]; then
                     NGSANE_VAR_TABLE_FIGURE=$(echo $var | cut -d':' -f 4)
@@ -273,10 +276,11 @@ EOF
    
                 elif [[ $(echo $var | grep '^DYNAMIC_COLS:') != "" ]]; then
                     
-                    FILECOLS=$(wc -l $SAMPLE  | cut -d' ' -f 1)
-                    COLRANGE=$(echo $var | cut -d':' -f 2 | sed 's/^-/1-/' | sed "s/-$/-$FILECOLS/" | sed 's/-/ /')
                     COMMAND=$(echo $var | cut -d':' -f 4)                                        
-                    for COLUMN in `seq $COLRANGE`; do
+                    FILECOLS=$(awk -F\\t 'NR==1{print NF}' $SAMPLE)
+                    let "$(echo $var | cut -d':' -f 2 | sed 's/^,/1,/' | sed "s/,$/,$FILECOLS/" | sed "s/,-\([0-9]\)\+$/,$FILECOLS-\1/" | sed 's/^/FROMCOL=/' | sed 's/,/,TOCOL=/')"
+                        
+                    for COLUMN in $(seq $FROMCOL $TOCOL); do
 
                         PATTERN="cut -f$COLUMN $SAMPLE | tail -n+2 | $COMMAND"
                         PATTERN_RESULT=$(eval $PATTERN)
@@ -334,6 +338,10 @@ EOF
         echo "<hr class='spacer' />" >> $SUMMARYTMP 
     fi
 
+    if [[ "$2" != "-" ]]; then
+        echo "<div class='datatable_header'>$2</div>" >> $SUMMARYTMP
+    fi
+        
     cat >> $SUMMARYTMP <<EOF
     <table id="${1}_id_Table_${NGSANE_REPORT_TABLE_COUNTER}" class="display no-wrap" width="100%"><thead><tr>${NGSANE_VAR_REPORT_TABLE_COLUMNS//td/th}</tr></thead><tbody><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tbody><tfoot><tr>$NGSANE_VAR_REPORT_TABLE_COLUMNS</tr></tfoot></table>
 EOF
@@ -342,10 +350,11 @@ EOF
 
 # NGSANE_REPORT_TABLE_AGGREGATE at least 3 parameters
 # $1=MOD (e.g. $TASK_BWA)
-# $2=FOLDERPATTERN (e.g. $OUT/<DIR>/$TASK_[MOD]/<SAMPLE>)
-# $3=FILE SUFFIX (e.g. $ASD.bam.stats)
-# $4=LINK (link to other html reports)
-# $5..$x=COLUMNS (pattern or figures to appear in columns in the given order, starting with either "PATTERN:" or "FIGURE:")
+# $2=HEADLINE (e.g. "samstats")
+# $3=FOLDERPATTERN (e.g. $OUT/<DIR>/$TASK_[MOD]/<SAMPLE>)
+# $4=FILE SUFFIX (e.g. $ASD.bam.stats)
+# $5=LINK (link to other html reports)
+# $6..$x=COLUMNS (pattern or figures to appear in columns in the given order, starting with either "PATTERN:" or "FIGURE:")
 function NGSANE_REPORT_TABLE_AGGREGATE {
     export NGSANE_REPORT_TABLE_COUNTER=$(( $NGSANE_REPORT_TABLE_COUNTER + 1 ))
     
@@ -404,12 +413,12 @@ EOF
     NGSANE_VAR_FIRSTROW="TRUE"
 
     
-    [[ -z "$2" ]] && return
+    [[ -z "$3" ]] && return
 
-    echo "Filepattern $2/*$3" >&2 
-    for AFILE in $(ls $2/*$3); do
+    echo "Filepattern $3/*$4" >&2 
+    for AFILE in $(ls $3/*$4); do
         AFILENAME=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$AFILE'),'$(pwd -P)')")
-        AFILENAME=${AFILENAME/%$3/}
+        AFILENAME=${AFILENAME/%$4/}
 #        echo "File:  $AFILE $AFILENAME" >&2
 
         if [[ "$NGSANE_VAR_FIRSTROW" == "TRUE" ]]; then
@@ -418,7 +427,7 @@ EOF
         else
             NGSANE_VAR_REPORT_TABLE_ROW=",['${AFILENAME##*/}'"
         fi
-        for var in "$@:4"; do
+        for var in "$@:5"; do
         
             if [[ $(echo $var | grep '^FIGURE:') != "" ]]; then
                 NGSANE_VAR_TABLE_FIGURE=$(echo $var | cut -d':' -f 4)
@@ -484,6 +493,10 @@ EOF
     # add spacer
     if [ "$NGSANE_REPORT_TABLE_COUNTER" -gt 1 ]; then
         echo "<hr class='spacer' />" >> $SUMMARYTMP 
+    fi
+
+    if [[ "$2" != "-" ]]; then
+        echo "<div class='datatable_header'>$2</div>" >> $SUMMARYTMP
     fi
 
     cat >> $SUMMARYTMP <<EOF

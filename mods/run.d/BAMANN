@@ -24,9 +24,10 @@ if [ -n "$RUNBAMANN" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "AnnotateBam" "$TASK_BAMANN" "annotateBam.sh"
 
         NGSANE_REPORT_TABLE "$TASK_BAMANN" \
+            "-" \
             "$OUT/<DIR>/$TASK_BAMANN"  \
             ".anno.stats" \
-            "DYNAMIC_COLS:3-::sed -n 2p"
+            "DYNAMIC_COLS:3,::sed -n 2p"
 
         NGSANE_REPORT_FOOTER  
   

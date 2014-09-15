@@ -39,6 +39,7 @@ if [ -n "$RUNHOMERCHIPSEQ" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Homer ChIP-seq" "$TASK_HOMERCHIPSEQ" "chipseqHomer.sh" ".bed"
 
         NGSANE_REPORT_TABLE "$TASK_HOMERCHIPSEQ" \
+            "-" \
             "$OUT/<DIR>/$TASK_HOMERCHIPSEQ"  \
             ".summary.txt" \
             "PATTERN:Control::fgrep 'ChIP input' | awk '{print \$(NF)}'" \

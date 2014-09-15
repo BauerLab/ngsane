@@ -27,6 +27,7 @@ if [ -n "$RUNBIGWIG" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Bigwig" "$TASK_BIGWIG" "bigwig.sh" ".bw"
 
         NGSANE_REPORT_TABLE "$TASK_BIGWIG" \
+            "-" \
             "$OUT/<DIR>/$TASK_BIGWIG"  \
             ".bw.stats" \
             "PATTERN:library size::sed -n 1p | awk '{print \$(NF)}'" \

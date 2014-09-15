@@ -125,7 +125,7 @@ library(limma)
 pdf("${TABLE}.pdf", width=12, height=3)
 dt <- read.delim("$TABLE", row.names = 1)
 samples <- read.delim("$OUTDIR/$MERGED_GTF_NAME/samples.table")
-samples[["file"]] <- sub(".*/(.*).cxb","\\\\1",samples[["file"]])
+samples[["file"]] <- sub(".*/(.*)$ASD.bam","\\\\1",samples[["file"]])
 colnames(dt) <- samples[["file"]][match(colnames(dt), samples[["sample_id"]])]
 
 par(mfrow=c(1,4), mar=c(5,4,2,2))

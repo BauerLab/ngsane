@@ -26,6 +26,7 @@ if [ -n "$RUNFASTQC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "FastQC" "$TASK_FASTQC" "fastQC.sh"
 
         NGSANE_REPORT_TABLE "$TASK_FASTQC" \
+            "-" \
             "$OUT/<DIR>/$TASK_FASTQC"  \
             ".txt" \
             "LINK:<SAMPLE>.html" \

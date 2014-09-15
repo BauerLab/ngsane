@@ -27,6 +27,7 @@ if [ -n "$RUNGATKDOC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "DepthOfCoverage" "$TASK_GATKDOC" "gatkDOC.sh"
 
         NGSANE_REPORT_TABLE "$TASK_GATKDOC" \
+            "-" \
             "$OUT/<DIR>/$TASK_GATKDOC/" \
             ".doc.sample_summary" \
             "PATTERN:Col1::sed-n 2p | cut -f 2" \
@@ -36,6 +37,7 @@ if [ -n "$RUNGATKDOC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         #TODO check pattern
         
         NGSANE_REPORT_TABLE "$TASK_GATKDOC" \
+            "-" \
             "$OUT/<DIR>/$TASK_GATKDOC/" \
             ".doc.sample_cumulative_coverage_counts" \
             "PATTERN:Col1::sed-n 2p | cut -f 2" \
@@ -44,6 +46,7 @@ if [ -n "$RUNGATKDOC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN:Col4::sed-n 2p | cut -f 5" \
 
         NGSANE_REPORT_TABLE "$TASK_GATKDOC" \
+            "-" \
             "$OUT/<DIR>/$TASK_GATKDOC/" \
             ".doc.sample_interval_statistics" \
             "PATTERN:Col1::sed-n 2p | cut -f 2" \
@@ -52,6 +55,7 @@ if [ -n "$RUNGATKDOC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN:Col4::sed-n 2p | cut -f 5" \
             
         NGSANE_REPORT_TABLE "$TASK_GATKDOC" \
+            "-" \
             "$OUT/<DIR>/$TASK_GATKDOC/" \
             "$ASR.bam.stats" \
             "PATTERN:Total reads::sed -n 1p | cut -d' ' -f 1" \

@@ -61,12 +61,13 @@ if [ -n "$RUN[MOD]" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
 
         # 1) add as many tables as needed.         
         NGSANE_REPORT_TABLE "$TASK_[MOD]"                      \
+            ""                                                 \ # Data table custom headline (optional)
             "[FOLDER_PATTERN]"                                 \ # how the output is arranged, see -o parameter above e.g. $OUT/<DIR>/$TASK_[MOD]/<SAMPLE>/
             "[FILE_SUFFIX]"                                    \ # which files to parse, .e.g $ASD.bam.stats
             "LINK:[LINK]"                                      \ # one external link permitted
             "FIGURE:TABLEHEAD:WIDTH:[FIGURE]:HEIGHT:IMGBORDER" \ # place a figure in the table cell (multiple times possible)
             "PATTERN:TABLEHEAD:WIDTH:[GREP COMMAND]"           \ # parse file for this pattern (multiple times possible)
-            "DYNAMIC_COLS:[x-y]:WIDTH:[COLUMN COMMAND]"        \ # parse columns x to y from tsv file using the first row as header, 
+            "DYNAMIC_COLS:[x,y]:WIDTH:[COLUMN COMMAND]"        \ # parse columns x to y from tsv file using the first row as header, 
                                                                \ # and passing the remainder onto the column command
             "DYNAMIC_ROWS:[x,y]:WIDTH:[ROW COMMAND]"           \ # parse row x to y from tsv file using the first column as header, 
                                                                \ # and passing the remainder onto the row command

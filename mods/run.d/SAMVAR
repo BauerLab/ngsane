@@ -30,6 +30,7 @@ if [ -n "$RUNSAMVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "SamVar" "$TASK_SAMVAR" "samSNPs.sh,variantcollect.sh"
 
         NGSANE_REPORT_TABLE "$TASK_GATKVAR SNP" \
+            "-" \
             "$OUT/variant/${INPUT_SAMVAR}-$INPUT_SAMVAR-$TASK_SAMVAR-<DIR>" \
             ".filter.snps.eval.txt" \
             "PATTERN:Total::fgrep -w 'CountVariants' | sed -n 3p | tr -s ' ' '\t' | cut -f7" \

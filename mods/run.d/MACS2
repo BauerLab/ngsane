@@ -26,6 +26,7 @@ if [ -n "$RUNMACS2" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Macs2" "$TASK_MACS2" "macs2.sh" "_peaks.bed"
 
         NGSANE_REPORT_TABLE "$TASK_MACS2" \
+            "-" \
             "$OUT/<DIR>/$TASK_MACS2"  \
             ".summary.txt" \
             "PATTERN:Control::fgrep 'ChIP input' | awk '{print \$(NF)}'" \

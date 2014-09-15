@@ -26,6 +26,7 @@ if [ -n "$RUNPEAKRANGER" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Peakranger" "$TASK_PEAKRANGER" "peakranger.sh" "_region.bed"
 
         NGSANE_REPORT_TABLE "$TASK_PEAKRANGER" \
+            "-" \
             "$OUT/<DIR>/$TASK_PEAKRANGER"  \
             ".summary.txt" \
             "PATTERN:Control::fgrep 'ChIP input' | awk '{print \$(NF)}'" \

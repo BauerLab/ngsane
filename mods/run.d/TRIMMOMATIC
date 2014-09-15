@@ -27,6 +27,7 @@ if [ -n "$RUNTRIMMOMATIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Trimmomatic" "$TASK_TRIMMOMATIC" "trimmomatic.sh"
 
         NGSANE_REPORT_TABLE "$TASK_TRIMMOMATIC" \
+            "-" \
             "$OUT/fastq/<DIR>_$TASK_TRIMMOMATIC"  \
             ".log" \
             "PATTERN:Reads/Read pairs::fgrep -w 'Input' | sed '.*s/\([0-9]\+\).*Surviving.*/\1/g'" \
