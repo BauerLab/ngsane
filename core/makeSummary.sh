@@ -58,33 +58,6 @@ mkdir -p $(dirname $SUMMARYTMP) && cat /dev/null > $SUMMARYTMP && cat /dev/null 
 PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',os.path.realpath('$(dirname $SUMMARYTMP)'))")
 [ -z "$PROJECT_RELPATH" ] && PROJECT_RELPATH="."
 
-# add bamannotate section
-# $1=vali 
-# $2=TASK (e.g.TASK_BWA)
-# $3=output file ($SUMMARYTMP)
-function bamAnnotate {
-	echo "<h3 class='overall'>Reads overlapping annotated regions</h3>" >>$3
-	python ${NGSANE_BASE}/core/Summary.py "$2" ${1} .anno.stats annostats >> $3
-	BAMANNOUT=runStats/bamann/$(echo ${DIR[@]} | sed 's/ /_/g' | cut -c 1-60 )_${2}.ggplot
-	BAMANNIMAGE=${BAMANNOUT/ggplot/pdf}
-	if [ ! -f $BAMANNOUT ]; then mkdir -p $( dirname $BAMANNOUT); fi
-	
-	find ${1} -type f -name *anno.stats | xargs -d"\n" cat | head -n 1 | gawk '{print "type "$0" sample"}' > $BAMANNOUT
-    for i in $(find ${1} -type f -name *anno.stats); do
-        name=$(basename $i)
-        arrIN=(${name//$ASD/ })
-        grep --no-messages sum $i | gawk -v x=${arrIN[0]} '{print $0" "x}';
-	done >> $BAMANNOUT
-	sed -i -r 's/\s+/ /g' $BAMANNOUT
-	Rscript ${NGSANE_BASE}/tools/bamann.R $BAMANNOUT $BAMANNIMAGE "Genome Features ${2}"
-	convert $BAMANNIMAGE ${BAMANNIMAGE/pdf/jpg}
-	echo "<h3>Annotation of mapped reads</h3>" >> $3
-	echo "<div><a href=$PROJECT_RELPATH/$BAMANNIMAGE><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-0.jpg\" width='250px' style='float:left;'><img src=\""$PROJECT_RELPATH/${BAMANNIMAGE/.pdf/}"-1.jpg\" width='250px' style='float:left;'></a></div>">>$3
-
-#	    python ${NGSANE_BASE}/tools/makeBamHistogram.py "${PROJECT}" $ROUTH >>$3
-
-}
-
 # source module requested for report generation (in order provided by the config)
 for RUN_MODS in $(cat $CONFIG | egrep '^RUN.*=' | cut -d'=' -f 1); do 
     eval "if [ -n $RUN_MODS ]; then source ${NGSANE_BASE}/mods/run.d/${RUN_MODS/RUN}; fi"; 
