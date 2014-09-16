@@ -30,7 +30,7 @@ if [ -n "$RUNFASTQSCREEN" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Fastqscreen" "$TASK_FASTQSCREEN" "fastqscreen.sh"
 
         NGSANE_REPORT_TABLE "$TASK_FASTQSCREEN" \
-            "-" \
+            "Multiple_hits_one_library (%)" \
             "$OUT/<DIR>/$TASK_FASTQSCREEN"  \
             "_screen.txt" \
             "FIGURE:Distribution:100:<SAMPLE>_screen.png:60:1"\
