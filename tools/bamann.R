@@ -14,13 +14,15 @@ ggplot(distribution, aes(x = sample, y=value)) +
   geom_bar(stat="identity", aes(fill = feature), position = "fill") + 
   scale_y_continuous("fraction") + 
   labs(title=args[3]) +
-  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))+
+  coord_flip()
 #  facet_grid(. ~ type , space = "free", scales = "free_x")
 
 ggplot(distribution, aes(x = sample, y=value)) + 
   geom_bar(stat="identity", aes(fill = feature)) +
   labs(title=args[3]) +
-  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
+  coord_flip()  
 #  facet_grid(. ~ type , space = "free", scales = "free_x")
 
 
