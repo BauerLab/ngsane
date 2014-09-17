@@ -103,17 +103,17 @@ def printStats(arrV, arrN, arrS):
             out[6][i]=str(float(out[6][i])/(normalizeBy+1e-6))
 
     if(options.oneline):
-		print "nZe %s sum %s min %s max %s av %s stde %s" % (" ".join(out[6])," ".join(out[5])," ".join(out[0])," ".join(out[1])," ".join(out[2])," ".join(out[3]))
+		print "nZe\t%s\tsum\t%s\tmin\t%s\tmax\t%s\tav\t%s\tstde\t%s" % ("\t".join(out[6]),"\t".join(out[5]),"\t".join(out[0])," ".join(out[1]),"\t".join(out[2]),"\t".join(out[3]))
 		sys.exit(0)
 
     if(printing and arrS!=0 ):
         print string
         for l in arrS:
-            resultPerS="    "
+            resultPerS="\t"
             for e in l[0]:
-                formatString="%17.2f "
+                formatString="%17.2f\t"
                 if(e<0.009):
-                    formatString="%17.2e "
+                    formatString="%17.2e\t"
                 resultPerS+= formatString % e
             resultPerS+=" "+l[1]
             print resultPerS
