@@ -139,7 +139,7 @@ NGSANE_CHECKPOINT_INIT "summarize"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-   	COMMAND="python ${NGSANE_BASE}/tools/sumRows.py -i $OUTDIR/$SAMPLE.anno.bed -l 3 -s 4 -e $(expr $NUMBER + 5) -n $(echo $NAMES | sed 's/ /,/g'),unannotated > $OUTDIR/$SAMPLE.anno.stats"
+   	COMMAND="python ${NGSANE_BASE}/tools/sumRows.py -i $OUTDIR/$SAMPLE.anno.bed -l 3 -s 3 -e $(expr $NUMBER + 5) -n $(echo $NAMES | sed 's/[\t ]/,/g'),unannotated > $OUTDIR/$SAMPLE.anno.stats"
 	echo $COMMAND && eval $COMMAND
 
 #    head -n 1 $OUTDIR/$SAMPLE.anno.bed >> $OUTDIR/$SAMPLE.merg.anno.stats

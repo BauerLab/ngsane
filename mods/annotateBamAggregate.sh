@@ -148,7 +148,7 @@ EOF
         SAMPLE=${i/%.anno.stats/}
         SAMPLE=${SAMPLE/$OUT\//}
         SAMPLE=${SAMPLE/$TASK_BAMANN\//}
-        grep --no-messages sum $i | gawk -v x=$SAMPLE '{OFS=" "; print $0,x}';
+        grep --no-messages sum $i | gawk -F\\t -v x=$SAMPLE '{OFS=" "; print $0,x}';
 	done >> $BAMANNOUT
 	sed -i -r 's/\s+/ /g' $BAMANNOUT
 	# remove mergedReads column
