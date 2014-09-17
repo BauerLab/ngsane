@@ -16,8 +16,6 @@
 
 function NGSANE_REPORT_HEADER {
     export NGSANE_REPORT_TABLE_COUNTER=0
-    export LINKS=$LINKS" $2" 
-
     echo "<script type="text/javascript">quicklink_array.push('$2');</script>
             <div class='panel' id='$2_panel'><div class='tabs headbagb' id='$2_panel_tabs'><a name='$2'></a>
             <a class='selected' href='#$2_results'><h2 id='$2_h_results' class='sub'>$1</h2></a>
