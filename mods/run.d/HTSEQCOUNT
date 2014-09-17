@@ -1,0 +1,55 @@
+#!/bin/bash -e
+
+################################################################################
+#  Feature counting with HTSEQCOUNT
+#
+# IN : $OUT/$dir/tophat/*.bam
+# OUT: $OUT/$dir/htseqcount/*_transcript.gtf
+################################################################################       
+
+if [ -n "$RUNHTSEQCOUNT" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_HTSEQCOUNT" ] || [ -z "$NODES_HTSEQCOUNT" ] || [ -z "$CPU_HTSEQCOUNT" ] || [ -z "$MEMORY_HTSEQCOUNT" ] || [ -z "$WALLTIME_HTSEQCOUNT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_HTSEQCOUNT -i $INPUT_HTSEQCOUNT -e $ASD.bam \
+            -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT \
+            --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HTSEQCOUNT/<SAMPLE>" \
+            --postname "postcommandHtseq$HTSEQCOUNT_TABLE_FOLDERNAME" \
+            --postcommand "${NGSANE_BASE}/mods/countsTable.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_HTSEQCOUNT/$HTSEQCOUNT_TABLE_FOLDERNAME"
+
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        NGSANE_REPORT_HEADER "Htseqcount" "$TASK_HTSEQCOUNT" "htseqcount.sh,countsTable.sh"
+
+        NGSANE_REPORT_TABLE "$TASK_HTSEQCOUNT" \
+            "-" \
+            "$OUT/<DIR>/$TASK_HTSEQCOUNT/" \
+            ".summary.txt" \
+            "PATTERN:No feature::head -n 1 | sed 's/.*__no_feature \([0-9]\+\).*/\1/g'" \
+            "PATTERN:Ambiguous::head -n 1 | sed 's/.*__ambiguous \([0-9]\+\).*/\1/g'" \
+            "PATTERN:Low aQual::head -n 1 | sed 's/.*__too_low_aQual \([0-9]\+\).*/\1/g'" \
+            "PATTERN:Not aligned::head -n 1 | sed 's/.*__not_aligned \([0-9]\+\).*/\1/g'" \
+            "PATTERN:Alignment not unique::head -n 1 | sed 's/.*__alignment_not_unique \([0-9]\+\).*/\1/g'"
+
+        NGSANE_REPORT_TABLE_AGGREGATE "$TASK_HTSEQCOUNT" \
+            "Count table" \
+            "$OUT/expression/$TASK_HTSEQCOUNT/$HTSEQCOUNT_TABLE_FOLDERNAME" \
+            ".csv" \
+            "PATTERN:Rows::wc -l | awk '{print \$1}'" \
+            "PATTERN:Samples:: head -n 1 | tr ',' '\n' | tail -n+2 | wc -l  | cut -f1" \
+            "FIGURE:MDS plot:150:<AGGREGATE>.csv.pdf:80:1"
+         
+        NGSANE_REPORT_FOOTER 
+  
+    fi
+fi	
+
+	

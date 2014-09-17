@@ -1,5 +1,6 @@
 # author: Denis Bauer
 # date: December 2013
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources
@@ -9,7 +10,7 @@
 # Tasks
 #********************
 
-RUNDEPTHOFCOVERAGE="1"     # variance  calling with GATK
+RUNGATKDOC="1"     # variance  calling with GATK
 
 #********************
 # Paths
@@ -22,6 +23,8 @@ declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
 INPUT_GATKDOC=$TASK_RECAL
+
+# file suffix for output ($ASR.bam)
 #ASR=
 
 # where to write the output
@@ -47,7 +50,7 @@ FASTA=
 ADDPARAMGATKDOC=
 LIST= #region of specific interest, e.g. targeted reseq
 GENE= #gene list
-FORCEINTERVALS= # boolean - if this is empty AND it is parallele --omitIntervalStatistic is 
+FORCEINTERVALS= # boolean - if this is empty AND it is parallel --omitIntervalStatistic is 
 
 #TASK_GATKDOC="coverage"
 #WALLTIME_GATKDOC=50:00:00

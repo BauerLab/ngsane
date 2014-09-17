@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# the ngsane version to be tested needs to be loaded by hand
+. $NGSANE_BASE/conf/header.sh
+. bin/tmpl/configRNASEQ.txt
+
+# direct or submitting?
+if [[ -z "$SB_MODE" ]]; then
+        if hash qsub 2>&- ; then SB_MODE="forcearmed"
+        else
+            SB_MODE="direct";
+        fi
+fi
+
+[ ! -e referenceData/chr20_RNAseqcopy.fasta ] && ln -s chr20.fasta referenceData/chr20_RNAseqcopy.fasta
+[ ! -e referenceData/chr20_RNAseqcopy.chrom.sizes ] && ln -s chr20.chrom.sizes referenceData/chr20_RNAseqcopy.chrom.sizes
+[ ! -e referenceData/chr20_RNAseqcopy.dict ] && ln -s  chr20.dict referenceData/chr20_RNAseqcopy.dict
+
+echo "[NOTE] run in $SB_MODE mode $(date)"
+################################################################################
+#  TOPHAT
+################################################################################
+
+
+# modify the template config file to flip the RUNTOPHAT switch
+# specify the resulting html file
+echo "[NOTE] Prep and run config file tmp/configRNASEQ.txt"
+cat bin/tmpl/configRNASEQ.txt | sed 's/RUNTOPHATCUFFHTSEQ=\"\"/RUNTOPHATCUFFHTSEQ=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryRNASEQ\"/g' > tmp/configRNASEQ.txt
+
+# submit the TOPHAT run to the cluster
+JOBIDSRNASEQ=$( trigger.sh tmp/configRNASEQ.txt $SB_MODE 2>&1 >/dev/null | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSRNASEQ)"
+
+################################################################################
+# TEST
+################################################################################
+JOBIDS="$JOBIDSRNASEQ"
+
+HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
+# prepare the job to generate the html result page and perform the diff 
+echo "[NOTE] prepare evaluation script tmp/testRNASEQ.qsub wait for $HOLDID"
+sed 's/NAME/NGs_RNASEQ/g' bin/tmpl/HPCheader.txt > tmp/testRNASEQ.qsub
+echo "trigger.sh tmp/configRNASEQ.txt html" >> tmp/testRNASEQ.qsub
+echo "diff result/SummaryRNASEQ.html result/expected/SummaryRNASEQ.html | \
+	   python bin/diffparser.py  > result/diffRNASEQ.txt" >> tmp/testRNASEQ.qsub
+
+chmod 777 tmp/testRNASEQ.qsub
+
+#submit evaluation script
+echo "[NOTE] submit or run evaluation script"
+if [[ "$SUBMISSIONSYSTEM" = "SGE" ]]; then unset module; fi
+if [[ "$SB_MODE" = "forcearmed" ]]; then
+	qsub $HOLDID $QSUBEXTRA tmp/testRNASEQ.qsub
+else
+    eval tmp/testRNASEQ.qsub
+fi

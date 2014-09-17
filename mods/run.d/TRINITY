@@ -1,0 +1,31 @@
+#!/bin/bash -e
+
+################################################################################
+#   Transcriptome assembly without a Reference (Trinity)
+# IN : $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/trinity/*.Trinity.fasta.gz
+################################################################################
+
+#  echo -e "        _       _     _ _"
+#  echo -e "       | |_ ___|_|___|_| |_ _ _"
+#  echo -e "       |  _|  _| |   | |  _| | |"
+#  echo -e "       |_| |_| |_|_|_|_|_| |_  |"
+#  echo -e "   DeNovo Transcriptome    |___|  "
+#  echo -e "   Assembly without a reference genome"
+#  echo -e ""
+
+if [ -n "$RUNTRINITY" ]; then
+    
+    #  ##########   Inchworm   ###########
+    
+    JOBIDS_TRINITY_INCHWORM=$(NGSANE_PIPELINE_MOD "TRINITY_INCHWORM")
+
+    #  ##########   Chrysalis   ###########
+
+    JOBIDS_TRINITY_CHRYSALIS=$(NGSANE_PIPELINE_MOD "TRINITY_CHRYSALIS" "$JOBIDS_TRINITY_INCHWORM")
+    
+    #  ##########   Butterfly   ###########
+
+    JOBIDS_TRINITY_BUTTERFLY=$(NGSANE_PIPELINE_MOD "TRINITY_BUTTERFLY" "$JOBIDS_TRINITY_CHRYSALIS")
+
+fi

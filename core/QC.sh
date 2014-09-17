@@ -49,18 +49,20 @@ fi
 LOGFOLDER=$(dirname $QOUT)
 
 if [ -n "$HTMLOUTPUT" ]; then
-    echo "<div id='${TASK}_checklist'><pre>"
+    echo "<div class='tabContent_hide' id='DC_${TASK}_checklist'><div><pre>"
 fi
 
 
 # pack normal and post command in a long string for the subsequent loops
 # file1*file2*file3:task.sh postcommand:posttask.sh
 for dir in ${DIR[@]}; do
-    for file in $(ls $QOUT/$TASK/${dir%%/*}*.out | grep -v "postcommand"); do
-        LOGFILES="${LOGFILES} ${file}"
+    for LOGFILE in $(find $QOUT/$TASK/ -maxdepth 1 -type f -name "${dir%%/*}*.out" 2>/dev/null ); do
+        LOGFILES="${LOGFILES} ${LOGFILE}"
     done
 done
-echo $LOGFILES
+# remove potential duplicates
+LOGFILES=$(echo "${LOGFILES}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+#echo $LOGFILES >&2
 
 if [ ! -z "$LOGFILES" ]; then # if there is really more than just the postcommand
 	SCRIPTFILES=$(echo $LOGFILES | tr ' ' '*')":"${NGSANE_BASE}/mods/${SCRIPT/%,*/}
@@ -78,59 +80,65 @@ fi
 #########################################################################################
 
 for T in $SCRIPTFILES; do
-
 	# unpack script name and files
 	SCRIPT=${T/*:/}
+	
 	files=$(echo ${T/%:*/} | tr "*" " "files=${FILES/*/ })
+	
 	nrfiles=$(echo $files | wc -w | sed -e 's/^[ \t]*//')
-
-	echo "###################################################"
-	echo "# NGSANE ${SCRIPT/.sh/} "
-	echo "###################################################"
 
 	CHECKPOINTS_PASSED=0
 	CHECKPOINTS_FAILED=0
+
+    # nr might be emtpy if its a postcommand only job
+    if [[ "$nrfiles" -ge "1" ]]; then
+
+    	echo "###################################################"
+    	echo "# NGSANE ${SCRIPT/.sh/} "
+    	echo "###################################################"
+        	
+    	echo ">>>>>>>>>> Finished"
+    	finished=$(egrep "^>{5} .* FINISHED" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
+    	if [ "$finished" = "$nrfiles" ]; then
+    	    echo "QC_PASS .. $finished/$nrfiles are finished"
+    	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
+    	else
+    	    echo "**_FAIL .. $finished/$nrfiles are finished"
+    	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
+    	fi
+    
+    	echo ">>>>>>>>>> Errors"
+    	ERROR=$(egrep QCVARIABLES $SCRIPT | tr ' ' '_' | tr ',' ' ')
+    	ERROR=${ERROR/"# QCVARIABLES"/}
+    	for i in $ERROR; do
+    	  i=${i//_/ }
+    	  var=$(grep -i "$i" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
+    	  if [ "$var" = "0" ]; then
+    	    echo "QC_PASS .. $var/$nrfiles have $i"
+    	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
+    	  else
+    	    echo "**_FAIL .. $var/$nrfiles have $i"
+    	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
+    	  fi
+    	done
+    
+    	echo ">>>>>>>>>> CheckPoints "
+    	PROGRESS=$(grep '^NGSANE_CHECKPOINT_INIT "' $SCRIPT | awk -F'"' '{print $2}' | tr ' ' '_')
+    	for i in $PROGRESS; do
+    	  i=${i//_/ }
+    	  var=$(egrep "^\*{9} $i" $files | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
+    	  if [ ! "$var" = "$nrfiles" ]; then
+    	    echo "**_FAIL .. $var/$nrfiles have $i"
+    	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
+    	  else
+    	    echo "QC_PASS .. $var/$nrfiles have $i"
+    	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
+    	  fi
+    	done
+    
+    	echo ""
 	
-	echo ">>>>>>>>>> Finished"
-	finished=$(egrep "^>{5} .* FINISHED" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
-	if [ "$finished" = "$nrfiles" ]; then
-	    echo "QC_PASS .. finished are $finished/$nrfiles"
-	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
-	else
-	    echo "**_FAIL .. finished are $finished/$nrfiles"
-	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
 	fi
-
-	echo ">>>>>>>>>> Errors"
-	ERROR=$(egrep QCVARIABLES $SCRIPT | tr ' ' '_' | tr ',' ' ')
-	ERROR=${ERROR/"# QCVARIABLES"/}
-	for i in $ERROR; do
-	  i=${i//_/ }
-	  var=$(grep -i "$i" $(echo $files) | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
-	  if [ "$var" = "0" ]; then
-	    echo "QC_PASS .. $var have $i/$nrfiles"
-	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
-	  else
-	    echo "**_FAIL .. $var have $i/$nrfiles"
-	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
-	  fi
-	done
-
-	echo ">>>>>>>>>> CheckPoints "
-	PROGRESS=$(grep '^CHECKPOINT="' $SCRIPT | awk -F'"' '{print $2}' | tr ' ' '_')
-	for i in $PROGRESS; do
-	  i=${i//_/ }
-	  var=$(egrep "^\*{9} $i" $files | cut -d ":" -f 1 | sort -u | wc -l | sed -e 's/^[ \t]*//')
-	  if [ ! "$var" = "$nrfiles" ]; then
-	    echo "**_FAIL .. $var have $i/$nrfiles"
-	    CHECKPOINTS_FAILED=`expr $CHECKPOINTS_FAILED + 1`
-	  else
-	    echo "QC_PASS .. $var have $i/$nrfiles"
-	    CHECKPOINTS_PASSED=`expr $CHECKPOINTS_PASSED + 1`
-	  fi
-	done
-
-	echo ""
 
 done
 
@@ -140,8 +148,8 @@ done
 
 
 if [ -n "$HTMLOUTPUT" ]; then
-    echo "</pre></div>"
-    echo "<div id='${TASK}_notes'><pre>"
+    echo "</pre></div></div>"
+    echo "<div class='tabContent_hide' id='DC_${TASK}_notes'><div class='box scroll'><pre>"
 else
     echo ">>>>>>>>>> Notes"
 fi
@@ -161,8 +169,8 @@ done
 #########################################################################################
 
 if [ -n "$HTMLOUTPUT" ]; then
-    echo "</pre></div>"
-    echo "<div id='${TASK}_errors'><pre>"
+    echo "</pre></div></div>"
+    echo "<div class='tabContent_hide' id='DC_${TASK}_errors'><div class='box scroll'><pre>"
 else
     echo ">>>>>>>>>> Errors"
 fi
@@ -185,22 +193,26 @@ done
 #########################################################################################
 if [ -n "$HTMLOUTPUT" ]; then
 
-    echo "</pre></div>"
-    echo "<div id='${TASK}_logfiles'><div class='box'>"
+    echo "</pre></div></div>"
+    echo "<div class='tabContent_hide' id='DC_${TASK}_logfiles'><div><div class='box scroll'>"
     for i in $LOGFILES ;do
         FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
         echo "<a href='$FN'>${i/$QOUT\/$TASK\//}</a><br/>"
     done
-    echo "</div></div>"
+    echo "</div></div></div>"
     if [ -n "$RESULTSUFFIX" ]; then
-        echo "<div id='${TASK}_nrfiles'><div class='box'>"
+        echo "<div class='tabContent_hide' id='DC_${TASK}_PRIMARY_RESULT_FILES'><div><div class='box scroll'>"
         for dir in ${DIR[@]}; do
-            for i in $(find $OUTDIR/${dir%%/*}/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX | sort -n ); do
-                FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
-                echo "<a href='$FN'>${i/$OUTDIR\/*\/$OUTTASK\//}</a><br/>"
-            done
+            if [ ! -d $OUTDIR/${dir%%/*}/$OUTTASK/ ]; then
+                echo "[NOTE] No result detected: $dir" 1>&2
+            else
+                for i in $(find $OUTDIR/${dir%%/*}/$OUTTASK/ -maxdepth 2 -type f -name *$RESULTSUFFIX | sort -n ); do
+                    FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
+                    echo "<a href='$FN'>${i/$OUTDIR\/*\/$OUTTASK\//}</a><br/>"
+                done
+            fi
         done
-        echo "</div></div>"
+        echo "</div></div></div>"
     fi
     echo "<script type='text/javascript'> 
         if (typeof jQuery === 'undefined') {
@@ -227,7 +239,4 @@ if [ -n "$HTMLOUTPUT" ]; then
         }
     </script>"    
 fi
-
-
 ################################################################################
-

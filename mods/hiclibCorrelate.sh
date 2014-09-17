@@ -26,7 +26,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --files ) 		    shift; FILES=$1 ;; # input files
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir   
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -39,21 +39,21 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
-for MODULE in $MODULE_HICLIB; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_HICLIB; do module load $MODULE; done && module list 
 
 export PATH=$PATH_HICLIB:$PATH
-module list
 echo "PATH=$PATH"
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--Python      --\n" $(python --version)
-echo -e "--Python libs --\n "$(yolk -l)
+hash module 2>/dev/null && echo -e "--Python libs --\n "$(yolk -l)
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 PARAMS="--gapFile=$HICLIB_GAPFILE --referenceGenome=$FASTA_CHROMDIR"
 
@@ -83,29 +83,27 @@ mkdir -p $THISTMP
 
 echo "[NOTE] Datasets: $DATASETS"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $OUTDIR/*
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="call hiclib"
+NGSANE_CHECKPOINT_INIT "call hiclib"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     python ${NGSANE_BASE}/tools/hiclibCorrelate.py ${PARAMS} --outputDir=$OUT/runStats/$TASK_HICLIB --tmpDir=$THISTMP --verbose $DATASETS
     
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT\n"
+    NGSANE_CHECKPOINT_CHECK
 fi
 ################################################################################
-CHECKPOINT="cleanup"
+NGSANE_CHECKPOINT_INIT "cleanup"
 
 [ -d $THISTMP ] && rm -r $THISTMP
 

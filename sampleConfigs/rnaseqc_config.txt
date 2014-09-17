@@ -1,0 +1,75 @@
+# author: Fabian Buske
+# date: July 2014
+# compatible: NGSANE v0.5.x
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNRNASEQC="1"    
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_RNASEQC=TASK_TOPHAT
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+## PARAMETER (mandatory)
+##********************
+
+# reference genome
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome.fa
+# or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# additional parameters for RNA-SeQC, see http://www.broadinstitute.org/cancer/cga/rna-seqc
+RNASEQCADDPARAM=
+
+# ATTENTION: make sure the GTF file matches your genome assembly (chr naming)
+# see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
+# conversion scripts
+# e.g. /share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.gtf
+# or   ${NGSANE_REFERENCE}/b37/annotation/gencode.v14.annotation.b37.gtf
+GTF=
+
+# activate to use doctored GTF file for RNA-SeQC (provides additional info)
+# assumes the doctored GTF is at the same location as the original one but
+# has a different suffix
+# In addition RNA-SeQC will look for the suffix <GTF-FILE>.gc and apply gc
+# stratification if found
+DOCTOREDGTFSUFFIX=".doctored.gtf"
+
+#WALLTIME_RNASEQC=12:00:00
+#MEMORY_RNASEQC=30
+#CPU_RNASEQC=8
+#NODES_RNASEQC="nodes=1:ppn=8"
+#MODULE_RNASEQC=
+#PATH_RNASEQC=
+
+
+
+
+
+
+
+
+

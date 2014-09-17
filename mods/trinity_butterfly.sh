@@ -24,7 +24,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the configuration file
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -36,10 +36,12 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
-for MODS in $MODULES_TRINITY; do module load $MODS; done 
+NGSANE_CHECKPOINT_INIT "programs"
+
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULES_TRINITY; do module load $MODULE; done && module list 
+
 export PATH=$PATH_TRINITY:$PATH
-module list
 echo "PATH=$PATH"
 
 echo "[NOTE] set java parameters"
@@ -59,9 +61,9 @@ echo -e "--trinity     --\n "$(Trinity.pl --version)
 
 ulimit -s unlimited
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="detect library"
+NGSANE_CHECKPOINT_INIT "detect library"
 
 # get basename of f
 n=${f##*/}
@@ -91,22 +93,20 @@ else
     echo "[NOTE] Persistent ID found: $PERSISTENT_ID"
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 	dmget -a $OUTDIR/$SAMPLE/*
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ###############################################################################
-CHECKPOINT="Butterfly"
+NGSANE_CHECKPOINT_INIT "Butterfly"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 #   edit files to replace temporary file paths to local file paths
     sed -i "s?${TMP}\/${PERSISTENT_ID}?${OUTDIR}\/${SAMPLE}?g"  $OUTDIR/../$TASK_TRINITY/$SAMPLE/chrysalis/quantifyGraph_commands $OUTDIR/../$TASK_TRINITY/$SAMPLE/chrysalis/butterfly_commands $OUTDIR/../$TASK_TRINITY/$SAMPLE/chrysalis/component_file_listing.txt
@@ -128,25 +128,23 @@ else
     echo "[NOTE] butterly has completed properly! thank Martin by buying him yet another beer (hic!)"
 
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE/Trinity.fasta ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/Trinity.fasta
 fi 
 
 ################################################################################
-#CHECKPOINT="statistics"
-#if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-#    echo "::::::::: passed $CHECKPOINT"
-#else 
+#NGSANE_CHECKPOINT_INIT "statistics"
+#if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+# 
 #    RUN_COMMAND="$(which perl) $(which Trinity.pl) --seqType fq --left $f --right $f2 --SS_lib_type $SS_LIBRARY_TYPE --max_reads_per_graph 1000000 \
 #                        --output $OUTDIR/../$TASK_TRINITY/$SAMPLE --JM $MEMORY_BUTTERFLY"G" --CPU $NCPU_BUTTERFLY "
 #    echo $RUN_COMMAND && eval $RUN_COMMAND
+#    NGSANE_CHECKPOINT_CHECK
 #fi
-
+#
 ################################################################################
-CHECKPOINT="zip"
+NGSANE_CHECKPOINT_INIT "zip"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     echo "Transcripts: "$(grep ">" $OUTDIR/$SAMPLE/Trinity.fasta | wc -l) > $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
     # gzip <<<-vvv--- this may cause problems with downstream components
@@ -155,10 +153,10 @@ else
     ln -s $SAMPLE/Trinity.fasta.gz $OUTDIR/../$TASK_TRINITY/$SAMPLE.fasta.gz
 
     # mark checkpoint
-    if [ -e $OUTDIR/../$TASK_TRINITY/$SAMPLE.fasta.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/../$TASK_TRINITY/$SAMPLE.fasta.gz
 fi 
 ################################################################################
-CHECKPOINT="cleanup"
+NGSANE_CHECKPOINT_INIT "cleanup"
 
 if [ -n "$CLEANUP" ]; then 
     echo "[WARNING] cleaning up, all intermediary files will disappear: rm $OUTDIR/$SAMPLE/... \"POOF\""
@@ -172,7 +170,7 @@ else
     # mv /tmp/$JOB_ID/* $SOURCE/${TMP_LOC%/*}/trinity/
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 [ -e $OUTDIR/$SAMPLE.fasta.gz.dummy ] && rm $OUTDIR/$SAMPLE.fasta.gz.dummy
 echo ">>>>> transcriptome assembly with trinity butterfly - FINISHED"

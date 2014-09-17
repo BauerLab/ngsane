@@ -1,5 +1,6 @@
 # author: Fabian Buske
-# date: May 2013
+# date: May 2013, August 2014
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources
@@ -9,7 +10,7 @@
 # Tasks
 #********************
 
-RUNMAPPINGBWA="1"     # mapping with bwa
+RUNBWA="1"     # mapping with bwa
 
 #********************
 # Paths
@@ -50,6 +51,10 @@ EXPID="Celltype"
 LIBRARY="RNAseq"
 PLATFORM="Illumina"
 
+# BWA algorithm used for alignment, defaults to sampe/samse
+# e.g. "sam", "mem","bwasw"
+BWA_ALGORITHM="sam"
+
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
@@ -57,11 +62,6 @@ PLATFORM="Illumina"
 # FASTQ encoding (Phred score), leave empty to detect automatically
 # e.g. "Phred33" (Sanger, Illumina 1.8+), "Phred64" (Solexa, Illumina 1.5)
 FASTQ_ENCODING=
-
-# Activate iterative mapping by providing 3 arguments. 
-# 1) maximum read length, 2) negative step size 3) minimum read length
-# e.g. "90 -10 20" for all reads from 100bp to 20bp with step size 10bp
-ITERATIVE_MAPPING=
 
 ## additional bwa parameters
 BWAALNADDPARAM=

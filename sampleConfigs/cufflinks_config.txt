@@ -1,5 +1,6 @@
 # author: Fabian Buske
-# date: September 2013
+# date: September 2014
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources
@@ -15,8 +16,8 @@ RUNCUFFLINKS="1"    # Cufflinks (RNAseq)
 #********************
 SOURCE=$(pwd)
 
-# which folder to run on (i.e. folders within fastq directory)
-declare -a DIR; DIR=( sample1 sample2 )
+# which experiment folder to run on
+declare -a DIR; DIR=( experiment1 experiment2 )
 
 # folder/task containing the data this task operates on
 INPUT_CUFFLINKS=$TASK_TOPHAT
@@ -40,6 +41,10 @@ FASTA=
 # choose "fr-firststrand" "fr-unstranded" "fr-secondstrand"
 RNA_SEQ_LIBRARY_TYPE="fr-firststrand"
 
+# Name of the merged GTF resulting from cuffmerge
+# Make sure this name is unique for different cufflink calls on subsets of libraries
+MERGED_GTF_NAME="merged"
+
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
@@ -51,7 +56,7 @@ CUFFLINKSADDPARAM=
 # see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
 # conversion scripts
 # Also either specify a doctored GTF or uncomment the DOCTOREDGTFSUFFIX below
-# e.g. /share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.gtf
+# e.g. /share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v19.annotation.gtf
 # or   ${NGSANE_REFERENCE}/b37/annotation/gencode.v14.annotation.b37.gtf
 GTF=
 
@@ -66,6 +71,13 @@ GTF=
 #NODES_CUFFLINKS="nodes=1:ppn=8"
 #MODULE_CUFFLINKS=
 #PATH_CUFFLINKS=
+
+#WALLTIME_CUFFQUANT=24:00:00
+#MEMORY_CUFFQUANT=64
+#CPU_CUFFQUANT=6
+#NODES_CUFFQUANT="nodes=1:ppn=6"
+#MODULE_CUFFQUANT=
+#PATH_CUFFQUANT=
 
 
 

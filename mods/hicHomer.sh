@@ -27,7 +27,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --bam )            shift; f=$1 ;; # bam file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir 
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -40,12 +40,12 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
-for MODULE in $MODULE_HOMERHIC; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_HOMERHIC; do module load $MODULE; done && module list 
 
 export PATH=$PATH_HOMERHIC:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -59,42 +59,66 @@ echo -e "--homer       --\n "$(which makeTagDirectory)
 [ -z "$(which makeTagDirectory)" ] && echo "[ERROR] homer not detected" && exit 1
 echo -e "--circos      --\n "$(circos --version)
 [ -z "$(which circos)" ] && echo "[WARN] circos not detected"
+echo -e "--wigToBigWig --\n "$(wigToBigWig 2>&1 | tee | head -n 1)
+[ -z "$(which wigToBigWig)" ] && echo "[WARN] wigToBigWig not detected"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
-n=${f##*/}
-SAMPLE=${n/%$READONE.$ASD.bam/}
+if [ -z "$POOLED_DATA_NAME" ]; then 
+    n=${f##*/}
+    SAMPLE=${n/%$READONE$ASD.bam/}
+    
+    #is paired ?                                                                                                      
+    if [ "$f" != "${f/%$READONE$ASD.bam/$READTWO$ASD.bam}" ] && [ -e ${f/%$READONE$ASD.bam/$READTWO$ASD.bam} ]; then
+        PAIRED="1"
+    else
+        PAIRED="0"
+        echo "[ERROR] paired library required for HIC analysis" && exit 1
+    fi
+
+else
+    SAMPLE=$POOLED_DATA_NAME
+    array=(${f//,/ })
+    #is paired ?                                                                                                      
+    if [ "${array[i]}" != "${array[i]/%$READONE$ASD.bam/$READTWO$ASD.bam}" ] && [ -e ${array[i]/%$READONE$ASD.bam/$READTWO$ASD.bam} ]; then
+        PAIRED="1"
+    else
+        PAIRED="0"
+        echo "[ERROR] paired library required for HIC analysis" && exit 1
+    fi
+    
+fi
 
 if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
     exit 1
 fi
 
-#is paired ?                                                                                                      
-if [ "$f" != "${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam}" ] && [ -e ${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} ]; then
-    PAIRED="1"
+GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
+if [ ! -f $GENOME_CHROMSIZES ]; then
+    echo "[WARN] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES. Will not create bigBed file"
 else
-    PAIRED="0"
-    echo "[ERROR] paired library required for HIC analysis" && exit 1
+    echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
 fi
+
 
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
 mkdir -p $THISTMP
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 	dmget -a $OUTDIR/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 
 #homer likes to write in the current directory, so change to target
@@ -102,28 +126,38 @@ CURDIR=$(pwd)
 cd $OUTDIR
 
 ################################################################################
-CHECKPOINT="create unfiltered tagdirectory"
+NGSANE_CHECKPOINT_INIT "create unfiltered tagdirectory"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    cp $f ${f/%$READONE.$ASD.bam/$READTWO.$ASD.bam} $THISTMP
-    RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered" $THISTMP/$n,$THISTMP/${n/%$READONE.$ASD.bam/$READTWO.$ASD.bam} -format sam -illuminaPE -tbp 1"
+
+    if [ -z "$POOLED_DATA_NAME" ]; then 
+        cp $f ${f/%$READONE$ASD.bam/$READTWO$ASD.bam} $THISTMP
+        RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered" $THISTMP/$n,$THISTMP/${n/%$READONE$ASD.bam/$READTWO$ASD.bam} -format sam -illuminaPE -tbp 1"
+    else
+        # pool data
+        RUN_COMMAND="makeTagDirectory $THISTMP/$SAMPLE"_tagdir_unfiltered
+        array=(${f//,/ })
+        for i in "${!array[@]}"; do
+            cp ${array[i]} ${array[i]/%$READONE$ASD.bam/$READTWO$ASD.bam} $THISTMP
+            n=${array[i]##*/} 
+            RUN_COMMAND="$RUN_COMMAND $THISTMP/$n,$THISTMP/${n/%$READONE$ASD.bam/$READTWO$ASD.bam}"
+        done
+        RUN_COMMAND="$RUN_COMMAND -format sam -illuminaPE -tbp 1"
+    fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     mv $THISTMP/$SAMPLE"_tagdir_unfiltered" $OUTDIR/$SAMPLE"_tagdir_unfiltered"
     
     # mark checkpoint
-    if [ -e $OUTDIR/$SAMPLE"_tagdir_unfiltered"/tagInfo.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_tagdir_unfiltered"/tagInfo.txt
 fi
 
 ################################################################################
-CHECKPOINT="filter tagdirectory"
+NGSANE_CHECKPOINT_INIT "filter tagdirectory"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
 
     count=`ls -1 $OUTDIR/$SAMPLE"_tagdir_unfiltered"/*tags.tsv.gz 2>/dev/null | wc -l`
     if [ $count != 0 ]; then
@@ -139,82 +173,47 @@ else
     mv $THISTMP/$SAMPLE"_tagdir_unfiltered" $OUTDIR/$SAMPLE"_tagdir_filtered"
 
     # mark checkpoint
-    if [ -e $OUTDIR/$SAMPLE"_tagdir_filtered"/tagInfo.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_tagdir_filtered"/tagInfo.txt
 
     [ -d $OUTDIR/$SAMPLE"_tagdir_unfiltered" ] && rm -r $OUTDIR/$SAMPLE"_tagdir_unfiltered"
 
 fi
 
 ################################################################################
-CHECKPOINT="normalize matrices"    
+NGSANE_CHECKPOINT_INIT "output matrices"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    if [ "$HOMER_HIC_INTERACTIONS" == "all" ]; then
-        RUN_COMMAND="analyzeHiC $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM  > $OUTDIR/"$SAMPLE"_matrix.txt"
+    # normalize matrix for each chromosome
+    LASTCHR=""
+    for CHR in $(grep -v "_" $GENOME_CHROMSIZES | cut -f 1); do
+        
+        RUN_COMMAND="analyzeHiC $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR | $GZIP -9 > $OUTDIR/"$SAMPLE"_"$CHR"_"matrix.txt.gz
         echo $RUN_COMMAND && eval $RUN_COMMAND
+        LASTCHR=$CHR
+    done
     
-    [ ! -f $FASTA.fai ] && samtools faidx $FASTA
-    
-    elif [ "$HOMER_HIC_INTERACTIONS" == "cis" ]; then
-    
-        for CHR in $(awk '{print $1'} $FASTA.fai); do
-    	    RUN_COMMAND="analyzeHiC $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR > $OUTDIR/"$SAMPLE"_${CHR}_matrix.txt"
-    	    echo $RUN_COMMAND && eval $RUN_COMMAND
-        done
-    elif [ "$HOMER_HIC_INTERACTIONS" == "trans" ]; then
-    
-        for CHR1 in $(awk '{print $1'} $FASTA.fai); do
-            for CHR2 in $(awk '{print $1'} $FASTA.fai); do
-                if [ "$CHR1" != "$CHR2" ]; then
-                    RUN_COMMAND="analyzeHiC $OUTDIR/"$SAMPLE"_tagdir_filtered $HOMER_HIC_NORMALIZE_ADDPARAM -chr $CHR1 -chr2 $CHR2 > $OUTDIR/"$SAMPLE"_${CHR1}-${CHR2}_matrix.txt"
-                    echo $RUN_COMMAND && eval $RUN_COMMAND
-                fi
-            done
-        done
-    fi
-
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT\n"
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_"$LASTCHR"_"matrix.txt.gz
 fi
 
 ################################################################################
-CHECKPOINT="PCA clustering"
+NGSANE_CHECKPOINT_INIT "Significant high-res cis interactions"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-
-    RUN_COMMAND="runHiCpca.pl $SAMPLE $OUTDIR/${SAMPLE}_tagdir_filtered $HOMER_HIC_PCA_ADDPARAM -cpu $CPU_HOMERHIC"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-
-    # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.PC1.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
-fi
-
-################################################################################
-CHECKPOINT="Significant high-res cis interactions"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     RUN_COMMAND="findHiCInteractionsByChr.pl $OUTDIR/${SAMPLE}_tagdir_filtered $HOMER_HIC_CISINTERACTIONS_ADDPARAM -cpu $CPU_HOMERHIC > $OUTDIR/${SAMPLE}_significantCisInteractions.txt"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}_significantCisInteractions.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_significantCisInteractions.txt
 fi
 
 ################################################################################
-CHECKPOINT="Significant low-res interactions"
+NGSANE_CHECKPOINT_INIT "Significant low-res interactions"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
     cat /dev/null > "$SAMPLE"_significantInteractions.txt
         
     RUN_COMMAND="analyzeHiC $OUTDIR/${SAMPLE}_tagdir_filtered $HOMER_HIC_LOWRESINTERACTIONS_ADDPARAM -interactions $OUTDIR/${SAMPLE}_significantInteractions.txt -nomatrix -cpu $CPU_HOMERHIC "
@@ -223,30 +222,79 @@ else
     echo "$OUTDIR/${SAMPLE}_significantInteractions.txt all" > $OUTDIR/${SAMPLE}_significantInteractions.log
 
     # mark checkpoint
-    if [[ $(wc -l $OUTDIR/${SAMPLE}_significantInteractions.log | cut -d' ' -f 1) -ge 1 ]];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_significantInteractions.log
 fi
 
 ################################################################################
-CHECKPOINT="Annotate interactions"
+NGSANE_CHECKPOINT_INIT "Annotate interactions"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     RUN_COMMAND="annotateInteractions.pl $OUTDIR/${SAMPLE}_significantCisInteractions.txt $HOMER_HIC_ANNOTATE_ADDPARAM $OUTDIR/${SAMPLE}_annotations_cisInteractions"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}_annotations_cisInteractions/interactionAnnotation.txt ]; then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_annotations_cisInteractions/interactionAnnotation.txt
 
 fi
 
 ################################################################################
-CHECKPOINT="Circos plots (optional)"
+NGSANE_CHECKPOINT_INIT "PCA clustering"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
+    RUN_COMMAND="runHiCpca.pl $SAMPLE $OUTDIR/${SAMPLE}_tagdir_filtered $HOMER_HIC_PCA_ADDPARAM -cpu $CPU_HOMERHIC"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+    
+    if hash wigToBigWig && [ -f $GENOME_CHROMSIZES ]; then   
+          $OUTDIR/$SAMPLE.PC1.bedGraph ${GENOME_CHROMSIZES} $OUTDIR/$SAMPLE.PC1.bw
+          rm $OUTDIR/$SAMPLE.PC1.bedGraph
+    fi
+    
+    # mark checkpoint
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.PC1.txt
+
+fi
+
+################################################################################
+NGSANE_CHECKPOINT_INIT "SIMA"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
+    if [[ "$HOMER_HIC_SIMA_ADDPARAM" =~ -p ]]; then
+
+        RUN_COMMAND="findHiCCompartments.pl <( tail -n+2 $OUTDIR/$SAMPLE.PC1.txt) > $OUTDIR/$SAMPLE.activeDomains.txt"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+        
+        RUN_COMMAND="findHiCCompartments.pl <( tail -n+2 $OUTDIR/$SAMPLE.PC1.txt) -opp > $OUTDIR/$SAMPLE.inactiveDomains.txt"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+        
+        tail -n+2 $OUTDIR/$SAMPLE.activeDomains.txt > $OUTDIR/$SAMPLE.activeAndInactiveDomains.txt
+        tail -n+2 $OUTDIR/$SAMPLE.inactiveDomains.txt >> $OUTDIR/$SAMPLE.activeAndInactiveDomains.txt
+        
+        awk '{if ($5<0){OFS="\t"; print $2,$3,$4,$1,"Active-"$6,$5}else{OFS="\t"; print $2,$3,$4,$1,"Inactive-"$6,$5}}' $OUTDIR/$SAMPLE.activeAndInactiveDomains.txt > $OUTDIR/$SAMPLE.activeAndInactiveDomains.bed
+        
+#        rm $OUTDIR/$SAMPLE.activeDomains.txt
+#        rm $OUTDIR/$SAMPLE.inactiveDomains.txt
+        
+        RUN_COMMAND="SIMA.pl $OUTDIR/${SAMPLE}_tagdir_filtered -d $OUTDIR/$SAMPLE.activeAndInactiveDomains.txt $HOMER_HIC_SIMA_ADDPARAM -cpu $CPU_HOMERHIC > $SAMPLE.sima.txt"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+        
+        # mark checkpoint
+        NGSANE_CHECKPOINT_CHECK $SAMPLE.sima.txt
+
+    else
+        echo "[NOTE] no peaks provided for SIMA analysis. Skipping it"
+        # mark checkpoint
+        NGSANE_CHECKPOINT_CHECK
+        
+    fi
+fi
+
+################################################################################
+NGSANE_CHECKPOINT_INIT "Circos plots (optional)"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     if hash circos 2>&- ; then
 
         RUN_COMMAND="analyzeHiC $OUTDIR/${SAMPLE}_tagdir_filtered -res 1000000 -pvalue 1e-7 -cpu $CPU_HOMERHIC -circos $SAMPLE -minDist 2000000000 -nomatrix"
@@ -254,7 +302,7 @@ else
     fi
 
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT\n"
+    NGSANE_CHECKPOINT_CHECK
 fi
 
 ################################################################################

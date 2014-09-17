@@ -10,7 +10,8 @@ CONFIG=$4
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
-module load $MODULE_LATEX
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_LATEX; do module load $MODULE && module list 
 export PATH=$PATH_LATEX:$PATH
 
 echo "run"

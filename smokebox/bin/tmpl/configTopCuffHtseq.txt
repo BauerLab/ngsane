@@ -21,31 +21,29 @@ CPU_TOPHAT=2
 NODES_TOPHAT="nodes=1:ppn=2"
 
 WALLTIME_CUFFLINKS=00:30:00
-MEMORY_CUFFLINKS=7
+MEMORY_CUFFLINKS=4
 CPU_CUFFLINKS=2
 NODES_CUFFLINKS="nodes=1:ppn=2"
 
+WALLTIME_CUFFQUANT=30:00:00
+MEMORY_CUFFQUANT=4
+CPU_CUFFQUANT=1
+NODES_CUFFQUANT="nodes=1:ppn=1"
+
 WALLTIME_HTSEQCOUNT=00:30:00
-MEMORY_HTSEQCOUNT=4
+MEMORY_HTSEQCOUNT=6
 CPU_HTSEQCOUNT=1
 NODES_HTSEQCOUNT="nodes=1:ppn=1"
-
-WALLTIME_BAMANN=00:20:00
-MEMORY_BAMANN=4
-CPU_BAMANN=1
-NODES_BAMANN="nodes=1:ppn=1"
-
 
 #********************
 # Tasks
 #********************
-RUNMAPPINGBOWTIE=""  # mapping with bowtie1
-RUNMAPPINGBOWTIE2="" # mapping with bowtie2
+RUNBOWTIE=""  # mapping with bowtie1
+RUNBOWTIE2="" # mapping with bowtie2
 RUNTOPHAT=""         # mapping with tophat (RNAseq)
 RUNCUFFLINKS=""      # mapping with cufflinks (RNAseq)
 RUNHTSEQCOUNT=""     # mapping with htseqcount (RNAseq)
 RUNTOPHATCUFFHTSEQ="" # run trigger's pipeline
-RUNANNOTATINGBAM=""  # annotate bam file with Gencode
 
 HTMLOUT="Summary"
 
@@ -54,10 +52,6 @@ RNASEQCADDPARAM=" -gcMargin .9 "
 HTSEQCOUNT_MODES="union"
 
 HTSEQCOUNT_ATTRIBUTES="gene_id"
-
-# folder/task containing the data this task operates on
-INPUT_BAMANN=$TASK_TOPHAT
-TASK_BAMANN="bamann_tophat"
 
 #********************
 # Paths
@@ -78,8 +72,8 @@ FASTQ=fastq
 
 FASTA=$(pwd)/referenceData/chr16_RNAseqcopy.fasta
 REFSEQGTF=$(pwd)/referenceData/UCSC_GencodeV12.gtf
-GTF=$(pwd)/referenceData/gencode.v14.annotation.chr16.doctored.gtf
-BAMANNLIB=$(pwd)/referenceData/bamann/
+GTF=$(pwd)/referenceData/gencode.v19.annotation.reduced.b37.chr16.gtf
+MERGED_GTF_NAME="chr16_RNAseq_merged"
 
 #********************
 # PARAMETER

@@ -1,5 +1,6 @@
 # author: Fabian Buske
 # date: March 2014
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources
@@ -46,10 +47,15 @@ FASTA=
 # e.g. FRAGMENTLENGTH=300 for many ChIP-assays
 FRAGMENTLENGTH=
 
-# Normalize to 1000000 reads
+# Whether to consider the midpoint of the fragment only, e.g. for ATAC-seq (paired-end libraries only) 
+# e.g. FRAGMENTMIDPOINT=1
+FRAGMENTMIDPOINT=
+
+# Normalize to (reads * x / library-size), e.g. Reads per million (RPM)
+# e.g. "1000000"
 NORMALIZETO=1000000
 
-# Scale by a specific value (0<x<1)
+# Scale by a specific value (0<x<1), use instead of the NORMALIZETO parameter
 #SCALEFACTOR=
 
 # whether to generate strand-specific bigwig files as well

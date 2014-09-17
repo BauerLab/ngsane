@@ -22,10 +22,10 @@ while [ "$1" != "" ]; do
     -W | --wait )           shift; JOBIDS=$1 ;; # jobids to wait for
     -j | --jobname   )      shift; SNAME=$1 ;; # name used
     -q | --queue )          shift; QUEUE=$1 ;; # nodetype
-    -o | --output )	    shift; SOUTPUT=$1 ;; # pbsoutput
+    -o | --output )	        shift; SOUTPUT=$1 ;; # pbsoutput
     -a | --additional )	    shift; SADDITIONAL=$1 ;; # additional paramers
     -p | --command )	    shift; SCOMMAND=$1 ;; # Program call
-    -t | --tmpdir )	    shift; STMPDIR=$1 ;; # additional paramers	
+    -t | --tmpdir )	        shift; STMPDIR=$1 ;; # additional paramers	
     -h | --help )           usage ;;
     * )                     echo "don't understand "$1
     esac
@@ -48,6 +48,11 @@ echo "rm $TMPFILE" >> $TMPFILE
 
 # truncate jobname to 64 characters due to job schedule constraints
 SNAME="NGs_${SNAME:0:60}"
+
+# split total memory by CPUs if needed
+if [ -n "$QUEUEMEMORYPERSLOT" ]; then
+    SMEMORY=$(echo $SMEMORY | sed "s|\(^[0-9. ]*\).*|scale=2; \1 / $SCPU |g" | bc -l)$(echo $SMEMORY | sed "s|^[0-9. ]*\(.*\)|\1|g")
+fi   
 
 if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 

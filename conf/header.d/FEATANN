@@ -1,0 +1,12 @@
+##############################################################
+# Bam Annotations
+# 
+TASK_FEATANN="featann"
+WALLTIME_FEATANN=1:00:00
+MEMORY_FEATANN=32
+CPU_FEATANN=8
+NODES_FEATANN="nodes=1:ppn=8"
+INPUT_FEATANN=$TASK_BWA
+MODULE_FEATANN="${NG_BEDTOOLS} ${NG_PYTHON} ${NG_R} ${NG_PARALLEL} ${NG_SAMTOOLS}"
+PATH_FEATANN=
+

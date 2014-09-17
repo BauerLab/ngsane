@@ -9,6 +9,7 @@
 ###
 ### 	Author: 	Martin A. Smith, Garvan Institute, Darlinghurst NSW Australia
 ###     Email: 		m.smith@garvan.org
+###     compatible: NGSANE v0.5.x
 ###
 ###	NGSane configuration file for script to split the Trinity workflow into multiple stages so as to 
 ###	efficiently request and use appropriate resources (walltime and number of cores) on a computer cluster / supercomputer.

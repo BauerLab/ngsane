@@ -60,8 +60,9 @@ if [ -n "$COMMONTASK" ]; then
 fi
         
 ## Select files in dir to run 
+echo "[NOTE] SOURCE: $SOURCE"
 if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
-    echo -e "[NOTE] setup enviroment"
+    echo -e "[NOTE] Detect datasets and setup environment"
     if [ -e $QOUT/$TASK/runnow.tmp ]; then rm $QOUT/$TASK/runnow.tmp; fi
         
     for dir in ${DIR[@]}; do
@@ -74,23 +75,24 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
         if [ -z "$NODIR" ]; then
             if [ ! -d $OUT/$DIRNAME/$TASK ]; then 
                 mkdir -p $OUT/$DIRNAME/$TASK; 
-                echo "DIR created $OUT/$DIRNAME/$TASK"
+                echo "[NOTE] DIR created $OUT/$DIRNAME/$TASK"
             fi
         fi
         
         # add tasks to runnow.tmp
         # search for real files and dummy files, in case both exist only keep real one
+        # "$ENDING*" is important to detect dummy files
         if [ -n "$REV" ]; then
-            for f in $( ls $SOURCE/$DIRNAME/$ORIGIN/$SAMPLEPATTERN*$ENDING* | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
+            for f in $( ls $SOURCE/$DIRNAME/$ORIGIN/$SAMPLEPATTERN*$ENDING* | egrep ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
                 n=${f##*/}
                 name=${n/$ENDING/}
                 LOGFILE=$QOUT/$TASK/$DIRNAME'_'$name'.out'
                 if [ "$KEEP" = "new" ] && [ -f $LOGFILE ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
-                	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
+                	DUMMY="echo "$(egrep "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)
-                	if [ -n "$D" ] && [ -f $D ] && [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then 
+                	if [ -n "$D" ] && [ -f $D ] && [[ $(egrep "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then 
                 	   echo -e "\e[34m[SKIP]\e[0m $n (already processed: $DIRNAME/${D##*/})"  
                 	   continue
                     fi
@@ -100,16 +102,16 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
             done
         
         else
-            for f in $( ls $SOURCE/$ORIGIN/$DIRNAME/$SAMPLEPATTERN*$ENDING* | grep -P ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
+            for f in $( ls $SOURCE/$ORIGIN/$DIRNAME/$SAMPLEPATTERN*$ENDING* | egrep ".$ENDING(.dummy)?\$" | sed 's/.dummy//' | sort -u ); do
                 n=${f##*/}
                 name=${n/$ENDING/}
                 LOGFILE=$QOUT/$TASK/$DIRNAME'_'$name'.out'
                 if [ "$KEEP" = "new" ] && [ -f $LOGFILE ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
-                	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
+                	DUMMY="echo "$(egrep "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)
-                	if [ -n "$D" ] && [ -f $D ] && [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]]; then
+                	if [ -n "$D" ] && [ -f $D ] && [[ $(egrep "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]]; then
                 	   echo -e "\e[34m[SKIP]\e[0m $n (already processed - $DIRNAME/${D##*/})"  
                 	   continue
                     fi
@@ -154,7 +156,8 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
                
     COMMAND2=${COMMAND//<FILE>/$i} # insert files for which parallele jobs are submitted
     COMMAND2=${COMMAND2//<DIR>/$dir} # insert output dir
-    COMMAND2=${COMMAND2//<NAME>/$name} # insert ??
+    COMMAND2=${COMMAND2//<NAME>/$name} # legacy TODO : remove in next version
+    COMMAND2=${COMMAND2//<SAMPLE>/$name} # insert ??
 
     if [ -n "$COMMONTASK" ]; then 
         LOGFILE=$QOUT/$TASK/$dir"_"$COMMONTASK".log"    
@@ -169,7 +172,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
 	# create dummy files for the pipe
 	COMMANDARR=(${COMMAND// / })
-	DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$dir/" | sed "s/<TASK>/$TASK/")
+	DUMMY="echo "$(egrep "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$dir/" | sed "s/<TASK>/$TASK/")
 	D=$(eval $DUMMY)
 	if [ -n "$D" ]; then
 		echo "[NOTE] make $D.dummy"
@@ -187,7 +190,7 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             # add log-file for recovery
             COMMAND2="$COMMAND2 --recover-from $LOGFILE"
             
-            if [[ $(grep -P "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then
+            if [[ $(egrep  "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then
                 echo -e "\e[92m[NOTE]\e[0m Previous $TASK run finished without error - nothing to be done"
                 rm $D.dummy
                 continue
@@ -204,19 +207,23 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
         fi
     
-        echo "[NOTE] Jobfile: "$JOBLOG >> $LOGFILE
-        # add citations
-		TASKCITE=${TASK/*-/}
-        TASKNAME=$(grep -P "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
-		CITED_PROGRAMS=$(grep -P "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g')
-        for M in NG_CITE_NGSANE $CITED_PROGRAMS; do
 
-            CITE=$(grep -P "^$M=" $JOBLOG) || CITE=""
-            if [ -n "$CITE" ]; then
-                echo -e "[CITE] ${CITE/$M=/}" >> $LOGFILE
-            fi 
-        done
 
+        echo "[NOTE] Jobfile: "$(python -c "import os.path; print os.path.relpath(os.path.realpath('$JOBLOG'),'$(pwd -P)')") >> $LOGFILE
+
+        # add citations unless in recover mode
+        if [ -z "$RECOVER" ]; then 
+    		TASKCITE=${TASK/*-/}
+            TASKNAME=$(egrep  "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
+    		CITED_PROGRAMS=$(egrep  "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||g" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g')
+            for M in NG_CITE_NGSANE $CITED_PROGRAMS; do
+    
+                CITE=$(egrep "^$M=" $JOBLOG) || CITE=""
+                if [ -n "$CITE" ]; then
+                    echo -e "[CITE] ${CITE/$M=/}" >> $LOGFILE
+                fi 
+            done
+        fi
 		#eval job directly but write to logfile
 	    if [ -n "$DIRECT" ]; then echo "[NOTE] write $LOGFILE"; eval $COMMAND2 >> $LOGFILE 2>&1; continue; fi
 
@@ -225,6 +232,9 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             if [[ $(echo $JOBIDS | sed 's/:*$//g'| awk -F':' '{print NF}') == 1 ]]; then
                 # everyone waits for the same job if only one id was given
                 JOBID=$(echo $JOBIDS | cut -d ":" -f 1)        
+            elif [[ $(echo $JOBIDS | sed 's/:*$//g'| awk -F':' '{print NF}') -ge $(wc -l $QOUT/$TASK/runnow.tmp | cut -d' ' -f 1) ]]; then
+                # everyone waits for all jobs to finish
+                JOBID=$(echo $JOBIDS | sed 's/:*$//g')
             else
                 # otherwise wait for job in corresponding slot
                 JOBID=$(echo $JOBIDS | cut -d ":" -f $JOBNUMBER)
@@ -251,19 +261,40 @@ done
 if [ -n "$POSTCOMMAND" ]; then
    # process for postcommand
 	dir=$(echo ${DIR[@]} | sort -u |sed 's/ /_/g')
+
 	#DIR=$(echo ${DIR[@]} | tr " " "\n" | sort -u | tr "\n" "_" | sed 's/_$//' )
     #DIR=$(echo -e ${DIR// /\\n} | sort -u -r | gawk 'BEGIN{x=""};{x=x"_"$0}END{print x}' | sed 's/__//' | sed 's/^_//' | sed 's/_$//' )
     FILES=$(echo -e $FILES | sed 's/ /,/g')
     POSTCOMMAND2=${POSTCOMMAND//<FILE>/$FILES}
-    POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$dir}
+    
+    if [[ -z "$POSTNAME" || "$POSTNAME" == "postcommand" ]]; then
+        # concatenate library names for make output folder 
+        # unless a foldername was specified via postname
+        DIRNAME=${dir%%/*}
+        # truncate to 60 characters to avoid issues with the filesystem
+        DIRNAME=${DIRNAME:0:60}
+        POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$DIRNAME}
+    else
+        TMPPOSTNAME=${POSTNAME/postcommand/}
+        POSTCOMMAND2=${POSTCOMMAND2//<DIR>/$TMPPOSTNAME}
+    fi
 	POSTLOGFILE=$QOUT/$TASK/$POSTNAME.out
+    echo -e "\e[33m[PJOB]\e[0m  $POSTCOMMAND2"
 
-    echo "[NOTE] "$POSTCOMMAND2
+    # try to make output folder -- if there is no dummy. Only folders defined with -o for the mod can 
+    # be created
+#    echo $POSTCOMMAND2
+#    echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}'
+    
+    POSTCOMMANDOUTDIR=$(echo $POSTCOMMAND2 | gawk '{split($0,o," -?-o(utdir)? "); split(o[2],arr," "); print arr[1]}')
 
+    [ -n "$POSTCOMMANDOUTDIR" ] && mkdir -p $POSTCOMMANDOUTDIR
+       
 	# create dummy files for the pipe
 	COMMANDARR=(${POSTCOMMAND// / })
 	if [ -n "$(grep RESULTFILENAME ${COMMANDARR[0]})" ]; then
-		DUMMY="echo "$(grep -P "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<DIR>/$dir/g" | sed "s/<TASK>/$TASK/g" | sed "s/<ADDDUMMY>/$ADDDUMMY/g")
+		DUMMY="echo "$(egrep "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$POOLED_DATA_NAME/" | sed "s/<DIR>/$dir/g" | sed "s/<TASK>/$TASK/g" | sed "s/<ADDDUMMY>/$ADDDUMMY/g")
+
 		D=$(eval $DUMMY)
 		echo "[NOTE] make $D.dummy"
 		[ ! -e $(dirname $D) ] && mkdir -p $(dirname $D)
@@ -279,7 +310,7 @@ if [ -n "$POSTCOMMAND" ]; then
          # add log-file for recovery
          POSTCOMMAND2="$POSTCOMMAND2 --recover-from $POSTLOGFILE"
          
-         if [[ $(grep -P "^>{5} .* FINISHED" $POSTLOGFILE | wc -l ) -gt 0 ]] ; then
+         if [[ $(egrep "^>{5} .* FINISHED" $POSTLOGFILE | wc -l ) -gt 0 ]] ; then
              echo -e "\e[92m[NOTE]\e[0m Previous $TASK run finished without error - nothing to be done"
              MYJOBIDS=""
 			 rm $QOUT/$TASK/runnow.tmp && exit;
@@ -301,10 +332,10 @@ if [ -n "$POSTCOMMAND" ]; then
     echo "[NOTE] Jobfile: "$JOBLOG >> $POSTLOGFILE
     # add citations
 	TASKCITE=${TASK/*-/}
-    TASKNAME=$(grep -P "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
-	CITED_PROGRAMS=$(grep -P "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g')
+    TASKNAME=$(egrep "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
+	CITED_PROGRAMS=$(egrep  "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g')
     for M in NG_CITE_NGSANE $CITED_PROGRAMS; do
-    	CITE=$(grep -P "^$M=" $JOBLOG) || CITE=""
+    	CITE=$(egrep "^$M=" $JOBLOG) || CITE=""
       	if [ -n "$CITE" ]; then
     	    echo -e "[CITE] ${CITE/$M=/}" >> $POSTLOGFILE
         fi 
