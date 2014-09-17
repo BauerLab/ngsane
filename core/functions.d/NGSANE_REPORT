@@ -16,8 +16,10 @@
 
 function NGSANE_REPORT_HEADER {
     export NGSANE_REPORT_TABLE_COUNTER=0
-    export LINKS=$LINKS" $2"   
-    echo "<div class='panel' id='$2_panel'><div class='tabs headbagb' id='$2_panel_tabs'><a name='$2'></a>
+    export LINKS=$LINKS" $2" 
+
+    echo "<script type="text/javascript">quicklink_array.push('$2');</script>
+            <div class='panel' id='$2_panel'><div class='tabs headbagb' id='$2_panel_tabs'><a name='$2'></a>
             <a class='selected' href='#$2_results'><h2 id='$2_h_results' class='sub'>$1</h2></a>
             <a href='#$2_checklist'><h2 id='$2_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='$2_counter_checkpoints_passed'></span><span class='failed' id='$2_counter_checkpoints_failed'></span></span></h2></a>
             <a href='#$2_notes'><h2 id='$2_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='$2_counter_notes'></span></span></span></h2></a>
@@ -153,9 +155,7 @@ EOF
         # separate folder from sample pattern
         DIRNAME=${dir%%/*}
         SAMPLEPATTERN=${dir/$DIRNAME/}
-#        echo "$dir $DIRNAME $SAMPLEPATTERN" >&2
         FOLDER=${3/<DIR>/$DIRNAME}
-#        echo "$FOLDER/$SAMPLEPATTERN*$4" >&2
         if [[ "$FOLDER" =~ "<SAMPLE>" ]]; then
             SEARCHPATH=${FOLDER/<SAMPLE>/$SAMPLEPATTERN*$4}/
         else
@@ -167,8 +167,6 @@ EOF
 
             SAMPLENAME=${SAMPLE##*/}
             SAMPLENAME=${SAMPLENAME/%$4/}
-#            echo "$SAMPLE $SAMPLENAME">&2
-
 
             # populate table row starting from parameter 3
             # check for link first
@@ -251,7 +249,6 @@ EOF
                 elif [[ $(echo $var | grep '^PATTERN:') != "" ]]; then
                     PATTERN="cat $SAMPLE | $(echo $var | cut -d':' -f 4)"
                     PATTERN_RESULT=$(eval $PATTERN)
-#                    echo "$PATTERN $PATTERN_RESULT" >&2
 
                     if ! [[ "$PATTERN_RESULT" =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
                         # convert into string
@@ -261,17 +258,13 @@ EOF
                         PATTERN_RESULT="$(printf '%.2f' $PATTERN_RESULT)"
                     fi
                     NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $PATTERN_RESULT"
-#                    echo $NGSANE_VAR_REPORT_TABLE_ROW >&2
 
                 elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
 
                     CALCULATE="echo '$(echo $var | cut -d':' -f 4)' | sed 's/#\([0-9]*\)/\${NGSANE_VAR_REPORT_TABLE_ROW_ARRAY[\1]}/g'  "
-#                    echo "1 $CALCULATE" >&2
                     CALCULATE="OLDIFS=IFS; IFS='@' read -r -a NGSANE_VAR_REPORT_TABLE_ROW_ARRAY <<< \"$(echo $NGSANE_VAR_REPORT_TABLE_ROW | sed 's/^.{1}//' | sed 's/ , /@/g')\" && echo $(eval $CALCULATE) && IFS=$IFS"
-#                    echo "2 $CALCULATE" >&2
                     CALCULATE="echo 'scale=2; $(eval $CALCULATE)' | bc "
                     CALCULATE_RESULT="$(eval $CALCULATE)"
-#                    echo "3 $CALCULATE $CALCULATE_RESULT" >&2
                     NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $CALCULATE_RESULT"
    
                 elif [[ $(echo $var | grep '^DYNAMIC_COLS:') != "" ]]; then
@@ -294,7 +287,6 @@ EOF
                         NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $PATTERN_RESULT"
                     
                     done
-#                    echo $NGSANE_VAR_REPORT_TABLE_ROW >&2
                 elif [[ $(echo $var | grep '^DYNAMIC_ROWS:') != "" ]]; then
                     FILEROWS=$(wc -l $SAMPLE | cut -d' ' -f 1)
 
@@ -313,7 +305,6 @@ EOF
                         NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $PATTERN_RESULT"
                     
                     done
-#                    echo $NGSANE_VAR_REPORT_TABLE_ROW >&2
                 fi
             done
             NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW ]"
@@ -415,11 +406,9 @@ EOF
     
     [[ -z "$3" ]] && return
 
-    echo "Filepattern $3/*$4" >&2 
     for AFILE in $(ls $3/*$4); do
         AFILENAME=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$AFILE'),'$(pwd -P)')")
         AFILENAME=${AFILENAME/%$4/}
-#        echo "File:  $AFILE $AFILENAME" >&2
 
         if [[ "$NGSANE_VAR_FIRSTROW" == "TRUE" ]]; then
             NGSANE_VAR_REPORT_TABLE_ROW="['${AFILENAME##*/}'" 
@@ -432,7 +421,6 @@ EOF
             if [[ $(echo $var | grep '^FIGURE:') != "" ]]; then
                 NGSANE_VAR_TABLE_FIGURE=$(echo $var | cut -d':' -f 4)
                 NGSANE_VAR_TABLE_FIGURE=${NGSANE_VAR_TABLE_FIGURE/<AGGREGATE>/$AFILENAME}
-                echo $NGSANE_VAR_TABLE_FIGURE >&2
                 NGSANE_VAR_TABLE_FIGURE_HEIGHT=$(echo $var | cut -d':' -f 5)
                 [ -z "$NGSANE_VAR_TABLE_FIGURE_HEIGHT" ] && NGSANE_VAR_TABLE_FIGURE_HEIGHT='50'
                 
@@ -456,7 +444,6 @@ EOF
             elif [[ $(echo $var | grep '^PATTERN:') != "" ]]; then
                 PATTERN="cat $AFILE | $(echo $var | cut -d':' -f 4)"
                 PATTERN_RESULT=$(eval $PATTERN)
-#                    echo "$PATTERN $PATTERN_RESULT" >&2
 
                 if ! [[ "$PATTERN_RESULT" =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
                     # convert into string
@@ -466,17 +453,13 @@ EOF
                     PATTERN_RESULT="$(printf '%.2f' $PATTERN_RESULT)"
                 fi
                 NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $PATTERN_RESULT"
-#                    echo $NGSANE_VAR_REPORT_TABLE_ROW >&2
 
             elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
 
                 CALCULATE="echo '$(echo $var | cut -d':' -f 4)' | sed 's/#\([0-9]*\)/\${NGSANE_VAR_REPORT_TABLE_ROW_ARRAY[\1]}/g'  "
-#                    echo "1 $CALCULATE" >&2
                 CALCULATE="OLDIFS=IFS; IFS='@' read -r -a NGSANE_VAR_REPORT_TABLE_ROW_ARRAY <<< \"$(echo $NGSANE_VAR_REPORT_TABLE_ROW | sed 's/^.{1}//' | sed 's/ , /@/g')\" && echo $(eval $CALCULATE) && IFS=$IFS"
-#                    echo "2 $CALCULATE" >&2
                 CALCULATE="echo 'scale=2; $(eval $CALCULATE)' | bc "
                 CALCULATE_RESULT="$(eval $CALCULATE)"
-#                    echo "3 $CALCULATE $CALCULATE_RESULT" >&2
                 NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $CALCULATE_RESULT"
             fi
         done

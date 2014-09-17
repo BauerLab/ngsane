@@ -69,7 +69,6 @@ done
 PIPELINE="References"
 PIPELINK="References"
 
-LINKS="$LINKS $PIPELINK"
 echo "<div class='panel'><div class='headbagb'><a name='"$PIPELINK"_panel'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
 
 echo '<h3>Please cite the following publications/resources</h3>' >>$SUMMARYTMP
@@ -110,23 +109,15 @@ cat >> $SUMMARYFILE.tmp <<EOF
 <script type="text/javascript">
 //<![CDATA[
     var datatable_array=[];
+    var quicklink_array=[];
     $(cat $NGSANE_BASE/core/includes/js/ngsane.js)
 //]]>
 </script>
 <div id="center">
-<div class='panel' id='quicklinks'><h2>Quicklinks</h2><div>
+<div class='panel' id='quicklinks'><div style="display:table; width: 100%"><h2>Quicklinks</h2><div id='quicklink' style="float:left"></div>
+<div id="right"><label>Aggregate: <input id="showAggregation" type="checkbox" /></label> <label>Global Filter: <input type="search" id="search" /></label></div>
+</div></div><!-- panel -->
 EOF
-
-declare -a LINKSET=( )
-for i in $LINKS; do
-    LINKSET=("${LINKSET[@]}" "<a href='#"$i"_panel' class='quicklinks'>$i</a>")
-done
-echo $(IFS='|' ; echo "${LINKSET[*]}") >> $SUMMARYFILE.tmp
-
-echo '''
-<div id ="right"><label>Aggregate: <input id="showAggregation" type="checkbox" /></label> <label>Global Filter: <input type="search" id="search" /></label></div>
-</div><!-- Links -->
-</div><!-- panel -->''' >>$SUMMARYFILE.tmp
 
 cat >> $SUMMARYTMP <<EOF
 <hr><div class="footerline"><img style="float:left;padding-right:10px;" src="data:image/png;base64,$(cat $NGSANE_BASE/core/includes/images/favicon-32x32.png | base64)" /> Report generated with $($NGSANE_BASE/bin/trigger.sh -v)<br/>Last modified: $(date)</div>
@@ -148,6 +139,14 @@ cat >> $SUMMARYTMP <<EOF
                 tables[i].fnDraw();
             }
         });
+
+        var quicklinks_str=""
+        for (var i = 0; i < quicklink_array.length; i++) {
+            quicklinks_str = quicklinks_str+"<a href='#"+ quicklink_array[i]+"_panel' class='quicklinks'>"+ capitaliseFirstLetter(quicklink_array[i])+"</a> | "
+        }
+        // add references
+        quicklinks_str = quicklinks_str+"<a href='#References_panel' class='quicklinks'>References</a>"
+        \$("#quicklink").html(quicklinks_str);
     }); 
     $(cat $NGSANE_BASE/core/includes/js/genericJavaScript.js)
 </script>
