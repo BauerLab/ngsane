@@ -38,6 +38,7 @@ if [ -n "$RUNBOWTIE2" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Bowtie2" "$TASK_BOWTIE2" "bowtie2.sh" "$ASD.bam"
 
         NGSANE_REPORT_TABLE "$TASK_BOWTIE2" \
+            "-" \
             "$OUT/<DIR>/$TASK_BOWTIE2"  \
             "$ASD.bam.stats" \
             "LINK:<SAMPLE>$ASD.bam.html" \

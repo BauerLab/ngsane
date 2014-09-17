@@ -32,6 +32,7 @@ if [ -n "$RUNPOOLBAMS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
 
         # add as many tables as needed. One table per result file
         NGSANE_REPORT_TABLE "$TASK_POOLBAMS" \
+            "-" \
             "$OUT/<DIR>/$TASK_POOLBAMS"  \
             "$ASD.bam.stats" \
             "PATTERN:Total reads:sed -n 1p | cut -d' ' -f 1" \

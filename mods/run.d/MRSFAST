@@ -39,6 +39,7 @@ if [ -n "$RUNMRSFAST" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "MrsFast Ultra" "$TASK_MRSFAST" "mrsfast.sh" "$ASD.bam"
 
         NGSANE_REPORT_TABLE "$TASK_MRSFAST" \
+            "-" \
             "$OUT/<DIR>/$TASK_MRSFAST"  \
             "$ASD.bam.stats" \
             "LINK:<SAMPLE>$ASD.bam.html" \

@@ -27,8 +27,9 @@ if [ -n "$RUNCHANCE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Chance" "$TASK_CHANCE" "chance.sh"
 
         NGSANE_REPORT_TABLE "$TASK_CHANCE"      \
-            "$OUT/<DIR>/$TASK_CHANCE"             \
-            ".IPstrength"                    \
+            "-" \
+            "$OUT/<DIR>/$TASK_CHANCE" \
+            ".IPstrength" \
             "PATTERN:Cumulative % enrichment::fgrep 'percent_genome_enriched' | head -n 1 | cut -d',' -f 2" \
             "PATTERN:Input scaling factor::fgrep 'input_scaling_factor,' | head -n 1 | cut -d',' -f 2" \
             "PATTERN:Diff. Enrichment::fgrep 'differential_percentage_enrichment,' | head -n 1 | cut -d',' -f 2" \

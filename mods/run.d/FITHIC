@@ -27,6 +27,7 @@ if [ -n "$RUNFITHIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Fithic" "$TASK_FITHIC" "fithic.sh"
 
         NGSANE_REPORT_TABLE "$TASK_FITHIC" \
+            "-" \
             "$OUT/<DIR>/$TASK_FITHIC"  \
             ".log" \
             "PATTERN:Min distance::fgrep -w 'distLowThres' | tail -n 1 | cut -f 1 | cut -d' ' -f 2" \

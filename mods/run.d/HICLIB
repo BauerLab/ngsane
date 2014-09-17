@@ -45,6 +45,7 @@ if [ -n "$RUNHICLIB" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Hiclib" "$TASK_HICLIB" "hiclibMapping.sh,hiclibCorrelate.sh"
 
         NGSANE_REPORT_TABLE "$TASK_HICLIB" \
+            "-" \
             "$OUT/<DIR>/$TASK_HICLIB"  \
             ".log" \
             "LINK:<SAMPLE>.pdf" \

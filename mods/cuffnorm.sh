@@ -68,17 +68,12 @@ for f in $FILES; do
 done
 
 echo "[NOTE] ${FILE[@]}"
+echo "[NOTE] datasets $DATASETS"
+echo "[NOTE] ${OUTDIR}/$MERGED_GTF_NAME"
 
-echo "[NOTE] datasets"
-echo "[NOTE] $DATASETS"
-
-echo "[NOTE] $OUTDIR"
-
-#mkdir -p "$OUTDIR"
-#if [ -z "$NGSANE_RECOVERFROM" ]; then
-#    ## TODO remove primary result files from pervious runs
-#    rm ${OUTDIR}/*
-#fi
+if [ -z "$NGSANE_RECOVERFROM" ]; then
+    [ -d ${OUTDIR}/$MERGED_GTF_NAME ] && rm -r ${OUTDIR}/$MERGED_GTF_NAME/*
+fi
 
 # unique temp folder that should be used to store temporary files
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
@@ -125,7 +120,7 @@ library(limma)
 pdf("${TABLE}.pdf", width=12, height=3)
 dt <- read.delim("$TABLE", row.names = 1)
 samples <- read.delim("$OUTDIR/$MERGED_GTF_NAME/samples.table")
-samples[["file"]] <- sub(".*/(.*).cxb","\\\\1",samples[["file"]])
+samples[["file"]] <- sub(".*/(.*)$ASD.bam","\\\\1",samples[["file"]])
 colnames(dt) <- samples[["file"]][match(colnames(dt), samples[["sample_id"]])]
 
 par(mfrow=c(1,4), mar=c(5,4,2,2))

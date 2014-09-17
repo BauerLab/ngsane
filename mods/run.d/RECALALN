@@ -29,6 +29,7 @@ if [ -n "$RUNRECALALN" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Recalibrate + Realign" "$TASK_RECALALN" "reCalAln.sh"
 
         NGSANE_REPORT_TABLE "$TASK_RECALALN" \
+            "-" \
             "$OUT/<DIR>/$TASK_RECALALN"  \
             "$ASR.bam.stats" \
             "PATTERN:Total reads::sed -n 1p | cut -d' ' -f 1" \

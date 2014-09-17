@@ -1,10 +1,13 @@
 import os, re, sys
 
 def parser(l,r):
-    rn=re.findall("[0-9.]+",r)
-    ln=re.findall("[0-9.,]+",l)
+    rn=re.findall("[ \"'>][0-9]+[0-9.]*[ \"'<]",r)
+    ln=re.findall("[ \"'>][0-9]+[0-9.]*[ \"'<]",l)
+#    print "ln %s" % (ln)
+#    print "rn %s" % (rn)
     for i,j in zip(rn,ln):
         if (i[0]=="." or j[0]==","):
+#            print "OK %s vs %s with context\n%svs\n%s-----REST------" % (i,j,l,r)
             continue
         elif(float(i)*0.8>float(j) or float(i)*1.2<float(j)):
             print "Too different %s vs %s with context\n%svs\n%s-----REST------" % (i,j,l,r)

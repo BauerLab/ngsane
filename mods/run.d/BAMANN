@@ -13,20 +13,30 @@ if [ -n "$RUNBAMANN" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         # check if resources are properly defined
         if [ -z "$TASK_BAMANN" ] || [ -z "$NODES_BAMANN" ] || [ -z "$CPU_BAMANN" ] || [ -z "$MEMORY_BAMANN" ] || [ -z "$WALLTIME_BAMANN" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
         
-        $QSUB $ARMED $NGSANE_WAITFORJOB --nodir -r -k $CONFIG -t $TASK_BAMANN -i $INPUT_BAMANN -e $ASD.bam \
+        $QSUB $ARMED $NGSANE_WAITFORJOB-r -k $CONFIG -t $TASK_BAMANN -i $INPUT_BAMANN -e $ASD.bam \
             -n $NODES_BAMANN -c $CPU_BAMANN -m $MEMORY_BAMANN'G' -w $WALLTIME_BAMANN \
-            --command "${NGSANE_BASE}/mods/annotateBam.sh -k $CONFIG -f <FILE>"
+            --command "${NGSANE_BASE}/mods/annotateBam.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_BAMANN" \
+            --postcommand "${NGSANE_BASE}/mods/annotateBamAggregate.sh -k $CONFIG -f <FILE> --outdir $OUT/runStats/$TASK_BAMANN" 
     
     ############################################################################
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
     
-        # start a new section for a mod
-        NGSANE_REPORT_HEADER "AnnotateBam" "$TASK_BAMANN" "annotateBam.sh"
+        NGSANE_REPORT_HEADER "AnnotateBam" "$TASK_BAMANN" "annotateBam.sh,annotateBamAggregate.sh"
 
-        echo "[NOTE] the annotateBam.sh mod does not provide a report"
+        NGSANE_REPORT_TABLE "$TASK_BAMANN" \
+            "-" \
+            "$OUT/<DIR>/$TASK_BAMANN"  \
+            ".anno.stats" \
+            "DYNAMIC_COLS:3,::sed -n 2p"
+            
+        NGSANE_REPORT_TABLE_AGGREGATE "$TASK_BAMANN" \
+            "Aggregate" \
+            "$OUT/runStats/$TASK_BAMANN"  \
+            ".pdf" \
+            "FIGURE:Relative read distribution::<AGGREGATE>-0.jpg:80:1" \
+            "FIGURE:Absolute read distribution::<AGGREGATE>-1.jpg:80:1"
 
-        # finish the section
         NGSANE_REPORT_FOOTER  
   
     fi

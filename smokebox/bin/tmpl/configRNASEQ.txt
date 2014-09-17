@@ -1,17 +1,9 @@
+# author: Fabian Buske
+# date: September 2014
 
 ######################################
 # Resources
 #####################################
-
-WALLTIME_BOWTIE=00:30:00
-MEMORY_BOWTIE=7
-CPU_BOWTIE=2
-NODES_BOWTIE="nodes=1:ppn=2"
-
-WALLTIME_BOWTIE2=00:30:00
-MEMORY_BOWTIE2=7
-CPU_BOWTIE2=2
-NODES_BOWTIE2="nodes=1:ppn=2"
 
 WALLTIME_TOPHAT=00:30:00
 MEMORY_TOPHAT=8
@@ -27,11 +19,6 @@ WALLTIME_CUFFQUANT=30:00:00
 MEMORY_CUFFQUANT=4
 CPU_CUFFQUANT=1
 NODES_CUFFQUANT="nodes=1:ppn=1"
-
-WALLTIME_CUFFNORM=10:00:00
-MEMORY_CUFFNORM=4
-CPU_CUFFNORM=1
-NODES_CUFFNORM="nodes=1:ppn=1"
 
 WALLTIME_HTSEQCOUNT=00:30:00
 MEMORY_HTSEQCOUNT=6
@@ -85,15 +72,9 @@ HTSEQCOUNT_UNIQUE="1"
 #HTSEQCOUNT_COUNTSONLY=1
 HTSEQCOUNT_TABLE_FOLDERNAME="Smokebox"
 
-MERGED_GTF_NAME="AllTheGoodness"
+MERGED_GTF_NAME="gencode_19"
 
 CUFFLINKSADDPARAM="--multi-read-correct"
 
 GTF="$(pwd)/referenceData/gencode.v19.annotation.reduced.chr20.gtf"
 
-# Group replicates, one group per line
-# REPLICATE condition replicate1 replicate2 ...
-<<REPLICATES
-REPLICATE A A1/* A2/* A3/*
-REPLICATE B B1/* B2/* B3/*
-REPLICATES

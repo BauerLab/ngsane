@@ -28,6 +28,7 @@ if [ -n "$RUNBLUE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Blue" "$TASK_BLUE" "blue.sh"
 
         NGSANE_REPORT_TABLE "$TASK_BLUE" \
+            "-" \
             "$INPUT_BLUE/<DIR>"_"$TASK_BLUE/" \
             ".stats.txt"                    \
             "PATTERN:Total reads:sed -n 2p | cut -d' ' -f 1" \

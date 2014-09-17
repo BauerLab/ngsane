@@ -29,6 +29,7 @@ if [ -n "$RUNPINDEL" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Structural Variants (Pindel)" "$TASK_PINDEL" "pindel.sh,variantcollect.sh"
 
         NGSANE_REPORT_TABLE "$TASK_PINDEL" \
+            "-" \
             "$OUT/variant/${INPUT_PINDEL}-${TASK_PINDEL}-<DIR>" \
             ".eval.txt" \
             "PATTERN:Total::fgrep -w 'CountVariants' | sed -n 3p | tr -s ' ' '\t' | cut -f7" \

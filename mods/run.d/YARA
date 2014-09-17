@@ -40,6 +40,7 @@ if [ -n "$RUNYARA" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "Yara" "$TASK_YARA" "yara.sh" "$ASD.bam"
 
         NGSANE_REPORT_TABLE "$TASK_YARA" \
+            "-" \
             "$OUT/<DIR>/$TASK_YARA"  \
             "$ASD.bam.stats" \
             "LINK:<SAMPLE>$ASD.bam.html" \

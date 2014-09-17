@@ -40,6 +40,7 @@ if [ -n "$RUNBWA" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_HEADER "BWA" "$TASK_BWA" "bwa.sh" "$ASD.bam"
 
         NGSANE_REPORT_TABLE "$TASK_BWA" \
+            "-" \
             "$OUT/<DIR>/$TASK_BWA"  \
             "$ASD.bam.stats" \
             "LINK:<SAMPLE>$ASD.bam.html" \

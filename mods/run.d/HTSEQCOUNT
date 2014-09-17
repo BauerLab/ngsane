@@ -30,6 +30,7 @@ if [ -n "$RUNHTSEQCOUNT" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
         NGSANE_REPORT_HEADER "Htseqcount" "$TASK_HTSEQCOUNT" "htseqcount.sh,countsTable.sh"
 
         NGSANE_REPORT_TABLE "$TASK_HTSEQCOUNT" \
+            "-" \
             "$OUT/<DIR>/$TASK_HTSEQCOUNT/" \
             ".summary.txt" \
             "PATTERN:No feature::head -n 1 | sed 's/.*__no_feature \([0-9]\+\).*/\1/g'" \
@@ -39,6 +40,7 @@ if [ -n "$RUNHTSEQCOUNT" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
             "PATTERN:Alignment not unique::head -n 1 | sed 's/.*__alignment_not_unique \([0-9]\+\).*/\1/g'"
 
         NGSANE_REPORT_TABLE_AGGREGATE "$TASK_HTSEQCOUNT" \
+            "Count table" \
             "$OUT/expression/$TASK_HTSEQCOUNT/$HTSEQCOUNT_TABLE_FOLDERNAME" \
             ".csv" \
             "PATTERN:Rows::wc -l | awk '{print \$1}'" \

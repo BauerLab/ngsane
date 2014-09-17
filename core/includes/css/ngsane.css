@@ -12,6 +12,7 @@ div#right{
 	padding:2px 12px 2px 12px;
 }
 
+
 h2 {
 	display: block;
 	font-size: 1.17em;
@@ -367,4 +368,11 @@ div.inset_image {
     padding:2px;
     border-width:1px;
     border-style:dotted;
+}
+
+div.datatable_header{
+    background-image: -webkit-linear-gradient(left, #e4dfe3, #fbfaff); 
+    padding:2px 5px 2px 5px; 
+    margin:5px 0 5px 0; 
+    border-bottom:1px solid #aaa
 }

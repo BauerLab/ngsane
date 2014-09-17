@@ -99,14 +99,14 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     # Paired read
     if [ "$PAIRED" = "1" ]; then
-        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --paired --threads $CPU_FASTQSCREEN <($CAT $f) <($CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ})"
+        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --paired --threads $CPU_FASTQSCREEN $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
     else
-        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --threads $CPU_FASTQSCREEN <($CAT $f)"
+        RUN_COMMAND="`which perl` `which fastq_screen` $FASTQSCREENADDPARAM --outdir $OUTDIR --conf $FASTQSCREEN_DBCONF --threads $CPU_FASTQSCREEN $f"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    mv $OUTDIR/${n}_screen.txt $OUTDIR/$SAMPLE"_"screen.txt
-    mv $OUTDIR/${n}_screen.png $OUTDIR/$SAMPLE"_"screen.png
+    mv $OUTDIR/${SAMPLE}$READONE"_screen.txt" $OUTDIR/$SAMPLE"_screen.txt"
+    mv $OUTDIR/${SAMPLE}$READONE"_screen.png" $OUTDIR/$SAMPLE"_screen.png"
 
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_"screen.txt
