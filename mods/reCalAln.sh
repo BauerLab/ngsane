@@ -201,7 +201,6 @@ else
     echo "[NOTE] $CHECKPOINT"
     
     # there seems to be a warning reg. Rscript but it does not affect output
-    # BadCigar is necessary in case of "MESSAGE: START (101) > (100) STOP -- this should never happen, please check read" (bwa)
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
         -T BaseRecalibrator \
         -R $FASTA \
@@ -212,7 +211,6 @@ else
         -cov QualityScoreCovariate \
         -cov CycleCovariate \
 		$PARALLELENCT \
-        -rf BadCigar \
         -o ${f3/.bam/.covar.grp}
 	#   --plot_pdf_file $OUTDIR/GATKorig.pdf \
 
@@ -292,7 +290,6 @@ else
         -cov QualityScoreCovariate \
         -cov CycleCovariate \
         --plot_pdf_file $OUTDIR/GATKrecal.pdf \
-        -rf BadCigar \
         -o ${f3/.bam/.recal.covar.grp} 
     #    -nt $CPU_RECAL
 
