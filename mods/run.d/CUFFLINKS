@@ -53,7 +53,7 @@ if [ -n "$RUNCUFFLINKS" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
                                     
         NGSANE_REPORT_FOOTER  
         
-        NGSANE_REPORT_HEADER "Cuffquant + CuffNorm" "$TASK_CUFFQUANT" "cuffquant.sh,cuffnorm.sh"
+        NGSANE_REPORT_HEADER "CuffQuant + CuffNorm" "$TASK_CUFFQUANT" "cuffquant.sh,cuffnorm.sh"
 
         NGSANE_REPORT_TABLE_AGGREGATE "$TASK_CUFFNORM" \
             "Cuffnorm" \
