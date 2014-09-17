@@ -68,17 +68,12 @@ for f in $FILES; do
 done
 
 echo "[NOTE] ${FILE[@]}"
+echo "[NOTE] datasets $DATASETS"
+echo "[NOTE] ${OUTDIR}/$MERGED_GTF_NAME"
 
-echo "[NOTE] datasets"
-echo "[NOTE] $DATASETS"
-
-echo "[NOTE] $OUTDIR"
-
-#mkdir -p "$OUTDIR"
-#if [ -z "$NGSANE_RECOVERFROM" ]; then
-#    ## TODO remove primary result files from pervious runs
-#    rm ${OUTDIR}/*
-#fi
+if [ -z "$NGSANE_RECOVERFROM" ]; then
+    [ -d ${OUTDIR}/$MERGED_GTF_NAME ] && rm -r ${OUTDIR}/$MERGED_GTF_NAME/*
+fi
 
 # unique temp folder that should be used to store temporary files
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
