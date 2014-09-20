@@ -472,7 +472,7 @@ if [ -n "$RUNANNOVAR" ]; then
 
     summaryHeader "Variant annotation" "$TASK_ANNOVAR" "annovar.sh" "$SUMMARYTMP"
 
-	if [ -n "$RUNVARCALLSBATCH" ]; ADD="batch"; fi
+	if [ -n "$RUNVARCALLSBATCH" ]; then ADD="batch"; fi
 
     vali=""
     for dir in ${DIR[@]}; do
