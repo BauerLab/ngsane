@@ -42,7 +42,7 @@ if [ -n "$RUNHOMERCHIPSEQ" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "-" \
             "$OUT/<DIR>/$TASK_HOMERCHIPSEQ"  \
             ".summary.txt" \
-            "PATTERN:Control::fgrep 'ChIP input' | awk '{print \$(NF)}'" \
+            "PATTERN:Control::fgrep -w 'input tag directory' | tr '/' '\n' | tail -n2 | head -n 1" \
             "PATTERN:Est. fragment length::fgrep '# fragment length' | tail -n 1 | awk '{print \$(NF)}'" \
             "PATTERN:Autocorr. same strand::fgrep 'Same strand fold enrichment' | tail -n 1 | awk '{print \$(NF)}'" \
             "PATTERN:Autocorr. diff. strand::fgrep 'Diff strand fold enrichment' | tail -n 1 | awk '{print \$(NF)}'" \
