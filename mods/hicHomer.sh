@@ -147,7 +147,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    mv $THISTMP/$SAMPLE"_tagdir_unfiltered" $OUTDIR
+    mv $THISTMP/$SAMPLE"_tagdir_unfiltered" $OUTDIR/$SAMPLE"_tagdir_unfiltered"
     
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_tagdir_unfiltered"/tagInfo.txt

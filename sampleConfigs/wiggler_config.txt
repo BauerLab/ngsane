@@ -32,11 +32,6 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
-# reference genome, 
-# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
-# or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
-FASTA=
-
 # reference by chromosomes
 # e.g. /share/ClusterShare/biodata/contrib/ENCODE/encodeDCC/referenceSequences/maleByChrom/
 FASTA_CHROMDIR=
@@ -52,12 +47,8 @@ WIGGLER_OUTPUTFORMAT=
 # PARAMETER (optional)
 #********************
 
-# fragment size estimate to be passed to wiggler via "-f=" (leave empty to estimate using macs2)
-# e.g. WIGGLER_FRAGMENTSIZE=0 for DNase
-WIGGLER_FRAGMENTSIZE=
-
 # additional wiggler parameters (smoothing etc)
-# e.g. "-k=tukey -w=300 -n=5"
+# e.g. "-k=tukey -w=300"
 WIGGLERADDPARAMS=
 
 #WALLTIME_WIGGLER=60:00:00

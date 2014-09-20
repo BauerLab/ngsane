@@ -57,14 +57,8 @@ echo "PATH=$PATH"
 # best common denominator)
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--macs2       --\n "$(macs2 --version 2>&1)
-[ -z "$(which macs2)" ] && echo "[ERROR] macs2 not detected" && exit 1
 echo -e "--wiggler     --\n "$(align2rawsignal 2>&1 | head -n 3 | tail -n 1)
 [ -z "$(which align2rawsignal)" ] && echo "[ERROR] wiggler not detected (align2rawsignal)" && exit 1
-echo -e "--wigToBigWig --\n "$(wigToBigWig 2>&1 | tee | head -n 1)
-[ -z "$(which wigToBigWig)" ] && echo "[WARN] wigToBigWig not detected, cannot create bigwigs"
-echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
-[ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot create bedgraphs"
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -78,13 +72,6 @@ SAMPLE=${n/%$ASD.bam/}
 if [ -z "$WIGGLER_UMAPDIR" ] || [ ! -d ${WIGGLER_UMAPDIR} ]; then
     echo "[ERROR] umap dir not specified not non-existant (WIGGLER_UMAPDIR)"
     exit 1
-fi
-
-GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
-if [ ! -f $GENOME_CHROMSIZES ]; then
-    echo "[WARN] GENOME_CHROMSIZES not found. Expected at $GENOME_CHROMSIZES"
-else
-    echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
 fi
 
 # check reference folder exist

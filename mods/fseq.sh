@@ -78,7 +78,7 @@ SAMPLE=${INPUTFILENAME/%$ASD.bam/}
 
 # delete old bam files unless attempting to recover
 if [ -z "$NGSANE_RECOVERFROM" ]; then
-    [ -f $OUTDIR/$SAMPLE.bw ] && rm $OUTDIR/$SAMPLE.bw
+    ## TODO remove primary result files from pervious runs
 fi
 
 if [ -z "$FASTA" ] || [ ! -f $FASTA ]; then
@@ -101,7 +101,7 @@ if [ -z "$FSEQ_PVALUECUTOFF" ] || [ $FSEQ_PVALUECUTOFF -gt 1 ] ; then
 fi
 
 # unique temp folder that should be used to store temporary files
-THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
 mkdir -p $THISTMP
 
 NGSANE_CHECKPOINT_CHECK

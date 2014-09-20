@@ -10,7 +10,7 @@
 # Tasks
 #********************
 
-RUNVARCALLSBATCH="1"     # variance  calling with GATK
+RUNVARCALLS="1"     # variance  calling with GATK
 QUEUEWAIT=" -W depend=afterany:" # PBS - SGE does not neeed a change
 
 #********************

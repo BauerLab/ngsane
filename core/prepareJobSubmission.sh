@@ -25,10 +25,10 @@ while [ "$1" != "" ]; do
 	--postmemory )          shift; POSTMEMORY=$1;; # Memory used for postcommand
 	--postwalltime )        shift; POSTWALLTIME=$1;;
 	-r | --reverse )        REV="1";;              # input is fastq
-	-d | --nodir )          NODIR="nodir";;        # create no output directory
+	-d | --nodir )          NODIR="nodir";;
 	-a | --armed )          ARMED="armed";;
-	-W | --wait )           shift; JOBIDS=$1 ;;    # jobids to wait for
-	--commontask )          shift; COMMONTASK=$1;; # name of a task common to multiple libraries
+    -W | --wait )           shift; JOBIDS=$1 ;;    # jobids to wait for
+    --commontask )          shift; COMMONTASK=$1;; # name of a task common to multiple libraries
 	--keep )                KEEP="keep";;
 	--new )                 KEEP="new";;
 	--recover )             RECOVER="recover";;
@@ -37,7 +37,7 @@ while [ "$1" != "" ]; do
 	--first )               FIRST="first";;
 	--postonly )            POSTONLY="postonly" ;;
 	--dryrun )              DRYRUN="TRUE" ;;
-	--givenDirs )		    shift; GIVENDIRS=$1 ;;	# given directories instead of Dir from config
+	--givenDirs )			shift; GIVENDIRS=$1 ;;			# given directories instead of Dir from config
 	-h | --help )           usage ;;
 	* )                     echo "prepareJobSubmission.sh: don't understand "$1
     esac
@@ -201,12 +201,12 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
                 sed -i "s/^\[ERROR\] /[NOTE][PREVIOUS][ERROR] /g" $LOGFILE
                 echo "[NOTE] Previous errors masked" >> $LOGFILE
             fi
-           
+            
         else
             # remove old submission output logs
             if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
         fi
-
+    
 
 
         echo "[NOTE] Jobfile: "$(python -c "import os.path; print os.path.relpath(os.path.realpath('$JOBLOG'),'$(pwd -P)')") >> $LOGFILE

@@ -194,7 +194,6 @@ NGSANE_CHECKPOINT_INIT "count covariantes "
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     # there seems to be a warning reg. Rscript but it does not affect output
-    # BadCigar is necessary in case of "MESSAGE: START (101) > (100) STOP -- this should never happen, please check read" (bwa)
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
         -T BaseRecalibrator \
         -R $FASTA \
@@ -205,7 +204,6 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         -cov QualityScoreCovariate \
         -cov CycleCovariate \
 		$PARALLELENCT \
-        -rf BadCigar \
         -o $OUTDIR/${SAMPLE}.real.covar.grp
 	#   --plot_pdf_file $OUTDIR/GATKorig.pdf \
 
