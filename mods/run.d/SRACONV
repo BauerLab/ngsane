@@ -1,0 +1,44 @@
+#!/bin/bash -e
+
+################################################################################
+#   Trigger command for individual SRACONV
+#
+# IN : $SOURCE/$dir/INPUT_SRACONV/*.[inputfile.suffix]
+# OUT: $OUT/$dir/TASK_SRACONV/*.[outputfile.suffix]
+################################################################################
+
+if [ -n "$RUNSRACONV" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/SRACONV
+        if [ -z "$TASK_SRACONV" ] || [ -z "$NODES_SRACONV" ] || [ -z "$CPU_SRACONV" ] || [ -z "$MEMORY_SRACONV" ] || [ -z "$WALLTIME_SRACONV" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+               	
+        $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_SRACONV -i $INPUT_SRACONV -e .sra 
+            -n $NODES_SRACONV -c $CPU_SRACONV -m $MEMORY_SRACONV"G" -w $WALLTIME_SRACONV \
+            --command "${NGSANE_BASE}/mods/sraconverter.sh -k $CONFIG -f <FILE> -o $OUT/fastq/<DIR>"
+
+      
+                   
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "SRACONV" "$TASK_SRACONV" "sraconverter.sh" 
+                    
+        # 3) or provide information that there will be no 
+        echo "[NOTE] the SRACONV.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+    
+    # done
+fi
+
