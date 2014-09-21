@@ -68,6 +68,7 @@ NG_BLAT=
 NG_PINDEL=
 NG_SEQLOGO=
 NG_SRATOOLS=
+NG_ANNOVAR=
 NG_YARA=
 NG_FSEQ=
 NG_HOTSPOT=
@@ -118,6 +119,7 @@ NG_CITE_BLAT="Genome Res. 2002 Apr;12(4):656-64. 'BLAT--the BLAST-like alignment
 NG_CITE_PINDEL="Ye K, Schulz MH, Long Q, Apweiler R, Ning Z. Pindel: a pattern growth approach to detect break points of large deletions and medium sized insertions from paired-end short reads. Bioinformatics. 2009 Nov 1;25(21):2865-71. Epub 2009 Jun 26."
 NG_CITE_SEQLOGO="Nucleic Acids Res. 1990 Oct 25;18(20):6097-100.; 'Sequence logos: a new way to display consensus sequences.'; Schneider TD, Stephens RM."
 NG_CITE_SRATOOLS="http://www.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?cmd=show&f=software&m=software&s=software"
+NG_CITE_ANNOVAR="Wang K, Li M, Hakonarson H. ANNOVAR: functional annotation of genetic variants from high-throughput sequencing data. Nucleic Acids Res. 2010 Sep;38(16):e164. doi: 10.1093/nar/gkq603. Epub 2010 Jul 3. PubMed PMID: 20601685; PubMed Central PMCID: PMC2938201."
 NG_CITE_YARA="Siragusa, E., Weese D., and Reinert, K. (2014). Yara: reliable read mapping at high-throughput sequencing speed."
 NG_CITE_FSEQ="Bioinformatics. 2008 Nov 1;24(21):2537-8. doi: 10.1093/bioinformatics/btn480. Epub 2008 Sep 10. 'F-Seq: a feature density estimator for high-throughput sequence tags.'; Boyle AP1, Guinney J, Crawford GE, Furey TS."
 NG_CITE_BIGWIG="Bioinformatics. Sep 1, 2010; 26(17): 2204–2207. Published online Jul 17, 2010. doi:  10.1093/bioinformatics/btq351; PMCID: PMC2922891' BigWig and BigBed: enabling browsing of large distributed datasets W. J. Kent, A. S. Zweig,* G. Barber, A. S. Hinrichs, and D. Karolchik"
