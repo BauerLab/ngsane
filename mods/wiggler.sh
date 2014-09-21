@@ -33,7 +33,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository                       
         -f | --bam )            shift; f=$1 ;; # bam file                                                       
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir                                                     
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -46,26 +46,27 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
-for MODULE in $MODULE_WIGGLER; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_WIGGLER; do module load $MODULE; done && module list
 
 export PATH=$PATH_WIGGLER:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
-echo -e "--wiggler  --\n "$(align2rawsignal 2>&1 | head -n 3 | tail -n 1)
+echo -e "--wiggler     --\n "$(align2rawsignal 2>&1 | head -n 3 | tail -n 1)
 [ -z "$(which align2rawsignal)" ] && echo "[ERROR] wiggler not detected (align2rawsignal)" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$ASD.bam/}
 
 # check UMAP folder exist
 if [ -z "$WIGGLER_UMAPDIR" ] || [ ! -d ${WIGGLER_UMAPDIR} ]; then
@@ -86,54 +87,68 @@ elif [ "$WIGGLER_OUTPUTFORMAT" != "bg" ] && [ "$WIGGLER_OUTPUTFORMAT" != "wig" ]
     echo "[ERROR] wiggler output format not known" && exit 1
 fi
 
-THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$n | md5sum | cut -d' ' -f1)
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 mkdir -p $THISTMP
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f}
 	dmget -a $OUTDIR/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="run align2rawsignal"
+NGSANE_CHECKPOINT_INIT "calculate fragment size"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
-    RUN_COMMAND="align2rawsignal $WIGGLERADDPARAMS -of=$WIGGLER_OUTPUTFORMAT -i=$f -s=${FASTA_CHROMDIR} -u=${WIGGLER_UMAPDIR} -v=${OUTDIR}/${n//.$ASD.bam/.log} -o=${THISTMP}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT} -mm=$MEMORY_WIGGLER"
+    if [ -z "$WIGGLER_FRAGMENTSIZE" ]; then
+        macs2 predictd --rfile $OUTDIR/$SAMPLE -i $f > $OUTDIR/$SAMPLE.fragment_size.txt 2>&1
+    fi
+    
+    # mark checkpoint
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.fragment_size.txt 
+    
+fi 
+################################################################################
+NGSANE_CHECKPOINT_INIT "run align2rawsignal"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+    
+    if [ -z "$WIGGLER_FRAGMENTSIZE" ]; then
+        WIGGLER_FRAGMENTSIZE=$(grep 'alternative fragment length(s) may be' $OUTDIR/$SAMPLE.fragment_size.txt | sed 's/.* be //' | cut -d' ' -f 1 | tr ',' '\n' | egrep -v "^-" | head -n 1)
+    fi
+    
+    [ -f $OUTDIR/$SAMPLE.log ] && rm $OUTDIR/$SAMPLE.log
+    
+    RUN_COMMAND="align2rawsignal $WIGGLERADDPARAMS -f=$WIGGLER_FRAGMENTSIZE -of=$WIGGLER_OUTPUTFORMAT -i=$f -s=${FASTA_CHROMDIR} -u=${WIGGLER_UMAPDIR} -v=$OUTDIR/$SAMPLE.log -o=$THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT -mm=$MEMORY_WIGGLER"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    # mark checkpoint
-    if [ -f ${THISTMP}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
-fi 
-
-################################################################################
-CHECKPOINT="gzip"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-
-    $GZIP -c ${THISTMP}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT} > ${OUTDIR}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT}.gz
+    if hash bedToBigBed 2>&- && [[ "$WIGGLER_OUTPUTFORMAT" == "bg" ]] && [[ -f $GENOME_CHROMSIZES ]]; then
+        bedGraphToBigWig $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bw
+        CHECKPOINTFILE=$OUTDIR/$SAMPLE.bw
+    elif hash wigToBigWig 2>&- && [[ "$WIGGLER_OUTPUTFORMAT" == "wig" ]] && [[ -f $GENOME_CHROMSIZES ]]; then 
+        wigToBigWig $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bw
+        CHECKPOINTFILE=$OUTDIR/$SAMPLE.bw
+    else
+        $GZIP -c $THISTMP/$SAMPLE.$WIGGLER_OUTPUTFORMAT > $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz
+        CHECKPOINTFILE=$OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz
+    fi
         
     # mark checkpoint
-    if [ -f ${OUTDIR}/${n//.$ASD.bam/.$WIGGLER_OUTPUTFORMAT}.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
+    NGSANE_CHECKPOINT_CHECK $CHECKPOINTFILE
+    
 fi 
 ################################################################################
-CHECKPOINT="cleanup"
+NGSANE_CHECKPOINT_INIT "cleanup"
 
 if [ -d $THISTMP ]; then rm -r $THISTMP; fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-[ -e $OUTDIR/${n//.$ASD.bam/$WIGGLER_OUTPUTFORMAT}.dummy ] && rm $OUTDIR/${n//.$ASD.bam/$WIGGLER_OUTPUTFORMAT}.dummy
+[ -e $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz.dummy ] && rm $OUTDIR/$SAMPLE.$WIGGLER_OUTPUTFORMAT.gz.dummy
 echo ">>>>> wiggler - FINISHED"
 echo ">>>>> enddate "`date`

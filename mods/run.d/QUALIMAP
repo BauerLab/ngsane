@@ -1,0 +1,37 @@
+#!/bin/bash -e
+
+################################################################################
+#  Bam QC with qualimap
+#
+# IN: $SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/qualimap/
+################################################################################       
+
+if [ -n "$RUNQUALIMAP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_QUALIMAP" ] || [ -z "$NODES_QUALIMAP" ] || [ -z "$CPU_QUALIMAP" ] || [ -z "$MEMORY_QUALIMAP" ] || [ -z "$WALLTIME_QUALIMAP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_QUALIMAP -i $INPUT_QUALIMAP -e $ASD.bam \
+            -n $NODES_QUALIMAP -c $CPU_QUALIMAP -m $MEMORY_QUALIMAP"G" -w $WALLTIME_QUALIMAP \
+            --command "${NGSANE_BASE}/mods/qualimap.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_QUALIMAP/"
+
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        NGSANE_REPORT_HEADER "QualiMap" "$TASK_QUALIMAP" "qualimap.sh"
+
+        echo "[NOTE] the qualimap.sh mod does not provide a report"
+        # TODO add report
+        
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+fi	
+
+	

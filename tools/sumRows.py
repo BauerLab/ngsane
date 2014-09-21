@@ -63,15 +63,17 @@ def per(max,arr):
 
 def printStats(arrV, arrN, arrS):
     out=[[],[],[],[],[],[],[],[]]
-    string="    "
+    string=" "
     #normaliziation
     normsum=0
     normnZe=0
 
     for c in range(0,len(arrV)):
-        string+="%17s " % arrN[c]
+        string+="\t%17s" % arrN[c]
         formatString="%17.2f"
-        if(min(arrV[c])<0.009):
+        if(min(arrV[c])==0):
+            formatString="%1d"
+        elif(min(arrV[c])<0.009):
             formatString="%17.2e"
             #formatString="%17.2f"     
 
@@ -101,17 +103,17 @@ def printStats(arrV, arrN, arrS):
             out[6][i]=str(float(out[6][i])/(normalizeBy+1e-6))
 
     if(options.oneline):
-		print "nZe %s sum %s min %s max %s av %s stde %s" % (" ".join(out[6])," ".join(out[5])," ".join(out[0])," ".join(out[1])," ".join(out[2])," ".join(out[3]))
+		print "nZe\t%s\tsum\t%s\tmin\t%s\tmax\t%s\tav\t%s\tstde\t%s" % ("\t".join(out[6]),"\t".join(out[5]),"\t".join(out[0])," ".join(out[1]),"\t".join(out[2]),"\t".join(out[3]))
 		sys.exit(0)
 
     if(printing and arrS!=0 ):
         print string
         for l in arrS:
-            resultPerS="    "
+            resultPerS="\t"
             for e in l[0]:
-                formatString="%17.2f "
+                formatString="%17.2f\t"
                 if(e<0.009):
-                    formatString="%17.2e "
+                    formatString="%17.2e\t"
                 resultPerS+= formatString % e
             resultPerS+=" "+l[1]
             print resultPerS
@@ -119,14 +121,14 @@ def printStats(arrV, arrN, arrS):
             print "-----------------------------"
     if(arrS==0 or len(arrS)>1):
         print string
-        print "nZe "+" ".join(out[6])
-        print "sum "+" ".join(out[5])
-        print "min "+" ".join(out[0])
-        print "max "+" ".join(out[1])
-        print " av "+" ".join(out[2])
-        print "ste "+" ".join(out[3])
+        print "nZe\t"+"\t".join(out[6])
+        print "sum\t"+"\t".join(out[5])
+        print "min\t"+"\t".join(out[0])
+        print "max\t"+"\t".join(out[1])
+        print " av\t"+"\t".join(out[2])
+        print "ste\t"+"\t".join(out[3])
         if (percent):
-            print "av% "+" ".join(out[4])
+            print "av% "+"\t".join(out[4])
 
 
 sumarr=[]

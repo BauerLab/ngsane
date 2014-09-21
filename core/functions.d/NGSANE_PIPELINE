@@ -1,0 +1,38 @@
+#!/bin/bash -e
+##############################################################
+# Functions for staging mods (pipelining)
+# author Fabian Buske
+
+################################################################################
+# getJobIds takes 1 parameter
+# $1=QSUB output
+function waitForJobIds {
+    JOBIDS=$(echo -e "$1" | grep "Jobnumber")
+    if [ -n "$JOBIDS" ]; then 
+		#JOBIDS=$(echo -e $JOBIDS | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+        JOBIDS=$(echo -e $JOBIDS | gawk '{ ORS=" "; print; }' | sed 's/Jobnumber //g' | sed 's/ /:/g' )
+
+    fi
+    if [ "$JOBIDS" != "" ]; then
+        echo "-W $JOBIDS"
+    else
+        echo ""
+    fi
+} 
+
+################################################################################
+# NGSANE_PIPELINE_MOD takes 2 parameter
+# $1=MOD as specified in mods/run.d/
+# $1=JOBIDs to wait for
+function NGSANE_PIPELINE_MOD() {
+
+    NGSANE_PIPELINECALL="1"
+    NGSANE_WAITFORJOB="$2"
+
+    JOBIDS="$(. $NGSANE_BASE/mods/run.d/$1)" && echo -e "$JOBIDS" >& 2
+    
+    NGSANE_WAITFORJOB=
+    
+    JOBIDS=$(waitForJobIds "$JOBIDS")
+    echo "$JOBIDS"
+}

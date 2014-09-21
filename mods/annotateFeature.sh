@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# Coverage of bam/bed files around genomic regions
+# Coverage of reads (bam) or regions (bed) around genomic features
 # author: Denis C. Bauer
 # date: Mar.2014
 
@@ -23,8 +23,8 @@ Coverage at genomic regions
 required:
   -k | --toolkit <path>     config file
   -f <file>                 bam file
+  -o | --outdir <path>      location for results
 
-options:
 "
 exit
 }
@@ -38,7 +38,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --file )           shift; FILES=$1 ;; # files
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir                                                       
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -48,7 +48,6 @@ done
 #PROGRAMS
 export CONFIG=$CONFIG
 export OUTDIR=$OUTDIR
-#export NGSANE_BASE=${NGSANE_BASE}
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
@@ -57,31 +56,40 @@ if [ -n "$BIN" ]; then export PYBIN="--bin $BIN"; fi
 if [ -n "$STRANDETNESS" ]; then export STRAND="-s"; fi
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
-for MODULE in $MODULE_FEATANN; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_FEATANN; do module load $MODULE; done && module list 
+
 export PATH=$PATH_FEATANN:$PATH
-module list
 echo "PATH=$PATH"
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--bedtools    --\n "$(bedtools -version)
 [ -z "$(which bedtools)" ] && echo "[WARN] bedtools not detected" && exit 1
+echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
+echo -e "--R           --\n "$(R --version | head -n 3)
+[ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
+echo -e "--Python      --\n" $(python --version)
+[ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
-FILES=${FILES//,/ /}
+FILES=${FILES//,/ }
 
-# get basename of f
-RESULTFILES=""
-for i in $FILES; do
-    n=$(basename $i)
-    ending=${n/*./}
-    RESULTFILES=$RESULTFILES" "$OUTDIR/${n/.$ending/}"-"${UPSTREAM}"+"${DOWNSTREAM}"_"$METRIC${STRAND/-/_}".txt"
-done
+if [[ ! "$ENDING" =~ ".bed" ]] && [[ ! "$ENDING" =~ ".bam" ]]; then
+    echo "[ERROR] input file format ($ENDING) not recognized"
+    exit 1
+fi
 
+if [ -z "$FASTA" ]; then
+    echo "[ERROR] no reference provided (FASTA)"
+    exit 1
+fi
+GENOMESIZE=${FASTA%.*}.chrom.sizes
 
 # check library variables are set
 if [[ -z "$FEATUREFILE" ]]; then
@@ -91,154 +99,456 @@ else
     echo "[NOTE] using libraries in $FEATUREFILE"
 fi
 
-# delete old bam files unless attempting to recover
-if [ -z "$RECOVERFROM" ]; then
-    [ -e $(echo $RESULTFILES | cut -d " " -f 1) ] && rm -f ${RESULTFILES//.txt/*}
-    [ -e $OUTDIR/joined"-"${UPSTREAM}"+"${DOWNSTREAM}"_"$METRIC${STRAND/-/_}.png ] && rm -f $OUTDIR/joined"-"${UPSTREAM}"+"${DOWNSTREAM}"_"$METRIC${STRAND/-/_}*
+if [[ -z "$EXPERIMENTNAME" ]]; then
+    echo "[ERROR] please specify EXPERIMENTNAME"
+    exit 1
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+FEATURENAME=${FEATUREFILE##*/}
+#is ziped ?
+CAT="cat"
+if [[ ${FEATUREFILE##*.} == "gz" ]]; then 
+    CAT="zcat"; 
+    export FEATURENAME=${FEATURENAME/.bed.gz/}
+elif [[ ${FEATUREFILE##*.} == "bz2" ]]; 
+    then CAT="bzcat"; 
+    export FEATURENAME=${FEATURENAME/.bed.bz2/}
+else
+    export FEATURENAME=${FEATURENAME/.bed/}
+fi
+[ -d $OUTDIR/$FEATURENAME ] && rm -r $OUTDIR/$FEATURENAME 
+mkdir -p $OUTDIR/$FEATURENAME
+
+# get basename of f
+RESULTFILES=""
+for i in $FILES; do
+    n=$(basename $i)
+    RESULTFILE="$OUTDIR/$EXPERIMENTNAME${n/%$ENDING/}${STRAND/-/_}.txt"
+    [ -f $RESULTFILE ] && rm $RESULTFILE
+    RESULTFILES="$RESULTFILES $RESULTFILE" 
+done
+
+# delete old bam files unless attempting to recover
+if [ -z "$NGSANE_RECOVERFROM" ]; then
+    [ -e $(echo $RESULTFILES | cut -d " " -f 1) ] && rm -f ${RESULTFILES//.txt/*}
+    [ -e $OUTDIR/$EXPERIMENTNAME"_joined"${STRAND/-/_}".png" ] && rm -f $OUTDIR/$EXPERIMENTNAME"_joined"${STRAND/-/_}*
+fi
+
+if [[ -z "$FEATURE_START" && -z "$FEATURE_END" ]]; then
+    echo "[ERROR] Either the feature start and/or the end column need to be specified"
+    exit 1
+fi
+
+if [[ -n "$FEATURE_START" && $(head -n 1 $FEATUREFILE | awk '{FS = "\t"};{print NF}') -lt $FEATURE_START ]]; then
+    echo "[ERROR] Feature bed file contains too few columns"
+    exit 1
+fi
+if [[ -n "$FEATURE_END" && $(head -n 1 $FEATUREFILE | awk '{FS = "\t"};{print NF}') -lt $FEATURE_END ]]; then
+    echo "[ERROR] Feature bed file contains too few columns"
+    exit 1
+fi
+    
+echo "[NOTE] Padding featues with $UPSTREAM and $DOWNSTREAM bps up- and downstream, respectively"
+if [ -n "$BIN" ]; then
+    echo "[NOTE] bin with $BIN"
+fi
+
+export CENTERBINS=$(( ($UPSTREAM+$DOWNSTREAM)/2 ))
+
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$FEATURENAME | md5sum | cut -d' ' -f1)
+[ -d $THISTMP ] && rm -r $THISTMP
+mkdir -p $THISTMP
+
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 	
 if [ -n "$DMGET" ]; then
     dmget -a $FEATUREFILE
-	dmget -a ${FILES}
+    dmget -a ${FILES}
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
-
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="bedmerge"
+NGSANE_CHECKPOINT_INIT "split features by category"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    ending=${FASTA/*./}
-    GENOMESIZE=${FASTA/.$ending/}.chrom.sizes
-    name=$(basename $FEATUREFILE)
-    export REGIONS=$OUTDIR/${name/bed/}feat-$UPSTREAM"+"$DOWNSTREAM"_"$METRIC${STRAND/-/_}.bed
-	gawk '{print $1"\t"$7"\t"$7+1"\t"$4"\t"$5"\t"$6}' $FEATUREFILE | sort -u -k1,1 -k2,2g | bedtools slop $STRAND -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $REGIONS
+    if [ -n "$FEATANN_SEGREGATEBY" ]; then
+        $CAT $FEATUREFILE | awk -v C=$FEATANN_SEGREGATEBY -v O=$OUTDIR/$FEATURENAME/ '{print > O"/"$C".bed.tmp"}' 
 
-    #head $REGIONS
-
-    if [ -n "$REMOVEMULTIFEATURE" ]; then
-        bedtools merge $STRAND -n -i $REGIONS | sort -u -k1,1 -k2,2g | gawk '{if ($4==1){print $1"\t"$2"\t"$3"\t.\t.\t"$5}}' > $REGIONS.tmp
-        echo "drop "$(echo $(wc -l $REGIONS | cut -d " " -f 1 )-$(wc -l $REGIONS.tmp | cut -d " " -f 1) | bc)" multi-feature regions"
-        mv $REGIONS.tmp $REGIONS
+    else
+        if [ "$CAT" != "cat" ]; then
+            $CAT $FEATUREFILE > $OUTDIR/$FEATURENAME/$FEATURENAME.bed.tmp
+        else
+            cp $FEATUREFILE $OUTDIR/$FEATURENAME/$FEATURENAME.bed.tmp
+        fi
     fi
-
-    #head $REGIONS
-    
-    export LENGTH=$(wc -l $REGIONS | cut -d " " -f 1)
-    echo "[NOTE] $LENGTH features in $REGIONS $STRAND"
-
-	# mark checkpoint
-    if [ -f $REGIONS ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-
+    NGSANE_CHECKPOINT_CHECK
 fi
- 
 
 ################################################################################
-CHECKPOINT="run annotation"
+NGSANE_CHECKPOINT_INIT "pad and clean features"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    get_coverage() {
+    for FEATURES in $(ls $OUTDIR/$FEATURENAME/*.tmp 2> /dev/null); do
+        F=${FEATURES##*/}
+        FEATURE_REGIONS=$OUTDIR/$FEATURENAME/${F/.bed.tmp/}${STRAND/-/_}.bed
+#        head  -n 2 $FEATURES
+        
+        if [ -z "$FEATURE_END" ];then    
+            awk -v c=$FEATURE_START 'BEGIN{OFS=FS="\t"}{if(NF >= 6){print $1,$c,$c+1,$4,$5,$6}else{print $1,$c,$c+1,$4,0,"."}}' $FEATURES | sort -u -k1,1 -k2,2g | bedtools slop $STRAND -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $FEATURE_REGIONS
+        elif [ -z "$FEATURE_START" ];then    
+            awk -v c=$FEATURE_END 'BEGIN{OFS=FS="\t"}{if(NF >= 6){print $1,$c-1,$c,$4,$5,$6}else{print $1,$c-1,$c,$4,0,"."}}' $FEATURES | sort -u -k1,1 -k2,2g | bedtools slop $STRAND -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $FEATURE_REGIONS
+        else
+            awk -v s=$FEATURE_START -v e=$FEATURE_END 'BEGIN{OFS=FS="\t"}{if(NF >= 6){print $1,$s,$e,$4,$5,$6}else{print $1,$s,$e,$4,0,"."}}' $FEATURES | sort -u -k1,1 -k2,2g | bedtools slop $STRAND -r $DOWNSTREAM -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > $FEATURE_REGIONS
+
+            # split into up center and downstream
+            awk -v s=$FEATURE_START -v e=$FEATURE_END 'BEGIN{OFS=FS="\t"}{if(NF >= 6){print $1,$s,$e,$4,$5,$6}else{print $1,$s,$e,$4,0,"."}}' $FEATURES | sort -u -k1,1 -k2,2g | bedtools flank $STRAND -r 0 -l $UPSTREAM -g $GENOMESIZE -i - | bedtools sort > ${FEATURE_REGIONS}_upstream
+            awk -v s=$FEATURE_START -v e=$FEATURE_END 'BEGIN{OFS=FS="\t"}{if(NF >= 6){print $1,$s,$e,$4,$5,$6}else{print $1,$s,$e,$4,0,"."}}' $FEATURES | bedtools sort > ${FEATURE_REGIONS}_center
+            awk -v s=$FEATURE_START -v e=$FEATURE_END 'BEGIN{OFS=FS="\t"}{if(NF >= 6){print $1,$s,$e,$4,$5,$6}else{print $1,$s,$e,$4,0,"."}}' $FEATURES | sort -u -k1,1 -k2,2g | bedtools flank $STRAND -r $DOWNSTREAM -l 0 -g $GENOMESIZE -i - | bedtools sort > ${FEATURE_REGIONS}_downstream
+
+        fi 
+#        head -n 2 $FEATURE_REGIONS       
+    
+        if [ -n "$REMOVEMULTIFEATURE" ]; then
+            bedtools merge $STRAND -n -i $FEATURE_REGIONS | awk '{if ($4==1){$5==""?$5=".":$5=$5;OFS="\t"; print $1,$2,$3,".",".",$5}}' | bedtools sort > $FEATURE_REGIONS.tmp2
+            echo "[NOTE] drop "$(echo $(wc -l $FEATURE_REGIONS | cut -d " " -f 1 )-$(wc -l $FEATURE_REGIONS.tmp2 | cut -d " " -f 1) | bc)" multi-feature regions from "$(echo $(wc -l $FEATURE_REGIONS | cut -d " " -f 1 ))
+            mv $FEATURE_REGIONS.tmp2 $FEATURE_REGIONS
+            
+            # SUBSET individual regions too
+            if [ -f ${FEATURE_REGIONS}_upstream ]; then
+                bedtools intersect -wa -a ${FEATURE_REGIONS}_upstream -b $FEATURE_REGIONS > ${FEATURE_REGIONS}_upstream.tmp 
+                mv ${FEATURE_REGIONS}_upstream.tmp ${FEATURE_REGIONS}_upstream
+            fi
+
+            if [ -f ${FEATURE_REGIONS}_center ]; then 
+                bedtools intersect -wa -a ${FEATURE_REGIONS}_center -b $FEATURE_REGIONS > ${FEATURE_REGIONS}_center.tmp 
+                mv ${FEATURE_REGIONS}_center.tmp ${FEATURE_REGIONS}_center
+            fi
+            
+            if [ -f ${FEATURE_REGIONS}_downstream ]; then 
+                bedtools intersect -wa -a ${FEATURE_REGIONS}_downstream -b $FEATURE_REGIONS > ${FEATURE_REGIONS}_downstream.tmp   
+                mv ${FEATURE_REGIONS}_downstream.tmp ${FEATURE_REGIONS}_downstream
+            fi
+        fi
+#        head -n 2 $FEATURE_REGIONS
+    done 
+    
+    # mark checkpoint
+    NGSANE_CHECKPOINT_CHECK $FEATURE_REGIONS 
+    
+    # cleanup 
+    rm $OUTDIR/$FEATURENAME/*.tmp 2> /dev/null
+fi
+################################################################################
+NGSANE_CHECKPOINT_INIT "run annotation"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
+    get_coverage_onesided() {
         . $CONFIG
         . ${NGSANE_BASE}/conf/header.sh
         . $CONFIG
         name=$(basename $1)
-        ending=${name/*./}
-        name=${name/.$ending/}"-"$UPSTREAM"+"$DOWNSTREAM"_"$METRIC${STRAND/-/_}
+        name=$EXPERIMENTNAME${name/%$ENDING/}${STRAND/-/_}
+        
+        [ -f $OUTDIR/$name.bed ] && rm $OUTDIR/$name.bed
+        [ -f $OUTDIR/$name.txt ] && rm $OUTDIR/$name.txt
+        
         arrIN=(${1//\// })
         fileloc=$(echo ${arrIN[@]:(-3)} | sed 's/ /\//g')
-        mark=$(grep $fileloc $CONFIG | cut -d " " -f 3)
-        if [ -z "$mark" ]; then echo "error no mark definition (please provide FEATANN_LAB in the config file)"; exit; fi
-        echo "[NOTE] process $fileloc with mark $mark"
-        if [[ "$ending" == "bam" ]]; then
-            if [ -n "$NORMALIZE" ]; then
-                if [ ! -e $1.stats ]; then
-                    echo "[NOTE] flagstat"
-                    samtools flagstat $1 >$1.stats
+        fileloc=$(basename $fileloc)
+        echo $fileloc
+        fgrep -w "$fileloc" $CONFIG
+        mark=$(fgrep "$fileloc" $CONFIG | cut -d " " -f 3)
+        if [ -z "$mark" ]; then echo "[WARN] skipped undefined mark (provide FEATANN_LAB definition in the config file if you want to consider this data)"; exit; fi
+        
+        for FEATURES in $(ls $OUTDIR/$FEATURENAME/*.bed 2> /dev/null); do
+            F=${FEATURES##*/}
+            F=${F/.bed/}
+            FEATURE_REGIONS=$OUTDIR/$FEATURENAME/${F}${STRAND/-/_}.bed
+#            head  -n 2 $FEATURES    
+            echo $FEATURE_REGIONS
+            # get number of regions
+            FEATURE_LENGTH=$(wc -l $FEATURE_REGIONS | cut -d " " -f 1)
+            echo "[NOTE] process $fileloc with mark $mark"
+            if [[ "$ENDING" =~ ".bam" ]]; then
+                if [ "$NORMALIZE" == "genome" ]; then
+                    if [ ! -e $1.stats ]; then
+                        echo "[NOTE] flagstat"
+                        samtools flagstat $1 >$1.stats
+                    fi
+                    # normalize by mapped reads
+                    TOTALREADS="--normalize "$(head -n 3 $1.stats | tail -n 1 | cut -d " " -f 1)
+                    echo "[NOTE] $TOTALREADS"
+                elif [ "$NORMALIZE" == "features" ]; then 
+                    TOTALREADS="--normalize "$( bedtools coverage -counts -hist -abam $1 -b $FEATURE_REGIONS | awk '{ sum+=$NF} END {print sum}'); 
+                    echo "[NOTE] $TOTALREADS"
                 fi
-                TOTALREADS="--normalize "$(head -n 1 $1.stats | cut -d " " -f 1)
-            fi
-            #if [ -n "$STRAND" ]; then IND=5 ;VAL=6; STR=4; else IND=4 ;VAL=5; STR=10; fi
-            if [ -n "$STRAND" ]; then IND=7 ;VAL=8; STR=6; else IND=6 ;VAL=7; STR=10; fi
-            A="-abam"
-        elif [[ "$ending" == "bed" ]]; then
-            if [ -n "$NORMALIZE" ]; then TOTALREADS="--normalize "$( wc -l $1 | cut -d " " -f 1); fi
-            if [ -n "$STRAND" ]; then IND=7 ;VAL=8; STR=6; else IND=6 ;VAL=7; STR=10; fi
-            A="-a"
-        else
-            echo "input file format not recognized"
-            exit
-        fi
-        echo "[NOTE] coverage $STRAND"
-	    #bedtools coverage $STRAND -d $A $1 -b $REGIONS | head
-        EXPREG=$(bedtools coverage $STRAND $A $1 -b $REGIONS | gawk -v v=$VAL '{if ($v!=0) {print $0}}' | wc -l)  # non-zero covered features
-        if [ $EXPREG != 0 ]; then
-            echo "[NOTE] nonzero regions $EXPREG"
-            if [ -n "$BIN" ]; then
-                echo "bin with $BIN"
-                bedtools coverage $STRAND -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{print $i"\t"$v"\t"$s}' | gawk -v bin=$BIN 'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){print $1"\t"sum/len}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
-            else
-                bedtools coverage $STRAND -d $A $1 -b $REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{print $i"\t"$v"\t"$s}' > $OUTDIR/$name.bed
+                A="-abam"
+            elif [[ "$ENDING" =~ ".bed" ]]; then
+                if [ "$NORMALIZE" == "genome" ]; then 
+                    TOTALREADS="--normalize "$( wc -l $1 | cut -d " " -f 1); 
+                elif [ "$NORMALIZE" == "features" ]; then 
+                    TOTALREADS="--normalize "$( bedtools coverage -counts -hist -a $1 -b $FEATURE_REGIONS | awk '{ sum+=$NF} END {print sum}'); 
+                fi
+                A="-a"
             fi
     
-            #head $OUTDIR/$name.bed
+    #        if [ -n "$STRAND" ]; then IND=7 ;VAL=8; STR=6; else IND=7 ;VAL=8; STR=10; fi
+    #       TODO seems to be the same
+            if [ -z "$STRAND" ]; then IND=7 ;VAL=8; STR=6; else IND=7 ;VAL=8; STR=6; fi
+    
+            echo "[NOTE] coverage $STRAND"
+    #        bedtools coverage -d $STRAND $A $1 -b $FEATURE_REGIONS | head -n 2
 
-            echo "[NOTE] process file"
-            python ${NGSANE_BASE}/tools/coverageAtFeature.py -f $OUTDIR/$name.bed $PYBIN -u $UPSTREAM -d $DOWNSTREAM -l $LENGTH -n $mark -o $OUTDIR/$name $IGNOREUNCOVERED $REMOVEOUTLIER $TOTALREADS --metric $METRIC
-        else
-            echo "[NOTE] no regions overlap features"
-            touch $OUTDIR/$name.txt $OUTDIR/$name.bed;
-        fi
+    
+            EXPREG=$(bedtools coverage $STRAND $A $1 -b $FEATURE_REGIONS | gawk -v v=$VAL '{if ($v!=0) {print $0}}' | wc -l)  # non-zero covered features
+            if [ $EXPREG != 0 ]; then
+                echo "[NOTE] nonzero FEATURE_REGIONS $EXPREG"
+                if [ -n "$BIN" ]; then
+                    bedtools coverage $STRAND -d $A $1 -b $FEATURE_REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' | gawk -v bin=$BIN  'BEGIN{sum=0;len=1}{if ($1%bin==0){if(len==bin){OFS="\t";print $1,sum/len,$3}; sum=0;len=1}else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed
 
-        #head $OUTDIR/$name.bed
+                else
+                    bedtools coverage $STRAND -d $A $1 -b $FEATURE_REGIONS | gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' >> $OUTDIR/$name.bed
+                fi
+        
+    #            head $OUTDIR/$name.bed
+    
+                echo "[NOTE] process file"
+                RUNCOMMAND="python ${NGSANE_BASE}/tools/coverageAtFeature.py -f $OUTDIR/$name.bed -C $F $PYBIN -u $UPSTREAM -d $DOWNSTREAM -l $FEATURE_LENGTH -n $mark -o $OUTDIR/$name $IGNOREUNCOVERED $REMOVEOUTLIER $TOTALREADS --metric $METRIC"
+                echo $RUNCOMMAND && eval $RUNCOMMAND
+    
+            else
+                echo "[NOTE] no regions overlap features"
+                touch $OUTDIR/$name.txt $OUTDIR/$name.bed;
+            fi
 
+        done
     }
-    export -f get_coverage
+    
+    get_coverage_twosided() {
+        . $CONFIG
+        . ${NGSANE_BASE}/conf/header.sh
+        . $CONFIG
+        name=$(basename $1)
+        name=$EXPERIMENTNAME${name/%$ENDING/}${STRAND/-/_}
 
+        [ -f $OUTDIR/$name.bed ] && rm $OUTDIR/$name.bed
+        [ -f $OUTDIR/$name.txt ] && rm $OUTDIR/$name.txt
+        
+        arrIN=(${1//\// })
+        fileloc=$(echo ${arrIN[@]:(-3)} | sed 's/ /\//g')
+        fileloc=$(basename $fileloc)
+        echo $fileloc
+        fgrep -w "$fileloc" $CONFIG
+        mark=$(fgrep "$fileloc" $CONFIG | cut -d " " -f 3)
+        if [ -z "$mark" ]; then echo "[WARN] skipped undefined mark (provide FEATANN_LAB definition in the config file if you want to consider this data)"; exit; fi
+               
+        for FEATURES in $(ls $OUTDIR/$FEATURENAME/*.bed 2> /dev/null); do
+            F=${FEATURES##*/}
+            F=${F/.bed/}
+            FEATURE_REGIONS=$OUTDIR/$FEATURENAME/${F}${STRAND/-/_}.bed
+#            head  -n 2 $FEATURES    
+            echo $FEATURE_REGIONS
+            # get number of regions
+            FEATURE_LENGTH=$(wc -l $FEATURE_REGIONS | cut -d " " -f 1)
+            echo "[NOTE] process $fileloc with mark $mark"
+            if [[ "$ENDING" =~ ".bam" ]]; then
+                if [ "$NORMALIZE" == "genome" ]; then
+                    if [ ! -e $1.stats ]; then
+                        echo "[NOTE] flagstat"
+                        samtools flagstat $1 >$1.stats
+                    fi
+                    # normalize by mapped reads
+                    TOTALREADS="--normalize "$(head -n 3 $1.stats | tail -n 1 | cut -d " " -f 1)
+                    echo "[NOTE] $TOTALREADS"
+                elif [ "$NORMALIZE" == "features" ]; then 
+                    TOTALREADS="--normalize "$( bedtools coverage -counts -hist -abam $1 -b $FEATURE_REGIONS | awk '{ sum+=$NF} END {print sum}'); 
+                    echo "[NOTE] $TOTALREADS"
+                fi
+                A="-abam"
+            elif [[ "$ENDING" =~ ".bed" ]]; then
+                if [ "$NORMALIZE" == "genome" ]; then 
+                    TOTALREADS="--normalize "$( wc -l $1 | cut -d " " -f 1); 
+                elif [ "$NORMALIZE" == "features" ]; then 
+                    TOTALREADS="--normalize "$( bedtools coverage -counts -hist -a $1 -b $FEATURE_REGIONS | awk '{ sum+=$NF} END {print sum}'); 
+                fi
+                A="-a"
+            fi
+    
+    #        if [ -n "$STRAND" ]; then IND=7 ;VAL=8; STR=6; else IND=7 ;VAL=8; STR=10; fi
+    #       TODO seems to be the same
+            if [ -z "$STRAND" ]; then IND=7 ;VAL=8; STR=6; else IND=7 ;VAL=8; STR=6; fi
+    
+            echo "[NOTE] coverage $STRAND"
+    #        bedtools coverage -d $STRAND $A $1 -b $FEATURE_REGIONS | head -n 2
+
+    
+            EXPREG=$(bedtools coverage $STRAND $A $1 -b $FEATURE_REGIONS | gawk -v v=$VAL '{if ($v!=0) {print $0}}' | wc -l)  # non-zero covered features
+            # non-zero covered features
+            cat /dev/null > $OUTDIR/$name.bed
+            if [[ $EXPREG != 0 ]]; then
+                echo "[NOTE] nonzero FEATURE_REGIONS $EXPREG"
+                if [ -n "$BIN" ]; then
+
+                    bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_upstream | \
+                        gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' | \
+                        gawk -v bin=$BIN  'BEGIN{OFS="\t";sum=0;len=1} \
+                        {if ($1%bin==0){if(len==bin){print $1,sum/len,$3}; sum=0;len=1} \
+                        else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed_upstream
+
+                    bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_center | \
+                       gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $3-$2,$i,$v,$s}' | \
+                       gawk -v bins=$CENTERBINS 'BEGIN{OFS="\t";sum=0;len=0;bin=1;lastbin=1;} \
+                           {binsize=$1/bins;  \
+                           if($2 == $1){
+                               len=len+1; \
+                               sum=sum+$3; \
+                               while(len>0 && lastbin <= bins){print lastbin,sum/len,$4; lastbin++;}; \
+                               bin=1; \
+                               lastbin=1; \
+                               len=0; \
+                               sum=0; \
+                           } else if ($2/binsize > bin){ \
+                               while(len>0 && lastbin < int($2/binsize)){print lastbin,sum/len,$4; lastbin++;}; \
+                               bin=int($2/binsize); \
+                               len=1; \
+                               sum=$3; \
+                           } else { \
+                               len=len+1; \
+                               sum=sum+$3; \
+                           } \
+                       }' > $OUTDIR/$name.bed_center
+
+                    bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_downstream | \
+                        gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' | \
+                        gawk -v bin=$BIN -v upstream=$UPSTREAM -v center=$CENTERBINS \
+                        'BEGIN{OFS="\t";sum=0;len=1;} \
+                        {if ($1%bin==0){if(len==bin){print $1,sum/len,$3}; sum=0;len=1} \
+                        else{if($1<len){sum=0;len=1};sum=sum+$2;len=len+1}}' > $OUTDIR/$name.bed_downstream
+
+                else
+                
+                    bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_upstream | \
+                        gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $i,$v,$s}' > $OUTDIR/$name.bed_upstream 
+
+                    bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_center | \
+                       gawk -v i=$IND -v v=$VAL -v s=$STR '{OFS="\t";print $3-$2,$i,$v,$s}' | \
+                       gawk -v bins=$CENTERBINS 'BEGIN{OFS="\t";sum=0;len=0;bin=1;lastbin=1;} \
+                           {binsize=$1/bins;  \
+                           if($2 == $1){
+                               len=len+1; \
+                               sum=sum+$3; \
+                               while(len>0 && lastbin <= bins){print lastbin,sum/len,$4; lastbin++;}; \
+                               bin=1; \
+                               lastbin=1; \
+                               len=0; \
+                               sum=0; \
+                           } else if ($2/binsize > bin){ \
+                               while(len>0 && lastbin < int($2/binsize)){print lastbin,sum/len,$4; lastbin++;}; \
+                               bin=int($2/binsize); \
+                               len=1; \
+                               sum=$3; \
+                           } else { \
+                               len=len+1; \
+                               sum=sum+$3; \
+                           } \
+                       }' > $OUTDIR/$name.bed_center
+
+                    bedtools coverage $STRAND -d $A $1 -b ${FEATURE_REGIONS}_downstream | \
+                        gawk -v i=$IND -v v=$VAL -v s=$STR -v upstream=$UPSTREAM -v center=$CENTERBINS \
+                        '{OFS="\t";print $i,$v,$s}' > $OUTDIR/$name.bed_downstream
+
+                fi
+        
+    #            head $OUTDIR/$name.bed
+    
+                echo "[NOTE] process file"
+                RUNCOMMAND="python ${NGSANE_BASE}/tools/coverageAtFeature.py -f $OUTDIR/$name.bed -C $F $PYBIN -u $UPSTREAM -d $DOWNSTREAM -c $CENTERBINS -l $FEATURE_LENGTH -n $mark -o $OUTDIR/$name $IGNOREUNCOVERED $REMOVEOUTLIER $TOTALREADS --metric $METRIC"
+                echo $RUNCOMMAND && eval $RUNCOMMAND
+
+            else
+                echo "[NOTE] no regions overlap features"
+                touch $OUTDIR/$name.txt $OUTDIR/$name.bed;
+            fi
+#            [ -f $OUTDIR/$name.bed ] && rm $OUTDIR/$name.bed
+        done
+    }
+    export -f get_coverage_onesided
+    export -f get_coverage_twosided
+    
+    if hash parallel ; then
+        if [[ -z "$FEATURE_END" || -z "$FEATURE_START" ]];then    
+            echo "[NOTE] one-sided coverage"
+            parallel --gnu -env get_coverage_onesided ::: $FILES
+        else
+            echo "[NOTE] two-sided coverage"
+            parallel --gnu -env get_coverage_twosided ::: $FILES
+        fi
+    else
+        if [[ -z "$FEATURE_END" || -z "$FEATURE_START" ]];then    
+            echo "[NOTE] one-sided coverage"
+            for i in $FILES; do get_coverage_onesided $i; done
+        else
+            echo "[NOTE] two-sided coverage"
+             for i in $FILES; do get_coverage_twosided $i; done
+        fi
+    fi
+    
     echo "[NOTE] Files $FILES"
-    parallel --gnu -env get_coverage ::: $FILES
-    #for i in $FILES; do get_coverage $i; done
 
 	# mark checkpoint
-    if [ -f $(echo $RESULTFILES | cut -d " " -f 1) ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $RESULTFILES
     
-    rm ${RESULTFILES//.txt/.bed}
+#    rm ${RESULTFILES//.txt/.bed}
 fi
-
-
 ################################################################################
-CHECKPOINT="summarize"
+NGSANE_CHECKPOINT_INIT "summarize"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    JOINED=$OUTDIR/"joined-"$UPSTREAM"+"$DOWNSTREAM"_"$METRIC${STRAND/-/_}
+    JOINED="$OUTDIR/${EXPERIMENTNAME}_joined${STRAND/-/_}"
     echo "[NOTE] plot $JOINED.pdf"
     head -n 1 $(echo $RESULTFILES | cut -d " " -f 1) > $JOINED.txt
     cat $RESULTFILES | grep -v "x" >> $JOINED.txt
-    python ${NGSANE_BASE}/tools/coverageAtFeature.py -o $JOINED $PYBIN -u $UPSTREAM -d $DOWNSTREAM -l $LENGTH -g "TSS" -i $JOINED --metric $METRIC
+    
+    if [[ -z "$FEATURELABEL" ]]; then
+        if [[ -z "$FEATURE_END" ]];then    
+            FEATURELABEL="Feature start"
+        elif [[ -z "$FEATURE_START" ]];then  
+            FEATURELABEL="Feature end"
+        else 
+            FEATURELABEL="Feature"
+        fi
+    fi
+        
+    if [[ -n "$FEATURE_END"  && -n "$FEATURE_END" ]]; then
+        python ${NGSANE_BASE}/tools/coverageAtFeature.py -o $JOINED $PYBIN -u $UPSTREAM -c $CENTERBINS -d $DOWNSTREAM -g "$FEATURELABEL" -i $JOINED --metric $METRIC
+    else
+        python ${NGSANE_BASE}/tools/coverageAtFeature.py -o $JOINED $PYBIN -u $UPSTREAM -d $DOWNSTREAM -g "$FEATURELABEL" -i $JOINED --metric $METRIC
+    fi
+        
     Rscript $JOINED.R
     convert $JOINED.pdf $JOINED.png
     
     ls $JOINED.png
 
 	# mark checkpoint
-    if [ -f $JOINED.pdf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $JOINED.pdf 
     
     rm $RESULTFILES
 
 fi
+################################################################################
+NGSANE_CHECKPOINT_INIT "cleanup"
 
+rm ${RESULTFILES} 2> /dev/null
+[ -d $OUTDIR/$FEATURENAME/ ] && rm -r $OUTDIR/$FEATURENAME
+
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 #[ -e $f.merg.anno.bed.dummy ] && rm $f.merg.anno.bed.dummy
 echo ">>>>> Coverage at genomic regions - FINISHED"

@@ -9,14 +9,8 @@ doc/publications/appNote/ngsane.bib.bak
 
 *.orig
 
-doc/publications/BigData2014/BigData2014.Data/Trash/Trash.Data/rdb/csort.MYD
+conf/header.sh
+*~
 
-*.MYI
-
-*.frm
-
-*.opt
-
-*.MYD
-
-doc/publications/BigData2014/BigData2014.Data/Trash/Trash.enl
+*.Rhistory
+smokebox/*

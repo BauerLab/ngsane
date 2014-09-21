@@ -1,0 +1,26 @@
+#!/bin/bash -e
+
+################################################################################
+#  Gene expression analysis pipeline with tophat + cufflinks + htseqcount
+################################################################################       
+
+if [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
+
+	# check that if runnow has been altered this is done for all successor jobs of tophat
+	if [ -e $QOUT/$TASK_TOPHAT/runnow.tmp ]; then
+		echo "[NOTE] checking runnow.tmp"
+		LENGTHT=$(wc -l $QOUT/$TASK_TOPHAT/runnow.tmp | cut -d " " -f 1)
+		LENGTHC=$(wc -l $QOUT/$TASK_CUFFLINKS/runnow.tmp | cut -d " " -f 1)
+		LENGTHH=$(wc -l $QOUT/$TASK_HTSEQCOUNT/runnow.tmp | cut -d " " -f 1)
+		if [[ $LENGTHT != $LENGTHC ]] || [[ $LENGTHT != $LENGTHH ]]; then 
+			echo "[ERROR] runnow.tmp files of tophat has different length to its successor jobs ($LENGTHT, $LENGTHC, $LENGTHH)"; exit -1; 
+		fi
+	fi
+    
+    JOBIDS_TOPHAT=$(NGSANE_PIPELINE_MOD "TOPHAT")
+    
+    JOBIDS_HTSEQCOUNT=$(NGSANE_PIPELINE_MOD "HTSEQCOUNT" "$JOBIDS_TOPHAT")
+    
+    JOBIDS_CUFFLINKS=$(NGSANE_PIPELINE_MOD "CUFFLINKS" "$JOBIDS_TOPHAT")
+
+fi

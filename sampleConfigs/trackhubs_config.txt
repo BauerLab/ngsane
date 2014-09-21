@@ -1,0 +1,92 @@
+# author: Fabian Buske
+# date: Mar 2014
+# compatible: NGSANE v0.5.x
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks 
+#********************
+
+# list of task to put into report
+# e.g. RUNMACS2="1"   
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+# read indicator immediately preceding the fastq file suffix
+READONE=
+READTWO=
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# UCSC genome assembly 
+# e.g. UCSC_GENOMEASSEMBLY="hg19"
+UCSC_GENOMEASSEMBLY=
+
+# where to put the trackhubs
+TRACKHUB_DIR="trackhubs"
+
+# name of the hub
+# e.g. TRACKHUB_NAME ="prostate"
+TRACKHUB_NAME=
+
+# track name pattern extracted from file names using sed reg. expression (sed -n)
+# e.g. TRACKHUB_NAMEPATTERN="\(.*\)" for full name (keeping everything between escaped brackets
+# e.g. TRACKHUB_NAMEPATTERN="[^_]*_\([^_]*_[^_]*\)_.*" on USC123_LNCaP_H2AZ_C to extract LNCaP_H2AZ 
+TRACKHUB_NAMEPATTERN="\(.*\)"
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# the contact to whom questions regarding the track hub should be directed
+TRACKHUB_EMAIL=
+
+# visibility settings for signal, peak, read and variant tracks
+# default is "hide"
+TRACKHUB_READ=
+TRACKHUB_SIGNAL="pack"
+TRACKHUB_PEAK="squish"
+TRACKHUB_VARIANT=
+
+# default view limits
+TRACKHUB_VIEWLIMITS="0:3"
+TRACKHUB_MAXHEIGHTPIXELS="32:22:11"
+
+# define as many trackhub colors as needed one per line (order matters)
+# TRACKHUB_COLOR <pattern> <rbg color> 
+# e.g. TRACKHUB_COLOR H2AZ 123,234,213
+<<TRACKHUB_COLORS
+TRACKHUB_COLOR H3K9K14ac 123,135,194
+TRACKHUB_COLOR H3K4me3 129,140,67
+TRACKHUB_COLOR H2AZ 230,178,34
+TRACKHUB_COLOR H2AZac 248,173,124
+TRACKHUB_COLOR H3K27ac 174,212,119
+TRACKHUB_COLOR H3K9me3 91,196,143
+TRACKHUB_COLOR H3K4me1 153,52,4
+TRACKHUB_COLOR H3K27me3 227,159,198
+TRACKHUB_COLOR MBD2 37,52,148
+TRACKHUB_COLOR CTCF 255,214,79
+TRACKHUB_COLOR p300 227,76,148
+TRACKHUB_COLOR lamin 0,174,149
+TRACKHUB_COLOR Rad21 215,125,42
+TRACKHUB_COLOR RNApolIIp 128,130,133
+TRACKHUB_COLOR EZH2 138,170,217a
+TRACKHUB_COLORS

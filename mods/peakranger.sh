@@ -7,7 +7,7 @@
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>-${CHIPINPUT##*/} | sed "s/.$ASD.bam/"_region.bed"/"
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>_region.bed
 
 echo ">>>>> ChIPseq analysis with Peakranger"
 echo ">>>>> startdate "`date`
@@ -29,7 +29,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --bam )            shift; f=$1 ;; # bam file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir 
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -42,12 +42,12 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
-for MODULE in $MODULE_PEAKRANGER; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_PEAKRANGER; do module load $MODULE; done && module list 
 
 export PATH=$PATH_PEAKRANGER:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -62,9 +62,9 @@ echo -e "--bedtools --\n "$(bedtools --version)
 echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
 [ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress bedgraphs"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
     echo "[ERROR] input control not provided or invalid (CHIPINPUT=\"$CHIPINPUT\")"
@@ -72,11 +72,11 @@ if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
 fi
 
 # get basename of f
-f=${f/%.dummy/} #if input came from pip
+f=${f/%.dummy/}
 n=${f##*/}
-SAMPLE=${n/%.$ASD.bam/}
+SAMPLE=${n/%$ASD.bam/}
 c=${CHIPINPUT##*/}
-CONTROL=${c/%.$ASD.bam/}
+CONTROL=${c/%$ASD.bam/}
 
 GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
 if [ ! -f $GENOME_CHROMSIZES ]; then
@@ -85,8 +85,8 @@ else
     echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
 fi
 
-if [ -z "$RECOVERFROM" ]; then
-    [ -e $OUTDIR/$SAMPLE-$CONTROL"_region.bed" ] && rm $OUTDIR/$SAMPLE-$CONTROL*
+if [ -z "$NGSANE_RECOVERFROM" ]; then
+    [ -e $OUTDIR/${SAMPLE}_region.bed ] && rm $OUTDIR/$SAMPLE*
 fi
 
 if [ "$PEAKRANGER_PEAKS" != "broad" ] && [ "$PEAKRANGER_PEAKS" != "sharp" ]; then
@@ -94,82 +94,78 @@ if [ "$PEAKRANGER_PEAKS" != "broad" ] && [ "$PEAKRANGER_PEAKS" != "sharp" ]; the
     exit 1
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f}
 	dmget -a $OUTDIR/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="assess data quality"
+NGSANE_CHECKPOINT_INIT "assess data quality"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
-    [ -f $OUTDIR/$SAMPLE-$CONTROL.summary.txt ] && rm $OUTDIR/$SAMPLE-$CONTROL.summary.txt
+    [ -f $OUTDIR/$SAMPLE.summary.txt ] && rm $OUTDIR/$SAMPLE.summary.txt
     
-    echo "[NOTE] data quality"
-    RUN_COMMAND="peakranger nr --format bam --data $f --control $CHIPINPUT > $OUTDIR/$SAMPLE-$CONTROL.summary.txt"
+    RUN_COMMAND="peakranger nr --format bam --data $f --control $CHIPINPUT | tr ':' '\t' > $OUTDIR/$SAMPLE.summary.txt"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    echo "[NOTE] library complexity"
-    RUN_COMMAND="peakranger lc --data $f >> $OUTDIR/$SAMPLE-$CONTROL.summary.txt"
+    RUN_COMMAND="peakranger lc --data $f | tr ':' '\t' >> $OUTDIR/$SAMPLE.summary.txt"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE-$CONTROL.summary.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.summary.txt
 
 fi
 ################################################################################
-CHECKPOINT="peakranger"
+NGSANE_CHECKPOINT_INIT "peakranger"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
-    
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
     if [ "$PEAKRANGER_PEAKS" == "broad" ]; then
         echo "[NOTE] calling broad peaks"
-        RUN_COMMAND="peakranger ccat $PEAKRANGERADDPARAM --format bam --data $f --control $CHIPINPUT --output $OUTDIR/$SAMPLE-$CONTROL -t $CPU_PEAKRANGER"
+        RUN_COMMAND="peakranger ccat $PEAKRANGERADDPARAM --format bam --data $f --control $CHIPINPUT --output $OUTDIR/$SAMPLE -t $CPU_PEAKRANGER"
 
     elif [ "$PEAKRANGER_PEAKS" == "sharp" ]; then
         echo "[NOTE] calling tight peaks"
-        RUN_COMMAND="peakranger ranger $PEAKRANGERADDPARAM --format bam --data $f --control $CHIPINPUT --output $OUTDIR/$SAMPLE-$CONTROL -t $CPU_PEAKRANGER"
+        RUN_COMMAND="peakranger ranger $PEAKRANGERADDPARAM --format bam --data $f --control $CHIPINPUT --output $OUTDIR/$SAMPLE -t $CPU_PEAKRANGER"
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    # keep only peaks that pass the FDR
-    awk '{if($0~"fdrPassed"){print $0}}' $OUTDIR/$SAMPLE-$CONTROL"_region.bed" > $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
-    mv $OUTDIR/$SAMPLE-$CONTROL"_region.tmp" $OUTDIR/$SAMPLE-$CONTROL"_region.bed"
+    # keep only peaks that pass the FDR and merge overlapping peaks keeping the smallest score
+    awk '{if($0~"fdrPassed"){print $0}}' $OUTDIR/${SAMPLE}_region.bed | bedtools sort | bedtools merge -scores min -i stdin > $OUTDIR/${SAMPLE}_region.tmp
+    mv $OUTDIR/${SAMPLE}_region.tmp $OUTDIR/${SAMPLE}_region.bed
 
-    awk '{if($0~"fdrPassed"){print $0}}' $OUTDIR/$SAMPLE-$CONTROL"_summit.bed" > $OUTDIR/$SAMPLE-$CONTROL"_summit.tmp"
-    mv $OUTDIR/$SAMPLE-$CONTROL"_summit.tmp" $OUTDIR/$SAMPLE-$CONTROL"_summit.bed"
+    awk '{if($0~"fdrPassed"){print $0}}' $OUTDIR/$SAMPLE"_summit.bed" | bedtools sort | bedtools merge -scores min -i stdin > $OUTDIR/$SAMPLE"_summit.tmp"
+    mv $OUTDIR/$SAMPLE"_summit.tmp" $OUTDIR/$SAMPLE"_summit.bed"
     
-    echo "Peaks: $(wc -l $OUTDIR/$SAMPLE-$CONTROL"_region.bed" | awk '{print $1}')" >> $OUTDIR/$SAMPLE-$CONTROL.summary.txt
+    echo "Peaks: $(wc -l $OUTDIR/${SAMPLE}_region.bed | awk '{print $1}')" >> $OUTDIR/$SAMPLE.summary.txt
+    echo "Nucleotides covered: $(awk '{sum+=$3-$2}END{print sum}' $OUTDIR/${SAMPLE}_region.bed)" >> $OUTDIR/$SAMPLE.summary.txt
+    echo "ChIP input: $CONTROL" >> $OUTDIR/$SAMPLE.summary.txt
 
     # make bigbed
-	if hash bedToBigBed && [ -f $GENOME_CHROMSIZES ] && [ -s $OUTDIR/$SAMPLE-$CONTROL"_region.bed" ] ; then
-        bedtools intersect -a <(cut -f1-3 $OUTDIR/$SAMPLE-$CONTROL"_region.bed" | sort -k1,1 -k2,2n) -b <( awk '{OFS="\t"; print $1,1,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
-        bedToBigBed -type=bed3 $OUTDIR/$SAMPLE-$CONTROL"_region.tmp" $GENOME_CHROMSIZES $OUTDIR/$SAMPLE-$CONTROL"_region.bb"
-        rm $OUTDIR/$SAMPLE-$CONTROL"_region.tmp"
+	if hash bedToBigBed && [ -f $GENOME_CHROMSIZES ] && [ -s $OUTDIR/${SAMPLE}_region.bed ] ; then
+        bedtools intersect -a $OUTDIR/${SAMPLE}_region.bed -b <( awk '{OFS="\t"; print $1,1,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/${SAMPLE}_region.tmp
+        bedToBigBed -type=bed4 $OUTDIR/${SAMPLE}_region.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bb
+        rm $OUTDIR/${SAMPLE}_region.tmp
     fi
     
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE-$CONTROL"_region.bed" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_region.bed
 
 fi
 
 ################################################################################
-CHECKPOINT="zip"
+NGSANE_CHECKPOINT_INIT "zip"
 
-$GZIP -f $OUTDIR/$SAMPLE-$CONTROL"_details"
+$GZIP -f $OUTDIR/$SAMPLE"_details"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-[ -e $OUTDIR/$SAMPLE-$CONTROL"_region.bed".dummy ] && rm $OUTDIR/$SAMPLE-$CONTROL"_region.bed".dummy
+[ -e $OUTDIR/$SAMPLE"_region.bed.dummy" ] && rm $OUTDIR/$SAMPLE"_region.bed.dummy"
 echo ">>>>> ChIPseq analysis with Peakranger - FINISHED"
 echo ">>>>> enddate "`date`

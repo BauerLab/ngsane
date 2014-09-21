@@ -3,7 +3,7 @@
 # http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/
 TASK_FASTQSCREEN="fastqscreen"
 WALLTIME_FASTQSCREEN=48:00:00
-MEMORY_FASTQSCREEN=60
+MEMORY_FASTQSCREEN=32
 CPU_FASTQSCREEN=8
 NODES_FASTQSCREEN="nodes=1:ppn=8"
 INPUT_FASTQSCREEN="fastq"

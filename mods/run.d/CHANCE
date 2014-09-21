@@ -1,0 +1,48 @@
+#!/bin/bash -e
+
+################################################################################
+#  ChIP-seq QC with CHANCE
+#
+# IN: $SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/chance/
+################################################################################
+if [ -n "$RUNCHANCE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_CHANCE" ] || [ -z "$NODES_CHANCE" ] || [ -z "$CPU_CHANCE" ] || [ -z "$MEMORY_CHANCE" ] || [ -z "$WALLTIME_CHANCE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_CHANCE -i $INPUT_CHANCE -e $ASD.bam \
+            -n $NODES_CHANCE -c $CPU_CHANCE -m $MEMORY_CHANCE"G" -w $WALLTIME_CHANCE \
+            --command "${NGSANE_BASE}/mods/chance.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CHANCE"
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Chance" "$TASK_CHANCE" "chance.sh"
+
+        NGSANE_REPORT_TABLE "$TASK_CHANCE"      \
+            "-" \
+            "$OUT/<DIR>/$TASK_CHANCE" \
+            ".IPstrength" \
+            "PATTERN:Cumulative % enrichment::fgrep 'percent_genome_enriched' | head -n 1 | cut -d',' -f 2" \
+            "PATTERN:Input scaling factor::fgrep 'input_scaling_factor,' | head -n 1 | cut -d',' -f 2" \
+            "PATTERN:Diff. Enrichment::fgrep 'differential_percentage_enrichment,' | head -n 1 | cut -d',' -f 2" \
+            "PATTERN:FDR overall::fgrep 'fdr,' | head -n 1 | cut -d',' -f 2" \
+            "PATTERN:FDR TF normal::fgrep 'tfbs_normal_fdr,' | head -n 1 | cut -d',' -f 2" \
+            "PATTERN:FDR Histone normal::fgrep 'histone_normal_fdr,' | head -n 1 | cut -d',' -f 2" \
+            "PATTERN:FDR TF cancer::fgrep 'tfbs_cancer_fdr,' | head -n 1 | cut -d',' -f 2" \
+            "PATTERN:FDR Histone cancer::fgrep 'histone_cancer_fdr,' | head -n 1 | cut -d',' -f 2" \
+            "FIGURE::60:<SAMPLE>.png:60:1" \
+
+        NGSANE_REPORT_FOOTER  
+  
+    fi
+fi	
+
+	

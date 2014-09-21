@@ -1,5 +1,6 @@
 # author: Fabian Buske
 # date: September 2013
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources
@@ -9,7 +10,7 @@
 # Tasks
 #********************
 
-RUNANNOTATINGBAM="1"     # bam annotation
+RUNBAMANN="1"     # bam annotation
 
 #********************
 # Paths

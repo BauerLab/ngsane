@@ -19,12 +19,12 @@ echo "[NOTE] run in $SB_MODE mode $(date)"
 # modify the template config file to flip the RUNBWA switch
 # specify the resulting html file
 echo "[NOTE] Prep and run config file tmp/configBWA.txt"
-cat bin/tmpl/configVarCall.txt | sed 's/RUNMAPPINGBWA=\"\"/RUNMAPPINGBWA=\"1\"/g' | \
+cat bin/tmpl/configVarCall.txt | sed 's/RUNBWA=\"\"/RUNBWA=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBWA\"/g' > tmp/configBWA.txt
 
 # submit the BWA run to the cluster
 JOBIDSBWA=$( trigger.sh tmp/configBWA.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] sumitted jobs $(echo -n $JOBIDSBWA)"
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSBWA)"
 
 ################################################################################
 #  BAMANN
@@ -33,61 +33,61 @@ echo "[NOTE] sumitted jobs $(echo -n $JOBIDSBWA)"
 # modify the template config file to flip the BAMANN switch
 # specify the resulting html file
 echo "[NOTE] Prep and run config file tmp/configBAMANN.txt"
-cat bin/tmpl/configVarCall.txt | sed 's/RUNANNOTATINGBAM=\"\"/RUNANNOTATINGBAM=\"1\"/g' | \
+cat bin/tmpl/configVarCall.txt | sed 's/RUNBAMANN=\"\"/RUNBAMANN=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryBAMANN\"/g' > tmp/configBAMANN.txt
 echo QSUBEXTRA='$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBWA//:/$QUEUEWAITSEP}\"" >>tmp/configBAMANN.txt
 
 # submit the BAMANN run to the cluster
 JOBIDSBAMANN=$( trigger.sh tmp/configBAMANN.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] sumitted jobs $(echo -n $JOBIDSBAMANN)"
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSBAMANN)"
 
 
 ################################################################################
-#  RECAL
+#  RECALALN
 ################################################################################
 
-# modify the template config file to flip the RUNRECAL switch
+# modify the template config file to flip the RUNRECALALN switch
 # specify the resulting html file
-echo "[NOTE] Prep and run config file tmp/configRECAL.txt"
-cat bin/tmpl/configVarCall.txt | sed 's/RUNREALRECAL=\"\"/RUNREALRECAL=\"1\"/g' | \
-    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryRECAL\"/g' > tmp/configRECAL.txt
-echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBWA//:/$QUEUEWAITSEP}\"" >>tmp/configRECAL.txt
+echo "[NOTE] Prep and run config file tmp/configRECALALN.txt"
+cat bin/tmpl/configVarCall.txt | sed 's/RUNRECALALN=\"\"/RUNRECALALN=\"1\"/g' | \
+    sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryRECALALN\"/g' > tmp/configRECALALN.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSBWA//:/$QUEUEWAITSEP}\"" >>tmp/configRECALALN.txt
 
-# submit the RECAL run to the cluster
-JOBIDSRECAL=$( trigger.sh tmp/configRECAL.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] sumitted jobs $(echo -n $JOBIDSRECAL)"
+# submit the RECALALN run to the cluster
+JOBIDSRECALALN=$( trigger.sh tmp/configRECALALN.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSRECALALN)"
 
 
 ################################################################################
 #  VARCALL
 ################################################################################
 
-# modify the template config file to flip the RUNVARCALLS switch
+# modify the template config file to flip the RUNGATKVAR switch
 # specify the resulting html file
 echo "[NOTE] Prep and run config file tmp/configVARCALLS.txt"
-cat bin/tmpl/configVarCall.txt | sed 's/RUNVARCALLS=\"\"/RUNVARCALLS=\"1\"/g' | \
+cat bin/tmpl/configVarCall.txt | sed 's/RUNGATKVAR=\"\"/RUNGATKVAR=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryVARCALLS\"/g' > tmp/configVARCALLS.txt
-echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSRECAL//:/$QUEUEWAITSEP}\"" >>tmp/configVARCALLS.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSRECALALN//:/$QUEUEWAITSEP}\"" >>tmp/configVARCALLS.txt
 
 # submit the VARCALLS run to the cluster
 JOBIDSVARCALL=$( trigger.sh tmp/configVARCALLS.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] sumitted jobs $(echo -n $JOBIDSVARCALL)"
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSVARCALL)"
 
 
 ################################################################################
 #  PINDEL
 ################################################################################
 
-# modify the template config file to flip the RUNVARCALLS switch
+# modify the template config file to flip the RUNPINDEL switch
 # specify the resulting html file
 echo "[NOTE] Prep and run config file tmp/configPINDEL.txt"
 cat bin/tmpl/configVarCall.txt | sed 's/RUNPINDEL=\"\"/RUNPINDEL=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryPINDEL\"/g' > tmp/configPINDEL.txt
-echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSRECAL//:/$QUEUEWAITSEP}\"" >>tmp/configPINDEL.txt
+echo 'QSUBEXTRA=$QSUBEXTRA'"\" $QUEUEWAIT${JOBIDSRECALALN//:/$QUEUEWAITSEP}\"" >>tmp/configPINDEL.txt
 
 # submit the VARCALLS run to the cluster
 JOBIDSPINDEL=$( trigger.sh tmp/configPINDEL.txt $SB_MODE | grep "Jobnumber" | cut -d " " -f 2 | tr '\n' ':' | sed 's/:$//g' )
-echo "[NOTE] sumitted jobs $(echo -n $JOBIDSPINDEL)"
+echo "[NOTE] submitted jobs $(echo -n $JOBIDSPINDEL)"
 
 
 
@@ -100,12 +100,12 @@ JOBIDS="$JOBIDSBAMANN:$JOBIDSVARCALL:$JOBIDSPINDEL" #other things
 QUEUEWAIT=${QUEUEWAIT/afterok/afterany}
 
 HOLDID=" "$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
-cat bin/tmpl/configVarCall.txt | sed 's/RUNVARCALLS=\"\"/RUNVARCALLS=\"1\"/g' | \
+cat bin/tmpl/configVarCall.txt | sed 's/RUNGATKVAR=\"\"/RUNGATKVAR=\"1\"/g' | \
     sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryVARCALLS\"/g' | \
-    sed 's/RUNMAPPINGBWA=\"\"/RUNMAPPINGBWA=\"1\"/g' | \
-	sed 's/RUNANNOTATINGBAM=\"\"/RUNANNOTATINGBAM=\"1\"/g' | \
-	sed 's/RUNPINDEL=\"\"/RUNPINDEL=\"1\"/g' | \
-    sed 's/RUNREALRECAL=\"\"/RUNREALRECAL=\"1\"/g' > tmp/configVARCALLS.txt
+    sed 's/RUNBWA=\"\"/RUNBWA=\"1\"/g' | \
+    sed 's/RUNBAMANN=\"\"/RUNBAMANN=\"1\"/g' | \
+    sed 's/RUNPINDEL=\"\"/RUNPINDEL=\"1\"/g' | \
+    sed 's/RUNRECALALN=\"\"/RUNRECALALN=\"1\"/g' > tmp/configVARCALLS.txt
 
 # Prep and runare the job to generate the html result page and perform the diff 
 echo "[NOTE] Prep and runare evaluation script tmp/testVARCALLS.qsub wait for $HOLDID"

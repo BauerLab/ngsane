@@ -31,7 +31,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --bam )            shift; f=$1 ;; # bam file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir 
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -44,12 +44,12 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
-for MODULE in $MODULE_MACS2; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_MACS2; do module load $MODULE; done && module list 
 
 export PATH=$PATH_MACS2:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -64,16 +64,15 @@ echo -e "--convert     --\n "$(convert -version | head -n 1)
 echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
 [ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress bedgraphs"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
-f=${f/%.dummy/} #if input came from pip
 n=${f##*/}
-SAMPLE=${n/%.$ASD.bam/}
+SAMPLE=${n/%$ASD.bam/}
 c=${CHIPINPUT##*/}
-CONTROL=${c/%.$ASD.bam/}
+CONTROL=${c/%$ASD.bam/}
 
 if [ -z "$FASTA" ] || [ ! -f $FASTA ]; then
     echo "[ERROR] no reference provided (FASTA)"
@@ -88,17 +87,12 @@ if [ ! -f $GENOME_CHROMSIZES ]; then
     exit 1
 else
     echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
-
 fi
-# set default method to ppois unless specified
-if [ -z "$MACS2_BDGCMP_METHOD" ]; then
-    echo "[NOTE] no method provided for MACS2_BDGCMP_METHOD, defaulting to ppois"
-    MACS2_BDGCMP_METHOD="ppois"
-fi
+cd $OUTDIR  
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $(dirname $FASTA)/*
@@ -107,137 +101,98 @@ if [ -n "$DMGET" ]; then
 	[ -n "$CHIPINPUT" ] && dmget -a $CHIPINPUT
 fi
 
-if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
-    echo "[WARN] input control not provided or invalid (CHIPINPUT)"
+if [[ -z "$CHIPINPUT" || ! -f $CHIPINPUT ]]; then
+    echo "[WARN] input control not provided or invalid ($CHIPINPUT)"
     unset CHIPINPUT
 else
 	echo "[NOTE] CHIPINPUT $CHIPINPUT"
-    CHIPINPUT="--control $SOURCE/$CHIPINPUT"
+    CHIPINPUT="--control $CHIPINPUT"
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="macs 2 - call peaks "
+NGSANE_CHECKPOINT_INIT "macs 2 - predictd "
 
-cd $OUTDIR
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
-
-    if [ -n "$MACS2_MAKEBIGBEDS" ]; then
-        MAKEBEDGRAPH="--bdg "
-    fi
-    
-    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED $MAKEBEDGRAPH --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name $SAMPLE > $SAMPLE.summary.txt 2>&1"    
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-
-    if [ -f $SAMPLE"_"model.r ];then 
-        Rscript $SAMPLE"_"model.r
-        if hash convert; then 
-            convert -format png $SAMPLE"_"model.pdf $SAMPLE"_"model.png
-        fi
-    fi
-    
-    # mark checkpoint
-    if [ -f $SAMPLE"_"peaks.xls ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-fi
-################################################################################
-CHECKPOINT="macs 2 - check fragment length "
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
-
-    if [ "$(awk '{if ($0 ~ "#2 predicted fragment length is "){print $0}}' Kidney1_Input.summary.txt) | wc -l " -gt 0 ]; then
-        echo "[NOTE] Sample has negative fragment length, adjusting shiftsize with alternatives if available"
-
-        [ -f $SAMPLE"_"peaks.xls ] && rm $SAMPLE"_"peaks.xls
-    
-        if [ "$(grep '#2 alternative fragment length(s) may be' $SAMPLE.summary.txt | egrep -o '(-[0-9]{2,4},[0-9]{2,4})' | cut -d ',' -f 2)" -gt 0 ]; then
-            SHIFTSIZE="--shiftsize $(grep '#2 alternative fragment length(s) may be' $SAMPLE.summary.txt | egrep -o '(-[0-9]{2,4},[0-9]{2,4})' | cut -d ',' -f 2)"           
-        fi
-        
-        RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM $MACS2_MAKEBIGBED $MAKEBEDGRAPH --nomodel $SHIFTSIZE --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name $SAMPLE > $SAMPLE.summary.txt 2>&1"    
-        echo $RUN_COMMAND && eval $RUN_COMMAND
-
-    fi
-    
-    # mark checkpoint
-    if [ -f $SAMPLE"_"peaks.xls ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-fi
-################################################################################
-CHECKPOINT="macs 2 - convert bedgraph to bigbed"
-
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
-    
-    if [ -z "$MACS2_MAKEBIGBEDS" ]; then
-        echo -e "[NOTE] skipping bigbed generation"
-        echo -e "\n********* $CHECKPOINT\n"
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+ 
+    if [ -n "$MACS2_FRAGMENTSIZE" ]; then
+        echo "[NOTE] Skip modeling"
+        cat /dev/null > $SAMPLE.summary.txt
+        # mark checkpoint
+        NGSANE_CHECKPOINT_CHECK
         
     else
-        if [ -n "$CHIPINPUT" ]; then
     
-            RUN_COMMAND="macs2 bdgcmp $MACS2_BDGCMP_ADDPARAM --method $MACS2_BDGCMP_METHOD --tfile $SAMPLE"_"treat_pileup.bdg --cfile $SAMPLE"_"control_lambda.bdg --output $SAMPLE >> $SAMPLE.summary.txt 2>&1"
-            echo $RUN_COMMAND && eval $RUN_COMMAND
-    
-        	if hash bedToBigBed ; then 
-                bedToBigBed -type=bed4 $SAMPLE"_"treat_pileup.bdg $GENOME_CHROMSIZES $SAMPLE"_"treat_pileup.bb
-                bedToBigBed -type=bed4 ${n/.$ASD.bam/"_"$MACS2_BDGCMP_METHOD.bdg} $GENOME_CHROMSIZES ${n/.$ASD.bam/"_"$MACS2_BDGCMP_METHOD.bb}
-                # don't create another one for the control in case if already exists
-                if [ ! -f $SAMPLE"_"control_lambda.bb ]; then 
-                    BBTMP=$RANDOM
-                    bedToBigBed -type=bed4 $SAMPLE"_"control_lambda.bdg $GENOME_CHROMSIZES $TMP/$SAMPLE"_"control_lambda.bb$BBTMP
-                    mv $TMP/$SAMPLE"_"control_lambda.bb$BBTMP $SAMPLE"_"control_lambda.bb
-                fi
-            fi
-    
-        else
-        	if hash bedToBigBed ; then 
-                bedToBigBed -type=bed4 $SAMPLE"_"treat_pileup.bdg $GENOME_CHROMSIZES $SAMPLE"_"treat_pileup.bb
-            fi
-        fi
+        RUN_COMMAND="macs2 predictd $MACS2_PREDICTD_ADDPARAM --ifile $f --gsize $MACS2_GENOMESIZE --rfile $SAMPLE.R > $SAMPLE.summary.txt 2>&1"    
+        echo $RUN_COMMAND && eval $RUN_COMMAND
         
-        # mark checkpoint
-        if [ -f $SAMPLE"_"treat_pileup.bb ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
-    fi 
+        Rscript $SAMPLE.R
+        if hash convert; then 
+            convert -format png $SAMPLE.R"_"model.pdf $SAMPLE.R"_"model.png
+        fi
     
-    # cleanup
-    [ -e $SAMPLE"_"treat_pileup.bdg ] && rm $SAMPLE"_"treat_pileup.bdg 
-    [ -e $SAMPLE"_"control_lambda.bdg ] && rm $SAMPLE"_"control_lambda.bdg 
-    [ -e $SAMPLE"_"$MACS2_BDGCMP_METHOD.bdg ] && rm $SAMPLE"_"$MACS2_BDGCMP_METHOD.bdg
+        # mark checkpoint
+        NGSANE_CHECKPOINT_CHECK $SAMPLE.R
 
+    fi    
 fi
 ################################################################################
-CHECKPOINT="macs 2 - refine peaks "
+NGSANE_CHECKPOINT_INIT "macs 2 - call peaks "
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
+
+    if [ -z "$MACS2_FRAGMENTSIZE" ]; then
+        # estimated fragment sizes up to the tagsize are usually artifacts
+        TAGSIZE=$(fgrep '# tag size =' $SAMPLE.summary.txt | cut -d'=' -f 2 | tr -d ' \t\r\f')
+        
+        MACS2_FRAGMENTSIZE=$(grep 'alternative fragment length(s) may be' $SAMPLE.summary.txt | sed 's/.* be //' | cut -d' ' -f 1 | tr ',' '\n' | awk -v t=$TAGSIZE '($1>t){print $1; exit;}')
+        
+        if [[ -z "$MACS2_FRAGMENTSIZE" || $MACS2_FRAGMENTSIZE -le 0 ]]; then
+            echo "[ERROR] could not determine fragments size, please provide the parameter MACS2_FRAGMENTSIZE."
+            exit 1
+        fi
+    fi
+    echo "Determined fragment size: $MACS2_FRAGMENTSIZE" >> $SAMPLE.summary.txt
+    
+    RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM --nomodel --extsize $MACS2_FRAGMENTSIZE --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name $SAMPLE >> $SAMPLE.summary.txt 2>&1"    
+    echo $RUN_COMMAND && eval $RUN_COMMAND
 
     if [[ "$MACS2_CALLPEAK_ADDPARAM" == *--broad* ]]; then
         echo "[NOTE] convert broadpeaks to 6 bed file for refining"
-        cat $SAMPLE"_"peaks.broadPeak | cut -f1-6  > $SAMPLE"_"peaks.bed
+        cat ${SAMPLE}_peaks.broadPeak | awk '{OFS="\t"; print $1,$2,$3,$4,$9,$6}'  > ${SAMPLE}_peaks.bed
     else
         echo "[NOTE] convert narrowpeaks to 6 bed file for refining"
-        cat $SAMPLE"_"peaks.narrowPeak | cut -f1-6 > $SAMPLE"_"peaks.bed
+        cat ${SAMPLE}_peaks.narrowPeak | awk '{OFS="\t"; print $1,$2,$3,$4,$9,$6}' > ${SAMPLE}_peaks.bed
     fi
+    echo "ChIP input: $CONTROL" >> $SAMPLE.summary.txt
+    echo "Nucleotides covered: $(awk '{sum+=$3-$2}END{print sum}' ${SAMPLE}_peaks.bed)" >> $SAMPLE.summary.txt
 
-    RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b $SAMPLE"_"peaks.bed -i $f --o-prefix $SAMPLE  >> $SAMPLE.summary.txt 2>&1"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-    [ -e $SAMPLE"_"peaks.bed ] && rm $SAMPLE"_"peaks.bed    
-
-    echo "Final number of refined peaks: $(wc -l ${SAMPLE}_refinepeak.bed )" >> $SAMPLE.summary.txt
+	if hash bedToBigBed ; then 
+        echo "[NOTE] create bigbed from peaks" 
+        awk '{OFS="\t"; print $1,$2,$3,$5}' ${SAMPLE}_peaks.bed > ${SAMPLE}_peaks.tmp
+        bedToBigBed -type=bed4 ${SAMPLE}_peaks.tmp $GENOME_CHROMSIZES $SAMPLE.bb
+        rm ${SAMPLE}_peaks.tmp
+    fi
  
     # mark checkpoint
-    if [ -f ${SAMPLE}_refinepeak.bed ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK ${SAMPLE}_peaks.bed
 fi
 ################################################################################
-# back to where we came from
-cd $SOURCE
+NGSANE_CHECKPOINT_INIT "macs 2 - refine peaks "
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
+    RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b ${SAMPLE}_peaks.bed -i $f --o-prefix $SAMPLE >> $SAMPLE.summary.txt 2>&1"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+
+    echo "Final number of refined summits: $(wc -l ${SAMPLE}_refinepeak.bed )" >> $SAMPLE.summary.txt
+    
+    # mark checkpoint
+    NGSANE_CHECKPOINT_CHECK ${SAMPLE}_refinepeak.bed
+fi
 ################################################################################
-[ -e $OUTDIR/$SAMPLE"_"refinepeak.bed.dummy ] && rm $OUTDIR/$SAMPLE"_"refinepeak.bed.dummy
+[ -e $OUTDIR/${SAMPLE}_refinepeak.bed.dummy ] && rm $OUTDIR/${SAMPLE}_refinepeak.bed.dummy
 echo ">>>>> ChIPseq analysis with MACS2 - FINISHED"
 echo ">>>>> enddate "`date`
 

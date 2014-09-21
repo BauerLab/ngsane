@@ -31,7 +31,7 @@ while [ "$1" != "" ]; do
 	-k | toolkit )          shift; CONFIG=$1 ;; # ENSURE NO VARIABLE NAMES FROM CONFIG
 	-f | --bam )            shift; f=$1 ;; # fastq file
 	-o | --outdir )         shift; OUTDIR=$1 ;; # output dir
-    --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+    --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
 	-h | --help )           usage ;;
 	* )                     echo "dont understand $1"
 	esac
@@ -43,14 +43,21 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
-for MODULE in $MODULE_HTSEQCOUNT; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_HTSEQCOUNT; do module load $MODULE; done && module list 
+
 export PATH=$PATH_HTSEQCOUNT:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
+[ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
+
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_HTSEQCOUNT*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
@@ -59,33 +66,35 @@ echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--bedtools    --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
+echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar --version 2>&1)
+[ ! -f $PATH_PICARD/FixMateInformation.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--htSeq       --\n "$(htseq-count | tail -n 1)
-[ -z "$(which htseq-count)" ] && [ -n "$GTF" ] && echo "[ERROR] no htseq-count or GTF detected" && exit 1
+[ -z "$(which htseq-count)" ] && echo "[ERROR] no htseq-count" && exit 1
 echo -e "--Python      --\n" $(python --version 2>&1 | tee | head -n 1 )
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
-[  $(hash yolk)  ] && echo -e "--Python libs --\n "$(yolk -l)
+hash module 2>/dev/null && echo -e "--Python libs --\n "$(yolk -l)
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a ${f}*
 	dmget -a $OUTDIR/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 [ ! -f $f ] && echo "[ERROR] input file not found: $f" && exit 1
 
 # get basename of f (samplename)
 n=${f##*/}
-SAMPLE=${n/%.$ASD.bam/}
+SAMPLE=${n/%$ASD.bam/}
 
 #remove old files
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
 fi
 
@@ -110,7 +119,7 @@ fi
 annoF=${GTF##*/}
 anno_version=${annoF%.*}
 
-
+echo "[NOTE] GTF: $anno_version"
 
 # check library info is set
 if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then
@@ -119,7 +128,7 @@ if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then
 else
     echo "[NOTE] RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
-RPKMSSDIR=$OUTDIR/../
+
 
 # run flagstat if no stats available for bam file
 [ ! -e $f.stats ] && samtools flagstat > $f.stats
@@ -157,13 +166,11 @@ THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
 mkdir -p $THISTMP
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="mask GTF"
+NGSANE_CHECKPOINT_INIT "fix mates"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 	if	[[ -n "$HTSEQCOUNT_UNIQUE" ]] ; then
 
@@ -175,119 +182,64 @@ else
     	samtools sort -@ $CPU_HTSEQCOUNT -n $f $THISTMP/$SAMPLE.tmp
 	fi	
 
-    echo "[NOTE] fixmates"
-	samtools fixmate $THISTMP/$SAMPLE.tmp.bam $OUTDIR/$SAMPLE.fixed.bam
-	rm $THISTMP/$SAMPLE.tmp.bam
+    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar \
+        I=$THISTMP/$SAMPLE.tmp.bam \
+        O=$OUTDIR/$SAMPLE.fixed.bam \
+        VALIDATION_STRINGENCY=SILENT \
+        SORT_ORDER=coordinate \
+        TMP_DIR=$THISTMP"
+        echo $RUN_COMMAND && eval $RUN_COMMAND
+        
 	samtools index $OUTDIR/$SAMPLE.fixed.bam
-
-    echo "[NOTE] Create filtered bamfile (removed: rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene RNA18S5 RNA28S5)"
-	
-    ##remove r_RNA and create counts.
-	python ${NGSANE_BASE}/tools/extractFeature.py -f $GTF --keep rRNA Mt_tRNA Mt_rRNA tRNA rRNA_pseudogene tRNA_pseudogene Mt_tRNA_pseudogene Mt_rRNA_pseudogene > $OUTDIR/mask.gff
-	python ${NGSANE_BASE}/tools/extractFeature.py -f $GTF --keep RNA18S5 RNA28S5 -l 17 >> $OUTDIR/mask.gff
-	        
-    intersectBed -v -abam $OUTDIR/$SAMPLE.fixed.bam -b $OUTDIR/mask.gff > $THISTMP/$SAMPLE.fixed.masked.tmp
     
-    samtools sort -@ $CPU_HTSEQCOUNT -n $THISTMP/$SAMPLE.fixed.masked.tmp $OUTDIR/$SAMPLE.fixed.masked
-    rm $THISTMP/$SAMPLE.fixed.masked.tmp
-    samtools index $OUTDIR/$SAMPLE.fixed.masked.bam
-
-    [ -e $OUTDIR/mask.gff ] && rm $OUTDIR/mask.gff
+    # cleanup
+    
+    [ -e $THISTMP/$SAMPLE.tmp.bam ] && rm $THISTMP/$SAMPLE.tmp.bam
     
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.fixed.masked.bam ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.fixed.bam
    
 fi
 ################################################################################
-CHECKPOINT="calculate RPKMs"
+NGSANE_CHECKPOINT_INIT "calculate counts"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     cat /dev/null > $OUTDIR/GTF.summary.txt
-    
+    echo "[NOTE] Summary file - $OUTDIR/${anno_version}.summary.txt"    
     for ATTR in $HTSEQCOUNT_ATTRIBUTES; do 
         for MODE in $HTSEQCOUNT_MODES; do 
             echo "[NOTE] processing $ATTR $MODE"
             if [ "$PAIRED" = 1 ]; then 
-            	samtools view -f 3 $OUTDIR/$SAMPLE.fixed.bam | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF.$MODE.$ATTR.tmp
+            	samtools view -f 3 $OUTDIR/$SAMPLE.fixed.bam | htseq-count --order=pos --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF.$MODE.$ATTR.tmp
             else
-            	samtools view -F 4 $OUTDIR/$SAMPLE.fixed.bam | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF.$MODE.$ATTR.tmp
+            	samtools view -F 4 $OUTDIR/$SAMPLE.fixed.bam | htseq-count --order=pos --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF.$MODE.$ATTR.tmp
         	fi
-            head -n-5 $THISTMP/GTF.$MODE.$ATTR.tmp > $OUTDIR/GTF.$MODE.$ATTR
+            head -n-5 $THISTMP/GTF.$MODE.$ATTR.tmp > $OUTDIR/$anno_version.$MODE.$ATTR
             echo "${ATTR} ${MODE} "$(tail -n 5 $THISTMP/GTF.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF.summary.txt
             rm $THISTMP/GTF.$MODE.$ATTR.tmp
             
-            if [ "$ATTR" == "gene_id" ]; then
-            	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/GTF.$MODE.$ATTR $RPKMSSDIR/$SAMPLE.$MODE.$ATTR
-            fi
-            
-            if [ "$ATTR" == "transcript_id" ]; then
-            	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeTranscriptRPKM.R $GTF $OUTDIR/GTF.$MODE.$ATTR $RPKMSSDIR/$SAMPLE.$MODE.$ATTR
-            fi
         done
     done
     
     # mark checkpoint
-    if [ -f $RPKMSSDIR/$SAMPLE.$MODE.$ATTR.RPKM.csv ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$anno_version.$MODE.$ATTR
 fi
 	
 ################################################################################
-CHECKPOINT="calculate masked RPKMs"
+NGSANE_CHECKPOINT_INIT "summarize"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
-	cat /dev/null > $OUTDIR/GTF_masked.summary.txt
-	
-    for ATTR in $HTSEQCOUNT_ATTRIBUTES; do 
-        for MODE in $HTSEQCOUNT_MODES; do 
-            echo "[NOTE] processing $ATTR $MODE"
-            if [ "$PAIRED" = 1 ]; then 
-                samtools view -f 3 $OUTDIR/$SAMPLE.fixed.masked.bam | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF_masked.$MODE.$ATTR.tmp
-            else
-                samtools view -F 4 $OUTDIR/$SAMPLE.fixed.masked.bam | htseq-count --quiet --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF_masked.$MODE.$ATTR.tmp
-            fi
-            head -n-5 $THISTMP/GTF_masked.$MODE.$ATTR.tmp > $OUTDIR/GTF_masked.$MODE.$ATTR
-            echo "${ATTR} ${MODE} "$(tail -n 5 $THISTMP/GTF_masked.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF_masked.summary.txt
-            rm $THISTMP/GTF_masked.$MODE.$ATTR.tmp
-
-        	 
-            if [ "$ATTR" == "gene_id" ]; then
-            	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeGeneRPKM.R $GTF $OUTDIR/GTF_masked.$MODE.$ATTR $RPKMSSDIR/$SAMPLE.masked.$MODE.$ATTR
-            fi
-            
-            if [ "$ATTR" == "transcript_id" ]; then
-            	Rscript --vanilla ${NGSANE_BASE}/tools/CalcGencodeTranscriptRPKM.R $GTF $OUTDIR/GTF_masked.$MODE.$ATTR $RPKMSSDIR/$SAMPLE.masked.$MODE.$ATTR
-            fi
-        
-        done
-    done
-
-    # mark checkpoint
-    if [ -f $RPKMSSDIR/$SAMPLE.masked.$MODE.$ATTR.RPKM.csv ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+cat $OUTDIR/GTF.summary.txt | awk '{print "all",$0}' > ${OUTDIR}/../${SAMPLE}.${anno_version}.summary.txt
    
-fi
-
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="summarize"
+NGSANE_CHECKPOINT_INIT "cleanup"    
 
-cat $OUTDIR/GTF.summary.txt | awk '{print "all",$0}' > $RPKMSSDIR/$SAMPLE.summary.txt
-cat $OUTDIR/GTF_masked.summary.txt | awk '{print "masked",$0}' >> $RPKMSSDIR/$SAMPLE.summary.txt
-   
-echo -e "\n********* $CHECKPOINT\n"
-################################################################################
-CHECKPOINT="cleanup"    
-
-if [ -z "$HTSEQCOUNT_KEEPBAMS"]; then
-    [ -e $OUTDIR/$SAMPLE.fixed.bam ] && rm $OUTDIR/$SAMPLE.fixed.bam
-    [ -e $OUTDIR/$SAMPLE.fixed.masked.bam ] && rm $OUTDIR/$SAMPLE.fixed.masked.bam
-fi
+[ -e $OUTDIR/$SAMPLE.fixed.bam ] && rm $OUTDIR/$SAMPLE.fixed.bam
+[ -e $OUTDIR/$SAMPLE.fixed.bam.bai ] && rm $OUTDIR/$SAMPLE.fixed.bam.bai
 [ -e $OUTDIR/GTF.summary.txt ] && rm $OUTDIR/GTF.summary.txt
-[ -e $OUTDIR/GTF_masked.summary.txt ] && rm $OUTDIR/GTF_masked.summary.txt
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-[ -e $RPKMSSDIR/$SAMPLE.summary.txt.dummy ] && rm $RPKMSSDIR/$SAMPLE.summary.txt.dummy
+[ -e $OUTDIR/../${SAMPLE}.summary.txt.dummy ] && rm $OUTDIR/../${SAMPLE}.summary.txt.dummy
 echo ">>>>> feature counting with HTSEQ-COUNT - FINISHED"
 echo ">>>>> enddate "`date`

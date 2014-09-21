@@ -33,7 +33,7 @@ while [ "$1" != "" ]; do
         -o | --outdir )         shift; OUT=$1 ;; # output dir
         -r | --reference )      shift; FASTA=$1 ;; # reference genome
         -s | --downsample )     shift; READNUMBER=$1 ;; #readnumber
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -46,14 +46,16 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
-for MODULE in $MODULE_DOWNSAMPLE; do module load $MODULE; done  # save way to load modules that itself load other modules
+NGSANE_CHECKPOINT_INIT "programs"
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_DOWNSAMPLE; do module load $MODULE; done && module list 
+
 export PATH=$PATH_DOWNSAMPLE:$PATH
-module list
 echo $PATH
+
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
+[ -z "$PATH_GATK" ] && PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_DOWNSAMPLE*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
@@ -69,42 +71,39 @@ echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
 
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f}
 fi
     
-echo -e "\n********* $CHECKPOINT\n"    
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="extract properly paired none duplicate"
+NGSANE_CHECKPOINT_INIT "extract properly paired none duplicate"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     #-F 0x0400
     samtools view -f 0x0002 -h -b $f > $OUT/${n/bam/pn.bam}
     
     # mark checkpoint
-    if [ -f $OUT/${n/bam/pn.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUT/${n/bam/pn.bam}
 
 fi 
 
 ################################################################################
-CHECKPOINT="downsample"
+NGSANE_CHECKPOINT_INIT "downsample"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     READS=`samtools view -f 0x0002 -c $f`
     echo "[NOTE] number of properly paired none duplicate: $READS"
@@ -121,30 +120,28 @@ else
     samtools index $OUT/${n/bam/pns.bam}
  
     # mark checkpoint
-    if [ -f $OUT/${n/bam/pns.bam} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUT/${n/bam/pns.bam}
 
 fi 
 
 ################################################################################
-CHECKPOINT="statistics"
+NGSANE_CHECKPOINT_INIT "statistics"
    
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
  
     samtools flagstat $OUT/${n/bam/pns.bam} > $OUT/${n/bam/pns.bam}.stats
     
     # mark checkpoint
-    if [ -f $OUT/${n/bam/pns.bam}.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUT/${n/bam/pns.bam}.stats
 
 fi
 
 ################################################################################
-CHECKPOINT="cleanup"
+NGSANE_CHECKPOINT_INIT "cleanup"
 
 [ -e $OUT/${n/bam/pn.bam} ] && rm $OUT/${n/bam/pn.bam}
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 echo ">>>>> Downsample - FINISHED"
 echo ">>>>> enddate "`date`

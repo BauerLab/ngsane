@@ -1,0 +1,37 @@
+#!/bin/bash -e
+
+################################################################################
+#   Transcriptome assembly without a Reference (Trinity)
+# IN : $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/trinity/*.Trinity.fasta.gz
+################################################################################
+
+#  ##########   Butterfly  ###########
+if [ -n "$RUNBUTTERFLY" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$NODES_BUTTERFLY" ] || [ -z "$NCPU_BUTTERFLY" ] || [ -z "$MEMORY_BUTTERFLY" ] || [ -z "$WALLTIME_BUTTERFLY" ] || [ -z "$NODETYPE_BUTTERFLY" ] ; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+        
+        $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_BUTTERFLY -i $INPUT_BUTTERFLY -e $READONE.$FASTQ -n $NODES_BUTTERFLY \
+              -c $NCPU_BUTTERFLY -m $MEMORY_BUTTERFLY"G" -w $WALLTIME_BUTTERFLY -q $NODETYPE_BUTTERFLY \
+              --command "${NGSANE_BASE}/mods/trinity_butterfly.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_BUTTERFLY" 
+
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        NGSANE_REPORT_HEADER "Trinity Butterfly" "$TASK_BUTTERFLY" "trinity_butterfly.sh"
+
+        echo "[NOTE] the trinity_butterfly.sh mod does not provide a report"
+        
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+fi	
+
+	

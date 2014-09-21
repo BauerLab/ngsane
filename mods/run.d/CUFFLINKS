@@ -1,0 +1,71 @@
+#!/bin/bash -e
+
+################################################################################
+#  Gene expression analysis with cufflinks
+#
+# IN : $OUT/$dir/tophat/*.bam
+# OUT: $OUT/$dir/cufflinks/*_transcript.gtf
+################################################################################       
+
+if [ -n "$RUNCUFFLINKS" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_CUFFLINKS" ] || [ -z "$NODES_CUFFLINKS" ] || [ -z "$CPU_CUFFLINKS" ] || [ -z "$MEMORY_CUFFLINKS" ] || [ -z "$WALLTIME_CUFFLINKS" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+    	JOBIDS=$(
+            $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_CUFFLINKS -i $INPUT_CUFFLINKS -e $ASD.bam \
+                -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS  \
+           		--command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFLINKS/<SAMPLE>" \
+           		--postname "postcommandCuffmerge$MERGED_GTF_NAME" \
+            	--postcommand "${NGSANE_BASE}/mods/cuffmerge.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_CUFFLINKS"
+        	) && echo -e "$JOBIDS"
+        JOBIDS_CUFFLINKS=$(waitForJobIds "$JOBIDS")
+
+        $QSUB $ARMED -r -k $CONFIG -t ${TASK_CUFFQUANT} -i $INPUT_CUFFQUANT -e $ASD.bam \
+            -n $NODES_CUFFQUANT -c $CPU_CUFFQUANT -m $MEMORY_CUFFQUANT"G" -w $WALLTIME_CUFFQUANT $JOBIDS_CUFFLINKS \
+    		--command "${NGSANE_BASE}/mods/cuffquant.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFQUANT/" \
+    		--postname "postcommandCuffnorm$MERGED_GTF_NAME" \
+    		--postcommand "${NGSANE_BASE}/mods/cuffnorm.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_CUFFLINKS"
+
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        NGSANE_REPORT_HEADER "Cufflinks + CuffMerge" "$TASK_CUFFLINKS" "cufflinks.sh,cuffmerge.sh"
+
+        NGSANE_REPORT_TABLE "$TASK_CUFFLINKS" \
+            "Cufflinks" \
+            "$OUT/<DIR>/$TASK_CUFFLINKS/" \
+            ".summary.txt" \
+            "PATTERN:Transcripts::fgrep -w 'transcripts.gtf' | awk '{print \$2}'" \
+            "PATTERN:Skipped::fgrep -w 'skipped.gtf' | awk '{print \$2}'" \
+            "PATTERN:Genes::fgrep -w 'genes.fpkm_tracking' | tail -n 1 | awk '{print \$2}' | sed 's/;//g'" \
+            "PATTERN:OK::fgrep -w 'genes.fpkm_tracking' | tail -n 1 | awk '{print \$3}'" \
+            "CALCULATE:%:40:#5*100/#4" \
+            "PATTERN:Isoforms::fgrep -w 'isoforms.fpkm_tracking' | tail -n 1 | awk '{print \$2}' | sed 's/;//g'" \
+            "PATTERN:OK::fgrep -w 'isoforms.fpkm_tracking' | tail -n 1 | awk '{print \$3}'" \
+            "CALCULATE:%:40:#8*100/#7" \
+                                    
+        NGSANE_REPORT_FOOTER  
+        
+        NGSANE_REPORT_HEADER "CuffQuant + CuffNorm" "$TASK_CUFFQUANT" "cuffquant.sh,cuffnorm.sh"
+
+        NGSANE_REPORT_TABLE_AGGREGATE "$TASK_CUFFNORM" \
+            "Cuffnorm" \
+            "$OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME" \
+            ".count_table" \
+            "PATTERN:Rows::wc -l | awk '{print \$1}'" \
+            "PATTERN:Samples::head -n 1 | tr '\t' '\n' | tail -n+2 | wc -l  | cut -f1" \
+            "FIGURE:MDS plot:150:<AGGREGATE>.count_table.pdf:80:1"
+                                    
+        NGSANE_REPORT_FOOTER 
+          
+    fi
+fi	
+
+	

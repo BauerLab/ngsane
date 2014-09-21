@@ -1,5 +1,5 @@
 ##############################################################
 # Defaults for Report Card Summary
-MODULE_SUMMARY="${NG_R} ${NG_PYTHON}"
+MODULE_SUMMARY="${NG_R} ${NG_PYTHON} ${NG_IMAGEMAGIC}"
 PATH_SUMMARY=
 HTMLOUT="Summary"

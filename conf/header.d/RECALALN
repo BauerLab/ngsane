@@ -1,0 +1,11 @@
+##############################################################
+# Read re-calibration
+# 
+TASK_RECALALN="reCalAln"
+WALLTIME_RECALALN=60:00:00
+MEMORY_RECALALN=64
+CPU_RECALALN=8
+NODES_RECALALN="nodes=1:ppn=8" 
+INPUT_RECALALN=$TASK_BWA
+MODULE_RECALALN="${NG_JAVA} ${NG_GATK} ${NG_R} ${NG_SAMTOOLS} ${NG_PICARD} ${NG_IGVTOOLS}"
+PATH_RECALALN=

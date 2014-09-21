@@ -22,7 +22,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of NGSANE
         -f | --file )           shift; f=$1 ;; # fastq file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir                                                     
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -35,11 +35,12 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
-for MODULE in $MODULE_BLUE; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_BLUE; do module load $MODULE; done && module list 
+
 export PATH=$PATH_BLUE:$PATH;
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -52,9 +53,9 @@ echo -e "--MONO        --\n" $(mono --version | head -n 1 )
 echo -e "--BLUE        --\n" $(which Blue.exe | gawk '{print $NF}')
 [ ! -f $(which Blue.exe) ] && echo "[ERROR] no Blue detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 #OUTDIR=$(dirname $f)"_blue"
 # get basename of f
@@ -90,39 +91,45 @@ FILES=""
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
 mkdir -p $THISTMP
 
-if [[ ${f##*.} != "gz" ]]; then
-    FILES="${f/$FASTQ/}"
-    if [ $PAIRED = "1" ]; then 
-        FILES="$FILES ${f/$READONE.$FASTQ/$READTWO}"
-    fi
-else
-    echo "[NOTE] unzip input"
+if [[ ${f##*.} == "gz" ]]; then
+    echo "[NOTE] gunzip input"
     zcat $f > $THISTMP/${n/.$FASTQ/.unzipped}
     FILES="$THISTMP/${n/.$FASTQ/.unzipped}"
     if [ $PAIRED = "1" ]; then 
         zcat ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/$SAMPLE$READTWO.unzipped
         FILES="$FILES $THISTMP/$SAMPLE$READTWO.unzipped"
     fi
+elif [[ ${f##*.} == "bz2" ]]; then
+    echo "[NOTE] bunzip input"
+    bzcat $f > $THISTMP/${n/.$FASTQ/.unzipped}
+    FILES="$THISTMP/${n/.$FASTQ/.unzipped}"
+    if [ $PAIRED = "1" ]; then 
+        bzcat ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} > $THISTMP/$SAMPLE$READTWO.unzipped
+        FILES="$FILES $THISTMP/$SAMPLE$READTWO.unzipped"
+    fi
+else
+    FILES="${f/$FASTQ/}"
+    if [ $PAIRED = "1" ]; then 
+        FILES="$FILES ${f/$READONE.$FASTQ/$READTWO}"
+    fi
 fi
 
 echo "[NOTE] run on $FILES"
 
-echo -e "\n********* $CHECKPOINT"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
 	dmget -a ${OUTDIR}
 fi
 
-echo -e "\n********* $CHECKPOINT"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="tessel"    
+NGSANE_CHECKPOINT_INIT "tessel"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 	RUN_COMMAND="mono ${BLUE_HOME}/Tessel.exe $TESSELADDPARAM -t ${CPU_BLUE} -tmp $THISTMP -k $BLUE_KMER -g $GENOMESIZE $TESSELDIR/$SAMPLE $FILES"
 
@@ -130,15 +137,13 @@ else
 
     # mark checkpoint
 
-    if [ -f $TESSELDIR/$SAMPLE"_"$BLUE_KMER".cbt" ]; then echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $TESSELDIR/$SAMPLE"_"$BLUE_KMER".cbt"
 fi
 
 ################################################################################
-CHECKPOINT="blue"    
+NGSANE_CHECKPOINT_INIT "blue"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep "********* $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 	RUN_COMMAND="mono ${BLUE_HOME}/Blue.exe $BLUEADDPARAM -t ${CPU_BLUE} -m ${BLUE_MINREPS} -o $OUTDIR $TESSELDIR/$SAMPLE"*.cbt" $FILES"
     echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -161,11 +166,11 @@ else
     fi
 
     # mark checkpoint
-    if [ -f $OUTDIR/$n ]; then echo -e "\n********* $CHECKPOINT" && unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$n
 fi
 
 ################################################################################
-CHECKPOINT="cleanup"    
+NGSANE_CHECKPOINT_INIT "cleanup"    
 
 for i in $(ls ${f/$READONE/\*}); do
 	if [[ ${f##*.} == "gz" ]]; then
@@ -177,7 +182,7 @@ if [ -d $TESSELDIR ]; then
     rm -r $TESSELDIR
 fi
 
-echo -e "\n********* $CHECKPOINT"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 [ -e $OUTDIR/${n}.dummy ] && rm $OUTDIR/${n}.dummy
 echo ">>>>> read correction with Blue - FINISHED"

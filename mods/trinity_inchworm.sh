@@ -26,7 +26,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the configuration file
         -f | --fastq )          shift; f=$1 ;; # fastq file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -38,10 +38,12 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
-for MODS in $MODULES_TRINITY; do module load $MODS; done 
+NGSANE_CHECKPOINT_INIT "programs"
+
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULES_TRINITY; do module load $MODULE; done  && module list 
+
 export PATH=$PATH_TRINITY:$PATH
-module list
 echo "PATH=$PATH"
 
 echo "[NOTE] set java parameters"
@@ -67,9 +69,9 @@ echo -e "--trinity     --\n "$(Trinity.pl --version)
 #	export KMP_AFFINITY=compact
 #fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="detect library"
+NGSANE_CHECKPOINT_INIT "detect library"
 
 # get basename of f
 n=${f##*/}
@@ -100,22 +102,20 @@ else
     echo "[NOTE] Persistent ID found: $PERSISTENT_ID"
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f/$READONE/"*"}
 	dmget -a $OUTDIR/$SAMPLE/*
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="Inchworm"
+NGSANE_CHECKPOINT_INIT "Inchworm"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     echo "[NOTE] --max_reads_per_graph set to 1 million because very high I/O is needed otherwise. It is unlikely that a transcript needs more than 1 million reads to be assembled"
 
@@ -129,18 +129,18 @@ else
     echo $RUN_COMMAND && eval $RUN_COMMAND
     echo "[NOTE] inchworm has completed properly! thank Martin by buying him a beer"
 
-    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/${n/%$READONE.$FASTQ/.inchworm.timing}
+    cp $OUTDIR/$SAMPLE/Trinity.timing $OUTDIR/$SAMPLE.inchworm.timing
 
-    echo "jellyfish kmers: "$(grep ">" $OUTDIR/$SAMPLE/jellyfish.kmers.fa |  wc -l) > $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
-    echo "inchworm fasta: "$(grep ">" <$(ls $OUTDIR/$SAMPLE/inchworm.*.fa | head -n 1) | wc -l) >> $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
-    echo "both fasta: "$(grep ">" $OUTDIR/$SAMPLE/both.fa |  wc -l) >> $OUTDIR/${n/%$READONE.$FASTQ/.summary.txt}
+    echo "jellyfish kmers: "$(grep ">" $OUTDIR/$SAMPLE/jellyfish.kmers.fa |  wc -l) > $OUTDIR/$SAMPLE.summary.txt
+    echo "inchworm fasta: "$(grep ">" <$(ls $OUTDIR/$SAMPLE/inchworm.*.fa | head -n 1) | wc -l) >> $OUTDIR/$SAMPLE.summary.txt
+    echo "both fasta: "$(grep ">" $OUTDIR/$SAMPLE/both.fa |  wc -l) >> $OUTDIR/$SAMPLE.summary.txt
     
     # mark checkpoint
-    if [ -f $OUTDIR/${n/%$READONE.$FASTQ/.inchworm.timing} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.inchworm.timing $OUTDIR/$SAMPLE.summary.txt
 fi 
 
 ################################################################################
-CHECKPOINT="cleanup"
+NGSANE_CHECKPOINT_INIT "cleanup"
 
 if [ -n $CLEANUP ]; then 
 #    rm $OUTDIR/*ebwt $OUTDIR/*ebwt  #bowtie files required for chrysalis, and this is the WRONG file location (log path)
@@ -150,9 +150,9 @@ else
             Otherwise, free up some space you dirty, dirty hacker.... "
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 #TODO correct dummy
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/.inchworm.timing}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/.inchworm.timing}.dummy
+[ -e $OUTDIR/$SAMPLE.inchworm.timing.dummy ] && rm $OUTDIR/$SAMPLE.inchworm.timing.dummy
 echo ">>>>> transcriptome assembly with trinity inchworm - FINISHED"
 echo ">>>>> enddate "`date`

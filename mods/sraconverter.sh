@@ -39,7 +39,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 for MODULE in $MODULE_SRACONV; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_SRACONV:$PATH
@@ -49,9 +49,9 @@ echo "PATH=$PATH"
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 ## [TODO] test and output versions of software utilized in this mod 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of input file f
 INPUTFILENAME=${INPUTFILE##*/}
@@ -63,22 +63,20 @@ if [ -z "$RECOVERFROM" ]; then
     [ -e $OUTDIR/$SAMPLE$READONE.$FASTQ ] && rm $OUTDIR/$SAMPLE$READONE.$FASTQ
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $INPUTFILE
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 
 ################################################################################
-CHECKPOINT="SRA conversion"
+NGSANE_CHECKPOINT_INIT "SRA conversion"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     command="fastq-dump $FASTQDUMADDPARAM $INPUTFILE -O $OUTDIR/ --gzip $SPLIT"
     echo $command && eval $command
@@ -87,7 +85,7 @@ else
     [ -e $OUTDIR/$SAMPLE"_2".$FASTQ ] && mv $OUTDIR/$SAMPLE"_2".$FASTQ $OUTDIR/$SAMPLE$READTWO.$FASTQ
  
     # mark checkpoint
-    if [ -e $OUTDIR/$SAMPLE$READONE.$FASTQ ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$READONE.$FASTQ
 fi
 
 ################################################################################

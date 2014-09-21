@@ -1,5 +1,6 @@
 # author: Fabian Buske
 # date: May 2013
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources
@@ -8,7 +9,7 @@
 #********************
 # Tasks
 #********************
-RUNMAPPINGBOWTIE="1"    # mapping with bowtie
+RUNBOWTIE="1"    # mapping with bowtie
 
 #********************
 # Paths
