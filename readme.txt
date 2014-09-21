@@ -1,7 +1,7 @@
 NGSANE is a framework for advanced production informatics of Next Generation 
 Sequencing libraries.
 
-Version: 0.4.0.3
+Version: v0.5.0.RC1
 
 
 ################################################################################
@@ -53,7 +53,7 @@ ngsane
 	
 - tools/
 	contains various helper scripts used within the modules, 
-	mostly tapping into python and R
+	mostly tapping into Python and R
 
 ################################################################################
 # How to create a new project:
