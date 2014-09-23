@@ -76,6 +76,10 @@ if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 
 
 elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
+    ## add resource survey for job to logfile
+    echo "echo '>>>>> job resources'" >> $TMPFILE
+    echo "qstat -j $SNAME 2>/dev/null | egrep 'vmem|parallel environment'" >> $TMPFILE
+
 #   taking care of the SGE module bug
     unset module
 #	echo "********** submit with SGE submission system"
