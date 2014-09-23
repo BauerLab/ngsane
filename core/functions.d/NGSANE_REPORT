@@ -22,7 +22,7 @@ function NGSANE_REPORT_HEADER {
             <a href='#$2_checklist'><h2 id='$2_h_checklist' class='sub inactive' rel='checklist'>Checklist<span class='counter'><span class='passed' id='$2_counter_checkpoints_passed'></span><span class='failed' id='$2_counter_checkpoints_failed'></span></span></h2></a>
             <a href='#$2_notes'><h2 id='$2_h_notes' class='sub inactive' rel='notes'>Notes<span class='counter'><span class='neutral' id='$2_counter_notes'></span></span></span></h2></a>
             <a href='#$2_errors'><h2 id='$2_h_errors' class='sub inactive' rel='notes'>Errors<span class='counter'><span class='errors' id='$2_counter_errors'></span></span></h2></a>
-            <a href='#$2_logfiles'><h2 id='$2_h_logfiles' class='sub inactive' rel='errors'>Log files<span class='counter'><span class='passed' id='$2_logfiles_finished'></span><span class='failed' id='$2_logfiles_unfinished'></span></span></h2></a>" >> $SUMMARYTMP
+            <a href='#$2_logfiles'><h2 id='$2_h_logfiles' class='sub inactive' rel='checklist'>Log files<span class='counter'><span class='passed' id='$2_logfiles_finished'></span><span class='failed' id='$2_logfiles_unfinished'></span></span></h2></a>" >> $SUMMARYTMP
     if [ -n "$4" ]; then 
         SUFFIX="--filesuffix $4"; 
         echo "<a href='#$2_PRIMARY_RESULT_FILES'><h2 id='$2_h_nrfiles' class='sub inactive' rel='files'>Primary result files</h2></a>" >> $SUMMARYTMP

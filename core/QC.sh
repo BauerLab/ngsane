@@ -244,6 +244,9 @@ if [ -n "$HTMLOUTPUT" ]; then
             if($CHECKPOINTS_FAILED==0){
                 \$('#${TASK}_counter_checkpoints_failed').toggleClass('failed nofailed');
             };
+            if($SUMUNFINISHED ==0){
+                \$('#${TASK}_logfiles_unfinished').toggleClass('failed nofailed');
+            };
 
             \$('#${TASK}_panelback h2').click(function() {
                 \$(this).parent().children().addClass('inactive');
