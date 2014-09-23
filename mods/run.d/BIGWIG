@@ -30,9 +30,9 @@ if [ -n "$RUNBIGWIG" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "-" \
             "$OUT/<DIR>/$TASK_BIGWIG"  \
             ".bw.stats" \
-            "PATTERN:library size::sed -n 1p | awk '{print \$(NF)}'" \
-            "PATTERN:normalize to::sed -n 2p | awk '{print \$(NF)}'" \
-            "PATTERN:scale factor::sed -n 3p | awk '{print \$(NF)}'" 
+            "PATTERN:Library size::sed -n 1p | awk '{print \$(NF)}'" \
+            "PATTERN:Normalize to::sed -n 2p | awk '{print \$(NF)}'" \
+            "PATTERN:Scale factor::sed -n 3p | awk '{print \$(NF)}'" 
             
         NGSANE_REPORT_FOOTER  
         
