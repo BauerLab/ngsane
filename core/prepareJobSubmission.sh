@@ -92,6 +92,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                 	COMMANDARR=(${COMMAND// / })
                 	DUMMY="echo "$(egrep "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)
+                    # skip if either result file exist and log finished or resultfiles is not specified and log finished
                 	if [[ -n "$D" ]] && [[ -f $D ]] && [[ $(egrep "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] || [[ -z "$D" ]] && [[ $(egrep "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then 
                 	   echo -e "\e[34m[SKIP]\e[0m $n (already processed: $DIRNAME/${D##*/})"  
                 	   continue
