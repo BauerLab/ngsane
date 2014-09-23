@@ -322,13 +322,13 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=1.117
+VERSION=1.121
 SOFTWARE=picard-tools
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
 mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 
-wget http://downloads.sourceforge.net/project/picard/$SOFTWARE/$VERSION/$SOFTWARE-$VERSION.zip
+wget https://github.com/broadinstitute/picard/releases/download/$VERSION/$SOFTWARE-$VERSION.zip
 unzip $SOFTWARE-$VERSION.zip
 cp $SOFTWARE-$VERSION/* $PACKAGEPATH/$SOFTWARE/$VERSION
 
@@ -1451,7 +1451,7 @@ sed -i 's|^NG_IGVTOOLS=|NG_IGVTOOLS=igvtools/2.3.23|' $PACKAGEPATH/$NGSANE_SOFTW
 sed -i 's|^NG_GATK=|NG_GATK=gatk/2.8-1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BWA=|NG_BWA=bwa/0.7.10|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_IMAGEMAGIC=|NG_IMAGEMAGIC=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_PICARD=|NG_PICARD=picard-tools/1.117|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_PICARD=|NG_PICARD=picard-tools/1.121|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_SAMSTAT=|NG_SAMSTAT=samstat/1.09|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_UCSCTOOLS=|NG_UCSCTOOLS=ucsc_utils/291|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BEDTOOLS=|NG_BEDTOOLS=bedtools/2.19.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
