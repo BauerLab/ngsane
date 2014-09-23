@@ -49,7 +49,7 @@ fi
 LOGFOLDER=$(dirname $QOUT)
 
 if [ -n "$HTMLOUTPUT" ]; then
-    echo "<div class='tabContent_hide' id='DC_${TASK}_checklist'><div><pre>"
+    echo "<div class='tabContent_hide' id='DC_${TASK}_checklist'><div class='box scroll'><pre>"
 fi
 
 
@@ -158,7 +158,7 @@ SUMNOTES=0
 #for i in $( ls $QOUT/$TASK/*.out ) ; do
 for i in $LOGFILES ;do
     echo -e "\n${i/$LOGFOLDER\//}"
-    NOTELIST=$(egrep "^\[NOTE\]" $i)
+    NOTELIST=$(egrep "^\[NOTE\]" $i | sed 's/^/    /')
     echo -e "$NOTELIST"
     SUMNOTES=`expr $SUMNOTES + $(echo -e "$NOTELIST" | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' )`
 done
@@ -176,20 +176,29 @@ else
 fi
 
 SUMERRORS=0
+SUMFINISHED=0
+SUMUNFINISHED=0
 for i in $LOGFILES ;do
-    echo -e "\n${i/$LOGFOLDER\//}"
     ERRORLIST=$(egrep "^\[ERROR\]" $i)
     if [ -n "$ERRORLIST" ]; then 
+	echo -e "${i/$LOGFOLDER\//}"
         echo -e "$ERRORLIST"
-    else
-        echo "-- all good, no errors"
     fi
     SUMERRORS=$(expr $SUMERRORS + $(echo -e "$ERRORLIST" | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' ))
+    FINISHEDLIST=$(tail $i | egrep '\>{5} .* FINISHED.*')
+    if [ -z "$FINISHEDLIST" ]; then
+        echo -e "[DIED] ${i/$LOGFOLDER\//}"
+	    tail $i | sed 's/^/    /'
+        SUMERRORS=$(expr $SUMERRORS + 1 )
+        SUMUNFINISHED=$(expr $SUMUNFINISHED + 1 )
+    else
+        SUMFINISHED=$(expr $SUMFINISHED + 1 )
+    fi
 done
 
 
 #########################################################################################
-# Third TAB
+# Remainder
 #########################################################################################
 if [ -n "$HTMLOUTPUT" ]; then
 
@@ -197,7 +206,12 @@ if [ -n "$HTMLOUTPUT" ]; then
     echo "<div class='tabContent_hide' id='DC_${TASK}_logfiles'><div><div class='box scroll'>"
     for i in $LOGFILES ;do
         FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
-        echo "<a href='$FN'>${i/$QOUT\/$TASK\//}</a><br/>"
+        FINISHED=$(tail $i | egrep '\>{5} .* FINISHED.*')
+        if [ -n "$FINISHED" ]; then
+            echo "<span class='passed'>Finished</span> <a href='$FN'>${i/$QOUT\/$TASK\//}</a><br/>"
+        else
+            echo "<span class='failed'>Unfinished</span> <a href='$FN'>${i/$QOUT\/$TASK\//}</a><br/>"
+        fi
     done
     echo "</div></div></div>"
     if [ -n "$RESULTSUFFIX" ]; then
@@ -222,6 +236,8 @@ if [ -n "$HTMLOUTPUT" ]; then
             \$('#${TASK}_counter_errors').text('$SUMERRORS');
             \$('#${TASK}_counter_checkpoints_passed').text('$CHECKPOINTS_PASSED');
             \$('#${TASK}_counter_checkpoints_failed').text('$CHECKPOINTS_FAILED'); 
+            \$('#${TASK}_logfiles_finished').text('$SUMFINISHED');
+            \$('#${TASK}_logfiles_unfinished').text('$SUMUNFINISHED'); 
             if ($SUMERRORS==0){
                 \$('#${TASK}_counter_errors').toggleClass('errors neutral');
             }; 

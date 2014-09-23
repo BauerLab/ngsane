@@ -184,9 +184,25 @@ div.panel span.counter span.passed{
     border: 1px solid #0a0;
 }
 
+span.passed {
+    background: none repeat scroll 0 0 #dfd;
+    border-radius: 7px;
+    padding: 0px 5px;
+    color:#060;
+    border: 1px solid #0a0;
+}
+
 div.panel span.counter span.failed{
     background: none repeat scroll 0 0 #866;
     border-radius: 0px 7px 7px 0px;
+    padding: 0px 5px;
+    color:#eee;
+    border: 1px solid #a00
+}
+
+span.failed { 
+    background: none repeat scroll 0 0 #866;
+    border-radius: 7px;
     padding: 0px 5px;
     color:#eee;
     border: 1px solid #a00

@@ -62,28 +62,6 @@ PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',o
 for RUN_MODS in $(cat $CONFIG | egrep '^RUN.*=' | cut -d'=' -f 1); do 
     eval "if [ -n $RUN_MODS ]; then source ${NGSANE_BASE}/mods/run.d/${RUN_MODS/RUN}; fi"; 
 done
-
-################################################################################
-# citation list
-################################################################################    
-PIPELINE="References"
-PIPELINK="References"
-
-echo "<div class='panel'><div class='headbagb'><a name='"$PIPELINK"_panel'><h2 class='sub'>$PIPELINE</h2></a></div>" >>$SUMMARYTMP
-
-echo '<h3>Please cite the following publications/resources</h3>' >>$SUMMARYTMP
-echo '<table class="data"><thead><tr><th><div style="width:10px"></div></th><th><div></div></th></tr></thead><tbody>' >>$SUMMARYTMP
-
-COUNT=1
-while read -r line; do
-    echo "<tr class='citation'><td class='top'>[$COUNT]</td><td class='left' >${line//\"/}</td></tr>" >>$SUMMARYTMP
-    COUNT=$(( $COUNT + 1 ))
-done <<< "$(cat $SUMMARYCITES | cut -d']' -f 2 | sort -u )"
-
-echo "</tbody></table>" >>$SUMMARYTMP
-
-echo "</div></div>">>$SUMMARYTMP
-rm $SUMMARYCITES
     
 ################################################################################
 cat >> $SUMMARYFILE.tmp <<EOF
@@ -119,7 +97,28 @@ cat >> $SUMMARYFILE.tmp <<EOF
 </div></div><!-- panel -->
 EOF
 
+
+
+################################################################################
+# citation list
+################################################################################    
+
 cat >> $SUMMARYTMP <<EOF
+<div class='panel'><div class='headbagb'><a name='References_panel'><h2 class='sub'>References</h2></a></div>
+<h3>Please cite the following publications/resources</h3>
+<table class="data"><thead><tr><th><div style="width:10px"></div></th><th><div></div></th></tr></thead><tbody>
+EOF
+
+COUNT=1
+while read -r line; do
+    echo "<tr class='citation'><td class='top'>[$COUNT]</td><td class='left' >${line//\"/}</td></tr>" >>$SUMMARYTMP
+    COUNT=$(( $COUNT + 1 ))
+done <<< "$(cat $SUMMARYCITES | cut -d']' -f 2 | sort -u )"
+
+cat >> $SUMMARYTMP <<EOF
+</tbody></table>
+</div></div>
+
 <hr><div class="footerline"><img style="float:left;padding-right:10px;" src="data:image/png;base64,$(cat $NGSANE_BASE/core/includes/images/favicon-32x32.png | base64)" /> Report generated with $($NGSANE_BASE/bin/trigger.sh -v)<br/>Last modified: $(date)</div>
 </div><!-- center --></body>
 <script type="text/javascript">
@@ -151,7 +150,7 @@ cat >> $SUMMARYTMP <<EOF
     $(cat $NGSANE_BASE/core/includes/js/genericJavaScript.js)
 </script>
 EOF
-
+rm $SUMMARYCITES
 
 ################################################################################
 cat $SUMMARYFILE.tmp $SUMMARYTMP > $SUMMARYFILE
