@@ -86,18 +86,20 @@ fi
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
-NGSANE_CHECKPOINT_INIT "qualimap bamqc"
-
-if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-
-    cd $OUTDIR
-    RUNCOMMAND="qualimap bamqc -bam $f $QUALIMAP_BAMQC_ADDPARAM -nt $CPU_QUALIMAP -outformat HTML -outdir $OUTDIR/$SAMPLE-bamQC"
-    echo $RUNCOMMAND && eval $RUNCOMMAND        
-    
-    # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE-bamQC/qualimapReport.html
-
-fi
+#NGSANE_CHECKPOINT_INIT "qualimap bamqc"
+#
+#if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+#
+#    cd $OUTDIR
+#    RUNCOMMAND="qualimap bamqc -bam $f $QUALIMAP_BAMQC_ADDPARAM -nt $CPU_QUALIMAP -outformat HTML -outdir $OUTDIR/$SAMPLE-bamQC"
+#    echo $RUNCOMMAND && eval $RUNCOMMAND        
+#    
+#    mv $OUTDIR/$SAMPLE-bamQC/genome_results.txt $OUTDIR/${SAMPLE}_bamQC.txt
+#    
+#    # mark checkpoint
+#    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_bamQC.txt
+#
+#fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "qualimap rnaseq-qc"
 
@@ -109,8 +111,26 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         RUNCOMMAND="qualimap rnaseq -bam $f $QUALIMAP_RNASEQ_ADDPARAM -outformat HTML -counts $OUTDIR/$SAMPLE'_'counts.txt -outdir $OUTDIR/$SAMPLE-rnaseqQC"
         echo $RUNCOMMAND && eval $RUNCOMMAND
         
+        echo "Aligned to genes = " $(cat $OUTDIR/$SAMPLE-rnaseqQC/qualimapReport.html | fgrep "Aligned to genes" -A 1 | tail -n 1 | sed 's/.*>\(.*\)<.*/\1/' ) > $OUTDIR/${SAMPLE}_rnaseqQC.txt
+        echo "Non-unique = " $(cat $OUTDIR/$SAMPLE-rnaseqQC/qualimapReport.html | fgrep "Non-unique alignment" -A 1 | tail -n 1 | sed 's/.*>\(.*\)<.*/\1/' ) >> $OUTDIR/${SAMPLE}_rnaseqQC.txt
+        echo "Ambiguous = " $(cat $OUTDIR/$SAMPLE-rnaseqQC/qualimapReport.html | fgrep "Ambiguous alignment" -A 1 | tail -n 1 | sed 's/.*>\(.*\)<.*/\1/' ) >> $OUTDIR/${SAMPLE}_rnaseqQC.txt
+        echo "No feature assigned = " $(cat $OUTDIR/$SAMPLE-rnaseqQC/qualimapReport.html | fgrep "No feature assigned" -A 1 | tail -n 1 | sed 's/.*>\(.*\)<.*/\1/' ) >> $OUTDIR/${SAMPLE}_rnaseqQC.txt
+        echo "Not aligned = " $(cat $OUTDIR/$SAMPLE-rnaseqQC/qualimapReport.html | fgrep "Not aligned" -A 1 | tail -n 1 | sed 's/.*>\(.*\)<.*/\1/' ) >> $OUTDIR/${SAMPLE}_rnaseqQC.txt
+
+        echo "5 prime bias = " $(cat $OUTDIR/$SAMPLE-rnaseqQC/qualimapReport.html | fgrep "5' bias" -A 1 | tail -n 1 | sed 's/.*>\(.*\)<.*/\1/' ) >> $OUTDIR/${SAMPLE}_rnaseqQC.txt
+        echo "3 prime bias = " $(cat $OUTDIR/$SAMPLE-rnaseqQC/qualimapReport.html | fgrep "3' bias" -A 1 | tail -n 1 | sed 's/.*>\(.*\)<.*/\1/' ) >> $OUTDIR/${SAMPLE}_rnaseqQC.txt
+        echo "5-3 bias = " $(cat $OUTDIR/$SAMPLE-rnaseqQC/qualimapReport.html | fgrep "5'-3' bias" -A 1 | tail -n 1 | sed 's/.*>\(.*\)<.*/\1/' ) >> $OUTDIR/${SAMPLE}_rnaseqQC.txt
+        echo "Reads with junctions = " $(cat $OUTDIR/$SAMPLE-rnaseqQC/qualimapReport.html | fgrep "Reads with junctions" -A 1 | tail -n 1 | sed 's/.*>\(.*\)<.*/\1/' ) >> $OUTDIR/${SAMPLE}_rnaseqQC.txt
+
+        # fix image names
+        for i in $OUTDIR/${SAMPLE}-rnaseqQC/images_qualimapReport/*.png; do
+            mv "$i" "${i// /_}"
+            sed -i "s|$i|${i// /_}|g" $OUTDIR/$SAMPLE-rnaseqQC/qualimapReport.html
+        done
+            
+
         # mark checkpoint
-        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE-rnaseqQC/qualimapReport.html
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_rnaseqQC.txt
         
     else
         echo "[NOTE] rnaseq qc skipped"
