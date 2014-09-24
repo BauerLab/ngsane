@@ -48,10 +48,10 @@ if [ -n "$RUNQUALIMAP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN:Ambiguous::sed -n 3p | awk '{print \$NF}'" \
             "PATTERN:Non feature::sed -n 4p | awk '{print \$NF}'" \
             "PATTERN:Unaligned::sed -n 5p | awk '{print \$NF}'" \
-            "PATTERN:5 prime bias::sed -n 6p | awk '{print \$NF}'" \
-            "PATTERN:3 prime bias::sed -n 7p | awk '{print \$NF}'" \
-            "PATTERN:5-3 bias::sed -n 8p | awk '{print \$NF}'" \
-            "PATTERN:Junctions::sed -n 9p | awk '{print \$NF}'" \
+            "PATTERN:5\' bias::sed -n 6p | awk '{print \$NF}'" \
+            "PATTERN:3\' bias::sed -n 7p | awk '{print \$NF}'" \
+            "PATTERN:5\'-3\' bias::sed -n 8p | awk '{print \$NF}'" \
+            "PATTERN:Junction reads::sed -n 9p | awk '{print \$NF}'" \
             "FIGURE:Transcript coverage:90:<SAMPLE>-rnaseqQC/images_qualimapReport/Transcript_coverage_histogram.png:60:1" \
             "FIGURE:Per base coverage:90:<SAMPLE>-rnaseqQC/images_qualimapReport/Transcript_per-base_coverage.png:60:1"
         
