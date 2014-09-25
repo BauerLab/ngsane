@@ -27,6 +27,7 @@ options for TASK:
   html           checks logfiles for errors and creates summary HTML page
   report         alias for html
   trackhubs      generate trackhubs
+  clean          removes all dummy files
 
 other options:
   -h         print this help message.
@@ -157,6 +158,11 @@ if [ -n "$ADDITIONALTASK" ]; then
         echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
         ARMED="--recover --direct"
 
+    elif [ "$ADDITIONALTASK" = "clean" ]; then
+        echo -e "\e[35m[NGSANE]\e[0m Trigger mode: \e[4m$ADDITIONALTASK\e[24m"
+        find $OUT/ -name "*.dummy" -print -delete
+        echo -e "\e[93m[NOTE]\e[0m All dummy files removed"
+        exit 0
     else
         echo -e "\e[91m[ERROR]\e[0m don't understand $ADDITIONALTASK"
         exit 1
