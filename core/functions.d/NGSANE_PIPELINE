@@ -22,14 +22,14 @@ function waitForJobIds {
 
 ################################################################################
 # NGSANE_PIPELINE_MOD takes 2 parameter
-# $1=MOD as specified in mods/run.d/
+# $1=MOD as specified in mods/_run.d/
 # $1=JOBIDs to wait for
 function NGSANE_PIPELINE_MOD() {
 
     NGSANE_PIPELINECALL="1"
     NGSANE_WAITFORJOB="$2"
 
-    JOBIDS="$(. $NGSANE_BASE/mods/run.d/$1)" && echo -e "$JOBIDS" >& 2
+    JOBIDS="$(. $NGSANE_BASE/mods/_run.d/$1)" && echo -e "$JOBIDS" >& 2
     
     NGSANE_WAITFORJOB=
     

@@ -1,0 +1,47 @@
+#!/bin/bash -e
+
+################################################################################
+#   TRIMGALORE remove contaminants
+#
+# IN : $SOURCE/fastq/$dir/*read1.fastq
+# OUT: $SOURCE/fastq/$dir_trimgalore/*read1.fastq
+################################################################################ 
+if [ -n "$RUNTRIMGALORE" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_TRIMGALORE" ] || [ -z "$NODES_TRIMGALORE" ] || [ -z "$CPU_TRIMGALORE" ] || [ -z "$MEMORY_TRIMGALORE" ] || [ -z "$WALLTIME_TRIMGALORE" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+        
+        $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_TRIMGALORE -i $INPUT_TRIMGALORE -e $READONE.$FASTQ -n $NODES_TRIMGALORE \
+            -c $CPU_TRIMGALORE -m $MEMORY_TRIMGALORE"G" -w $WALLTIME_TRIMGALORE \
+            --command "${NGSANE_BASE}/mods/trimgalore.sh -k $CONFIG -f <FILE>"
+        
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        NGSANE_REPORT_HEADER "Trimgalore" "$TASK_TRIMGALORE" "trimgalore.sh"
+
+        NGSANE_REPORT_TABLE "$TASK_TRIMGALORE" \
+            "-" \
+            "$OUT/fastq/<DIR>_$TASK_TRIMGALORE"  \
+            "_trimming_report.txt" \
+            "PATTERN!Reads!!fgrep -w 'Processed reads' | head -n 1 | cut -d' ' -f 3" \
+            "PATTERN!Trimmed!!fgrep -w 'Trimmed reads' | head -n 1 | cut -d' ' -f 3" \
+            "CALCULATE!%!80!#3*100/#2" \
+            "PATTERN!Filtered short reads!!fgrep -w 'Too short reads' | head -n 1 | cut -d' ' -f 4" \
+            "CALCULATE!%!80!#5*100/#2" \
+            "PATTERN!Filtered long reads!!fgrep -w 'Too long reads' | head -n 1 | cut -d' ' -f 4" \
+            "CALCULATE!%!80!#7*100/#2" \
+            "PATTERN!Remaining!!fgrep -w 'remaining reads' | head -n 1 | cut -d' ' -f 3" \
+            "CALCULATE!%!80!#9*100/#2"
+  
+        NGSANE_REPORT_FOOTER 
+     
+    fi
+fi	
+
+	

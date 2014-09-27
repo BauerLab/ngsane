@@ -1,0 +1,65 @@
+#!/bin/bash -e
+
+################################################################################
+#  Transcript mapping tophat
+#
+# IN : $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/tophat/*.bam/
+################################################################################       
+
+if [ -n "$RUNTOPHAT" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_TOPHAT" ] || [ -z "$NODES_TOPHAT" ] || [ -z "$CPU_TOPHAT" ] || [ -z "$MEMORY_TOPHAT" ] || [ -z "$WALLTIME_TOPHAT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        if [ ! -f ${FASTA%.*}.1.bt2 ];then
+            # submit job for index generation if necessary
+            INDEXJOBIDS=$(
+                $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ \
+                -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" \
+                -w $WALLTIME_TOPHAT --commontask indexGenome \
+                --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
+            ) && echo -e "$INDEXJOBIDS"
+            INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+        else
+            INDEXJOBIDS=$NGSANE_WAITFORJOB
+        fi
+    
+        $QSUB $ARMED -k $CONFIG -t $TASK_TOPHAT -i $INPUT_TOPHAT -e $READONE.$FASTQ -n $NODES_TOPHAT -c $CPU_TOPHAT -m $MEMORY_TOPHAT"G" -w $WALLTIME_TOPHAT $INDEXJOBIDS \
+            --command "${NGSANE_BASE}/mods/tophat.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_TOPHAT/<NAME>"
+
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        NGSANE_REPORT_HEADER "Tophat" "$TASK_TOPHAT" "tophat.sh" "$ASD.bam"
+
+        NGSANE_REPORT_TABLE "$TASK_TOPHAT" \
+            "-" \
+            "$OUT/<DIR>/$TASK_TOPHAT"  \
+            "$ASD.bam.stats" \
+            "LINK!<SAMPLE>$ASD.bam.html" \
+            "PATTERN!Total reads!!sed -n 1p | cut -d' ' -f 1" \
+            "PATTERN!Qfail!!sed -n 1p | cut -d' ' -f 3" \
+            "PATTERN!Duplicates!!sed -n 2p | cut -d' ' -f 1" \
+            "CALCULATE!%!40!#4*100/#2" \
+            "PATTERN!Mapped!!sed -n 3p | cut -d' ' -f 1" \
+            "CALCULATE!%!40!#6*100/#2" \
+            "PATTERN!Mapped pairs!!sed -n 7p | cut -d' ' -f 1 | xargs echo 0.5* | bc " \
+            "CALCULATE!%!40!#8*2*100/#2" \
+            "PATTERN!Singletons!!sed -n 9p | cut -d' ' -f 1" \
+            "CALCULATE!%!40!#10*100/#2" \
+            "PATTERN!Junction reads!!sed -n 13p | cut -d' ' -f 1" \
+            "CALCULATE!%!40!#12*100/#2" \
+            "PATTERN!GTF Junctions!!sed -n 14p | cut -d' ' -f 1" \
+            "CALCULATE!%!40!#14*100/#2"
+            
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+    
+fi

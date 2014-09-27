@@ -93,7 +93,7 @@ MACS2_REFINEPEAK_ADDPARAM=
 
 INPUT_MEMECHIP=$TASK_MACS2
 
-BED="_refinepeak.bed"
+MEME_BEDSUFFIX="_summits.bed"
 SLOPBEDADDPARAM="-b 50"
 MEMECHIPADDPARAM="-nmeme 1000 -meme-nmotifs 1 -dreme-m 3 -centrimo-local -centrimo-noseq -meme-mod zoops"
 FIMOADDPARAM="--qv-thresh --thresh 0.05 --motif 0"

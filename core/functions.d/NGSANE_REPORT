@@ -55,7 +55,7 @@ function NGSANE_REPORT_FOOTER {
 # $3=FOLDERPATTERN (e.g. $OUT/<DIR>/$TASK_[MOD]/<SAMPLE>)
 # $4=FILE SUFFIX (e.g. $ASD.bam.stats)
 # $5=LINK (link to other html reports)
-# $6..$x=COLUMNS (pattern or figures to appear in columns in the given order, starting with either "PATTERN:" or "FIGURE:")
+# $6..$x=COLUMNS (pattern or figures to appear in columns in the given order, starting with either "PATTERN!" or "FIGURE!")
 function NGSANE_REPORT_TABLE {
     export NGSANE_REPORT_TABLE_COUNTER=$(( $NGSANE_REPORT_TABLE_COUNTER + 1 ))
     
@@ -116,29 +116,29 @@ EOF
         NGSANE_VAR_REPORT_TABLE_TITLES="{'sTitle':'Experiment', 'sClass':'left'}, {'sTitle':'Sample', 'sClass':'left'}"
         NGSANE_VAR_REPORT_TABLE_COLUMNS="<td></td><td></td>"
         for var in "${@:4}"; do
-            if [ "$(echo $var | cut -d':' -f 2)" == "" ]; then 
+            if [ "$(echo $var | cut -d'!' -f 2)" == "" ]; then 
                 NGSANE_VAR_REPORT_TABLE_BSORTABLE=", 'bSortable':false"; 
             else 
                 NGSANE_VAR_REPORT_TABLE_BSORTABLE=""; 
             fi
-            NGSANE_VAR_REPORT_TABLE_SWIDTH=$(echo $var | cut -d':' -f 3) 
+            NGSANE_VAR_REPORT_TABLE_SWIDTH=$(echo $var | cut -d'!' -f 3) 
             if [ -n "$NGSANE_VAR_REPORT_TABLE_SWIDTH" ]; then 
                 NGSANE_VAR_REPORT_TABLE_SWIDTH=", 'sWidth':'${NGSANE_VAR_REPORT_TABLE_SWIDTH}px'"
             fi
                                     
-            if [[ $(echo $var | grep '^FIGURE:') != "" ]]; then
-                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'bSortable':false $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+            if [[ $(echo $var | grep '^FIGURE!') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d'!' -f 2)', 'bSortable':false $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
                 NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"
-            elif [[ $(echo $var | grep '^PATTERN:') != "" ]]; then
-                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+            elif [[ $(echo $var | grep '^PATTERN!') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d'!' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
                 NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"    
-            elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
-                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+            elif [[ $(echo $var | grep '^CALCULATE!') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d'!' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
                 NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"
-            elif [[ $(echo $var | grep '^DYNAMIC_COLS:') != "" ]]; then
+            elif [[ $(echo $var | grep '^DYNAMIC_COLS!') != "" ]]; then
                 NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES DYNAMIC_COLS_JSON"
                 NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS DYNAMIC_COLS_HTML"
-            elif [[ $(echo $var | grep '^DYNAMIC_ROWS:') != "" ]]; then
+            elif [[ $(echo $var | grep '^DYNAMIC_ROWS!') != "" ]]; then
                 NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES DYNAMIC_ROWS_JSON"
                 NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS DYNAMIC_ROWS_HTML"
             fi
@@ -170,8 +170,8 @@ EOF
             # check for link first
             NGSANE_VAR_TABLE_LINK=""
             for var in "$@:5"; do
-                if [[ $(echo $var | grep '^LINK:') != "" ]]; then
-                    NGSANE_VAR_TABLE_LINK=${var/LINK:/}
+                if [[ $(echo $var | grep '^LINK!') != "" ]]; then
+                    NGSANE_VAR_TABLE_LINK=${var/LINK!/}
                     NGSANE_VAR_TABLE_LINK=${NGSANE_VAR_TABLE_LINK/<SAMPLE>/$SAMPLENAME}
                     NGSANE_VAR_TABLE_LINK=${NGSANE_VAR_TABLE_LINK/<DIR>/$DIRNAME}
                 fi
@@ -186,22 +186,22 @@ EOF
             if [[ "$NGSANE_VAR_FIRSTROW" == "TRUE" ]]; then
                 # add dynamic table header by peeking into the first file
                 for var in "$@:5"; do
-                    if [[ $(echo $var | grep '^DYNAMIC_COLS:') != "" ]]; then
+                    if [[ $(echo $var | grep '^DYNAMIC_COLS!') != "" ]]; then
                         THEAD=""
                         TCOLS=""
                         FILECOLS=$(awk -F\\t 'NR==1{print NF}' $SAMPLE)
-                        let "$(echo $var | cut -d':' -f 2 | sed 's/^,/1,/' | sed "s/,$/,$FILECOLS/" | sed "s/,-\([0-9]\)\+$/,$FILECOLS-\1/" | sed 's/^/FROMCOL=/' | sed 's/,/,TOCOL=/')"
+                        let "$(echo $var | cut -d'!' -f 2 | sed 's/^,/1,/' | sed "s/,$/,$FILECOLS/" | sed "s/,-\([0-9]\)\+$/,$FILECOLS-\1/" | sed 's/^/FROMCOL=/' | sed 's/,/,TOCOL=/')"
                         for COLUMN in $(head -n 1 $SAMPLE | cut -f${FROMCOL}-${TOCOL}); do
                             THEAD="$THEAD , {'sTitle':'$COLUMN', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
                             TCOLS="$TCOLS <td></td>"
                         done
                         NGSANE_VAR_REPORT_TABLE_TITLES="${NGSANE_VAR_REPORT_TABLE_TITLES/DYNAMIC_COLS_JSON/$THEAD}"
                         NGSANE_VAR_REPORT_TABLE_COLUMNS="${NGSANE_VAR_REPORT_TABLE_COLUMNS/DYNAMIC_COLS_HTML/$TCOLS}"
-                    elif [[ $(echo $var | grep '^DYNAMIC_ROWS:') != "" ]]; then
+                    elif [[ $(echo $var | grep '^DYNAMIC_ROWS!') != "" ]]; then
                         THEAD=""
                         TCOLS=""
                         FILEROWS=$(wc -l $SAMPLE | cut -d' ' -f 1)
-                        let "$(echo $var | cut -d':' -f 2 | sed 's/^,/1,/' | sed "s/,$/,$FILEROWS/" | sed "s/,-\([0-9]\)\+$/,$FILEROWS-\1/" | sed 's/^/FROMROW=/' | sed 's/,/,TOROW=/')"
+                        let "$(echo $var | cut -d'!' -f 2 | sed 's/^,/1,/' | sed "s/,$/,$FILEROWS/" | sed "s/,-\([0-9]\)\+$/,$FILEROWS-\1/" | sed 's/^/FROMROW=/' | sed 's/,/,TOROW=/')"
                         for COLUMN in $(cut -f1 $SAMPLE | sed -n ${FROMROW},${TOROW}p); do
                             THEAD="$THEAD , {'sTitle':'$COLUMN', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
                             TCOLS="$TCOLS <td></td>"
@@ -219,15 +219,15 @@ EOF
             
             for var in "$@:5"; do
             
-                if [[ $(echo $var | grep '^FIGURE:') != "" ]]; then
-                    NGSANE_VAR_TABLE_FIGURE=$(echo $var | cut -d':' -f 4)
+                if [[ $(echo $var | grep '^FIGURE!') != "" ]]; then
+                    NGSANE_VAR_TABLE_FIGURE=$(echo $var | cut -d'!' -f 4)
                     NGSANE_VAR_TABLE_FIGURE=${NGSANE_VAR_TABLE_FIGURE/<SAMPLE>/$SAMPLENAME}
                     NGSANE_VAR_TABLE_FIGURE=${NGSANE_VAR_TABLE_FIGURE/<DIR>/$DIRNAME}
                     
-                    NGSANE_VAR_TABLE_FIGURE_HEIGHT=$(echo $var | cut -d':' -f 5)
+                    NGSANE_VAR_TABLE_FIGURE_HEIGHT=$(echo $var | cut -d'!' -f 5)
                     [ -z "$NGSANE_VAR_TABLE_FIGURE_HEIGHT" ] && NGSANE_VAR_TABLE_FIGURE_HEIGHT='50'
                     
-                    NGSANE_VAR_TABLE_FIGURE_BORDER=$(echo $var | cut -d':' -f 6)
+                    NGSANE_VAR_TABLE_FIGURE_BORDER=$(echo $var | cut -d'!' -f 6)
                     [ "$NGSANE_VAR_TABLE_FIGURE_BORDER" == "1" ] && NGSANE_VAR_TABLE_FIGURE_BORDER='class=\"border\"'
 
                     # add image only if we can detect the file
@@ -244,8 +244,8 @@ EOF
                         NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , ''"
                     fi
 
-                elif [[ $(echo $var | grep '^PATTERN:') != "" ]]; then
-                    PATTERN="cat $SAMPLE | $(echo $var | cut -d':' -f 4)"
+                elif [[ $(echo $var | grep '^PATTERN!') != "" ]]; then
+                    PATTERN="cat $SAMPLE | $(echo $var | cut -d'!' -f 4)"
                     PATTERN_RESULT=$(eval $PATTERN)
 
                     if ! [[ "$PATTERN_RESULT" =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
@@ -257,19 +257,19 @@ EOF
                     fi
                     NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $PATTERN_RESULT"
 
-                elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
+                elif [[ $(echo $var | grep '^CALCULATE!') != "" ]]; then
 
-                    CALCULATE="echo '$(echo $var | cut -d':' -f 4)' | sed 's/#\([0-9]*\)/\${NGSANE_VAR_REPORT_TABLE_ROW_ARRAY[\1]}/g'  "
+                    CALCULATE="echo '$(echo $var | cut -d'!' -f 4)' | sed 's/#\([0-9]*\)/\${NGSANE_VAR_REPORT_TABLE_ROW_ARRAY[\1]}/g'  "
                     CALCULATE="OLDIFS=IFS; IFS='@' read -r -a NGSANE_VAR_REPORT_TABLE_ROW_ARRAY <<< \"$(echo $NGSANE_VAR_REPORT_TABLE_ROW | sed 's/^.{1}//' | sed 's/ , /@/g')\" && echo $(eval $CALCULATE) && IFS=$IFS"
                     CALCULATE="echo 'scale=2; $(eval $CALCULATE)' | bc "
                     CALCULATE_RESULT="$(eval $CALCULATE)"
                     NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $CALCULATE_RESULT"
    
-                elif [[ $(echo $var | grep '^DYNAMIC_COLS:') != "" ]]; then
+                elif [[ $(echo $var | grep '^DYNAMIC_COLS!') != "" ]]; then
                     
-                    COMMAND=$(echo $var | cut -d':' -f 4)                                        
+                    COMMAND=$(echo $var | cut -d'!' -f 4)                                        
                     FILECOLS=$(awk -F\\t 'NR==1{print NF}' $SAMPLE)
-                    let "$(echo $var | cut -d':' -f 2 | sed 's/^,/1,/' | sed "s/,$/,$FILECOLS/" | sed "s/,-\([0-9]\)\+$/,$FILECOLS-\1/" | sed 's/^/FROMCOL=/' | sed 's/,/,TOCOL=/')"
+                    let "$(echo $var | cut -d'!' -f 2 | sed 's/^,/1,/' | sed "s/,$/,$FILECOLS/" | sed "s/,-\([0-9]\)\+$/,$FILECOLS-\1/" | sed 's/^/FROMCOL=/' | sed 's/,/,TOCOL=/')"
                         
                     for COLUMN in $(seq $FROMCOL $TOCOL); do
 
@@ -285,11 +285,11 @@ EOF
                         NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $PATTERN_RESULT"
                     
                     done
-                elif [[ $(echo $var | grep '^DYNAMIC_ROWS:') != "" ]]; then
+                elif [[ $(echo $var | grep '^DYNAMIC_ROWS!') != "" ]]; then
                     FILEROWS=$(wc -l $SAMPLE | cut -d' ' -f 1)
 
-                    let "$(echo $var | cut -d':' -f 2 | cut -d':' -f 2 | sed 's/^,/1,/'  | sed "s/,$/,$FILEROWS/" | sed "s/,-\([0-9]\)\+$/,$FILEROWS-\1/" | sed 's/^/FROMROW=/' | sed 's/,/,TOROW=/')"                    
-                    COMMAND=$(echo $var | cut -d':' -f 4)                                        
+                    let "$(echo $var | cut -d'!' -f 2 | sed 's/^,/1,/'  | sed "s/,$/,$FILEROWS/" | sed "s/,-\([0-9]\)\+$/,$FILEROWS-\1/" | sed 's/^/FROMROW=/' | sed 's/,/,TOROW=/')"                    
+                    COMMAND=$(echo $var | cut -d'!' -f 4)                                        
                     for COLUMN in `seq $FROMROW $TOROW `; do
                         PATTERN="sed -n ${COLUMN}p $SAMPLE | $COMMAND"
                         PATTERN_RESULT=$(eval $PATTERN)
@@ -343,7 +343,7 @@ EOF
 # $3=FOLDERPATTERN (e.g. $OUT/<DIR>/$TASK_[MOD]/<SAMPLE>)
 # $4=FILE SUFFIX (e.g. $ASD.bam.stats)
 # $5=LINK (link to other html reports)
-# $6..$x=COLUMNS (pattern or figures to appear in columns in the given order, starting with either "PATTERN:" or "FIGURE:")
+# $6..$x=COLUMNS (pattern or figures to appear in columns in the given order, starting with either "PATTERN!" or "FIGURE!")
 function NGSANE_REPORT_TABLE_AGGREGATE {
     export NGSANE_REPORT_TABLE_COUNTER=$(( $NGSANE_REPORT_TABLE_COUNTER + 1 ))
     
@@ -373,24 +373,24 @@ EOF
         NGSANE_VAR_REPORT_TABLE_TITLES="{'sTitle':'Aggregate', 'sClass':'left'}"
         NGSANE_VAR_REPORT_TABLE_COLUMNS="<td></td>"
         for var in "${@:4}"; do
-            if [ "$(echo $var | cut -d':' -f 2)" == "" ]; then 
+            if [ "$(echo $var | cut -d'!' -f 2)" == "" ]; then 
                 NGSANE_VAR_REPORT_TABLE_BSORTABLE=", 'bSortable':false"; 
             else 
                 NGSANE_VAR_REPORT_TABLE_BSORTABLE=""; 
             fi
-            NGSANE_VAR_REPORT_TABLE_SWIDTH=$(echo $var | cut -d':' -f 3) 
+            NGSANE_VAR_REPORT_TABLE_SWIDTH=$(echo $var | cut -d'!' -f 3) 
             if [ -n "$NGSANE_VAR_REPORT_TABLE_SWIDTH" ]; then 
                 NGSANE_VAR_REPORT_TABLE_SWIDTH=", 'sWidth':'${NGSANE_VAR_REPORT_TABLE_SWIDTH}px'"
             fi
                                     
-            if [[ $(echo $var | grep '^FIGURE:') != "" ]]; then
-                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'bSortable':false $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+            if [[ $(echo $var | grep '^FIGURE!') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d'!' -f 2)', 'bSortable':false $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
                 NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"
-            elif [[ $(echo $var | grep '^PATTERN:') != "" ]]; then
-                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+            elif [[ $(echo $var | grep '^PATTERN!') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d'!' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
                 NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"    
-            elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
-                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d':' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
+            elif [[ $(echo $var | grep '^CALCULATE!') != "" ]]; then
+                NGSANE_VAR_REPORT_TABLE_TITLES="$NGSANE_VAR_REPORT_TABLE_TITLES ,{'sTitle':'$(echo $var | cut -d'!' -f 2)', 'mRender': function(data){return formatNumber(data);} $NGSANE_VAR_REPORT_TABLE_BSORTABLE $NGSANE_VAR_REPORT_TABLE_SWIDTH}"
                 NGSANE_VAR_REPORT_TABLE_COLUMNS="$NGSANE_VAR_REPORT_TABLE_COLUMNS <td></td>"
             fi
         done                
@@ -416,13 +416,13 @@ EOF
         fi
         for var in "$@:5"; do
         
-            if [[ $(echo $var | grep '^FIGURE:') != "" ]]; then
-                NGSANE_VAR_TABLE_FIGURE=$(echo $var | cut -d':' -f 4)
+            if [[ $(echo $var | grep '^FIGURE!') != "" ]]; then
+                NGSANE_VAR_TABLE_FIGURE=$(echo $var | cut -d'!' -f 4)
                 NGSANE_VAR_TABLE_FIGURE=${NGSANE_VAR_TABLE_FIGURE/<AGGREGATE>/$AFILENAME}
-                NGSANE_VAR_TABLE_FIGURE_HEIGHT=$(echo $var | cut -d':' -f 5)
+                NGSANE_VAR_TABLE_FIGURE_HEIGHT=$(echo $var | cut -d'!' -f 5)
                 [ -z "$NGSANE_VAR_TABLE_FIGURE_HEIGHT" ] && NGSANE_VAR_TABLE_FIGURE_HEIGHT='50'
                 
-                NGSANE_VAR_TABLE_FIGURE_BORDER=$(echo $var | cut -d':' -f 6)
+                NGSANE_VAR_TABLE_FIGURE_BORDER=$(echo $var | cut -d'!' -f 6)
                 [ "$NGSANE_VAR_TABLE_FIGURE_BORDER" == "1" ] && NGSANE_VAR_TABLE_FIGURE_BORDER='class=\"border\"'
 
                 # add image only if we can detect the file
@@ -439,8 +439,8 @@ EOF
                     NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , ''"
                 fi
 
-            elif [[ $(echo $var | grep '^PATTERN:') != "" ]]; then
-                PATTERN="cat $AFILE | $(echo $var | cut -d':' -f 4)"
+            elif [[ $(echo $var | grep '^PATTERN!') != "" ]]; then
+                PATTERN="cat $AFILE | $(echo $var | cut -d'!' -f 4)"
                 PATTERN_RESULT=$(eval $PATTERN)
 
                 if ! [[ "$PATTERN_RESULT" =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
@@ -452,9 +452,9 @@ EOF
                 fi
                 NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , $PATTERN_RESULT"
 
-            elif [[ $(echo $var | grep '^CALCULATE:') != "" ]]; then
+            elif [[ $(echo $var | grep '^CALCULATE!') != "" ]]; then
 
-                CALCULATE="echo '$(echo $var | cut -d':' -f 4)' | sed 's/#\([0-9]*\)/\${NGSANE_VAR_REPORT_TABLE_ROW_ARRAY[\1]}/g'  "
+                CALCULATE="echo '$(echo $var | cut -d'!' -f 4)' | sed 's/#\([0-9]*\)/\${NGSANE_VAR_REPORT_TABLE_ROW_ARRAY[\1]}/g'  "
                 CALCULATE="OLDIFS=IFS; IFS='@' read -r -a NGSANE_VAR_REPORT_TABLE_ROW_ARRAY <<< \"$(echo $NGSANE_VAR_REPORT_TABLE_ROW | sed 's/^.{1}//' | sed 's/ , /@/g')\" && echo $(eval $CALCULATE) && IFS=$IFS"
                 CALCULATE="echo 'scale=2; $(eval $CALCULATE)' | bc "
                 CALCULATE_RESULT="$(eval $CALCULATE)"

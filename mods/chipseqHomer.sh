@@ -83,6 +83,15 @@ if [ -n "$CHIPINPUT" ];then
 else
     INPUT="NONE"
 fi
+if [ "$HOMER_CHIPSEQ_STYLE" == "factor" ]; then
+    PEAKSUFFIX=".narrowPeak"
+elif [ "$HOMER_CHIPSEQ_STYLE" == "histone" ]; then
+    PEAKSUFFIX=".broadPeak"
+fi    
+
+if [ -z "$NGSANE_RECOVERFROM" ]; then
+    [ -e $OUTDIR/$SAMPLE$PEAKSUFFIX ] && rm -rf $OUTDIR/$SAMPLE $OUTDIR/$SAMPLE$PEAKSUFFIX
+fi
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -101,13 +110,13 @@ NGSANE_CHECKPOINT_INIT "create tagdirectory"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     
-    mkdir -p $OUTDIR/${SAMPLE}_homer
-    RUN_COMMAND="makeTagDirectory $OUTDIR/${SAMPLE}_homer $f $HOMER_CHIPSEQ_TAGDIR_ADDPARAM &> $OUTDIR/${SAMPLE}.tagdirIP.log"
+    mkdir -p $OUTDIR/$SAMPLE
+    RUN_COMMAND="makeTagDirectory $OUTDIR/$SAMPLE $f $HOMER_CHIPSEQ_TAGDIR_ADDPARAM &> $OUTDIR/$SAMPLE.tagdirIP.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    cat $OUTDIR/${SAMPLE}.tagdirIP.log # put into qout log too
+    cat $OUTDIR/$SAMPLE.tagdirIP.log # put into qout log too
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_homer/tagLengthDistribution.txt
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/tagLengthDistribution.txt
 
 fi
 ################################################################################
@@ -115,30 +124,40 @@ NGSANE_CHECKPOINT_INIT "find peaks"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="findPeaks $OUTDIR/${SAMPLE}_homer -style $HOMER_CHIPSEQ_STYLE  $HOMER_CHIPSEQ_FINDPEAKS_ADDPARAM -o auto "
+    RUN_COMMAND="findPeaks $OUTDIR/$SAMPLE -style $HOMER_CHIPSEQ_STYLE  $HOMER_CHIPSEQ_FINDPEAKS_ADDPARAM -o auto "
     if [ -n "$CHIPINPUT" ];then
       RUN_COMMAND="$RUN_COMMAND -i $OUT/common/$TASK_HOMERCHIPSEQ/$INPUT/"  
     fi
-    RUN_COMMAND="$RUN_COMMAND &> $OUTDIR/${SAMPLE}.findpeaks.log"
+    RUN_COMMAND="$RUN_COMMAND &> $OUTDIR/$SAMPLE.findpeaks.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    cat $OUTDIR/${SAMPLE}.findpeaks.log # put into qout log too
+    cat $OUTDIR/$SAMPLE.findpeaks.log # put into qout log tooq
     
     if [ "$HOMER_CHIPSEQ_STYLE" == "factor" ]; then
-        pos2bed.pl $OUTDIR/${SAMPLE}_homer/peaks.txt > $OUTDIR/$SAMPLE.bed
-    
+        if [ "$INPUT" == "NONE" ]; then
+            grep -v "#" $OUTDIR/$SAMPLE/peaks.txt | awk '{OFS="\t";print $2,$3,$4,$1,int($8),$5,$7,".",".","-1"}' > $OUTDIR/$SAMPLE$PEAKSUFFIX
+        else
+            grep -v "#" $OUTDIR/$SAMPLE/peaks.txt | awk 'function neglog(v){if(v==0){return 1000}else{return -log(v)/log(10)}};{OFS="\t";print $2,$3,$4,$1,int($8),$5,$6,neglog($12),".","-1"}' > $OUTDIR/$SAMPLE$PEAKSUFFIX
+        fi
     elif [ "$HOMER_CHIPSEQ_STYLE" == "histone" ]; then
-        pos2bed.pl $OUTDIR/${SAMPLE}_homer/regions.txt > $OUTDIR/$SAMPLE.bed
+        if [ "$INPUT" == "NONE" ]; then
+            grep -v "#" $OUTDIR/$SAMPLE/region.txt | awk '{OFS="\t";print $2,$3,$4,$1,int($8),$5,$7,".","."}' > $OUTDIR/$SAMPLE$PEAKSUFFIX
+        else
+            grep -v "#" $OUTDIR/$SAMPLE/region.txt | awk 'function neglog(v){if(v==0){return 1000}else{return -log(v)/log(10)}};{OFS="\t";print $2,$3,$4,$1,int($8),$5,$6,neglog($12),".","-1"}' > $OUTDIR/$SAMPLE$PEAKSUFFIX
+        fi
     fi
 
+
     # make bigbed
-    if hash bedToBigBed && [ -f $GENOME_CHROMSIZES ]; then
-        bedtools intersect -a <(cut -f1-3,5 $OUTDIR/$SAMPLE.bed | grep -v "^#" | sort -k1,1 -k2,2n) -b <( awk '{OFS="\t"; print $1,1,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/$SAMPLE.tmp
-        bedToBigBed -type=bed4 $OUTDIR/$SAMPLE.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bb
-        rm $OUTDIR/$SAMPLE.tmp
+    if hash bedToBigBed; then
+        if [ -f $GENOME_CHROMSIZES ] && [ -s $OUTDIR/$SAMPLE$PEAKSUFFIX ]; then
+            bedtools intersect -a <(cut -f1-3,5 $OUTDIR/$SAMPLE$PEAKSUFFIX | grep -v "^#" | sort -k1,1 -k2,2n) -b <( awk '{OFS="\t"; print $1,1,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/$SAMPLE.tmp
+            bedToBigBed -type=bed4 $OUTDIR/$SAMPLE.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bb
+            rm $OUTDIR/$SAMPLE.tmp
+        fi
     fi
         
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.findpeaks.log
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$PEAKSUFFIX
 
 fi
 ################################################################################
@@ -146,33 +165,45 @@ NGSANE_CHECKPOINT_INIT "summarize"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    cat $OUTDIR/${SAMPLE}.tagdirIP.log $OUTDIR/${SAMPLE}.findpeaks.log > $OUTDIR/${SAMPLE}.summary.txt
+    cat $OUTDIR/$SAMPLE.tagdirIP.log $OUTDIR/$SAMPLE.findpeaks.log > $OUTDIR/$SAMPLE.summary.txt
     
 
     if [ "$HOMER_CHIPSEQ_STYLE" == "factor" ]; then
-        grep "^#" $OUTDIR/${SAMPLE}_homer/peaks.txt >> $OUTDIR/${SAMPLE}.summary.txt
+        grep "^#" $OUTDIR/$SAMPLE/peaks.txt >> $OUTDIR/$SAMPLE.summary.txt
     
     elif [ "$HOMER_CHIPSEQ_STYLE" == "histone" ]; then
-        grep "^#" $OUTDIR/${SAMPLE}_homer/regions.txt >> $OUTDIR/${SAMPLE}.summary.txt
+        grep "^#" $OUTDIR/$SAMPLE/regions.txt >> $OUTDIR/$SAMPLE.summary.txt
     fi
     
+    cat > $OUTDIR/$SAMPLE/tagAutocorrelation.R <<EOF
+        library(ggplot2)
+        library(reshape2)
+        tagAutocorrelation <- read.delim("$OUTDIR/$SAMPLE/tagAutocorrelation.txt")
+        names(tagAutocorrelation)=c("x","watson","crick")
+        t<-melt(tagAutocorrelation, c("x"), c("watson","crick"))
+        pdf("$OUTDIR/$SAMPLE/tagAutocorrelation.pdf", width=7, height=4)
+        ggplot(t,aes(x,value, group=variable, color=variable)) + geom_point(alpha = 0.5, size=1.5) + xlab("Position (nt)") + ylab("Tags") + ggtitle("Tag autocorrelation")  +  theme(legend.position = "none")
+        dev.off()
+EOF
+    Rscript $OUTDIR/$SAMPLE/tagAutocorrelation.R
+    
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.summary.txt
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.summary.txt
 
 fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "cleanup"
 
 if [ -z "$HOMER_KEEPTAGDIRECTORY" ]; then
-   rm -f $OUTDIR/${SAMPLE}_homer/*.tags.tsv
+   rm -f $OUTDIR/$SAMPLE/*.tags.tsv
 fi
 
-[ -f $OUTDIR/${SAMPLE}.tagdirIP.log ] && rm $OUTDIR/${SAMPLE}.tagdirIP.log
-[ -f $OUTDIR/${SAMPLE}.findpeaks.log ] && rm $OUTDIR/${SAMPLE}.findpeaks.log
+[ -f $OUTDIR/$SAMPLE.tagdirIP.log ] && rm $OUTDIR/$SAMPLE.tagdirIP.log
+[ -f $OUTDIR/$SAMPLE.findpeaks.log ] && rm $OUTDIR/$SAMPLE.findpeaks.log
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
-[ -e $OUTDIR/${SAMPLE}.summary.txt.dummy ] && rm $OUTDIR/${SAMPLE}.summary.txt.dummy
+[ -e $OUTDIR/$SAMPLE.summary.txt.dummy ] && rm $OUTDIR/$SAMPLE.summary.txt.dummy
 echo ">>>>> ChIPseq analysis with Homer - FINISHED"
 echo ">>>>> enddate "`date`
 

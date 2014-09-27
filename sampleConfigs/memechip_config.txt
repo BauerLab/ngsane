@@ -38,7 +38,7 @@ QOUT=$OUT/qout
 FASTA=
 
 # bed file suffix
-BED="_summit.bed"
+MEME_BEDSUFFIX="_summit.bed"
 
 #********************
 # PARAMETER (optional overwriting defaults)

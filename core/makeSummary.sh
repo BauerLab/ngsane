@@ -60,7 +60,7 @@ PROJECT_RELPATH=$(python -c "import os.path; print os.path.relpath('$(pwd -P)',o
 
 # source module requested for report generation (in order provided by the config)
 for RUN_MODS in $(cat $CONFIG | egrep '^RUN.*=' | cut -d'=' -f 1); do 
-    eval "if [ -n $RUN_MODS ]; then source ${NGSANE_BASE}/mods/run.d/${RUN_MODS/RUN}; fi"; 
+    eval "if [ -n $RUN_MODS ]; then source ${NGSANE_BASE}/mods/_run.d/${RUN_MODS/RUN}; fi"; 
 done
     
 ################################################################################

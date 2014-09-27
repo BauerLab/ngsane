@@ -7,6 +7,7 @@ QUEUEWAITSEP=":"
 #QUEUEWAIT=" -hold_jid "                          # SGE
 #QUEUEWAITSEP=","
 #QUEUEPARENV="smp"     
+QSUBEXTRA=""          # any extra such as email notification
 QUEUEMEMORYPERSLOT=   # or Yes if vmem is per CPU slot not job
 DMGET=                # or Yes when storing data on tape
 TMP=$(pwd)/tmp                                       # TMP dir
@@ -75,6 +76,7 @@ NG_HOTSPOT=
 NG_BEDOPS=
 NG_QUALIMAP=
 NG_MRSFAST=
+NG_TABIX=
 
 ##############################################################
 # Software reference
@@ -127,20 +129,19 @@ NG_CITE_HOTSPOT="Nat Genet. 2011 Mar;43(3):264-8. doi: 10.1038/ng.759. Epub 2011
 NG_CITE_BEDOPS="Bioinformatics. 2012 Jul 15;28(14):1919-20. doi: 10.1093/bioinformatics/bts277. Epub 2012 May 9., 'BEDOPS: high-performance genomic feature operations.', Neph S, Kuehn MS, Reynolds AP, Haugen E, Thurman RE, Johnson AK, Rynes E, Maurano MT, Vierstra J, Thomas S, Sandstrom R, Humbert R, Stamatoyannopoulos JA."
 NG_CITE_QUALIMAP="Bioinformatics. 2012 Oct 15;28(20):2678-9. doi: 10.1093/bioinformatics/bts503. Epub 2012 Aug 22.; 'Qualimap: evaluating next-generation sequencing alignment data.'; García-Alcalde F1, Okonechnikov K, Carbonell J, Cruz LM, Götz S, Tarazona S, Dopazo J, Meyer TF, Conesa A."
 NG_CITE_MRSFAST="Nucleic Acids Res. 2014 Jul;42(Web Server issue):W494-500. doi: 10.1093/nar/gku370. Epub 2014 May 8. 'mrsFAST-Ultra: a compact, SNP-aware mapper for high performance sequencing applications.'; Hach F1, Sarrafi I2, Hormozdiari F3, Alkan C4, Eichler EE5, Sahinalp SC6."
+NG_CITE_TABIX="Bioinformatics. 2011 Mar 1;27(5):718-9. doi: 10.1093/bioinformatics/btq671. Epub 2011 Jan 5.; 'Tabix: fast retrieval of sequence features from generic TAB-delimited files.'; Li H."
 
 ##############################################################
 # PROGRAM PATHS
 ##############################################################
 QSUB=${NGSANE_BASE}/core/prepareJobSubmission.sh
 BINQSUB=${NGSANE_BASE}/core/jobSubmission.sh
-QSUBEXTRA=""            # any extra such as email notification
 
 # Commonly used file abbreviations
 READONE="_read1"
 READTWO="_read2"
 FASTQ="fastq.gz"
 FASTA=            # fasta file usually from the reference genome
-FASTA_CHROMDIR=   # folder containing individual fasta files for each chromosome of the reference genome 
 
 # file infixes
 UNM=".unm"   # unmapped

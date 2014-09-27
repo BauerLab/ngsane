@@ -1,0 +1,49 @@
+#!/bin/bash -e
+
+################################################################################
+#  De-novo motif discovery with memechip
+#
+# IN: $SOURCE/$dir/peakranger/*.Bedford
+# OUT: $OUT/$dir/memechip/
+################################################################################
+if [ -n "$RUNMEMECHIP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_MEMECHIP" ] || [ -z "$NODES_MEMECHIP" ] || [ -z "$CPU_MEMECHIP" ] || [ -z "$MEMORY_MEMECHIP" ] || [ -z "$WALLTIME_MEMECHIP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_MEMECHIP -i $INPUT_MEMECHIP -e $MEME_BEDSUFFIX \
+            -n $NODES_MEMECHIP -c $CPU_MEMECHIP -m $MEMORY_MEMECHIP"G" -w $WALLTIME_MEMECHIP \
+    	   --command "${NGSANE_BASE}/mods/memechip.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_MEMECHIP"
+    	   
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "MemeChip" "$TASK_MEMECHIP" "memechip.sh"
+
+        NGSANE_REPORT_TABLE "$TASK_MEMECHIP" \
+            "-" \
+            "$OUT/<DIR>/$TASK_MEMECHIP"  \
+            ".summary.txt" \
+            "LINK"!"<SAMPLE>/index.html" \
+            "PATTERN!Query consensus!!fgrep 'Query consensus' | awk '{print \$(NF)}'" \
+            "PATTERN!E-value!80!fgrep 'E-value' | awk '{print \$(NF)}'" \
+            "PATTERN!Q-value!80!fgrep 'Q-value' | awk '{print \$(NF)}'" \
+            "PATTERN!Similar to!!fgrep 'Most similar known motif' | awk '{print \$(NF)}'" \
+            "PATTERN!Peaks!!fgrep 'Peak regions' | awk '{print \$(NF)}'" \
+            "PATTERN!With strong motif!!fgrep 'bound directly' | awk '{print \$(NF)}'" \
+            "FIGURE!Logo!150!<SAMPLE>_topmememotif.png!60!1"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+  
+    fi
+fi	
+
+	

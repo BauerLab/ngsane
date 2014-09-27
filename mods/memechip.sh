@@ -66,7 +66,7 @@ NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
-SAMPLE=${n/$BED/}
+SAMPLE=${n/$MEME_BEDSUFFIX/}
 
 if [ -z "$FASTA" ] || [ ! -f $FASTA ]; then
     echo "[ERROR] no reference provided (FASTA)"

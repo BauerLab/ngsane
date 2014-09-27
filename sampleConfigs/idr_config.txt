@@ -39,7 +39,7 @@ QOUT=$OUT/qout
 FASTA=
 
 # bed file suffix, need to be in narrowPeak format
-BED=".narrowPeak"
+IDR_BEDSUFFIX=".narrowPeak"
 
 # score to use for IDR
 # e.g "p.value", "signal.value"

@@ -35,7 +35,7 @@ QOUT=$OUT/qout
 #********************
 
 # folder containing multiple gtf files for integration
-# e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_17/BAM_ANNOTATE
+# e.g. /share/ClusterShare/biodata/contrib/GENCODE_doctored/release_19/BAM_ANNOTATE/
 # or   ${NGSANE_REFERENCE}/b37/bamann
 BAMANNLIB=
 

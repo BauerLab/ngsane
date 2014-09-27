@@ -1,0 +1,63 @@
+#!/bin/bash -e
+
+################################################################################
+#  Bam QC with qualimap
+#
+# IN: $SOURCE/$dir/bowtie/*.bam
+# OUT: $OUT/$dir/qualimap/
+################################################################################       
+
+if [ -n "$RUNQUALIMAP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_QUALIMAP" ] || [ -z "$NODES_QUALIMAP" ] || [ -z "$CPU_QUALIMAP" ] || [ -z "$MEMORY_QUALIMAP" ] || [ -z "$WALLTIME_QUALIMAP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_QUALIMAP -i $INPUT_QUALIMAP -e $ASD.bam \
+            -n $NODES_QUALIMAP -c $CPU_QUALIMAP -m $MEMORY_QUALIMAP"G" -w $WALLTIME_QUALIMAP \
+            --command "${NGSANE_BASE}/mods/qualimap.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_QUALIMAP/"
+
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        NGSANE_REPORT_HEADER "QualiMap" "$TASK_QUALIMAP" "qualimap.sh"
+
+        NGSANE_REPORT_TABLE "$TASK_QUALIMAP" \
+            "BamQC" \
+            "$OUT/<DIR>/$TASK_QUALIMAP"  \
+            "_bamQC.txt" \
+            "LINK!<SAMPLE>-bamQC/qualimapReport.html" \
+            "PATTERN!Mean coverage!!fgrep -w 'mean coverageData' | awk '{print \$4}' | sed 's/X//'" \
+            "PATTERN!Std coverage!!fgrep -w 'std coverageData' | awk '{print \$4}' | sed 's/X//'" \
+            "FIGURE!Coverage across genome!90!<SAMPLE>-bamQC/images_qualimapReport/genome_coverage_across_reference.png!60!1" \
+            "FIGURE!Coverage histogram!90!<SAMPLE>-bamQC/images_qualimapReport/genome_coverage_0to50_histogram.png!60!1" \
+            "FIGURE!Genome fraction coverage!90!<SAMPLE>-bamQC/images_qualimapReport/genome_coverage_quotes.png!60!1" \
+            "FIGURE!Duplication rate!90!<SAMPLE>-bamQC/images_qualimapReport/genome_uniq_read_starts_histogram.png!60!1"
+
+        NGSANE_REPORT_TABLE "$TASK_QUALIMAP" \
+            "RNAseqQC" \
+            "$OUT/<DIR>/$TASK_QUALIMAP"  \
+            "_rnaseqQC.txt" \
+            "LINK!<SAMPLE>-rnaseqQC/qualimapReport.html" \
+            "PATTERN!Reads aligned to genes!!sed -n 1p | awk '{print \$NF}'" \
+            "PATTERN!Non-unique!!sed -n 2p | awk '{print \$NF}'" \
+            "PATTERN!Ambiguous!!sed -n 3p | awk '{print \$NF}'" \
+            "PATTERN!Non feature!!sed -n 4p | awk '{print \$NF}'" \
+            "PATTERN!Unaligned!!sed -n 5p | awk '{print \$NF}'" \
+            "PATTERN!5\' bias!!sed -n 6p | awk '{print \$NF}'" \
+            "PATTERN!3\' bias!!sed -n 7p | awk '{print \$NF}'" \
+            "PATTERN!5\'-3\' bias!!sed -n 8p | awk '{print \$NF}'" \
+            "PATTERN!Junction reads!!sed -n 9p | awk '{print \$NF}'" \
+            "FIGURE!Transcript coverage!90!<SAMPLE>-rnaseqQC/images_qualimapReport/Transcript_coverage_histogram.png!60!1" \
+            "FIGURE!Per base coverage!90!<SAMPLE>-rnaseqQC/images_qualimapReport/Transcript_per-base_coverage.png!60!1"
+        
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+fi	
+
+	

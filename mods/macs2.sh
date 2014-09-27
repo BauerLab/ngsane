@@ -7,7 +7,7 @@
 # date: August 2013
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>_refinepeak.bed
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>_summits.bed
 
 
 echo ">>>>> ChIPseq analysis with MACS2"
@@ -88,6 +88,17 @@ if [ ! -f $GENOME_CHROMSIZES ]; then
 else
     echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
 fi
+
+if [[ "$MACS2_CALLPEAK_ADDPARAM" == *--broad* ]]; then
+    PEAKSUFFIX="_peaks.broadPeak"
+else
+    PEAKSUFFIX="_peaks.narrowPeak"
+fi
+
+if [ -z "$NGSANE_RECOVERFROM" ]; then
+    [ -e $OUTDIR/$SAMPLE$PEAKSUFFIX ] && rm $OUTDIR/$SAMPLE*
+fi
+
 cd $OUTDIR  
 
 NGSANE_CHECKPOINT_CHECK
@@ -141,7 +152,6 @@ NGSANE_CHECKPOINT_INIT "macs 2 - call peaks "
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-
     if [ -z "$MACS2_FRAGMENTSIZE" ]; then
         # estimated fragment sizes up to the tagsize are usually artifacts
         TAGSIZE=$(fgrep '# tag size =' $SAMPLE.summary.txt | cut -d'=' -f 2 | tr -d ' \t\r\f')
@@ -154,45 +164,54 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         fi
     fi
     echo "Determined fragment size: $MACS2_FRAGMENTSIZE" >> $SAMPLE.summary.txt
-    
+    echo "ChIP input: $CONTROL" >> $SAMPLE.summary.txt
+
     RUN_COMMAND="macs2 callpeak $MACS2_CALLPEAK_ADDPARAM --nomodel --extsize $MACS2_FRAGMENTSIZE --treatment $f $CHIPINPUT --gsize $MACS2_GENOMESIZE --name $SAMPLE >> $SAMPLE.summary.txt 2>&1"    
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    if [[ "$MACS2_CALLPEAK_ADDPARAM" == *--broad* ]]; then
-        echo "[NOTE] convert broadpeaks to 6 bed file for refining"
-        cat ${SAMPLE}_peaks.broadPeak | awk '{OFS="\t"; print $1,$2,$3,$4,$9,$6}'  > ${SAMPLE}_peaks.bed
-    else
-        echo "[NOTE] convert narrowpeaks to 6 bed file for refining"
-        cat ${SAMPLE}_peaks.narrowPeak | awk '{OFS="\t"; print $1,$2,$3,$4,$9,$6}' > ${SAMPLE}_peaks.bed
-    fi
-    echo "ChIP input: $CONTROL" >> $SAMPLE.summary.txt
-    echo "Nucleotides covered: $(awk '{sum+=$3-$2}END{print sum}' ${SAMPLE}_peaks.bed)" >> $SAMPLE.summary.txt
+    # remove excel stuff
+    [ -f $SAMPLE"_peaks.xls" ] && rm $SAMPLE"_peaks.xls"
 
-	if hash bedToBigBed ; then 
-        echo "[NOTE] create bigbed from peaks" 
-        awk '{OFS="\t"; print $1,$2,$3,$5}' ${SAMPLE}_peaks.bed > ${SAMPLE}_peaks.tmp
-        bedToBigBed -type=bed4 ${SAMPLE}_peaks.tmp $GENOME_CHROMSIZES $SAMPLE.bb
-        rm ${SAMPLE}_peaks.tmp
+    # slim down peak file by removing samplenames from column 4
+    sed -i "s/${SAMPLE}_peak/peak/g" $SAMPLE$PEAKSUFFIX
+    
+    echo "Nucleotides covered: $(awk '{sum+=$3-$2}END{sum>0?sum=sum:sum=0; print sum}' $SAMPLE$PEAKSUFFIX)" >> $SAMPLE.summary.txt
+
+    # create bigbed making sure score is between 0 and 1000
+	if hash bedToBigBed; then 
+	   if [ -s $SAMPLE$PEAKSUFFIX ]; then
+            echo "[NOTE] create bigbed from peaks" 
+            sort -k1,1 -k2,2n $SAMPLE$PEAKSUFFIX | awk '{OFS="\t";$5>1000?$5=1000:$5=$5; print $0}' > $SAMPLE$PEAKSUFFIX.tmp
+            if [[ "$MACS2_CALLPEAK_ADDPARAM" == *--broad* ]]; then
+                bedToBigBed -type=bed6+3 $SAMPLE$PEAKSUFFIX.tmp $GENOME_CHROMSIZES $SAMPLE.bb
+            else
+                bedToBigBed -type=bed6+4 $SAMPLE$PEAKSUFFIX.tmp $GENOME_CHROMSIZES $SAMPLE.bb
+            fi
+            rm $SAMPLE$PEAKSUFFIX.tmp
+        fi
     fi
- 
+
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK ${SAMPLE}_peaks.bed
+    NGSANE_CHECKPOINT_CHECK $SAMPLE$PEAKSUFFIX
 fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "macs 2 - refine peaks "
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b ${SAMPLE}_peaks.bed -i $f --o-prefix $SAMPLE >> $SAMPLE.summary.txt 2>&1"
+    RUN_COMMAND="macs2 refinepeak $MACS2_REFINEPEAK_ADDPARAM -b $SAMPLE$PEAKSUFFIX -i $f --o-prefix $SAMPLE >> $SAMPLE.summary.txt 2>&1"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-
-    echo "Final number of refined summits: $(wc -l ${SAMPLE}_refinepeak.bed )" >> $SAMPLE.summary.txt
     
+    # overwrite old summits
+    mv $SAMPLE"_refinepeak.bed" $SAMPLE"_summits.bed"
+        
+    echo "Final number of refined summits: $(wc -l ${SAMPLE}_summits.bed )" >> $SAMPLE.summary.txt
+        
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK ${SAMPLE}_refinepeak.bed
+    NGSANE_CHECKPOINT_CHECK 
 fi
 ################################################################################
-[ -e $OUTDIR/${SAMPLE}_refinepeak.bed.dummy ] && rm $OUTDIR/${SAMPLE}_refinepeak.bed.dummy
+[ -e $OUTDIR/${SAMPLE}_summits.bed.dummy ] && rm $OUTDIR/${SAMPLE}_summits.bed.dummy
 echo ">>>>> ChIPseq analysis with MACS2 - FINISHED"
 echo ">>>>> enddate "`date`
 

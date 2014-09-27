@@ -812,7 +812,7 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=4.3
+VERSION=4.7
 SOFTWARE=homer
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -1321,7 +1321,7 @@ chmod 777 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=3.3.2
+VERSION=3.3.4
 SOFTWARE=mrsfast
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -1412,6 +1412,33 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
+VERSION=0.2.6
+SOFTWARE=tabix
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://downloads.sourceforge.net/project/samtools/$SOFTWARE/$SOFTWARE-$VERSION.tar.bz2
+tar -xf $SOFTWARE-$VERSION.tar.bz2
+cd $SOFTWARE-$VERSION
+make
+
+mv bgzip $PACKAGEPATH/$SOFTWARE/$VERSION/
+mv tabix $PACKAGEPATH/$SOFTWARE/$VERSION/
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/
+DELIM
+
+module load $SOFTWARE/$VERSION
+################################################################################
 
 NGSANE_VERSION=0.4.0.2
 NGSANE_SOFTWARE=ngsane
@@ -1471,7 +1498,7 @@ sed -i 's|^NG_PERL=|NG_PERL=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/con
 sed -i 's|^NG_SEQLOGO=|NG_SEQLOGO=seqlogo/2.8.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BLAT=|NG_BLAT=blat/35|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_WIGGLER=|NG_WIGGLER=wiggler/2.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_HOMER=|NG_HOMER=homer/4.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_HOMER=|NG_HOMER=homer/4.7|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CUTADAPT=|NG_CUTADAPT=${NG_PYTHON}|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_TRIMGALORE=|NG_TRIMGALORE=trim_galore/0.3.7|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_TRIMMOMATIC=|NG_TRIMMOMATIC=trimmomatic/0.32|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1487,7 +1514,8 @@ sed -i 's|^NG_TRINITY=|NG_TRINITY=trinityrnaseq/2013_08_14|' $PACKAGEPATH/$NGSAN
 sed -i 's|^NG_PINDEL=|NG_PINDEL=pindel/0.2.5|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CIRCOS=|NG_CIRCOS=circos/0.64|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_QUALIMAP=|NG_QUALIMAP=qualimap/1.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_MRSFAST=|NG_MRSFAST=mrsfast/3.3.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_MRSFAST=|NG_MRSFAST=mrsfast/3.3.4|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_TABIX=|NG_TABIX=tabix/0.2.6|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 
 # databases
 sed -i 's|^MEMECHIPDATABASES=|MEMECHIPDATABASES=/packages/meme/4.10.0/db/motif_databases/jolma2013.meme|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
