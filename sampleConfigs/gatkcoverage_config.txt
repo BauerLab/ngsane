@@ -22,7 +22,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_GATKDOC=$TASK_RECAL
+INPUT_GATKDOC=$TASK_RECALALN
 
 # file suffix for output ($ASR.bam)
 #ASR=

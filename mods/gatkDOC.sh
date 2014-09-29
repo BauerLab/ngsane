@@ -166,18 +166,18 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         # get reads overlapping exons+100 and get statistics
         # get how many reads where there to begin with
         slopBed -i $LIST -b 100 -g $GENOME_CHROMSIZES | intersectBed \
-    	-abam $f -b stdin -u | $SAMTOOLS flagstat - > $OUTDIR/$SAMPLE$ASR.bam.stats
+    	-abam $f -b stdin -u | samtools flagstat - > $OUTDIR/$SAMPLE$ASR.bam.stats
     
-        #windowBed -abam $f -b $LIST -w 100 -u | $SAMTOOLS flagstat - > $OUTDIR/$SAMPLE$ASR.bam.stats
+        #windowBed -abam $f -b $LIST -w 100 -u | samtools flagstat - > $OUTDIR/$SAMPLE$ASR.bam.stats
         echo "# overall" >> $OUTDIR/$SAMPLE$ASR.bam.stats
         grep "in total (QC-passed reads + QC-failed reads)" $f.stats >> $OUTDIR/$SAMPLE$ASR.bam.stats
         grep "properly paired (" $f.stats >> $OUTDIR/$SAMPLE$ASR.bam.stats
     
         echo "# on target 0" >> $OUTDIR/$SAMPLE$ASR.bam.stats
-        intersectBed -abam $f -b $LIST  -u | $SAMTOOLS flagstat - >> $OUTDIR/$SAMPLE$ASR.bam.stats
+        intersectBed -abam $f -b $LIST  -u | samtools flagstat - >> $OUTDIR/$SAMPLE$ASR.bam.stats
         echo "# on target 200" >> $OUTDIR/$SAMPLE$ASR.bam.stats
         slopBed -i $LIST -b 100 -g $GENOME_CHROMSIZES | intersectBed \
-    	-abam $f -b stdin -u | $SAMTOOLS flagstat - >> $OUTDIR/$SAMPLE$ASR.bam.stats
+    	-abam $f -b stdin -u | samtools flagstat - >> $OUTDIR/$SAMPLE$ASR.bam.stats
 
         # mark checkpoint
         NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASR.bam.stats
