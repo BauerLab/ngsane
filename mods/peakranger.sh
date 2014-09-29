@@ -111,10 +111,10 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     [ -f $OUTDIR/$SAMPLE.summary.txt ] && rm $OUTDIR/$SAMPLE.summary.txt
     
-    RUN_COMMAND="peakranger nr --format bam --data $f --control $CHIPINPUT | tr ':' '\t' > $OUTDIR/$SAMPLE.summary.txt"
+    RUN_COMMAND="peakranger nr --format bam --data $f --control $CHIPINPUT > $OUTDIR/$SAMPLE.summary.txt"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    RUN_COMMAND="peakranger lc --data $f | tr ':' '\t' >> $OUTDIR/$SAMPLE.summary.txt"
+    RUN_COMMAND="peakranger lc --data $f >> $OUTDIR/$SAMPLE.summary.txt"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
@@ -155,7 +155,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
     
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_region.bed
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_details
 
 fi
 

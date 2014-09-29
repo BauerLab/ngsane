@@ -29,14 +29,14 @@ if [ -n "$RUNPEAKRANGER" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "-" \
             "$OUT/<DIR>/$TASK_PEAKRANGER"  \
             ".summary.txt" \
-            "PATTERN!Control!!fgrep 'ChIP input' | awk '{print \$(NF)}'" \
-            "PATTERN!Total reads!!fgrep 'Total reads' | awk '{print \$(NF)}'" \
-            "PATTERN!Unique!!fgrep 'Unique reads' | awk '{print \$(NF)}'" \
+            "PATTERN!Control!!fgrep 'ChIP input' | cut -d':' -f2" \
+            "PATTERN!Total reads!!fgrep 'Total reads' | cut -d':' -f2" \
+            "PATTERN!Unique!!fgrep 'Unique reads' | cut -d':' -f2" \
             "CALCULATE!Unique %!80!#4*100/#3" \
-            "PATTERN!Noise rate!100!fgrep 'Estimated noise rate' | awk '{print \$(NF)}'" \
-            "PATTERN!Library complexity!100!fgrep 'Library complexity' | sed 's/.* \([0-9]*\.[0-9]\+\)%/\1/g'" \
-            "PATTERN!Peaks!!fgrep 'Peaks' | awk '{print \$(NF)}'" \
-            "PATTERN!Nucleotides covered!!fgrep 'Nucleotides covered' | awk '{print \$(NF)}'"
+            "PATTERN!Noise rate!100!fgrep 'Estimated noise rate' | cut -d':' -f2" \
+            "PATTERN!Library complexity!100!fgrep 'Library complexity' | sed 's/.* \([0-9\.]*[0-9]\+\)%/\1/g'" \
+            "PATTERN!Peaks!!fgrep 'Peaks' | cut -d':' -f2" \
+            "PATTERN!Nucleotides covered!!fgrep 'Nucleotides covered' | cut -d':' -f2"
 
         NGSANE_REPORT_FOOTER 
   
