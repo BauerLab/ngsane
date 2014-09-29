@@ -169,7 +169,7 @@ EOF
             # populate table row starting from parameter 3
             # check for link first
             NGSANE_VAR_TABLE_LINK=""
-            for var in "$@:5"; do
+            for var in "${@:5}"; do
                 if [[ $(echo $var | grep '^LINK!') != "" ]]; then
                     NGSANE_VAR_TABLE_LINK=${var/LINK!/}
                     NGSANE_VAR_TABLE_LINK=${NGSANE_VAR_TABLE_LINK/<SAMPLE>/$SAMPLENAME}
@@ -185,7 +185,7 @@ EOF
             
             if [[ "$NGSANE_VAR_FIRSTROW" == "TRUE" ]]; then
                 # add dynamic table header by peeking into the first file
-                for var in "$@:5"; do
+                for var in "${@:5}"; do
                     if [[ $(echo $var | grep '^DYNAMIC_COLS!') != "" ]]; then
                         THEAD=""
                         TCOLS=""
@@ -217,7 +217,7 @@ EOF
                 NGSANE_VAR_REPORT_TABLE_ROW=",['$DIRNAME' , '$NGSANE_VAR_SAMPLE_LINK'"            
             fi
             
-            for var in "$@:5"; do
+            for var in "${@:5}"; do
             
                 if [[ $(echo $var | grep '^FIGURE!') != "" ]]; then
                     NGSANE_VAR_TABLE_FIGURE=$(echo $var | cut -d'!' -f 4)
@@ -244,7 +244,8 @@ EOF
                         NGSANE_VAR_REPORT_TABLE_ROW="$NGSANE_VAR_REPORT_TABLE_ROW , ''"
                     fi
 
-                elif [[ $(echo $var | grep '^PATTERN!') != "" ]]; then
+                elif [[ "$(echo $var | grep '^PATTERN!')" != "" ]]; then
+
                     PATTERN="cat $SAMPLE | $(echo $var | cut -d'!' -f 4)"
                     PATTERN_RESULT=$(eval $PATTERN)
 
@@ -414,7 +415,7 @@ EOF
         else
             NGSANE_VAR_REPORT_TABLE_ROW=",['${AFILENAME##*/}'"
         fi
-        for var in "$@:5"; do
+        for var in "${@:5}"; do
         
             if [[ $(echo $var | grep '^FIGURE!') != "" ]]; then
                 NGSANE_VAR_TABLE_FIGURE=$(echo $var | cut -d'!' -f 4)
