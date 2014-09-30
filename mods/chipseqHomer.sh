@@ -140,9 +140,9 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         fi
     elif [ "$HOMER_CHIPSEQ_STYLE" == "histone" ]; then
         if [ "$INPUT" == "NONE" ]; then
-            grep -v "#" $OUTDIR/$SAMPLE/region.txt | awk '{OFS="\t";print $2,$3,$4,$1,int($8),$5,$7,".","."}' > $OUTDIR/$SAMPLE$PEAKSUFFIX
+            grep -v "#" $OUTDIR/$SAMPLE/regions.txt | awk '{OFS="\t";print $2,$3,$4,$1,int($8),$5,$7,".","."}' > $OUTDIR/$SAMPLE$PEAKSUFFIX
         else
-            grep -v "#" $OUTDIR/$SAMPLE/region.txt | awk 'function neglog(v){if(v==0){return 1000}else{return -log(v)/log(10)}};{OFS="\t";print $2,$3,$4,$1,int($8),$5,$6,neglog($12),".","-1"}' > $OUTDIR/$SAMPLE$PEAKSUFFIX
+            grep -v "#" $OUTDIR/$SAMPLE/regions.txt | awk 'function neglog(v){if(v==0){return 1000}else{return -log(v)/log(10)}};{OFS="\t";print $2,$3,$4,$1,int($8),$5,$6,neglog($12),".","-1"}' > $OUTDIR/$SAMPLE$PEAKSUFFIX
         fi
     fi
 
