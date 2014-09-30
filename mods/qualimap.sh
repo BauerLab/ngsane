@@ -85,21 +85,21 @@ if [ -n "$DMGET" ]; then
 fi
 
 NGSANE_CHECKPOINT_CHECK
-################################################################################
-#NGSANE_CHECKPOINT_INIT "qualimap bamqc"
-#
-#if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-#
-#    cd $OUTDIR
-#    RUNCOMMAND="qualimap bamqc -bam $f $QUALIMAP_BAMQC_ADDPARAM -nt $CPU_QUALIMAP -outformat HTML -outdir $OUTDIR/$SAMPLE-bamQC"
-#    echo $RUNCOMMAND && eval $RUNCOMMAND        
-#    
-#    mv $OUTDIR/$SAMPLE-bamQC/genome_results.txt $OUTDIR/${SAMPLE}_bamQC.txt
-#    
-#    # mark checkpoint
-#    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_bamQC.txt
-#
-#fi
+###############################################################################
+NGSANE_CHECKPOINT_INIT "qualimap bamqc"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
+    cd $OUTDIR
+    RUNCOMMAND="qualimap bamqc -bam $f $QUALIMAP_BAMQC_ADDPARAM -nt $CPU_QUALIMAP -outformat HTML -outdir $OUTDIR/$SAMPLE-bamQC"
+    echo $RUNCOMMAND && eval $RUNCOMMAND        
+    
+    mv $OUTDIR/$SAMPLE-bamQC/genome_results.txt $OUTDIR/${SAMPLE}_bamQC.txt
+    
+    # mark checkpoint
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_bamQC.txt
+
+fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "qualimap rnaseq-qc"
 
