@@ -227,6 +227,9 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     cp -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz_ditag_classification.png $OUTDIR/${SAMPLE}_ditag_classification.png
     cp -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz_ditag_size_distribution.png $OUTDIR/${SAMPLE}_ditag_size_distribution.png
 
+    # samtools index 
+    samtools index $OUTDIR/${SAMPLE}_uniques.bam
+
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_uniques.bam
 
