@@ -30,41 +30,59 @@ if [ -n "$RUNGATKDOC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "-" \
             "$OUT/<DIR>/$TASK_GATKDOC/" \
             ".doc.sample_summary" \
-            "PATTERN!Col1!!sed-n 2p | cut -f 2" \
-            "PATTERN!Col2!!sed-n 2p | cut -f 3" \
-            "PATTERN!Col3!!sed-n 2p | cut -f 4" \
-            "PATTERN!Col4!!sed-n 2p | cut -f 5" 
-        #TODO check pattern
-        
-        NGSANE_REPORT_TABLE "$TASK_GATKDOC" \
-            "-" \
-            "$OUT/<DIR>/$TASK_GATKDOC/" \
-            ".doc.sample_cumulative_coverage_counts" \
-            "PATTERN!Col1!!sed-n 2p | cut -f 2" \
-            "PATTERN!Col2!!sed-n 2p | cut -f 3" \
-            "PATTERN!Col3!!sed-n 2p | cut -f 4" \
-            "PATTERN!Col4!!sed-n 2p | cut -f 5" \
+            "PATTERN!Total Reads!!sed -n 2p | cut -f 2" \
+            "PATTERN!Mean Coverage!!sed -n 2p | cut -f 3" \
+            "PATTERN!%bases >10 (cumulative)!!sed -n 2p | cut -f 7" \
+            "PATTERN!%bases >20 (cum)!!sed -n 2p | cut -f 8" \
+            "PATTERN!%bases >50 (cum)!!sed -n 2p | cut -f 9" \
+            "PATTERN!%bases >100 (cum)!!sed -n 2p | cut -f 10" \
+            "PATTERN!%bases >500 (cum)!!sed -n 2p | cut -f 11"      
+
 
         NGSANE_REPORT_TABLE "$TASK_GATKDOC" \
             "-" \
             "$OUT/<DIR>/$TASK_GATKDOC/" \
+            ".doc.sample_cumulative_coverage_counts" \
+            "PATTERN!Total base pairs!!sed -n 2p | cut -f 2" \
+            "PATTERN!bp cov >1!!sed -n 2p | cut -f 3" \
+            "CALCULATE!%!40!#3*100/#2" \
+            "PATTERN!bp cov >10!!sed -n 2p | cut -f 9" \
+            "CALCULATE!%!40!#5*100/#2" \
+            "PATTERN!bp cov >25!!sed -n 2p | cut -f 11" \
+            "CALCULATE!%!40!#7*100/#2" \
+            "PATTERN!bp cov >100!!sed -n 2p | cut -f 13" \
+            "CALCULATE!%!40!#9*100/#2" 
+            
+        NGSANE_REPORT_TABLE "$TASK_GATKDOC" \
+            "-" \
+            "$OUT/<DIR>/$TASK_GATKDOC/" \
             ".doc.sample_interval_statistics" \
-            "PATTERN!Col1!!sed-n 2p | cut -f 2" \
-            "PATTERN!Col2!!sed-n 2p | cut -f 3" \
-            "PATTERN!Col3!!sed-n 2p | cut -f 4" \
-            "PATTERN!Col4!!sed-n 2p | cut -f 5" \
+            "PATTERN!Total intervals!!sed -n 2p | cut -f 2" \
+            "PATTERN!interv cov >1!!sed -n 2p | cut -f 3" \
+            "CALCULATE!%!40!#3*100/#2" \
+            "PATTERN!interv cov >10!!sed -n 2p | cut -f 9" \
+            "CALCULATE!%!40!#5*100/#2" \
+            "PATTERN!interv cov >25!!sed -n 2p | cut -f 11" \
+            "CALCULATE!%!40!#7*100/#2" \
+            "PATTERN!interv cov >100!!sed -n 2p | cut -f 13" \
+            "CALCULATE!%!40!#9*100/#2"           
+            
             
         NGSANE_REPORT_TABLE "$TASK_GATKDOC" \
             "-" \
             "$OUT/<DIR>/$TASK_GATKDOC/" \
             "$ASR.bam.stats" \
-            "PATTERN!Total reads!!sed -n 1p | cut -d' ' -f 1" \
-            "PATTERN!Paired!!sed-n 2p | cut -f 3" \
+            "PATTERN!Total reads!!sed -n 13p | cut -d' ' -f 1" \
+            "PATTERN!Paired!!sed -n 14p | cut -d' ' -f 1" \
             "CALCULATE!%!40!#3*100/#2" \
-            "PATTERN!On target!!sed-n 2p | cut -f 5" \
+            "PATTERN!On target!!sed -n 16p | cut -d' ' -f 1" \
             "CALCULATE!%!40!#5*100/#2" \
-            "PATTERN!Paired on target!!sed-n 2p | cut -f 5" \
-            "CALCULATE!%!40!#7*100/#2"
+            "PATTERN!Paired on target!!sed -n 22p | cut -d' ' -f 1" \
+            "CALCULATE!%!40!#7*100/#2" \
+            "PATTERN!On target +-200!!sed -n 28p | cut -d' ' -f 1" \
+            "CALCULATE!%!40!#9*100/#2" \
+            "PATTERN!Paired on target +-200!!sed -n 34p | cut -d' ' -f 1" \
+            "CALCULATE!%!40!#11*100/#2"
                                             
         NGSANE_REPORT_FOOTER   
   
