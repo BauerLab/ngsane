@@ -98,9 +98,14 @@ if [ -z "$NGSANE_RECOVERFROM" ]; then
     if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
 fi
 
+if [[ -n "$HTSEQCOUNT_USECUFFMERGEGTF" ]] && [[ -n "$CUFFMERGE_GTF_NAME" ]] && [[ -f $OUT/expression/$TASK_CUFFLINKS/$CUFFMERGE_GTF_NAME.gtf ]] ; then
+    GTF=$OUT/expression/$TASK_CUFFLINKS/$CUFFMERGE_GTF_NAME.gtf
+    echo "[NOTE] Using GTF from cuffmerge"
+fi
+
 ## GTF provided?
 if [ -z "$GTF" ] || [ ! -f $GTF ]; then
-    echo "[ERROR] GTF not specified or not found!"
+    echo "[ERROR] GTF not specified or not found! $GTF"
     exit 1
 else
     echo "[NOTE] GTF: $GTF"
@@ -119,8 +124,6 @@ fi
 annoF=${GTF##*/}
 anno_version=${annoF%.*}
 
-echo "[NOTE] GTF: $anno_version"
-
 # check library info is set
 if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then
     echo "[ERROR] RNAseq library type not set (RNA_SEQ_LIBRARY_TYPE): either fr-unstranded or fr-firststrand"
@@ -128,7 +131,6 @@ if [ -z "$RNA_SEQ_LIBRARY_TYPE" ]; then
 else
     echo "[NOTE] RNAseq library type: $RNA_SEQ_LIBRARY_TYPE"
 fi
-
 
 # run flagstat if no stats available for bam file
 [ ! -e $f.stats ] && samtools flagstat > $f.stats
@@ -205,7 +207,7 @@ NGSANE_CHECKPOINT_INIT "calculate counts"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     cat /dev/null > $OUTDIR/GTF.summary.txt
-    echo "[NOTE] Summary file - $OUTDIR/${anno_version}.summary.txt"    
+
     for ATTR in $HTSEQCOUNT_ATTRIBUTES; do 
         for MODE in $HTSEQCOUNT_MODES; do 
             echo "[NOTE] processing $ATTR $MODE"
@@ -215,7 +217,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
             	samtools view -F 4 $OUTDIR/$SAMPLE.fixed.bam | htseq-count --order=pos --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF.$MODE.$ATTR.tmp
         	fi
             head -n-5 $THISTMP/GTF.$MODE.$ATTR.tmp > $OUTDIR/$anno_version.$MODE.$ATTR
-            echo "${ATTR} ${MODE} "$(tail -n 5 $THISTMP/GTF.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ') >> $OUTDIR/GTF.summary.txt
+            echo "${ATTR} ${MODE} "$(tail -n 5 $THISTMP/GTF.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ')" __on_feature "$(cut -f 2 $OUTDIR/$anno_version.$MODE.$ATTR  | paste -sd+  | bc)  >> $OUTDIR/GTF.summary.txt
             rm $THISTMP/GTF.$MODE.$ATTR.tmp
             
         done
@@ -228,6 +230,7 @@ fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "summarize"
 
+echo "[NOTE] Summary file - $OUTDIR/${SAMPLE}.${anno_version}.summary.txt"    
 cat $OUTDIR/GTF.summary.txt | awk '{print "all",$0}' > ${OUTDIR}/../${SAMPLE}.${anno_version}.summary.txt
    
 NGSANE_CHECKPOINT_CHECK

@@ -20,7 +20,7 @@ if [ -n "$RUNCUFFLINKS" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
             $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_CUFFLINKS -i $INPUT_CUFFLINKS -e $ASD.bam \
                 -n $NODES_CUFFLINKS -c $CPU_CUFFLINKS -m $MEMORY_CUFFLINKS"G" -w $WALLTIME_CUFFLINKS  \
            		--command "${NGSANE_BASE}/mods/cufflinks.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFLINKS/<SAMPLE>" \
-           		--postname "postcommandCuffmerge$MERGED_GTF_NAME" \
+           		--postname "postcommandCuffmerge$CUFFMERGE_GTF_NAME" \
             	--postcommand "${NGSANE_BASE}/mods/cuffmerge.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_CUFFLINKS"
         	) && echo -e "$JOBIDS"
         JOBIDS_CUFFLINKS=$(waitForJobIds "$JOBIDS")
@@ -28,7 +28,7 @@ if [ -n "$RUNCUFFLINKS" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
         $QSUB $ARMED -r -k $CONFIG -t ${TASK_CUFFQUANT} -i $INPUT_CUFFQUANT -e $ASD.bam \
             -n $NODES_CUFFQUANT -c $CPU_CUFFQUANT -m $MEMORY_CUFFQUANT"G" -w $WALLTIME_CUFFQUANT $JOBIDS_CUFFLINKS \
     		--command "${NGSANE_BASE}/mods/cuffquant.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFQUANT/" \
-    		--postname "postcommandCuffnorm$MERGED_GTF_NAME" \
+    		--postname "postcommandCuffnorm$CUFFMERGE_GTF_NAME" \
     		--postcommand "${NGSANE_BASE}/mods/cuffnorm.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_CUFFLINKS"
 
     
@@ -57,7 +57,7 @@ if [ -n "$RUNCUFFLINKS" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
 
         NGSANE_REPORT_TABLE_AGGREGATE "$TASK_CUFFNORM" \
             "Cuffnorm" \
-            "$OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME" \
+            "$OUT/expression/$TASK_CUFFLINKS/$CUFFMERGE_GTF_NAME" \
             ".count_table" \
             "PATTERN!Rows!!wc -l | awk '{print \$1}'" \
             "PATTERN!Samples!!head -n 1 | tr '\t' '\n' | tail -n+2 | wc -l  | cut -f1" \
