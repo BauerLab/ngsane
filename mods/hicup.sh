@@ -8,7 +8,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.fragmentLists.gz
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>_uniques.bam
 
 echo ">>>>> HiC readmapping with HiCUP "
 echo ">>>>> startdate "`date`
@@ -235,29 +235,9 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 fi
 
-################################################################################
-NGSANE_CHECKPOINT_INIT "count Interactions"
-
-if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-
-    [ -f $OUTDIR/${SAMPLE}.fragmentLists.gz ] && rm $OUTDIR/${SAMPLE}.fragmentLists.gz
-    [ -f $OUTDIR/${SAMPLE}.contactCounts.gz ] && rm $OUTDIR/${SAMPLE}.contactCounts.gz
-
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=$DIGESTGENOME --outputDir=$OUTDIR/ $OUTDIR/${SAMPLE}_uniques.bam"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-
-    [ -e $OUTDIR/${SAMPLE}_uniques.bam.fragmentLists ] && mv $OUTDIR/${SAMPLE}_uniques.bam.fragmentLists $OUTDIR/${SAMPLE}.fragmentLists
-    [ -e $OUTDIR/${SAMPLE}_uniques.bam.contactCounts ] && mv $OUTDIR/${SAMPLE}_uniques.bam.contactCounts $OUTDIR/${SAMPLE}.contactCounts
-    
-    $GZIP $OUTDIR/${SAMPLE}.fragmentLists $OUTDIR/${SAMPLE}.contactCounts
-    
-    # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.fragmentLists.gz $OUTDIR/${SAMPLE}.contactCounts.gz
-
-fi
 
 ################################################################################
-[ -e $OUTDIR/${SAMPLE}.fragmentLists.gz.dummy ] && rm $OUTDIR/${SAMPLE}.fragmentLists.gz.dummy
+[ -e $OUTDIR/${SAMPLE}_uniques.bam.dummy ] && rm $OUTDIR/${SAMPLE}_uniques.bam.dummy
 echo ">>>>> readmapping with hicup (bowtie) - FINISHED"
 echo ">>>>> enddate "`date`
 

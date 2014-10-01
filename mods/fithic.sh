@@ -65,11 +65,23 @@ NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
-SAMPLE=${n/%$FRAGMENTLIST/}
+SAMPLE=${n/%$INPUT_FITHIC_BAM/}
 
 # delete old bam files unless attempting to recover
 if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
+fi
+
+GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
+if [ ! -f $GENOME_CHROMSIZES ]; then
+    echo "[WARN] GENOME_CHROMSIZES not found. No bigbeds will be generated"
+else
+    echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
+fi
+
+if [ -n $GENOME_CHROMSIZES ]; then
+    echo "[ERROR] HiC resolution sot specified"
+    exit 1
 fi
 
 NGSANE_CHECKPOINT_CHECK
@@ -77,23 +89,64 @@ NGSANE_CHECKPOINT_CHECK
 NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
+	dmget -a $f
 	dmget -a $OUTDIR/*
 fi
 
 NGSANE_CHECKPOINT_CHECK
+
 ################################################################################
-NGSANE_CHECKPOINT_INIT "run fit-hi-c"
+NGSANE_CHECKPOINT_INIT "count Interactions"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="python $(which fit-hi-c.py) $FITHICADDPARAM --outdir $OUTDIR --fragments=$f --interactions=${f/%$FRAGMENTLIST/$CONTACTCOUNTS} --lib=${SAMPLE} &> $OUTDIR/$SAMPLE.log"
+    [ -f $OUTDIR/${SAMPLE}.fragmentLists.gz ] && rm $OUTDIR/${SAMPLE}.fragmentLists.gz
+    [ -f $OUTDIR/${SAMPLE}.contactCounts.gz ] && rm $OUTDIR/${SAMPLE}.contactCounts.gz
+
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithicCountInteractions.py --verbose --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES --outputDir=$OUTDIR/ $f"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+
+    [ -e $OUTDIR/${SAMPLE}_uniques.bam.fragmentLists ] && mv $OUTDIR/${SAMPLE}_uniques.bam.fragmentLists $OUTDIR/${SAMPLE}.fragmentLists
+    [ -e $OUTDIR/${SAMPLE}_uniques.bam.contactCounts ] && mv $OUTDIR/${SAMPLE}_uniques.bam.contactCounts $OUTDIR/${SAMPLE}.contactCounts
+    
+    $GZIP $OUTDIR/${SAMPLE}.fragmentLists $OUTDIR/${SAMPLE}.contactCounts
+    
+    # mark checkpoint
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.fragmentLists.gz $OUTDIR/${SAMPLE}.contactCounts.gz
+
+fi
+
+
+################################################################################
+NGSANE_CHECKPOINT_INIT "ICE correction"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
+    
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/ICE-with-sparseMatrix.py $OUTDIR/${SAMPLE}.contactCounts.gz $OUTDIR/${SAMPLE}.fragmentLists.gz l1 $OUTDIR/${SAMPLE}.ice.txt 0.5"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
+    
+    $GZIP $OUTDIR/${SAMPLE}.ice.txt
+    
+    # mark checkpoint
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.ice.txt.gz
+
+fi
+
+################################################################################
+NGSANE_CHECKPOINT_INIT "fit-hi-c"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
+#    RUN_COMMAND="python $(which fit-hi-c.py) $FITHICADDPARAM --outdir $OUTDIR --biases=$OUTDIR/${SAMPLE}.ice.txt.gz --fragments=$OUTDIR/${SAMPLE}.fragmentLists.gz --interactions=$OUTDIR/${SAMPLE}.contactCounts.gz --lib=${SAMPLE} &> $OUTDIR/$SAMPLE.log"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py $FITHICADDPARAM --lib=${SAMPLE} --biases=$OUTDIR/${SAMPLE}.ice.txt.gz --fragments=$OUTDIR/${SAMPLE}.fragmentLists.gz --interactions=$OUTDIR/${SAMPLE}.contactCounts.gz --resolution $HIC_RESOLUTION > $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     cat $OUTDIR/$SAMPLE.log # put into qout log too
     
-    zcat $OUTDIR/${SAMPLE}.spline_pass1.pvals.txt.gz | awk '$7<=0.05' | sort -k7g | gzip > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz
-
-    SIG_INTERACTIONS=$(zcat $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz | wc -l | cut -d' ' -f 2)
-    echo "Significant interactions $SIG_INTERACTIONS" >> $OUTDIR/$SAMPLE.log
+#    zcat $OUTDIR/${SAMPLE}.spline_pass1.pvals.txt.gz | awk '$7<=0.05' | sort -k7g | gzip > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz
+#
+#    SIG_INTERACTIONS=$(zcat $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz | wc -l | cut -d' ' -f 2)
+#    echo "Significant interactions $SIG_INTERACTIONS" >> $OUTDIR/$SAMPLE.log
     
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz 
