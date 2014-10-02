@@ -90,6 +90,25 @@ elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
 	RECIPT=$($command)
 	JOBID=$(echo "$RECIPT" | awk '{print $3}')
 	echo $JOBID
+	
+	
+	
+elif [ "$SUBMISSIONSYSTEM" == "SLURM" ]; then
+
+    # if it is the default (nodes=1:ppn=4) convert to SLURM (--nodes=1 as well as the separage SCPU param )
+    if [[ $SNODES == *:* ]]; then 
+        SNODES="--"${x/:*/}" --ntasks-per-node=$SCPU"
+    fi
+    
+#	echo "********** submit with SLURM submission system"
+	JOBIDS=$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
+	command="sbatch $JOBIDS --export=ALL --output=$SOUTPUT $SNODES --mem=$SMEMORY \
+        --job-name=$SNAME --time=$SWALLTIME --open-mode=append --requeue $SADDITIONAL $TMPFILE"
+	echo "# $command" >>$TMPFILE
+	RECIPT=$($command)
+	JOBID=$(echo "$RECIPT" | awk '{print $4}')
+	echo $JOBID
+
 
 else
 	echo "Submission system, $SUBMISSIONSYSTEM, not implemented; only SGE or PBS are currently supported"
