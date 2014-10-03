@@ -122,7 +122,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     # run flagstat if no stats available for bam file
     [ ! -e $f.stats ] && samtools flagstat > $f.stats
     # check "paired in sequencing" entry to detect library
-    if [[ $(cat $f.stats | head -n 4 | tail -n 1 | cut -d' ' -f 1) -gt 0 ]]; then
+    if [[ $(cat $f.stats | fgrep -w 'paired in sequencing' | cut -d' ' -f1) -gt 0 ]]; then
         PAIRED=1
         echo "[NOTE] paired library detected"
     else 

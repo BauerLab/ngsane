@@ -20,19 +20,20 @@ if [ -n "$RUNHTSEQCOUNT" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
             -n $NODES_HTSEQCOUNT -c $CPU_HTSEQCOUNT -m $MEMORY_HTSEQCOUNT"G" -w $WALLTIME_HTSEQCOUNT \
             --command "${NGSANE_BASE}/mods/htseqcount.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HTSEQCOUNT/<SAMPLE>" \
             --postname "postcommandHtseq$HTSEQCOUNT_TABLE_FOLDERNAME" \
-            --postcommand "${NGSANE_BASE}/mods/countsTable.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_HTSEQCOUNT/$HTSEQCOUNT_TABLE_FOLDERNAME"
+            --postcommand "${NGSANE_BASE}/mods/htseqcount_countsTable.sh -f <FILE> -k $CONFIG --outdir $OUT/expression/$TASK_HTSEQCOUNT/$HTSEQCOUNT_TABLE_FOLDERNAME"
 
     
     ############################################################################
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        NGSANE_REPORT_HEADER "Htseqcount" "$TASK_HTSEQCOUNT" "htseqcount.sh,countsTable.sh"
+        NGSANE_REPORT_HEADER "Htseqcount" "$TASK_HTSEQCOUNT" "htseqcount.sh,htseqcount_countsTable.sh"
 
         NGSANE_REPORT_TABLE "$TASK_HTSEQCOUNT" \
             "-" \
             "$OUT/<DIR>/$TASK_HTSEQCOUNT/" \
             ".summary.txt" \
+            "PATTERN!On feature!!head -n 1 | sed 's/.*__on_feature \([0-9]\+\).*/\1/g'" \
             "PATTERN!No feature!!head -n 1 | sed 's/.*__no_feature \([0-9]\+\).*/\1/g'" \
             "PATTERN!Ambiguous!!head -n 1 | sed 's/.*__ambiguous \([0-9]\+\).*/\1/g'" \
             "PATTERN!Low aQual!!head -n 1 | sed 's/.*__too_low_aQual \([0-9]\+\).*/\1/g'" \
@@ -40,7 +41,7 @@ if [ -n "$RUNHTSEQCOUNT" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
             "PATTERN!Alignment not unique!!head -n 1 | sed 's/.*__alignment_not_unique \([0-9]\+\).*/\1/g'"
 
         NGSANE_REPORT_TABLE_AGGREGATE "$TASK_HTSEQCOUNT" \
-            "Count table" \
+            "Counts table" \
             "$OUT/expression/$TASK_HTSEQCOUNT/$HTSEQCOUNT_TABLE_FOLDERNAME" \
             ".csv" \
             "PATTERN!Rows!!wc -l | awk '{print \$1}'" \

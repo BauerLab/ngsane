@@ -52,7 +52,7 @@ echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_CHANCE*800)")"m"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_CHANCE*0.75)")"g"
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 

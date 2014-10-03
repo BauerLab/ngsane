@@ -37,7 +37,7 @@ hash module 2>/dev/null && for MODULE in $MODULE_FASTQC; do module load $MODULE;
 export PATH=$PATH_FASTQC:$PATH;
 echo "PATH=$PATH"
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_FASTQC*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_FASTQC*0.75)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 export _JAVA_OPTIONS=$JAVAPARAMS

@@ -8,7 +8,7 @@
 #********************
 # Tasks
 #********************
-RUNHICLIB=""        # map HiC data with hiclib
+
 RUNHICUP=""         # map HiC data with hicup
 RUNFITHIC=""        # call significant chromatin interactions
 
@@ -87,18 +87,14 @@ FITHICADDPARAM="--lowerbound 5000 --upperbound 5000000"
 #********************
 # Resources
 #********************
-WALLTIME_HICLIB=00:30:00
-MEMORY_HICLIB=6
-CPU_HICLIB=2
-NODES_HICLIB="nodes=1:ppn=2"
 
 WALLTIME_HICUP=00:30:00
-MEMORY_HICUP=6
+MEMORY_HICUP=8
 CPU_HICUP=2
 NODES_HICUP="nodes=1:ppn=2"
 
 WALLTIME_FITHIC=0:30:00
-MEMORY_FITHIC=5
+MEMORY_FITHIC=2
 CPU_FITHIC=1
 NODES_FITHIC="nodes=1:ppn=1"
 

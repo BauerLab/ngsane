@@ -90,7 +90,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
     cat $OUTDIR/$SAMPLE.log # put into qout log too
     
-    zcat $OUTDIR/${SAMPLE}.spline_pass1.pvals.txt.gz | awk '$7<=0.05' | sort -k7g | gzip > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz
+    zcat $OUTDIR/${SAMPLE}.spline_pass1.significances.txt.gz | awk '$7<=0.05' | sort -k7g | $GZIP > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz
 
     SIG_INTERACTIONS=$(zcat $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz | wc -l | cut -d' ' -f 2)
     echo "Significant interactions $SIG_INTERACTIONS" >> $OUTDIR/$SAMPLE.log
