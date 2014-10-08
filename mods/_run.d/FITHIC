@@ -15,7 +15,7 @@ if [ -n "$RUNFITHIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         # check if resources are properly defined
         if [ -z "$TASK_FITHIC" ] || [ -z "$NODES_FITHIC" ] || [ -z "$CPU_FITHIC" ] || [ -z "$MEMORY_FITHIC" ] || [ -z "$WALLTIME_FITHIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $INPUT_FITHIC_BAM \
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $ASD.bam \
             -n $NODES_FITHIC -c $CPU_FITHIC -m $MEMORY_FITHIC"G" -w $WALLTIME_FITHIC \
             --command "${NGSANE_BASE}/mods/fithic.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FITHIC"
     

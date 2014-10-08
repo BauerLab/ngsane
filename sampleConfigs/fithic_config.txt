@@ -23,8 +23,6 @@ declare -a DIR; DIR=( sample1 sample2 )
 # folder/task containing the data this task operates on
 INPUT_FITHIC=$TASK_HICUP
 
-INPUT_FITHIC_BAM="_uniques.bam"
-
 # where to write the output
 OUT=$SOURCE
 
@@ -52,7 +50,7 @@ MAPPABILITY=
 #********************
 
 # additional parameters for fit-hi-c
-# e.g. "--visual --lowerbound=50000 --upperbound=-1 --noOfBins=200 --mappabilityThres=1 --passes=1"
+# e.g. "--visual --lowerbound=50000 --upperbound=-1 --noOfBins=200 --mappabilityThres=1"
 FITHICADDPARAM=
 
 #WALLTIME_FITHIC=10:00:00
