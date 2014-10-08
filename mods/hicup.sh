@@ -8,7 +8,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>_uniques.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>$ASD.bam
 
 echo ">>>>> HiC readmapping with HiCUP "
 echo ">>>>> startdate "`date`
@@ -52,6 +52,7 @@ export PATH=$PATH_HICUP:$PATH
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
+[ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--bowtie      --\n "$(bowtie --version | head -n 1 )
@@ -62,6 +63,10 @@ echo -e "--perl        --\n "$(perl -v | grep "This is perl" )
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
 echo -e "--HiCUP       --\n "$(hicup --version )
 [ -z "$(which hicup)" ] && echo "[ERROR] no hicup detected" && exit 1
+echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+[ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
+echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
+[ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -220,24 +225,84 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     mv $OUTDIR/$SAMPLE/hicup_deduplicator_summary_run.txt $OUTDIR/$SAMPLE"_deduplicator_summary.txt"
-    mv $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam $OUTDIR/${SAMPLE}_uniques.bam
     
     # move charts
     mv $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam_cis-trans.png $OUTDIR/${SAMPLE}_uniques_cis-trans.png
     cp -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz_ditag_classification.png $OUTDIR/${SAMPLE}_ditag_classification.png
     cp -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz_ditag_size_distribution.png $OUTDIR/${SAMPLE}_ditag_size_distribution.png
 
-    # samtools index 
-    samtools index $OUTDIR/${SAMPLE}_uniques.bam
-
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_uniques.bam
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam $OUTDIR/${SAMPLE}_uniques.bam
 
 fi
 
+################################################################################
+NGSANE_CHECKPOINT_INIT "bam conversion and sorting"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
+    samtools sort -l 9 -@ $CPU_HICUP -o $OUTDIR/SAMPLE.ash.bam $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam
+
+    # mark checkpoint
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.ash.bam 
+  
+    [ -f $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam $OUTDIR/${SAMPLE}_uniques.bam ] && rm $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam $OUTDIR/${SAMPLE}_uniques.bam  
+fi
 
 ################################################################################
-[ -e $OUTDIR/${SAMPLE}_uniques.bam.dummy ] && rm $OUTDIR/${SAMPLE}_uniques.bam.dummy
+NGSANE_CHECKPOINT_INIT "clean sam"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+   
+    java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
+        INPUT=$OUTDIR/$SAMPLE.ash.bam \
+        OUTPUT=$OUTDIR/$SAMPLE.cleaned.bam \
+        VALIDATION_STRINGENCY=LENIENT \
+        TMP_DIR=$THISTMP
+
+    # mark checkpoint
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.cleaned.bam 
+    
+    # cleanup
+    [ -e $OUTDIR/$SAMPLE.ash.bam ] && rm $OUTDIR/$SAMPLE.ash.bam
+fi
+
+################################################################################
+NGSANE_CHECKPOINT_INIT "mark duplicates"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+   
+    if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
+    java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
+        INPUT=$OUTDIR/$SAMPLE.cleaned.bam \
+        OUTPUT=$OUTDIR/$SAMPLE$ASD.bam \
+        METRICS_FILE=$OUTDIR/metrices/$SAMPLE$ASD.bam.dupl \
+        AS=true \
+        CREATE_MD5_FILE=true \
+        COMPRESSION_LEVEL=9 \
+        VALIDATION_STRINGENCY=LENIENT \
+        TMP_DIR=$THISTMP
+    samtools index $OUTDIR/$SAMPLE$ASD.bam
+
+    # mark checkpoint
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam 
+    
+    # cleanup
+    [ -e $OUTDIR/$SAMPLE.cleaned.bam ] && rm $OUTDIR/$SAMPLE.cleaned.bam
+fi
+################################################################################
+NGSANE_CHECKPOINT_INIT "samstat"    
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+    
+    samstat $OUTDIR/$SAMPLE$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
+
+    # mark checkpoint
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam.stats 
+fi
+
+################################################################################
+[ -e $OUTDIR/$SAMPLE$ASD.bam.dummy ] && rm $OUTDIR/$SAMPLE$ASD.bam.dummy
 echo ">>>>> readmapping with hicup (bowtie) - FINISHED"
 echo ">>>>> enddate "`date`
 
