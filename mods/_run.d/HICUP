@@ -64,7 +64,9 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN!%!!sed -n 3p | cut -f 6" \
             "PATTERN!P2 trunc reads!!sed -n 3p | cut -f 3" \
             "PATTERN!%!!sed -n 3p | cut -f 4" \
-            "FIGURE!!60!<SAMPLE>_ditag_size_distribution.png!60!1"
+            "FIGURE!Distribution!60!<SAMPLE>.ditag_size_distribution.svg!60!1" \
+            "FIGURE!Read1!60!<SAMPLE>$READONE.truncation_barchart.svg!60!1" \
+            "FIGURE!Read2!60!<SAMPLE>$READTWO.truncation_barchart.svg!60!1"
 
         NGSANE_REPORT_TABLE "$TASK_HICUP" \
             "Mapper" \
@@ -107,7 +109,7 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN!Re-ligation!!sed -n 2p | cut -f 11" \
             "PATTERN!Contiguous!!sed -n 2p | cut -f 12" \
             "PATTERN!Wrong size!!sed -n 2p | cut -f 13" \
-            "FIGURE!!60!<SAMPLE>_ditag_classification.png!60!1"
+            "FIGURE!Filter!60!<SAMPLE>.filter_piechart.svg!60!1"
             
         NGSANE_REPORT_TABLE "$TASK_HICUP" \
             "Deduplicator" \
@@ -122,7 +124,8 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "CALCULATE!%!40!#7*100/#2" \
             "PATTERN!Unique trans!!sed -n 2p | cut -f 6" \
             "CALCULATE!%!40!#9*100/#2" \
-            "FIGURE!!60!<SAMPLE>_uniques_cis-trans.png!60!1"
+            "FIGURE!Deduplication!60!<SAMPLE>.uniques_barchart.svg!60!1" \
+            "FIGURE!Cis-trans!60!<SAMPLE>.cis-trans.svg!60!1"
                    
         # finish the section
         NGSANE_REPORT_FOOTER 

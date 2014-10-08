@@ -939,7 +939,7 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=0.4.2
+VERSION=0.5.0
 SOFTWARE=hicup
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -1504,7 +1504,7 @@ sed -i 's|^NG_TRIMGALORE=|NG_TRIMGALORE=trim_galore/0.3.7|' $PACKAGEPATH/$NGSANE
 sed -i 's|^NG_TRIMMOMATIC=|NG_TRIMMOMATIC=trimmomatic/0.32|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HDF5=|NG_HDF5=hdf5/1.8.12|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HICLIB=|NG_HICLIB=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_HICUP=|NG_HICUP=hicup/0.4.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_HICUP=|NG_HICUP=hicup/0.5.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_FITHIC=|NG_FITHIC=fit-hi-c/1.0.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_FASTQSCREEN=|NG_FASTQSCREEN=fastq_screen/0.4.4|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_MATLAB=|NG_MATLAB=mcr/2012b|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh

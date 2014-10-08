@@ -62,6 +62,8 @@ echo -e "--perl        --\n "$(perl -v | grep "This is perl" )
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
 echo -e "--HiCUP       --\n "$(hicup --version )
 [ -z "$(which hicup)" ] && echo "[ERROR] no hicup detected" && exit 1
+echo -e "--R           --\n "$(R --version | head -n 3)
+[ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -205,7 +207,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     mv $OUTDIR/$SAMPLE/hicup_filter_summary_run.txt $OUTDIR/$SAMPLE"_filter_summary.txt"
     
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam
 
 fi
 
@@ -213,20 +215,22 @@ fi
 NGSANE_CHECKPOINT_INIT "de-duplicate"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-
-    [ -f $OUTDIR/${SAMPLE}_uniques.bam ] && rm $OUTDIR/${SAMPLE}_uniques.bam
     
-    RUN_COMMAND="$(which perl) $(which hicup_deduplicator) -datestamp run -pipeline_outdir $OUTDIR/$SAMPLE/ -outdir $OUTDIR/$SAMPLE/ -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam"
+    RUN_COMMAND="$(which perl) $(which hicup_deduplicator) -datestamp run -pipeline_outdir $OUTDIR/$SAMPLE/ -outdir $OUTDIR/$SAMPLE/ -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     mv $OUTDIR/$SAMPLE/hicup_deduplicator_summary_run.txt $OUTDIR/$SAMPLE"_deduplicator_summary.txt"
-    mv $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam $OUTDIR/${SAMPLE}_uniques.bam
+    mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam $OUTDIR/${SAMPLE}_uniques.bam
     
     # move charts
-    mv $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam_cis-trans.png $OUTDIR/${SAMPLE}_uniques_cis-trans.png
-    cp -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz_ditag_classification.png $OUTDIR/${SAMPLE}_ditag_classification.png
-    cp -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz_ditag_size_distribution.png $OUTDIR/${SAMPLE}_ditag_size_distribution.png
-
+    mv $OUTDIR/$SAMPLE/${SAMPLE}$READONE.$FASTQ.truncation_barchart.svg $OUTDIR/${SAMPLE}$READONE.truncation_barchart.svg
+    mv $OUTDIR/$SAMPLE/${SAMPLE}$READTWO.$FASTQ.truncation_barchart.svg $OUTDIR/${SAMPLE}$READTWO.truncation_barchart.svg
+        
+    mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam.deduplicator_cis_trans_piechart.svg $OUTDIR/${SAMPLE}.cis-trans.svg
+    mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam.deduplicator_uniques_barchart.svg $OUTDIR/${SAMPLE}.uniques_barchart.svg
+    mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.ditag_size_distribution.svg $OUTDIR/${SAMPLE}.ditag_size_distribution.svg
+    mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.filter_piechart.svg $OUTDIR/${SAMPLE}.filter_piechart.svg
+    
     # samtools index 
     samtools index $OUTDIR/${SAMPLE}_uniques.bam
 
