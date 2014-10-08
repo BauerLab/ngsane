@@ -52,8 +52,8 @@ NGSANE_CHECKPOINT_CHECK
 ################################################################################
 NGSANE_CHECKPOINT_INIT "parameters"
 
-if [ -z "$CUFFMERGE_GTF_NAME" ]; then
-    echo "[ERROR] CUFFMERGE_GTF_NAME not specified"
+if [ -z "$MERGED_GTF_NAME" ]; then
+    echo "[ERROR] MERGED_GTF_NAME not specified"
     exit 1
 fi
 
@@ -83,7 +83,7 @@ IFS=" "
 echo "[NOTE] datasets: $DATASETS"
 
 if [ -z "$NGSANE_RECOVERFROM" ]; then
-    [ -f $OUTDIR/$CUFFMERGE_GTF_NAME.gtf ] && rm $OUTDIR/$CUFFMERGE_GTF_NAME.gtf
+    [ -f $OUTDIR/$MERGED_GTF_NAME.gtf ] && rm $OUTDIR/$MERGED_GTF_NAME.gtf
 fi
 
 mkdir -p $OUTDIR
@@ -125,10 +125,10 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     RUNCOMMAND="cuffmerge -p $CPU_CUFFLINKS -o $THISTMP --ref-sequence $FASTA --ref-gtf $GTF ${THISTMP}/files.txt"
     echo $RUNCOMMAND && eval $RUNCOMMAND
     
-    mv $THISTMP/merged.gtf $OUTDIR/$CUFFMERGE_GTF_NAME.gtf
+    mv $THISTMP/merged.gtf $OUTDIR/$MERGED_GTF_NAME.gtf
     
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$CUFFMERGE_GTF_NAME.gtf
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$MERGED_GTF_NAME.gtf
 
 fi
 ################################################################################

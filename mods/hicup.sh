@@ -54,6 +54,11 @@ echo "PATH=$PATH"
 # best common denominator)
 [ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_HICUP*0.75)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
+
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--bowtie      --\n "$(bowtie --version | head -n 1 )
 [ -z "$(which bowtie)" ] && echo "[ERROR] no bowtie detected" && exit 1
@@ -237,7 +242,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 fi
 
 ################################################################################
-NGSANE_CHECKPOINT_INIT "bam conversion and sorting"
+NGSANE_CHECKPOINT_INIT "bamcd ../../m sorting"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 

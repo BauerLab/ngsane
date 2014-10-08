@@ -43,7 +43,7 @@ RNA_SEQ_LIBRARY_TYPE="fr-firststrand"
 
 # Name of the merged GTF resulting from cuffmerge
 # Make sure this name is unique for different cufflink calls on subsets of libraries
-CUFFMERGE_GTF_NAME="merged"
+MERGED_GTF_NAME="merged"
 
 #********************
 # PARAMETER (optional overwriting defaults)

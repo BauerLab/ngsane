@@ -96,8 +96,8 @@ if [ ! -z "$DOCTOREDGTFSUFFIX" ]; then
 fi
 
 # how to name the merged gtf file
-if [ -z "$CUFFMERGE_GTF_NAME" ]; then
-    echo "[ERROR] CUFFMERGE_GTF_NAME not specified"
+if [ -z "$MERGED_GTF_NAME" ]; then
+    echo "[ERROR] MERGED_GTF_NAME not specified"
     exit 1
 fi
 

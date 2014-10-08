@@ -111,6 +111,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     $GZIP $OUTDIR/$SAMPLE.fragmentLists $OUTDIR/$SAMPLE.contactCounts
     
+
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.fragmentLists.gz $OUTDIR/$SAMPLE.contactCounts.gz
 

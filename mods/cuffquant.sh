@@ -58,11 +58,11 @@ NGSANE_CHECKPOINT_INIT "parameters"
 n=${INPUTFILE##*/}
 SAMPLE=${n/%$ASD.bam/}
 
-if [ -z "$CUFFMERGE_GTF_NAME" ]; then
-    echo "[ERROR] CUFFMERGE_GTF_NAME not specified"
+if [ -z "$MERGED_GTF_NAME" ]; then
+    echo "[ERROR] MERGED_GTF_NAME not specified"
     exit 1
-elif [ ! -f $OUT/expression/$TASK_CUFFLINKS/$CUFFMERGE_GTF_NAME.gtf ]; then 
-    echo "[ERROR] merged gtf file not found in $OUT/expression/$TASK_CUFFLINKS/$CUFFMERGE_GTF_NAME.gtf "
+elif [ ! -f $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf ]; then 
+    echo "[ERROR] merged gtf file not found in $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf "
     exit 1
 fi
 
@@ -87,7 +87,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     mkdir -p $OUTDIR/$SAMPLE
     
-    RUNCOMMAND="cuffquant --no-update-check --quiet --output-dir $OUTDIR/$SAMPLE -p $CPU_CUFFLINKS $OUT/expression/$TASK_CUFFLINKS/$CUFFMERGE_GTF_NAME.gtf $INPUTFILE"
+    RUNCOMMAND="cuffquant --no-update-check --quiet --output-dir $OUTDIR/$SAMPLE -p $CPU_CUFFLINKS $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf $INPUTFILE"
     echo $RUNCOMMAND && eval $RUNCOMMAND
 
     mv $OUTDIR/$SAMPLE/abundances.cxb $OUTDIR/$SAMPLE.cxb

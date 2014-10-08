@@ -73,7 +73,7 @@ FASTQ=fastq
 FASTA=$(pwd)/referenceData/chr16_RNAseqcopy.fasta
 REFSEQGTF=$(pwd)/referenceData/UCSC_GencodeV12.gtf
 GTF=$(pwd)/referenceData/gencode.v19.annotation.reduced.b37.chr16.gtf
-CUFFMERGE_GTF_NAME="chr16_RNAseq_merged"
+MERGED_GTF_NAME="chr16_RNAseq_merged"
 
 HTSEQCOUNT_USECUFFMERGEGTF="1"
 

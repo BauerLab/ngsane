@@ -35,13 +35,10 @@ QOUT=$OUT/qout
 READONE="_R1"
 READTWO="_R2"
 
+# specify folders that should not e copied
+declare -a SKIPDIR; SKIPDIR=( tmp fastq )
+ 
 #********************
 # PARAMETER (mandatory)
 #********************
 
-#********************
-# PARAMETER (optional overwriting defaults)
-#********************
-
-# set to one to copy the fastq folder too
-COPYFASTQ=

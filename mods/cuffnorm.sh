@@ -69,10 +69,10 @@ done
 
 echo "[NOTE] ${FILE[@]}"
 echo "[NOTE] datasets $DATASETS"
-echo "[NOTE] ${OUTDIR}/$CUFFMERGE_GTF_NAME"
+echo "[NOTE] ${OUTDIR}/$MERGED_GTF_NAME"
 
 if [ -z "$NGSANE_RECOVERFROM" ]; then
-    [ -d ${OUTDIR}/$CUFFMERGE_GTF_NAME ] && rm -r ${OUTDIR}/$CUFFMERGE_GTF_NAME/*
+    [ -d ${OUTDIR}/$MERGED_GTF_NAME ] && rm -r ${OUTDIR}/$MERGED_GTF_NAME/*
 fi
 
 # unique temp folder that should be used to store temporary files
@@ -96,18 +96,18 @@ NGSANE_CHECKPOINT_INIT "Run cuffnorm"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
-    RUNCOMMAND="cuffnorm --no-update-check --quiet --output-dir ${OUTDIR}/$CUFFMERGE_GTF_NAME -p $CPU_CUFFLINKS $OUT/expression/$TASK_CUFFLINKS/$CUFFMERGE_GTF_NAME.gtf $(echo $FILES | tr ',' ' ')"
+    RUNCOMMAND="cuffnorm --no-update-check --quiet --output-dir ${OUTDIR}/$MERGED_GTF_NAME -p $CPU_CUFFLINKS $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf $(echo $FILES | tr ',' ' ')"
     echo $RUNCOMMAND && eval $RUNCOMMAND
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$CUFFMERGE_GTF_NAME/genes.count_table $OUTDIR/$CUFFMERGE_GTF_NAME/genes.fpkm_table
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$MERGED_GTF_NAME/genes.count_table $OUTDIR/$MERGED_GTF_NAME/genes.fpkm_table
 
 fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "MDS plot"
 
 if hash Rscript 2>&- ; then
-    for TABLE in $OUTDIR/$CUFFMERGE_GTF_NAME/*.count_table; do
+    for TABLE in $OUTDIR/$MERGED_GTF_NAME/*.count_table; do
         
         COLUMNS=$(cat $TABLE| head -n 1 | tr '\t\s,' '\n'  | wc -l  | cut -f 1)
         if [[ $COLUMNS < 4 ]]; then
@@ -119,7 +119,7 @@ library(limma)
 
 pdf("${TABLE}.pdf", width=12, height=3)
 dt <- read.delim("$TABLE", row.names = 1)
-samples <- read.delim("$OUTDIR/$CUFFMERGE_GTF_NAME/samples.table")
+samples <- read.delim("$OUTDIR/$MERGED_GTF_NAME/samples.table")
 samples[["file"]] <- sub(".*/(.*)$ASD.bam","\\\\1",samples[["file"]])
 colnames(dt) <- samples[["file"]][match(colnames(dt), samples[["sample_id"]])]
 

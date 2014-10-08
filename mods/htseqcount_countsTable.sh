@@ -70,11 +70,6 @@ IFS=" "
 
 echo "[NOTE] datasets $DATASETS"
 
-if [[ -n "$HTSEQCOUNT_USECUFFMERGEGTF" ]] && [[ -n "$CUFFMERGE_GTF_NAME" ]] && [[ -f $OUT/expression/$TASK_CUFFLINKS/$CUFFMERGE_GTF_NAME.gtf ]] ; then
-    GTF=$OUT/expression/$TASK_CUFFLINKS/$CUFFMERGE_GTF_NAME.gtf
-    echo "[NOTE] Using GTF from cuffmerge"
-fi
-
 annoF=${GTF##*/}
 anno_version=${annoF%.*}
 

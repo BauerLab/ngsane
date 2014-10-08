@@ -55,7 +55,7 @@ echo "PATH=$PATH"
 [ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_HTSEQCOUNT*0.8)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_HTSEQCOUNT*0.75)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -98,8 +98,8 @@ if [ -z "$NGSANE_RECOVERFROM" ]; then
     if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
 fi
 
-if [[ -n "$HTSEQCOUNT_USECUFFMERGEGTF" ]] && [[ -n "$CUFFMERGE_GTF_NAME" ]] && [[ -f $OUT/expression/$TASK_CUFFLINKS/$CUFFMERGE_GTF_NAME.gtf ]] ; then
-    GTF=$OUT/expression/$TASK_CUFFLINKS/$CUFFMERGE_GTF_NAME.gtf
+if [[ -n "$HTSEQCOUNT_USECUFFMERGEGTF" ]] && [[ -n "$MERGED_GTF_NAME" ]] && [[ -f $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf ]] ; then
+    GTF=$OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf
     echo "[NOTE] Using GTF from cuffmerge"
 fi
 
