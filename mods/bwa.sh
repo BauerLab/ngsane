@@ -368,7 +368,7 @@ NGSANE_CHECKPOINT_INIT "calculate inner distance"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
       
     export PATH=$PATH:/usr/bin/
-    java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
+    command="java $JAVAPARAMS -jar $PATH_PICARD/CollectMultipleMetrics.jar \
         INPUT=$OUTDIR/$SAMPLE$ASD.bam \
         REFERENCE_SEQUENCE=$FASTA \
         OUTPUT=$OUTDIR/metrices/$SAMPLE$ASD.bam \
@@ -376,9 +376,13 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         PROGRAM=CollectAlignmentSummaryMetrics \
         PROGRAM=CollectInsertSizeMetrics \
         PROGRAM=QualityScoreDistribution \
-        TMP_DIR=$THISTMP
+        TMP_DIR=$THISTMP"
+        
+    echo $command && eval $command
+        
     for im in $( ls $OUTDIR/metrices/*.pdf ); do
-        convert $im ${im/pdf/jpg}
+        command="convert $im ${im/pdf/jpg}"
+        echo $command && eval $command
     done
 
     # mark checkpoint

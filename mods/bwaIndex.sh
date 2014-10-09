@@ -26,6 +26,7 @@ if [ ! $# -gt 1 ]; then usage ; fi
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
+        -o | --output )         shift; LOGFILEOUTPUT=$1 ;; # Not used but passed on by prepareJobsubmission for log name (commontask)
         --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
@@ -77,7 +78,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     # generating the index files
     if [ ! -e $FASTA.bwt ]; then 
         echo "[NOTE] make .bwt"; 
-        command="bwa index -a bwtsw $FASTA"
+        command="bwa index -a ${BWA_INDEXAS} $FASTA"
 	echo $command && eval $command
     fi
     if [ ! -e $FASTA.fai ]; then 
