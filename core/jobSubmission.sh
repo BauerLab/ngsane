@@ -96,15 +96,16 @@ elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
 elif [ "$SUBMISSIONSYSTEM" == "SLURM" ]; then
 
     # if it is the default (nodes=1:ppn=4) convert to SLURM (--nodes=1 as well as the separage SCPU param )
-    if [[ $SNODES == *:* ]]; then 
-        SNODES="--"${x/:*/}" --ntasks-per-node=$SCPU"
+    if [[ $SNODES == *:* ]]; then
+        SNODES="--"${SNODES/:*/}" --ntasks-per-node=$SCPU"
     fi
     
 #	echo "********** submit with SLURM submission system"
-	JOBIDS=$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}
+	if [ -n "$JOBIDS" ];then JOBIDS=$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}; fi
 	command="sbatch $JOBIDS --export=ALL --output=$SOUTPUT $SNODES --mem=$SMEMORY \
         --job-name=$SNAME --time=$SWALLTIME --open-mode=append --requeue $SADDITIONAL $TMPFILE"
 	echo "# $command" >>$TMPFILE
+	echo $command  1>&2
 	RECIPT=$($command)
 	JOBID=$(echo "$RECIPT" | awk '{print $4}')
 	echo $JOBID

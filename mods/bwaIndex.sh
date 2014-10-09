@@ -77,11 +77,13 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     # generating the index files
     if [ ! -e $FASTA.bwt ]; then 
         echo "[NOTE] make .bwt"; 
-        bwa index -a bwtsw $FASTA; 
+        command="bwa index -a bwtsw $FASTA"
+	echo $command && eval $command
     fi
     if [ ! -e $FASTA.fai ]; then 
         echo "[NOTE] make .fai"; 
-        samtools faidx $FASTA; 
+        command="samtools faidx $FASTA"
+	echo $command && eval $command
     fi
 
     # mark checkpoint
