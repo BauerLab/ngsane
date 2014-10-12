@@ -70,8 +70,8 @@ echo -e "--HiCUP       --\n "$(hicup --version )
 [ -z "$(which hicup)" ] && echo "[ERROR] no hicup detected" && exit 1
 echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
 [ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
-echo -e "--samstat     --\n "$(samstat -h | head -n 2 | tail -n1)
-[ -z "$(which samstat)" ] && echo "[ERROR] no samstat detected" && exit 1
+echo -e "--R           --\n "$(R --version | head -n 3)
+[ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -94,7 +94,7 @@ fi
 # delete old bam files unless attempting to recover
 if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
-    [ -f $OUTDIR/${SAMPLE}_uniques.bam ] && rm $OUTDIR/${SAMPLE}_uniques.bam
+    [ -f $OUTDIR/${SAMPLE}_uniques.bam ] && rm $OUTDIR/${SAMPLE}_uniques.bam   
 fi
 
 #is paired ?
@@ -172,9 +172,6 @@ NGSANE_CHECKPOINT_INIT "truncate"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz
-    [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz
-    
     RUN_COMMAND="$(which perl) $(which hicup_truncater) -datestamp run -outdir $OUTDIR/$SAMPLE/ $ENZYME1PARAM $ENZYME2PARAM -threads $CPU_HICUP -zip $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
@@ -192,11 +189,11 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz
     
-    RUN_COMMAND="$(which perl) $(which hicup_mapper) -datestamp run -bowtie $(which bowtie) -format $FASTQ_PHRED -outdir $OUTDIR/$SAMPLE/ -index ${FASTA%.*}  -threads $CPU_HICUP -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz"
+    RUN_COMMAND="$(which perl) $(which hicup_mapper) -datestamp run -bowtie $(which bowtie) -format $FASTQ_PHRED -outdir $OUTDIR/$SAMPLE/ -index ${FASTA%.*} -threads $CPU_HICUP -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     mv $OUTDIR/$SAMPLE/hicup_mapper_summary_run.txt $OUTDIR/$SAMPLE"_mapper_summary.txt"
-        
+
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz
 
@@ -215,7 +212,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     mv $OUTDIR/$SAMPLE/hicup_filter_summary_run.txt $OUTDIR/$SAMPLE"_filter_summary.txt"
     
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam
 
 fi
 
@@ -223,88 +220,39 @@ fi
 NGSANE_CHECKPOINT_INIT "de-duplicate"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-
-    [ -f $OUTDIR/${SAMPLE}_uniques.bam ] && rm $OUTDIR/${SAMPLE}_uniques.bam
     
-    RUN_COMMAND="$(which perl) $(which hicup_deduplicator) -datestamp run -pipeline_outdir $OUTDIR/$SAMPLE/ -outdir $OUTDIR/$SAMPLE/ -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam"
+    RUN_COMMAND="$(which perl) $(which hicup_deduplicator) -datestamp run -pipeline_outdir $OUTDIR/$SAMPLE/ -outdir $OUTDIR/$SAMPLE/ -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     mv $OUTDIR/$SAMPLE/hicup_deduplicator_summary_run.txt $OUTDIR/$SAMPLE"_deduplicator_summary.txt"
     
     # move charts
-    mv $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam_cis-trans.png $OUTDIR/${SAMPLE}_uniques_cis-trans.png
-    cp -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz_ditag_classification.png $OUTDIR/${SAMPLE}_ditag_classification.png
-    cp -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz_ditag_size_distribution.png $OUTDIR/${SAMPLE}_ditag_size_distribution.png
-
-    # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam $OUTDIR/${SAMPLE}_uniques.bam
-
-fi
-
-################################################################################
-NGSANE_CHECKPOINT_INIT "bamcd ../../m sorting"
-
-if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-
-    samtools sort -l 9 -@ $CPU_HICUP -o $OUTDIR/SAMPLE.ash.bam $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam
-
-    # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.ash.bam 
-  
-    [ -f $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam $OUTDIR/${SAMPLE}_uniques.bam ] && rm $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam $OUTDIR/${SAMPLE}_uniques.bam  
-fi
-
-################################################################################
-NGSANE_CHECKPOINT_INIT "clean sam"
-
-if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-   
-    java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
-        INPUT=$OUTDIR/$SAMPLE.ash.bam \
-        OUTPUT=$OUTDIR/$SAMPLE.cleaned.bam \
-        VALIDATION_STRINGENCY=LENIENT \
-        TMP_DIR=$THISTMP
-
-    # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.cleaned.bam 
+    mv $OUTDIR/$SAMPLE/${SAMPLE}$READONE.$FASTQ.truncation_barchart.svg $OUTDIR/${SAMPLE}$READONE.truncation_barchart.svg
+    mv $OUTDIR/$SAMPLE/${SAMPLE}$READTWO.$FASTQ.truncation_barchart.svg $OUTDIR/${SAMPLE}$READTWO.truncation_barchart.svg
+        
+    mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam.deduplicator_cis_trans_piechart.svg $OUTDIR/${SAMPLE}.cis-trans.svg
+    mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam.deduplicator_uniques_barchart.svg $OUTDIR/${SAMPLE}.uniques_barchart.svg
+    mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.ditag_size_distribution.svg $OUTDIR/${SAMPLE}.ditag_size_distribution.svg
+    mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.filter_piechart.svg $OUTDIR/${SAMPLE}.filter_piechart.svg
     
-    # cleanup
-    [ -e $OUTDIR/$SAMPLE.ash.bam ] && rm $OUTDIR/$SAMPLE.ash.bam
+    # mark checkpoint
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam
+
 fi
 
 ################################################################################
-NGSANE_CHECKPOINT_INIT "mark duplicates"
+NGSANE_CHECKPOINT_INIT "bam sorting"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-   
-    if [ ! -e $OUTDIR/metrices ]; then mkdir -p $OUTDIR/metrices ; fi
-    java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar \
-        INPUT=$OUTDIR/$SAMPLE.cleaned.bam \
-        OUTPUT=$OUTDIR/$SAMPLE$ASD.bam \
-        METRICS_FILE=$OUTDIR/metrices/$SAMPLE$ASD.bam.dupl \
-        AS=true \
-        CREATE_MD5_FILE=true \
-        COMPRESSION_LEVEL=9 \
-        VALIDATION_STRINGENCY=LENIENT \
-        TMP_DIR=$THISTMP
-    samtools index $OUTDIR/$SAMPLE$ASD.bam
 
+    samtools sort -n -l 9 -O bam -@ $CPU_HICUP -o $OUTDIR/$SAMPLE$ASD.bam -T $THISTMP/$SAMPLE $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam 
+    
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam 
-    
-    # cleanup
-    [ -e $OUTDIR/$SAMPLE.cleaned.bam ] && rm $OUTDIR/$SAMPLE.cleaned.bam
+  
+#    [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam 
 fi
-################################################################################
-NGSANE_CHECKPOINT_INIT "samstat"    
 
-if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-    
-    samstat $OUTDIR/$SAMPLE$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
-
-    # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam.stats 
-fi
 
 ################################################################################
 [ -e $OUTDIR/$SAMPLE$ASD.bam.dummy ] && rm $OUTDIR/$SAMPLE$ASD.bam.dummy
