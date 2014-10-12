@@ -152,7 +152,7 @@ if [[ -z "$BWA_ALGORITHM" ||  "$BWA_ALGORITHM" == sam* ]]; then
 elif [[ "$BWA_ALGORITHM" == "mem" ]]; then
     echo "[NOTE] BWA algorithm is mem"
 elif [[ "$BWA_ALGORITHM" == "bwasw" ]]; then
-    echo "[NOTE] BWA algorithm is mem"
+    echo "[NOTE] BWA algorithm is bamsw"
 else
     echo "[ERROR] specified BWA algorithm invalid"
     exit 1
