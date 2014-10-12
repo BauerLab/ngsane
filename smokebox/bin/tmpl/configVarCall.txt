@@ -79,6 +79,7 @@ ONEKGVCF=$(pwd)/referenceData/1000G_omni2.5.chr16.vcf
 REFSEQGTF=$(pwd)/referenceData/UCSC_GencodeV12.gtf
 CONTAMINANTS=$(pwd)/adapters.txt
 GTF=$(pwd)/referenceData/gencode.v19.annotation.reduced.chr16.gtf
+BWA_INDEXAS="is"
 
 #REF=16:
 #RECALALNADDPARAM="-L $REF"

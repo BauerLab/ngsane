@@ -185,7 +185,7 @@ for i in $LOGFILES ;do
         echo -e "$ERRORLIST"
     fi
     SUMERRORS=$(expr $SUMERRORS + $(echo -e "$ERRORLIST" | awk 'BEGIN{count=0} NF != 0 {++count} END {print count}' ))
-    FINISHEDLIST=$(tail $i | egrep '\>{5} .* FINISHED.*')
+    FINISHEDLIST=$(tail -n 100 $i | egrep '\>{5} .* FINISHED.*')
     if [ -z "$FINISHEDLIST" ]; then
         echo -e "[DIED] ${i/$LOGFOLDER\//}"
 	    tail $i | sed 's/^/    /'

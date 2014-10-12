@@ -55,6 +55,10 @@ PLATFORM="Illumina"
 # e.g. "sam", "mem","bwasw"
 BWA_ALGORITHM="sam"
 
+# BWA index -a value 
+# e.g. "is" (short genomes), "div","bwtsw" (long genomes)
+BWA_INDEXAS="bwtsw"
+
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************

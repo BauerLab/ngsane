@@ -1,12 +1,14 @@
 ##############################################################
 # System info
 ##############################################################
-SUBMISSIONSYSTEM="PBS"                            # SGE or PBS
+SUBMISSIONSYSTEM="PBS"                      # SGE,PBS or SLURM
 QUEUEWAIT=" -W depend=afterok:"                   # PBS
 QUEUEWAITSEP=":"
 #QUEUEWAIT=" -hold_jid "                          # SGE
 #QUEUEWAITSEP=","
-#QUEUEPARENV="smp"     
+#QUEUEPARENV="smp"
+QUEUEWAIT=" --dependency afterok:"                # SLURM    
+QUEUEWAITSEP=":"
 QSUBEXTRA=""          # any extra such as email notification
 QUEUEMEMORYPERSLOT=   # or Yes if vmem is per CPU slot not job
 DMGET=                # or Yes when storing data on tape
