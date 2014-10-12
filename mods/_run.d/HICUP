@@ -31,18 +31,18 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         if [ ! -f $OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt ];then
             JOBIDS=$( 
             $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c 1 \
-            	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS $WAITFORJOB_HICUP \
+            	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS \
             	--commontask digestGenome \
                 --command "${NGSANE_BASE}/mods/hicupDigestGenome.sh -k $CONFIG" 
             ) && echo -e "$JOBIDS"
-            JOBIDS=$(waitForJobIds "$JOBIDS")
+            DIGESTJOBIDS=$(waitForJobIds "$JOBIDS")
     
         else
-            JOBIDS=$WAITFORJOB_HICUP
+            DIGESTJOBIDS =$NGSANE_WAITFORJOB
         fi
     
         $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
-        	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $JOBIDS \
+        	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $DIGESTJOBIDS \
             --command "${NGSANE_BASE}/mods/hicup.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HICUP"
     
     ############################################################################
