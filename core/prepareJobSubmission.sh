@@ -214,9 +214,9 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 
         # add citations unless in recover mode
         if [ -z "$RECOVER" ]; then 
-    		TASKCITE=${TASK/*-/}
-            TASKNAME=$(egrep  "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2)
-    		CITED_PROGRAMS=$(egrep  "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||g" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g')
+    	    TASKCITE=${TASK/*-/}
+            TASKNAME=$(egrep  "^TASK_[A-Z0-9]+=[\"']?$TASKCITE[\"']? *$" $JOBLOG | cut -d "=" -f 1 | cut -d ":" -f 2 | head -n 1 )
+    	    CITED_PROGRAMS=$(egrep  "^${TASKNAME/TASK/MODULE}=" $JOBLOG | sed -e "s|^${TASKNAME/TASK/MODULE}||g" | sed -e 's/["=${}]//g' | sed -e 's/NG_/NG_CITE_/g')
             for M in NG_CITE_NGSANE $CITED_PROGRAMS; do
     
                 CITE=$(egrep "^$M=" $JOBLOG) || CITE=""
@@ -225,8 +225,8 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
                 fi 
             done
         fi
-		#eval job directly but write to logfile
-	    if [ -n "$DIRECT" ]; then echo "[NOTE] write $LOGFILE"; eval $COMMAND2 >> $LOGFILE 2>&1; continue; fi
+	#eval job directly but write to logfile
+        if [ -n "$DIRECT" ]; then echo "[NOTE] write $LOGFILE"; eval $COMMAND2 >> $LOGFILE 2>&1; continue; fi
 
         if [ -n "$JOBIDS" ]; then
             echo "check joids"
