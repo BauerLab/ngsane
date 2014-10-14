@@ -27,10 +27,8 @@ for line in sys.stdin:
     if line[0]==">" :
         remote.append(line)
 
-#print len(local)
-#print len(remote)
-
 if len(local) != len(remote):
+    print "local and remote changed lines differ (%d != %d)" % (len(local), len(remote))
     print content
     sys.exit(1)
 
