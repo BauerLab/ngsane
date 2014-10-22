@@ -205,7 +205,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     # overwrite old summits
     mv $SAMPLE"_refinepeak.bed" $SAMPLE"_summits.bed"
         
-    echo "Final number of refined summits: $(wc -l ${SAMPLE}_summits.bed | awk '{print $1};)" >> $SAMPLE.summary.txt
+    echo "Final number of refined summits: $(wc -l ${SAMPLE}_summits.bed | awk '{print $1}')" >> $SAMPLE.summary.txt
         
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK 
