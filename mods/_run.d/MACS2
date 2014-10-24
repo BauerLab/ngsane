@@ -34,7 +34,7 @@ if [ -n "$RUNMACS2" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN!Control reads (filtered)!!egrep '(tags|fragments) after filtering in control' | tr ':' '\n' | tail -n 1 " \
             "PATTERN!Paired read pileups!!fgrep 'number of paired peaks' | tr ':' '\n' | tail -n 1 " \
             "PATTERN!Fragment size!100!fgrep 'Determined fragment size'  | tr ':' '\n' | tail -n 1 " \
-            "PATTERN!Peaks!!fgrep 'Final number of refined summits' | tr ':' '\n' | tail -n 1 " \
+            "PATTERN!Peaks!!fgrep 'Final number of peaks' | tr ':' '\n' | tail -n 1 " \
             "PATTERN!Nucleotides covered!!fgrep 'Nucleotides covered' | tr ':' '\n' | tail -n 1 " \
             "FIGURE!!60!<SAMPLE>.R_model-0.png!60!1" \
             "FIGURE!!60!<SAMPLE>.R_model-1.png!60!1" 

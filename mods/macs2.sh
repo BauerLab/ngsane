@@ -190,6 +190,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
             rm $SAMPLE$PEAKSUFFIX.tmp
         fi
     fi
+    echo "Final number of peaks: $(wc -l $SAMPLE$PEAKSUFFIX | awk '{print $1}')" >> $SAMPLE.summary.txt
 
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $SAMPLE$PEAKSUFFIX
