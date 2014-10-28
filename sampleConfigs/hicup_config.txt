@@ -1,5 +1,5 @@
 # author: Fabian Buske
-# date: May 2013
+# date: Oct 2014
 # compatible: NGSANE v0.5.x
 
 #####################################
@@ -49,31 +49,32 @@ FASTA=
 REFERENCE_NAME=""
 
 # library tags
-EXPID="LnCap"
+EXPID=""
 LIBRARY="HiC"
 PLATFORM="Illumina"
 
 # restriction enzyme 1 and cut site pattern
 # e.g. "BglII" and "A^GATCT"
+# e.g. "NcolII" and "C^CATGG"
+# e.g. "HindIII" and "A^AGCTT"
 HICUP_RENZYME1=
 HICUP_RCUTSITE1=
 
 # restriction enzyme 2 and cut site pattern
-# e.g. "NcolII" and "C^CATGG" otherwise leave "none"
-HICUP_RENZYME2="none"
+HICUP_RENZYME2=
 HICUP_RCUTSITE2=
 
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
 
-# FASTQ encoding (Phred score), leave empty to detect automatically
-# e.g. "Phred33" (Sanger, Illumina 1.8+), "Phred64" (Solexa, Illumina 1.5)
-FASTQ_ENCODING=
+# additional parameter for hicup_mapper, 
+#e.g. "-format phred33-quals"
+HICUPMAPPER_ADDPARAM=
 
 #WALLTIME_HICUP=10:00:00
 #MEMORY_HICUP=60
 #CPU_HICUP=8
 #NODES_HICUP="nodes=1:ppn=8"
-#MODULE_HICUP="fabbus/hicup/0.3.0"
+#MODULE_HICUP=
 #PATH_HICUP=

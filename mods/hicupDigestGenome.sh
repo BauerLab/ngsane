@@ -67,15 +67,15 @@ if [ -z "$FASTA" ]; then
     exit 1
 fi
 
-if [ -z "$HICUP_RENZYME1" ] || [ "${HICUP_RENZYME1,,}" == "none" ]; then
+if [ -z "$HICUP_RENZYME1" ]; then
    echo "[ERROR] No restriction enzyme given!" && exit 1
 elif [ -z "$HICUP_RCUTSITE1" ]; then
    echo "[ERROR] Restriction enzyme 1 lacks cutsite pattern!" && exit 1
 fi
-if [ -n "$HICUP_RENZYME2" ] && [ "${HICUP_RENZYME2,,}" != "none" ] && [ -z "$HICUP_RCUTSITE2" ]; then
+if [ -n "$HICUP_RENZYME2" ] && [ -z "$HICUP_RCUTSITE2" ]; then
    echo "[ERROR] Restriction enzyme 2 lacks cutsite pattern!" && exit 1
 else
-    HICUP_RENZYME2="none"
+    HICUP_RENZYME2="None"
 fi
 
 if [ -z "$REFERENCE_NAME" ]; then
@@ -86,7 +86,7 @@ DIGESTGENOME="Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt"
 
 # delete old bam files unless attempting to recover
 if [ -z "$NGSANE_RECOVERFROM" ]; then
-    [ -e $OUTDIR/$DIGESTGENOME ] && rm $OUTDIR/$DIGESTGENOME
+    [ -e $OUTDIR/$DIGESTGENOME ] && rm $OUTDIR/$DIGESTGENOME && rm -f $OUTDIR/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}_*.txt
 fi
 
 NGSANE_CHECKPOINT_CHECK
@@ -104,27 +104,27 @@ NGSANE_CHECKPOINT_INIT "digest reference"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    rm -f $OUTDIR/Digest_*
-    if [ -z "$HICUP_RENZYME2" ] || [ "${HICUP_RENZYME2,,}" == "none" ]; then
+
+    if [ -z "$HICUP_RCUTSITE2" ]; then
        echo "Restriction Enzyme 1: $HICUP_RENZYME1:$HICUP_RCUTSITE1"
        RUN_COMMAND="$(which perl) $(which hicup_digester) --outdir $OUTDIR --genome $REFERENCE_NAME -re1 $HICUP_RCUTSITE1,$HICUP_RENZYME1 $FASTA"
        echo $RUN_COMMAND && eval $RUN_COMMAND
-       mv $OUTDIR/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_*.txt $OUTDIR/${DIGESTGENOME}
     
     else
        echo "Restriction Enzyme 1: $HICUP_RENZYME1:$HICUP_RCUTSITE1 "
        echo "Restriction Enzyme 2: $HICUP_RENZYME2:$HICUP_RCUTSITE2 "
        RUN_COMMAND="$(which perl) $(which hicup_digester) --outdir $OUTDIR --genome $REFERENCE_NAME -re1 $HICUP_RCUTSITE1,$HICUP_RENZYME1 -re2 $HICUP_RCUTSITE2,$HICUP_RENZYME2 $FASTA"
        echo $RUN_COMMAND && eval $RUN_COMMAND
-       mv $OUTDIR/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_*.txt $OUTDIR/${DIGESTGENOME}
     fi
+
+    mv $OUTDIR/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}_*.txt $OUTDIR/${DIGESTGENOME}
     
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$DIGESTGENOME
 
 fi
 ################################################################################
-[ -e $OUTDIR/$DIGESTGENOME.dummy ] && rm $OUTDIR/$DIGESTGENOME.dummy
+[ -e $OUTDIR/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt.dummy ] && rm $OUTDIR/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt.dummy
 echo ">>>>> readmapping with hicup (bowtie) - FINISHED"
 echo ">>>>> enddate "`date`
 

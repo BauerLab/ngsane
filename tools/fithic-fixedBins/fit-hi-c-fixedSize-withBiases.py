@@ -413,7 +413,11 @@ def generate_FragPairs(mainDic,infilename): # lowMappThres
 		possibleIntraAllCount+=(n*(n+1))/2 # n(n-1) if excluding self
 	#
 	possibleInterAllCount/=2
-	interChrProb=1.0/possibleInterAllCount
+
+	interChrProb=1.0
+	if possibleInterAllCount>0:
+	   interChrProb=1.0/possibleInterAllCount
+	   
 	baselineIntraChrProb=1.0/possibleIntraAllCount
 	
 	for i in range(0,maxPossibleGenomicDist+1,resolution):

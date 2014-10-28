@@ -8,6 +8,7 @@ Created on Feb 18, 2013
 import sys
 import numpy as np
 import os
+import gzip
 
 USAGE = """USAGE: ICE-with-sparseMatrix.py <contactCountsFile> <midsFile> <norm> <outfile> <lowMappThres>
 Implements the ICE correction by Imakaev et al in sparse mode.
@@ -29,7 +30,7 @@ Can be slower than full matrix implementation but at least is feasible for bigge
 <lowMappThres>			: filter out loci that are less mappable than the threshold. Reasonable choice 0.5
 """
 eps=1e-3
-maxIter=1000
+maxIter=10
 def main(contactCountsFile,midsFile,norm,outfilename,lowMappThres):
 
 	(allFragsDic,allFragsDicReverse,badFrags)=assignIndicesToFrags(midsFile,lowMappThres)
@@ -52,7 +53,11 @@ def main(contactCountsFile,midsFile,norm,outfilename,lowMappThres):
 
 def	writeContactsInSparseForm(outfilename,allFragsDic,allFragsDicReverse,XnewVals,Xindices):
 
-	outfile=open(outfilename,'w')
+	if outfilename.endswith('.gz'):
+		outfile=gzip.open(outfilename,'wb')
+	else:
+		outfile=open(outfilename,'wb')
+		
 	for indx1 in range(len(Xindices)):
 		ch1,mid1=allFragsDicReverse[indx1]
 		c=0
@@ -88,7 +93,7 @@ def ICE(Xvals,Xindices,noOfFrags,norm,badFrags):
 		dbias=sumds.reshape((noOfFrags, 1))
 		dbias /= dbias[dbias != 0].mean()
 		dbias[dbias == 0] = 1
-		print dbias[5:25]
+#		print dbias[5:25]
 		# implement this line in sparse form --> X /= dbias.T * dbias
 		for i in range(len(Xindices)):
 			if i%10000==0 and i>0:
@@ -119,7 +124,11 @@ def	readContactsInSparseForm(contactCountsFile,allFragsDic,noOfFrags):
 		Xvals.append([])
 		Xindices.append([])
 	#
-	infile=open(contactCountsFile,'r')
+	if contactCountsFile.endswith('.gz'):
+		infile=gzip.open(contactCountsFile,'r')
+	else:
+		infile=open(contactCountsFile,'r')
+		
 	for line in infile:
 		ch1,mid1,ch2,mid2,contactCount=line.split()
 		contactCount=float(contactCount)
@@ -139,7 +148,11 @@ def assignIndicesToFrags(midsFile,lowMappThres):
 	badFrags=[]
 	allFragsDic={}
 	allFragsDicReverse={}
-	infile=open(midsFile,'r')
+	if midsFile.endswith('.gz'):
+		infile=gzip.open(midsFile,'r')
+	else:
+		infile=open(midsFile,'r')
+		
 	indx=0
 	for line in infile:
 		words=line.split()
@@ -159,5 +172,5 @@ if __name__ == "__main__":
 	if (len(sys.argv) != 6):
 		sys.stderr.write(USAGE)
 		sys.exit(1)
-	main(str(sys.argv[1]),str(sys.argv[2]),str(sys.argv[3]),str(sys.argv[4]),float(sys.argv[5]))
+	main(sys.argv[1],sys.argv[2],str(sys.argv[3]),str(sys.argv[4]),float(sys.argv[5]))
 

@@ -112,16 +112,16 @@ elif [[ ${f##*.} == "bz2" ]];
     then CAT="bzcat"; 
 fi
 
-if [ -z "$HICUP_RENZYME1" ] || [ "${HICUP_RENZYME1,,}" == "none" ] || [ -z "$HICUP_RCUTSITE1" ]; then
+if [ -z "$HICUP_RENZYME1" ] || [ -z "$HICUP_RCUTSITE1" ]; then
     echo "[ERROR] Restriction enzyme 1 not defined" && exit 1
 else
     ENZYME1PARAM="-re1 $HICUP_RCUTSITE1"
 fi
-if [ -z "$HICUP_RENZYME2" ] || [ "${HICUP_RENZYME2,,}" == "none" ] || [ -z "$HICUP_RCUTSITE2" ]; then
+if [ -z "$HICUP_RENZYME2" ] || [ -z "$HICUP_RCUTSITE2" ]; then
     echo "[NOTE] Restriction enzyme 2 not defined"
-    HICUP_RENZYME2="none"
+    HICUP_RENZYME2="None"
 else
-    ENZYME2PARAM="-re1 $HICUP_RCUTSITE2"
+    ENZYME2PARAM="-re2 $HICUP_RCUTSITE2"
 fi
 
 DIGESTGENOME="$OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt"
@@ -136,17 +136,6 @@ if [ -z "$FASTQ_ENCODING" ]; then
     echo "[NOTE] Detect fastq Phred encoding"
     FASTQ_ENCODING=$($CAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
     echo "[NOTE] $FASTQ_ENCODING fastq format detected"
-fi
-
-if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
-    FASTQ_PHRED="phred33-quals"    
-elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
-    FASTQ_PHRED="phred64-quals"
-elif [[ "$FASTQ_ENCODING" == *Solexa* ]]; then
-    FASTQ_PHRED="solexa1.3-quals"
-else
-    echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default (phred33-quals)"
-    FASTQ_PHRED="phred33-quals"
 fi
 
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
@@ -189,7 +178,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz
     
-    RUN_COMMAND="$(which perl) $(which hicup_mapper) -datestamp run -bowtie $(which bowtie) -format $FASTQ_PHRED -outdir $OUTDIR/$SAMPLE/ -index ${FASTA%.*} -threads $CPU_HICUP -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz"
+    RUN_COMMAND="$(which perl) $(which hicup_mapper) $HICUPMAPPER_ADDPARAM -datestamp run -bowtie $(which bowtie) -outdir $OUTDIR/$SAMPLE/ -index ${FASTA%.*} -threads $CPU_HICUP -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     mv $OUTDIR/$SAMPLE/hicup_mapper_summary_run.txt $OUTDIR/$SAMPLE"_mapper_summary.txt"
@@ -206,7 +195,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam
     
-    RUN_COMMAND="$(which perl) $(which hicup_filter) -datestamp run -digest $DIGESTGENOME  -outdir $OUTDIR/$SAMPLE/ -threads $CPU_HICUP -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz"
+    RUN_COMMAND="$(which perl) $(which hicup_filter) -datestamp run -digest $DIGESTGENOME -outdir $OUTDIR/$SAMPLE/ -threads $CPU_HICUP -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     mv $OUTDIR/$SAMPLE/hicup_filter_summary_run.txt $OUTDIR/$SAMPLE"_filter_summary.txt"

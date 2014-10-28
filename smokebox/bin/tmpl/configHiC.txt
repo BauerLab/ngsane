@@ -46,10 +46,6 @@ FASTQ="fastq.gz"
 READONE="_R1"
 READTWO="_R2"
 
-# file suffix of the fragment list and contact counts
-FRAGMENTLIST=".fragmentLists.gz"
-CONTACTCOUNTS=".contactCounts.gz"
-
 # reference as single chromosomes
 FASTA_CHROMDIR=$(pwd)/referenceData/
 
@@ -82,7 +78,10 @@ HICLIB_CHROMOSOME=16
 #HICLIB_KEEPBAM=1
 
 FITHICADDPARAM="--lowerbound 5000 --upperbound 5000000"
+HIC_RESOLUTION="100000"
 
+# Mappability track
+MAPPABILITY=$(pwd)/referenceData/wgEncodeCrgMapabilityAlign36mer_chr16.bw
 
 #********************
 # Resources

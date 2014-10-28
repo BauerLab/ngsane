@@ -38,7 +38,7 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             DIGESTJOBIDS=$(waitForJobIds "$JOBIDS")
     
         else
-            DIGESTJOBIDS =$NGSANE_WAITFORJOB
+            DIGESTJOBIDS=$NGSANE_WAITFORJOB
         fi
     
         $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \

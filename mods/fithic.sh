@@ -82,8 +82,13 @@ else
     echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
 fi
 
-if [ -n $GENOME_CHROMSIZES ]; then
-    echo "[ERROR] HiC resolution sot specified"
+if [ -z "$MAPPABILITY" ]; then
+    echo "[ERROR] Mappability not specified"
+    exit 1
+fi
+
+if [ -z "$HIC_RESOLUTION" ]; then
+    echo "[ERROR] HiC resolution not specified"
     exit 1
 fi
 
@@ -110,7 +115,6 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     [ -e $OUTDIR/${SAMPLE}$ASD.bam.contactCounts ] && mv $OUTDIR/${SAMPLE}$ASD.bam.contactCounts $OUTDIR/$SAMPLE.contactCounts
     
     $GZIP $OUTDIR/$SAMPLE.fragmentLists $OUTDIR/$SAMPLE.contactCounts
-    
 
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.fragmentLists.gz $OUTDIR/$SAMPLE.contactCounts.gz
@@ -122,11 +126,9 @@ NGSANE_CHECKPOINT_INIT "ICE correction"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/ICE-with-sparseMatrix.py $OUTDIR/$SAMPLE.contactCounts.gz $OUTDIR/$SAMPLE.fragmentLists.gz l1 $OUTDIR/$SAMPLE.ice.txt 0.5"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/ICE-with-sparseMatrix.py $OUTDIR/$SAMPLE.contactCounts.gz $OUTDIR/$SAMPLE.fragmentLists.gz l1 $OUTDIR/$SAMPLE.ice.txt.gz 0.5"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    
-    $GZIP $OUTDIR/$SAMPLE.ice.txt
-    
+   
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.ice.txt.gz
 
@@ -138,7 +140,7 @@ NGSANE_CHECKPOINT_INIT "fit-hi-c"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 #    RUN_COMMAND="python $(which fit-hi-c.py) $FITHICADDPARAM --outdir $OUTDIR --biases=$OUTDIR/$SAMPLE.ice.txt.gz --fragments=$OUTDIR/$SAMPLE.fragmentLists.gz --interactions=$OUTDIR/$SAMPLE.contactCounts.gz --lib=${SAMPLE} &> $OUTDIR/$SAMPLE.log"
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py $FITHICADDPARAM --lib=${SAMPLE} --biases=$OUTDIR/$SAMPLE.ice.txt.gz --fragments=$OUTDIR/$SAMPLE.fragmentLists.gz --interactions=$OUTDIR/$SAMPLE.contactCounts.gz --resolution $HIC_RESOLUTION > $OUTDIR/$SAMPLE.log"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py $FITHICADDPARAM --lib=${SAMPLE} --biases=$OUTDIR/$SAMPLE.ice.txt.gz --fragments=$OUTDIR/$SAMPLE.fragmentLists.gz --interactions=$OUTDIR/$SAMPLE.contactCounts.gz --resolution $HIC_RESOLUTION > $OUTDIR/$SAMPLE.res$HIC_RESOLUTION.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     cat $OUTDIR/$SAMPLE.log # put into qout log too
     
@@ -148,7 +150,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 #    echo "Significant interactions $SIG_INTERACTIONS" >> $OUTDIR/$SAMPLE.log
     
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.spline_pass1.q05.txt.gz 
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.spline_pass1.res$HIC_RESOLUTION.significances.txt.gz
 fi
 
 ################################################################################
