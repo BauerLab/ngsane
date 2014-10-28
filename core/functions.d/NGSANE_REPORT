@@ -248,6 +248,8 @@ EOF
 
                     PATTERN="cat $SAMPLE | $(echo $var | cut -d'!' -f 4)"
                     PATTERN_RESULT=$(eval $PATTERN)
+                    # remove trailing spaces
+                    PATTERN_RESULT=$( echo $PATTERN_RESULT | sed -e 's/^ *//' -e 's/ *$//')
 
                     if ! [[ "$PATTERN_RESULT" =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
                         # convert into string
@@ -276,6 +278,8 @@ EOF
 
                         PATTERN="cut -f$COLUMN $SAMPLE | tail -n+2 | $COMMAND"
                         PATTERN_RESULT=$(eval $PATTERN)
+                        # remove trailing spaces
+                        PATTERN_RESULT=$( echo $PATTERN_RESULT | sed -e 's/^ *//' -e 's/ *$//')
                         if ! [[ "$PATTERN_RESULT" =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
                             # convert into string
                             PATTERN_RESULT="'$PATTERN_RESULT'"
@@ -294,6 +298,9 @@ EOF
                     for COLUMN in `seq $FROMROW $TOROW `; do
                         PATTERN="sed -n ${COLUMN}p $SAMPLE | $COMMAND"
                         PATTERN_RESULT=$(eval $PATTERN)
+                        # remove trailing spaces
+                        PATTERN_RESULT=$( echo $PATTERN_RESULT | sed -e 's/^ *//' -e 's/ *$//')
+                        
                         if ! [[ "$PATTERN_RESULT" =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
                             # convert into string
                             PATTERN_RESULT="'$PATTERN_RESULT'"
@@ -443,7 +450,9 @@ EOF
             elif [[ $(echo $var | grep '^PATTERN!') != "" ]]; then
                 PATTERN="cat $AFILE | $(echo $var | cut -d'!' -f 4)"
                 PATTERN_RESULT=$(eval $PATTERN)
-
+                # remove trailing spaces
+                PATTERN_RESULT=$( echo $PATTERN_RESULT | sed -e 's/^ *//' -e 's/ *$//')
+                
                 if ! [[ "$PATTERN_RESULT" =~ $NGSANE_VAR_CHECK_FOR_NUMBER_RE ]]; then
                     # convert into string
                     PATTERN_RESULT="'$PATTERN_RESULT'"
