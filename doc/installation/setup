@@ -1439,6 +1439,33 @@ DELIM
 
 module load $SOFTWARE/$VERSION
 ################################################################################
+VERSION=0.5.7
+SOFTWARE=ngsutils
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget https://github.com/$SOFTWARE/$SOFTWARE/archive/$SOFTWARE-$VERSION.tar.gz
+tar -xf $SOFTWARE-$VERSION
+cd $SOFTWARE-$SOFTWARE-$VERSION
+make
+cd ../
+
+mv $SOFTWARE-$SOFTWARE-$VERSION $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+DELIM
+
+module load $SOFTWARE/$VERSION
+################################################################################
 
 NGSANE_VERSION=0.4.0.2
 NGSANE_SOFTWARE=ngsane

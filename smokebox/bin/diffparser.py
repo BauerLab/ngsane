@@ -1,8 +1,8 @@
 import os, re, sys
 
 def parser(l,r):
-    rn=re.findall("[ \"'>][0-9]+[0-9.]*[ \"'<]",r)
-    ln=re.findall("[ \"'>][0-9]+[0-9.]*[ \"'<]",l)
+    rn=re.findall("[ \"'>]([0-9]+[0-9.]*)[ \"'<]",r)
+    ln=re.findall("[ \"'>]([0-9]+[0-9.]*)[ \"'<]",l)
 #    print "ln %s" % (ln)
 #    print "rn %s" % (rn)
     for i,j in zip(rn,ln):
@@ -27,10 +27,8 @@ for line in sys.stdin:
     if line[0]==">" :
         remote.append(line)
 
-#print len(local)
-#print len(remote)
-
 if len(local) != len(remote):
+    print "local and remote changed lines differ (%d != %d)" % (len(local), len(remote))
     print content
     sys.exit(1)
 

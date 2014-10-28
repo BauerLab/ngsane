@@ -206,7 +206,7 @@ if [ -n "$HTMLOUTPUT" ]; then
     echo "<div class='tabContent_hide' id='DC_${TASK}_logfiles'><div><div class='box scroll'>"
     for i in $LOGFILES ;do
         FN=$(python -c "import os.path; print os.path.relpath(os.path.realpath('$i'),os.path.realpath('$(dirname $HTMLOUTPUT)'))")
-        FINISHED=$(tail $i | egrep '\>{5} .* FINISHED.*')
+        FINISHED=$(tail -n 100 $i | egrep '\>{5} .* FINISHED.*')
         if [ -n "$FINISHED" ]; then
             echo "<span class='passed'>Finished</span> <a href='$FN'>${i/$QOUT\/$TASK\//}</a><br/>"
         else

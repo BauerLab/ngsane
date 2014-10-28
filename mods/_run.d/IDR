@@ -32,7 +32,7 @@ if [ -n "$RUNIDR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "-" \
             "$OUT/<DIR>/$TASK_IDR"  \
             "-overlapped-peaks.txt" \
-            "PATTERN!IDR Peaks!!wc -l | cut -f 1" 
+            "PATTERN!IDR Peaks!!tail -n+2 | wc -l | cut -f 1" 
 
         NGSANE_REPORT_FOOTER 
         
