@@ -16,21 +16,21 @@ Can be slower than full matrix implementation but at least is feasible for bigge
 
 <contactCountsFile>	: file that includes the counts of interaction between locus pairs
 		format : 		<chr ID 1>	<mid 1> 	<chr ID 2>	<mid 2>	<count>
-						chr8    142250000       chr8    142350000       31
+						chr8	142250000	chr8	142350000	31
 
-<midsFile>				: file with bin midpoints
+<midsFile>				: file with bin midpoints 
 		format:
-						<chr ID>	<mid>	<anythingElse> <mappabilityValue> <anythingElse>+
-						chr10   50000   NA	0.65	...
+						<chr ID>	<mid>	<anythingElse> <mappabilityValue> <anythingElse>+ 
+						chr10	50000	NA	0.65	...
 
 <norm>					: l1 or l2 norm
 
-<outfile>				: file to write the output to. This will be a file with a matrix of size <numberOfBins> X <numberOfBins>
+<outfile>				: file to write the output to. This will be a file with a matrix of size <numberOfBins> X <numberOfBins> 
 
 <lowMappThres>			: filter out loci that are less mappable than the threshold. Reasonable choice 0.5
 """
 eps=1e-3
-maxIter=10
+maxIter=1000
 def main(contactCountsFile,midsFile,norm,outfilename,lowMappThres):
 
 	(allFragsDic,allFragsDicReverse,badFrags)=assignIndicesToFrags(midsFile,lowMappThres)
@@ -40,29 +40,27 @@ def main(contactCountsFile,midsFile,norm,outfilename,lowMappThres):
 	print noOfFrags
 	(Xvals,Xindices)=readContactsInSparseForm(contactCountsFile,allFragsDic,noOfFrags)
 	print len(Xvals)
-	#for i in range(len(Xvals)):
-	#	print str(i)+"\t"+str(len(Xvals[i]))
 
-	(XnewVals,XnewIndices)=ICE(Xvals,Xindices,noOfFrags,norm,badFrags)
+	(XnewVals,XnewIndices,totalbias)=ICE(Xvals,Xindices,noOfFrags,norm,badFrags,allFragsDicReverse,outfilename.rstrip(".gz")+".biases.gz")
 	print len(Xvals)
-
-	writeContactsInSparseForm(outfilename,allFragsDic,allFragsDicReverse,XnewVals,XnewIndices)
+	
+	writeContactsInSparseForm(outfilename,allFragsDic,allFragsDicReverse,XnewVals,XnewIndices,badFrags)
 
 	return
 
+def	writeContactsInSparseForm(outfilename,allFragsDic,allFragsDicReverse,XnewVals,Xindices,badFrags):
 
-def	writeContactsInSparseForm(outfilename,allFragsDic,allFragsDicReverse,XnewVals,Xindices):
 
 	if outfilename.endswith('.gz'):
 		outfile=gzip.open(outfilename,'wb')
 	else:
 		outfile=open(outfilename,'wb')
-		
+	
 	for indx1 in range(len(Xindices)):
 		ch1,mid1=allFragsDicReverse[indx1]
 		c=0
 		for indx2 in Xindices[indx1]:
-			if indx1>indx2:# don't print twice
+			if indx1>indx2 or indx1 in badFrags or indx2 in badFrags:# don't print twice
 				c+=1
 				continue
 			ch2,mid2=allFragsDicReverse[indx2]
@@ -73,31 +71,43 @@ def	writeContactsInSparseForm(outfilename,allFragsDic,allFragsDicReverse,XnewVal
 	outfile.close()
 	return
 
-def ICE(Xvals,Xindices,noOfFrags,norm,badFrags):
+def ICE(Xvals,Xindices,noOfFrags,norm,badFrags,allFragsDicReverse,outfilename):
 	XnewVals=Xvals
 	XnewIndices=Xindices
 	oldBias=None
+	if outfilename.endswith('.gz'):
+		outfile=gzip.open(outfilename,'wb')
+	else:
+		outfile=open(outfilename,'wb')
+
 
 	# filtering stage
-	for i in range(noOfFrags):
+	for i in range(noOfFrags): # This part is the reason for afterICE contact counts with BUG found-03-27-2014
 		if i in badFrags:
 			XnewVals[i]=[]
 			XnewIndices[i]=[]
 	#
 
+	totalbias=1.0*np.ones((noOfFrags,))
+	#np.reshape(np.array([1.0 for i in Xvals]),(noOfFrags, 1))
 	for it in range(maxIter):
 		if norm == 'l1':
-			sumds = np.array([1.0*sum(i) for i in Xvals])
+			sumds = np.array([1.0*sum(i) for i in Xvals]).reshape((noOfFrags,))
 		elif norm == 'l2':
-			sumds = np.array([np.sqrt(sum(np.power(i,2))) for i in Xvals])
-		dbias=sumds.reshape((noOfFrags, 1))
+			sumds = np.array([np.sqrt(sum(np.power(i,2))) for i in Xvals]).reshape((noOfFrags,))
+#		print np.shape(sumds)
+		dbias=sumds
+#		print np.shape(dbias)
+#		print np.shape(totalbias)
 		dbias /= dbias[dbias != 0].mean()
 		dbias[dbias == 0] = 1
-#		print dbias[5:25]
+#		print dbias[5:20]
+		totalbias*=dbias
+#		print totalbias[5:20]
 		# implement this line in sparse form --> X /= dbias.T * dbias
 		for i in range(len(Xindices)):
-			if i%10000==0 and i>0:
-				print i
+#			if i%10000==0 and i>0:
+#				print i
 			biasI=dbias[i]
 			c=0
 			for j in Xindices[i]: # be careful this is not range(len(Xindices[i]))
@@ -114,8 +124,12 @@ def ICE(Xvals,Xindices,noOfFrags,norm,badFrags):
 			print ('ICE at iteration %d %s' % (it, np.abs(oldBias - dbias).sum()))
 		oldBias = dbias.copy()
 	#
+	for i in range(noOfFrags):
+		ch,mid=allFragsDicReverse[i]
+		outfile.write(str(ch) +"\t"+ str(mid)+"\t" +str(totalbias[i])+"\n")
+	outfile.close()
+	return (XnewVals,XnewIndices,totalbias)
 
-	return (XnewVals,XnewIndices)
 
 def	readContactsInSparseForm(contactCountsFile,allFragsDic,noOfFrags):
 	Xvals=[]
@@ -123,12 +137,12 @@ def	readContactsInSparseForm(contactCountsFile,allFragsDic,noOfFrags):
 	for i in range(noOfFrags):
 		Xvals.append([])
 		Xindices.append([])
-	#
+	
 	if contactCountsFile.endswith('.gz'):
 		infile=gzip.open(contactCountsFile,'r')
 	else:
 		infile=open(contactCountsFile,'r')
-		
+
 	for line in infile:
 		ch1,mid1,ch2,mid2,contactCount=line.split()
 		contactCount=float(contactCount)
@@ -152,10 +166,12 @@ def assignIndicesToFrags(midsFile,lowMappThres):
 		infile=gzip.open(midsFile,'r')
 	else:
 		infile=open(midsFile,'r')
-		
+
 	indx=0
 	for line in infile:
 		words=line.split()
+		if words[0]=="chr": # avoid header line
+			continue
 		currChr=words[0]; currMid=words[1]; mapp=float(words[3]);
 		if currChr not in allFragsDic:
 			allFragsDic[currChr]={}
@@ -172,5 +188,5 @@ if __name__ == "__main__":
 	if (len(sys.argv) != 6):
 		sys.stderr.write(USAGE)
 		sys.exit(1)
-	main(sys.argv[1],sys.argv[2],str(sys.argv[3]),str(sys.argv[4]),float(sys.argv[5]))
+	main(str(sys.argv[1]),str(sys.argv[2]),str(sys.argv[3]),str(sys.argv[4]),float(sys.argv[5]))
 

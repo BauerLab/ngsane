@@ -53,6 +53,10 @@ MAPPABILITY=
 # e.g. "--visual --lowerbound=50000 --upperbound=-1 --noOfBins=200 --mappabilityThres=1"
 FITHICADDPARAM=
 
+# Q-value threshold applied for filtering (default: 0.1)
+# e.g. 0.05
+FITHIC_QVALUETHRESHOLD=
+
 #WALLTIME_FITHIC=10:00:00
 #MEMORY_FITHIC=20
 #CPU_FITHIC=1

@@ -92,6 +92,11 @@ if [ -z "$HIC_RESOLUTION" ]; then
     exit 1
 fi
 
+if [[ -z "$FITHIC_QVALUETHRESHOLD" ]]; then
+    FITHIC_QVALUETHRESHOLD=0.1
+fi
+echo "[NOTE] Q-value threshold: $FITHIC_QVALUETHRESHOLD"
+
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
 NGSANE_CHECKPOINT_INIT "recall files from tape"
@@ -108,7 +113,7 @@ NGSANE_CHECKPOINT_INIT "count Interactions"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithicCountInteractions.py --verbose --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES --outputDir=$OUTDIR/ $f"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithicCountInteractions.py --verbose --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES --outputDir=$OUTDIR $f"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     [ -e $OUTDIR/${SAMPLE}$ASD.bam.fragmentLists ] && mv $OUTDIR/${SAMPLE}$ASD.bam.fragmentLists $OUTDIR/$SAMPLE.fragmentLists
@@ -138,16 +143,15 @@ fi
 NGSANE_CHECKPOINT_INIT "fit-hi-c"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-
-#    RUN_COMMAND="python $(which fit-hi-c.py) $FITHICADDPARAM --outdir $OUTDIR --biases=$OUTDIR/$SAMPLE.ice.txt.gz --fragments=$OUTDIR/$SAMPLE.fragmentLists.gz --interactions=$OUTDIR/$SAMPLE.contactCounts.gz --lib=${SAMPLE} &> $OUTDIR/$SAMPLE.log"
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py $FITHICADDPARAM --lib=${SAMPLE} --biases=$OUTDIR/$SAMPLE.ice.txt.gz --fragments=$OUTDIR/$SAMPLE.fragmentLists.gz --interactions=$OUTDIR/$SAMPLE.contactCounts.gz --resolution $HIC_RESOLUTION > $OUTDIR/$SAMPLE.res$HIC_RESOLUTION.log"
+    cd $OUTDIR/$RESOLUTION
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py $FITHICADDPARAM --lib=${SAMPLE} --biases=$OUTDIR/$SAMPLE.ice.txt.biases.gz --fragments=$OUTDIR/$SAMPLE.fragmentLists.gz --interactions=$OUTDIR/$SAMPLE.contactCounts.gz --resolution $HIC_RESOLUTION > $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     cat $OUTDIR/$SAMPLE.log # put into qout log too
     
-#    zcat $OUTDIR/$SAMPLE.spline_pass1.pvals.txt.gz | awk '$7<=0.05' | sort -k7g | gzip > $OUTDIR/$SAMPLE.spline_pass1.q05.txt.gz
-#
-#    SIG_INTERACTIONS=$(zcat $OUTDIR/$SAMPLE.spline_pass1.q05.txt.gz | wc -l | cut -d' ' -f 2)
-#    echo "Significant interactions $SIG_INTERACTIONS" >> $OUTDIR/$SAMPLE.log
+    zcat $OUTDIR/$SAMPLE.spline_pass1.res1000000.significances.txt.gz | awk -v q=$FITHIC_QVALUETHRESHOLD '$7<=q' | sort -k7g | gzip > $OUTDIR/$SAMPLE.spline_pass1.q5.txt.gz
+
+    SIG_INTERACTIONS=$(zcat $OUTDIR/$SAMPLE.spline_pass1.q5.txt.gz | wc -l | cut -d' ' -f 2)
+    echo "Significant interactions $SIG_INTERACTIONS" >> $OUTDIR/$SAMPLE.log
     
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.spline_pass1.res$HIC_RESOLUTION.significances.txt.gz

@@ -451,8 +451,9 @@ def output(fragmentsMap , fragmentList, fragmentPairs):
                 mappable = bw.query(chrom, midpoint-options.resolution/2, midpoint+options.resolution/2, 1)[0]["mean"]
             except:
                 # problem with invalid values
-                print >> sys.stderr, "Problem with bw file at %s %d-%d" % (chrom, midpoint-options.resolution/2, midpoint+options.resolution/2)
-                print traceback.format_exc()
+                if (options.vverbose):
+                    print >> sys.stderr, "Problem with bw file at %s %d-%d" % (chrom, midpoint-options.resolution/2, midpoint+options.resolution/2)
+                    print traceback.format_exc()
                 
         elif (contactCounts>0):
             mappable=1
