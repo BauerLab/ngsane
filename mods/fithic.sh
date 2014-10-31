@@ -7,7 +7,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.spline_pass1.q05.txt
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.spline_pass1.txt.gz
 
 echo ">>>>> Chromatin organization with fit-hi-c "
 echo ">>>>> startdate "`date`
@@ -73,6 +73,7 @@ if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -f $OUTDIR/$SAMPLE.fragmentLists.gz ] && rm $OUTDIR/$SAMPLE.fragmentLists.gz
     [ -f $OUTDIR/$SAMPLE.contactCounts.gz ] && rm $OUTDIR/$SAMPLE.contactCounts.gz
     [ -f $OUTDIR/$SAMPLE.ice.txt.gz ] && rm $OUTDIR/$SAMPLE.ice.txt.gz
+    [ -f $OUTDIR/$SAMPLE.log ] && rm $OUTDIR/$SAMPLE.log
 fi
 
 GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
@@ -113,7 +114,7 @@ NGSANE_CHECKPOINT_INIT "count Interactions"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithicCountInteractions.py --verbose --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES --outputDir=$OUTDIR $f"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithicCountInteractions.py --verbose --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES --outputDir=$OUTDIR $f >> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     [ -e $OUTDIR/${SAMPLE}$ASD.bam.fragmentLists ] && mv $OUTDIR/${SAMPLE}$ASD.bam.fragmentLists $OUTDIR/$SAMPLE.fragmentLists
@@ -131,7 +132,7 @@ NGSANE_CHECKPOINT_INIT "ICE correction"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/ICE-with-sparseMatrix.py $OUTDIR/$SAMPLE.contactCounts.gz $OUTDIR/$SAMPLE.fragmentLists.gz l1 $OUTDIR/$SAMPLE.ice.txt.gz 0.5"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/ICE-with-sparseMatrix.py $OUTDIR/$SAMPLE.contactCounts.gz $OUTDIR/$SAMPLE.fragmentLists.gz l1 $OUTDIR/$SAMPLE.ice.txt.gz 0.5 >> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
    
     # mark checkpoint
@@ -144,21 +145,20 @@ NGSANE_CHECKPOINT_INIT "fit-hi-c"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     cd $OUTDIR/$RESOLUTION
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py $FITHICADDPARAM --lib=${SAMPLE} --biases=$OUTDIR/$SAMPLE.ice.txt.biases.gz --fragments=$OUTDIR/$SAMPLE.fragmentLists.gz --interactions=$OUTDIR/$SAMPLE.contactCounts.gz --resolution $HIC_RESOLUTION > $OUTDIR/$SAMPLE.log"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py $FITHICADDPARAM --lib=${SAMPLE} --biases=$OUTDIR/$SAMPLE.ice.txt.biases.gz --fragments=$OUTDIR/$SAMPLE.fragmentLists.gz --interactions=$OUTDIR/$SAMPLE.contactCounts.gz --resolution $HIC_RESOLUTION >> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    cat $OUTDIR/$SAMPLE.log # put into qout log too
     
-    zcat $OUTDIR/$SAMPLE.spline_pass1.res1000000.significances.txt.gz | awk -v q=$FITHIC_QVALUETHRESHOLD '$7<=q' | sort -k7g | gzip > $OUTDIR/$SAMPLE.spline_pass1.q5.txt.gz
+    zcat $OUTDIR/$SAMPLE.spline_pass1.res$HIC_RESOLUTION.significances.txt.gz | awk -v q=$FITHIC_QVALUETHRESHOLD '$7<=q' | sort -k7g | gzip > $OUTDIR/$SAMPLE.txt.gz
 
-    SIG_INTERACTIONS=$(zcat $OUTDIR/$SAMPLE.spline_pass1.q5.txt.gz | wc -l | cut -d' ' -f 2)
-    echo "Significant interactions $SIG_INTERACTIONS" >> $OUTDIR/$SAMPLE.log
+    SIG_INTERACTIONS=$(zcat $OUTDIR/$SAMPLE.txt.gz | wc -l | cut -d' ' -f 2)
+    echo "Significant interactions: $SIG_INTERACTIONS" >> $OUTDIR/$SAMPLE.log
     
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.spline_pass1.res$HIC_RESOLUTION.significances.txt.gz
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.txt.gz
 fi
 
 ################################################################################
-[ -e $OUTDIR/$SAMPLE.spline_pass1.q05.txt.gz.dummy ] && rm $OUTDIR/$SAMPLE.spline_pass1.q05.txt.gz.dummy
+[ -e $OUTDIR/$SAMPLE.txt.gz.dummy ] && rm $SAMPLE.txt.gz.dummy
 echo ">>>>> Chromatin organization with fit-hi-c - FINISHED"
 echo ">>>>> enddate "`date`
 
