@@ -2,8 +2,8 @@
 # fit-hi-c
 # http://noble.gs.washington.edu/proj/fit-hi-c/
 TASK_FITHIC="fithic"
-WALLTIME_FITHIC=10:00:00
-MEMORY_FITHIC=10
+WALLTIME_FITHIC=24:00:00
+MEMORY_FITHIC=15
 CPU_FITHIC=1
 NODES_FITHIC="nodes=1:ppn=1"
 INPUT_FITHIC=$TASK_HICUP

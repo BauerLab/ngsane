@@ -150,8 +150,10 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     zcat $OUTDIR/$SAMPLE.spline_pass1.res$HIC_RESOLUTION.significances.txt.gz | awk -v q=$FITHIC_QVALUETHRESHOLD '$7<=q' | sort -k7g | gzip > $OUTDIR/$SAMPLE.txt.gz
 
-    SIG_INTERACTIONS=$(zcat $OUTDIR/$SAMPLE.txt.gz | wc -l | cut -d' ' -f 2)
-    echo "Significant interactions: $SIG_INTERACTIONS" >> $OUTDIR/$SAMPLE.log
+    SIGCISINTERACTIONS=$(zcat $OUTDIR/$SAMPLE.txt.gz |  awk '$1==$3' | wc -l | cut -d' ' -f 2)
+    SIGTRANSINTERACTIONS=$(zcat $OUTDIR/$SAMPLE.txt.gz |  awk '$1!=$3' | wc -l | cut -d' ' -f 2)
+    echo "Significant cis interactions: $SIGCISINTERACTIONS" >> $OUTDIR/$SAMPLE.log
+    echo "Significant trans interactions: $SIGTRANSINTERACTIONS" >> $OUTDIR/$SAMPLE.log
     
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.txt.gz
