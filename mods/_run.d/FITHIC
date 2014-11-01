@@ -30,14 +30,13 @@ if [ -n "$RUNFITHIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "-" \
             "$OUT/<DIR>/$TASK_FITHIC"  \
             ".log" \
-            "PATTERN!Min distance!!fgrep -w 'distLowThres' | tail -n 1 | cut -f 1 | cut -d' ' -f 2" \
-            "PATTERN!Max distance!!fgrep -w 'distLowThres' | tail -n 1 | cut -f 2 | cut -d' ' -f 2" \
-            "PATTERN!Possible Intra In Range!!fgrep -w 'possibleIntraInRangeCount' | tail -n 1 | cut -d' ' -f 2" \
-            "PATTERN!Intra In Range Count!!fgrep -w 'intraInRangeCount' | tail -n 1 | cut -f 1 | cut -d' ' -f 2" \
-            "PATTERN!Intra Out Of Range Count!!fgrep -w 'intraOutOfRangeCount' | tail -n 1 | cut -f 2 | cut -d' ' -f2" \
-            "PATTERN!Intra Very Proximal Count!!fgrep -w 'intraVeryProximalCount' | tail -n 1 | cut -f 3 | cut -d' ' -f2" \
-            "PATTERN!Inter Count!!fgrep -w 'interCount' | tail -n 1 | cut -f 4 | cut -d' ' -f2" \
-            "PATTERN!Significant interactions!!fgrep -w 'Significant interactions' | cut -d' ' -f3"
+            "PATTERN!Possible Cis!!fgrep -w 'Possible, Intra-chr all' | tail -n 1 | cut -d'=' -f 2" \
+            "PATTERN!Cis Count!!fgrep -w 'Observed, Intra-chr all' | tail -n 1 | cut -f 1 | cut -d'=' -f 2" \
+            "PATTERN!Possible Cis In Range!!fgrep -w 'Possible, Intra-chr in range' | tail -n 1 | cut -d'=' -f 2" \
+            "PATTERN!Cis Range Count!!fgrep -w 'Observed, Intra-chr in range' | tail -n 1 | cut -f 1 | cut -d'=' -f 2" \
+            "PATTERN!Possible Trans!!fgrep -w 'Possible, Inter-chr all' | tail -n 1 | cut -d'=' -f2" \
+            "PATTERN!Trans Count!!fgrep -w 'Observed, Inter-chr all' | tail -n 1 | cut -d'=' -f2 | awk '{print \$1}'" \
+            "PATTERN!Significant interactions!!fgrep -w 'Significant interactions' | cut -d':' -f2"
 
         # finish the section
         NGSANE_REPORT_FOOTER 
