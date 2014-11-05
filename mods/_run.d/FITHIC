@@ -24,7 +24,7 @@ if [ -n "$RUNFITHIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
         # start a new section for a mod
-        NGSANE_REPORT_HEADER "Fithic" "$TASK_FITHIC" "fithic.sh"
+        NGSANE_REPORT_HEADER "Fithic" "$TASK_FITHIC" "fithic.sh" "txt.gz"
 
         NGSANE_REPORT_TABLE "$TASK_FITHIC" \
             "-" \
@@ -37,7 +37,8 @@ if [ -n "$RUNFITHIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN!Possible Trans!!fgrep -w 'Possible, Inter-chr all' | tail -n 1 | cut -d'=' -f2" \
             "PATTERN!Trans Count!!fgrep -w 'Observed, Inter-chr all' | tail -n 1 | cut -d'=' -f2 | awk '{print \$1}'" \
             "PATTERN!Significant cis interactions!!fgrep -w 'Significant cis interactions' | cut -d':' -f2" \
-            "PATTERN!Significant trans interactions!!fgrep -w 'Significant trans interactions' | cut -d':' -f2"
+            "PATTERN!Significant trans interactions!!fgrep -w 'Significant trans interactions' | cut -d':' -f2" \
+            "FIGURE!!60!<SAMPLE>.spline_pass1.res$HIC_RESOLUTION.png!60!1" 
 
         # finish the section
         NGSANE_REPORT_FOOTER 
