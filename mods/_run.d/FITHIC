@@ -17,7 +17,7 @@ if [ -n "$RUNFITHIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     
         if [ -z "$FITHIC_POOLDATA" ]; then 
             $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $ASD.bam \
-                -n $NODES_FITHIC -c $CPU_FITHIC -m $MEMORY_FITHIC"G" -w $WALLTIME_FITHIC 
+                -n $NODES_FITHIC -c $CPU_FITHIC -m $MEMORY_FITHIC"G" -w $WALLTIME_FITHIC \
                 --command "${NGSANE_BASE}/mods/fithic.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FITHIC" 
                         
         else
