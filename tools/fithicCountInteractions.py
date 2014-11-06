@@ -93,7 +93,7 @@ def timeStamp():
 def main():
     global options
     global args
-    usage = '''usage: %prog [options] bamFile
+    usage = '''usage: %prog [options] [bamFile]+
     
     generates (single locus) fragmentCounts and (pairwise) contactCount files
     '''
@@ -118,6 +118,8 @@ def main():
                     help="bigwig containing mappability score for a given tag size")
     parser.add_option("-o", "--outputDir", type="string", dest="outputDir", default="", 
                     help="output directory [default: %default]")
+    parser.add_option("-n", "--outputFilename", type="string", dest="outputFilename", default="", 
+                    help="output filename [default: extracted from first input file")
     parser.add_option("-t", "--tmpDir", type="string", dest="tmpDir", default="/tmp", 
                     help="directory for temp files [default: %default]")
     
@@ -149,7 +151,7 @@ def main():
     if (options.verbose):
         print >> sys.stdout, "fragmentFile:          %s" % (options.fragmentFile)
         print >> sys.stdout, "fragmentAggregation:   %s" % (options.fragmentAggregation)
-        print >> sys.stdout, "resolution:          %s" % (options.resolution)
+        print >> sys.stdout, "resolution:            %s" % (options.resolution)
         print >> sys.stdout, "chromSizes:            %s" % (options.chromSizes)
         print >> sys.stdout, "outputDir:             %s" % (options.outputDir)
         print >> sys.stdout, "tmpDir:                %s" % (options.tmpDir)
@@ -360,49 +362,50 @@ def countReadsPerFragment(intersect_tree):
         counts the reads per fragment and generates appropriate output files
     '''
     
-    if (options.verbose):
-        print >> sys.stdout, "- %s START   : processing reads from bam file" % (timeStamp())
-
-    samfile = pysam.Samfile(args[0], "rb" )
-
-    samiter = samfile.fetch(until_eof=True)
-    
     fragmentList={}
     fragmentPairs = {}
     
-    readcounter = 0
-    
-    while(True):
-        readpair = findNextReadPair(samiter)
-        # if file contains any more reads, exit
-        if (readpair[0].qname=="dummy"):
-            break
-        
-        fragmentID1 = getFragment(samfile, readpair[0], intersect_tree, fragmentList)
-        fragmentID2 = getFragment(samfile, readpair[1], intersect_tree, fragmentList)
-        
-        if (fragmentID1 == None or fragmentID2 == None):
-            if (options.vverbose):
-                print >> sys.stdout, "-- one read does not co-occur with any fragment: %d %d" % (fragmentID1, fragmentID2)
-            continue
-        elif (fragmentID1 == fragmentID2):
-            if (options.vverbose):
-                print >> sys.stdout, "-- skip intra-fragment link: %d == %d" % (fragmentID1, fragmentID2)
-            continue
+    for bamFile in xrange(len(args)):
+        if (options.verbose):
+            print >> sys.stdout, "- %s START   : processing reads from bam file: %s" % (timeStamp(), args[bamFile])
 
+        samfile = pysam.Samfile(args[bamFile], "rb" )
     
-        f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
-        if (not fragmentPairs.has_key(f_tuple)):
-            fragmentPairs[f_tuple] = 0
-        fragmentPairs[f_tuple] += 1
-        readcounter+=1
+        samiter = samfile.fetch(until_eof=True)
         
-        if (options.verbose and readcounter % 1000000 == 0 ):
-            print >> sys.stdout, "- %s         : %d read pairs processed" % (timeStamp(), readcounter)
-    samfile.close()
-
-    if (options.verbose):
-        print >> sys.stdout, "- %s FINISHED: getting reads from bam file " % (timeStamp())
+        readcounter = 0
+        
+        while(True):
+            readpair = findNextReadPair(samiter)
+            # if file contains any more reads, exit
+            if (readpair[0].qname=="dummy"):
+                break
+            
+            fragmentID1 = getFragment(samfile, readpair[0], intersect_tree, fragmentList)
+            fragmentID2 = getFragment(samfile, readpair[1], intersect_tree, fragmentList)
+            
+            if (fragmentID1 == None or fragmentID2 == None):
+                if (options.vverbose):
+                    print >> sys.stdout, "-- one read does not co-occur with any fragment: %d %d" % (fragmentID1, fragmentID2)
+                continue
+            elif (fragmentID1 == fragmentID2):
+                if (options.vverbose):
+                    print >> sys.stdout, "-- skip intra-fragment link: %d == %d" % (fragmentID1, fragmentID2)
+                continue
+    
+        
+            f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
+            if (not fragmentPairs.has_key(f_tuple)):
+                fragmentPairs[f_tuple] = 0
+            fragmentPairs[f_tuple] += 1
+            readcounter+=1
+            
+            if (options.verbose and readcounter % 1000000 == 0 ):
+                print >> sys.stdout, "- %s         : %d read pairs processed" % (timeStamp(), readcounter)
+        samfile.close()
+    
+        if (options.verbose):
+            print >> sys.stdout, "- %s FINISHED: getting reads from bam file " % (timeStamp())
 
     return [ fragmentList, fragmentPairs ]    
 
@@ -419,7 +422,10 @@ def output(fragmentsMap , fragmentList, fragmentPairs):
     if (options.verbose):
         print >> sys.stdout, "- %s START   : output data " % (timeStamp())
 
-    outfile1 = open(options.outputDir+os.path.basename(args[0])+".fragmentLists","w")
+    if ( options.outputFilename != "" ):
+        outfile1 = open(options.outputDir+options.outputFilename+".fragmentLists","w")    
+    else:
+        outfile1 = open(options.outputDir+os.path.basename(args[0])+".fragmentLists","w")
     
     fragmentIds = fragmentsMap.keys()
     fragmentIds.sort()
@@ -462,7 +468,11 @@ def output(fragmentsMap , fragmentList, fragmentPairs):
         
     outfile1.close()
     
-    outfile2 = open(options.outputDir+os.path.basename(args[0])+".contactCounts","w")
+    if ( options.outputFilename != "" ):
+        outfile2 = open(options.outputDir+options.outputFilename+".contactCounts","w")
+    else:
+        outfile2 = open(options.outputDir+os.path.basename(args[0])+".contactCounts","w")        
+        
     for fragmentIds, contactCounts in fragmentPairs.iteritems():
         chrom1 = fragmentsMap[fragmentIds[0]][0]
         midpoint1 =  fragmentsMap[fragmentIds[0]][1]
