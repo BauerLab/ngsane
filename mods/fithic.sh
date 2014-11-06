@@ -29,7 +29,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --file )           shift; f=$1 ;; # input file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -42,11 +42,12 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
-for MODULE in $MODULE_FITHIC; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_FITHIC; do module load $MODULE; done && module list 
+
 export PATH=$PATH_FITHIC:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -54,52 +55,48 @@ echo "PATH=$PATH"
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--Python      --\n" $(python --version)
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
-echo -e "--Python libs --\n "$(yolk -l)
+hash module 2>/dev/null && echo -e "--Python libs --\n "$(yolk -l)
 echo -e "--fit-hi-c    --\n "$(python $(which fit-hi-c.py) --version | head -n 1)
 [ -z "$(which fit-hi-c.py)" ] && echo "[ERROR] no fit-hi-c detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
 SAMPLE=${n/%$FRAGMENTLIST/}
 
 # delete old bam files unless attempting to recover
-if [ -z "$RECOVERFROM" ]; then
+if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
 fi
 
-#is ziped ?
-ZCAT="zcat"
-if [[ $f != *.gz ]]; then ZCAT="cat"; fi
-
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $OUTDIR/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
-
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="run fit-hi-c"
+NGSANE_CHECKPOINT_INIT "run fit-hi-c"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     RUN_COMMAND="python $(which fit-hi-c.py) $FITHICADDPARAM --outdir $OUTDIR --fragments=$f --interactions=${f/%$FRAGMENTLIST/$CONTACTCOUNTS} --lib=${SAMPLE} &> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     cat $OUTDIR/$SAMPLE.log # put into qout log too
     
-    zcat $OUTDIR/${SAMPLE}.spline_pass1.pvals.txt.gz | awk '$7<=0.05' | sort -k7g | gzip > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz
+    zcat $OUTDIR/${SAMPLE}.spline_pass1.significances.txt.gz | awk '$7<=0.05' | sort -k7g | $GZIP > $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz
 
+    SIG_INTERACTIONS=$(zcat $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz | wc -l | cut -d' ' -f 2)
+    echo "Significant interactions $SIG_INTERACTIONS" >> $OUTDIR/$SAMPLE.log
+    
     # mark checkpoint
-    if [ -f $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.spline_pass1.q05.txt.gz 
 fi
 
 ################################################################################

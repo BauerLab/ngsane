@@ -1,5 +1,6 @@
 # author: Denis Bauer
 # date: Mar.2014
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources
@@ -9,7 +10,7 @@
 # Tasks
 #********************
 
-RUNANNOTATINGFEATURE="1"   
+RUNFEATANN="1"   
 
 #********************
 # Paths
@@ -33,11 +34,18 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
-# BED file with locations of genomic features
+# BED file with locations of genomic features, multiple files can be added, 
+# can be compressed with gz or bzip2
 # e.g. downloaded from UCSC 
 FEATUREFILE=
+
+# Number of bps to consider upstream and downstream
 DOWNSTREAM=
 UPSTREAM=
+
+# segregate annotations by column, leave empty to consider all annotations to be of the same class
+# usually "4" for bed files (name/id)
+FEATANN_SEGREGATEBY=
 
 # reference genome -- actually we just need the chrom sizes 
 # genome.fa -> genome.chrom.sizes
@@ -45,19 +53,26 @@ UPSTREAM=
 # or ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
 FASTA=
 
+# Specify either or both columns to consider landmark or regions
+# e.g. "" 2 or 7 (FEATURE_START) "", 3, 8 (FEATURE_END)
+FEATURE_START=2
+FEATURE_END=3
+
 # summary statistic (mean,median,sum)
 METRIC="mean"
 
 # ending of the files the coverage should be generated over (bam,bed)
-ENDING=".$ASD.bam"
+ENDING="$ASD.bam"
 
 
 # Define the labels for the R plot
 # FEATANN_LAB <file> <label>
-# e.g. FEATANN_LAB Input/bwa/Lib11.asd.bam H3K4me 
+# e.g. FEATANN_LAB Lib11.asd.bam H3K4me 
 <<FEATANN_LABS
 FEATANN_LABS
 
+# name for result file
+EXPERIMENTNAME= 
 
 #********************
 # PARAMETER (optional overwriting defaults)
@@ -67,9 +82,11 @@ FEATANN_LABS
 # options: yes, comment out
 REMOVEMULTIFEATURE="yes"
 
-# normalize coverage by library size (total reads, bam) or element number (bed) 
-# options: yes, comment out
-NORMALIZE="yes"
+# normalize coverage by library size (mapped reads, bam) or element number (bed) 
+# options: "genome" across the genome, 
+#          "features", subsetted across the features
+#          "" to deactivate
+NORMALIZE="genome"
 
 # remove features which have no coverage anyway -- they do not contribute to the shape
 # options: yes, comment out
@@ -86,6 +103,10 @@ REMOVEOUTLIER="--removeoutlier 6"
 # collect coverage according to the strand the feature is on
 # options: yes, comment out
 #STRANDETNESS="yes"
+
+# name of the features,
+# # e.g. "exon" or "cpgIslands"
+FEATURELABEL=
 
 #TASK_FEATANN="featann"
 #WALLTIME_FEATANN=1:00:00

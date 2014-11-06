@@ -1,0 +1,37 @@
+#!/bin/bash -e
+
+################################################################################
+#  Hotspot detection 
+#
+# IN:$SOURCE/$dir/$INPUT_HOTSPOT/*asd.bam
+# OUT: $OUT/$dir/hotspot/*.bw
+################################################################################       
+
+if [ -n "$RUNHOTSPOT" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_HOTSPOT" ] || [ -z "$NODES_HOTSPOT" ] || [ -z "$CPU_HOTSPOT" ] || [ -z "$MEMORY_HOTSPOT" ] || [ -z "$WALLTIME_HOTSPOT" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+        
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_HOTSPOT -i $INPUT_HOTSPOT -e $ASD.bam \
+            -n $NODES_HOTSPOT -c $CPU_HOTSPOT -m $MEMORY_HOTSPOT"G" -w $WALLTIME_HOTSPOT \
+            --command "${NGSANE_BASE}/mods/hotspot.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HOTSPOT"
+
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        NGSANE_REPORT_HEADER "Hotspot" "$TASK_HOTSPOT" "hotspot.sh"
+
+        echo "[NOTE] the hotspot.sh mod does not provide a report"
+
+        NGSANE_REPORT_FOOTER 
+  
+    fi
+fi	
+
+	

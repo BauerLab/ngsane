@@ -6,7 +6,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,
-# RESULTFILENAME <DIR>/$TASK_GATKDOC/<SAMPLE>.$ASR.bam.doc
+# RESULTFILENAME <DIR>/$TASK_GATKDOC/<SAMPLE>.doc
 
 echo ">>>>> determine the depth of coverage with GATK"
 echo ">>>>> startdate "`date`
@@ -47,13 +47,9 @@ THREADS=1
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
-        -t | --threads )        shift; THREADS=$1 ;; # number of CPUs to use
         -f | --fastq )          shift; f=$1 ;; # fastq file
-        -r | --reference )      shift; FASTA=$1 ;; # reference genome
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir  +++ THIS DOES NOT USE CONFIG OVERWRITE !! +++
-        -G | --gene )           shift; GENE=$1 ;; # gene list
-        -L | --list )           shift; LIST=$1 ;; # (optional) region of specific interest, e.g. targeted reseq
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     usage
     esac
@@ -66,18 +62,19 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
-for MODULE in $MODULE_GATKDOC; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_GATKDOC; do module load $MODULE; done && module list 
+
 export PATH=$PATH_GATK:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
+[ -z "$PATH_GATK" ] && PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_GATKDOC*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_GATKDOC*0.75)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -91,25 +88,35 @@ echo -e "--bedtools    --\n "$(bedtools --version)
 echo -e "--GATK        --\n "$(java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar --version)
 [ ! -f $PATH_GATK/GenomeAnalysisTK.jar ] && echo "[ERROR] no GATK detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$ASR.bam/}
 
-TASK=""
+GATK_TASK=""
 
-if [ -n "$LIST" ]; then TASK="-L $LIST"; fi
-if [ -n "$GENE" ]; then TASK="-geneList $GENE"; fi
+if [ -n "$LIST" ]; then GATK_TASK="-L $LIST"; fi
+if [ -n "$GENE" ]; then GATK_TASK="-geneList $GENE"; fi
 
 # delete old bam files unless attempting to recover
-if [ -z "$RECOVERFROM" ]; then
-    if [ -e $QOUT/$n.doc ]; then rm $QOUT/$n.doc* ]; fi
+if [ -z "$NGSANE_RECOVERFROM" ]; then
+    if [ -e $QOUT/$SAMPLE.doc ]; then rm $QOUT/$SAMPLE.doc* ]; fi
 fi
 
+if [ -z "$FASTA" ] || [ ! -f $FASTA ]; then
+    echo "[ERROR] no reference provided (FASTA)"
+    exit 1
+else
+    echo "[NOTE] Reference: $FASTA"
+fi
+
+GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
+
 if [[ $(which GenomeAnalysisTK.jar) =~ "2.8" && -z "$FORCEINTERVALS" ]]; then 
-        echo "[NOTE] new GATK parallele, this will not generate IntervalStatistics"
+        echo "[NOTE] new GATK parallel, this will not generate IntervalStatistics"
         PARALLELENCT="-nct $CPU_GATKDOC"
 		PARALLELENT="--omitIntervalStatistics -nt $CPU_GATKDOC"
 fi
@@ -117,13 +124,11 @@ fi
 #java -jar /datastore/cmis/bau04c/SeqAna/apps/prod/Picard_svn/dist/CreateSequenceDictionary.jar R=/datastore/cmis/bau04c//SeqAna/reference/prod/GRCm38/GRCm38_chr.fasta O=/datastore/cmis/bau04c//SeqAna/reference/prod/GRCm38/GRCm38_chr.dict
 # BEDtools has it's own genome index file
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="calculate depthOfCoverage"
+NGSANE_CHECKPOINT_INIT "calculate depthOfCoverage"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar \
 		$ADDPARAMGATKDOC \
@@ -132,8 +137,8 @@ else
         --minBaseQuality 10 \
         -R $FASTA \
         -I $f \
-        -o $OUTDIR/$n.doc \
-        $TASK --omitDepthOutputAtEachBase \
+        -o $OUTDIR/$SAMPLE.doc \
+        $GATK_TASK --omitDepthOutputAtEachBase \
         -ct 10 -ct 20 -ct 50 -ct 100 -ct 500 \
         --start 1 \
         --stop 100 \
@@ -147,43 +152,40 @@ else
     #    --minBaseQuality 20 \
     
     # mark checkpoint
-    if [ -f $OUTDIR/$n.doc.sample_statistics ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.doc.sample_statistics
 
 fi 
 
 ################################################################################
-CHECKPOINT="on target"
+NGSANE_CHECKPOINT_INIT "on target"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     #statistics for on target proportion
     if [ -n "$LIST" ]; then
-		FASTAEND=${$FASTA/*./}
         # get reads overlapping exons+100 and get statistics
         # get how many reads where there to begin with
-        slopBed -i $LIST -b 100 -g ${FASTA/FASTAEND/chrom.sizes} | intersectBed \
-    	-abam $f -b stdin -u | $SAMTOOLS flagstat - > $OUTDIR/$n.stats
+        slopBed -i $LIST -b 100 -g $GENOME_CHROMSIZES | intersectBed \
+    	-abam $f -b stdin -u | samtools flagstat - > $OUTDIR/$SAMPLE$ASR.bam.stats
     
-        #windowBed -abam $f -b $LIST -w 100 -u | $SAMTOOLS flagstat - > $OUTDIR/$n.stats
-        echo "# overall" >> $OUTDIR/$n.stats
-        grep "in total (QC-passed reads + QC-failed reads)" $f.stats >> $OUTDIR/$n.stats
-        grep "properly paired (" $f.stats >> $OUTDIR/$n.stats
+        #windowBed -abam $f -b $LIST -w 100 -u | samtools flagstat - > $OUTDIR/$SAMPLE$ASR.bam.stats
+        echo "# overall" >> $OUTDIR/$SAMPLE$ASR.bam.stats
+        grep "in total (QC-passed reads + QC-failed reads)" $f.stats >> $OUTDIR/$SAMPLE$ASR.bam.stats
+        grep "properly paired (" $f.stats >> $OUTDIR/$SAMPLE$ASR.bam.stats
     
-        echo "# on target 0" >> $OUTDIR/$n.stats
-        intersectBed -abam $f -b $LIST  -u | $SAMTOOLS flagstat - >> $OUTDIR/$n.stats
-        echo "# on target 200" >> $OUTDIR/$n.stats
-        slopBed -i $LIST -b 100 -g ${FASTA/FASTAEND/chrom.sizes} | intersectBed \
-    	-abam $f -b stdin -u | $SAMTOOLS flagstat - >> $OUTDIR/$n.stats
+        echo "# on target 0" >> $OUTDIR/$SAMPLE$ASR.bam.stats
+        intersectBed -abam $f -b $LIST  -u | samtools flagstat - >> $OUTDIR/$SAMPLE$ASR.bam.stats
+        echo "# on target 200" >> $OUTDIR/$SAMPLE$ASR.bam.stats
+        slopBed -i $LIST -b 100 -g $GENOME_CHROMSIZES | intersectBed \
+    	-abam $f -b stdin -u | samtools flagstat - >> $OUTDIR/$SAMPLE$ASR.bam.stats
 
         # mark checkpoint
-        if [ -f $OUTDIR/$n.stats ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASR.bam.stats
 
     fi
 fi
 
 ################################################################################
-[ -e $OUTDIR/$n.doc.dummy ] && rm $OUTDIR/$n.doc.dummy
+[ -e $OUTDIR/$SAMPLE.doc.dummy ] && rm $OUTDIR/$SAMPLE.doc.dummy
 echo ">>>>> determine the depth of coverage with GATK - FINISHED"
 echo ">>>>> enddate "`date`

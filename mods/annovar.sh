@@ -32,7 +32,7 @@ if [ ! $# -gt 3 ]; then usage ; fi
 
 #DEFAULTS
 THREADS=1
-ADDRECAL="" # additional commands for variant recalibrator
+ADDRECALALN="" # additional commands for variant recalibrator
 
 #INPUTS
 while [ "$1" != "" ]; do
@@ -42,7 +42,9 @@ while [ "$1" != "" ]; do
         -f | --file )           shift; INPUTFILE=$1 ;;  # input file
         -o | --outdir )         shift; OUTDIR=$1 ;;     # output dir 
         -n | --name )           shift; NAME=$1 ;; # name
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
+        --maxGaussians )        shift; ADDRECALALN=$ADDRECALALN" --maxGaussians "$1 ;; #(additional params for recal)
+        --percentBadVariants )  shift; ADDRECALALN=$ADDRECALALN" --percentBadVariants "$1 ;; #(additional params for recal)
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file                                                  
         -h | --help )           usage ;;
         * )                     usage
     esac

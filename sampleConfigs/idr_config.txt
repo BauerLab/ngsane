@@ -1,0 +1,73 @@
+# author: Fabian Buske
+# date: August 2014
+# compatible: NGSANE v0.5.x
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNIDR="1"    # batch consistency analysis
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_IDR=$TASK_MACS2
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# reference genome, 
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+# or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=
+
+# bed file suffix, need to be in narrowPeak format
+IDR_BEDSUFFIX=".narrowPeak"
+
+# score to use for IDR
+# e.g "p.value", "signal.value"
+IDR_RANKINGMEASURE="p.value"
+
+# Define the labels for the R plot
+# IDR_REPLICATE output_prefix  replicate1 replicate2
+# e.g. IDR_REPLICATE CTCF CTCF_Replicate1 CTCF_Replicate2
+<<IDR_REPLICATES
+IDR_REPLICATES
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# Half peak width
+# Set this to -1 if you want to use the reported peak width in the peak files.
+IDR_PEAKHALFWIDTH=-1
+
+# Set to 0 if you want to allow overlap to be defined as >= 1 bp overlap.
+IDR_MINOVERLAPRATIO=0
+
+# Uncomment if peak files are in broadPeak format
+# IDR_ISBROADPEAK="T"
+
+#WALLTIME_IDR=24:00:00
+#MEMORY_IDR=10
+#CPU_IDR=1
+#NODES_IDR="nodes=1:ppn=1"
+#MODULE_IDR=
+#PATH_IDR=

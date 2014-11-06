@@ -41,16 +41,22 @@ MEMORY_BIGWIG=6
 CPU_BIGWIG=1
 NODES_BIGWIG="nodes=1:ppn=1"
 
+WALLTIME_HOMERCHIPSEQ=00:10:00
+MEMORY_HOMERCHIPSEQ=3
+CPU_HOMERCHIPSEQ=1
+NODES_HOMERCHIPSEQ="nodes=1:ppn=1"
+
 #********************
 # Tasks
 #********************
-RUNFASTQC=""	       # fastqc
-RUNMAPPINGBOWTIE=""   # mapping with bowtie1
-RUNMAPPINGBOWTIE2=""  # mapping with bowtie2
+RUNFASTQC=""	      # fastqc
+RUNBOWTIE=""          # mapping with bowtie1
+RUNBOWTIE2=""  	      # mapping with bowtie2
+RUNBIGWIG=""          # create bigwigs
 RUNPEAKRANGER=""      # peak calling Peakranger
+RUNHOMERCHIPSEQ=""    # peak calling Homer
 RUNMACS2=""           # peak calling Macs2
 RUNMEMECHIP=""        # motif discovery with MEME
-RUNBIGWIG=""          # create bigwigs
 
 #********************
 # Paths
@@ -75,20 +81,19 @@ INPUT_PEAKRANGER=$TASK_BOWTIE2
 
 PEAKRANGER_PEAKS="broad"
 
-CHIPINPUT="ChIPseq_input/$INPUT_PEAKRANGER/Input_chr16.asd.bam"
+CHIPINPUT="$SOURCE/ChIPseq_input/$TASK_BOWTIE2/Input_chr16.asd.bam"
 
 
 INPUT_MACS2=$TASK_BOWTIE2
 
 MACS2_GENOMESIZE=2.7e9
 MACS2_CALLPEAK_ADDPARAM="--nomodel"
-MACS2_BDGCMP_METHOD=ppois
-CS2_BDGCMP_ADDPARAM=
+MACS2_FRAGMENTSIZE=200
 MACS2_REFINEPEAK_ADDPARAM=
 
 INPUT_MEMECHIP=$TASK_MACS2
 
-BED="_refinepeak.bed"
+MEME_BEDSUFFIX="_summits.bed"
 SLOPBEDADDPARAM="-b 50"
 MEMECHIPADDPARAM="-nmeme 1000 -meme-nmotifs 1 -dreme-m 3 -centrimo-local -centrimo-noseq -meme-mod zoops"
 FIMOADDPARAM="--qv-thresh --thresh 0.05 --motif 0"
@@ -98,8 +103,16 @@ HTMLOUT="Summary"
 INPUT_BIGWIG=$TASK_BOWTIE2
 FRAGMENTLENGTH=300
 
-EXPID="OmicsRNA"
-LIBRARY="AGRF"
+EXPID="CTCF"
+LIBRARY="ChIPseq"
 PLATFORM="Illumina"
 
+INPUT_HOMERCHIPSEQ=$TASK_BOWTIE2
+# ChIP-seq style, any of factor|histone|groseq (groseq not tested yet)
+HOMER_CHIPSEQ_STYLE="factor"
+HOMER_CHIPSEQ_TAGDIR_ADDPARAM=
+# parameters to pass to findpeaks
+HOMER_CHIPSEQ_FINDPEAKS_ADDPARAM=
+# Focal peak calling options for peak calling of transcription factors
+HOMER_CHIPSEQ_FOCALPEAKS_ADDPARAM=
 

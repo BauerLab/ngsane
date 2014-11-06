@@ -1,5 +1,6 @@
 # author: Fabian Buske
 # date: June 2013
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources
@@ -17,7 +18,7 @@ SOURCE=$(pwd)
 # leave empty, as all data except the raw data (fastq folder) will be copied 
 declare -a DIR; DIR=(  )
 
-# server location e.g. '//gagri/diverse’
+# server location e.g. '//Gagri/diverse’
 TARGET_SERVER=
 
 # location (folder) on the target server to put the result into (should already exist)
@@ -34,13 +35,10 @@ QOUT=$OUT/qout
 READONE="_R1"
 READTWO="_R2"
 
+# specify folders that should not e copied
+declare -a SKIPDIR; SKIPDIR=( tmp fastq )
+ 
 #********************
 # PARAMETER (mandatory)
 #********************
 
-#********************
-# PARAMETER (optional overwriting defaults)
-#********************
-
-# set to one to copy the fastq folder too
-COPYFASTQ=

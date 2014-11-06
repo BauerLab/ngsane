@@ -1,0 +1,31 @@
+#!/bin/bash -e
+
+################################################################################ 
+# FEATURE ANNOTATE
+################################################################################ 
+if [ -n "$RUNFEATANN" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+    if [ -n "$STRANDETNESS" ]; then STRAND="_s"; fi
+    if [ -z "$TASK_FEATANN" ] || [ -z "$NODES_FEATANN" ] || [ -z "$CPU_FEATANN" ] || [ -z "$MEMORY_FEATANN" ] || [ -z "$WALLTIME_FEATANN" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    $QSUB $ARMED $NGSANE_WAITFORJOB --nodir -r -k $CONFIG -t ${INPUT_FEATANN}-${TASK_FEATANN} -i $INPUT_FEATANN -e $ENDING \
+        -n $NODES_FEATANN -c $CPU_FEATANN -m $MEMORY_FEATANN'G' -w $WALLTIME_FEATANN \
+        --postname postcommand$EXPERIMENTNAME"_"$UPSTREAM"-"$DOWNSTREAM"_"$METRIC$STRAND \
+        --postcommand "${NGSANE_BASE}/mods/annotateFeature.sh -k $CONFIG -f <FILE> -o $OUT/${TASK_FEATANN}/${INPUT_FEATANN}-<DIR>"
+
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        NGSANE_REPORT_HEADER "$TASK_FEATANN" "$TASK_FEATANN" "annotateFeature.sh" "$ENDING"
+
+        echo "[NOTE] the annotateFeature.sh mod does not provide a report"
+  
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+fi
+

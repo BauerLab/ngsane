@@ -22,7 +22,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of NGSANE
         -f | --file )           shift; f=$1 ;; # fastq file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -34,11 +34,12 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
-for MODULE in $MODULE_FASTQSCREEN; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_FASTQSCREEN; do module load $MODULE; done && module list 
+
 export PATH=$PATH_FASTQSCREEN:$PATH;
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -49,12 +50,21 @@ echo -e "--perl         --\n "$(perl -v | grep "This is perl" )
 echo -e "--fastq_screen --\n "  $(`which perl` `which fastq_screen` --version)
 [ ! -f $(which fastq_screen) ] && echo "[ERROR] no fastq_screen detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$READONE.$FASTQ/}
+
+#is ziped ?
+CAT="cat"
+if [[ ${f##*.} == "gz" ]]; 
+    then CAT="zcat"; 
+elif [[ ${f##*.} == "bz2" ]]; 
+    then CAT="bzcat"; 
+fi
 
 #is paired ?
 if [ "$f" != "${f/%$READONE.$FASTQ/$READTWO.$FASTQ}" ] && [ -e ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} ]; then
@@ -71,22 +81,20 @@ fi
  
 mkdir -p $OUTDIR
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
     dmget -a ${f/$READONE/"*"}
     dmget -a ${OUTDIR}/*
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="fastq screening"    
+NGSANE_CHECKPOINT_INIT "fastq screening"    
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 
     # Paired read
@@ -97,16 +105,16 @@ else
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    mv $OUTDIR/${n}_screen.txt $OUTDIR/${n/$READONE.$FASTQ/}_screen.txt
-    mv $OUTDIR/${n}_screen.png $OUTDIR/${n/$READONE.$FASTQ/}_screen.png
+    mv $OUTDIR/${SAMPLE}$READONE"_screen.txt" $OUTDIR/$SAMPLE"_screen.txt"
+    mv $OUTDIR/${SAMPLE}$READONE"_screen.png" $OUTDIR/$SAMPLE"_screen.png"
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/$READONE.$FASTQ/}_screen.txt ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE"_"screen.txt
 
 fi
 
 ################################################################################
-[ -e $OUTDIR/${n/%$READONE.$FASTQ/_screen.txt}.dummy ] && rm $OUTDIR/${n/%$READONE.$FASTQ/_screen.txt}.dummy
+[ -e $OUTDIR/$SAMPLE"_"screen.txt.dummy ] && rm $OUTDIR/$SAMPLE"_"screen.txt.dummy
 echo ">>>>> read screening with  FASTQSCREEN - FINISHED"
 echo ">>>>> enddate "`date`
 

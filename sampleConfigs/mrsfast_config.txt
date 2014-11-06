@@ -1,0 +1,71 @@
+# author: Fabian Buske
+# date: August 2014
+# compatible: NGSANE v0.5.x
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNMRSFAST="1"    # mapping with mrsFastUltra
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_MRSFAST="fastq"
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# fastq file suffix
+FASTQ="fastq.gz"
+
+# read indicator immediately preceding the fastq file suffix
+READONE="_R1"
+READTWO="_R2"
+
+# reference genome, 
+# e.g. /share/ClusterShare/biodata/contrib/fabbus/NGSANE/genomeIndexes/hg19/MrsfastIndex/genome.fa
+# or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=
+
+# library tags
+EXPID="Celltype"
+LIBRARY="ChIPseq"
+PLATFORM="Illumina"
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# additional MRSFAST parameters
+# e.g. "-e 3 --best"
+MRSFASTADDPARAM=
+
+# additional parameters for indexing (if indexing needs to be performed"
+# e.g. "--ws 14"
+MRSFASTINDEXADDPARAM=
+
+#WALLTIME_MRSFAST=10:00:00
+#MEMORY_MRSFAST=63
+#CPU_MRSFAST=8
+#NODES_MRSFAST="nodes=1:ppn=8"
+#MODULE_MRSFAST=
+#PATH_MRSFAST=
+

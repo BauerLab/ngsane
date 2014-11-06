@@ -73,14 +73,9 @@ CHECKPOINT="write results to REMOTE server"
 
 for f in $(ls $SOURCE); do
 	fn="${f##*/}" # basename
-   	# don't copy the raw files or the tmp folder
-   	if [ -n "$COPYFASTQ" ] && [ "$fn" == "fastq" ]; then
-       	continue
-   	fi   	 
-    # skip tmp folder
-   	if [ "$fn" == "tmp" ]; then 
-       	continue
-   	fi 
+	echo "[NOTE] copy $fn to $TARGET_SERVER/$TARGET_LOCATION"
+   	# don't copy specified folders
+   	case "${SKIPDIR[@]}" in *"$fn"*) echo "skipping $fn"; continue ; esac
    	
     if [ -f  ~/.smbclient ]; then
 	   RUN_COMMAND="smbclient ${TARGET_SERVER} -A ~/.smbclient -c \"prompt; recurse; cd ${TARGET_LOCATION}; mput ${fn}\""

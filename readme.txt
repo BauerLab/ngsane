@@ -1,7 +1,7 @@
 NGSANE is a framework for advanced production informatics of Next Generation 
 Sequencing libraries.
 
-Version: 0.4.0.3
+Version: v0.5.0.1
 
 
 ################################################################################
@@ -53,7 +53,7 @@ ngsane
 	
 - tools/
 	contains various helper scripts used within the modules, 
-	mostly tapping into python and R
+	mostly tapping into Python and R
 
 ################################################################################
 # How to create a new project:
@@ -99,6 +99,8 @@ options for TASK:
   recover    pick up unfinished business (interrupted jobs)
   html       check the pbs logfiles for errors and and make summary HTML page
   report     alias for html
+  trackhubs      generate trackhubs
+  clean          removes all dummy files
 
 Following the folder structure example from above, you can submit jobs
 using a properly configured config.txt form within the PROJECT folder as 

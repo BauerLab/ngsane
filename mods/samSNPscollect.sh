@@ -39,7 +39,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f             )        shift; FILES=${1//,/ } ;; # bam files
         -o             )        shift; OUTDIR=$1 ;; # outputdir
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help    )        usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -53,18 +53,19 @@ done
 
 
 ################################################################################
-CHECKPOINT="programs"
-for MODULE in $MODULE_SAMVAR; do module load $MODULE; done  # save way to load modules that itself load other modules
+NGSANE_CHECKPOINT_INIT "programs"
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_SAMVAR; do module load $MODULE; done && module list
+
 export PATH=$PATH_SAMVAR:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
-PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
+[ -z "$PATH_GATK" ] && PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
+[ -z "$PATH_IGVTOOLS" ] && PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_SAMVAR*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_SAMVAR*0.75)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -77,18 +78,18 @@ echo -e "--GATK        --\n "$(java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK
 [ ! -f $PATH_GATK/GenomeAnalysisTK.jar ] && echo "[ERROR] no GATK detected" && exit 1
 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
 
 # delete old bam file
-#if [ -z "$RECOVERFROM" ]; then
-#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam} ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}; fi
-#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.stats; fi
-#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/.$ASD.bam}.dupl; fi
+#if [ -z "$NGSANE_RECOVERFROM" ]; then
+#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/$ASD.bam} ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/$ASD.bam}; fi
+#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/$ASD.bam}.stats ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/$ASD.bam}.stats; fi
+#    if [ -e $OUTDIR/${n/%$READONE.$FASTQ/$ASD.bam}.dupl ]; then rm $OUTDIR/${n/%$READONE.$FASTQ/$ASD.bam}.dupl; fi
 #fi
 # ensure dir is there
 if [ ! -d $OUTDIR ]; then mkdir -p $OUTDIR; fi
@@ -111,22 +112,20 @@ echo $VARIANTS
 REGION=""
 if [ -n "$REF" ]; then echo $REF; REGION="-L $REF"; fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $FILES
 	dmget -a $OUTDIR/*
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="join with GATK"
+NGSANE_CHECKPOINT_INIT "join with GATK"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l INFO \
        -R $FASTA \
@@ -138,21 +137,19 @@ else
        -priority $NAMES
 
     # mark checkpoint
-    if [ -f $OUTDIR/joined.vcf ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/joined.vcf
 
 fi 
 
 ################################################################################
-CHECKPOINT="index for IGV"
+NGSANE_CHECKPOINT_INIT "index for IGV"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/joined.vcf
 
     # mark checkpoint
-    echo -e "\n********* $CHECKPOINT\n" && unset RECOVERFROM
+    NGSANE_CHECKPOINT_CHECK
 fi
 
 ################################################################################

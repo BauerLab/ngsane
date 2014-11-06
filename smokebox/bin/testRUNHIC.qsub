@@ -73,8 +73,8 @@ cat bin/tmpl/configHiC.txt | \
     sed 's/RUNFITHIC=\"\"/RUNFITHIC=\"1\"/g' |\
 	sed 's/HTMLOUT=\"Summary\"/HTMLOUT=\"result\/SummaryHIC\"/g' > tmp/configHiC.txt
 
-# Prep and runare the job to generate the html result page and perform the diff 
-echo "[NOTE] Prep and runare evaluation script tmp/testHIC.qsub wait for $HOLDID"
+# Prep and run the job to generate the html result page and perform the diff 
+echo "[NOTE] Prep and run evaluation script tmp/testHIC.qsub wait for $HOLDID"
 sed 's/NAME/NGs_HIC/g' bin/tmpl/HPCheader.txt > tmp/testHIC.qsub
 echo "trigger.sh tmp/configHiC.txt html" >> tmp/testHIC.qsub
 echo "diff result/SummaryHIC.html result/expected/SummaryHIC.html | \

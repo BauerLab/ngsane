@@ -10,25 +10,15 @@ MEMORY_BWA=6
 CPU_BWA=2
 NODES_BWA="nodes=1:ppn=4"
 
-WALLTIME_BOWTIE=00:30:00
-MEMORY_BOWTIE=6
-CPU_BOWTIE=2
-NODES_BOWTIE="nodes=1:ppn=2"
-
-WALLTIME_BOWTIE2=00:30:00
-MEMORY_BOWTIE2=6
-CPU_BOWTIE2=2
-NODES_BOWTIE2="nodes=1:ppn=2"
-
 WALLTIME_GATKVAR=00:30:00
 MEMORY_GATKVAR=8
 CPU_GATKVAR=2
 NODES_GATKVAR="nodes=1:ppn=2"
 
-WALLTIME_RECAL=00:30:00
-MEMORY_RECAL=8
-CPU_RECAL=2
-NODES_RECAL="nodes=1:ppn=2"
+WALLTIME_RECALALN=00:30:00
+MEMORY_RECALALN=8
+CPU_RECALALN=2
+NODES_RECALALN="nodes=1:ppn=2"
 
 WALLTIME_SAMVAR=00:20:00
 MEMORY_SAMVAR=4
@@ -49,16 +39,14 @@ NODES_PINDEL="nodes=1:ppn=2"
 #********************
 # Tasks
 #********************
-RUNMAPPINGBOWTIE=""  # mapping with bowtie1
-RUNMAPPINGBOWTIE2="" # mapping with bowtie2
-RUNMAPPINGBWA=""     # mapping with bwa
-RUNREALRECAL=""      # recalibration/realignment
-DEPTHOFCOVERAGE=""   # determine mean coverage
-RUNVARCALLS=""       # SNP/Variant detection
-RUNANNOTATINGBAM=""  # annotate bam file with Gencode
-RUNSAMVAR=""         # run variant call 
-RUNANNOTATINGBAM=""  # run bam file annotation
+RUNBWA=""       # mapping with bwa
+RUNBAMANN=""    # annotate bam file with Gencode
+RUNRECALALN=""  # recalibration/realignment
+RUNGATKDOC=""   # determine mean coverage
+RUNGATKVAR=""   # SNP/Variant detection
+RUNSAMVAR=""    # run variant call 
 RUNPINDEL=""
+
 
 HTMLOUT="Summary"
 
@@ -71,14 +59,14 @@ declare -a DIR; DIR=( Transcript )
 OUT=$SOURCE
 QOUT=$OUT/qout
 
-ASD="asd"
-ASR="asd"
+ASD=".asd"
+ASR=".asd"
 READONE="_read1"
 READTWO="_read2"
 FASTQ=fastq
 BAMANNLIB=$(pwd)/referenceData/bamann/
 TASK_BAMANN="bamann_bwa"
-INPUT_PINDEL=${TASK_RECAL}
+INPUT_PINDEL=${TASK_RECALALN}
 INPUT_IS_BWA="false" # if the aligner was not bwa you also have to specify the library type
 INPUT_TYPE="Illumina-PairEnd" # or (Illumina-MatePair)
 REFERENCE_DATE="20090201"
@@ -90,10 +78,11 @@ HAPMAPVCF=$(pwd)/referenceData/hapmap_3.3.chr16.vcf
 ONEKGVCF=$(pwd)/referenceData/1000G_omni2.5.chr16.vcf
 REFSEQGTF=$(pwd)/referenceData/UCSC_GencodeV12.gtf
 CONTAMINANTS=$(pwd)/adapters.txt
-GTF=$(pwd)/referenceData/gencode.v14.annotation.chr16.doctored.gtf
+GTF=$(pwd)/referenceData/gencode.v19.annotation.reduced.chr16.gtf
+BWA_INDEXAS="is"
 
 #REF=16:
-#RECALADDPARAM="-L $REF"
+#RECALALNADDPARAM="-L $REF"
 #DOCADDPARAM="-L $REF"
 #VARADDPARAM="-L $REF"
 # --maxGaussians 3 --percentBadVariants 0.05"

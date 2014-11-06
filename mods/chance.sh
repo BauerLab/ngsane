@@ -29,7 +29,7 @@ while [ "$1" != "" ]; do
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
         -f | --bam )            shift; f=$1 ;; # bam file
         -o | --outdir )         shift; OUTDIR=$1 ;; # output dir 
-        --recover-from )        shift; RECOVERFROM=$1 ;; # attempt to recover from log file
+        --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -42,15 +42,19 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
-for MODULE in $MODULE_CHANCE; do module load $MODULE; done  # save way to load modules that itself load other modules
+# save way to load modules that itself loads other modules
+hash module 2>/dev/null && for MODULE in $MODULE_CHANCE; do module load $MODULE; done && module list 
 
 export PATH=$PATH_CHANCE:$PATH
-module list
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_CHANCE*0.75)")"g"
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--chance      --\n "$(which run_chance_com.sh 2>&1)
@@ -60,13 +64,15 @@ echo -e "--Matlab (MCR)--\n "$(echo "$MCRROOT")
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of f
 n=${f##*/}
+SAMPLE=${n/%$ASD.bam/}
 c=${CHIPINPUT##*/}
+CONTROL=${c/%$ASD.bam/}
 
 if [ -z "$CHIPINPUT" ] || [ ! -f $CHIPINPUT ]; then
     echo "[ERROR] input control not provided or invalid (CHIPINPUT)"
@@ -85,38 +91,35 @@ fi
 CHANCE="`which run_chance_com.sh` `echo $MCRROOT`"
 echo "[NOTE] Chance Environment: $CHANCE"
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a ${f}
-	dmget -a ${OUTDIR}
+	dmget -a $OUTDIR
 	[ -n $CHIPINPUT ] && dmget -a $CHIPINPUT
 fi
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="compute IPstrength"
+NGSANE_CHECKPOINT_INIT "compute IPstrength"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="${CHANCE} IPStrength -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n/.$ASD.bam/}-${c/.$ASD.bam/}.IPstrength --ipfile $f --ipsample ${n/.$ASD.bam/} --inputfile ${CHIPINPUT} --inputsample ${c/.$ASD.bam/}"
+    echo "$JAVAPARAMS" | tr ' ' '\n'  > java.opts
+    RUN_COMMAND="${CHANCE} IPStrength -b ${GENOME_ASSEMBLY} -t bam -o $OUTDIR/$SAMPLE.IPstrength --ipfile $f --ipsample $SAMPLE --inputfile ${CHIPINPUT} --inputsample $CONTROL"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     # mark checkpoint
-    if [ -f ${OUTDIR}/${n/.$ASD.bam/}-${c/.$ASD.bam/}.IPstrength ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.IPstrength
 
 fi
 
 ################################################################################
-CHECKPOINT="compare with ENCODE"
+NGSANE_CHECKPOINT_INIT "compare with ENCODE"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ -n "$EXPERIMENTID" ] || [ -n "$EXPERIMENTPATTERN" ]; then
 
@@ -124,32 +127,30 @@ else
             EXPERIMENTID=$(echo "$n" | sed -rn $EXPERIMENTPATTERN)
         fi
         
-        RUN_COMMAND="${CHANCE} compENCODE -b ${GENOME_ASSEMBLY} -t bam -o ${OUTDIR}/${n}-${c}.compENCODE -e $EXPERIMENTID --ipfile ${f} --ipsample ${n/.$ASD.bam/} --inputfile ${CHIPINPUT} --inputsample ${c/.$ASD.bam/}"
+        RUN_COMMAND="${CHANCE} compENCODE -b ${GENOME_ASSEMBLY} -t bam -o $OUTDIR/$SAMPLE.compENCODE -e $EXPERIMENTID --ipfile ${f} --ipsample $SAMPLE --inputfile ${CHIPINPUT} --inputsample $CONTROL"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
         # mark checkpoint
-        if [ -f ${OUTDIR}/${n/.$ASD.bam/}-${c/.$ASD.bam/}.compENCODE ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.compENCODE
 
     else
         echo "[NOTE] skip ENCODE comparison "
-        echo -e "\n********* $CHECKPOINT\n"
+        NGSANE_CHECKPOINT_CHECK
     fi
 fi
 
 ################################################################################
-CHECKPOINT="make plots"
+NGSANE_CHECKPOINT_INIT "make plots"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
-    Rscript --vanilla ${NGSANE_BASE}/tools/makeChancePlots.R $f $CHIPINPUT ${n/.$ASD.bam/} ${c/.$ASD.bam/} $OUTDIR
+    Rscript --vanilla ${NGSANE_BASE}/tools/makeChancePlots.R $f $CHIPINPUT $SAMPLE $CONTROL $OUTDIR
 
     # mark checkpoint
-    if [ -f $OUTDIR/${n/.$ASD.bam/.pdf} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.pdf
 
 fi
 ################################################################################
-[ -e $OUTDIR/${n/.$ASD.bam/.pdf}.dummy ] && rm $OUTDIR/${n/.$ASD.bam/.pdf}.dummy
+[ -e $OUTDIR/$SAMPLE.pdf.dummy ] && rm $OUTDIR/$SAMPLE.pdf.dummy
 echo ">>>>> ChIPseq QC with Chance - FINISHED"
 echo ">>>>> enddate "`date`

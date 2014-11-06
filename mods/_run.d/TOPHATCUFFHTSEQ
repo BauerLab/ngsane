@@ -1,0 +1,14 @@
+#!/bin/bash -e
+
+################################################################################
+#  Gene expression analysis pipeline with tophat + cufflinks + htseqcount
+################################################################################       
+
+if [ -n "$RUNTOPHATCUFFHTSEQ" ]; then
+
+    JOBIDS_TOPHAT=$(NGSANE_PIPELINE_MOD "TOPHAT")
+
+    JOBIDS_CUFFLINKS=$(NGSANE_PIPELINE_MOD "CUFFLINKS" "$JOBIDS_TOPHAT")
+
+    JOBIDS_HTSEQCOUNT=$(NGSANE_PIPELINE_MOD "HTSEQCOUNT" "$JOBIDS_CUFFLINKS")
+fi

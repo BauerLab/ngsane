@@ -1,5 +1,6 @@
 # author: Fabian Buske
 # date: August 2013
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources
@@ -32,12 +33,12 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 # reference genome
-# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BowtieIndex/genome.fa
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa
 # or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
 FASTA=
 
 # bed file suffix
-BED="_summit.bed"
+MEME_BEDSUFFIX="_summits.bed"
 
 #********************
 # PARAMETER (optional overwriting defaults)

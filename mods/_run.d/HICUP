@@ -1,0 +1,136 @@
+#!/bin/bash -e
+
+################################################################################
+#   Mapping using HiCUP
+# IN : $SOURCE/fastq/$dir/*$READONE$FASTQ
+# OUT: $OUT/$dir/hicup/*_uniques.bam
+################################################################################
+
+if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_HICUP" ] || [ -z "$NODES_HICUP" ] || [ -z "$CPU_HICUP" ] || [ -z "$MEMORY_HICUP" ] || [ -z "$WALLTIME_HICUP" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+        
+        if [ ! -f ${FASTA%.*}.1.ebwt ];then
+            # submit job for index generation if necessary
+            INDEXJOBIDS=$(
+                $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
+        	   -m $MEMORY_HICUP"G" -w $WALLTIME_HICUP \
+        	   --commontask indexGenome \
+               --command "${NGSANE_BASE}/mods/bowtieIndex.sh -k $CONFIG"
+            ) && echo -e "$INDEXJOBIDS"
+            INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+        else
+            INDEXJOBIDS=$NGSANE_WAITFORJOB 
+        fi
+        
+        if [ ! -f $OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt ];then
+            JOBIDS=$( 
+            $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c 1 \
+            	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS \
+            	--commontask digestGenome \
+                --command "${NGSANE_BASE}/mods/hicupDigestGenome.sh -k $CONFIG" 
+            ) && echo -e "$JOBIDS"
+            DIGESTJOBIDS=$(waitForJobIds "$JOBIDS")
+    
+        else
+            DIGESTJOBIDS=$NGSANE_WAITFORJOB
+        fi
+    
+        $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c $CPU_HICUP \
+        	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $DIGESTJOBIDS \
+            --command "${NGSANE_BASE}/mods/hicup.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HICUP"
+    
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "HiCuP" "$TASK_HICUP" "hicup.sh"
+
+        NGSANE_REPORT_TABLE "$TASK_HICUP" \
+            "Truncater" \
+            "$OUT/<DIR>/$TASK_HICUP"  \
+            "_truncater_summary.txt" \
+            "PATTERN!P1 non-trunc reads!!sed -n 2p | cut -f 5" \
+            "PATTERN!%!!sed -n 2p | cut -f 6" \
+            "PATTERN!P1 trunc reads!!sed -n 2p | cut -f 3" \
+            "PATTERN!%!!sed -n 2p | cut -f 4" \
+            "PATTERN!P2 non-trunc reads!!sed -n 3p | cut -f 5" \
+            "PATTERN!%!!sed -n 3p | cut -f 6" \
+            "PATTERN!P2 trunc reads!!sed -n 3p | cut -f 3" \
+            "PATTERN!%!!sed -n 3p | cut -f 4" \
+            "FIGURE!Distribution!60!<SAMPLE>.ditag_size_distribution.svg!60!1" \
+            "FIGURE!Read1!60!<SAMPLE>$READONE.truncation_barchart.svg!60!1" \
+            "FIGURE!Read2!60!<SAMPLE>$READTWO.truncation_barchart.svg!60!1"
+
+        NGSANE_REPORT_TABLE "$TASK_HICUP" \
+            "Mapper" \
+            "$OUT/<DIR>/$TASK_HICUP"  \
+            "_mapper_summary.txt" \
+            "PATTERN!P1 reads!!sed -n 2p | cut -f 2" \
+            "PATTERN!P2 reads!!sed -n 3p | cut -f 2" \
+            "PATTERN!Unique P1!!sed -n 2p | cut -f 5" \
+            "PATTERN!%!!sed -n 2p | cut -f 6" \
+            "PATTERN!Unique P2!!sed -n 3p | cut -f 5" \
+            "PATTERN!%!!sed -n 3p | cut -f 6" \
+            "PATTERN!Multi P1!!sed -n 2p | cut -f 7" \
+            "PATTERN!%!!sed -n 2p | cut -f 8" \
+            "PATTERN!Multi P2!!sed -n 3p | cut -f 7" \
+            "PATTERN!%!!sed -n 3p | cut -f 8" \
+            "PATTERN!Nonaligned P1!!sed -n 2p | cut -f 9" \
+            "PATTERN!%!!sed -n 2p | cut -f 10" \
+            "PATTERN!Nonaligned P2!!sed -n 3p | cut -f 9" \
+            "PATTERN!%!!sed -n 3p | cut -f 10" \
+            "PATTERN!Paired P1!!sed -n 2p | cut -f 11" \
+            "PATTERN!%!!sed -n 2p | cut -f 12" \
+            "PATTERN!Paired P2!!sed -n 3p | cut -f 11" \
+            "PATTERN!%!!sed -n 3p | cut -f 12"
+
+        NGSANE_REPORT_TABLE "$TASK_HICUP" \
+            "Filter" \
+            "$OUT/<DIR>/$TASK_HICUP"  \
+            "_filter_summary.txt" \
+            "PATTERN!Total pairs!!sed -n 2p | cut -f 2" \
+            "PATTERN!Valid!!sed -n 2p | cut -f 3" \
+            "CALCULATE!%!40!#3*100/#2" \
+            "PATTERN!Cis <10kb!!sed -n 2p | cut -f 4" \
+            "PATTERN!Cis >10kb!!sed -n 2p | cut -f 5" \
+            "PATTERN!Trans!!sed -n 2p | cut -f 6" \
+            "PATTERN!Invalid!!sed -n 2p | cut -f 7" \
+            "CALCULATE!%!40!#8*100/#2" \
+            "PATTERN!Circular!!sed -n 2p | cut -f 8" \
+            "PATTERN!Dangling!!sed -n 2p | cut -f 9" \
+            "PATTERN!Internal!!sed -n 2p | cut -f 10" \
+            "PATTERN!Re-ligation!!sed -n 2p | cut -f 11" \
+            "PATTERN!Contiguous!!sed -n 2p | cut -f 12" \
+            "PATTERN!Wrong size!!sed -n 2p | cut -f 13" \
+            "FIGURE!Filter!60!<SAMPLE>.filter_piechart.svg!60!1"
+            
+        NGSANE_REPORT_TABLE "$TASK_HICUP" \
+            "Deduplicator" \
+            "$OUT/<DIR>/$TASK_HICUP"  \
+            "_deduplicator_summary.txt" \
+            "PATTERN!Valid reads!!sed -n 2p | cut -f 2" \
+            "PATTERN!Unique di-tags!!sed -n 2p | cut -f 3" \
+            "CALCULATE!%!40!#3*100/#2" \
+            "PATTERN!Unique cis <10kb!!sed -n 2p | cut -f 4" \
+            "CALCULATE!%!40!#5*100/#2" \
+            "PATTERN!Unique cis >10kb!!sed -n 2p | cut -f 5" \
+            "CALCULATE!%!40!#7*100/#2" \
+            "PATTERN!Unique trans!!sed -n 2p | cut -f 6" \
+            "CALCULATE!%!40!#9*100/#2" \
+            "FIGURE!Deduplication!60!<SAMPLE>.uniques_barchart.svg!60!1" \
+            "FIGURE!Cis-trans!60!<SAMPLE>.cis-trans.svg!60!1"
+                   
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+  
+    fi
+fi	
+
+	

@@ -1,0 +1,48 @@
+#!/bin/bash -e
+
+################################################################################
+#  Fusion search tophat
+#
+# IN : $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/tophatfusion_out/*
+################################################################################       
+
+if [ -n "$RUNTOPHATFUSION" ]; then
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_TOPHATFUSION" ] || [ -z "$NODES_TOPHATFUSION" ] || [ -z "$CPU_TOPHATFUSION" ] || [ -z "$MEMORY_TOPHATFUSION" ] || [ -z "$WALLTIME_TOPHATFUSION" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        if [ ! -f ${FASTA%.*}.1.bt2 ];then
+            # submit job for index generation if necessary
+            INDEXJOBIDS=$(
+                $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_TOPHATFUSION -i $INPUT_TOPHATFUSION -e $READONE.$FASTQ \
+                -n $NODES_TOPHATFUSION -c $CPU_TOPHATFUSION -m $MEMORY_TOPHATFUSION"G" \
+                -w $WALLTIME_TOPHATFUSION --commontask indexGenome \
+                --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
+            ) && echo -e "$INDEXJOBIDS"
+            INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+        else
+            INDEXJOBIDS=$NGSANE_WAITFORJOB 
+        fi
+        
+        $QSUB $ARMED -k $CONFIG -t $TASK_TOPHATFUSION -i $INPUT_TOPHATFUSION -e $READONE.$FASTQ -n $NODES_TOPHATFUSION -c $CPU_TOPHATFUSION -m $MEMORY_TOPHATFUSION"G" -w $WALLTIME_TOPHATFUSION $INDEXJOBIDS \
+            --command "${NGSANE_BASE}/mods/tophatfusion.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_TOPHATFUSION/<SAMPLE>"
+    
+
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        NGSANE_REPORT_HEADER "Tophat Fusion" "$TASK_TOPHATFUSION" "tophatfusion.sh"
+
+        echo "[NOTE] the tophatfusion.sh mod does not provide a report"
+  
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+fi	
+
+	

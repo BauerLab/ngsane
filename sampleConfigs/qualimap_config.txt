@@ -1,0 +1,60 @@
+# author: Fabian Buske
+# date: July 2014
+# compatible: NGSANE v0.5.x
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNQUALIMAP="1"    # BAM QC
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_QUALIMAP=$TASK_BOWTIE
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# run complementary rnaseq qc
+# e.g. QUALIMAP_RNASEQ="1"
+QUALIMAP_RNASEQ=
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# additional parameter for bam qc see
+# http://qualimap.bioinfo.cipf.es/doc_html/command_line.html
+# e.g. "-gd HUMAN"
+QUALIMAP_BAMQC_ADDPARAM=
+
+# complementary run of rnaseq qc, see
+# http://qualimap.bioinfo.cipf.es/doc_html/command_line.html
+# e.g. "-gtf /share/ClusterShare/biodata/contrib/GENCODE/release_19/gencode.v19.annotation.gtf -protocol strand-specific-forward"
+QUALIMAP_RNASEQ_ADDPARAM=
+
+
+#WALLTIME_QUALIMAP=12:00:00
+#MEMORY_QUALIMAP=20
+#CPU_QUALIMAP=4
+#NODES_QUALIMAP="nodes=1:ppn=4"
+#MODULE_QUALIMAP=
+#PATH_QUALIMAP=

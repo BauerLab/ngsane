@@ -1,5 +1,6 @@
 # author: Fabian Buske
 # date: May 2013
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources
@@ -8,7 +9,7 @@
 #********************
 # Tasks
 #********************
-RUNMAPPINGBOWTIE2="1"    # mapping with bowtie2
+RUNBOWTIE2="1"    # mapping with bowtie2
 
 #********************
 # Paths
@@ -58,6 +59,7 @@ PLATFORM="Illumina"
 FASTQ_PHRED=
 
 # additional parameters passed to Bowtie2 
+# e.g. "--local"
 BOWTIE2ADDPARAM=
 
 #WALLTIME_BOWTIE2=10:00:00

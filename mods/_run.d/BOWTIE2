@@ -1,0 +1,61 @@
+#!/bin/bash -e
+
+################################################################################
+#  Mapping with bowtie v2
+#
+# IN:  $SOURCE/$dir/fastq/*read1.fastq
+# OUT: $OUT/$dir/bowtie2/*$ASD.bam
+################################################################################
+if [ -n "$RUNBOWTIE2" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_BOWTIE2" ] || [ -z "$NODES_BOWTIE2" ] || [ -z "$CPU_BOWTIE2" ] || [ -z "$MEMORY_BOWTIE2" ] || [ -z "$WALLTIME_BOWTIE2" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        if [ ! -f ${FASTA%.*}.1.bt2 ];then
+            # submit job for index generation if necessary
+            INDEXJOBIDS=$(
+                $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_BOWTIE2 -i $INPUT_BOWTIE2 -e $READONE.$FASTQ \
+                -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" \
+                -w $WALLTIME_BOWTIE2 --commontask indexGenome \
+                --command "${NGSANE_BASE}/mods/bowtie2Index.sh -k $CONFIG"
+            ) && echo -e "$INDEXJOBIDS"
+            INDEXJOBIDS=$(waitForJobIds "$INDEXJOBIDS")
+        else
+            INDEXJOBIDS=$NGSANE_WAITFORJOB 
+        fi
+        
+        $QSUB $ARMED -k $CONFIG -t $TASK_BOWTIE2 -i $INPUT_BOWTIE2 -e $READONE.$FASTQ -n $NODES_BOWTIE2 -c $CPU_BOWTIE2 -m $MEMORY_BOWTIE2"G" -w $WALLTIME_BOWTIE2 $INDEXJOBIDS \
+    	       --command "${NGSANE_BASE}/mods/bowtie2.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_BOWTIE2 --rgsi <DIR>"
+
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        NGSANE_REPORT_HEADER "Bowtie2" "$TASK_BOWTIE2" "bowtie2.sh" "$ASD.bam"
+
+        NGSANE_REPORT_TABLE "$TASK_BOWTIE2" \
+            "-" \
+            "$OUT/<DIR>/$TASK_BOWTIE2"  \
+            "$ASD.bam.stats" \
+            "LINK!<SAMPLE>$ASD.bam.html" \
+            "PATTERN!Total reads!! fgrep -w 'in total' | cut -d' ' -f 1" \
+            "PATTERN!Secondary!! fgrep -w 'secondary' | cut -d' ' -f 1" \
+            "PATTERN!Qfail!! fgrep -w 'in total' | cut -d' ' -f 3" \
+            "PATTERN!Duplicates!! fgrep -w 'duplicates' | cut -d' ' -f 1" \
+            "CALCULATE!%!40!#5*100/#2" \
+            "PATTERN!Mapped!! fgrep -w 'mapped' | head -n 1 | cut -d' ' -f 1" \
+            "CALCULATE!%!40!#7*100/#2" \
+            "PATTERN!Mapped pairs!! fgrep -w 'properly paired' | cut -d' ' -f 1 | xargs echo 0.5* | bc " \
+            "CALCULATE!%!40!#9*2*100/#2" \
+            "PATTERN!Singletons!! fgrep -w 'singletons' | cut -d' ' -f 1" \
+            "CALCULATE!%!40!#11*100/#2"
+        
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+
+fi

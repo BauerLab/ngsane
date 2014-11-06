@@ -22,10 +22,10 @@ while [ "$1" != "" ]; do
     -W | --wait )           shift; JOBIDS=$1 ;; # jobids to wait for
     -j | --jobname   )      shift; SNAME=$1 ;; # name used
     -q | --queue )          shift; QUEUE=$1 ;; # nodetype
-    -o | --output )	    shift; SOUTPUT=$1 ;; # pbsoutput
+    -o | --output )	        shift; SOUTPUT=$1 ;; # pbsoutput
     -a | --additional )	    shift; SADDITIONAL=$1 ;; # additional paramers
     -p | --command )	    shift; SCOMMAND=$1 ;; # Program call
-    -t | --tmpdir )	    shift; STMPDIR=$1 ;; # additional paramers	
+    -t | --tmpdir )	        shift; STMPDIR=$1 ;; # additional paramers	
     -h | --help )           usage ;;
     * )                     echo "don't understand "$1
     esac
@@ -49,6 +49,11 @@ echo "rm $TMPFILE" >> $TMPFILE
 # truncate jobname to 64 characters due to job schedule constraints
 SNAME="NGs_${SNAME:0:60}"
 
+# split total memory by CPUs if needed
+if [ -n "$QUEUEMEMORYPERSLOT" ]; then
+    SMEMORY=$(echo $SMEMORY | sed "s|\(^[0-9. ]*\).*|scale=2; \1 / $SCPU |g" | bc -l)$(echo $SMEMORY | sed "s|^[0-9. ]*\(.*\)|\1|g")
+fi   
+
 if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 
 	# Prepare Prologue Script
@@ -71,6 +76,10 @@ if [ "$SUBMISSIONSYSTEM" == "PBS" ]; then
 
 
 elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
+    ## add resource survey for job to logfile
+    echo "echo '>>>>> job resources'" >> $TMPFILE
+    echo "qstat -j $SNAME 2>/dev/null | egrep 'vmem|parallel environment'" >> $TMPFILE
+
 #   taking care of the SGE module bug
     unset module
 #	echo "********** submit with SGE submission system"
@@ -81,6 +90,26 @@ elif [ "$SUBMISSIONSYSTEM" == "SGE" ]; then
 	RECIPT=$($command)
 	JOBID=$(echo "$RECIPT" | awk '{print $3}')
 	echo $JOBID
+	
+	
+	
+elif [ "$SUBMISSIONSYSTEM" == "SLURM" ]; then
+
+    # if it is the default (nodes=1:ppn=4) convert to SLURM (--nodes=1 as well as the separage SCPU param )
+    if [[ $SNODES == *:* ]]; then
+        SNODES="--"${SNODES/:*/}" --ntasks-per-node=$SCPU"
+    fi
+    
+#	echo "********** submit with SLURM submission system"
+	if [ -n "$JOBIDS" ];then JOBIDS=$QUEUEWAIT${JOBIDS//:/$QUEUEWAITSEP}; fi
+	command="sbatch $JOBIDS --export=ALL --output=$SOUTPUT $SNODES --mem=$SMEMORY \
+        --job-name=$SNAME --time=$SWALLTIME --open-mode=append --requeue $SADDITIONAL $TMPFILE"
+	echo "# $command" >>$TMPFILE
+	echo $command  1>&2
+	RECIPT=$($command)
+	JOBID=$(echo "$RECIPT" | awk '{print $4}')
+	echo $JOBID
+
 
 else
 	echo "Submission system, $SUBMISSIONSYSTEM, not implemented; only SGE or PBS are currently supported"

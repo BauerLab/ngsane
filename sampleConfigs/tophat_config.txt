@@ -1,5 +1,6 @@
 # author: Fabian Buske
 # date: September 2013
+# compatible: NGSANE v0.5.x
 
 #####################################
 # Resources
@@ -68,22 +69,12 @@ TOPHATTRANSCRIPTOMEINDEX=
 # additional parameters for tophat, see http://tophat.cbcb.umd.edu/manual.shtml
 TOPHATADDPARAM=
 
-# additional parameters for RNAseq-QC, see http://tophat.cbcb.umd.edu/manual.shtml
-RNASEQCADDPARAM=
-
 # ATTENTION: make sure the GTF file matches your genome assembly (chr naming)
 # see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
 # conversion scripts
 # e.g. /share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.gtf
 # or   ${NGSANE_REFERENCE}/b37/annotation/gencode.v14.annotation.b37.gtf
 GTF=
-
-# activate to use doctored GTF file for RNA-SeQC (provides additional info)
-# assumes the doctored GTF is at the same location as the original one but
-# has a different suffix
-# In addition RNA-SeQC will look for the suffix <GTF-FILE>.gc and apply gc
-# stratification if found
-DOCTOREDGTFSUFFIX=".doctored.gtf"
 
 #WALLTIME_TOPHAT=60:00:00
 #MEMORY_TOPHAT=50
