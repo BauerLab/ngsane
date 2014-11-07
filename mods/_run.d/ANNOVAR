@@ -19,13 +19,7 @@ if [ -n "$RUNANNOVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         fi
 
 
-        ##ensure directory is there
-        #if [ ! -d $QOUT/$TASK_ANNOVAR ]; then mkdir -p $QOUT/$TASK_ANNOVAR; fi
-        #if [ ! -d $OUT/$INPUT_ANNOVAR/$TASK_ANNOVAR ]; then mkdir -p $OUT/$INPUT_ANNOVAR/$TASK_ANNOVAR; fi
-        
-        echo $INPUT_ANNOVAR
-
-        $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_ANNOVAR -i $INPUT_ANNOVAR -e filter.vcf \
+        $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_ANNOVAR -i $INPUT_ANNOVAR -e flt.vcf \
              -n $NODES_ANNOVAR -c $CPU_ANNOVAR -m $MEMORY_ANNOVAR"G" -w $WALLTIME_ANNOVAR \
              --command "${NGSANE_BASE}/mods/annovar.sh -k $CONFIG -f <FILE> -o $OUT/$INPUT_ANNOVAR/<DIR>/$TASK_ANNOVAR"
     
@@ -34,12 +28,20 @@ if [ -n "$RUNANNOVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # Select either of the one below to provide a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        # start a new section for a mod
-        NGSANE_REPORT_HEADER "ANNOVAR" "$TASK_ANNOVAR" "ANNOVAR.sh,[MODPOSTCOMMAND].sh" "[PRIMARY OUTPUT FILE SUFFIX - optional]"
-                   
-        # 3) or provide information that there will be no 
-        echo "[NOTE] the ANNOVAR.sh mod does not provide a report"
+        echo $OUT/$INPUT_ANNOVAR/${DIR[0]}/$TASK_ANNOVAR
 
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "ANNOVAR" "$TASK_ANNOVAR" "annovar.sh" ".csv" "$OUT/$INPUT_ANNOVAR/<DIR>/$TASK_ANNOVAR"
+                   
+        NGSANE_REPORT_TABLE "$TASK_ANNOVAR" \
+            "-" \
+            "$INPUT_ANNOVAR/${DIR[0]}/$TASK_ANNOVAR"  \
+            "stats.txt" \
+            "LINK!<SAMPLE>_multianno.txt" \
+            "PATTERN!Annotated!80!fgrep 'Annotated' | head -n 1 | cut -f 2" \
+            "PATTERN!Annotated!80!fgrep 'Annotated' | head -n 1 | cut -f 2" \
+            "PATTERN!Annotated!80!fgrep 'Annotated' | head -n 1 | cut -f 2" \
+            "PATTERN!Annotated!80!fgrep 'Annotated' | head -n 1 | cut -f 2" 
         # finish the section
         NGSANE_REPORT_FOOTER 
         

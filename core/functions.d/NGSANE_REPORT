@@ -12,7 +12,7 @@
 # $2=MOD (e.g. $TASK_BWA)
 # $3=pipeline mod script (e.g. bwa.sh)
 # $4=result file suffix (e.g. $ASD.bam)
-# $5=output location if different to the default ($TASK)
+# $5=output location if different to the default ($TASK) either provide different TASK name or different location e.g. $OUT/$INPUT_ANNOVAR/<DIR>/$TASK_ANNOVAR (note DIR is disregarded here) 
 
 function NGSANE_REPORT_HEADER {
     export NGSANE_REPORT_TABLE_COUNTER=0
@@ -31,11 +31,23 @@ function NGSANE_REPORT_HEADER {
     echo "QC - $2"
     #check of resultfiles are redirected into to a different folder
 
-    if [ -n "$5" ]; then 
-        RESULTLOCATION="--results-task $5"
-    else 
-        RESULTLOCATION=""
+    echo "variable" $5
+
+    if [ -n "$5" ]; then
+        LO=${5/<DIR>/}
+        b=$(basename $LO)
+        d=$(dirname $LO)
+        if [ "$d" = "." ]; then 
+            echo "[NOTE] non-default task name"
+            RESULTLOCATION="--results-task $LO"
+        else
+            echo "[NOTE] non-default task name and result folder"
+            RESULTLOCATION="--results-task $b"
+            OUT=$d
+        fi
     fi
+    
+    echo $RESULTLOCATION" "$OUT
     
     ${NGSANE_BASE}/core/QC.sh --results-dir $OUT --html-file $SUMMARYTMP --modscript $3 --log $QOUT --toolkit $CONFIG --task $2 $RESULTLOCATION $SUFFIX >> $SUMMARYTMP
     grep -r '^\[CITE\]' $QOUT/$2/* >> $SUMMARYCITES

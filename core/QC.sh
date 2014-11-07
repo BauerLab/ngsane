@@ -217,6 +217,9 @@ if [ -n "$HTMLOUTPUT" ]; then
     if [ -n "$RESULTSUFFIX" ]; then
         echo "<div class='tabContent_hide' id='DC_${TASK}_PRIMARY_RESULT_FILES'><div><div class='box scroll'>"
         for dir in ${DIR[@]}; do
+        
+            echo $OUTDIR/${dir%%/*}/$OUTTASK/ 1>&2
+        
             if [ ! -d $OUTDIR/${dir%%/*}/$OUTTASK/ ]; then
                 echo "[NOTE] No result detected: $dir" 1>&2
             else
