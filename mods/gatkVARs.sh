@@ -248,6 +248,9 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/${NAME}_snps.flt.vcf $OUTDIR/${NAME}_indel.flt.vcf
 
+    rm $OUTDIR/${NAME}_snps.raw.vcf* $OUTDIR/${NAME}_indel.raw.vcf*
+
+
 fi 
 
 ################################################################################
@@ -352,6 +355,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 			$PARALLELENT \
     	    -o $OUTDIR/${NAME}.recalflt.vcf
     
+        rm $OUTDIR/${NAME}.raw.recal* $OUTDIR/${NAME}.raw.tranches
     
     	echo "[NOTE] Recal eval variants"
     	java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
