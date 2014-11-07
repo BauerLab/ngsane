@@ -89,6 +89,7 @@ echo -e "\n********* $CHECKPOINT\n"
 
 # get basename of f
 n=${f##*/}
+mkdir -p $OUTDIR
 
 ################################################################################
 CHECKPOINT="convert to annovar format"

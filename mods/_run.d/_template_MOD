@@ -29,22 +29,22 @@ if [ -n "$RUN[MOD]" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         
         # Choose ONE qsub call from below and fill in the variables as required and adapt as required
     
-        # 1) SINGLE command working on fastq files (see FASTQC as example)
+        # 1) SINGLE command working <fixedDir>/<RUNDIRS>/ structure, e.g. fastq/Run/*.fq or variant/Run (see FASTQC as example)
         $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e $READONE.$FASTQ \
             -n $NODES_[MOD] -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] \
         	--command "${NGSANE_BASE}/mods/[MOD].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD]" 
         	
-        # 2) SINGLE command working on fastq files	and producing fastq files as well (see TRIMMOMATIC as example)
+        # 2) SINGLE command working <fixedDir>/<RUNDIRS>/ AND producing files itself <fixedDir>/<runDir>_<TASK_[MOD]>/ (see TRIMMOMATIC as example)
         $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e $READONE.$FASTQ 
             -n $NODES_[MOD] -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] \
             --command "$NGSANE_BASE/mods/[MOD].sh -k $CONFIG -f <FILE>"
            
-        # 3) SINGLE command NOT working on fastq files (see MACS2 as example)
+        # 3) SINGLE command working on <RUNDIRS>/<INPUT_[MOD]>/ (see MACS2 as example)
         $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e [inputfile.suffix] \
             -n $NODES_[MOD] -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] \
             --command "${NGSANE_BASE}/mods/[MOD].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD]"
     
-        # 4) COMMAND and POSTCOMMAND NOT working on fastq files (see HTSEQCOUNT as example)
+        # 4) COMMAND and POSTCOMMAND NOT working on <RUNDIRS>/<INPUT_[MOD]>/ (see HTSEQCOUNT as example)
         $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e [inputfile.suffix] \
             -n $NODES_[MOD] -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] \
             --command "${NGSANE_BASE}/mods/[MOD].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD]" \

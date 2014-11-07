@@ -16,8 +16,8 @@ RUNANNOVAR="1"
 
 SOURCE=$(pwd)
 
-# which folder to run on (i.e. folders within fastq directory)
-declare -a DIR; DIR=( sample1 sample2 )
+# which folder to run on (i.e. folders within variant directory)
+declare -a DIR; DIR=( sample1_sample2 )
 
 # folder/task containing the data this task operates on
 # e.g. variant/
