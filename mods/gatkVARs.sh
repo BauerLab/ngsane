@@ -4,7 +4,7 @@
 # QC:
 # author: Denis C. Bauer
 # date: May.2013
-# RESULTFILENAME <TASK>/<DIR>/<DIR><ADDDUMMY>.filter.snps.vcf
+# RESULTFILENAME <TASK>/<DIR>/<DIR><ADDDUMMY>_snps.flt.vcf
 
 echo ">>>>> call SNPs using GATK"
 echo ">>>>> startdate "`date`
@@ -106,9 +106,7 @@ if [ ! -d $OUTDIR ]; then mkdir -p $OUTDIR; fi
 
 # delete old snp files unless attempting to recover
 if [ -z "$NGSANE_RECOVERFROM" ]; then
-    [ -e $OUTDIR/$NAME.fi.vcf ] && rm $OUTDIR/$NAME.fi.vcf
-    [ -e $OUTDIR/$NAME.fi.vcf.idx ] && rm $OUTDIR/$NAME.fi.vcf.idx
-    [ -e $OUTDIR/gatkSNPcall.tmp ] && rm $OUTDIR/gatkSNPcall.tmp
+    [ -e $OUTDIR/${NAME}_snps.flt.vcf ] && rm $OUTDIR/${NAME}*
 fi
         
 if [ -z "$DBSNPVCF" ] || [ ! -e $DBSNPVCF ]; then
@@ -170,7 +168,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
             -A AlleleBalance \
             -A BaseQualityRankSumTest \
             -A MappingQualityZero \
-            --out $OUTDIR/$NAME.raw.vcf \
+            --out $OUTDIR/${NAME}.raw.vcf \
             -stand_call_conf 30.0 \
             $REGION \
 			$PARALLELENT \
@@ -182,24 +180,24 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
 	-T SelectVariants \
 	-R $FASTA \
-	--variant  $OUTDIR/$NAME.raw.vcf \
+	--variant  $OUTDIR/${NAME}.raw.vcf \
 	--selectTypeToInclude SNP \
 	$PARALLELENT \
-	-o $OUTDIR/$NAME.raw.snps.vcf
+	-o $OUTDIR/${NAME}_snps.raw.vcf
 
     echo "[NOTE] get indels only"
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
 	-T SelectVariants \
 	-R $FASTA \
-	--variant  $OUTDIR/$NAME.raw.vcf \
+	--variant  $OUTDIR/${NAME}.raw.vcf \
 	--selectTypeToInclude INDEL \
 	$PARALLELENT \
-	-o $OUTDIR/$NAME.raw.indel.vcf
+	-o $OUTDIR/${NAME}_indel.raw.vcf
 
     echo "[NOTE] SNP call done "`date`
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$NAME.raw.vcf
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${NAME}.raw.vcf
 
 fi 
 
@@ -211,10 +209,10 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
 	-T VariantFiltration \
 	-R $FASTA \
-	-o $OUTDIR/$NAME.filter.snps.vcf \
-	--variant $OUTDIR/$NAME.raw.snps.vcf \
+	-o $OUTDIR/${NAME}_snps.flt.vcf \
+	--variant $OUTDIR/${NAME}_snps.raw.vcf \
 	$REGION \
-	--mask $OUTDIR/$NAME.raw.indel.vcf \
+	--mask $OUTDIR/${NAME}_indel.raw.vcf \
 	--maskName InDel \
 	--clusterWindowSize 10 \
     --filterExpression "MQ0 >= 4 && ((MQ0 / (1.0 * (DP+1))) > 0.1)" \
@@ -237,8 +235,8 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
 	-T VariantFiltration \
 	-R $FASTA \
-	-o $OUTDIR/$NAME.filter.indel.vcf \
-	--variant $OUTDIR/$NAME.raw.indel.vcf \
+	-o $OUTDIR/${NAME}_indel.flt.vcf \
+	--variant $OUTDIR/${NAME}_indel.raw.vcf \
 	$REGION \
 	--filterExpression "MQ0 >= 4 && ((MQ0 / (1.0 * (DP+1))) > 0.1)" \
 	--filterName "HARD_TO_VALIDATE" \
@@ -248,7 +246,10 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 	--filterName "QualFilter"
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$NAME.filter.snps.vcf $OUTDIR/$NAME.filter.indel.vcf
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${NAME}_snps.flt.vcf $OUTDIR/${NAME}_indel.flt.vcf
+
+    rm $OUTDIR/${NAME}_snps.raw.vcf* $OUTDIR/${NAME}_indel.raw.vcf*
+
 
 fi 
 
@@ -257,11 +258,11 @@ NGSANE_CHECKPOINT_INIT "index for IGV"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
-    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/$NAME.filter.snps.vcf
-    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/$NAME.filter.indel.vcf
+    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/${NAME}_snps.flt.vcf
+    java $JAVAPARAMS -jar $PATH_IGVTOOLS/igvtools.jar index $OUTDIR/${NAME}_indel.flt.vcf
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$NAME.filter.snps.vcf.idx $OUTDIR/$NAME.filter.indel.vcf.idx
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${NAME}_snps.flt.vcf.idx $OUTDIR/${NAME}_indel.flt.vcf.idx
 fi 
 
 ################################################################################
@@ -274,25 +275,25 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
             -T VariantEval \
             -R $FASTA \
             --dbsnp $DBSNPVCF \
-            --eval $OUTDIR/$NAME.filter.snps.vcf \
+            --eval $OUTDIR/${NAME}_snps.flt.vcf \
 	       $REGION \
             --evalModule TiTvVariantEvaluator \
 			$PARALLELENT \
-            -o $OUTDIR/$NAME.filter.snps.eval.txt
+            -o $OUTDIR/${NAME}_snps.flt.eval.txt
 
     echo "[NOTE] Hard filter eval INDELs"
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
             -T VariantEval \
             -R $FASTA \
             --dbsnp $DBSNPVCF \
-            --eval $OUTDIR/$NAME.filter.indel.vcf \
+            --eval $OUTDIR/${NAME}_indel.flt.vcf \
 	       $REGION \
             --evalModule TiTvVariantEvaluator \
 			$PARALLELENT \
-            -o $OUTDIR/$NAME.filter.indel.eval.txt
+            -o $OUTDIR/${NAME}_indel.flt.eval.txt
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$NAME.filter.snps.eval.txt $OUTDIR/$NAME.filter.indel.eval.txt
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${NAME}_snps.flt.eval.txt $OUTDIR/${NAME}_indel.flt.eval.txt
 
 fi
 
@@ -331,8 +332,9 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 	    $ONEKGPARAMS \
     	    -an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an FS -an MQ \
     	    -mode BOTH \
-    	    -recalFile $OUTDIR/$NAME.raw.recal \
-    	    -tranchesFile $OUTDIR/$NAME.raw.tranches \
+    	    -recalFile $OUTDIR/${NAME}.raw.recal \
+    	    -tranchesFile $OUTDIR/${NAME}.raw.tranches \
+    	    $REGION \
     	    $ADDRECALALN \
 			$PARALLELENT \
     	    -rscriptFile $OUTDIR/R/output.plots.R \
@@ -345,26 +347,28 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     	    -T ApplyRecalibration \
     	    -mode Both \
     	    -R $FASTA \
-    	    -input $OUTDIR/$NAME.raw.vcf \
+    	    -input $OUTDIR/${NAME}.raw.vcf \
     	    --ts_filter_level 99.0 \
-    	    -tranchesFile $OUTDIR/$NAME.raw.tranches \
-    	    -recalFile $OUTDIR/$NAME.raw.recal \
+    	    -tranchesFile $OUTDIR/${NAME}.raw.tranches \
+    	    -recalFile $OUTDIR/${NAME}.raw.recal \
+    	    $REGION \
 			$PARALLELENT \
-    	    -o $OUTDIR/$NAME.recalfilt.vcf
+    	    -o $OUTDIR/${NAME}.recalflt.vcf
     
+        rm $OUTDIR/${NAME}.raw.recal* $OUTDIR/${NAME}.raw.tranches
     
     	echo "[NOTE] Recal eval variants"
     	java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l WARN \
                 -T VariantEval \
                 -R $FASTA \
                 --dbsnp $DBSNPVCF \
-                --eval $OUTDIR/$NAME.recalfilt.vcf \
+                --eval $OUTDIR/${NAME}.recalflt.vcf \
                 --evalModule TiTvVariantEvaluator \
 				$PARALLELENT \
-                -o $OUTDIR/$NAME.recalfilt.eval.txt
+                -o $OUTDIR/${NAME}.recalflt.eval.txt
     
         # mark checkpoint
-        NGSANE_CHECKPOINT_CHECK $OUTDIR/$NAME.recalfilt.eval.txt
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/${NAME}.recalflt.eval.txt
     else
         echo "[NOTE] re-calibrate skipped"
         NGSANE_CHECKPOINT_CHECK
@@ -372,6 +376,6 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 fi 
 
 ################################################################################
-[ -e $OUTDIR/$NAME.filter.snps.vcf.dummy ] && rm $OUTDIR/$NAME.filter.snps.vcf.dummy
+[ -e $OUTDIR/${NAME}_snps.flt.vcf.dummy ] && rm $OUTDIR/${NAME}_snps.flt.vcf.dummy
 echo ">>>>> call SNPs using GATK - FINISHED"
 echo ">>>>> enddate "`date`
