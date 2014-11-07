@@ -35,7 +35,7 @@ if [ -n "$RUNGATKVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_TABLE "${TASK_GATKVAR}" \
             "SNPs" \
             "$OUT/$TASK_GATKVAR/$NAME" \
-            ".filter.snps.eval.txt" \
+            "snps.flt.eval.txt" \
             "PATTERN!Total!!fgrep -w 'CountVariants' | sed -n 3p | tr -s ' ' '\t' | cut -f7" \
             "PATTERN!Known!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f6" \
             "PATTERN!SNPdb Conc!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f11" \
@@ -49,7 +49,7 @@ if [ -n "$RUNGATKVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_TABLE "${TASK_GATKVAR}" \
             "SNPs after recalibration" \
             "$OUT/$TASK_GATKVAR/$NAME" \
-            ".recalfilt.snps.eval.txt" \
+            "snps.recalflt.eval.txt" \
             "PATTERN!Total!!fgrep -w 'CountVariants' | sed -n 3p | tr -s ' ' '\t' | cut -f7" \
             "PATTERN!Known!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f6" \
             "PATTERN!SNPdb Conc!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f11" \
@@ -63,7 +63,7 @@ if [ -n "$RUNGATKVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         NGSANE_REPORT_TABLE "${TASK_GATKVAR}" \
             "Indels" \
             "$OUT/$TASK_GATKVAR/$NAME" \
-            ".filter.indel.eval.txt" \
+            "indel.flt.eval.txt" \
             "PATTERN!Total!!fgrep -w 'CountVariants' | sed -n 3p | tr -s ' ' '\t' | cut -f7" \
             "PATTERN!Known!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f6" \
             "PATTERN!SNPdb Conc!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f11" \
