@@ -50,6 +50,8 @@ echo "PATH=$PATH"
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
+echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
+[ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress bedgraphs"
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -110,7 +112,7 @@ for d in ${DIR[@]}; do
             exit 1
         fi
 
-        echo -ne "cd $NGSANE_BASE/tools/idr/; Rscript batch-consistency-analysis.r $R1 $R2 $IDR_PEAKHALFWIDTH $OUTDIR/${REPLICATE[0]} $IDR_MINOVERLAPRATIO $IDR_ISBROADPEAK $IDR_RANKINGMEASURE $GENOMESIZE; Rscript batch-consistency-plot.r 1 $OUTDIR/${REPLICATE[0]} $OUTDIR/${REPLICATE[0]}; awk 'BEGIN{OFS=\"\t\"}{if(NR>1){if(\$3<\$7){start=\$3}else{start=\$7};if(\$4<\$8){end=\$8}else{end=\$4}; print \$2,start,end,\"IDR_\"(NR-1), \$11, \".\"}}' $OUTDIR/${REPLICATE[0]}-overlapped-peaks.txt | sed 's/\"//g' > $OUTDIR/${REPLICATE[0]}-overlapped-peaks.bed" >> $COMMAND
+        echo -ne "cd $NGSANE_BASE/tools/idr/; Rscript batch-consistency-analysis.r $R1 $R2 $IDR_PEAKHALFWIDTH $OUTDIR/${REPLICATE[0]} $IDR_MINOVERLAPRATIO $IDR_ISBROADPEAK $IDR_RANKINGMEASURE $GENOMESIZE; Rscript batch-consistency-plot.r 1 $OUTDIR/${REPLICATE[0]} $OUTDIR/${REPLICATE[0]}; awk 'BEGIN{OFS=\"\t\"}{if(NR>1){if(\$3<\$7){start=\$3}else{start=\$7};if(\$4<\$8){end=\$8}else{end=\$4}; print \$2,start,end,\"IDR_\"(NR-1), \$11, \".\"}}' $OUTDIR/${REPLICATE[0]}-overlapped-peaks.txt | sed 's/\"//g' > $OUTDIR/${REPLICATE[0]}-overlapped-peaks.bed; if hash bedToBigBed; then bedToBigBed -type=bed6+3 $OUTDIR/${REPLICATE[0]}-overlapped-peaks.bed $GENOMESIZE $OUTDIR/${REPLICATE[0]}.bb; fi" >> $COMMAND
         echo ";" >> $COMMAND
     
     done < $COMMAND.tmp
@@ -140,7 +142,7 @@ else
 fi
 
 rm $COMMAND
-
+    
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
 echo ">>>>> IDR analysis - FINISHED"
