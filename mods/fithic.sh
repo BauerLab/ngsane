@@ -7,7 +7,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.spline_pass1.txt.gz
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.txt.gz
 
 echo ">>>>> Chromatin organization with fit-hi-c "
 echo ">>>>> startdate "`date`
