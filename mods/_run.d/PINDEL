@@ -26,7 +26,7 @@ if [ -n "$RUNPINDEL" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        NGSANE_REPORT_HEADER "Structural Variants (Pindel)" "$TASK_PINDEL" "pindel.sh,variantcollect.sh"
+        NGSANE_REPORT_HEADER "Structural Variants (Pindel)" "${INPUT_PINDEL}-${TASK_PINDEL}" "pindel.sh,variantcollect.sh"
 
         NGSANE_REPORT_TABLE "$TASK_PINDEL" \
             "-" \

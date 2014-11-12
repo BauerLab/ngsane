@@ -34,6 +34,9 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
+# folder name for aggregate output
+GATKVAR_AGGREGATE_FOLDER=
+
 # reference genome
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
 # or ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
@@ -59,7 +62,7 @@ ONEKGVCF=
 #********************
 
 # limit analysis to subset of genome 
-# e.g. file or chr region (16:27184646-27472388)
+# e.g. file (.bed, .list, .picard, .interval_list, or .intervals) or chr region (16:27184646-27472388)
 #REGION="-L <element>" 
 
 # additional commands for variant recalibrator

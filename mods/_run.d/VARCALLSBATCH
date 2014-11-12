@@ -12,7 +12,6 @@ if [ -n "$RUNVARCALLSBATCH" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     
     	if [ ! -e "$FASTA.fai" ] ; then echo -e "\e[91m[ERROR]\e[0m $FASTA.fai missing"; exit 1; fi
       	BATCHES=$(cut -f 1 $FASTA.fai | grep -v GL | sort -u)
-    	NAME=$(echo ${DIR[@]} | sort -u |sed 's/ /_/g')
     
     	if [[ ! "$ARMED" -eq "postonly" ]]; then
     	  	for i in $BATCHES; do
@@ -21,9 +20,8 @@ if [ -n "$RUNVARCALLSBATCH" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     	    	JOBID=$( $QSUB $ARMED $NGSANE_WAITFORJOB --postname postcommand$i -r -d -k $CONFIG -t ${TASK_GATKVAR}batch -i $INPUT_GATKVAR  \
     				-e $ASR.bam -n $NODES_GATKVAR -c $CPU_GATKVAR -m $MEMORY_GATKVAR"G" -w $WALLTIME_GATKVAR \
     	        	--postcommand "${NGSANE_BASE}/mods/gatkVARs.sh -k $CONFIG \
-    	                        -i <FILE> -t $CPU_GATKVAR \
-    	                        -r $FASTA -d $DBSNPVCF -o $OUT/${TASK_GATKVAR}batch/$NAME -n $NAME$ADDDUMMY \
-    	                        -H $HAPMAPVCF -L $i " 
+    	                        -i <FILE> -t $CPU_GATKVAR -o $OUT/${TASK_GATKVAR}batch/$GATKVAR_AGGREGATE_FOLDER -n $GATKVAR_AGGREGATE_FOLDER$ADDDUMMY \
+    	                        -L $i " 
     			) && echo -e "$JOBID"
     			if [ -n "$(echo $JOBID | grep Jobnumber)" ]; then JOBIDS=$(waitForJobIds "$JOBID")":"$JOBIDS; fi
     	  	done
@@ -33,34 +31,34 @@ if [ -n "$RUNVARCALLSBATCH" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     	fi
     
     	echo "[NOTE] filtered SNPs"
-       	$QSUB $ARMED --postname joinedSNP --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
+       	$QSUB $ARMED --postname joinedSNP --givenDirs $GATKVAR_AGGREGATE_FOLDER -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e snps.flt.vcf $JOBIDS \
     		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
     		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
-    			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.snps.vcf"
+    			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$GATKVAR_AGGREGATE_FOLDER --dummy snps.flt.vcf --target snps.flt.vcf"
     
     	echo "[NOTE] filtered INDELs"
-       	$QSUB $ARMED --postname joinedINDEL --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
+       	$QSUB $ARMED --postname joinedINDEL --givenDirs $GATKVAR_AGGREGATE_FOLDER -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e snps.flt.vcf $JOBIDS \
     		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
     		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
-    			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target filter.indel.vcf"
+    			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$GATKVAR_AGGREGATE_FOLDER --dummy snps.flt.vcf --target indel.flt.vcf"
     
     	echo "[NOTE] recal Vars"
-       	$QSUB $ARMED --postname joinedRECAL --givenDirs $NAME -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e filter.snps.vcf $JOBIDS \
+       	$QSUB $ARMED --postname joinedRECAL --givenDirs $GATKVAR_AGGREGATE_FOLDER -d -k $CONFIG -t ${TASK_GATKVAR}batch -i ${TASK_GATKVAR}batch -e snps.flt.vcf $JOBIDS \
     		-n $NODES_VARCOLLECT -c $CPU_VARCOLLECT -m $MEMORY_VARCOLLECT"G" -w $WALLTIME_VARCOLLECT \
     		--postcommand "${NGSANE_BASE}/mods/variantcollect.sh -k $CONFIG -f <FILE> -i1 ${TASK_GATKVAR}batch \
-    			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$NAME --dummy filter.snps.vcf --target recalfilt.vcf"
+    			-i2 ${TASK_GATKVAR}batch -o $OUT/${TASK_GATKVAR}batch/$GATKVAR_AGGREGATE_FOLDER --dummy snps.flt.vcf --target snps.recalfilt.vcf"
        
 
     ############################################################################
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-        NGSANE_REPORT_HEADER "VarCallsBatch" "$TASK_GATKVAR" "gatkVARs.sh,variantcollect.sh"
+        NGSANE_REPORT_HEADER "VarCallsBatch" "${TASK_GATKVAR}batch" "variantcollect.sh,gatkVARs.sh"
         
-        NGSANE_REPORT_TABLE "${TASK_GATKVAR}" \
+        NGSANE_REPORT_TABLE_AGGREGATE "${TASK_GATKVAR}" \
             "SNPs" \
-            "$OUT/$TASK_GATKVAR/$NAME" \
-            ".filter.snps.eval.txt" \
+            "$OUT/${TASK_GATKVAR}batch/$GATKVAR_AGGREGATE_FOLDER" \
+            ".snps.flt.vcf.eval.txt" \
             "PATTERN!Total!!fgrep -w 'CountVariants' | sed -n 3p | tr -s ' ' '\t' | cut -f7" \
             "PATTERN!Known!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f6" \
             "PATTERN!SNPdb Conc!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f11" \
@@ -71,10 +69,12 @@ if [ -n "$RUNVARCALLSBATCH" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN!Het/Hom!!fgrep -w 'CountVariants' | sed -n 5p | tr -s ' ' '\t' | cut -f27"
 
 
-        NGSANE_REPORT_TABLE "${TASK_GATKVAR}" \
+        NGSANE_REPORT_TABLE_AGGREGATE "${TASK_GATKVAR}" \
             "SNPs after recalibration" \
             "$OUT/$TASK_GATKVAR/$NAME" \
-            ".recalfilt.snps.eval.txt" \
+            "snps.recalflt.eval.txt" \
+            "$OUT/${TASK_GATKVAR}batch/$GATKVAR_AGGREGATE_FOLDER" \
+            "snps.recalfilt.vcf.eval.txt" \
             "PATTERN!Total!!fgrep -w 'CountVariants' | sed -n 3p | tr -s ' ' '\t' | cut -f7" \
             "PATTERN!Known!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f6" \
             "PATTERN!SNPdb Conc!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f11" \
@@ -85,10 +85,12 @@ if [ -n "$RUNVARCALLSBATCH" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN!Het/Hom!!fgrep -w 'CountVariants' | sed -n 5p | tr -s ' ' '\t' | cut -f27"
 
 
-        NGSANE_REPORT_TABLE "${TASK_GATKVAR}" \
+        NGSANE_REPORT_TABLE_AGGREGATE "${TASK_GATKVAR}" \
             "Indels" \
             "$OUT/$TASK_GATKVAR/$NAME" \
-            ".filter.indel.eval.txt" \
+            "indel.flt.eval.txt" \
+            "$OUT/${TASK_GATKVAR}batch/$GATKVAR_AGGREGATE_FOLDER" \
+            ".indel.flt.vcf.eval.txt" \
             "PATTERN!Total!!fgrep -w 'CountVariants' | sed -n 3p | tr -s ' ' '\t' | cut -f7" \
             "PATTERN!Known!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f6" \
             "PATTERN!SNPdb Conc!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f11" \

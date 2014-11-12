@@ -4,7 +4,7 @@
 # QC:
 # author: Denis C. Bauer
 # date: May.2013
-# RESULTFILENAME <TASK>/<DIR>/<DIR><ADDDUMMY>_snps.flt.vcf
+# RESULTFILENAME <TASK>/${GATKVAR_AGGREGATE_FOLDER}/<DIR><ADDDUMMY>_snps.flt.vcf
 
 echo ">>>>> call SNPs using GATK"
 echo ">>>>> startdate "`date`

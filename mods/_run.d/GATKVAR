@@ -13,17 +13,15 @@ if [ -n "$RUNGATKVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
     # Wether to submit a job or compile a report
     if [ -z "$NGSANE_COMPILE_REPORT" ]; then
 
-        if [ -z "$TASK_GATKVAR" ] || [ -z "$NODES_GATKVAR" ] || [ -z "$CPU_GATKVAR" ] || [ -z "$MEMORY_GATKVAR" ] || [ -z "$WALLTIME_GATKVAR" ]; then 
+        if [ -z "$TASK_GATKVAR" ] || [ -z "$NODES_GATKVAR" ] || [ -z "$CPU_GATKVAR" ] || [ -z "$MEMORY_GATKVAR" ] || [ -z "$WALLTIME_GATKVAR" ] || [ -z "$GATKVAR_AGGREGATE_FOLDER" ]; then 
             echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
         fi
         
         
         $QSUB $ARMED $NGSANE_WAITFORJOB -r -d -k $CONFIG -t $TASK_GATKVAR -i $INPUT_GATKVAR  -e $ASR.bam -n $NODES_GATKVAR \
-            -c $CPU_GATKVAR -m $MEMORY_GATKVAR"G" -w $WALLTIME_GATKVAR \
+            -c $CPU_GATKVAR -m $MEMORY_GATKVAR"G" -w $WALLTIME_GATKVAR --postname "postcommand$GATKVAR_AGGREGATE_FOLDER" \
             --postcommand "${NGSANE_BASE}/mods/gatkVARs.sh -k $CONFIG \
-                            -i <FILE> -t $CPU_GATKVAR \
-                            -r $FASTA -d $DBSNPVCF -o $OUT/$TASK_GATKVAR/$NAME -n $NAME \
-                            -H $HAPMAPVCF" #-K $ONEKGVCF"
+                            -i <FILE> -t $CPU_GATKVAR -o $OUT/$TASK_GATKVAR/$GATKVAR_AGGREGATE_FOLDER -n $NAME "
                         
 
     ############################################################################
@@ -32,10 +30,10 @@ if [ -n "$RUNGATKVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
 
         NGSANE_REPORT_HEADER "VarCalls" "$TASK_GATKVAR" "gatkVARs.sh"
 
-        NGSANE_REPORT_TABLE "${TASK_GATKVAR}" \
+        NGSANE_REPORT_TABLE_AGGREGATE "${TASK_GATKVAR}" \
             "SNPs" \
-            "$OUT/$TASK_GATKVAR/$NAME" \
-            "snps.flt.eval.txt" \
+            "$OUT/$TASK_GATKVAR/$GATKVAR_AGGREGATE_FOLDER" \
+            "_snps.flt.eval.txt" \
             "PATTERN!Total!!fgrep -w 'CountVariants' | sed -n 3p | tr -s ' ' '\t' | cut -f7" \
             "PATTERN!Known!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f6" \
             "PATTERN!SNPdb Conc!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f11" \
@@ -46,10 +44,10 @@ if [ -n "$RUNGATKVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN!Het/Hom!!fgrep -w 'CountVariants' | sed -n 5p | tr -s ' ' '\t' | cut -f27"
 
 
-        NGSANE_REPORT_TABLE "${TASK_GATKVAR}" \
+        NGSANE_REPORT_TABLE_AGGREGATE "${TASK_GATKVAR}" \
             "SNPs after recalibration" \
-            "$OUT/$TASK_GATKVAR/$NAME" \
-            "snps.recalflt.eval.txt" \
+            "$OUT/$TASK_GATKVAR/$GATKVAR_AGGREGATE_FOLDER" \
+            "_snps.recalflt.eval.txt" \
             "PATTERN!Total!!fgrep -w 'CountVariants' | sed -n 3p | tr -s ' ' '\t' | cut -f7" \
             "PATTERN!Known!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f6" \
             "PATTERN!SNPdb Conc!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f11" \
@@ -60,10 +58,10 @@ if [ -n "$RUNGATKVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN!Het/Hom!!fgrep -w 'CountVariants' | sed -n 5p | tr -s ' ' '\t' | cut -f27"
 
 
-        NGSANE_REPORT_TABLE "${TASK_GATKVAR}" \
+        NGSANE_REPORT_TABLE_AGGREGATE "${TASK_GATKVAR}" \
             "Indels" \
-            "$OUT/$TASK_GATKVAR/$NAME" \
-            "indel.flt.eval.txt" \
+            "$OUT/$TASK_GATKVAR/$GATKVAR_AGGREGATE_FOLDER" \
+            "_indel.flt.eval.txt" \
             "PATTERN!Total!!fgrep -w 'CountVariants' | sed -n 3p | tr -s ' ' '\t' | cut -f7" \
             "PATTERN!Known!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f6" \
             "PATTERN!SNPdb Conc!!fgrep -w 'CompOverlap' | sed -n 4p | tr -s ' ' '\t' | cut -f11" \
