@@ -81,8 +81,11 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     command="fastq-dump $FASTQDUMADDPARAM $INPUTFILE -O $OUTDIR/ --gzip $SPLIT"
     echo $command && eval $command
 
-    [ -e $OUTDIR/$SAMPLE"_1".$FASTQ ] && mv $OUTDIR/$SAMPLE"_1".$FASTQ $OUTDIR/$SAMPLE$READONE.$FASTQ
-    [ -e $OUTDIR/$SAMPLE"_2".$FASTQ ] && mv $OUTDIR/$SAMPLE"_2".$FASTQ $OUTDIR/$SAMPLE$READTWO.$FASTQ
+    #rename file if requested
+    if [[ $OUTDIR/$SAMPLE"_1".$FASTQ != $OUTDIR/$SAMPLE$READONE.$FASTQ ]]; then 
+	[ -e $OUTDIR/$SAMPLE"_1".$FASTQ ] && mv -f $OUTDIR/$SAMPLE"_1".$FASTQ $OUTDIR/$SAMPLE$READONE.$FASTQ
+	[ -e $OUTDIR/$SAMPLE"_2".$FASTQ ] && mv -f $OUTDIR/$SAMPLE"_2".$FASTQ $OUTDIR/$SAMPLE$READTWO.$FASTQ
+    fi
  
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$READONE.$FASTQ

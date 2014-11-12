@@ -50,6 +50,13 @@ if [ -n "$RUN[MOD]" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             --command "${NGSANE_BASE}/mods/[MOD].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD]" \
             --postname postcommand$[MOD] \
             --postcommand "${NGSANE_BASE}/mods/[MODPOSTCOMMAND].sh -f <FILE> -k $CONFIG --outdir $OUT/<DIR>/$TASK_[MOD]"
+
+        # 5) SINGLE command working aggragated data <INPUT_[MOD]>/ so no RUNDIRS (see annovar as example)
+        $QSUB $ARMED $NGSANE_WAITFORJOB --givenDirs "." -d -k $CONFIG -t $TASK_[MOD] -i $INPUT_[MOD] -e [inputfile.suffix] \
+            -n $NODES_[MOD] -c $CPU_[MOD] -m $MEMORY_[MOD]"G" -w $WALLTIME_[MOD] \
+            --command "${NGSANE_BASE}/mods/[MOD].sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_[MOD]"
+
+
       
                    
     ############################################################################
