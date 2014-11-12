@@ -59,7 +59,7 @@ done
 . $CONFIG
 
 ################################################################################
-CHECKPOINT="programs"
+NGSANE_CHECKPOINT_INIT "programs"
 
 for MODULE in $MODULE_ANNOVAR; do module load $MODULE; done  # save way to load modules that itself load other modules
 export PATH=$PATH_ANNOVAR:$PATH
@@ -69,21 +69,21 @@ echo "PATH=$PATH"
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="parameters"
+NGSANE_CHECKPOINT_INIT "parameters"
 
 f=$INPUTFILE
 
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
-CHECKPOINT="recall files from tape"
+NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $INPUTFILE
 fi
     
-echo -e "\n********* $CHECKPOINT\n"
+NGSANE_CHECKPOINT_CHECK
 
 
 
@@ -92,11 +92,9 @@ n=${f##*/}
 mkdir -p $OUTDIR
 
 ################################################################################
-CHECKPOINT="convert to annovar format"
+NGSANE_CHECKPOINT_INIT "convert to annovar format"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 	#head -n 1000 $f >test
 
@@ -104,15 +102,13 @@ else
     echo $command && eval $command
     
     # mark checkpoint
-    if [ -e $OUTDIR/${n/vcf/txt} ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${n/vcf/txt}
 fi
 
 ################################################################################
-CHECKPOINT="autofilter"
+NGSANE_CHECKPOINT_INIT "autofilter"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     #summarize_annovar.pl --buildver $LIBRARY $OUTDIR/${n/vcf/txt} $DATABASE --remove -outfile $OUTDIR/${n/vcf/sum}
 	command="table_annovar.pl $OUTDIR/${n/vcf/txt} $DATABASE --buildver $LIBRARY --protocol refGene,knownGene,ensGene,wgEncodeGencodeManualV4,gerp++elem,phastConsElements46way,genomicSuperDups,esp6500si_all,1000g2012apr_all,1000g2012apr_eur,1000g2012apr_amr,1000g2012apr_asn,1000g2012apr_afr,cg46,cosmic64,snp129,snp132,snp138,avsift,ljb2_all --operation g,g,g,g,r,r,r,f,f,f,f,f,f,f,f,f,f,f,f,f --outfile $OUTDIR/${n/vcf/sum} --remove --otherinfo"
@@ -120,22 +116,33 @@ else
 	echo $command && eval $command
 
     # mark checkpoint
-    if [ -e $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.txt" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.txt" 
 fi
 
 ################################################################################
-CHECKPOINT="summarize over all samples"
+NGSANE_CHECKPOINT_INIT "summarize over all samples"
 
-if [[ -n "$RECOVERFROM" ]] && [[ $(grep -P "^\*{9} $CHECKPOINT" $RECOVERFROM | wc -l ) -gt 0 ]] ; then
-    echo "::::::::: passed $CHECKPOINT"
-else 
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 	# add the genotype information to the sample and make it then an csv file (cannot do it in the previous step because the genotype info is tab separated...)
     REP=$(grep "CHROM" $f) # | cut -f 10- | sed 's/\t/,/g')
     sed "s/Otherinfo/$REP/" $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.txt" |	gawk -F \\t -v OFS="\",\"" '{$1=$1; print "\""$0"\""}' > $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.csv"
 
 # mark checkpoint
-    if [ -e $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.csv" ];then echo -e "\n********* $CHECKPOINT\n"; unset RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.csv" 
+fi
+
+################################################################################
+NGSANE_CHECKPOINT_INIT "make statistics"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
+    for i in nonsynonymous synonymous splicing; do
+        echo $i $(grep $i $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.txt" | wc -l) >> $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.stats"
+    done
+    
+    # mark checkpoint
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.stats" 
 fi
 
 #clean
