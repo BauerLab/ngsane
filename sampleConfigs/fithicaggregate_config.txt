@@ -1,0 +1,71 @@
+# author: Fabian Buske
+# date: November 2014
+# compatible: NGSANE v0.5.x
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNFITHIC="1"        # call significant chromatin interactions
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_FITHIC=$TASK_HICUP
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# Resolution in nts
+HIC_RESOLUTION=1000000
+TASK_FITHIC="fithic_$HIC_RESOLUTION"
+
+# chromosome sizes
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa
+# or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=
+
+# Mappability track 
+# e.g. /share/ClusterShare/biodata/contrib/ENCODE/encodeDCC/wgEncodeMapability/wgEncodeCrgMapabilityAlign36mer.bigWig
+MAPPABILITY=
+
+# Whether to pool all the data at the contact map stage rather than processing the files individual
+# e.g. FITHIC_POOLDATA="1"
+FITHIC_POOLDATA=
+
+# name for pooled data (only required when setting variable FITHIC_POOLDATA)
+FITHIC_POOLED_SAMPLE_NAME=
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# additional parameters for fit-hi-c
+# e.g. "--visual --lowerbound=50000 --upperbound=-1 --noOfBins=200 --mappabilityThres=1"
+FITHICADDPARAM=
+
+# Q-value threshold applied for filtering (default: 0.1)
+# e.g. 0.05
+FITHIC_QVALUETHRESHOLD=
+
+#WALLTIME_FITHIC=10:00:00
+#MEMORY_FITHIC=20
+#CPU_FITHIC=1
+#NODES_FITHIC="nodes=1:ppn=1"
