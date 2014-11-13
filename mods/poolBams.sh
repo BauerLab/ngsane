@@ -98,7 +98,7 @@ NGSANE_CHECKPOINT_INIT "pool data"
 if hash parallel ; then
 
     echo "[NOTE] parallel processing"
-    cat $COMMAND | parallel --verbose --joblog $TMP/$TASK_POOLBAMS.log --gnu --eta -j $CPU_POOLBAMS "eval {}" > /dev/null 2>&1
+    cat $COMMAND | parallel --joblog $TMP/$TASK_POOLBAMS.log --gnu -j $CPU_POOLBAMS "eval {}" > /dev/null 2>&1
 
 else
     # serial processing
