@@ -35,7 +35,7 @@ echo "PATH=$PATH"
 [ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MergeSamFiles.jar))
  
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int(MEMORY_POOLBAMS*0.75)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_POOLBAMS*0.75)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -98,7 +98,7 @@ NGSANE_CHECKPOINT_INIT "pool data"
 if hash parallel ; then
 
     echo "[NOTE] parallel processing"
-    cat $COMMAND | parallel --verbose --joblog $TMP/$TASK_POOLBAMS.log --gnu --eta -j $CPU_POOLBAMS "eval {}" > /dev/null 2>&1
+    cat $COMMAND | parallel --joblog $TMP/$TASK_POOLBAMS.log --gnu -j $CPU_POOLBAMS "eval {}" > /dev/null 2>&1
 
 else
     # serial processing
