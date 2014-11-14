@@ -64,12 +64,14 @@ HICLIB_RENZYMES="NcoI"
 # restriction enzymes
 HICUP_RENZYME1="Ncol"
 HICUP_RCUTSITE1="C^CATGG"
-HICUP_RENZYME2="none"
+HICUP_RENZYME2=
 HICUP_RCUTSITE2=
 
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
+#e.g. "-format phred33-quals"
+HICUPMAPPER_ADDPARAM="-format phred33-quals"
 
 HICLIB_READLENGTH=
 HICLIB_CHROMOSOME=16
@@ -78,10 +80,17 @@ HICLIB_CHROMOSOME=16
 #HICLIB_KEEPBAM=1
 
 FITHICADDPARAM="--lowerbound 5000 --upperbound 5000000"
-HIC_RESOLUTION="100000"
+HIC_RESOLUTION="1000000"
 
 # Mappability track
 MAPPABILITY=$(pwd)/referenceData/wgEncodeCrgMapabilityAlign36mer_chr16.bw
+
+# Mappability threshold to apply in fithic
+# e.g. 0.5
+FITHIC_MAPPABILITYTHRESHOLD=0.5
+
+# pattern indicating with chromosomes to use
+FITHIC_CHROMOSOMES='^[0-9XY]+$'
 
 #********************
 # Resources

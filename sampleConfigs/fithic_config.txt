@@ -36,6 +36,10 @@ QOUT=$OUT/qout
 # Resolution in nts
 HIC_RESOLUTION=50000
 
+# Mappability threshold to apply in fithic
+# e.g. 0.5
+FITHIC_MAPPABILITYTHRESHOLD=0.5
+
 # chromosome sizes
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa
 # or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
@@ -45,6 +49,9 @@ FASTA=
 # e.g. /share/ClusterShare/biodata/contrib/ENCODE/encodeDCC/wgEncodeMapability/wgEncodeCrgMapabilityAlign36mer.bigWig
 MAPPABILITY=
 
+# pattern indicating with chromosomes to use
+FITHIC_CHROMOSOMES="chr[0-9XY]+"
+
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
@@ -53,7 +60,7 @@ MAPPABILITY=
 # e.g. "--visual --lowerbound=50000 --upperbound=-1 --noOfBins=200 --mappabilityThres=1"
 FITHICADDPARAM=
 
-# Q-value threshold applied for filtering (default: 0.1)
+# Q-value threshold applied for filtering (default: 0.01)
 # e.g. 0.05
 FITHIC_QVALUETHRESHOLD=
 

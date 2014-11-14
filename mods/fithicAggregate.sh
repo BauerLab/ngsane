@@ -100,9 +100,18 @@ if [ -z "$HIC_RESOLUTION" ]; then
 fi
 
 if [[ -z "$FITHIC_QVALUETHRESHOLD" ]]; then
-    FITHIC_QVALUETHRESHOLD=0.1
+    FITHIC_QVALUETHRESHOLD=0.01
 fi
 echo "[NOTE] Q-value threshold: $FITHIC_QVALUETHRESHOLD"
+
+if [[ -z "$FITHIC_MAPPABILITYTHRESHOLD" ]];then
+    echo "[ERROR] FITHIC_MAPPABILITYTHRESHOLD not set"
+    exit 1
+fi
+
+if [[ -n "$FITHIC_CHROMOSOMES" ]]; then
+    FITHIC_CHROMOSOMES="--chrompattern '$FITHIC_CHROMOSOMES'"
+fi
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -120,7 +129,7 @@ NGSANE_CHECKPOINT_INIT "count Interactions"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithicCountInteractions.py --verbose --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES --outputDir=$OUTDIR $DATASETS --outputFilename $SAMPLE >> $OUTDIR/$SAMPLE.log"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithicCountInteractions.py --verbose --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR $DATASETS --outputFilename $SAMPLE >> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     [ -e $OUTDIR/${SAMPLE}$ASD.bam.fragmentLists ] && mv $OUTDIR/${SAMPLE}$ASD.bam.fragmentLists $OUTDIR/$SAMPLE.fragmentLists
@@ -138,7 +147,7 @@ NGSANE_CHECKPOINT_INIT "ICE correction"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/ICE-with-sparseMatrix.py $OUTDIR/$SAMPLE.contactCounts.gz $OUTDIR/$SAMPLE.fragmentLists.gz l1 $OUTDIR/$SAMPLE.ice.txt.gz 0.5 >> $OUTDIR/$SAMPLE.log"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/ICE-with-sparseMatrix.py $OUTDIR/$SAMPLE.contactCounts.gz $OUTDIR/$SAMPLE.fragmentLists.gz l1 $OUTDIR/$SAMPLE.ice.txt.gz $FITHIC_MAPPABILITYTHRESHOLD >> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
    
     # mark checkpoint

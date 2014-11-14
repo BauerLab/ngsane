@@ -1,9 +1,9 @@
 #!/bin/bash -e
 
 ################################################################################
-#   Mapping using HiCUP
+#   Mapping using HiCUPhicup 
 # IN : $SOURCE/fastq/$dir/*$READONE$FASTQ
-# OUT: $OUT/$dir/hicup/*_uniques.bam
+# OUT: $OUT/$dir/hicup/*$ASD.bam
 ################################################################################
 
 if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
@@ -28,7 +28,7 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             INDEXJOBIDS=$NGSANE_WAITFORJOB 
         fi
         
-        if [ ! -f $OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt ];then
+        if [ ! -s $OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt ];then
             JOBIDS=$( 
             $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c 1 \
             	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS \

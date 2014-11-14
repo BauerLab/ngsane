@@ -37,6 +37,10 @@ QOUT=$OUT/qout
 HIC_RESOLUTION=1000000
 TASK_FITHIC="fithic_$HIC_RESOLUTION"
 
+# Mappability threshold to apply in fithic
+# e.g. 0.5
+FITHIC_MAPPABILITYTHRESHOLD=0.5
+
 # chromosome sizes
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa
 # or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
@@ -45,6 +49,9 @@ FASTA=
 # Mappability track 
 # e.g. /share/ClusterShare/biodata/contrib/ENCODE/encodeDCC/wgEncodeMapability/wgEncodeCrgMapabilityAlign36mer.bigWig
 MAPPABILITY=
+
+# pattern indicating with chromosomes to use
+FITHIC_CHROMOSOMES="chr[0-9XY]+"
 
 # Whether to pool all the data at the contact map stage rather than processing the files individual
 # e.g. FITHIC_POOLDATA="1"
@@ -61,11 +68,11 @@ FITHIC_POOLED_SAMPLE_NAME=
 # e.g. "--visual --lowerbound=50000 --upperbound=-1 --noOfBins=200 --mappabilityThres=1"
 FITHICADDPARAM=
 
-# Q-value threshold applied for filtering (default: 0.1)
+# Q-value threshold applied for filtering (default: 0.01)
 # e.g. 0.05
 FITHIC_QVALUETHRESHOLD=
 
-#WALLTIME_FITHIC=10:00:00
-#MEMORY_FITHIC=20
+#WALLTIME_FITHIC=48:00:00
+#MEMORY_FITHIC=40
 #CPU_FITHIC=1
 #NODES_FITHIC="nodes=1:ppn=1"
