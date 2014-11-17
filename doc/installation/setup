@@ -223,24 +223,25 @@ apt-get install python2.7-dev -y
 apt-get install python-setuptools -y
 easy_install pip
 pip install yolk
-pip install Numpy
-pip install cython
-pip install numexpr
-pip install HTSeq
-pip install MACS2
-pip install h5py
-pip install tables
-pip install genomedata
-pip install iptools
-pip install segway
-pip install rpy2
-pip install segtools
-pip install pysam
-pip install cutadapt
-pip install bx-python
-pip install joblib
-pip install biopython
-pip install scipy
+pip install --upgrade Numpy
+pip install --upgrade cython
+pip install --upgrade numexpr
+pip install --upgrade HTSeq
+pip install --upgrade MACS2
+pip install --upgrade h5py
+pip install --upgrade tables
+pip install --upgrade genomedata
+pip install --upgrade iptools
+pip install --upgrade segway
+pip install --upgrade rpy2
+pip install --upgrade segtools
+pip install --upgrade pysam
+pip install --upgrade cutadapt
+pip install --upgrade bx-python
+pip install --upgrade joblib
+pip install --upgrade biopython
+pip install --upgrade scipy
+
 
 yolk -l
 
@@ -277,7 +278,7 @@ echo "install ncurses"
 apt-get install libncurses-dev -y
 
 ################################################################################
-VERSION=1.0
+VERSION=1.1
 SOFTWARE=samtools
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -466,32 +467,32 @@ rm -r /tmp/kent/ /tmp/jksrc.v$VERSION.zip
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-#VERSION=0.8.0
-#SOFTWARE=yara
-#
-#echo "install $SOFTWARE $VERSION " && cd /tmp/
-#mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
-#
-#wget http://packages.seqan.de/$SOFTWARE/$SOFTWARE-$VERSION-Linux-x86_64.tar.bz2
-#tar -xf $SOFTWARE-$VERSION-Linux-x86_64.tar.bz2
-#mv $SOFTWARE-$VERSION-Linux-x86_64/* $PACKAGEPATH/$SOFTWARE/$VERSION
-#
-#cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
-##%Module1.0
-#proc ModulesHelp { } {
-#global dotversion
-# puts stderr "\t $SOFTWARE $VERSION"
-#}
-# module-whatis "$SOFTWARE $VERSION"
-#conflict $SOFTWARE
-#prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/bin
-#DELIM
-#
-#module load $SOFTWARE/$VERSION
+VERSION=0.9.0
+SOFTWARE=yara
+
+echo "install $SOFTWARE $VERSION " && cd /tmp/
+mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
+
+wget http://packages.seqan.de/$SOFTWARE/$SOFTWARE-$VERSION-Linux-x86_64.tar.bz2
+tar -xf $SOFTWARE-$VERSION-Linux-x86_64.tar.bz2
+mv $SOFTWARE-$VERSION-Linux-x86_64/* $PACKAGEPATH/$SOFTWARE/$VERSION
+
+cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
+#%Module1.0
+proc ModulesHelp { } {
+global dotversion
+ puts stderr "\t $SOFTWARE $VERSION"
+}
+ module-whatis "$SOFTWARE $VERSION"
+conflict $SOFTWARE
+prepend-path    PATH   $PACKAGEPATH/$SOFTWARE/$VERSION/bin
+DELIM
+
+module load $SOFTWARE/$VERSION
 
 
 ################################################################################
-VERSION=1.0.1
+VERSION=1.1.1
 SOFTWARE=bowtie
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -520,7 +521,7 @@ module load $SOFTWARE/$VERSION
 
 
 ################################################################################
-VERSION=2.2.3
+VERSION=2.2.4
 SOFTWARE=bowtie
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -546,16 +547,16 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=2.0.12
+VERSION=2.0.13
 SOFTWARE=tophat
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
 mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 
-wget http://tophat.cbcb.umd.edu/downloads/$SOFTWARE-$VERSION.tar.gz
+wget http://ccb.jhu.edu/software/tophat/downloads/$SOFTWARE-$VERSION.tar.gz
 tar -xf $SOFTWARE-$VERSION.tar.gz
 cd $SOFTWARE-$VERSION/
-./configure --prefix=/packages/$SOFTWARE/$VERSION --with-boost=/packages/boost/1.53.0 --with-bam=/packages/samtools/1.0
+./configure --prefix=/packages/$SOFTWARE/$VERSION --with-boost=/packages/boost/1.53.0 --with-bam=/packages/samtools/1.1
 make && make install
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
@@ -611,7 +612,7 @@ mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 wget http://cufflinks.cbcb.umd.edu/downloads/$SOFTWARE-$VERSION.tar.gz
 tar -xf $SOFTWARE-$VERSION.tar.gz
 cd $SOFTWARE-$VERSION/
-./configure --prefix=/packages/$SOFTWARE/$VERSION --with-boost=/packages/boost/1.53.0  --with-bam=/packages/samtools/1.0 --with-eigen=/packages/eigen/3.2.0
+./configure --prefix=/packages/$SOFTWARE/$VERSION --with-boost=/packages/boost/1.53.0  --with-bam=/packages/samtools/1.1 --with-eigen=/packages/eigen/3.2.0
 make && make install
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
@@ -733,13 +734,13 @@ make && make test
 make install
 
 # add databases
-wget http://ebi.edu.au/ftp/software/MEME/Databases/motifs/motif_databases.10.3.tgz
+wget http://ebi.edu.au/ftp/software/MEME/Databases/motifs/motif_databases.12.1.tgz
 wget http://ebi.edu.au/ftp/software/MEME/Databases/gomo/gomo_databases.3.tgz
-mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION/db
-tar -xf motif_databases.11.tgz
+mkdir -p $PACKAGEPATH/$SOFTWARE/db
+tar -xf motif_databases.12.1.tgz
 tar -xf gomo_databases.3.tgz
-mv motif_databases $PACKAGEPATH/$SOFTWARE/$VERSION/db
-mv gomo_databases $PACKAGEPATH/$SOFTWARE/$VERSION/db
+mv motif_databases $PACKAGEPATH/$SOFTWARE/db
+mv gomo_databases $PACKAGEPATH/$SOFTWARE/db
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
@@ -872,6 +873,7 @@ mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 
 wget http://www.bioinformatics.babraham.ac.uk/projects/$SOFTWARE/$SOFTWARE"_v"$VERSION.zip
 unzip $SOFTWARE"_v"$VERSION.zip
+cd trim_galore_zip
 mv $SOFTWARE $PACKAGEPATH/$SOFTWARE/$VERSION
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
@@ -939,7 +941,7 @@ DELIM
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=0.5.0
+VERSION=0.5.1
 SOFTWARE=hicup
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -1206,7 +1208,6 @@ module load $SOFTWARE/$VERSION
 
 
 ################################################################################
-
 VERSION=2.0
 SOFTWARE=wiggler
 
@@ -1274,8 +1275,8 @@ wget wget https://github.com/genome/$SOFTWARE/archive/v$VERSION.tar.gz
 tar -xf v$VERSION.tar.gz
 cd $SOFTWARE-$VERSION
 # workaround for install
-./INSTALL $PACKAGEPATH/samtools/1.0/include/bam/
-./INSTALL $PACKAGEPATH/samtools/1.0/lib/
+./INSTALL $PACKAGEPATH/samtools/1.1/include/bam/
+./INSTALL $PACKAGEPATH/samtools/1.1/lib/
 
 mv /tmp/$SOFTWARE-$VERSION/* $PACKAGEPATH/$SOFTWARE/$VERSION
 
@@ -1321,7 +1322,7 @@ chmod 777 $PACKAGEPATH/$SOFTWARE/$VERSION/*.jar
 module load $SOFTWARE/$VERSION
 
 ################################################################################
-VERSION=3.3.4
+VERSION=3.3.5
 SOFTWARE=mrsfast
 
 echo "install $SOFTWARE $VERSION " && cd /tmp/
@@ -1357,7 +1358,7 @@ mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 
 wget http://qualimap.bioinfo.cipf.es/release/${SOFTWARE}_v${VERSION}.zip
 unzip ${SOFTWARE}_v${VERSION}.zip
-cp ${SOFTWARE}_v${VERSION}/* $PACKAGEPATH/$SOFTWARE/$VERSION
+cp -r ${SOFTWARE}_v${VERSION}/* $PACKAGEPATH/$SOFTWARE/$VERSION
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
@@ -1446,12 +1447,10 @@ echo "install $SOFTWARE $VERSION " && cd /tmp/
 mkdir -p $PACKAGEPATH/$SOFTWARE/$VERSION $MODULEPATH/$SOFTWARE
 
 wget https://github.com/$SOFTWARE/$SOFTWARE/archive/$SOFTWARE-$VERSION.tar.gz
-tar -xf $SOFTWARE-$VERSION
+tar -xf $SOFTWARE-$VERSION.tar.gz
 cd $SOFTWARE-$SOFTWARE-$VERSION
-make
+python setup.py install
 cd ../
-
-mv $SOFTWARE-$SOFTWARE-$VERSION $PACKAGEPATH/$SOFTWARE/$VERSION
 
 cat > $MODULEPATH/$SOFTWARE/$VERSION <<DELIM
 #%Module1.0
@@ -1467,7 +1466,7 @@ DELIM
 module load $SOFTWARE/$VERSION
 ################################################################################
 
-NGSANE_VERSION=0.4.0.2
+NGSANE_VERSION=0.5.0.1
 NGSANE_SOFTWARE=ngsane
 
 echo "install $NGSANE_SOFTWARE $NGSANE_VERSION " && cd /tmp/
@@ -1500,7 +1499,7 @@ sed -i 's|^NG_PYTHON=|NG_PYTHON=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION
 sed -i 's|^NG_GZIP=|NG_GZIP=pigz/2.3.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_JAVA=|NG_JAVA=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_FASTQC=|NG_FASTQC=fastqc/0.11.2|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_SAMTOOLS=|NG_SAMTOOLS=samtools/1.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_SAMTOOLS=|NG_SAMTOOLS=samtools/1.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_IGVTOOLS=|NG_IGVTOOLS=igvtools/2.3.23|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_GATK=|NG_GATK=gatk/2.8-1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BWA=|NG_BWA=bwa/0.7.10|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1511,12 +1510,12 @@ sed -i 's|^NG_UCSCTOOLS=|NG_UCSCTOOLS=ucsc_utils/291|' $PACKAGEPATH/$NGSANE_SOFT
 sed -i 's|^NG_BEDTOOLS=|NG_BEDTOOLS=bedtools/2.19.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_YARA=|NG_YARA=yara/0.8.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_FSEQ=|NG_FSEQ=fseq/1.84|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_BOWTIE=|NG_BOWTIE=bowtie/1.0.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_BOWTIE2=|NG_BOWTIE2=bowtie/2.2.3|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_BOWTIE=|NG_BOWTIE=bowtie/1.1.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_BOWTIE2=|NG_BOWTIE2=bowtie/2.2.4|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_BOOST=|NG_BOOST=boost/1.53.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_PEAKRANGER=|NG_PEAKRANGER=peakranger/1.17|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_MEME=|NG_MEME=meme/4.10.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_TOPHAT=|NG_TOPHAT=tophat/2.0.12|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_TOPHAT=|NG_TOPHAT=tophat/2.0.13|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_RNASEQC=|NG_RNASEQC=RNA-SeQC/1.1.7|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_CUFFLINKS=|NG_CUFFLINKS=cufflinks/2.2.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_MONO=|NG_MONO=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1531,7 +1530,7 @@ sed -i 's|^NG_TRIMGALORE=|NG_TRIMGALORE=trim_galore/0.3.7|' $PACKAGEPATH/$NGSANE
 sed -i 's|^NG_TRIMMOMATIC=|NG_TRIMMOMATIC=trimmomatic/0.32|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HDF5=|NG_HDF5=hdf5/1.8.12|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_HICLIB=|NG_HICLIB=|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
-sed -i 's|^NG_HICUP=|NG_HICUP=hicup/0.5.0|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^NG_HICUP=|NG_HICUP=hicup/0.5.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_FITHIC=|NG_FITHIC=fit-hi-c/1.0.1|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_FASTQSCREEN=|NG_FASTQSCREEN=fastq_screen/0.4.4|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 sed -i 's|^NG_MATLAB=|NG_MATLAB=mcr/2012b|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
@@ -1545,7 +1544,7 @@ sed -i 's|^NG_MRSFAST=|NG_MRSFAST=mrsfast/3.3.4|' $PACKAGEPATH/$NGSANE_SOFTWARE/
 sed -i 's|^NG_TABIX=|NG_TABIX=tabix/0.2.6|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 
 # databases
-sed -i 's|^MEMECHIPDATABASES=|MEMECHIPDATABASES=/packages/meme/4.10.0/db/motif_databases/jolma2013.meme|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
+sed -i 's|^MEMECHIPDATABASES=|MEMECHIPDATABASES=/packages/meme/db/motif_databases/jolma2013.meme|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
 
 # activate SGE
 sed -i 's|^SUBMISSIONSYSTEM="PBS"|SUBMISSIONSYSTEM="SGE"|' $PACKAGEPATH/$NGSANE_SOFTWARE/$NGSANE_VERSION/conf/header.sh
