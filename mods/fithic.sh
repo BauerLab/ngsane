@@ -56,6 +56,8 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--Python      --\n" $(python --version)
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 hash module 2>/dev/null && echo -e "--Python libs --\n "$(yolk -l)
+echo -e "--HiCorrector --\n "$(ic_mep 2>&1 | tee | grep Version)
+[ -z "$(which ic_mep)" ] && echo "[ERROR] no HiCorrection detected" && exit 1
 echo -e "--fit-hi-c    --\n "$(python $(which fit-hi-c.py) --version | head -n 1)
 [ -z "$(which fit-hi-c.py)" ] && echo "[ERROR] no fit-hi-c detected" && exit 1
 
@@ -81,6 +83,11 @@ if [ ! -f $GENOME_CHROMSIZES ]; then
     echo "[WARN] GENOME_CHROMSIZES not found. No bigbeds will be generated"
 else
     echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
+fi
+
+if [ -z "$HICORRECTOR_MAXITER" ];then
+    echo "[NOTE] HICORRECTOR_MAXITER set to 1000 by default"
+    HICORRECTOR_MAXITER=1000
 fi
 
 if [ -z "$MAPPABILITY" ]; then
@@ -123,7 +130,7 @@ NGSANE_CHECKPOINT_INIT "count Interactions"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithicCountInteractions.py --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR $f >> $OUTDIR/$SAMPLE.log"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithicCountInteractions.py --create2DMatrix --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR --outputFilename $SAMPLE $f >> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     [ -e $OUTDIR/${SAMPLE}$ASD.bam.fragmentLists ] && mv $OUTDIR/${SAMPLE}$ASD.bam.fragmentLists $OUTDIR/$SAMPLE.fragmentLists
@@ -137,13 +144,21 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 fi
 
 ################################################################################
-NGSANE_CHECKPOINT_INIT "ICE correction"
+NGSANE_CHECKPOINT_INIT "HiCorrector"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/ICE-with-sparseMatrix.py $OUTDIR/$SAMPLE.contactCounts.gz $OUTDIR/$SAMPLE.fragmentLists.gz l1 $OUTDIR/$SAMPLE.ice.txt.gz 0.5 >> $OUTDIR/$SAMPLE.log"
+    if [[ "$CPU_FITHIC" -gt 1 ]]; then
+        RUN_COMMAND=$(which mpirun)" -np $CPU_FITHIC ic_mep --jobID=$SAMPLE --hasHeaderRow=0 --maxIteration=$HICORRECTOR_MAXITER --numRows="$(wc -l $OUTDIR/$SAMPLE.matrix | awk '{print $1}')" --numTask=$CPU_FITHIC --memSizePerTask="$(echo "1 + $MEMORY_FITHIC * 1000 / $CPU_FITHIC" | bc)" --inputFile=$OUTDIR/$SAMPLE.matrix --outputFile=$OUTDIR/$SAMPLE.ice.txt > $OUTDIR/$SAMPLE.matrix.log"
+    else
+        RUN_COMMAND="ic_mes $OUTDIR/$SAMPLE.matrix $MEMORY_FITHIC "$(wc -l $OUTDIR/$SAMPLE.matrix | awk '{print $1}')" $HICORRECTOR_MAXITER $OUTDIR/$SAMPLE.ice.txt > $OUTDIR/$SAMPLE.matrix.log"     
+    fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
    
+    # convert to fit-hi-c expected bias format
+    paste <(zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2) $OUTDIR/$SAMPLE.ice.txt | awk '{$3==0?$3=1:$3=$3; print $0}' | $GZIP > $OUTDIR/$SAMPLE.ice.txt.gz  
+    rm $OUTDIR/$SAMPLE.ice.txt $OUTDIR/$SAMPLE.matrix
+    
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.ice.txt.gz
 
@@ -154,7 +169,9 @@ NGSANE_CHECKPOINT_INIT "fit-hi-c"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     cd $OUTDIR/$RESOLUTION
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py $FITHICADDPARAM --lib=${SAMPLE} --biases=$OUTDIR/$SAMPLE.ice.txt.biases.gz --fragments=$OUTDIR/$SAMPLE.fragmentLists.gz --interactions=$OUTDIR/$SAMPLE.contactCounts.gz --resolution $HIC_RESOLUTION >> $OUTDIR/$SAMPLE.log"
+
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py $FITHICADDPARAM --lib=${SAMPLE} --biases=$OUTDIR/$SAMPLE.ice.txt.gz --fragments=$OUTDIR/$SAMPLE.fragmentLists.gz --interactions=$OUTDIR/$SAMPLE.contactCounts.gz --resolution $HIC_RESOLUTION >> $OUTDIR/$SAMPLE.log"
+
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     zcat $OUTDIR/$SAMPLE.spline_pass1.res$HIC_RESOLUTION.significances.txt.gz | awk -v q=$FITHIC_QVALUETHRESHOLD '$7<=q' | sort -k7g | gzip > $OUTDIR/$SAMPLE.txt.gz

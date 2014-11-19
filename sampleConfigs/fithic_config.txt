@@ -56,6 +56,9 @@ FITHIC_CHROMOSOMES="chr[0-9XY]+"
 # PARAMETER (optional overwriting defaults)
 #********************
 
+# number of IC iterations HiCorrector ic_mep
+HICORRECTOR_MAXITER=1000
+
 # additional parameters for fit-hi-c
 # e.g. "--visual --lowerbound=50000 --upperbound=-1 --noOfBins=200 --mappabilityThres=1"
 FITHICADDPARAM=

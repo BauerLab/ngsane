@@ -124,6 +124,9 @@ def main():
                     help="output filename [default: extracted from first input file")
     parser.add_option("-t", "--tmpDir", type="string", dest="tmpDir", default="/tmp", 
                     help="directory for temp files [default: %default]")
+    parser.add_option("-D", "--create2DMatrix", action="store_true", dest="create2DMatrix", default=False,
+                    help="create a tab separated 2D matrix file")
+    
     
     (options, args) = parser.parse_args()
     if (len(args) < 1):
@@ -199,7 +202,7 @@ def createIntervalTreesFragmentResolution():
     if (options.verbose):
         print >> sys.stdout, "- %s FINISHED: intervaltree populated" % (timeStamp())
     
-    return [ fragmentsMap, intersect_tree ]
+    return [ fragmentsMap, intersect_tree, fragmentsCount ]
     
 def createIntervalTreesFragmentFile():
     ''' 
@@ -289,7 +292,7 @@ def createIntervalTreesFragmentFile():
     if (options.verbose):
         print >> sys.stdout, "- %s FINISHED: intervaltree populated" % (timeStamp())
             
-    return [fragmentsMap, intersect_tree]
+    return [fragmentsMap, intersect_tree, fragmentsCount]
 
 def getNext(iterator):
     ''' 
@@ -426,13 +429,15 @@ def countReadsPerFragment(intersect_tree):
     return [ fragmentList, fragmentPairs ]    
 
 
-def output(fragmentsMap , fragmentList, fragmentPairs):
+def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount):
     '''
     outputs 2 files, the first containing 
     "chr    extraField      fragmentMid     marginalizedContactCount        mappable? (0/1)"
     
     and the second containing:
     "chr1   fragmentMid1    chr2    fragmentMid2    contactCount"
+    
+    optionally output the 2D contact matrix
     '''
     
     if (options.verbose):
@@ -500,6 +505,27 @@ def output(fragmentsMap , fragmentList, fragmentPairs):
         
     outfile2.close()
     
+    if (options.create2DMatrix):
+
+        # lazy loading
+        from scipy.sparse import lil_matrix
+        import numpy
+        # populate sparse matrix
+        A = lil_matrix((fragmentCount, fragmentCount), dtype='i')    
+        for fragmentIds, contactCounts in fragmentPairs.iteritems():
+            A[fragmentIds[0],fragmentIds[1]] = contactCounts
+            A[fragmentIds[1],fragmentIds[0]] = contactCounts
+            
+        if ( options.outputFilename != "" ):
+            outfile3 = options.outputDir+options.outputFilename+".matrix"
+        else:
+            outfile3 = options.outputDir+os.path.basename(args[0])+".matrix"
+
+        if (options.verbose):
+            print >> sys.stdout, "- save 2Dmatrix to %s " % (outfile3)
+        
+        numpy.savetxt(outfile3, A.toarray(),fmt='%i', delimiter='\t')
+    
     if (options.verbose):
         print >> sys.stdout, "- %s FINISHED: output data" % (timeStamp())
 
@@ -509,13 +535,13 @@ def process():
     global args
 
     if (options.fragmentFile != ""):    
-        [ fragmentsMap, intersect_tree ] = createIntervalTreesFragmentFile()
+        [ fragmentsMap, intersectTree, fragmentCount ] = createIntervalTreesFragmentFile()
     else:
-        [ fragmentsMap, intersect_tree ] = createIntervalTreesFragmentResolution()
+        [ fragmentsMap, intersectTree, fragmentCount ] = createIntervalTreesFragmentResolution()
         
-    [ fragmentList, fragmentPairs ] = countReadsPerFragment(intersect_tree)
+    [ fragmentList, fragmentPairs ] = countReadsPerFragment(intersectTree)
     
-    output(fragmentsMap, fragmentList, fragmentPairs)
+    output(fragmentsMap, fragmentList, fragmentPairs, fragmentCount)
     
 ######################################
 # main
