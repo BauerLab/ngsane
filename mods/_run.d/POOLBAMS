@@ -28,7 +28,7 @@ if [ -n "$RUNPOOLBAMS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
 
 
         # start a new section for a mod
-        NGSANE_REPORT_HEADER "Pool Bams" "$TASK_POOLBAMS" "bowtie2.sh" "$ASD.bam"
+        NGSANE_REPORT_HEADER "Pool Bams" "$TASK_POOLBAMS" "poolBams.sh" "$ASD.bam"
 
         # add as many tables as needed. One table per result file
         NGSANE_REPORT_TABLE "$TASK_POOLBAMS" \
