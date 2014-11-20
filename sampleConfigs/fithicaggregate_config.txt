@@ -60,6 +60,9 @@ FITHIC_POOLDATA=
 # name for pooled data (only required when setting variable FITHIC_POOLDATA)
 FITHIC_POOLED_SAMPLE_NAME=
 
+# number of IC iterations HiCorrector ic_mep
+HICORRECTOR_MAXITER=1000
+
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
