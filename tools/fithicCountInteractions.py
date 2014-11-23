@@ -524,8 +524,14 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount):
         if (options.verbose):
             print >> sys.stdout, "- save 2Dmatrix to %s " % (outfile3)
         
-        numpy.savetxt(outfile3, A.toarray(),fmt='%i', delimiter='\t')
-    
+        f_handle=open(outfile3,'w')
+        
+        A = A.tocsr()
+        for i in xrange(fragmentCount):
+            numpy.savetxt(f_handle, A[i].toarray(),fmt='%i', delimiter='\t')
+            
+        f_handle.close()
+        
     if (options.verbose):
         print >> sys.stdout, "- %s FINISHED: output data" % (timeStamp())
 
