@@ -168,10 +168,9 @@ fi
 NGSANE_CHECKPOINT_INIT "fit-hi-c"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
     cd $OUTDIR/$RESOLUTION
-
     RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py $FITHICADDPARAM --lib=${SAMPLE} --biases=$OUTDIR/$SAMPLE.ice.txt.gz --fragments=$OUTDIR/$SAMPLE.fragmentLists.gz --interactions=$OUTDIR/$SAMPLE.contactCounts.gz --resolution $HIC_RESOLUTION >> $OUTDIR/$SAMPLE.log"
-
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     zcat $OUTDIR/$SAMPLE.spline_pass1.res$HIC_RESOLUTION.significances.txt.gz | awk -v q=$FITHIC_QVALUETHRESHOLD '$7<=q' | sort -k7g | gzip > $OUTDIR/$SAMPLE.txt.gz

@@ -7,6 +7,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
+# RESULTFILENAME <DIR>/<TASK>/$FITHIC_POOLED_SAMPLE_NAME.txt.gz
 
 echo ">>>>> Chromatin organization with fit-hi-c "
 echo ">>>>> startdate "`date`
@@ -174,6 +175,7 @@ fi
 NGSANE_CHECKPOINT_INIT "fit-hi-c"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
     cd $OUTDIR/$RESOLUTION
     RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py $FITHICADDPARAM --lib=${SAMPLE} --biases=$OUTDIR/$SAMPLE.ice.txt.gz --fragments=$OUTDIR/$SAMPLE.fragmentLists.gz --interactions=$OUTDIR/$SAMPLE.contactCounts.gz --resolution $HIC_RESOLUTION >> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -190,6 +192,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 fi
 
 ################################################################################
+[ -e $OUTDIR/$FITHIC_POOLED_SAMPLE_NAME.txt.gz.dummy ] && rm $OUTDIR/$FITHIC_POOLED_SAMPLE_NAME.txt.gz.dummy
 echo ">>>>> Chromatin organization with fit-hi-c - FINISHED"
 echo ">>>>> enddate "`date`
 
