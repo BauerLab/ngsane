@@ -86,8 +86,8 @@ else
 fi
 
 if [ -z "$HICORRECTOR_MAXITER" ];then
-    echo "[NOTE] HICORRECTOR_MAXITER set to 1000 by default"
-    HICORRECTOR_MAXITER=1000
+    echo "[NOTE] HICORRECTOR_MAXITER set to 100 by default"
+    HICORRECTOR_MAXITER=100
 fi
 
 if [ -z "$MAPPABILITY" ]; then

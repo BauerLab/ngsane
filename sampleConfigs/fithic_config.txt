@@ -53,7 +53,7 @@ MAPPABILITY=
 FITHIC_CHROMOSOMES="chr[0-9XY]+"
 
 # number of IC iterations HiCorrector ic_mep
-HICORRECTOR_MAXITER=1000
+HICORRECTOR_MAXITER=100
 
 #********************
 # PARAMETER (optional overwriting defaults)

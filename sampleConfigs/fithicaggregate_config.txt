@@ -61,7 +61,7 @@ FITHIC_POOLDATA=
 FITHIC_POOLED_SAMPLE_NAME=
 
 # number of IC iterations HiCorrector ic_mep
-HICORRECTOR_MAXITER=1000
+HICORRECTOR_MAXITER=100
 
 #********************
 # PARAMETER (optional overwriting defaults)
