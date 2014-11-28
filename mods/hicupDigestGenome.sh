@@ -107,17 +107,17 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ -z "$HICUP_RCUTSITE2" ]; then
        echo "Restriction Enzyme 1: $HICUP_RENZYME1:$HICUP_RCUTSITE1"
-       RUN_COMMAND="$(which perl) $(which hicup_digester)  --datestamp run --outdir $OUTDIR --genome $REFERENCE_NAME --re1 $HICUP_RCUTSITE1,$HICUP_RENZYME1 $FASTA"
+       RUN_COMMAND="$(which perl) $(which hicup_digester)  --outdir $OUTDIR --genome $REFERENCE_NAME --re1 $HICUP_RCUTSITE1,$HICUP_RENZYME1 $FASTA"
        echo $RUN_COMMAND && eval $RUN_COMMAND
     
     else
        echo "Restriction Enzyme 1: $HICUP_RENZYME1:$HICUP_RCUTSITE1 "
        echo "Restriction Enzyme 2: $HICUP_RENZYME2:$HICUP_RCUTSITE2 "
-       RUN_COMMAND="$(which perl) $(which hicup_digester)  --datestamp run --outdir $OUTDIR --genome $REFERENCE_NAME --re1 $HICUP_RCUTSITE1,$HICUP_RENZYME1 --re2 $HICUP_RCUTSITE2,$HICUP_RENZYME2 $FASTA"
+       RUN_COMMAND="$(which perl) $(which hicup_digester)  --outdir $OUTDIR --genome $REFERENCE_NAME --re1 $HICUP_RCUTSITE1,$HICUP_RENZYME1 --re2 $HICUP_RCUTSITE2,$HICUP_RENZYME2 $FASTA"
        echo $RUN_COMMAND && eval $RUN_COMMAND
     fi
 
-    mv $OUTDIR/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}_run.txt $OUTDIR/${DIGESTGENOME}
+    mv $OUTDIR/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}*.txt $OUTDIR/${DIGESTGENOME}
     
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$DIGESTGENOME
