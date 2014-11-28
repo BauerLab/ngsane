@@ -28,7 +28,7 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             INDEXJOBIDS=$NGSANE_WAITFORJOB 
         fi
         
-        if [ -z "$HICUP_RENZYME2" ] then
+        if [ -z "$HICUP_RENZYME2" ]; then
             HICUP_RENZYME2="None"
         fi
 
