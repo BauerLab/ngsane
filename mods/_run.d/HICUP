@@ -28,6 +28,10 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             INDEXJOBIDS=$NGSANE_WAITFORJOB 
         fi
         
+        if [ -z "$HICUP_RENZYME2" ] then
+            HICUP_RENZYME2="None"
+        fi
+
         if [ ! -s $OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt ];then
             JOBIDS=$( 
             $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c 1 \
