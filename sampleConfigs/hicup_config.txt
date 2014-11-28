@@ -69,7 +69,7 @@ HICUP_RCUTSITE2=
 #********************
 
 # additional parameter for hicup_mapper, 
-#e.g. "-format phred33-quals"
+#e.g. "--format SANGER"
 HICUPMAPPER_ADDPARAM=
 
 #WALLTIME_HICUP=10:00:00

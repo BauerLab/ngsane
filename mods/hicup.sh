@@ -115,13 +115,13 @@ fi
 if [ -z "$HICUP_RENZYME1" ] || [ -z "$HICUP_RCUTSITE1" ]; then
     echo "[ERROR] Restriction enzyme 1 not defined" && exit 1
 else
-    ENZYME1PARAM="-re1 $HICUP_RCUTSITE1"
+    ENZYME1PARAM="--re1 $HICUP_RCUTSITE1"
 fi
 if [ -z "$HICUP_RENZYME2" ] || [ -z "$HICUP_RCUTSITE2" ]; then
     echo "[NOTE] Restriction enzyme 2 not defined"
     HICUP_RENZYME2="None"
 else
-    ENZYME2PARAM="-re2 $HICUP_RCUTSITE2"
+    ENZYME2PARAM="--re2 $HICUP_RCUTSITE2"
 fi
 
 DIGESTGENOME="$OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt"
@@ -161,7 +161,7 @@ NGSANE_CHECKPOINT_INIT "truncate"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="$(which perl) $(which hicup_truncater) -datestamp run -outdir $OUTDIR/$SAMPLE/ $ENZYME1PARAM $ENZYME2PARAM -threads $CPU_HICUP -zip $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
+    RUN_COMMAND="$(which perl) $(which hicup_truncater) --datestamp run --outdir $OUTDIR/$SAMPLE/ $ENZYME1PARAM $ENZYME2PARAM --threads $CPU_HICUP --zip $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     mv $OUTDIR/$SAMPLE/hicup_truncater_summary_run.txt $OUTDIR/$SAMPLE"_truncater_summary.txt"
@@ -178,7 +178,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz
     
-    RUN_COMMAND="$(which perl) $(which hicup_mapper) $HICUPMAPPER_ADDPARAM -datestamp run -bowtie $(which bowtie) -outdir $OUTDIR/$SAMPLE/ -index ${FASTA%.*} -threads $CPU_HICUP -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz"
+    RUN_COMMAND="$(which perl) $(which hicup_mapper) $HICUPMAPPER_ADDPARAM --datestamp run --bowtie $(which bowtie) --outdir $OUTDIR/$SAMPLE/ --index ${FASTA%.*} --threads $CPU_HICUP --zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     mv $OUTDIR/$SAMPLE/hicup_mapper_summary_run.txt $OUTDIR/$SAMPLE"_mapper_summary.txt"
@@ -195,7 +195,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam
     
-    RUN_COMMAND="$(which perl) $(which hicup_filter) -datestamp run -digest $DIGESTGENOME -outdir $OUTDIR/$SAMPLE/ -threads $CPU_HICUP -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz"
+    RUN_COMMAND="$(which perl) $(which hicup_filter) --datestamp run --digest $DIGESTGENOME --outdir $OUTDIR/$SAMPLE/ --threads $CPU_HICUP --zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     mv $OUTDIR/$SAMPLE/hicup_filter_summary_run.txt $OUTDIR/$SAMPLE"_filter_summary.txt"
@@ -210,7 +210,7 @@ NGSANE_CHECKPOINT_INIT "de-duplicate"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
-    RUN_COMMAND="$(which perl) $(which hicup_deduplicator) -datestamp run -pipeline_outdir $OUTDIR/$SAMPLE/ -outdir $OUTDIR/$SAMPLE/ -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam"
+    RUN_COMMAND="$(which perl) $(which hicup_deduplicator) --datestamp run --pipeline_outdir $OUTDIR/$SAMPLE/ --outdir $OUTDIR/$SAMPLE/ --threads $CPU_HICUP --zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     mv $OUTDIR/$SAMPLE/hicup_deduplicator_summary_run.txt $OUTDIR/$SAMPLE"_deduplicator_summary.txt"
@@ -247,7 +247,7 @@ NGSANE_CHECKPOINT_INIT "cleanup"
 [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.gz ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.gz*
 [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.map ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.map
 
-
+NGSANE_CHECKPOINT_CHECK
 ################################################################################
 [ -e $OUTDIR/$SAMPLE$ASD.bam.dummy ] && rm $OUTDIR/$SAMPLE$ASD.bam.dummy
 echo ">>>>> readmapping with hicup (bowtie) - FINISHED"
