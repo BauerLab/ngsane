@@ -3,7 +3,7 @@
 # Generate contact maps from bam files 
 # and fragment lists
 #
-# Author: Fabian Buske (13/05/2013)
+# Author: Fabian Buske (28/11/2014)
 ######################################
 
 
@@ -11,9 +11,9 @@ import os, sys, re
 import traceback
 from optparse import OptionParser
 import pysam
-from quicksect import IntervalTree
 import fileinput
 import datetime
+from quicksect import IntervalTree
 
 ######################################
 # Read

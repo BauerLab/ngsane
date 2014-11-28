@@ -70,8 +70,8 @@ HICUP_RCUTSITE2=
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
-#e.g. "-format phred33-quals"
-HICUPMAPPER_ADDPARAM="-format phred33-quals"
+
+HICUPMAPPER_ADDPARAM="--format Sanger"
 
 HICLIB_READLENGTH=
 HICLIB_CHROMOSOME=16
@@ -103,6 +103,6 @@ NODES_HICUP="nodes=1:ppn=2"
 
 WALLTIME_FITHIC=0:30:00
 MEMORY_FITHIC=2
-CPU_FITHIC=1
-NODES_FITHIC="nodes=1:ppn=1"
+CPU_FITHIC=2
+NODES_FITHIC="nodes=1:ppn=2"
 

@@ -203,9 +203,9 @@ def read_ICE_biases(infilename):
 			discardC+=1
 		#
 		totalC+=1
-		if chr not in biasDic:
+		if not biasDic.has_key(chr):
 			biasDic[chr]={}
-		if midPoint not in biasDic[chr]:
+		if not biasDic[chr].has_key(midPoint):
 			biasDic[chr][midPoint]=bias
 	infile.close()
 	sys.stderr.write("Out of " + str(totalC) + " loci " +str(discardC) +" were discarded with biases not in range [0.5 2]\n\n" )
@@ -534,9 +534,9 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic):
 		bias1=1.0; bias2=1.0;  # assumes there is no bias to begin with
 		# if the biasDic is not null sets the real bias values
 		if len(biasDic)>0:
-			if chr1 in biasDic and midPoint1 in biasDic[chr1]:
+			if biasDic.has_key(chr1) and biasDic[chr1].has_key(midPoint1):
 				bias1=biasDic[chr1][midPoint1]
-			if chr2 in biasDic and midPoint2 in biasDic[chr2]:
+			if biasDic.has_key(chr2) and biasDic[chr2].has_key(midPoint2):
 				bias2=biasDic[chr2][midPoint2]
 	
 		if bias1==-1 or bias2==-1:
@@ -583,7 +583,12 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic):
 	outfile =gzip.open(outfilename+'.res'+str(resolution)+'.significances.txt.gz', 'w')
 	print("Writing p-values and q-values to file %s" % outfilename + ".significances.txt\n"),
 	print("Number of pairs discarded due to bias not in range [0.5 2]\n"),
-	outfile.write("chr1\tfragmentMid1\tchr2\tfragmentMid2\tcontactCount\tp-value\tq-value\n")
+
+	if len(biasDic)>0:
+		outfile.write("chr1\tfragmentMid1\tchr2\tfragmentMid2\tbiasCorrectedContactCount\tp-value\tq-value\n")
+	else:
+		outfile.write("chr1\tfragmentMid1\tchr2\tfragmentMid2\tcontactCount\tp-value\tq-value\n")
+
 	count=0
 	for line in infile:
 		words=line.rstrip().split()
@@ -594,6 +599,13 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic):
 		interactionCount=int(words[4])
 		p_val=p_vals[count]
 		q_val=q_vals[count]
+		bias1=1.0; bias2=1.0;  # assumes there is no bias to begin with
+		if len(biasDic)>0:
+			if biasDic.has_key(chr1) and biasDic[chr1].has_key(midPoint1):
+				bias1=biasDic[chr1][midPoint1]
+			if biasDic.has_key(chr2) and biasDic[chr2].has_key(midPoint2):
+				bias2=biasDic[chr2][midPoint2]
+		bcCount=bias1*bias2*interactionCount
 		#if chrNo1==chrNo2: # intra
 		#	interactionDistance=abs(midPoint1-midPoint2) # dist
 		#	if myUtils.in_range_check(interactionDistance,distLowThres,distUpThres):
@@ -601,7 +613,7 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic):
 		#else:
 		#	outfile.write("%s\t%d\t%s\t%d\t%d\t%e\t%e\n" % (str(chrNo1),midPoint1,str(chrNo2),midPoint2,interactionCount,p_val,q_val))
 
-		outfile.write("%s\t%d\t%s\t%d\t%d\t%e\t%e\n" % (str(chrNo1),midPoint1,str(chrNo2),midPoint2,interactionCount,p_val,q_val))
+		outfile.write("%s\t%d\t%s\t%d\t%.2f\t%e\t%e\n" % (str(chrNo1),midPoint1,str(chrNo2),midPoint2,bcCount,p_val,q_val))
 		count+=1
 	# END for - printing pvals and qvals for all the interactions
 	outfile.close()
