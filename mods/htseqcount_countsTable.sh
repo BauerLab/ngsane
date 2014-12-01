@@ -58,7 +58,7 @@ for f in $FILES; do
     # get basename of f
 
     n=${f/%$ASD.bam/}
-    FILE=${n/$TASK_TOPHAT/$TASK_HTSEQCOUNT}
+    FILE=${n/$INPUT_HTSEQCOUNT/$TASK_HTSEQCOUNT}
     # get directory
     d=$(dirname $f)
     d=${d##*/}    # add to dataset

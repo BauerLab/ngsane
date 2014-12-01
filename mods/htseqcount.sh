@@ -231,7 +231,7 @@ fi
 NGSANE_CHECKPOINT_INIT "summarize"
 
 echo "[NOTE] Summary file - $OUTDIR/${SAMPLE}.${anno_version}.summary.txt"    
-cat $OUTDIR/GTF.summary.txt | awk '{print "all",$0}' > ${OUTDIR}/../${SAMPLE}.${anno_version}.summary.txt
+cat $OUTDIR/GTF.summary.txt | awk '{print "all",$0}' > ${OUTDIR}/../${SAMPLE}.summary.txt
    
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
