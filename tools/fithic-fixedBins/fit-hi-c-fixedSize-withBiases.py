@@ -69,6 +69,7 @@ toKb=10**-3
 toMb=10**-6
 toProb=10**5
 
+
 #########################
 
 def main():
@@ -169,7 +170,7 @@ def read_ICE_biases(infilename):
 	biasDic={}
 	
 	rawBiases=[]
-	infile =gzip.open(infilename, 'r')
+	infile=gzip.open(infilename, 'r')
 	for line in infile:
 		words=line.rstrip().split()
 		chr=words[0]; midPoint=int(words[1]); bias=float(words[2])
@@ -187,7 +188,7 @@ def read_ICE_biases(infilename):
 	#sys.stderr.write(str(m)+"\t"+str(v)+"\t"+str(sd)+"\n")
 	
 	#normFactor=sum(rawBiases)/len(rawBiases)
-	infile =gzip.open(infilename, 'r')
+	infile=gzip.open(infilename, 'r')
 	totalC=0
 	discardC=0
 	for line in infile:
@@ -196,10 +197,10 @@ def read_ICE_biases(infilename):
 		# extra conditions
 		#if bias<(botQ/2.0):
 		if bias<0.5:
-			bias=-1 #botQ
+			# bias=-1 #botQ
 			discardC+=1
-		elif bias>2:
-			bias=-1 #topQ
+		elif bias>2.:
+			# bias=-1 #topQ
 			discardC+=1
 		#
 		totalC+=1
@@ -539,7 +540,8 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic):
 			if biasDic.has_key(chr2) and biasDic[chr2].has_key(midPoint2):
 				bias2=biasDic[chr2][midPoint2]
 	
-		if bias1==-1 or bias2==-1:
+		if (bias1 < 0.5 or bias1 > 2. or bias2 < 0.5 or bias2 > 2.):
+		# if bias1==-1 or bias2==-1:
 			p_val=1.0
 			discardCount+=1
 		elif interxn.type=='intra':
@@ -585,16 +587,16 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic):
 	print("Number of pairs discarded due to bias not in range [0.5 2]\n"),
 
 	if len(biasDic)>0:
-		outfile.write("chr1\tfragmentMid1\tchr2\tfragmentMid2\tbiasCorrectedContactCount\tp-value\tq-value\n")
+		outfile.write("chr1\tfragmentMid1\tchr2\tfragmentMid2\tcontactCount\tp-value\tq-value\tbias1\tbias2\tbiasCorrectedContactCount\n")
 	else:
 		outfile.write("chr1\tfragmentMid1\tchr2\tfragmentMid2\tcontactCount\tp-value\tq-value\n")
 
 	count=0
 	for line in infile:
 		words=line.rstrip().split()
-		chrNo1=words[0]
+		chrNo1=str(words[0])
 		midPoint1=int(words[1])
-		chrNo2=words[2]
+		chrNo2=str(words[2])
 		midPoint2=int(words[3])
 		interactionCount=int(words[4])
 		p_val=p_vals[count]
@@ -612,8 +614,10 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic):
 		#		outfile.write("%s\t%d\t%s\t%d\t%d\t%e\t%e\n" % (str(chrNo1),midPoint1,str(chrNo2),midPoint2,interactionCount,p_val,q_val))
 		#else:
 		#	outfile.write("%s\t%d\t%s\t%d\t%d\t%e\t%e\n" % (str(chrNo1),midPoint1,str(chrNo2),midPoint2,interactionCount,p_val,q_val))
-
-		outfile.write("%s\t%d\t%s\t%d\t%.2f\t%e\t%e\n" % (str(chrNo1),midPoint1,str(chrNo2),midPoint2,bcCount,p_val,q_val))
+		if len(biasDic)>0:
+			outfile.write("%s\t%d\t%s\t%d\t%.2f\t%e\t%e\t%.3f\t%.3f\t%.2f\n" % (chrNo1,midPoint1,chrNo2,midPoint2,interactionCount,p_val,q_val, bias1, bias2, bcCount))
+		else:
+			outfile.write("%s\t%d\t%s\t%d\t%.2f\t%e\t%e\n" % (chrNo1,midPoint1,chrNo2,midPoint2,interactionCount,p_val,q_val))
 		count+=1
 	# END for - printing pvals and qvals for all the interactions
 	outfile.close()

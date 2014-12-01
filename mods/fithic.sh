@@ -74,6 +74,7 @@ if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
     [ -f $OUTDIR/$SAMPLE.fragmentLists.gz ] && rm $OUTDIR/$SAMPLE.fragmentLists.gz
     [ -f $OUTDIR/$SAMPLE.contactCounts.gz ] && rm $OUTDIR/$SAMPLE.contactCounts.gz
+    [ -f $OUTDIR/$SAMPLE.spline_pass1.res1000000.significances.txt.gz ] && rm $OUTDIR/$SAMPLE.spline_pass1.res1000000.significances.txt.gz    
     [ -f $OUTDIR/$SAMPLE.ice.txt.gz ] && rm $OUTDIR/$SAMPLE.ice.txt.gz
     [ -f $OUTDIR/$SAMPLE.log ] && rm $OUTDIR/$SAMPLE.log
 fi
