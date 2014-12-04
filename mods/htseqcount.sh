@@ -174,8 +174,8 @@ NGSANE_CHECKPOINT_INIT "fix mates"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
+    # sort by name (required for htseq-count later on)
 	if	[[ -n "$HTSEQCOUNT_UNIQUE" ]] ; then
-
 		echo "[NOTE] Filter for uniquely mapped reads"
    		samtools view -h $f | grep -E 'NH:i:1|^@' | samtools view -b -S - > $THISTMP/$SAMPLE.tmp
 		samtools sort -@ $CPU_HTSEQCOUNT -n $THISTMP/$SAMPLE.tmp $THISTMP/$SAMPLE.tmp
@@ -188,14 +188,12 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         I=$THISTMP/$SAMPLE.tmp.bam \
         O=$OUTDIR/$SAMPLE.fixed.bam \
         VALIDATION_STRINGENCY=SILENT \
-        SORT_ORDER=coordinate \
         TMP_DIR=$THISTMP"
         echo $RUN_COMMAND && eval $RUN_COMMAND
         
 	samtools index $OUTDIR/$SAMPLE.fixed.bam
     
     # cleanup
-    
     [ -e $THISTMP/$SAMPLE.tmp.bam ] && rm $THISTMP/$SAMPLE.tmp.bam
     
     # mark checkpoint
@@ -212,9 +210,9 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         for MODE in $HTSEQCOUNT_MODES; do 
             echo "[NOTE] processing $ATTR $MODE"
             if [ "$PAIRED" = 1 ]; then 
-            	samtools view -f 3 $OUTDIR/$SAMPLE.fixed.bam | htseq-count --order=pos --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF.$MODE.$ATTR.tmp
+            	samtools view -f 3 $OUTDIR/$SAMPLE.fixed.bam | htseq-count --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF.$MODE.$ATTR.tmp
             else
-            	samtools view -F 4 $OUTDIR/$SAMPLE.fixed.bam | htseq-count --order=pos --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF.$MODE.$ATTR.tmp
+            	samtools view -F 4 $OUTDIR/$SAMPLE.fixed.bam | htseq-count --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF.$MODE.$ATTR.tmp
         	fi
             head -n-5 $THISTMP/GTF.$MODE.$ATTR.tmp > $OUTDIR/$anno_version.$MODE.$ATTR
             echo "${ATTR} ${MODE} "$(tail -n 5 $THISTMP/GTF.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ')" __on_feature "$(cut -f 2 $OUTDIR/$anno_version.$MODE.$ATTR  | paste -sd+  | bc)  >> $OUTDIR/GTF.summary.txt
