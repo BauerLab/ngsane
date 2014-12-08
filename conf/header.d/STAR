@@ -1,0 +1,11 @@
+##############################################################
+# STAR 
+# https://github.com/alexdobin/STAR
+TASK_STAR="star"
+WALLTIME_STAR=150:00:00
+MEMORY_STAR=8
+CPU_STAR=8
+NODES_STAR="nodes=1:ppn=8"
+INPUT_STAR="fastq"
+MODULE_STAR="${NG_BOOST} ${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_IMAGEMAGIC} ${NG_PICARD} ${NG_SAMSTAT} ${NG_STAR}"
+PATH_STAR=

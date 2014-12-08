@@ -1,0 +1,93 @@
+# author: Boris Guennewig
+# date: September 2014
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+
+RUNSTAR="1"     # mapping with STAR
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_STAR="fastq"
+
+TASK_STAR="star"
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# fastq file suffix
+FASTQ="fastq.gz"
+
+# read indicator immediately preceding the fastq file suffix
+READONE="_1"
+READTWO="_2"
+
+# location of Genome
+# e.g. /share/ClusterShare/biodata/contrib/gi/genome_indices/gmap_hg19_ercc
+# or /share/ClusterShare/biodata/contrib/gi/genome_indices/gatk-resource-bundle/2.8/hg19_indexed/gmap/hg19
+# /share/ClusterShare/biodata/contrib/gi/genome_indices/hg19_ercc
+FASTA=/share/ClusterShare/biodata/contrib/shinyRseq/hg19_ercc/genome.fa
+
+#STAR index name
+# e.g. hg_19
+INDEX=/share/ClusterShare/biodata/contrib/nenbar/genomes/star/hg19_ercc
+
+
+#specify library type for snap & rnaseqc.
+# choose "fr-firststrand" "fr-unstranded" "fr-secondstrand"
+RNA_SEQ_LIBRARY_TYPE="fr-firststrand"
+
+
+# library tags
+EXPID="Celltype"
+LIBRARY="RNAseq"
+PLATFORM="Illumina"
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# FASTQ encoding (Phred score), leave empty to detect automatically
+# e.g. "Phred33" (Sanger, Illumina 1.8+), "Phred64" (Solexa, Illumina 1.5)
+FASTQ_ENCODING=
+
+
+## additional STAR parameters
+# e.g --outSAMattributes Standard --outSAMstrandField intronMotif --sjdbOverhang 99 
+STARADDPARAM="--outSJfilterReads Unique --outFilterType BySJout --outFilterMultimapNmax 20 --outFilterMismatchNmax 999 --outFilterMismatchNoverLmax 0.04 --alignSJoverhangMin 8 --alignSJDBoverhangMin 1 --alignIntronMin 20 --chimSegmentMin 20 --quantMode TranscriptomeSAM" 
+
+
+
+# ATTENTION: make sure the GTF file matches your genome assembly (chr naming)
+# see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
+# conversion scripts
+# e.g. /share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.gtf
+# or   ${NGSANE_REFERENCE}/b37/annotation/gencode.v14.annotation.b37.gtf
+GTF=/share/ClusterShare/biodata/contrib/shinyRseq/hg19_ercc/gencode19_ercc.gtf
+
+WALLTIME_STAR=150:00:00
+MEMORY_STAR=8
+CPU_STAR=6
+#NODES_STAR="nodes=4:ppn=8"
+#MODULE_STAR=
+#PATH_STAR=

@@ -1,0 +1,49 @@
+#!/bin/bash -e
+
+# This template should be used to specify the parameter for the module calls
+# One can either submit one module at a time or combined several to stage qsub
+# submissions
+
+################################################################################
+#   Trigger command for individual SAILFISH
+#
+# IN : $SOURCE/$dir/INPUT_SAILFISH/*.[inputfile.suffix]
+# OUT: $OUT/$dir/TASK_SAILFISH/*.[outputfile.suffix]
+################################################################################
+
+if [ -n "$RUNSAILFISH" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/SAILFISH
+        if [ -z "$TASK_SAILFISH" ] || [ -z "$NODES_SAILFISH" ] || [ -z "$CPU_SAILFISH" ] || [ -z "$MEMORY_SAILFISH" ] || [ -z "$WALLTIME_SAILFISH" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+        
+        # Choose ONE qsub call from below and fill in the variables as required and adapt as required
+    
+        # 1) SINGLE command working on fastq files (see FASTQC as example)
+        $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_SAILFISH -i $INPUT_SAILFISH \
+            -e $READONE.$FASTQ -n $NODES_SAILFISH -c $CPU_SAILFISH -m $MEMORY_SAILFISH"G" \
+            -w $WALLTIME_SAILFISH \
+            --command "${NGSANE_BASE}/mods/sailfish.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_SAILFISH/"
+                   
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "SAILFISH" "$TASK_SAILFISH" "sailfish.sh" 
+
+        echo "[NOTE] the SAILFISH.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+    
+    # done
+fi
+

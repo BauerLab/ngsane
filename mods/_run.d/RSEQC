@@ -1,0 +1,45 @@
+#!/bin/bash -e
+
+
+################################################################################
+#   Trigger command for individual RSEQC
+#
+# IN : $SOURCE/$dir/INPUT_RSEQC/*.[inputfile.suffix]
+# OUT: $OUT/$dir/TASK_RSEQC/*.[outputfile.suffix]
+################################################################################
+
+
+if [ -n "$RUNRSEQC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/RSEQC
+        if [ -z "$TASK_RSEQC" ] || [ -z "$NODES_RSEQC" ] || [ -z "$CPU_RSEQC" ] || [ -z "$MEMORY_RSEQC" ] || [ -z "$WALLTIME_RSEQC" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+        
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_RSEQC -i $INPUT_RSEQC -e $ASD.bam \
+            -n $NODES_RSEQC \
+            -c $CPU_RSEQC -m $MEMORY_RSEQC"G" -w $WALLTIME_RSEQC \
+            --command "${NGSANE_BASE}/mods/rseqc.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_RSEQC"
+      
+                   
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "RSEQC" "$TASK_RSEQC" "rseqc.sh" 
+
+        # 2) or provide information that there will be no 
+        echo "[NOTE] the RSEQC.sh mod does not provide a report"
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+    
+    # done
+fi

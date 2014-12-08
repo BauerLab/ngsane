@@ -1,0 +1,64 @@
+# author: Boris Guennewig/Tomas Kavanagh
+# date: 29/8/2014
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNRNASEQC="1"    
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_RSEQC=$TASK_STAR
+
+TASK_RSEQC="rseqc"
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+## PARAMETER (mandatory)
+##********************
+
+# reference gene model .bed
+# e.g.: "hg19_RefSeq.bed" or http://rseqc.sourceforge.net/#download-gene-models-update-to-08-07-2014
+GENEMODEL="/home/tomkav/assembly/reference_model/hg19_RefSeq.bed"
+
+#specify library type for tophat.
+# choose "fr-firststrand" "fr-unstranded" "fr-secondstrand"
+RNA_SEQ_LIBRARY_TYPE="fr-firststrand"
+
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+#WALLTIME_RSEQC=48:00:00
+MEMORY_RSEQC=8
+CPU_RSEQC=3
+#NODES_RSEQC="nodes=1:ppn=2"
+#INPUT_RSEQC=$TASK_TOPHAT
+#MODULE_RSEQC="${NG_PYTHON} ${NG_R} ${NG_SAMTOOLS} ${NG_BEDTOOLS}"
+#PATH_RSEQC=
+
+
+
+
+
+
+
+
+
