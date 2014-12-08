@@ -44,7 +44,7 @@ def process():
         chrom.find_tad(sample, n_cpus=options.threads, normalized=True, verbose=False)
         exp.write_tad_borders(outfilefileprefix+"."+chr+".border")
 
-        chrom.tad_density_plot(sample,savefig=outfilefileprefix+".density."+chr+".pdf")
+        # chrom.tad_density_plot(sample,savefig=outfilefileprefix+".density."+chr+".pdf")
         chrom.visualize(exp.name, paint_tads=True, savefig=outfilefileprefix+"chr."+chr+".pdf")
         chrom.save_chromosome(outfilefileprefix+"chr."+chr+".tdb", force=True)
 

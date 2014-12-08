@@ -187,7 +187,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         NGSANE_CHECKPOINT_CHECK
 
         if [ -z "$FITHIC_KEEPCONTACTMATRIX" ]; then
-            rm $OUTDIR/$SAMPLE/$SAMPLE*.matrix
+            rm -f $OUTDIR/$SAMPLE/$SAMPLE*.matrix.gz
         fi
 
     else
@@ -205,19 +205,19 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py $FITHICADDPARAM --lib=${SAMPLE} --biases=$OUTDIR/$SAMPLE/$SAMPLE.ice.txt.gz --fragments=$OUTDIR/$SAMPLE/$SAMPLE.fragmentLists.gz --interactions=$OUTDIR/$SAMPLE/$SAMPLE.contactCounts.gz --resolution $HIC_RESOLUTION >> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
-    zcat $OUTDIR/$SAMPLE/$SAMPLE.spline_pass1.res$HIC_RESOLUTION.significances.txt.gz | awk -v q=$FITHIC_QVALUETHRESHOLD '$7<=q' | sort -k7g | gzip > $OUTDIR/$SAMPLE/$SAMPLE.txt.gz
+    zcat $OUTDIR/$SAMPLE.spline_pass1.res$HIC_RESOLUTION.significances.txt.gz | awk -v q=$FITHIC_QVALUETHRESHOLD '$7<=q' | sort -k7g | gzip > $OUTDIR/$SAMPLE.txt.gz
 
-    SIGCISINTERACTIONS=$(zcat $OUTDIR/$SAMPLE/$SAMPLE.txt.gz |  awk '$1==$3' | wc -l | cut -d' ' -f 2)
-    SIGTRANSINTERACTIONS=$(zcat $OUTDIR/$SAMPLE/$SAMPLE.txt.gz |  awk '$1!=$3' | wc -l | cut -d' ' -f 2)
+    SIGCISINTERACTIONS=$(zcat $OUTDIR/$SAMPLE.txt.gz |  awk '$1==$3' | wc -l | cut -d' ' -f 2)
+    SIGTRANSINTERACTIONS=$(zcat $OUTDIR/$SAMPLE.txt.gz |  awk '$1!=$3' | wc -l | cut -d' ' -f 2)
     echo "Significant cis interactions: $SIGCISINTERACTIONS" >> $OUTDIR/$SAMPLE.log
     echo "Significant trans interactions: $SIGTRANSINTERACTIONS" >> $OUTDIR/$SAMPLE.log
     
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/$SAMPLE.txt.gz
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.txt.gz
 fi
 
 ################################################################################
-[ -e $OUTDIR/$SAMPLE/$SAMPLE.txt.gz.dummy ] && rm $OUTDIR/$SAMPLE/$SAMPLE.txt.gz.dummy
+[ -e $OUTDIR/$SAMPLE.txt.gz.dummy ] && rm $OUTDIR/$SAMPLE.txt.gz.dummy
 echo ">>>>> Chromatin organization with fit-hi-c - FINISHED"
 echo ">>>>> enddate "`date`
 
