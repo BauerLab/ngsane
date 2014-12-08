@@ -52,7 +52,7 @@ export PATH=$PATH_HTSEQCOUNT:$PATH
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-[ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
+# [ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 
 echo "[NOTE] set java parameters"
 JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_HTSEQCOUNT*0.75)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
@@ -66,8 +66,8 @@ echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 echo -e "--bedtools    --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
-echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar --version 2>&1)
-[ ! -f $PATH_PICARD/FixMateInformation.jar ] && echo "[ERROR] no picard detected" && exit 1
+# echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar --version 2>&1)
+# [ ! -f $PATH_PICARD/FixMateInformation.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--htSeq       --\n "$(htseq-count | tail -n 1)
 [ -z "$(which htseq-count)" ] && echo "[ERROR] no htseq-count" && exit 1
 echo -e "--Python      --\n" $(python --version 2>&1 | tee | head -n 1 )
@@ -170,31 +170,19 @@ mkdir -p $THISTMP
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
-NGSANE_CHECKPOINT_INIT "fix mates"
+NGSANE_CHECKPOINT_INIT "sort"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     # sort by name (required for htseq-count later on)
-	if	[[ -n "$HTSEQCOUNT_UNIQUE" ]] ; then
-		echo "[NOTE] Filter for uniquely mapped reads"
-   		samtools view -h $f | grep -E 'NH:i:1|^@' | samtools view -b -S - > $THISTMP/$SAMPLE.tmp
-		samtools sort -@ $CPU_HTSEQCOUNT -n $THISTMP/$SAMPLE.tmp $THISTMP/$SAMPLE.tmp
-		rm $THISTMP/$SAMPLE.tmp
+    if	[[ -n "$HTSEQCOUNT_UNIQUE" ]] ; then
+        echo "[NOTE] Filter for uniquely mapped reads"
+        samtools view -h $f | grep -E 'NH:i:1|^@' | samtools view -F 12 -b -S - > $THISTMP/$SAMPLE.tmp
+        samtools sort -@ $CPU_HTSEQCOUNT -T $SAMPLE -O bam -n $THISTMP/$SAMPLE.tmp > $OUTDIR/$SAMPLE.fixed.bam
+        rm $THISTMP/$SAMPLE.tmp
     else 
-    	samtools sort -@ $CPU_HTSEQCOUNT -n $f $THISTMP/$SAMPLE.tmp
-	fi	
-
-    RUN_COMMAND="java $JAVAPARAMS -jar $PATH_PICARD/FixMateInformation.jar \
-        I=$THISTMP/$SAMPLE.tmp.bam \
-        O=$OUTDIR/$SAMPLE.fixed.bam \
-        VALIDATION_STRINGENCY=SILENT \
-        TMP_DIR=$THISTMP"
-        echo $RUN_COMMAND && eval $RUN_COMMAND
-        
-	samtools index $OUTDIR/$SAMPLE.fixed.bam
-    
-    # cleanup
-    [ -e $THISTMP/$SAMPLE.tmp.bam ] && rm $THISTMP/$SAMPLE.tmp.bam
+        samtools sort -@ $CPU_HTSEQCOUNT -T $SAMPLE -O bam -n $f > $OUTDIR/$SAMPLE.fixed.bam
+    fi	
     
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.fixed.bam
@@ -210,9 +198,9 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         for MODE in $HTSEQCOUNT_MODES; do 
             echo "[NOTE] processing $ATTR $MODE"
             if [ "$PAIRED" = 1 ]; then 
-            	samtools view -f 3 $OUTDIR/$SAMPLE.fixed.bam | htseq-count --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF.$MODE.$ATTR.tmp
+            	samtools view -f 3 $OUTDIR/$SAMPLE.fixed.bam | htseq-count --idattr=$ATTR --order=name --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF.$MODE.$ATTR.tmp
             else
-            	samtools view -F 4 $OUTDIR/$SAMPLE.fixed.bam | htseq-count --idattr=$ATTR --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF.$MODE.$ATTR.tmp
+            	samtools view -F 4 $OUTDIR/$SAMPLE.fixed.bam | htseq-count --idattr=$ATTR --order=name --mode=$MODE $HTSEQCOUNT_ADDPARAMS - $GTF > $THISTMP/GTF.$MODE.$ATTR.tmp
         	fi
             head -n-5 $THISTMP/GTF.$MODE.$ATTR.tmp > $OUTDIR/$anno_version.$MODE.$ATTR
             echo "${ATTR} ${MODE} "$(tail -n 5 $THISTMP/GTF.$MODE.$ATTR.tmp | sed 's/\s\+/ /g' | tr '\n' ' ')" __on_feature "$(cut -f 2 $OUTDIR/$anno_version.$MODE.$ATTR  | paste -sd+  | bc)  >> $OUTDIR/GTF.summary.txt
