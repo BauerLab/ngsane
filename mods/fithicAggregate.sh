@@ -133,11 +133,12 @@ NGSANE_CHECKPOINT_INIT "count Interactions"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --create2DMatrix --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR $DATASETS --outputFilename $SAMPLE > $OUTDIR/$SAMPLE.log"
+    mkdir -p $OUTDIR/$SAMPLE/$SAMPLE
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --create2DMatrix --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE $DATASETS --outputFilename $SAMPLE > $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    [ -e $OUTDIR/${SAMPLE}$ASD.bam.fragmentLists ] && mv $OUTDIR/${SAMPLE}$ASD.bam.fragmentLists $OUTDIR/$SAMPLE/$SAMPLE.fragmentLists
-    [ -e $OUTDIR/${SAMPLE}$ASD.bam.contactCounts ] && mv $OUTDIR/${SAMPLE}$ASD.bam.contactCounts $OUTDIR/$SAMPLE/$SAMPLE.contactCounts
+    [ -e $OUTDIR/$SAMPLE/${SAMPLE}$ASD.bam.fragmentLists ] && mv $OUTDIR/$SAMPLE/${SAMPLE}$ASD.bam.fragmentLists $OUTDIR/$SAMPLE/$SAMPLE.fragmentLists
+    [ -e $OUTDIR/$SAMPLE/${SAMPLE}$ASD.bam.contactCounts ] && mv $OUTDIR/$SAMPLE/${SAMPLE}$ASD.bam.contactCounts $OUTDIR/$SAMPLE/$SAMPLE.contactCounts
     
     $GZIP $OUTDIR/$SAMPLE/$SAMPLE.fragmentLists $OUTDIR/$SAMPLE/$SAMPLE.contactCounts
 
@@ -157,7 +158,6 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         RUN_COMMAND="ic_mes $OUTDIR/$SAMPLE/$SAMPLE.matrix $MEMORY_FITHIC "$(wc -l $OUTDIR/$SAMPLE/$SAMPLE.matrix | awk '{print $1}')" $HICORRECTOR_MAXITER 0 0 $OUTDIR/$SAMPLE/$SAMPLE.ice.txt > $OUTDIR/$SAMPLE/$SAMPLE.matrix_log"     
     fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
-
 
     $GZIP $OUTDIR/$SAMPLE/$SAMPLE*.matrix
 
