@@ -96,6 +96,9 @@ def main():
     usage = '''usage: %prog [options] [bamFile]+
     
     generates (single locus) fragmentCounts and (pairwise) contactCount files
+    for a (set of) aligned files.
+    NOTE: If multiple libraries are input they are simply pooled, i.e. read-pairs are 
+          summed across all libraries - this may bias results to a libraries sequenced deeper)
     '''
     parser = OptionParser(usage)
     parser.add_option("-q", "--quiet", action="store_false", dest="verbose", default=True,
@@ -124,9 +127,11 @@ def main():
                     help="output filename [default: extracted from first input file")
     parser.add_option("-t", "--tmpDir", type="string", dest="tmpDir", default="/tmp", 
                     help="directory for temp files [default: %default]")
-    parser.add_option("-D", "--create2DMatrix", action="store_true", dest="create2DMatrix", default=False,
+    parser.add_option("--create2DMatrix", action="store_true", dest="create2DMatrix", default=False,
                     help="create a tab separated 2D matrix file")
-    
+    parser.add_option("--create2DMatrixPerChr", action="store_true", dest="create2DMatrixPerChr", default=False,
+                    help="create a tab separated 2D matrix file one per Chromosome")
+   
     
     (options, args) = parser.parse_args()
     if (len(args) < 1):
@@ -177,16 +182,18 @@ def createIntervalTreesFragmentResolution():
     intersect_tree = IntervalTree()
     fragmentsCount = 0
     fragmentsMap = {}
-     
+    fragmentsChrom = {} # lookp table for fragment ranges of a chromosome
+
     for line in fileinput.input([options.chromSizes]):
         chrom=line.split("\t")[0]
         # check if chromosome needs to be filtered out or not
-        if (options.chromPattern != "" and not re.match(options.chromPattern, chrom)):
+        if (options.chromPattern != "" and not re.match("^"+options.chromPattern+"$", chrom)):
             # skip this one
             if (options.vverbose):
                 print "skipping pattern %s" % (line)
             continue
-            
+
+        fragmentsStart=fragmentsCount
         chromlen=int(line.split("\t")[1])
 
         for i in range(0, chromlen, options.resolution):
@@ -199,10 +206,12 @@ def createIntervalTreesFragmentResolution():
             if (options.vverbose):
                 print >> sys.stdout, "-- intervaltree.add %s:%d-%d" % (chrom, start, end)
         
+        fragmentsEnd=fragmentsCount
+        fragmentsChrom[chrom] = tuple([fragmentsStart, fragmentsEnd])
     if (options.verbose):
         print >> sys.stdout, "- %s FINISHED: intervaltree populated" % (timeStamp())
     
-    return [ fragmentsMap, intersect_tree, fragmentsCount ]
+    return [ fragmentsMap, intersect_tree, fragmentsCount, fragmentsChrom ]
     
 def createIntervalTreesFragmentFile():
     ''' 
@@ -219,7 +228,9 @@ def createIntervalTreesFragmentFile():
     intersect_tree = IntervalTree()
     fragmentsCount = 0
     fragmentsMap = {}
-    
+    fragmentsChrom = {} # lookp table for fragment ranges of a chromosome
+    fragmentsStart = 0
+
     start = 0
     end = 0
     counter = 0
@@ -240,6 +251,10 @@ def createIntervalTreesFragmentFile():
                     intersect_tree.insert(interval, fragmentsCount)
                     fragmentsMap[fragmentsCount] = tuple([chrom, int(0.5*(start+end))])
                     fragmentsCount += 1
+
+                    fragmentsChrom[chrom] = tuple([fragmentsStart, fragmentsCount]) 
+                    fragmentsStart = fragmentsCount
+
                     if (options.vverbose):
                         print >> sys.stdout,  "-- intervaltree.add %s:%d-%d" % (chrom, start, end)
                 # check if chromosome needs to be filtered out or not
@@ -286,13 +301,15 @@ def createIntervalTreesFragmentFile():
         intersect_tree.insert(interval, fragmentsCount)
         fragmentsMap[fragmentsCount] = tuple([chrom, int(0.5*(start+end))])
         fragmentsCount += 1
+        fragmentsChrom[chrom] = tuple([fragmentsStart, fragmentsCount]) 
+
         if (options.vverbose):
             print >> sys.stdout, "-- intervaltree.add %s:%d-%d" % (chrom, start, end)
     
     if (options.verbose):
         print >> sys.stdout, "- %s FINISHED: intervaltree populated" % (timeStamp())
             
-    return [fragmentsMap, intersect_tree, fragmentsCount]
+    return [fragmentsMap, intersect_tree, fragmentsCount, fragmentsChrom]
 
 def getNext(iterator):
     ''' 
@@ -407,11 +424,6 @@ def countReadsPerFragment(intersect_tree):
                 if (options.vverbose):
                     print >> sys.stdout, "-- one read does not co-occur with any fragment: %d %d" % (fragmentID1, fragmentID2)
                 continue
-            elif (fragmentID1 == fragmentID2):
-                if (options.vverbose):
-                    print >> sys.stdout, "-- skip intra-fragment link: %d == %d" % (fragmentID1, fragmentID2)
-                continue
-    
         
             f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
             if (not fragmentPairs.has_key(f_tuple)):
@@ -429,7 +441,7 @@ def countReadsPerFragment(intersect_tree):
     return [ fragmentList, fragmentPairs ]    
 
 
-def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount):
+def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsChrom):
     '''
     outputs 2 files, the first containing 
     "chr    extraField      fragmentMid     marginalizedContactCount        mappable? (0/1)"
@@ -505,33 +517,61 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount):
         
     outfile2.close()
     
-    if (options.create2DMatrix):
-
+    if (options.create2DMatrix or options.create2DMatrixPerChr):
         # lazy loading
         from scipy.sparse import lil_matrix
         import numpy
+
         # populate sparse matrix
         A = lil_matrix((fragmentCount, fragmentCount), dtype='i')    
         for fragmentIds, contactCounts in fragmentPairs.iteritems():
             A[fragmentIds[0],fragmentIds[1]] = contactCounts
             A[fragmentIds[1],fragmentIds[0]] = contactCounts
+        # convert to coordinate format 
+        B = A.tocoo()
             
-        if ( options.outputFilename != "" ):
-            outfile3 = options.outputDir+options.outputFilename+".matrix"
-        else:
-            outfile3 = options.outputDir+os.path.basename(args[0])+".matrix"
+        if (options.create2DMatrix):
 
-        if (options.verbose):
-            print >> sys.stdout, "- save 2Dmatrix to %s " % (outfile3)
-        
-        f_handle=open(outfile3,'w')
-        
-        A = A.tocsr()
-        for i in xrange(fragmentCount):
-            numpy.savetxt(f_handle, A[i].toarray(),fmt='%i', delimiter='\t')
+            if ( options.outputFilename != "" ):
+                outfile3 = options.outputDir+options.outputFilename+".matrix"
+            else:
+                outfile3 = options.outputDir+os.path.basename(args[0])+".matrix"
+
+            if (options.verbose):
+                print >> sys.stdout, "- save 2Dmatrix to %s " % (outfile3)
             
-        f_handle.close()
-        
+            f_handle=open(outfile3,'w')
+            
+            C = B.tocsr()
+            for i in xrange(fragmentCount):
+                numpy.savetxt(f_handle, C[i].toarray(),fmt='%i', delimiter='\t')
+                
+            f_handle.close()
+
+        if (options.create2DMatrixPerChr):
+            for chr in fragmentsChrom.keys():
+
+                C = B.tocsc()[:,fragmentsChrom[chr][0]:fragmentsChrom[chr][1]].tocsr()[fragmentsChrom[chr][0]:fragmentsChrom[chr][1],:]
+
+                fragmentRange=fragmentsChrom[chr][1]-fragmentsChrom[chr][0]
+                header=['d']+[ "%s%d" % i for i in zip(['r']*fragmentRange,range(fragmentRange))]
+                
+                if ( options.outputFilename != "" ):
+                    outfile3 = options.outputDir+options.outputFilename+"."+chr+".matrix"
+                else:
+                    outfile3 = options.outputDir+os.path.basename(args[0])+"."+chr+".matrix"
+
+                if (options.verbose):
+                    print >> sys.stdout, "- save 2Dmatrix for chromosome %s to %s " % (chr, outfile3)
+                
+                f_handle=open(outfile3,'w')
+                f_handle.write('\t'.join(header)+"\n")
+                for i in xrange(fragmentRange):
+                    f_handle.write(header[i+1]+"\t")
+                    numpy.savetxt(f_handle, C[i].toarray(),fmt='%i', delimiter='\t')
+                    
+                f_handle.close()
+            
     if (options.verbose):
         print >> sys.stdout, "- %s FINISHED: output data" % (timeStamp())
 
@@ -541,13 +581,13 @@ def process():
     global args
 
     if (options.fragmentFile != ""):    
-        [ fragmentsMap, intersectTree, fragmentCount ] = createIntervalTreesFragmentFile()
+        [ fragmentsMap, intersectTree, fragmentCount, fragmentsChrom ] = createIntervalTreesFragmentFile()
     else:
-        [ fragmentsMap, intersectTree, fragmentCount ] = createIntervalTreesFragmentResolution()
+        [ fragmentsMap, intersectTree, fragmentCount, fragmentsChrom ] = createIntervalTreesFragmentResolution()
         
     [ fragmentList, fragmentPairs ] = countReadsPerFragment(intersectTree)
     
-    output(fragmentsMap, fragmentList, fragmentPairs, fragmentCount)
+    output(fragmentsMap, fragmentList, fragmentPairs, fragmentCount, fragmentsChrom)
     
 ######################################
 # main

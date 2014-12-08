@@ -89,8 +89,13 @@ MAPPABILITY=$(pwd)/referenceData/wgEncodeCrgMapabilityAlign36mer_chr16.bw
 # e.g. 0.5
 FITHIC_MAPPABILITYTHRESHOLD=0.5
 
-# pattern indicating with chromosomes to use
-FITHIC_CHROMOSOMES='^[0-9XY]+$'
+# pattern indicating which chromosomes to use
+FITHIC_CHROMOSOMES='^16$'
+
+# indicate if contact matrix should be kept
+# e.g FITHIC_KEEPCONTACTMATRIX="1"
+FITHIC_KEEPCONTACTMATRIX="1"
+
 
 #********************
 # Resources
