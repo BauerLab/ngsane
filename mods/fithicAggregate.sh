@@ -59,6 +59,8 @@ echo -e "--HiCorrector --\n "$(ic_mep 2>&1 | tee | grep Version)
 [ -z "$(which ic_mep)" ] && echo "[ERROR] no HiCorrection detected" && exit 1
 echo -e "--fit-hi-c    --\n "$(python $(which fit-hi-c.py) --version | head -n 1)
 [ -z "$(which fit-hi-c.py)" ] && echo "[ERROR] no fit-hi-c detected" && exit 1
+echo -e "--TADbit      --\n "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active")
+if [ "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active" | wc -l | awk '{print $1}')" > 0 ]; then echo "[WARN] no TADbit detected"; TADBIT=""; else TADBIT="--create2DMatrixPerChr"; fi
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -133,8 +135,8 @@ NGSANE_CHECKPOINT_INIT "count Interactions"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    mkdir -p $OUTDIR/$SAMPLE/$SAMPLE
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --create2DMatrix --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE $DATASETS --outputFilename $SAMPLE > $OUTDIR/$SAMPLE.log"
+    mkdir -p $OUTDIR/$SAMPLE
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE $DATASETS --outputFilename $SAMPLE > $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     [ -e $OUTDIR/$SAMPLE/${SAMPLE}$ASD.bam.fragmentLists ] && mv $OUTDIR/$SAMPLE/${SAMPLE}$ASD.bam.fragmentLists $OUTDIR/$SAMPLE/$SAMPLE.fragmentLists
@@ -175,7 +177,7 @@ NGSANE_CHECKPOINT_INIT "call topological domains (with TADbit)"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    if [ "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active" | wc -l | awk '{print $1}')" > 0 ]; then
+    if [ -n "$TADBIT" ]; then
 
         mkdir -p $OUTDIR/$SAMPLE/$SAMPLE
         RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/callTADs.py --outputDir=$OUTDIR/$SAMPLE --outputFilename=$SAMPLE --threads=$CPU_FITHIC --resolution=$HIC_RESOLUTION $OUTDIR/$SAMPLE/$SAMPLE.*.matrix.gz >> $OUTDIR/$SAMPLE.log"
