@@ -230,12 +230,11 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 fi
 
 ################################################################################
-NGSANE_CHECKPOINT_INIT "bam sorting"
+NGSANE_CHECKPOINT_INIT "sort and index"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    samtools sort -n -l 9 -O bam -@ $CPU_HICUP -o $OUTDIR/$SAMPLE$ASD.bam -T $THISTMP/$SAMPLE $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam 
-
+    samtools sort -l 9 -O bam -@ $CPU_HICUP -o $OUTDIR/$SAMPLE$ASD.bam -T $THISTMP/$SAMPLE $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam 
     samtools index $OUTDIR/$SAMPLE$ASD.bam
     
     # mark checkpoint

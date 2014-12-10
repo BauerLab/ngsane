@@ -135,8 +135,17 @@ NGSANE_CHECKPOINT_INIT "count Interactions"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
+    # ensure name sorted bam required
+    SORTEDDATASET=""
+    for DATA in $DATASETS; do 
+        D=${DATA##*/}
+        D=${D/%$ASD.bam/}
+        samtools sort -O bam -@ $CPU_FITHIC -o $THISTMP/$D.bam -T $THISTMP/$D $DATA
+        SORTEDDATASET="$SORTEDDATASET $THISTMP/$D.bam"
+    done
+
     mkdir -p $OUTDIR/$SAMPLE
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE $DATASETS --outputFilename $SAMPLE > $OUTDIR/$SAMPLE.log"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE $SORTEDDATASET --outputFilename $SAMPLE > $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     [ -e $OUTDIR/$SAMPLE/${SAMPLE}$ASD.bam.fragmentLists ] && mv $OUTDIR/$SAMPLE/${SAMPLE}$ASD.bam.fragmentLists $OUTDIR/$SAMPLE/$SAMPLE.fragmentLists
@@ -195,7 +204,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         NGSANE_CHECKPOINT_CHECK
 
         if [ -z "$FITHIC_KEEPCONTACTMATRIX" ]; then
-            rm $OUTDIR/$SAMPLE/$SAMPLE*.matrix
+            rm -f $OUTDIR/$SAMPLE/$SAMPLE*.matrix.gz
         fi
         
     else
