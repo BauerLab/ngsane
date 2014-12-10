@@ -113,6 +113,10 @@ if [[ -n "$FITHIC_CHROMOSOMES" ]]; then
     FITHIC_CHROMOSOMES="--chrompattern '$FITHIC_CHROMOSOMES'"
 fi
 
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
+[ -d $THISTMP ] && rm -r $THISTMP
+mkdir -p $THISTMP
+
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
 NGSANE_CHECKPOINT_INIT "recall files from tape"
