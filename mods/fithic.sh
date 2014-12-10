@@ -134,7 +134,8 @@ NGSANE_CHECKPOINT_INIT "count Interactions"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     # ensure name sorted bam required
-    samtools sort -O bam -@ $CPU_FITHIC -o $THISTMP/$SAMPLE.bam -T $THISTMP/$SAMPLE $f
+    RUN_COMMAND="samtools sort -O bam -@ $CPU_FITHIC -o $THISTMP/$SAMPLE.bam -T $THISTMP/$SAMPLE.tmp $f"
+    echo $RUN_COMMAND && eval $RUN_COMMAND
 
     mkdir -p $OUTDIR/$SAMPLE
     RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $THISTMP/$SAMPLE.bam > $OUTDIR/$SAMPLE.log"
