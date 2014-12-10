@@ -177,7 +177,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     # sort by name (required for htseq-count later on)
     if	[[ -n "$HTSEQCOUNT_UNIQUE" ]] ; then
         echo "[NOTE] Filter for uniquely mapped reads"
-        samtools view -h $f | grep -E 'NH:i:1|^@' | samtools view -F 12 -b -S - > $THISTMP/$SAMPLE.tmp
+        samtools view -h $f | grep -E 'NH:i:1|^@' | samtools view -b -S - > $THISTMP/$SAMPLE.tmp
         samtools sort -@ $CPU_HTSEQCOUNT -T $SAMPLE -O bam -n $THISTMP/$SAMPLE.tmp > $OUTDIR/$SAMPLE.fixed.bam
         rm $THISTMP/$SAMPLE.tmp
     else 
