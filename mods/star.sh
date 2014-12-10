@@ -28,9 +28,6 @@ required:
   -k | --toolkit <path>     location of the NGSANE repository 
   -f | --fastq <file>       fastq file
   -o | --outdir <path>      output dir
-
-options:
-  -v | --snpfile <snpfile>  SNP tolerant alignment(default: )
 "
 exit
 }
@@ -68,7 +65,7 @@ echo "PATH=$PATH"
 PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MODULE_STAR*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_STAR*0.8)")"g -Djava.io.tmpdir="$TMP"  -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
@@ -98,7 +95,6 @@ if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
     exit 1
 fi
-GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
 
 # if [[ ! -f $FASTA/*.maps ]]; then
 #     echo "[ERROR] GMAP/STAR index not detected. Exeute: gmap_build —D <directory> -d <genome_name> [-s none] [-k <kmer size>] <file.fasta>"
@@ -107,8 +103,8 @@ GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
 
 #remove old files
 if [ -z "$RECOVERFROM" ]; then
-    if [ -d $OUTDIR/$SAMPLE ]; then rm -r $OUTDIR/$SAMPLE; fi
-    if [ -f $OUTDIR/$SAMPLE$ASD.bam ]; then rm $OUTDIR/$SAMPLE$ASD.bam*
+    [ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
+    [ -f $OUTDIR/$SAMPLE$ASD.bam ] && rm -f $OUTDIR/$SAMPLE$ASD.bam*
 fi
 
 #is paired ?
@@ -142,7 +138,7 @@ RG="--outSAMattrRGline \"ID:$EXPID\" \"SM:$FULLSAMPLEID\" \"LB:$LIBRARY\" \"PL:$
 
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
-mkdir -p $THISTMP
+
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -162,7 +158,8 @@ NGSANE_CHECKPOINT_INIT "STAR "
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
- if [ "$PAIRED" = 1 ]; then
+    mkdir -p $OUTDIR/$SAMPLE
+    if [ "$PAIRED" = 1 ]; then
         time STAR \
             --runMode alignReads --readFilesIn $f $f2 --readFilesCommand $ZCAT \
             --genomeDir $INDEX \
@@ -196,7 +193,10 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         --outWigReferencesPrefix $OUTDIR/$SAMPLE/ \
         --runThreadN $CPU_STAR
         
-    bedGraphToBigWig $OUTDIR/$SAMPLE/Aligned.sortedByCoord.out.bg GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bw
+    # extract chrom sizes from Bam
+    samtools view -H $OUTDIR/$SAMPLE/Aligned.sortedByCoord.out.bam | fgrep -w '@SQ' | sed 's/:/\t/g' | awk '{OFS="\t";print $3,$5}' > $OUTDIR/$SAMPLE/Aligned.sortedByCoord.out.chromsizes
+
+    bedGraphToBigWig $OUTDIR/$SAMPLE/Aligned.sortedByCoord.out.bg $OUTDIR/$SAMPLE/Aligned.sortedByCoord.out.chromsizes $OUTDIR/$SAMPLE.bw
 
     #grep -E "NH:i:1|^@" "$OUTDIR"Aligned.out.sam| samtools view -@ $CPU_STAR -bS - -o -| samtools sort -@ $CPU_STAR - "$OUTDIR"Aligned.out
     #samtools view -@ $CPU_STAR -h -S "$OUTDIR"Aligned.out.sam -b -o "$OUTDIR"Aligned.out
@@ -209,6 +209,8 @@ fi
 NGSANE_CHECKPOINT_INIT "clean sam "
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
+    mkdir -p $THISTMP
    
     java $JAVAPARAMS -jar $PATH_PICARD/CleanSam.jar \
         INPUT=$OUTDIR/$SAMPLE/Aligned.sortedByCoord.out.bam \
@@ -289,4 +291,3 @@ NGSANE_CHECKPOINT_CHECK
 [ -e $OUTDIR/$SAMPLE$ASD.bam.dummy ] && rm $OUTDIR/$SAMPLE$ASD.bam.dummy
 echo ">>>>> readmapping with STAR - FINISHED"
 echo ">>>>> enddate "`date`
-

@@ -20,7 +20,7 @@ if [ -n "$RUNSTAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
 
         $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_STAR -i $INPUT_STAR -e $READONE.$FASTQ \
             -n $NODES_STAR -c $CPU_STAR -m $MEMORY_STAR"G" -w $WALLTIME_STAR \
-            --command "${NGSANE_BASE}/mods/star.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_STAR/<NAME>"
+            --command "${NGSANE_BASE}/mods/star.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_STAR"
                    
     ############################################################################
     # Select either of the one below to provide a report for this mod
