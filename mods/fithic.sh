@@ -134,7 +134,7 @@ NGSANE_CHECKPOINT_INIT "count Interactions"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     # ensure name sorted bam required
-    RUN_COMMAND="samtools sort -O bam -@ $CPU_FITHIC -o $THISTMP/$SAMPLE.bam -T $THISTMP/$SAMPLE.tmp $f"
+    RUN_COMMAND="samtools sort -n -O bam -@ $CPU_FITHIC -o $THISTMP/$SAMPLE.bam -T $THISTMP/$SAMPLE.tmp $f"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     mkdir -p $OUTDIR/$SAMPLE

@@ -144,7 +144,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     for DATA in $DATASETS; do 
         D=${DATA##*/}
         D=${D/%$ASD.bam/}
-        RUNCOMMAND="samtools sort -O bam -@ $CPU_FITHIC -o $THISTMP/$D.bam -T $THISTMP/$D.tmp $DATA"
+        RUNCOMMAND="samtools sort -n -O bam -@ $CPU_FITHIC -o $THISTMP/$D.bam -T $THISTMP/$D.tmp $DATA"
         echo $RUNCOMMAND && eval $RUNCOMMAND
         SORTEDDATASET="$SORTEDDATASET $THISTMP/$D.bam"
     done
