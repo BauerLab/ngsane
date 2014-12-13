@@ -241,7 +241,7 @@ pip install --upgrade bx-python
 pip install --upgrade joblib
 pip install --upgrade biopython
 pip install --upgrade scipy
-
+pip install --upgrade ngslib
 
 yolk -l
 

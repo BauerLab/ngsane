@@ -6,7 +6,6 @@
 # Author: Fabian Buske (28/11/2014)
 ######################################
 
-
 import os, sys, re
 import traceback
 from optparse import OptionParser
@@ -474,7 +473,6 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
 
     for fragmentId in fragmentIds:
 
-        mappable = 0
         contactCounts = 0
         chrom = fragmentsMap[fragmentId][0]
         midpoint =  fragmentsMap[fragmentId][1]
@@ -489,6 +487,7 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
             try:
                 mappable = bw.query(chrom, midpoint-options.resolution/2, midpoint+options.resolution/2, 1)[0]["mean"]
             except:
+                mappable = 0
                 # problem with invalid values
                 if (options.vverbose):
                     print >> sys.stderr, "Problem with bw file at %s %d-%d" % (chrom, midpoint-options.resolution/2, midpoint+options.resolution/2)

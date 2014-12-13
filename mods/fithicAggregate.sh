@@ -187,7 +187,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 fi
 
 ################################################################################
-NGSANE_CHECKPOINT_INIT "call topological domains (with TADbit)"
+NGSANE_CHECKPOINT_INIT "call topological domains with TADbit"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
