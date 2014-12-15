@@ -79,7 +79,7 @@ fi
 
 #remove old files
 if [ -z "$RECOVERFROM" ]; then
-    if [ -d $OUTDIR ]; then rm -r $OUTDIR; fi
+    [ -d $OUTDIR ] && rm -rf $OUTDIR/*
 fi
 
 # unique temp folder that should be used to store temporary files
