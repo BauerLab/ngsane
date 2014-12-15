@@ -62,6 +62,8 @@ echo -e "--fit-hi-c    --\n "$(python $(which fit-hi-c.py) --version | head -n 1
 [ -z "$(which fit-hi-c.py)" ] && echo "[ERROR] no fit-hi-c detected" && exit 1
 echo -e "--TADbit      --\n "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active")
 if [[ "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active" | wc -l | awk '{print $1}')" == 0 ]]; then echo "[WARN] no TADbit detected"; TADBIT=""; else TADBIT="--create2DMatrixPerChr"; fi
+echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
+[ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress tad bed file"
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -75,13 +77,6 @@ SAMPLE=${n/%$ASD.bam/}
 if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
     [ -f $OUTDIR/$SAMPLE.log ] && rm $OUTDIR/$SAMPLE.log
-fi
-
-GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
-if [ ! -f $GENOME_CHROMSIZES ]; then
-    echo "[WARN] GENOME_CHROMSIZES not found. No bigbeds will be generated"
-else
-    echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
 fi
 
 if [ -z "$HICORRECTOR_MAXITER" ];then
@@ -117,6 +112,10 @@ THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
 mkdir -p $THISTMP
 
+mkdir -p $OUTDIR/$SAMPLE/ 
+# extract chrom sizes from Bam
+samtools view -H $f | fgrep -w '@SQ' | sed 's/:/\t/g' | awk '{OFS="\t";print $3,$5}' > $OUTDIR/$SAMPLE/chromsizes
+
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
 NGSANE_CHECKPOINT_INIT "recall files from tape"
@@ -138,7 +137,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     mkdir -p $OUTDIR/$SAMPLE
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $THISTMP/$SAMPLE.bam > $OUTDIR/$SAMPLE.log"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $THISTMP/$SAMPLE.bam > $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     [ -e $OUTDIR/$SAMPLE/${SAMPLE}$ASD.bam.fragmentLists ] && mv $OUTDIR/$SAMPLE/${SAMPLE}$ASD.bam.fragmentLists $OUTDIR/$SAMPLE/$SAMPLE.fragmentLists
@@ -167,7 +166,6 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     # convert to fit-hi-c expected bias format
     paste <(zcat $OUTDIR/$SAMPLE/$SAMPLE.fragmentLists.gz | cut -f1,2) $OUTDIR/$SAMPLE/$SAMPLE.ice.txt | awk '{$3==0?$3=1:$3=$3; print $0}' | $GZIP > $OUTDIR/$SAMPLE/$SAMPLE.ice.txt.gz  
-    rm $OUTDIR/$SAMPLE/$SAMPLE.ice.txt 
         
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/$SAMPLE.ice.txt.gz
@@ -188,17 +186,20 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         cat /dev/null > $OUTDIR/$SAMPLE.tad.bed
         # convert .border file to beds
         for i in $OUTDIR/$SAMPLE/*.border; do
-            CHROM=$(echo $i | sed 's/.*.\(.*\).border/\1/')
-            awk -v c=$CHROM -v r=$HIC_RESOLUTION 'BEGIN{OFS="\t"}{if (NR>1){print c,$2*r,$3*r,c"_"$1,int($4),"."}}' $i >> $OUTDIR/$SAMPLE.tad.bed
+            CHROM=$(echo $i | tr '.' '\n' | tail -n2 | head -n 1)
+            awk -v c=$CHROM -v r=$HIC_RESOLUTION 'BEGIN{OFS="\t"}{if (NR>1){print c,$2*r,$3*r,c"_"$1,int($4),"."}}' $i | bedtools intersect -a - -b <( awk '{OFS="\t"; print $1,0,$2}' $OUTDIR/$SAMPLE/chromsizes)  >> $OUTDIR/$SAMPLE.tad.bed
         done
-        rm -r $OUTDIR/$SAMPLE/*.border
+
+        # create bigbed making sure score is between 0 and 1000
+        if hash bedToBigBed; then 
+            echo "[NOTE] create bigbed from tads" 
+            bedtools sort -i $OUTDIR/$SAMPLE.tad.bed > $OUTDIR/$SAMPLE.tad.tmp
+            bedToBigBed -type=bed6 $OUTDIR/$SAMPLE.tad.tmp $OUTDIR/$SAMPLE/chromsizes $OUTDIR/$SAMPLE.tad.bb
+            rm $OUTDIR/$SAMPLE.tad.tmp
+        fi
 
         # mark checkpoint
         NGSANE_CHECKPOINT_CHECK
-
-        if [ -z "$FITHIC_KEEPCONTACTMATRIX" ]; then
-            rm -f $OUTDIR/$SAMPLE/$SAMPLE*.matrix.gz
-        fi
 
     else
         echo "[NOTE] skipping topological domain calling (TADbit not found)"
@@ -227,6 +228,18 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 fi
 
 ################################################################################
+NGSANE_CHECKPOINT_INIT "cleanup"
+
+if [ -z "$FITHIC_KEEPCONTACTMATRIX" ]; then
+    rm -f $OUTDIR/$SAMPLE/$SAMPLE*.matrix.gz
+fi
+rm -f -r $OUTDIR/$SAMPLE/*.border
+rm -f $OUTDIR/$SAMPLE/$SAMPLE.ice.txt
+rm -f $OUTDIR/$SAMPLE/chromsizes
+
+NGSANE_CHECKPOINT_CHECK
+################################################################################
+
 [ -e $OUTDIR/$SAMPLE.txt.gz.dummy ] && rm $OUTDIR/$SAMPLE.txt.gz.dummy
 echo ">>>>> Chromatin organization with fit-hi-c - FINISHED"
 echo ">>>>> enddate "`date`
