@@ -145,11 +145,11 @@ NGSANE_CHECKPOINT_CHECK
 NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
-	dmget -a $(dirname $FASTA)/*
+    dmget -a $(dirname $FASTA)/*
     dmget -a $(dirname $INDEX)/*
     dmget -a $GMAP_index
     dmget -a ${f/$READONE/"*"}
-	dmget -a ${OUTDIR}/$SAMPLE
+    dmget -a ${OUTDIR}/$SAMPLE
 fi
     
 NGSANE_CHECKPOINT_CHECK
@@ -160,23 +160,24 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
     mkdir -p $OUTDIR/$SAMPLE
     if [ "$PAIRED" = 1 ]; then
+	RUNCOMMAND="
         time STAR \
             --runMode alignReads --readFilesIn $f $f2 --readFilesCommand $ZCAT \
             --genomeDir $INDEX \
             --outFileNamePrefix $OUTDIR/$SAMPLE/ \
             --outSAMtype BAM SortedByCoordinate \
             --outTmpDir $THISTMP \
-            --runThreadN $CPU_STAR $STARADDPARAM $RG
-    
+            --runThreadN $CPU_STAR $STARADDPARAM $RG"
      else
-        time STAR \
+        RUNCOMMAND="time STAR \
             --runMode alignReads --readFilesIn $f --readFilesCommand $ZCAT \
             --genomeDir $INDEX \
             --outFileNamePrefix $OUTDIR/$SAMPLE/ \
             --outSAMtype BAM SortedByCoordinate \
             --outTmpDir $THISTMP \
-            --runThreadN $CPU_STAR $STARADDPARAM $RG
+            --runThreadN $CPU_STAR $STARADDPARAM $RG"
     fi
+    echo $RUNCOMMAND && eval $RUNCOMMAND
     
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/Aligned.sortedByCoord.out.bam
@@ -186,12 +187,13 @@ NGSANE_CHECKPOINT_INIT "create bigwig "
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    time STAR \
+    RUNCOMMAND="time STAR \
         --runMode inputAlignmentsFromBAM --inputBAMfile $OUTDIR/$SAMPLE/Aligned.sortedByCoord.out.bam \
         --outWigType bedGraph --outWigNorm RPM \
         --outTmpDir $THISTMP \
         --outWigReferencesPrefix $OUTDIR/$SAMPLE/ \
-        --runThreadN $CPU_STAR
+        --runThreadN $CPU_STAR"
+    echo $RUNCOMMAND && eval $RUNCOMMAND
         
     # extract chrom sizes from Bam
     samtools view -H $OUTDIR/$SAMPLE/Aligned.sortedByCoord.out.bam | fgrep -w '@SQ' | sed 's/:/\t/g' | awk '{OFS="\t";print $3,$5}' > $OUTDIR/$SAMPLE/Aligned.sortedByCoord.out.chromsizes
