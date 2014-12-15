@@ -21,8 +21,6 @@ declare -a DIR; DIR=( sample1 sample2 )
 # folder/task containing the data this task operates on
 INPUT_SAILFISH="fastq"
 
-TASK_SAILFISH="sailfish"
-
 # where to write the output
 OUT=$SOURCE
 
