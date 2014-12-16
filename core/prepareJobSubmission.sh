@@ -94,11 +94,11 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                     D=$(eval $DUMMY)
                     # skip if either result file exist and log finished or resultfiles is not specified and log finished
                 	if [[ -n "$D" ]] && [[ -f $D ]] && [[ $(egrep "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] || [[ -z "$D" ]] && [[ $(egrep "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then 
-                	   echo -e "\e[34m[SKIP]\e[0m $n (already processed: $DIRNAME/${D##*/})"  
+                	   echo -e "\e[34m[SKIP]\e[0m ${n/$ENDING/} (already processed: $DIRNAME/${D##*/})"  
                 	   continue
                     fi
                 fi 
-                echo -e "\e[32m[TODO]\e[0m $DIRNAME/$n"
+                echo -e "\e[32m[TODO]\e[0m $DIRNAME/${n/$ENDING/}"
                 echo $f >> $QOUT/$TASK/runnow.tmp
             done
         
@@ -113,11 +113,11 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                 	DUMMY="echo "$(egrep "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)
                 	if [ -n "$D" ] && [ -f $D ] && [[ $(egrep "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]]; then
-                	   echo -e "\e[34m[SKIP]\e[0m $n (already processed - $DIRNAME/${D##*/})"  
+                	   echo -e "\e[34m[SKIP]\e[0m ${n/$ENDING/} (already processed - $DIRNAME/${D##*/})"  
                 	   continue
                     fi
                 fi 
-                echo -e "\e[32m[TODO]\e[0m $DIRNAME/$n"
+                echo -e "\e[32m[TODO]\e[0m $DIRNAME/${n/$ENDING/}"
                 echo $f >> $QOUT/$TASK/runnow.tmp
             done
         fi
