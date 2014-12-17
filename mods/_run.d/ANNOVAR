@@ -36,8 +36,8 @@ if [ -n "$RUNANNOVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "$INPUT_ANNOVAR/$TASK_ANNOVAR"  \
             ".stats" \
             "PATTERN!total!80!fgrep 'total' | head -n 1 | cut -d ' ' -f 2" \
-            "PATTERN!nonsynonymous!80!fgrep 'nonsynonymous' | head -n 1 | cut -d ' ' -f 2" \
-            "PATTERN!synonymous!80!fgrep 'synonymous' | head -n 1 | cut -d ' ' -f 2" \
+            "PATTERN!nonsynonymous!80!fgrep -w 'nonsynonymous' | head -n 1 | cut -d ' ' -f 2" \
+            "PATTERN!synonymous!80!fgrep -w 'synonymous' | head -n 1 | cut -d ' ' -f 2" \
             "PATTERN!splicing!80!fgrep 'splicing' | head -n 1 | cut -d ' ' -f 2" 
         # finish the section
         NGSANE_REPORT_FOOTER 

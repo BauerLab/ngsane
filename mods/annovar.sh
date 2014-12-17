@@ -137,8 +137,9 @@ NGSANE_CHECKPOINT_INIT "make statistics"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
+    echo total $(wc -l $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.txt" > $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.stats"
     for i in nonsynonymous synonymous splicing; do
-        echo $i $(grep $i $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.txt" | wc -l) >> $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.stats"
+        echo $i $(grep -w $i $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.txt" | wc -l) >> $OUTDIR/${n/vcf/sum}.$LIBRARY"_multianno.stats"
     done
     
     # mark checkpoint

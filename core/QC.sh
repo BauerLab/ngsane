@@ -68,8 +68,8 @@ if [ -n "$(find $QOUT/$TASK/ -name 'postcommand*.out')" ]; then
     SCRIPTFILES=$SCRIPTFILES" "$(find $QOUT/$TASK/ -name 'postcommand*.out' | sort -u | tr '\n' '*'| sed 's|\*$||')":"${NGSANE_BASE}/mods/${SCRIPT/*,/}
 fi
 
-echo "find $QOUT/$TASK/ -name '*.out' -and -not -name 'postcommand*'" 1>&2
-echo $SCRIPTFILES 1>&2
+#echo "find $QOUT/$TASK/ -name '*.out' -and -not -name 'postcommand*'" 1>&2
+#echo $SCRIPTFILES 1>&2
 
 # collect all logfiles for display in the NOTES, ERROR and LOGFILE tab
 LOGFILES=$(find $QOUT/$TASK/ -name '*.out')
