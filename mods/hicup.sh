@@ -218,6 +218,8 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     # move charts
     mv $OUTDIR/$SAMPLE/${SAMPLE}$READONE.$FASTQ.truncation_barchart.svg $OUTDIR/${SAMPLE}$READONE.truncation_barchart.svg
     mv $OUTDIR/$SAMPLE/${SAMPLE}$READTWO.$FASTQ.truncation_barchart.svg $OUTDIR/${SAMPLE}$READTWO.truncation_barchart.svg
+    mv $OUTDIR/$SAMPLE/${SAMPLE}$READONE_trunc.gz.mapper_barchart.svg $OUTDIR/${SAMPLE}$READONE.mapper_barchart.svg
+    mv $OUTDIR/$SAMPLE/${SAMPLE}$READTWO_trunc.gz.mapper_barchart.svg $OUTDIR/${SAMPLE}$READTWO.mapper_barchart.svg
         
     mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam.deduplicator_cis_trans_piechart.svg $OUTDIR/${SAMPLE}.cis-trans.svg
     mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam.deduplicator_uniques_barchart.svg $OUTDIR/${SAMPLE}.uniques_barchart.svg
@@ -225,7 +227,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.filter_piechart.svg $OUTDIR/${SAMPLE}.filter_piechart.svg
     
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.gz.mapper_barchart.svg
 
 fi
 
@@ -244,9 +246,7 @@ fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "cleanup"
 
-[ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz*
-[ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.gz ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.gz*
-[ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.map ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.map
+[ -d $OUTDIR/$SAMPLE ] && rm -fr $OUTDIR/$SAMPLE
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################

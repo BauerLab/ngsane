@@ -93,7 +93,9 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN!Paired P1!!sed -n 2p | cut -f 11" \
             "PATTERN!%!!sed -n 2p | cut -f 12" \
             "PATTERN!Paired P2!!sed -n 3p | cut -f 11" \
-            "PATTERN!%!!sed -n 3p | cut -f 12"
+            "PATTERN!%!!sed -n 3p | cut -f 12" \
+            "FIGURE!Read1!60!<SAMPLE>$READONE.mapper_barchart.svg!60!1" \
+            "FIGURE!Read2!60!<SAMPLE>$READTWO.mapper_barchart.svg!60!1"
 
         NGSANE_REPORT_TABLE "$TASK_HICUP" \
             "Filter" \
