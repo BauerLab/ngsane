@@ -156,7 +156,7 @@ NGSANE_CHECKPOINT_INIT "HiCorrector"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [[ "$CPU_FITHIC" -gt 1 ]]; then
-        RUN_COMMAND=$(which mpirun)" -np $CPU_FITHIC ic_mep --jobID=$SAMPLE --hasHeaderRow=0 --maxIteration=$HICORRECTOR_MAXITER --numRows="$(wc -l $OUTDIR/$SAMPLE/$SAMPLE.matrix | awk '{print $1}')" --numTask=$CPU_FITHIC --memSizePerTask="$(echo "1 + $MEMORY_FITHIC * 1000 / $CPU_FITHIC" | bc)" --inputFile=$OUTDIR/$SAMPLE/$SAMPLE.matrix --outputFile=$OUTDIR/$SAMPLE/$SAMPLE.ice.txt > $OUTDIR/$SAMPLE/$SAMPLE.matrix_log"
+        RUN_COMMAND=$(which mpirun)" -np $CPU_FITHIC ic_mep --jobID=$SAMPLE --hasHeaderRow=0 --maxIteration=$HICORRECTOR_MAXITER --numRows="$(wc -l $OUTDIR/$SAMPLE/$SAMPLE.matrix | awk '{print $1}')" --numTask=$CPU_FITHIC --memSizePerTask="$(echo "1 + $MEMORY_FITHIC * 900 / $CPU_FITHIC" | bc)" --inputFile=$OUTDIR/$SAMPLE/$SAMPLE.matrix --outputFile=$OUTDIR/$SAMPLE/$SAMPLE.ice.txt > $OUTDIR/$SAMPLE/$SAMPLE.matrix_log"
     else
         RUN_COMMAND="ic_mes $OUTDIR/$SAMPLE/$SAMPLE.matrix $MEMORY_FITHIC "$(wc -l $OUTDIR/$SAMPLE/$SAMPLE.matrix | awk '{print $1}')" $HICORRECTOR_MAXITER 0 0 $OUTDIR/$SAMPLE/$SAMPLE.ice.txt > $OUTDIR/$SAMPLE/$SAMPLE.matrix_log"
     fi
@@ -177,7 +177,7 @@ NGSANE_CHECKPOINT_INIT "call topological domains with TADbit"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    if [ -n "$TADBIT" ]; then
+    if [[ -n "$CALL_TADS" && -n "$TADBIT" ]]; then
 
         mkdir -p $OUTDIR/$SAMPLE/$SAMPLE
         RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/callTADs.py --outputDir=$OUTDIR/$SAMPLE --outputFilename=$SAMPLE --threads=$CPU_FITHIC --resolution=$HIC_RESOLUTION $OUTDIR/$SAMPLE/$SAMPLE.*.matrix.gz >> $OUTDIR/$SAMPLE.log"
@@ -202,7 +202,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         NGSANE_CHECKPOINT_CHECK
 
     else
-        echo "[NOTE] skipping topological domain calling (TADbit not found)"
+        echo "[NOTE] skipping topological domain calling (TADbit)"
         NGSANE_CHECKPOINT_CHECK
     fi
 fi

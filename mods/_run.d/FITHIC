@@ -44,8 +44,11 @@ if [ -n "$RUNFITHIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN!Cis Range Count!!fgrep -w 'Observed, Intra-chr in range' | tail -n 1 | cut -f 1 | cut -d'=' -f 2" \
             "PATTERN!Possible Trans!!fgrep -w 'Possible, Inter-chr all' | tail -n 1 | cut -d'=' -f2" \
             "PATTERN!Trans Count!!fgrep -w 'Observed, Inter-chr all' | tail -n 1 | cut -d'=' -f2 | awk '{print \$1}'" \
-            "PATTERN!Significant cis interactions!!fgrep -w 'Significant cis interactions' | cut -d':' -f2" \
-            "PATTERN!Significant trans interactions!!fgrep -w 'Significant trans interactions' | cut -d':' -f2" \
+            "PATTERN!Significant interactions!!fgrep -w 'Significant' | cut -d':' -f 2 | awk '{sum+=\$1}END{print sum}'" \
+            "PATTERN!Significant cis!!fgrep -w 'Significant cis interactions' | cut -d':' -f2" \
+            "CALCULATE!%!40!#9*100/#8" \
+            "PATTERN!Significant trans!!fgrep -w 'Significant trans interactions' | cut -d':' -f2" \
+            "CALCULATE!%!40!#11*100/#8" \
             "FIGURE!!60!<SAMPLE>.spline_pass1.res$HIC_RESOLUTION.png!60!1" 
 
         # finish the section
@@ -53,5 +56,3 @@ if [ -n "$RUNFITHIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
   
     fi
 fi	
-
-	
