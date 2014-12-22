@@ -61,7 +61,7 @@ echo -e "--HiCorrector --\n "$(ic_mep 2>&1 | tee | grep Version)
 echo -e "--fit-hi-c    --\n "$(python $(which fit-hi-c.py) --version | head -n 1)
 [ -z "$(which fit-hi-c.py)" ] && echo "[ERROR] no fit-hi-c detected" && exit 1
 echo -e "--TADbit      --\n "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active")
-if [[ "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active" | wc -l | awk '{print $1}')" == 0 ]]; then echo "[WARN] no TADbit detected"; TADBIT=""; else TADBIT="--create2DMatrixPerChr"; fi
+if [[ "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active" | wc -l | awk '{print $1}')" == 0 ]]; then echo "[WARN] no TADbit detected"; TADBIT=""; elif [ -n "$CALL_TADS" ]; then TADBIT="--create2DMatrixPerChr"; fi
 echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
 [ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress tad bed file"
 
