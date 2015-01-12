@@ -4,9 +4,12 @@
 . $NGSANE_BASE/conf/header.sh
 . bin/tmpl/configTopCuffHtseq.txt
 
+QSUB_COMMAND=qsub
+if [ "$SUBMISSIONSYSTEM" == "SLURM" ]; then QSUB_COMMAND="sbatch"; fi
+
 # direct or submitting?
 if [[ -z "$SB_MODE" ]]; then
-        if hash qsub 2>&- ; then SB_MODE="forcearmed"
+        if hash ${QSUB_COMMAND} 2>&- ; then SB_MODE="forcearmed"
         else
             SB_MODE="direct";
         fi
@@ -52,8 +55,9 @@ chmod 777 tmp/testTOPHATCUFFHTSEQ.qsub
 #submit evaluation script
 echo "[NOTE] submit or run evaluation script"
 if [[ "$SUBMISSIONSYSTEM" = "SGE" ]]; then unset module; fi
+if [[ "$SUBMISSIONSYSTEM" = "SLURM" ]]; then grep -v "#PBS" tmp/testTOPHATCUFFHTSEQ.qsub > tmp/testTOPHATCUFFHTSEQ.qsub.tmp; mv tmp/testTOPHATCUFFHTSEQ.qsub.tmp tmp/testTOPHATCUFFHTSEQ.qsub; fi
 if [[ "$SB_MODE" = "forcearmed" ]]; then
-	qsub $HOLDID $QSUBEXTRA tmp/testTOPHATCUFFHTSEQ.qsub
+	${QSUB_COMMAND} $HOLDID $QSUBEXTRA tmp/testTOPHATCUFFHTSEQ.qsub
 else
     eval tmp/testTOPHATCUFFHTSEQ.qsub
 fi

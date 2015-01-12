@@ -79,7 +79,7 @@ export PATH=$PATH_GATKVAR:$PATH
 echo $PATH
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
-[ -z "$PATH_PICARD" ] && PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
+[ -z "$PATH_GATK" ] && PATH_GATK=$(dirname $(which GenomeAnalysisTK.jar))
 [ -z "$PATH_IGVTOOLS" ] && PATH_IGVTOOLS=$(dirname $(which igvtools.jar))
 
 echo "[NOTE] set java parameters"
