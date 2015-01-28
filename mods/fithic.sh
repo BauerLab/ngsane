@@ -64,6 +64,8 @@ echo -e "--TADbit      --\n "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-acti
 if [[ "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active" | wc -l | awk '{print $1}')" == 0 ]]; then echo "[WARN] no TADbit detected"; TADBIT=""; elif [ -n "$CALL_TADS" ]; then TADBIT="--create2DMatrixPerChr"; fi
 echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
 [ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress tad bed file"
+echo -e "--tabix       --\n "$(tabix 2>&1 | tee | grep "Version")
+[ -z "$(which tabix)" ] && echo "[WARN] tabix not detected, cannot index bed file"
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -227,6 +229,24 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.txt.gz
 fi
 
+################################################################################
+NGSANE_CHECKPOINT_INIT "create tabix files"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
+    if hash tabix; then 
+        [ -f $OUTDIR/$SAMPLE.bed.gz ] && rm $OUTDIR/$SAMPLE.bed.gz*
+
+        zcat $OUTDIR/$SAMPLE.txt.gz | awk '{OFS="\t";print $1,$2,$2+1,$3":"$4"-"$4+1","$10,"1","."; print $3,$4,$4+1,$1":"$2"-"$2+1","$10,"2","."}' | bedtools sort > $OUTDIR/$SAMPLE.bed
+        bgzip $OUTDIR/$SAMPLE.bed
+        tabix -p bed $OUTDIR/$SAMPLE.bed.gz
+        
+        # mark checkpoint
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.bed.gz
+    else
+        echo "[NOTE] skipping tabix file creation"
+    fi
+fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "cleanup"
 
