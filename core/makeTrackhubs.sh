@@ -132,6 +132,7 @@ subGroup2 mod Module\
     bwa=BWA \
     tophat=Tophat \
     macs=Macs \
+    idr=IDR \
     homer=Homer \
     peakranger=Peakranger
 
@@ -258,7 +259,10 @@ for DIR in ${DIR[@]}; do
     if [[ -n "$RUNFSEQ" ]]; then        
         makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_FSEQ "bigBed 4" "$SAMPLEPATTERN" ".bb" ""
     fi
-    
+
+    if [[ -n "$RUNIDR" ]]; then
+        makeTracks $TRACKHUB_DIR/$UCSC_GENOMEASSEMBLY $DIR $SUBGROUP1 $TASK_IDR "bigBed 4" "$SAMPLEPATTERN" ".bb" ""
+    fi    
 
 #
 #    if [[ -n "$RUNHOMERCHIPSEQ" ]]; then        

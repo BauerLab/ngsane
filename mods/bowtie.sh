@@ -329,7 +329,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     samstat $OUTDIR/$SAMPLE$ASD.bam 2>&1 | tee | grep -v -P "Bad x in routine betai"
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam.stats 
+    NGSANE_CHECKPOINT_CHECK
 fi
 
 

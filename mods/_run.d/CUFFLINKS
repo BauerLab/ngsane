@@ -25,7 +25,7 @@ if [ -n "$RUNCUFFLINKS" ] || [ -n "$NGSANE_PIPELINECALL" ] ; then
         	) && echo -e "$JOBIDS"
         JOBIDS_CUFFLINKS=$(waitForJobIds "$JOBIDS")
 
-        $QSUB $ARMED -r -k $CONFIG -t ${TASK_CUFFQUANT} -i $INPUT_CUFFQUANT -e $ASD.bam \
+        $QSUB $ARMED -r -k $CONFIG -t ${TASK_CUFFQUANT} -i $INPUT_CUFFLINKS -e $ASD.bam \
             -n $NODES_CUFFQUANT -c $CPU_CUFFQUANT -m $MEMORY_CUFFQUANT"G" -w $WALLTIME_CUFFQUANT $JOBIDS_CUFFLINKS \
     		--command "${NGSANE_BASE}/mods/cuffquant.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_CUFFQUANT/" \
     		--postname "postcommandCuffnorm$MERGED_GTF_NAME" \

@@ -50,6 +50,8 @@ echo "PATH=$PATH"
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
+echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
+[ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress bedgraphs"
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -70,6 +72,12 @@ if [ -z "$FASTA" ]; then
     echo "[ERROR] no reference provided (FASTA)"
     exit 1
 fi
+
+if [ -z "$IDR_THRESHOLD" ]; then
+    IDR_THRESHOLD="0.05"
+fi
+echo "[NOTE] IDR threshold: $IDR_THRESHOLD"
+
 GENOMESIZE=${FASTA%.*}.chrom.sizes
 
 # unique temp folder that should be used to store temporary files
@@ -110,7 +118,7 @@ for d in ${DIR[@]}; do
             exit 1
         fi
 
-        echo -ne "cd $NGSANE_BASE/tools/idr/; Rscript batch-consistency-analysis.r $R1 $R2 $IDR_PEAKHALFWIDTH $OUTDIR/${REPLICATE[0]} $IDR_MINOVERLAPRATIO $IDR_ISBROADPEAK $IDR_RANKINGMEASURE $GENOMESIZE; Rscript batch-consistency-plot.r 1 $OUTDIR/${REPLICATE[0]} $OUTDIR/${REPLICATE[0]}; awk 'BEGIN{OFS=\"\t\"}{if(NR>1){if(\$3<\$7){start=\$3}else{start=\$7};if(\$4<\$8){end=\$8}else{end=\$4}; print \$2,start,end,\"IDR_\"(NR-1), \$11, \".\"}}' $OUTDIR/${REPLICATE[0]}-overlapped-peaks.txt | sed 's/\"//g' > $OUTDIR/${REPLICATE[0]}-overlapped-peaks.bed" >> $COMMAND
+        echo -ne "cd $NGSANE_BASE/tools/idr/; Rscript batch-consistency-analysis.r $R1 $R2 $IDR_PEAKHALFWIDTH $OUTDIR/${REPLICATE[0]} $IDR_MINOVERLAPRATIO $IDR_ISBROADPEAK $IDR_RANKINGMEASURE $GENOMESIZE; Rscript batch-consistency-plot.r 1 $OUTDIR/${REPLICATE[0]} $OUTDIR/${REPLICATE[0]}; awk 'BEGIN{OFS=\"\t\"}{if(NR>1){if(\$3<\$7){start=\$3}else{start=\$7};if(\$4<\$8){end=\$8}else{end=\$4}; print \$2,start,end,\"IDR_\"(NR-1), \$11, \".\"}}' $OUTDIR/${REPLICATE[0]}-overlapped-peaks.txt | sed 's/\"//g' | awk -v t=$IDR_THRESHOLD '\$5 <= t' > $OUTDIR/${REPLICATE[0]}-overlapped-peaks.bed; if hash bedToBigBed; then awk '{\$7=\$5 ; \$5=int(1000*\$5); print \$0}' $OUTDIR/${REPLICATE[0]}-overlapped-peaks.bed > $OUTDIR/${REPLICATE[0]}-overlapped-peaks.bed2; bedToBigBed -type=bed6+1 $OUTDIR/${REPLICATE[0]}-overlapped-peaks.bed2 $GENOMESIZE $OUTDIR/${REPLICATE[0]}.bb; rm $OUTDIR/${REPLICATE[0]}-overlapped-peaks.bed2; fi" >> $COMMAND
         echo ";" >> $COMMAND
     
     done < $COMMAND.tmp
@@ -128,7 +136,7 @@ NGSANE_CHECKPOINT_INIT "calculate idr"
 if hash parallel ; then
 
     echo "[NOTE] parallel processing"
-    cat $COMMAND | parallel --verbose --joblog $THISTMP/$TASK_IDR.log --gnu --eta -j $CPU_IDR "eval {}" #> /dev/null 2>&1
+    cat $COMMAND | parallel --silent --joblog $THISTMP/$TASK_IDR.log --gnu -j $CPU_IDR "eval {}" #> /dev/null 2>&1
 
 else
     # serial processing
@@ -140,7 +148,7 @@ else
 fi
 
 rm $COMMAND
-
+    
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
 echo ">>>>> IDR analysis - FINISHED"

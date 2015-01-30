@@ -45,6 +45,10 @@ IDR_BEDSUFFIX=".narrowPeak"
 # e.g "p.value", "signal.value"
 IDR_RANKINGMEASURE="p.value"
 
+# threshold for filtering idr values
+# default 0.05
+IDR_THRESHOLD=
+
 # Define the labels for the R plot
 # IDR_REPLICATE output_prefix  replicate1 replicate2
 # e.g. IDR_REPLICATE CTCF CTCF_Replicate1 CTCF_Replicate2
