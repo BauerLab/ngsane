@@ -80,6 +80,10 @@ NG_QUALIMAP=
 NG_MRSFAST=
 NG_TABIX=
 NG_HICORRECTOR=
+NG_GSNAP=
+NG_SAILFISH=
+NG_RSEQC=
+NG_STAR=
 
 ##############################################################
 # Software reference
@@ -134,6 +138,12 @@ NG_CITE_QUALIMAP="Bioinformatics. 2012 Oct 15;28(20):2678-9. doi: 10.1093/bioinf
 NG_CITE_MRSFAST="Nucleic Acids Res. 2014 Jul;42(Web Server issue):W494-500. doi: 10.1093/nar/gku370. Epub 2014 May 8. 'mrsFAST-Ultra: a compact, SNP-aware mapper for high performance sequencing applications.'; Hach F1, Sarrafi I2, Hormozdiari F3, Alkan C4, Eichler EE5, Sahinalp SC6."
 NG_CITE_TABIX="Bioinformatics. 2011 Mar 1;27(5):718-9. doi: 10.1093/bioinformatics/btq671. Epub 2011 Jan 5.; 'Tabix: fast retrieval of sequence features from generic TAB-delimited files.'; Li H."
 NG_CITE_HICORRECTOR="Bioinformatics. 2014 Nov 12. pii: btu747. [Epub ahead of print]; HiCorrector: A fast, scalable and memory-efficient package for normalizing large-scale Hi-C data. Li W, Gong K, Li Q, Alber F, Zhou XJ."
+NG_CITE_GSNAP="Thomas D. Wu and Serban Nacu, Fast and SNP-tolerant detection of complex variants and splicing in short reads. Bioinformatics 2010 26:873-881"
+NG_CITE_SAILFISH="http://www.nature.com/nbt/journal/v32/n5/full/nbt.2862.html"
+NG_CITE_RSEQC="Wang L, Wang S, Li W* RSeQC: quality control of RNA-seq experiments Bioinformatics (2012) 28 (16): 2184-2185. doi: 10.1093/bioinformatics/bts356"
+NG_CITE_STAR="A. Dobin et al, Bioinformatics 2012; doi: 10.1093/bioinformatics/bts635"
+
+>>>>>>> origin/master
 ##############################################################
 # PROGRAM PATHS
 ##############################################################

@@ -1,4 +1,5 @@
-#!/bin/bash -e
+#!/bin/bash
+
 
 #PBS -l walltime=00:05:00
 #PBS -l vmem=4gb
@@ -17,6 +18,13 @@
 #$ -j yes
 #$ -V
 #$ -S /bin/bash
+
+#SBATCH --time=00:05:00
+#SBATCH --mem-=4gb
+#SBATCH --export=ALL
+#SBATCH --job-name=NAME
+#SBATCH --output=qout/NAME.out
+#SBATCH --open-mode=append
 
 if [ -n "$PBS_O_WORKDIR" ]; then
         cd $PBS_O_WORKDIR

@@ -25,7 +25,7 @@ while [ "$1" != "" ]; do
 	--postmemory )          shift; POSTMEMORY=$1;; # Memory used for postcommand
 	--postwalltime )        shift; POSTWALLTIME=$1;;
 	-r | --reverse )        REV="1";;              # input is fastq
-	-d | --nodir )          NODIR="nodir";;
+	-d | --nodir )          NODIR="nodir";;        # command does not create an output folder for the task
 	-a | --armed )          ARMED="armed";;
     -W | --wait )           shift; JOBIDS=$1 ;;    # jobids to wait for
     --commontask )          shift; COMMONTASK=$1;; # name of a task common to multiple libraries
@@ -87,6 +87,9 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                 n=${f##*/}
                 name=${n/$ENDING/}
                 LOGFILE=$QOUT/$TASK/$DIRNAME'_'$name'.out'
+                # remove suplus dots coming from providing no subdirectories with given dirs (i.e. annovar)
+                LOGFILE=$(echo $LOGFILE | sed 's|\.\.|.|g' | sed 's|\._||g' | sed 's|\.$||g')
+
                 if [ "$KEEP" = "new" ] && [ -f $LOGFILE ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
@@ -107,6 +110,9 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                 n=${f##*/}
                 name=${n/$ENDING/}
                 LOGFILE=$QOUT/$TASK/$DIRNAME'_'$name'.out'
+                # remove suplus dots coming from providing no subdirectories with given dirs (i.e. annovar)
+                LOGFILE=$(echo $LOGFILE | sed 's|\.\.|.|g' | sed 's|\._||g' | sed 's|\.$||g')
+
                 if [ "$KEEP" = "new" ] && [ -f $LOGFILE ]; then
                     # check if file has been processed previousely
                 	COMMANDARR=(${COMMAND// / })
@@ -165,6 +171,9 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
     else
         LOGFILE=$QOUT/$TASK/$dir"_"$name".out"
     fi
+    # remove suplus dots coming from providing no subdirectories with given dirs (i.e. annovar)
+    LOGFILE=$(echo $LOGFILE | sed 's|\.\.|.|g' | sed 's|\._||g' | sed 's|\.$||g')
+
 
     FILES=$FILES" $i"
 
@@ -227,6 +236,11 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
         fi
 	#eval job directly but write to logfile
         if [ -n "$DIRECT" ]; then echo "[NOTE] write $LOGFILE"; eval $COMMAND2 >> $LOGFILE 2>&1; continue; fi
+        
+        JOBNAME=$TASK'_'$dir'_'$name$COMMONTASK
+        # remove suplus dots coming from providing no subdirectories with given dirs (i.e. annovar)
+        JOBNAME=$(echo $JOBNAME | sed 's|\.\.|.|g' | sed 's|\._||g' | sed 's|\.$||g')
+
 
         if [ -n "$JOBIDS" ]; then
             echo "check joids"
@@ -243,10 +257,10 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
 			
 			echo -e "[NOTE] wait for $JOBID out of $JOBIDS"
             RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$JOBID" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
-        	   -j $TASK'_'$dir'_'$name$COMMONTASK -o $LOGFILE --command "$COMMAND2")
+        	   -j $JOBNAME -o $LOGFILE --command "$COMMAND2")
         else 
             RECIPT=$($BINQSUB -a "$QSUBEXTRA" -k $CONFIG -m $MEMORY -n $NODES -c $CPU -w $WALLTIME \
-        	   -j $TASK'_'$dir'_'$name$COMMONTASK -o $LOGFILE --command "$COMMAND2")
+        	   -j $JOBNAME -o $LOGFILE --command "$COMMAND2")
         fi    	
 
         echo -e "Jobnumber $RECIPT"

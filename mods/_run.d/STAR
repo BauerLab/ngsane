@@ -1,40 +1,39 @@
 #!/bin/bash -e
 
 ################################################################################
-#   Pool bam files (e.g. replicates)
+#   Trigger command for individual STAR
 #
-# IN : $SOURCE/TASK_BOWTIE/PATTERN*$ASD.bam
-# OUT: $OUT/TASK_POOLBAMS/*$ASD.bam
+# IN : $SOURCE/$dir/INPUT_STAR/*.[inputfile.suffix]
+# OUT: $OUT/$dir/TASK_STAR/*.[outputfile.suffix]
 ################################################################################
 
-if [ -n "$RUNPOOLBAMS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
-
+if [ -n "$RUNSTAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
     ############################################################################
     # Wether to submit a job or compile a report
     if [ -z "$NGSANE_COMPILE_REPORT" ]; then
-    
 
-        # check if resources are properly defined
-        if [ -z "$TASK_POOLBAMS" ] || [ -z "$NODES_POOLBAMS" ] || [ -z "$CPU_POOLBAMS" ] || [ -z "$MEMORY_POOLBAMS" ] || [ -z "$WALLTIME_POOLBAMS" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+        # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/STAR
+        if [ -z "$TASK_STAR" ] || [ -z "$NODES_STAR" ] || [ -z "$CPU_STAR" ] || [ -z "$MEMORY_STAR" ] || [ -z "$WALLTIME_STAR" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
 
-        $QSUB $ARMED $NGSANE_WAITFORJOB -d -r -k $CONFIG -t $TASK_POOLBAMS -i $INPUT_POOLBAMS -e $ASD.bam -n $NODES_POOLBAMS \
-    	    -c $CPU_POOLBAMS -m $MEMORY_POOLBAMS"G" -w $WALLTIME_POOLBAMS \
-        	--postname postcommand${POOLED_DATA_NAME} \
-    	    --postcommand "${NGSANE_BASE}/mods/poolBams.sh -k $CONFIG" 
- 
+        $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_STAR -i $INPUT_STAR -e $READONE.$FASTQ \
+            -n $NODES_STAR -c $CPU_STAR -m $MEMORY_STAR"G" -w $WALLTIME_STAR \
+            --command "${NGSANE_BASE}/mods/star.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_STAR"
+                   
     ############################################################################
-    # compile a report for this mod
+    # Select either of the one below to provide a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
-
         # start a new section for a mod
-        NGSANE_REPORT_HEADER "Pool Bams" "$TASK_POOLBAMS" "poolBams.sh" "$ASD.bam"
-
-        # add as many tables as needed. One table per result file
-        NGSANE_REPORT_TABLE "$TASK_POOLBAMS" \
+        NGSANE_REPORT_HEADER "STAR" "$TASK_STAR" "star.sh" "$ASD.bam"
+            
+        NGSANE_REPORT_TABLE "$TASK_STAR" \
             "-" \
-            "$OUT/<DIR>/$TASK_POOLBAMS"  \
+            "$OUT/<DIR>/$TASK_STAR"  \
             "$ASD.bam.stats" \
+            "LINK!<SAMPLE>$ASD.bam.html" \
             "PATTERN!Total reads!! fgrep -w 'in total' | cut -d' ' -f 1" \
             "PATTERN!Secondary!! fgrep -w 'secondary' | cut -d' ' -f 1" \
             "PATTERN!Qfail!! fgrep -w 'in total' | cut -d' ' -f 3" \
@@ -46,10 +45,11 @@ if [ -n "$RUNPOOLBAMS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "CALCULATE!%!40!#9*2*100/#2" \
             "PATTERN!Singletons!! fgrep -w 'singletons' | cut -d' ' -f 1" \
             "CALCULATE!%!40!#11*100/#2"
-        
+
         # finish the section
         NGSANE_REPORT_FOOTER 
         
     fi
+    
+    # done
 fi
-

@@ -4,9 +4,12 @@
 . $NGSANE_BASE/conf/header.sh
 . bin/tmpl/configRNASEQ.txt
 
+QSUB_COMMAND=qsub
+if [ "$SUBMISSIONSYSTEM" == "SLURM" ]; then QSUB_COMMAND="sbatch"; fi
+
 # direct or submitting?
 if [[ -z "$SB_MODE" ]]; then
-        if hash qsub 2>&- ; then SB_MODE="forcearmed"
+        if hash ${QSUB_COMMAND} 2>&- ; then SB_MODE="forcearmed"
         else
             SB_MODE="direct";
         fi
@@ -50,8 +53,9 @@ chmod 777 tmp/testRNASEQ.qsub
 #submit evaluation script
 echo "[NOTE] submit or run evaluation script"
 if [[ "$SUBMISSIONSYSTEM" = "SGE" ]]; then unset module; fi
+if [[ "$SUBMISSIONSYSTEM" = "SLURM" ]]; then grep -v "#PBS" tmp/testRNASEQ.qsub > tmp/testRNASEQ.qsub.tmp; mv tmp/testRNASEQ.qsub.tmp tmp/testRNASEQ.qsub; fi
 if [[ "$SB_MODE" = "forcearmed" ]]; then
-	qsub $HOLDID $QSUBEXTRA tmp/testRNASEQ.qsub
+	${QSUB_COMMAND} $HOLDID $QSUBEXTRA tmp/testRNASEQ.qsub
 else
     eval tmp/testRNASEQ.qsub
 fi

@@ -22,7 +22,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_VAR=$TASK_RECAL
+INPUT_GATKVAR=$TASK_RECAL
 
 # where to write the output
 OUT=$SOURCE
@@ -33,6 +33,9 @@ QOUT=$OUT/qout
 #********************
 # PARAMETER (mandatory)
 #********************
+
+# folder name for aggregate output
+GATKVAR_AGGREGATE_FOLDER=
 
 # reference genome
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
@@ -58,7 +61,9 @@ ONEKGVCF=
 # PARAMETER (optional overwriting defaults)
 #********************
 
-#REGION="-L <file>"
+# limit analysis to subset of genome 
+# e.g. file (.bed, .list, .picard, .interval_list, or .intervals) or chr region (16:27184646-27472388)
+#REGION="-L <element>" 
 
 # additional commands for variant recalibrator
 ADDRECAL=

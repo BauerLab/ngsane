@@ -24,6 +24,7 @@ while [ "$1" != "" ]; do
         -f | --filesuffix )     shift; RESULTSUFFIX=$1 ;; # suffix of the result file
         -o | --html-file )      shift; HTMLOUTPUT=$1;; # where the output will be place in the end
         -k | --toolkit )        shift; CONFIG=$1 ;; # location of the NGSANE repository
+        -g | --givendirs )      shift; GIVENDIRS=$1 ;; # given dirs if not provided in the config file (e.g. annovar)
         -h | --help )           usage ;;
         * )                     echo "don't understand "$1
     esac
@@ -34,6 +35,10 @@ done
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
+
+if [ -n "$GIVENDIRS" ]; then
+    DIR=$GIVENDIRS
+fi
 
 # default output location corresponds to the task at hand
 if [ -z "$OUTTASK" ]; then
@@ -55,24 +60,19 @@ fi
 
 # pack normal and post command in a long string for the subsequent loops
 # file1*file2*file3:task.sh postcommand:posttask.sh
-for dir in ${DIR[@]}; do
-    for LOGFILE in $(find $QOUT/$TASK/ -maxdepth 1 -type f -name "${dir%%/*}*.out" 2>/dev/null ); do
-        LOGFILES="${LOGFILES} ${LOGFILE}"
-    done
-done
-# remove potential duplicates
-LOGFILES=$(echo "${LOGFILES}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
-#echo $LOGFILES >&2
-
-if [ ! -z "$LOGFILES" ]; then # if there is really more than just the postcommand
-	SCRIPTFILES=$(echo $LOGFILES | tr ' ' '*')":"${NGSANE_BASE}/mods/${SCRIPT/%,*/}
+if [ -n "$(find $QOUT/$TASK/ -name '*.out' -and -not -name 'postcommand*' )" ]; then
+    SCRIPTFILES=$(find $QOUT/$TASK/ -name '*.out' -and -not -name 'postcommand*' | sort -u | tr '\n' '*' | sed 's|\*$||')":"${NGSANE_BASE}/mods/${SCRIPT/%,*/}
 fi
-# normal postcommand
-if [ -e $QOUT/$TASK/postcommand.out ]; then
-	SCRIPTFILES=$SCRIPTFILES" "$QOUT/$TASK/postcommand.out":"${NGSANE_BASE}/mods/${SCRIPT/*,/}
+if [ -n "$(find $QOUT/$TASK/ -name 'postcommand*.out')" ]; then
+    echo "[NOTE] add postcommand" 1>&2
+    SCRIPTFILES=$SCRIPTFILES" "$(find $QOUT/$TASK/ -name 'postcommand*.out' | sort -u | tr '\n' '*'| sed 's|\*$||')":"${NGSANE_BASE}/mods/${SCRIPT/*,/}
 fi
 
+#echo "find $QOUT/$TASK/ -name '*.out' -and -not -name 'postcommand*'" 1>&2
 #echo $SCRIPTFILES 1>&2
+
+# collect all logfiles for display in the NOTES, ERROR and LOGFILE tab
+LOGFILES=$(find $QOUT/$TASK/ -name '*.out')
 
 
 #########################################################################################
@@ -217,6 +217,9 @@ if [ -n "$HTMLOUTPUT" ]; then
     if [ -n "$RESULTSUFFIX" ]; then
         echo "<div class='tabContent_hide' id='DC_${TASK}_PRIMARY_RESULT_FILES'><div><div class='box scroll'>"
         for dir in ${DIR[@]}; do
+        
+            echo $OUTDIR/${dir%%/*}/$OUTTASK/ 1>&2
+        
             if [ ! -d $OUTDIR/${dir%%/*}/$OUTTASK/ ]; then
                 echo "[NOTE] No result detected: $dir" 1>&2
             else

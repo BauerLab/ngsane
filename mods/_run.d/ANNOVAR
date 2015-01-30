@@ -1,0 +1,49 @@
+#!/bin/bash -e
+
+################################################################################
+#   Trigger command for individual ANNOVAR
+#
+# IN : $SOURCE/$dir/INPUT_ANNOVAR/*.[inputfile.suffix]
+# OUT: $OUT/$dir/TASK_ANNOVAR/*.[outputfile.suffix]
+################################################################################
+
+if [ -n "$RUNANNOVAR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/ANNOVAR
+        if [ -z "$TASK_ANNOVAR" ] || [ -z "$NODES_ANNOVAR" ] || [ -z "$CPU_ANNOVAR" ] || [ -z "$MEMORY_ANNOVAR" ] || [ -z "$WALLTIME_ANNOVAR" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+
+
+        $QSUB $ARMED $NGSANE_WAITFORJOB --givenDirs "." -d -k $CONFIG -t $TASK_ANNOVAR -i $INPUT_ANNOVAR -e flt.vcf \
+             -n $NODES_ANNOVAR -c $CPU_ANNOVAR -m $MEMORY_ANNOVAR"G" -w $WALLTIME_ANNOVAR \
+             --command "${NGSANE_BASE}/mods/annovar.sh -k $CONFIG -f <FILE> -o $OUT/$INPUT_ANNOVAR/$TASK_ANNOVAR"
+    
+                   
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "ANNOVAR" "$TASK_ANNOVAR" "annovar.sh" ".csv" "$OUT/$INPUT_ANNOVAR/$TASK_ANNOVAR" "."
+
+        NGSANE_REPORT_TABLE_AGGREGATE "$TASK_ANNOVAR" \
+            "-" \
+            "$INPUT_ANNOVAR/$TASK_ANNOVAR"  \
+            ".stats" \
+            "PATTERN!total!80!fgrep 'total' | head -n 1 | cut -d ' ' -f 2" \
+            "PATTERN!nonsynonymous!80!fgrep -w 'nonsynonymous' | head -n 1 | cut -d ' ' -f 2" \
+            "PATTERN!synonymous!80!fgrep -w 'synonymous' | head -n 1 | cut -d ' ' -f 2" \
+            "PATTERN!splicing!80!fgrep 'splicing' | head -n 1 | cut -d ' ' -f 2" 
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+    fi
+    
+fi
+
+
+

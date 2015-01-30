@@ -37,6 +37,15 @@ done
 . ${NGSANE_BASE}/conf/header.sh
 . $CONFIG
 
+#check if QSUBEXTRA already contains wait commands
+if [[ "$SADDITIONAL" == *"$QUEUEWAIT"* ]]; then
+    sub=${SADDITIONAL/*${QUEUEWAIT}/}
+    ids=${sub/ */}
+    if [ -n "$ids" ]; then JOBIDS=${JOBIDS}${QUEUEWAITSEP}$ids; fi
+    JOBIDS=$(echo $JOBIDS | sed 's/^://' | sed 's/::/:/')
+    SADDITIONAL=${SADDITIONAL/${QUEUEWAIT}${ids}/}
+fi
+
 #echo "********** write TMP file"
 if [ ! -n "$STMPDIR" ]; then STMPDIR="tmp"; fi
 if [ ! -e $STMPDIR ]; then mkdir $STMPDIR; fi
@@ -112,7 +121,7 @@ elif [ "$SUBMISSIONSYSTEM" == "SLURM" ]; then
 
 
 else
-	echo "Submission system, $SUBMISSIONSYSTEM, not implemented; only SGE or PBS are currently supported"
+	echo "Submission system, $SUBMISSIONSYSTEM, not implemented; only SGE, SLURM or PBS are currently supported"
 	exit
 fi
 	

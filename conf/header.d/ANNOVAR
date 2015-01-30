@@ -1,2 +1,11 @@
+##############################################################
+# Annovar
+#
 TASK_ANNOVAR="annovar"
-
+WALLTIME_ANNOVAR=5:00:00
+MEMORY_ANNOVAR=32
+CPU_ANNOVAR=1
+NODES_ANNOVAR="nodes=1:ppn=1"
+INPUT_ANNOVAR=variant
+MODULE_ANNOVAR="${NG_ANNOVAR} ${NG_PYTHON}"
+PATH_ANNOVAR=

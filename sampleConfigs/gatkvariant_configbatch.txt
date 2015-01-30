@@ -10,7 +10,7 @@
 # Tasks
 #********************
 
-RUNVARCALLS="1"     # variance  calling with GATK
+RUNVARCALLSBATCH="1"     # variance  calling with GATK
 QUEUEWAIT=" -W depend=afterany:" # PBS - SGE does not neeed a change
 
 #********************
@@ -23,7 +23,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_VAR=$TASK_RECAL
+INPUT_GATKVAR=$TASK_RECAL
 
 # where to write the output
 OUT=$SOURCE
@@ -34,6 +34,9 @@ QOUT=$OUT/qout
 #********************
 # PARAMETER (mandatory)
 #********************
+
+# folder name for aggregate output
+GATKVAR_AGGREGATE_FOLDER=
 
 # reference genome
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
@@ -58,6 +61,8 @@ ONEKGVCF=
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
+
+# no REGION parameter as this is used for the batches 
 
 # additional commands for variant recalibrator
 ADDRECAL=

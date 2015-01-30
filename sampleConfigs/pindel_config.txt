@@ -32,6 +32,9 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
+# folder name for aggregate output
+PINDEL_AGGREGATE_FOLDER=
+
 INPUT_IS_BWA="true"
 #INPUT_IS_BWA="false" # if the aligner was not bwa you also have to specify the library type
 #INPUT_TYPE="Illumina-PairEnd" # or (Illumina-MatePair)

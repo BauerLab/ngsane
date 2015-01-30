@@ -60,7 +60,7 @@ echo -e "--bedtools --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 echo -e "--wigToBigWig --\n "$(wigToBigWig 2>&1 | tee | head -n 1)
 [ -z "$(which wigToBigWig)" ] && echo "[ERROR] wigToBigWig not detected" && exit 1
-echo -e "--fseq        --\n "$(fseq -v | head -n 1)
+echo -e "--fseq        --\n "$(java $JAVAPARAMS edu.duke.igsp.gkde.Main -v 2>&1 | tee | head -n 1)
 [ -z "$(which fseq)" ] && echo "[ERROR] no fseq detected" && exit 1
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
@@ -78,7 +78,7 @@ SAMPLE=${INPUTFILENAME/%$ASD.bam/}
 
 # delete old bam files unless attempting to recover
 if [ -z "$NGSANE_RECOVERFROM" ]; then
-    ## TODO remove primary result files from pervious runs
+    [ -f $OUTDIR/$SAMPLE.narrowPeak ] && rm $OUTDIR/$SAMPLE.narrowPeak
 fi
 
 if [ -z "$FASTA" ] || [ ! -f $FASTA ]; then
@@ -180,9 +180,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
 	if hash bedToBigBed ; then 
         echo "[NOTE] create bigbed from peaks" 
-        awk '{OFS="\t"; print $1,$2,$3,$7}' $OUTDIR/$SAMPLE.narrowPeak > $OUTDIR/$SAMPLE.peak.tmp
-        bedToBigBed -type=bed4 $OUTDIR/$SAMPLE.peak.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bb
-        rm $OUTDIR/$SAMPLE.peak.tmp
+        bedToBigBed -type=bed6+4 $OUTDIR/$SAMPLE.narrowPeak $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bb
          # mark checkpoint
         NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.bb
     else

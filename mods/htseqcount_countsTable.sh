@@ -50,7 +50,7 @@ echo -e "--R           --\n "$(R --version | head -n 3)
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
 NGSANE_CHECKPOINT_INIT "parameters"
-echo "[NOTE] Files: $FILES"
+
 OLDFS=$IFS
 IFS=","
 DATASETS=""
@@ -58,7 +58,7 @@ for f in $FILES; do
     # get basename of f
 
     n=${f/%$ASD.bam/}
-    FILE=${n/$TASK_TOPHAT/$TASK_HTSEQCOUNT}
+    FILE=${n/$INPUT_HTSEQCOUNT/$TASK_HTSEQCOUNT}
     # get directory
     d=$(dirname $f)
     d=${d##*/}    # add to dataset
@@ -68,7 +68,7 @@ for f in $FILES; do
 done
 IFS=" "
 
-echo "[NOTE] datasets $DATASETS"
+echo "[NOTE] Datasets: $DATASETS"
 
 annoF=${GTF##*/}
 anno_version=${annoF%.*}
@@ -92,7 +92,7 @@ NGSANE_CHECKPOINT_CHECK
 NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
-    dmget -a $INPUTFILE
+    dmget -a ${DATASETS[@]}
     dmget -a $OUTDIR/*
     # TODO add additional resources that are required and may need recovery from tape
 fi
@@ -112,15 +112,13 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
                 
                 array=(${DATASETS[@]})
                 array=( "${array[@]/%//${GTF}.${MODE}.${ATTR}}" )                  
-                
-                for THIS_FILE in "${array[@]}"; do
-                    [ -f $THIS_FILE ] && echo $THIS_FILE "Found" >> ${THISTMP}/files.txt || echo "Not found" >> ${THISTMP}/files.txt           
 
-       
+                for THISFILE in "${array[@]}"; do
+                    [ -f $THISFILE ] && echo $THISFILE "Found" >> ${THISTMP}/files.txt || echo "Not found" >> ${THISTMP}/files.txt           
                 done
        
                 if grep -q "Not found" ${THISTMP}/files.txt;then    
-                    echo "[NOTE] ${GTF}.${MODE}.${ATTR} - not found, skipping."            
+                    echo "[NOTE] ${GTF}.${MODE}.${ATTR} - at least one sample does not have gtf, skipping."            
                 else
                     echo "[NOTE] ${GTF}.${MODE}.${ATTR} - found, making count table."  
                     [ -f ${THISTMP}/joinedfile.txt ] && rm ${THISTMP}/joinedfile.txt
@@ -136,6 +134,10 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
                     echo "${array[@]##*${TASK_HTSEQCOUNT}}" |  sed 's/ /,/g' | sed "s/\/${GTF}.${MODE}.${ATTR}//g" | sed 's/\///g'   > ${THISTMP}/tmp.txt
                     awk '{print "gene," $0;}' ${THISTMP}/tmp.txt > ${THISTMP}/out.csv
+                    if [[ ! -s ${THISTMP}/joinedfile.txt ]]; then
+                        echo "[ERROR] non of the samples could be joined into a counts table"
+                        exit 1
+                    fi
                     cat ${THISTMP}/joinedfile.txt | sed 's/\t/,/g' >> ${THISTMP}/out.csv
                     mv ${THISTMP}/out.csv ${OUTDIR}/${anno_version}.${MODE}.${ATTR}.csv
                     echo "[NOTE] OUTFILE ${OUTDIR}/${anno_version}.${MODE}.${ATTR}.csv"
@@ -143,7 +145,6 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
             done
         done
     done
-        
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK
     

@@ -4,8 +4,11 @@
 . $NGSANE_BASE/conf/header.sh
 . bin/tmpl/configHiC.txt
 
+QSUB_COMMAND=qsub
+if [ "$SUBMISSIONSYSTEM" == "SLURM" ]; then QSUB_COMMAND="sbatch"; fi
+
 if [[ -z "$SB_MODE" ]]; then
-        if hash qsub 2>&- ; then SB_MODE="forcearmed"
+        if hash ${QSUB_COMMAND} 2>&- ; then SB_MODE="forcearmed"
         else
             SB_MODE="direct";
         fi
@@ -88,8 +91,9 @@ chmod 777 tmp/testHIC.qsub
 #submit evaluation script
 echo "[NOTE] submit or run evaluation script"
 if [[ "$SUBMISSIONSYSTEM" = "SGE" ]]; then unset module; fi
+if [[ "$SUBMISSIONSYSTEM" = "SLURM" ]]; then grep -v "#PBS" tmp/testHIC.qsub > tmp/testHIC.qsub.tmp; mv tmp/testHIC.qsub.tmp tmp/testHIC.qsub; fi
 if [[ "$SB_MODE" = "forcearmed" ]]; then
-    qsub $HOLDID $QSUBEXTRA  tmp/testHIC.qsub
+    ${QSUB_COMMAND} $HOLDID $QSUBEXTRA  tmp/testHIC.qsub
 else
     eval tmp/testHIC.qsub
 fi

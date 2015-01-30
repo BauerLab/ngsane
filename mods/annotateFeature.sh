@@ -124,7 +124,6 @@ RESULTFILES=""
 for i in $FILES; do
     n=$(basename $i)
     RESULTFILE="$OUTDIR/$EXPERIMENTNAME${n/%$ENDING/}${STRAND/-/_}.txt"
-    [ -f $RESULTFILE ] && rm $RESULTFILE
     RESULTFILES="$RESULTFILES $RESULTFILE" 
 done
 

@@ -165,6 +165,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     if [ -n "$LIST" ]; then
         # get reads overlapping exons+100 and get statistics
         # get how many reads where there to begin with
+        # issues are cause when the bedfile contains other chromosomes than listed in $GENOME_CHROMSIZES (chr1 443231 -1 ...)
         slopBed -i $LIST -b 100 -g $GENOME_CHROMSIZES | intersectBed \
     	-abam $f -b stdin -u | samtools flagstat - > $OUTDIR/$SAMPLE$ASR.bam.stats
     
