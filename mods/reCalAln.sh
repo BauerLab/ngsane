@@ -142,7 +142,7 @@ NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
 	dmget -a $f
-	dmget -a $OUTDIR/*
+	dmget -a $OUTDIR/${SAMPLE}*
 fi
     
 
