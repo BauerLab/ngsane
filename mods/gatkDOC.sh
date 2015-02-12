@@ -180,10 +180,11 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         slopBed -i $LIST -b 100 -g $GENOME_CHROMSIZES | intersectBed \
     	-abam $f -b stdin -u | samtools flagstat - >> $OUTDIR/$SAMPLE$ASR.bam.stats
 
-        # mark checkpoint
-        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASR.bam.stats
+   fi
 
-    fi
+   # mark checkpoint
+   NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASR.bam.stats
+
 fi
 
 ################################################################################

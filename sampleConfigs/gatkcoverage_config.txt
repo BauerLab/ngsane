@@ -48,8 +48,8 @@ FASTA=
 
 # additional commands for variant recalibrator
 ADDPARAMGATKDOC=
-LIST= #region of specific interest, e.g. targeted reseq
-GENE= #gene list
+LIST= #region of specific interest, e.g. targeted reseq : bed format (added as -L)
+GENE= #gene list : refseq format (added as -geneList)
 FORCEINTERVALS= # boolean - if this is empty AND it is parallel --omitIntervalStatistic is 
 
 #TASK_GATKDOC="coverage"
