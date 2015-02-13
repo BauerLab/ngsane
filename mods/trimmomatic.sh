@@ -101,9 +101,8 @@ else
 fi
 echo "[NOTE] $FASTQ_ENCODING fastq format detected"
 
-FASTQDIR=$(basename $(dirname $f))
-o=${f/$FASTQDIR/$FASTQDIR"_"$TASK_TRIMMOMATIC}
-FASTQDIRTRIM=$(dirname $o)
+FASTQDIRTRIM=$(dirname $f)"_"$TASK_TRIMMOMATIC
+o=$FASTQDIRTRIM/$n
 
 echo $FASTQDIRTRIM
 if [ ! -d $FASTQDIRTRIM ]; then mkdir -p $FASTQDIRTRIM; fi

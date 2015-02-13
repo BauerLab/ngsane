@@ -64,9 +64,8 @@ else
     PAIRED="0"
 fi
 
-FASTQDIR=$(basename $(dirname $f))
-o=${f/$FASTQDIR/$FASTQDIR"_"$TASK_CUTADAPT}
-FASTQDIRTRIM=$(dirname $o)
+FASTQDIRTRIM=$(dirname $f)"_"$TASK_CUTADAPT
+o=$FASTQDIRTRIM/$n
 
 echo $FASTQDIRTRIM
 if [ ! -d $FASTQDIRTRIM ]; then mkdir -p $FASTQDIRTRIM; fi

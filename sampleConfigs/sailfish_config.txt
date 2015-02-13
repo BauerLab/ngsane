@@ -1,0 +1,84 @@
+# author: Boris Guennewig
+# date: July 2014
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNSAILFISH="1"    # countig with sailfish
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_SAILFISH="fastq"
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+## PARAMETER (mandatory)
+##********************
+
+# fastq file suffix
+FASTQ="fastq.gz"
+
+# read indicator immediately preceding the fastq file suffix
+READONE="_R1"
+READTWO="_R2"
+
+#specify library type for tophat.
+# choose "T=PE:O=><:S=AS" "fr-firststrand" "fr-unstranded" "fr-secondstrand"
+# Later make auto convert into "fr-firststrand"
+SAILFISHLIBRARY="T=PE:O=><:S=AS"
+
+# library tags
+EXPID="Celltype"
+LIBRARY="RNAseq"
+PLATFORM="Illumina"
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# reference transcriptome
+# e.g. /home/borgue/transcriptome/sailfish
+# or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=/share/ClusterShare/biodata/contrib/borgue/transcriptome/sailfish/
+
+# additional parameters for sailfish, see https://www.cs.cmu.edu/~ckingsf/software/sailfish/index.html
+#SAILFISHADDPARAM=
+
+# ATTENTION: make sure the GTF file matches your genome assembly (chr naming)
+# see https://bitbucket.org/allpowerde/gtf_doctor for more informations and
+# conversion scripts
+# e.g. /share/ClusterShare/biodata/contrib/GENCODE/release_14/gencode.v14.annotation.gtf
+# or   ${NGSANE_REFERENCE}/b37/annotation/gencode.v14.annotation.b37.gtf
+# GTF=
+
+
+#WALLTIME_SAILFISH=60:00:00
+MEMORY_SAILFISH=8
+CPU_SAILFISH=2
+#NODES_SAILFISH="nodes=1:ppn=8"
+#MODULE_SAILFISH=
+#PATH_SAILFISH=
+
+
+
+
+
+
+
+

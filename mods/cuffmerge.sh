@@ -70,7 +70,7 @@ for f in $FILES; do
     # get basename of f
 
     n=${f/%$ASD.bam/}
-    FILE=${n/$TASK_TOPHAT/$TASK_CUFFLINKS}
+    FILE=${n/$INPUT_CUFFLINKS/$TASK_CUFFLINKS}
     # get directory
     d=$(dirname $f)
     d=${d##*/}    # add to dataset
