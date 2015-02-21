@@ -76,7 +76,7 @@ if [ -z "$NGSANE_RECOVERFROM" ]; then
 fi
 
 # unique temp folder that should be used to store temporary files
-THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$MERGED_GTF_NAME | md5sum | cut -d' ' -f1)
 mkdir -p "$THISTMP"
 
 #echo "[NOTE] echo $THISTMP"

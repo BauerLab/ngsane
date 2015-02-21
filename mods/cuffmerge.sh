@@ -89,7 +89,7 @@ fi
 mkdir -p $OUTDIR
 
 # unique temp folder that should be used to store temporary files
-THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$MERGED_GTF_NAME.gtf | md5sum | cut -d' ' -f1)
 mkdir -p "$THISTMP"
 
 NGSANE_CHECKPOINT_CHECK
