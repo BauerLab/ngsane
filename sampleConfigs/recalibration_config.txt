@@ -1,0 +1,55 @@
+# author: Fabian Buske
+# date: September 2013
+# compatible: NGSANE v0.5.x
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNRECALALN="1"
+
+#********************
+# Paths
+#********************
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_RECALALN=$TASK_BWA
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# reference genome
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+# or ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+FASTA=
+
+# location of SNP database file dbsnp.vcf
+# e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/dbsnp_137.hg19.vcf 
+# or   $NGSANE_REFERENCE/gatk_resources_1.5/dbsnp_135.b37.vcf
+DBSNPVCF=
+
+#********************
+# PARAMETER (optional)
+#********************
+
+#WALLTIME_RECALALN=60:00:00
+#MEMORY_RECALALN=50
+#CPU_RECALALN=8
+#NODES_RECALALN="nodes=1:ppn=8" 
+
+#MODULE_RECALALN=
+#PATH_RECALALN=
