@@ -39,7 +39,7 @@ while [ "$1" != "" ]; do
 	--dryrun )              DRYRUN="TRUE" ;;
 	--givenDirs )			shift; GIVENDIRS=$1 ;;			# given directories instead of Dir from config
 	-h | --help )           usage ;;
-	* )                     echo "prepareJobSubmission.sh: don't understand "$1
+	* )                     echo "prepareJobSubmission.sh: don't understand parameter "$1
     esac
     shift
 done
@@ -58,7 +58,7 @@ if [ -n "$COMMONTASK" ]; then
     mkdir -p $OUT/common/$TASK
     COMMAND="$COMMAND -o $OUT/common/$TASK"
 fi
-        
+
 ## Select files in dir to run 
 echo "[NOTE] SOURCE: $SOURCE"
 if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
@@ -217,8 +217,6 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
         fi
     
-
-
         echo "[NOTE] Jobfile: "$(python -c "import os.path; print os.path.relpath(os.path.realpath('$JOBLOG'),'$(pwd -P)')") >> $LOGFILE
 
         # add citations unless in recover mode
