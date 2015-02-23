@@ -52,6 +52,9 @@ FASTA_CHROMDIR=$(pwd)/referenceData/
 # bowtie v2.0 index including basename
 FASTA=$(pwd)/referenceData/chr16_HiCcopy.fasta
 
+# Suffix of inout files to look for
+INPUT_FITHIC_SUFFIX="$ASD.bam"
+
 # genome assembly
 # e.g. hg19
 REFERENCE_NAME="hg19"

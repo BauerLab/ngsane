@@ -15,13 +15,15 @@ if [ -n "$RUNFITHIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         # check if resources are properly defined
         if [ -z "$TASK_FITHIC" ] || [ -z "$NODES_FITHIC" ] || [ -z "$CPU_FITHIC" ] || [ -z "$MEMORY_FITHIC" ] || [ -z "$WALLTIME_FITHIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
+        if [ -z "$INPUT_FITHIC_SUFFIX" ]; then echo "File suffix for input files need to be specified (INPUT_FITHIC_SUFFIX)"; exit 1; fi
+
         if [ -z "$FITHIC_POOLDATA" ]; then 
-            $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $ASD.bam \
+            $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $INPUT_FITHIC_SUFFIX \
                 -n $NODES_FITHIC -c $CPU_FITHIC -m $MEMORY_FITHIC"G" -w $WALLTIME_FITHIC \
                 --command "${NGSANE_BASE}/mods/fithic.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FITHIC" 
                         
         else
-            $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $ASD.bam \
+            $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $INPUT_FITHIC_SUFFIX \
                 -n $NODES_FITHIC -c $CPU_FITHIC -m $MEMORY_FITHIC"G" -w $WALLTIME_FITHIC \
                 --postname "postcommand$FITHIC_POOLED_SAMPLE_NAME" \
                 --postcommand "${NGSANE_BASE}/mods/fithicAggregate.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FITHIC" 

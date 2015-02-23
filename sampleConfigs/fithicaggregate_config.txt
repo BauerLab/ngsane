@@ -46,6 +46,9 @@ FITHIC_MAPPABILITYTHRESHOLD=0.5
 # or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
 FASTA=
 
+# Suffix of inout files to look for
+INPUT_FITHIC_SUFFIX="$ASD.bam"
+
 # Mappability track 
 # e.g. /share/ClusterShare/biodata/contrib/ENCODE/encodeDCC/wgEncodeMapability/wgEncodeCrgMapabilityAlign36mer.bigWig
 MAPPABILITY=
@@ -67,6 +70,9 @@ HICORRECTOR_MAXITER=100
 # PARAMETER (optional overwriting defaults)
 #********************
 
+# Whether input is in fragment pair format rather than bam
+FITHIC_START_FROM_FRAGMENTPAIRS=
+
 # additional parameters for fit-hi-c
 # e.g. "--visual --lowerbound=50000 --upperbound=-1 --noOfBins=200 --mappabilityThres=1"
 FITHICADDPARAM=
@@ -79,8 +85,9 @@ FITHIC_QVALUETHRESHOLD=
 # e.g FITHIC_KEEPCONTACTMATRIX="1"
 FITHIC_KEEPCONTACTMATRIX=
 
-# Whether to call TADs (required TADbit)
-CALL_TADS=
+# Whether to call TADs and on which chromosomes (required TADbit)
+# e.g. "chr[0-9]*"
+CALL_TAD_CHROMOSOMES=
 
 #WALLTIME_FITHIC=48:00:00
 #MEMORY_FITHIC=40

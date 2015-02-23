@@ -60,7 +60,7 @@ echo -e "--HiCorrector --\n "$(ic_mep 2>&1 | tee | grep Version)
 echo -e "--fit-hi-c    --\n "$(python $(which fit-hi-c.py) --version | head -n 1)
 [ -z "$(which fit-hi-c.py)" ] && echo "[ERROR] no fit-hi-c detected" && exit 1
 echo -e "--TADbit      --\n "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active")
-if [[ "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active" | wc -l | awk '{print $1}')" == 0 ]]; then echo "[WARN] no TADbit detected"; TADBIT=""; elif [ -n "$CALL_TADS" ]; then TADBIT="--create2DMatrixPerChr"; fi
+if [[ "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active" | wc -l | awk '{print $1}')" == 0 ]]; then echo "[WARN] no TADbit detected"; TADBIT=""; elif [ -n "$CALL_TAD_CHROMOSOMES" ]; then TADBIT="--create2DMatrixPerChr"; fi
 echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
 [ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress tad bed file"
 echo -e "--tabix       --\n "$(tabix 2>&1 | tee | grep "Version")
@@ -69,6 +69,9 @@ echo -e "--tabix       --\n "$(tabix 2>&1 | tee | grep "Version")
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
 NGSANE_CHECKPOINT_INIT "parameters"
+
+# Default to bam
+[ -z "$INPUT_FITHIC_SUFFIX" ] && $INPUT_FITHIC_SUFFIX="$ASD.bam"
 
 DATASETS="$(echo $FILES | tr ',' ' ')"
 echo "[NOTE] Files: $DATASETS"
@@ -139,24 +142,26 @@ NGSANE_CHECKPOINT_INIT "count Interactions"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    # ensure name sorted bam required
-    SORTEDDATASET=""
-    for DATA in $DATASETS; do 
-        D=${DATA##*/}
-        D=${D/%$ASD.bam/}
-        RUNCOMMAND="samtools sort -n -O bam -@ $CPU_FITHIC -o $THISTMP/$D.bam -T $THISTMP/$D.tmp $DATA"
-        echo $RUNCOMMAND && eval $RUNCOMMAND
-        SORTEDDATASET="$SORTEDDATASET $THISTMP/$D.bam"
-    done
 
-    mkdir -p $OUTDIR/$SAMPLE
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE $SORTEDDATASET --outputFilename $SAMPLE > $OUTDIR/$SAMPLE.log"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
 
-    [ -e $OUTDIR/$SAMPLE/${SAMPLE}$ASD.bam.fragmentLists ] && mv $OUTDIR/$SAMPLE/${SAMPLE}$ASD.bam.fragmentLists $OUTDIR/$SAMPLE/$SAMPLE.fragmentLists
-    [ -e $OUTDIR/$SAMPLE/${SAMPLE}$ASD.bam.contactCounts ] && mv $OUTDIR/$SAMPLE/${SAMPLE}$ASD.bam.contactCounts $OUTDIR/$SAMPLE/$SAMPLE.contactCounts
+    if [ -z "$FITHIC_START_FROM_FRAGMENTPAIRS" ]; then 
+        # ensure name sorted bam required
+        SORTEDDATASET=""
+        for DATA in $DATASETS; do 
+            D=${DATA##*/}
+            D=${D/%$INPUT_FITHIC_SUFFIX/}
+            RUNCOMMAND="samtools sort -n -O bam -@ $CPU_FITHIC -o $THISTMP/$D.bam -T $THISTMP/$D.tmp $DATA"
+            echo $RUNCOMMAND && eval $RUNCOMMAND
+            SORTEDDATASET="$SORTEDDATASET $THISTMP/$D.bam"
+        done
+        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $SORTEDDATASET > $OUTDIR/$SAMPLE.log"
     
-    $GZIP $OUTDIR/$SAMPLE/$SAMPLE.fragmentLists $OUTDIR/$SAMPLE/$SAMPLE.contactCounts
+    else
+        cp ${FASTA%.*}.chrom.sizes $OUTDIR/$SAMPLE/chromsizes
+        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py $FITHIC_START_FROM_FRAGMENTPAIRS --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $SORTEDDATASET > $OUTDIR/$SAMPLE.log"
+    fi
+
+    echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/$SAMPLE.fragmentLists.gz $OUTDIR/$SAMPLE/$SAMPLE.contactCounts.gz
@@ -190,10 +195,12 @@ NGSANE_CHECKPOINT_INIT "call topological domains with TADbit"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    if [[ -n "$CALL_TADS" && -n "$TADBIT" ]]; then
+    if [[ -n "$CALL_TAD_CHROMOSOMES" && -n "$TADBIT" ]]; then
 
         mkdir -p $OUTDIR/$SAMPLE/$SAMPLE
-        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/callTADs.py --outputDir=$OUTDIR/$SAMPLE --outputFilename=$SAMPLE --threads=$CPU_FITHIC --resolution=$HIC_RESOLUTION $OUTDIR/$SAMPLE/$SAMPLE.*.matrix.gz >> $OUTDIR/$SAMPLE.log"
+        MATRIXFILES=$(eval ls $OUTDIR/$SAMPLE/$SAMPLE.$CALL_TAD_CHROMOSOMES.matrix.gz)
+        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/callTADs.py --outputDir=$OUTDIR/$SAMPLE --outputFilename=$SAMPLE --threads=$CPU_FITHIC --resolution=$HIC_RESOLUTION $MATRIXFILES >> $OUTDIR/$SAMPLE.log"
+
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
         cat /dev/null > $OUTDIR/$SAMPLE.tad.bed
