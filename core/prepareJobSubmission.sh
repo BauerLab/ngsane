@@ -367,6 +367,8 @@ if [ -n "$POSTCOMMAND" ]; then
 
 
     if [ -n "$MYJOBIDS" ]; then
+        #doublecheck last : is removed 
+        MYJOBIDS=$(echo $MYJOBIDS | sed 's/\:$//')
 		echo -e "[NOTE] wait for $MYJOBIDS"
         RECIPT=$($BINQSUB -a "$QSUBEXTRA" -W "$MYJOBIDS" -k $CONFIG -m $POSTMEMORY -n $POSTNODES -c $POSTCPU -w $POSTWALLTIME \
     	   -j $TASK'_'postcommand -o $POSTLOGFILE --command "$POSTCOMMAND2")
