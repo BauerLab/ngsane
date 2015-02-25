@@ -65,6 +65,9 @@ ONEKGVCF=
 # e.g. file (.bed, .list, .picard, .interval_list, or .intervals) or chr region (16:27184646-27472388)
 #REGION="-L <element>" 
 
+# additional parameters for UnifiedGenotyper
+VARCALLADDPARAM=
+
 # additional commands for variant recalibrator
 ADDRECAL=
 

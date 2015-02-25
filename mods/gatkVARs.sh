@@ -154,6 +154,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     # from new versions add --computeSLOD
     # http://seqanswers.com/forums/showthread.php?t=14836
     java $JAVAPARAMS -jar $PATH_GATK/GenomeAnalysisTK.jar -l INFO \
+	    ${VARCALLADDPARAM} \
             -T UnifiedGenotyper \
             -glm BOTH \
             -R $FASTA \

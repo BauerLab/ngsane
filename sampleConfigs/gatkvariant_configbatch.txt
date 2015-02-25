@@ -62,7 +62,10 @@ ONEKGVCF=
 # PARAMETER (optional overwriting defaults)
 #********************
 
-# no REGION parameter as this is used for the batches 
+# no REGION parameter possible as this is used for the batches 
+
+# additional parameters for UnifiedGenotyper
+VARCALLADDPARAM=
 
 # additional commands for variant recalibrator
 ADDRECAL=
