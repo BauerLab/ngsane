@@ -254,11 +254,9 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     if hash tabix; then 
         [ -f $OUTDIR/$SAMPLE.bed.gz ] && rm $OUTDIR/$SAMPLE.bed.gz*
 
-        zcat $OUTDIR/$SAMPLE.txt.gz | awk -v R=$(( $HIC_RESOLUTION / 2)) '{OFS="\t";print $1,$2-R,$2+R,$3":"$4-R"-"$4+R","$10,"1","."; print $3,$4-R,$4+R,$1":"$2-R"-"$2+R","$10,"2","."}' \
+        zcat $OUTDIR/$SAMPLE.txt.gz | awk -v R=$(( $HIC_RESOLUTION / 2)) '{OFS="\t";print $1,$2-R+1,$2+R-2,$3":"$4-R+1"-"$4+R-2","$10,"1","."; print $3,$4-R+1,$4+R-1,$1":"$2-R+1"-"$2+R-1","$10,"2","."}' \
             | bedtools sort | bedtools intersect -a - -b <(awk '{OFS="\t";print $1,0,$2}' $OUTDIR/$SAMPLE/chromsizes ) > $OUTDIR/$SAMPLE.bed
-         # zcat $OUTDIR/$SAMPLE.txt.gz | awk -v R=1 '{OFS="\t";print $1,$2-R,$2+R,$3":"$4-R"-"$4+R","$10,"1","."; print $3,$4-R,$4+R,$1":"$2-R"-"$2+R","$10,"2","."}' \
-         #    | bedtools sort > $OUTDIR/$SAMPLE.bed
-       
+        
         bgzip $OUTDIR/$SAMPLE.bed
         tabix -p bed $OUTDIR/$SAMPLE.bed.gz
         
