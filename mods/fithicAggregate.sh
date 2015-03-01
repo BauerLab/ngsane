@@ -57,8 +57,7 @@ echo -e "--Python      --\n" $(python --version)
 hash module 2>/dev/null && echo -e "--Python libs --\n "$(yolk -l)
 echo -e "--HiCorrector --\n "$(ic_mep 2>&1 | tee | grep Version)
 [ -z "$(which ic_mep)" ] && echo "[ERROR] no HiCorrection detected" && exit 1
-echo -e "--fit-hi-c    --\n "$(python $(which fit-hi-c.py) --version | head -n 1)
-[ -z "$(which fit-hi-c.py)" ] && echo "[ERROR] no fit-hi-c detected" && exit 1
+echo -e "--fit-hi-c    --\n "$(python $NGSANE_BASE/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py --version | head -n 1)
 echo -e "--TADbit      --\n "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active")
 if [[ "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active" | wc -l | awk '{print $1}')" == 0 ]]; then echo "[WARN] no TADbit detected"; TADBIT=""; elif [ -n "$CALL_TAD_CHROMOSOMES" ]; then TADBIT="--create2DMatrixPerChr"; fi
 echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
@@ -244,8 +243,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     echo "Significant trans interactions: $SIGTRANSINTERACTIONS" >> $OUTDIR/$SAMPLE.log
     
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK echo -e "--tabix       --\n "$(tabix 2>&1 | tee | grep "Version")
-[ -z "$(which tabix)" ] && echo "[WARN] tabix not detected, cannot index bed file"
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.txt.gz
 
 fi
 ################################################################################
@@ -256,10 +254,10 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     if hash tabix; then 
         [ -f $OUTDIR/$SAMPLE.bed.gz ] && rm $OUTDIR/$SAMPLE.bed.gz*
 
-#        zcat $OUTDIR/$SAMPLE.txt.gz | awk -v R=$(( $HIC_RESOLUTION / 2)) '{OFS="\t";print $1,$2-R,$2+R,$3":"$4-R"-"$4+R","$10,"1","."; print $3,$4-R,$4+R,$1":"$2-R"-"$2+R","$10,"2","."}' \
-#            | bedtools sort | bedtools intersect -a - -b <(awk '{OFS="\t";print $1,0,$2}' $OUTDIR/$SAMPLE/chromsizes ) > $OUTDIR/$SAMPLE.bed
-         zcat $OUTDIR/$SAMPLE.txt.gz | awk -v R=1 '{OFS="\t";print $1,$2-R,$2+R,$3":"$4-R"-"$4+R","$10,"1","."; print $3,$4-R,$4+R,$1":"$2-R"-"$2+R","$10,"2","."}' \
-            | bedtools sort > $OUTDIR/$SAMPLE.bed
+        zcat $OUTDIR/$SAMPLE.txt.gz | awk -v R=$(( $HIC_RESOLUTION / 2)) '{OFS="\t";print $1,$2-R,$2+R,$3":"$4-R"-"$4+R","$10,"1","."; print $3,$4-R,$4+R,$1":"$2-R"-"$2+R","$10,"2","."}' \
+            | bedtools sort | bedtools intersect -a - -b <(awk '{OFS="\t";print $1,0,$2}' $OUTDIR/$SAMPLE/chromsizes ) > $OUTDIR/$SAMPLE.bed
+         # zcat $OUTDIR/$SAMPLE.txt.gz | awk -v R=1 '{OFS="\t";print $1,$2-R,$2+R,$3":"$4-R"-"$4+R","$10,"1","."; print $3,$4-R,$4+R,$1":"$2-R"-"$2+R","$10,"2","."}' \
+         #    | bedtools sort > $OUTDIR/$SAMPLE.bed
        
         bgzip $OUTDIR/$SAMPLE.bed
         tabix -p bed $OUTDIR/$SAMPLE.bed.gz

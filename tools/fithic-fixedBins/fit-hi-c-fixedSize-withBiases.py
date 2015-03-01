@@ -75,7 +75,7 @@ toProb=10**5
 def main():
 	### parse the command line arguments
 	usage = "usage: %prog [options]"
-	parser = OptionParser(usage=usage)
+	parser = OptionParser(usage=usage, version="%prog 1.0 (NGSANE adaption)")
 	parser.add_option("-f", "--fragments", dest="fragsfile",
 			help="File containing the list of midpoints (or start indices) of the fragments/windows/meta-fragments for the reference genome." )
 	parser.add_option("-i", "--interactions", dest="intersfile",
