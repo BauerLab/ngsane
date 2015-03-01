@@ -98,7 +98,7 @@ NGSANE_CHECKPOINT_CHECK
 ################################################################################
 NGSANE_CHECKPOINT_INIT "pair replicates"
 
-COMMAND=$THISTMP/idr_replicates`date +%Y%m%d`.commands
+COMMAND=$THISTMP/idr_replicates`date +%Y%m%d%H%M%S`.commands
 
 cat /dev/null > $COMMAND
 
