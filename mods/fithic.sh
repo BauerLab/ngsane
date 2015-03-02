@@ -58,8 +58,7 @@ echo -e "--Python      --\n" $(python --version)
 hash module 2>/dev/null && echo -e "--Python libs --\n "$(yolk -l)
 echo -e "--HiCorrector --\n "$(ic_mep 2>&1 | tee | grep Version)
 [ -z "$(which ic_mep)" ] && echo "[ERROR] no HiCorrection detected" && exit 1
-echo -e "--fit-hi-c    --\n "$(python $(which fit-hi-c.py) --version | head -n 1)
-[ -z "$(which fit-hi-c.py)" ] && echo "[ERROR] no fit-hi-c detected" && exit 1
+echo -e "--fit-hi-c    --\n "$(python $NGSANE_BASE/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py --version | head -n 1)
 echo -e "--TADbit      --\n "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active")
 if [[ "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active" | wc -l | awk '{print $1}')" == 0 ]]; then echo "[WARN] no TADbit detected"; TADBIT=""; elif [ -n "$CALL_TAD_CHROMOSOMES" ]; then TADBIT="--create2DMatrixPerChr"; fi
 echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
