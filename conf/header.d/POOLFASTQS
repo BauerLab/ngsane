@@ -1,0 +1,11 @@
+##############################################################
+# Pool fastq files by concatenations (e.g. resequenced libraries)
+# 
+TASK_POOLFASTQS="pooledfastqs"
+WALLTIME_POOLFASTQS=10:00:00
+MEMORY_POOLFASTQS=8
+CPU_POOLFASTQS=8
+NODES_POOLFASTQS="nodes=1:ppn=8"
+INPUT_POOLFASTQS=fastq
+MODULE_POOLFASTQS="${NG_PARALLEL}"
+PATH_POOLFASTQS=

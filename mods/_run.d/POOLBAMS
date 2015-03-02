@@ -4,7 +4,7 @@
 #   Pool bam files (e.g. replicates)
 #
 # IN : $SOURCE/TASK_BOWTIE/PATTERN*$ASD.bam
-# OUT: $OUT/TASK_BOWTIE/_pooled*$ASD.bam
+# OUT: $OUT/TASK_POOLBAMS/*$ASD.bam
 ################################################################################
 
 if [ -n "$RUNPOOLBAMS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
@@ -28,22 +28,24 @@ if [ -n "$RUNPOOLBAMS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
 
 
         # start a new section for a mod
-        NGSANE_REPORT_HEADER "Pool Bams" "$TASK_POOLBAMS" "bowtie2.sh" "$ASD.bam"
+        NGSANE_REPORT_HEADER "Pool Bams" "$TASK_POOLBAMS" "poolBams.sh" "$ASD.bam"
 
         # add as many tables as needed. One table per result file
         NGSANE_REPORT_TABLE "$TASK_POOLBAMS" \
             "-" \
             "$OUT/<DIR>/$TASK_POOLBAMS"  \
             "$ASD.bam.stats" \
-            "PATTERN!Total reads!sed -n 1p | cut -d' ' -f 1" \
-            "PATTERN!Qfail!sed -n 1p | cut -d' ' -f 3" \
-            "PATTERN!Duplicates!sed -n 2p | cut -d' ' -f 1" \
-            "CALCULATE!Duplicates %!#4*100/#2" \
-            "PATTERN!Mapped!sed -n 3p | cut -d' ' -f 1" \
-            "CALCULATE!Mapped %!#6*100/#2" \
-            "PATTERN!Paired!sed -n 7p | cut -d' ' -f 1" \
-            "CALCULATE!Paired %!#8*100/#2" \
-            "PATTERN!Singletons!sed -n 9p | cut -d' ' -f 1" 
+            "PATTERN!Total reads!! fgrep -w 'in total' | cut -d' ' -f 1" \
+            "PATTERN!Secondary!! fgrep -w 'secondary' | cut -d' ' -f 1" \
+            "PATTERN!Qfail!! fgrep -w 'in total' | cut -d' ' -f 3" \
+            "PATTERN!Duplicates!! fgrep -w 'duplicates' | cut -d' ' -f 1" \
+            "CALCULATE!%!40!#5*100/#2" \
+            "PATTERN!Mapped!! fgrep -w 'mapped' | head -n 1 | cut -d' ' -f 1" \
+            "CALCULATE!%!40!#7*100/#2" \
+            "PATTERN!Mapped pairs!! fgrep -w 'properly paired' | cut -d' ' -f 1 | xargs echo 0.5* | bc " \
+            "CALCULATE!%!40!#9*2*100/#2" \
+            "PATTERN!Singletons!! fgrep -w 'singletons' | cut -d' ' -f 1" \
+            "CALCULATE!%!40!#11*100/#2"
         
         # finish the section
         NGSANE_REPORT_FOOTER 

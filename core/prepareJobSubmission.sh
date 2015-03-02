@@ -39,7 +39,7 @@ while [ "$1" != "" ]; do
 	--dryrun )              DRYRUN="TRUE" ;;
 	--givenDirs )			shift; GIVENDIRS=$1 ;;			# given directories instead of Dir from config
 	-h | --help )           usage ;;
-	* )                     echo "prepareJobSubmission.sh: don't understand "$1
+	* )                     echo "prepareJobSubmission.sh: don't understand parameter "$1
     esac
     shift
 done
@@ -58,7 +58,7 @@ if [ -n "$COMMONTASK" ]; then
     mkdir -p $OUT/common/$TASK
     COMMAND="$COMMAND -o $OUT/common/$TASK"
 fi
-        
+
 ## Select files in dir to run 
 echo "[NOTE] SOURCE: $SOURCE"
 if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
@@ -97,11 +97,11 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                     D=$(eval $DUMMY)
                     # skip if either result file exist and log finished or resultfiles is not specified and log finished
                 	if [[ -n "$D" ]] && [[ -f $D ]] && [[ $(egrep "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] || [[ -z "$D" ]] && [[ $(egrep "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]] ; then 
-                	   echo -e "\e[34m[SKIP]\e[0m $n (already processed: $DIRNAME/${D##*/})"  
+                	   echo -e "\e[34m[SKIP]\e[0m ${n/$ENDING/} (already processed: $DIRNAME/${D##*/})"  
                 	   continue
                     fi
                 fi 
-                echo -e "\e[32m[TODO]\e[0m $DIRNAME/$n"
+                echo -e "\e[32m[TODO]\e[0m $DIRNAME/${n/$ENDING/}"
                 echo $f >> $QOUT/$TASK/runnow.tmp
             done
         
@@ -119,11 +119,11 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                 	DUMMY="echo "$(egrep "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)
                 	if [ -n "$D" ] && [ -f $D ] && [[ $(egrep "^>{5} .* FINISHED" $LOGFILE | wc -l ) -gt 0 ]]; then
-                	   echo -e "\e[34m[SKIP]\e[0m $n (already processed - $DIRNAME/${D##*/})"  
+                	   echo -e "\e[34m[SKIP]\e[0m ${n/$ENDING/} (already processed - $DIRNAME/${D##*/})"  
                 	   continue
                     fi
                 fi 
-                echo -e "\e[32m[TODO]\e[0m $DIRNAME/$n"
+                echo -e "\e[32m[TODO]\e[0m $DIRNAME/${n/$ENDING/}"
                 echo $f >> $QOUT/$TASK/runnow.tmp
             done
         fi
@@ -217,8 +217,6 @@ for i in $(cat $QOUT/$TASK/runnow.tmp); do
             if [ -e $QOUT/$TASK/$dir'_'$name.out ]; then rm $QOUT/$TASK/$dir'_'$name.out; fi
         fi
     
-
-
         echo "[NOTE] Jobfile: "$(python -c "import os.path; print os.path.relpath(os.path.realpath('$JOBLOG'),'$(pwd -P)')") >> $LOGFILE
 
         # add citations unless in recover mode

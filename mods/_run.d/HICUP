@@ -1,9 +1,9 @@
 #!/bin/bash -e
 
 ################################################################################
-#   Mapping using HiCUP
+#   Mapping using HiCUPhicup 
 # IN : $SOURCE/fastq/$dir/*$READONE$FASTQ
-# OUT: $OUT/$dir/hicup/*_uniques.bam
+# OUT: $OUT/$dir/hicup/*$ASD.bam
 ################################################################################
 
 if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
@@ -28,7 +28,11 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             INDEXJOBIDS=$NGSANE_WAITFORJOB 
         fi
         
-        if [ ! -f $OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt ];then
+        if [ -z "$HICUP_RENZYME2" ]; then
+            HICUP_RENZYME2="None"
+        fi
+
+        if [ ! -s $OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt ];then
             JOBIDS=$( 
             $QSUB $ARMED -k $CONFIG -t $TASK_HICUP -i $INPUT_HICUP -e $READONE.$FASTQ -n $NODES_HICUP -c 1 \
             	-m $MEMORY_HICUP"G" -w $WALLTIME_HICUP $INDEXJOBIDS \
@@ -89,7 +93,9 @@ if [ -n "$RUNHICUP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "PATTERN!Paired P1!!sed -n 2p | cut -f 11" \
             "PATTERN!%!!sed -n 2p | cut -f 12" \
             "PATTERN!Paired P2!!sed -n 3p | cut -f 11" \
-            "PATTERN!%!!sed -n 3p | cut -f 12"
+            "PATTERN!%!!sed -n 3p | cut -f 12" \
+            "FIGURE!Read1!60!<SAMPLE>$READONE.mapper_barchart.svg!60!1" \
+            "FIGURE!Read2!60!<SAMPLE>$READTWO.mapper_barchart.svg!60!1"
 
         NGSANE_REPORT_TABLE "$TASK_HICUP" \
             "Filter" \
