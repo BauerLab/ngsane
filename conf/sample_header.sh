@@ -141,7 +141,6 @@ NG_CITE_SAILFISH="http://www.nature.com/nbt/journal/v32/n5/full/nbt.2862.html"
 NG_CITE_RSEQC="Wang L, Wang S, Li W* RSeQC: quality control of RNA-seq experiments Bioinformatics (2012) 28 (16): 2184-2185. doi: 10.1093/bioinformatics/bts356"
 NG_CITE_STAR="A. Dobin et al, Bioinformatics 2012; doi: 10.1093/bioinformatics/bts635"
 
->>>>>>> origin/master
 ##############################################################
 # PROGRAM PATHS
 ##############################################################
