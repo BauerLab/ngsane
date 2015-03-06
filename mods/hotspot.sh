@@ -63,7 +63,7 @@ echo -e "--bedtools --\n "$(bedtools --version)
 [ -z "$(which bedtools)" ] && echo "[ERROR] no bedtools detected" && exit 1
 echo -e "--bedops --\n "$(bedops --version 2>&1 | tee | head -n 3 | tail -n 1)
 [ -z "$(which bedops)" ] && echo "[ERROR] no bedtools detected" && exit 1
-echo -e "--hotspot        --\n "$(hotspot -v | head -n 1)
+echo -e "--hotspot        --\n "$(hotspot 2>&1 | tee | head -n 1 | cut -d' ' -f1)
 [ -z "$(which hotspot)" ] && echo "[ERROR] no hotspot detected" && exit 1
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
@@ -176,28 +176,27 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     cd $SOURCE
     
     # mark checkpoint
-    if [ -f $OUTDIR/$SAMPLE.narrowPeak ];then echo -e "\n********* $CHECKPOINT\n"; unset NGSANE_RECOVERFROM; else echo "[ERROR] checkpoint failed: $CHECKPOINT"; exit 1; fi
+    NGSANE_CHECKPOINT_CHECK OUTDIR/$SAMPLE.narrowPeak
 fi
 
-################################################################################
-#NGSANE_CHECKPOINT_INIT "generate bigbed"
-#
-#if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-#
-#    # convert to bigbed
-#	if hash bedToBigBed ; then 
-#        echo "[NOTE] create bigbed from peaks" 
-#        awk '{OFS="\t"; print $1,$2,$3,$7}' $OUTDIR/$SAMPLE.narrowPeak > $OUTDIR/$SAMPLE.peak.tmp
-#        bedToBigBed -type=bed4 $OUTDIR/$SAMPLE.peak.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bb
-#        rm $OUTDIR/$SAMPLE.peak.tmp
-#         # mark checkpoint
-#        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.bb
-#    else
-#        echo "[NOTE] bigbed not generated"
-#        NGSANE_CHECKPOINT_CHECK
-#    fi
-#fi   
 ###############################################################################
+NGSANE_CHECKPOINT_INIT "generate bigbed"
+
+if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+
+   # convert to bigbed
+	if hash bedToBigBed ; then 
+       echo "[NOTE] create bigbed from peaks" 
+       bedToBigBed -type=bed6+4 $OUTDIR/$SAMPLE.narrowPeak $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bb
+       rm $OUTDIR/$SAMPLE.peak.tmp
+        # mark checkpoint
+       NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.bb
+   else
+       echo "[NOTE] bigbed not generated"
+       NGSANE_CHECKPOINT_CHECK
+   fi
+fi   
+##############################################################################
 NGSANE_CHECKPOINT_INIT "cleanup"
 
 [ -d $THISTMP ] && rm -r $THISTMP
