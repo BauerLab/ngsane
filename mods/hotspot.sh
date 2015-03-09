@@ -79,6 +79,8 @@ INPUTFILENAME=${INPUTFILE##*/}
 # get sample prefix
 SAMPLE=${INPUTFILENAME/%$ASD.bam/}
 
+. $CONFIG
+
 # delete old bam files unless attempting to recover
 if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -f $OUTDIR/$SAMPLE.bw ] && rm $OUTDIR/$SAMPLE.bw
