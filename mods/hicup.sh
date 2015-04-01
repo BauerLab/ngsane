@@ -161,6 +161,9 @@ NGSANE_CHECKPOINT_INIT "truncate"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
+    [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz
+    [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz
+
     RUN_COMMAND="$(which perl) $(which hicup_truncater) --datestamp run --outdir $OUTDIR/$SAMPLE/ $ENZYME1PARAM $ENZYME2PARAM --threads $CPU_HICUP --zip $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
@@ -176,6 +179,8 @@ NGSANE_CHECKPOINT_INIT "map"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
+    [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.map ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.map
+    [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.map ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.map
     [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz
     
     RUN_COMMAND="$(which perl) $(which hicup_mapper) $HICUPMAPPER_ADDPARAM --datestamp run --bowtie $(which bowtie) --outdir $OUTDIR/$SAMPLE/ --index ${FASTA%.*} --threads $CPU_HICUP --zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz"
