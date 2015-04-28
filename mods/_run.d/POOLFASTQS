@@ -1,0 +1,39 @@
+#!/bin/bash -e
+
+################################################################################
+#   Pool fastq files (e.g. replicates)
+#
+# IN : $SOURCE/fastq/<DIR>/PATTERN*fastq.gz
+# OUT: $SOURCE/fastq/<DIR>/PATTERN*fastq.gz
+################################################################################
+
+if [ -n "$RUNPOOLFASTQS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+    
+
+        # check if resources are properly defined
+        if [ -z "$TASK_POOLFASTQS" ] || [ -z "$NODES_POOLFASTQS" ] || [ -z "$CPU_POOLFASTQS" ] || [ -z "$MEMORY_POOLFASTQS" ] || [ -z "$WALLTIME_POOLFASTQS" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+
+        $QSUB $ARMED $NGSANE_WAITFORJOB -d -k $CONFIG -t $TASK_POOLFASTQS -i $INPUT_POOLFASTQS -e $FASTQ -n $NODES_POOLFASTQS \
+    	    -c $CPU_POOLFASTQS -m $MEMORY_POOLFASTQS"G" -w $WALLTIME_POOLFASTQS \
+        	--postname postcommand${POOLED_DATA_NAME} \
+    	    --postcommand "${NGSANE_BASE}/mods/poolFastqs.sh -k $CONFIG" 
+ 
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "Pool Fastqs" "$TASK_POOLFASTQS" "poolFastqs.sh"
+
+        
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+        
+    fi
+fi
+

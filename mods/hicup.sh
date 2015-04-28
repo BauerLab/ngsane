@@ -8,7 +8,7 @@
 
 # messages to look out for -- relevant for the QC.sh script:
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.fragmentLists.gz
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>$ASD.bam
 
 echo ">>>>> HiC readmapping with HiCUP "
 echo ">>>>> startdate "`date`
@@ -52,6 +52,12 @@ export PATH=$PATH_HICUP:$PATH
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
+[ -z "$PATH_PICARD" ] && PATH_PICARD=$(dirname $(which MarkDuplicates.jar))
+
+echo "[NOTE] set java parameters"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_HICUP*0.75)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1" 
+unset _JAVA_OPTIONS
+echo "JAVAPARAMS "$JAVAPARAMS
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--bowtie      --\n "$(bowtie --version | head -n 1 )
@@ -62,6 +68,8 @@ echo -e "--perl        --\n "$(perl -v | grep "This is perl" )
 [ -z "$(which perl)" ] && echo "[ERROR] no perl detected" && exit 1
 echo -e "--HiCUP       --\n "$(hicup --version )
 [ -z "$(which hicup)" ] && echo "[ERROR] no hicup detected" && exit 1
+echo -e "--PICARD      --\n "$(java $JAVAPARAMS -jar $PATH_PICARD/MarkDuplicates.jar --version 2>&1)
+[ ! -f $PATH_PICARD/MarkDuplicates.jar ] && echo "[ERROR] no picard detected" && exit 1
 echo -e "--R           --\n "$(R --version | head -n 3)
 [ -z "$(which R)" ] && echo "[ERROR] no R detected" && exit 1
 
@@ -86,7 +94,7 @@ fi
 # delete old bam files unless attempting to recover
 if [ -z "$NGSANE_RECOVERFROM" ]; then
     [ -d $OUTDIR/$SAMPLE ] && rm -r $OUTDIR/$SAMPLE
-    [ -f $OUTDIR/${SAMPLE}_uniques.bam ] && rm $OUTDIR/${SAMPLE}_uniques.bam
+    [ -f $OUTDIR/${SAMPLE}_uniques.bam ] && rm $OUTDIR/${SAMPLE}_uniques.bam   
 fi
 
 #is paired ?
@@ -104,16 +112,16 @@ elif [[ ${f##*.} == "bz2" ]];
     then CAT="bzcat"; 
 fi
 
-if [ -z "$HICUP_RENZYME1" ] || [ "${HICUP_RENZYME1,,}" == "none" ] || [ -z "$HICUP_RCUTSITE1" ]; then
+if [ -z "$HICUP_RENZYME1" ] || [ -z "$HICUP_RCUTSITE1" ]; then
     echo "[ERROR] Restriction enzyme 1 not defined" && exit 1
 else
-    ENZYME1PARAM="-re1 $HICUP_RCUTSITE1"
+    ENZYME1PARAM="--re1 $HICUP_RCUTSITE1"
 fi
-if [ -z "$HICUP_RENZYME2" ] || [ "${HICUP_RENZYME2,,}" == "none" ] || [ -z "$HICUP_RCUTSITE2" ]; then
+if [ -z "$HICUP_RENZYME2" ] || [ -z "$HICUP_RCUTSITE2" ]; then
     echo "[NOTE] Restriction enzyme 2 not defined"
-    HICUP_RENZYME2="none"
+    HICUP_RENZYME2="None"
 else
-    ENZYME2PARAM="-re1 $HICUP_RCUTSITE2"
+    ENZYME2PARAM="--re2 $HICUP_RCUTSITE2"
 fi
 
 DIGESTGENOME="$OUT/common/$TASK_HICUP/Digest_${REFERENCE_NAME}_${HICUP_RENZYME1}_${HICUP_RENZYME2}.txt"
@@ -128,17 +136,6 @@ if [ -z "$FASTQ_ENCODING" ]; then
     echo "[NOTE] Detect fastq Phred encoding"
     FASTQ_ENCODING=$($CAT $f |  awk 'NR % 4 ==0' | python $NGSANE_BASE/tools/GuessFastqEncoding.py |  tail -n 1)
     echo "[NOTE] $FASTQ_ENCODING fastq format detected"
-fi
-
-if [[ "$FASTQ_ENCODING" == *Phred33* ]]; then
-    FASTQ_PHRED="phred33-quals"    
-elif [[ "$FASTQ_ENCODING" == *Illumina* ]]; then
-    FASTQ_PHRED="phred64-quals"
-elif [[ "$FASTQ_ENCODING" == *Solexa* ]]; then
-    FASTQ_PHRED="solexa1.3-quals"
-else
-    echo "[NOTE] cannot detect/don't understand fastq format: $FASTQ_ENCODING - using default (phred33-quals)"
-    FASTQ_PHRED="phred33-quals"
 fi
 
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
@@ -164,10 +161,7 @@ NGSANE_CHECKPOINT_INIT "truncate"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz
-    [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz
-    
-    RUN_COMMAND="$(which perl) $(which hicup_truncater) -datestamp run -outdir $OUTDIR/$SAMPLE/ $ENZYME1PARAM $ENZYME2PARAM -threads $CPU_HICUP -zip $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
+    RUN_COMMAND="$(which perl) $(which hicup_truncater) --datestamp run --outdir $OUTDIR/$SAMPLE/ $ENZYME1PARAM $ENZYME2PARAM --threads $CPU_HICUP --zip $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     mv $OUTDIR/$SAMPLE/hicup_truncater_summary_run.txt $OUTDIR/$SAMPLE"_truncater_summary.txt"
@@ -184,11 +178,11 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz
     
-    RUN_COMMAND="$(which perl) $(which hicup_mapper) -datestamp run -bowtie $(which bowtie) -format $FASTQ_PHRED -outdir $OUTDIR/$SAMPLE/ -index ${FASTA%.*}  -threads $CPU_HICUP -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz"
+    RUN_COMMAND="$(which perl) $(which hicup_mapper) $HICUPMAPPER_ADDPARAM --datestamp run --bowtie $(which bowtie) --outdir $OUTDIR/$SAMPLE/ --index ${FASTA%.*} --threads $CPU_HICUP --zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     mv $OUTDIR/$SAMPLE/hicup_mapper_summary_run.txt $OUTDIR/$SAMPLE"_mapper_summary.txt"
-        
+
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz
 
@@ -201,7 +195,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam
     
-    RUN_COMMAND="$(which perl) $(which hicup_filter) -datestamp run -digest $DIGESTGENOME  -outdir $OUTDIR/$SAMPLE/ -threads $CPU_HICUP -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz"
+    RUN_COMMAND="$(which perl) $(which hicup_filter) --datestamp run --digest $DIGESTGENOME --outdir $OUTDIR/$SAMPLE/ --threads $CPU_HICUP --zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz"
     echo $RUN_COMMAND && eval $RUN_COMMAND
     
     mv $OUTDIR/$SAMPLE/hicup_filter_summary_run.txt $OUTDIR/$SAMPLE"_filter_summary.txt"
@@ -216,52 +210,47 @@ NGSANE_CHECKPOINT_INIT "de-duplicate"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     
-    RUN_COMMAND="$(which perl) $(which hicup_deduplicator) -datestamp run -pipeline_outdir $OUTDIR/$SAMPLE/ -outdir $OUTDIR/$SAMPLE/ -zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam"
+    RUN_COMMAND="$(which perl) $(which hicup_deduplicator) --datestamp run --pipeline_outdir $OUTDIR/$SAMPLE/ --outdir $OUTDIR/$SAMPLE/ --threads $CPU_HICUP --zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     mv $OUTDIR/$SAMPLE/hicup_deduplicator_summary_run.txt $OUTDIR/$SAMPLE"_deduplicator_summary.txt"
-    mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam $OUTDIR/${SAMPLE}_uniques.bam
     
     # move charts
-    mv $OUTDIR/$SAMPLE/${SAMPLE}$READONE.$FASTQ.truncation_barchart.svg $OUTDIR/${SAMPLE}$READONE.truncation_barchart.svg
-    mv $OUTDIR/$SAMPLE/${SAMPLE}$READTWO.$FASTQ.truncation_barchart.svg $OUTDIR/${SAMPLE}$READTWO.truncation_barchart.svg
+    mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}.$FASTQ.truncation_barchart.svg $OUTDIR/${SAMPLE}$READONE.truncation_barchart.svg
+    mv $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}.$FASTQ.truncation_barchart.svg $OUTDIR/${SAMPLE}$READTWO.truncation_barchart.svg
+    mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc.gz.mapper_barchart.svg $OUTDIR/${SAMPLE}$READONE.mapper_barchart.svg
+    mv $OUTDIR/$SAMPLE/${SAMPLE}${READTWO}_trunc.gz.mapper_barchart.svg $OUTDIR/${SAMPLE}$READTWO.mapper_barchart.svg
         
     mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam.deduplicator_cis_trans_piechart.svg $OUTDIR/${SAMPLE}.cis-trans.svg
     mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam.deduplicator_uniques_barchart.svg $OUTDIR/${SAMPLE}.uniques_barchart.svg
     mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.ditag_size_distribution.svg $OUTDIR/${SAMPLE}.ditag_size_distribution.svg
     mv $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.filter_piechart.svg $OUTDIR/${SAMPLE}.filter_piechart.svg
     
-    # samtools index 
-    samtools index $OUTDIR/${SAMPLE}_uniques.bam
-
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}_uniques.bam
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}$READONE.mapper_barchart.svg $OUTDIR/${SAMPLE}$READTWO.mapper_barchart.svg
 
 fi
 
 ################################################################################
-NGSANE_CHECKPOINT_INIT "count Interactions"
+NGSANE_CHECKPOINT_INIT "sort and index"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    [ -f $OUTDIR/${SAMPLE}.fragmentLists.gz ] && rm $OUTDIR/${SAMPLE}.fragmentLists.gz
-    [ -f $OUTDIR/${SAMPLE}.contactCounts.gz ] && rm $OUTDIR/${SAMPLE}.contactCounts.gz
-
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/hicupCountInteractions.py --verbose --genomeFragmentFile=$DIGESTGENOME --outputDir=$OUTDIR/ $OUTDIR/${SAMPLE}_uniques.bam"
-    echo $RUN_COMMAND && eval $RUN_COMMAND
-
-    [ -e $OUTDIR/${SAMPLE}_uniques.bam.fragmentLists ] && mv $OUTDIR/${SAMPLE}_uniques.bam.fragmentLists $OUTDIR/${SAMPLE}.fragmentLists
-    [ -e $OUTDIR/${SAMPLE}_uniques.bam.contactCounts ] && mv $OUTDIR/${SAMPLE}_uniques.bam.contactCounts $OUTDIR/${SAMPLE}.contactCounts
-    
-    $GZIP $OUTDIR/${SAMPLE}.fragmentLists $OUTDIR/${SAMPLE}.contactCounts
+    samtools sort -l 9 -O bam -@ $CPU_HICUP -o $OUTDIR/$SAMPLE$ASD.bam -T $THISTMP/$SAMPLE $OUTDIR/$SAMPLE/uniques_${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam 
+    samtools index $OUTDIR/$SAMPLE$ASD.bam
     
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/${SAMPLE}.fragmentLists.gz $OUTDIR/${SAMPLE}.contactCounts.gz
-
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE$ASD.bam 
+  
 fi
-
 ################################################################################
-[ -e $OUTDIR/${SAMPLE}.fragmentLists.gz.dummy ] && rm $OUTDIR/${SAMPLE}.fragmentLists.gz.dummy
+NGSANE_CHECKPOINT_INIT "cleanup"
+
+[ -d $OUTDIR/$SAMPLE ] && rm -fr $OUTDIR/$SAMPLE
+
+NGSANE_CHECKPOINT_CHECK
+################################################################################
+[ -e $OUTDIR/$SAMPLE$ASD.bam.dummy ] && rm $OUTDIR/$SAMPLE$ASD.bam.dummy
 echo ">>>>> readmapping with hicup (bowtie) - FINISHED"
 echo ">>>>> enddate "`date`
 

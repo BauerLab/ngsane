@@ -56,7 +56,6 @@ NG_CUTADAPT=
 NG_TRIMGALORE=
 NG_TRIMMOMATIC=
 NG_HDF5=
-NG_HICLIB=${NG_PYTHON}
 NG_HICUP=
 NG_FITHIC=
 NG_FASTQSCREEN=
@@ -79,6 +78,7 @@ NG_BEDOPS=
 NG_QUALIMAP=
 NG_MRSFAST=
 NG_TABIX=
+NG_HICORRECTOR=
 NG_GSNAP=
 NG_SAILFISH=
 NG_RSEQC=
@@ -112,7 +112,6 @@ NG_CITE_HOMER="Mol Cell. 2010 May 28;38(4):576-89. doi: 10.1016/j.molcel.2010.05
 NG_CITE_CUTADAPT="MARTIN, M.; 'Cutadapt removes adapter sequences from high-throughput sequencing reads.'; EMBnet.journal, North America, 17, may. 2011. Available at: <http://journal.embnet.org/index.php/embnetjournal/article/view/200>. Date accessed: 18 Nov. 2013."
 NG_CITE_TRIMGALORE="http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/"
 NG_CITE_TRIMMOMATIC="Nucleic Acids Res. 2012 Jul;40(Web Server issue):W622-7. doi: 10.1093/nar/gks540. Epub 2012 Jun 8. 'RobiNA: a user-friendly, integrated software solution for RNA-Seq-based transcriptomics.'; Lohse M, Bolger AM, Nagel A, Fernie AR, Lunn JE, Stitt M, Usadel B."
-NG_CITE_HICLIB="Nat Methods. 2012 Oct;9(10):999-1003. doi: 10.1038/nmeth.2148. Epub 2012 Sep 2. 'Iterative correction of Hi-C data reveals hallmarks of chromosome organization.'; Imakaev M, Fudenberg G, McCord RP, Naumova N, Goloborodko A, Lajoie BR, Dekker J, Mirny LA."
 NG_CITE_HICUP="http://www.bioinformatics.babraham.ac.uk/projects/hicup/"
 NG_CITE_FITHIC="Genome Res February 5, 2014, doi:10.1101/gr.160374.113; 'Statistical confidence estimation for Hi-C data reveals regulatory chromatin contacts'; Ay F, Bailey TL, Noble WS"
 NG_CITE_FASTQSCREEN="http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/"
@@ -136,11 +135,13 @@ NG_CITE_BEDOPS="Bioinformatics. 2012 Jul 15;28(14):1919-20. doi: 10.1093/bioinfo
 NG_CITE_QUALIMAP="Bioinformatics. 2012 Oct 15;28(20):2678-9. doi: 10.1093/bioinformatics/bts503. Epub 2012 Aug 22.; 'Qualimap: evaluating next-generation sequencing alignment data.'; García-Alcalde F1, Okonechnikov K, Carbonell J, Cruz LM, Götz S, Tarazona S, Dopazo J, Meyer TF, Conesa A."
 NG_CITE_MRSFAST="Nucleic Acids Res. 2014 Jul;42(Web Server issue):W494-500. doi: 10.1093/nar/gku370. Epub 2014 May 8. 'mrsFAST-Ultra: a compact, SNP-aware mapper for high performance sequencing applications.'; Hach F1, Sarrafi I2, Hormozdiari F3, Alkan C4, Eichler EE5, Sahinalp SC6."
 NG_CITE_TABIX="Bioinformatics. 2011 Mar 1;27(5):718-9. doi: 10.1093/bioinformatics/btq671. Epub 2011 Jan 5.; 'Tabix: fast retrieval of sequence features from generic TAB-delimited files.'; Li H."
+NG_CITE_HICORRECTOR="Bioinformatics. 2014 Nov 12. pii: btu747. [Epub ahead of print]; HiCorrector: A fast, scalable and memory-efficient package for normalizing large-scale Hi-C data. Li W, Gong K, Li Q, Alber F, Zhou XJ."
 NG_CITE_GSNAP="Thomas D. Wu and Serban Nacu, Fast and SNP-tolerant detection of complex variants and splicing in short reads. Bioinformatics 2010 26:873-881"
 NG_CITE_SAILFISH="http://www.nature.com/nbt/journal/v32/n5/full/nbt.2862.html"
 NG_CITE_RSEQC="Wang L, Wang S, Li W* RSeQC: quality control of RNA-seq experiments Bioinformatics (2012) 28 (16): 2184-2185. doi: 10.1093/bioinformatics/bts356"
 NG_CITE_STAR="A. Dobin et al, Bioinformatics 2012; doi: 10.1093/bioinformatics/bts635"
 
+>>>>>>> origin/master
 ##############################################################
 # PROGRAM PATHS
 ##############################################################

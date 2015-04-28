@@ -20,7 +20,7 @@ remote=[]
 content=""
 for line in sys.stdin:
     content+=line
-    if line.find("Last modi")>-1 or line.find("NGSANE")>-1 or line.find("[NOTE]")>-1 or line.find("class='citation'")>-1:
+    if line.find("Last modi")>-1 or line.find("NGSANE")>-1 or line.find("[NOTE]")>-1 or line.find("class='citation'")>-1 or line.find("logue")>-1:
         continue
     if line[0]=="<" :
         local.append(line)

@@ -30,11 +30,11 @@ if [ -n "$RUNTRIMMOMATIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
             "-" \
             "$OUT/fastq/<DIR>_${TASK_TRIMMOMATIC}"  \
             ".log" \
-            "PATTERN!Reads/Read pairs!!fgrep -w 'Input' | sed 's/.*: \([0-9]\+\).*Surviving.*/\1/g'" \
-            "PATTERN!Surviving!!fgrep -w 'Surviving' | sed 's/.*Surviving: \([0-9]\+\) (.*/\1/g'" \
+            "PATTERN!Reads/Read pairs!!fgrep -w 'Input' | sed 's/.*: \([0-9]\+\).*Both Surviving.*/\1/g'" \
+            "PATTERN!Surviving!!fgrep -w 'Surviving' | sed 's/.*Both Surviving: \([0-9]\+\) (.*/\1/g'" \
             "CALCULATE!%!80!#3*100/#2" \
-            "PATTERN!Forward only!!fgrep -w 'Forward Only Surviving' | cut -d'(' -f1  | cut -d' ' -f 1" \
-            "PATTERN!Reverse only!!fgrep -w 'Reverse Only Surviving' | cut -d'(' -f1 | cut -d' ' -f 1" \
+            "PATTERN!Forward only!!fgrep -w 'Forward Only Surviving' | sed 's/.*Forward Only Surviving: \([0-9]\+\) (.*/\1/g'" \
+            "PATTERN!Reverse only!!fgrep -w 'Reverse Only Surviving' | sed 's/.*Reverse Only Surviving: \([0-9]\+\) (.*/\1/g'" \
             "PATTERN!Dropped!!fgrep -w 'Dropped' | sed 's/.*Dropped: \([0-9]\+\) (.*/\1/g'" \
             "CALCULATE!%!80!#7*100/#2"
   

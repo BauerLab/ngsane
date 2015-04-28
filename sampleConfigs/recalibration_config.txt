@@ -1,5 +1,5 @@
-# author: Denis Bauer
-# date: December 2013
+# author: Fabian Buske
+# date: September 2013
 # compatible: NGSANE v0.5.x
 
 #####################################
@@ -9,23 +9,18 @@
 #********************
 # Tasks
 #********************
-
-RUNGATKDOC="1"     # variance  calling with GATK
+RUNRECALALN="1"
 
 #********************
 # Paths
 #********************
-
 SOURCE=$(pwd)
 
 # which folder to run on (i.e. folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_GATKDOC=$TASK_RECALALN
-
-# file suffix for output ($ASR.bam)
-#ASR=
+INPUT_RECALALN=$TASK_BWA
 
 # where to write the output
 OUT=$SOURCE
@@ -42,20 +37,19 @@ QOUT=$OUT/qout
 # or ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
 FASTA=
 
+# location of SNP database file dbsnp.vcf
+# e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/dbsnp_137.hg19.vcf 
+# or   $NGSANE_REFERENCE/gatk_resources_1.5/dbsnp_135.b37.vcf
+DBSNPVCF=
+
 #********************
-# PARAMETER (optional overwriting defaults)
+# PARAMETER (optional)
 #********************
 
-# additional commands for variant recalibrator
-ADDPARAMGATKDOC=
-LIST= #region of specific interest, e.g. targeted reseq : bed format (added as -L)
-GENE= #gene list : refseq format (added as -geneList)
-FORCEINTERVALS= # boolean - if this is empty AND it is parallel --omitIntervalStatistic is 
+#WALLTIME_RECALALN=60:00:00
+#MEMORY_RECALALN=50
+#CPU_RECALALN=8
+#NODES_RECALALN="nodes=1:ppn=8" 
 
-#TASK_GATKDOC="coverage"
-#WALLTIME_GATKDOC=50:00:00
-#MEMORY_GATKDOC=50
-#CPU_GATKDOC=1
-#NODES_GATKDOC="nodes=1:ppn=1"
-#INPUT_GATKDOC=$TASK_RECAL
-#MODULE_GATKDOC="${NG_JAVA} ${NG_R} ${NG_SAMTOOLS} ${NG_IGVTOOLS} ${NG_GATK}"
+#MODULE_RECALALN=
+#PATH_RECALALN=

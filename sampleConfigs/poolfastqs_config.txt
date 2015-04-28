@@ -1,0 +1,59 @@
+# author: Fabian Buske
+# date: September 2013
+# compatible: NGSANE v0.5.x
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+RUNPOOLFASTQS="1"    # pool fastqs within a folder given a pattern
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. folders within fastq directory)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_POOLFASTQS=fastq
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# Flag indicating whether original fastqs of the individual replicas should be deleted afterwards
+# set to "true" to remove original files
+DELETEORIGINALFASTQS=
+
+# define as many pools as needed one per line (order matters)
+# POOL_FASTQS output_prefix <pattern1> [<pattern2>]
+# e.g. POOL_FASTQ label library_Rep1 library_Rep2
+# or   POOL_FASTQ H2AZ H2AZ_Rep*
+<<POOL_FASTQS
+POOL_FASTQS
+
+# suffix for the logfile name
+POOLED_DATA_NAME=
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+#WALLTIME_POOLBAMS=10:00:00
+#MEMORY_POOLBAMS=60
+#CPU_POOLBAMS=4
+#NODES_POOLBAMS="nodes=1:ppn=4"
+#MODULE_POOLBAMS=""
+#PATH_POOLBAMS=

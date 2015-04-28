@@ -15,34 +15,46 @@ if [ -n "$RUNFITHIC" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
         # check if resources are properly defined
         if [ -z "$TASK_FITHIC" ] || [ -z "$NODES_FITHIC" ] || [ -z "$CPU_FITHIC" ] || [ -z "$MEMORY_FITHIC" ] || [ -z "$WALLTIME_FITHIC" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
     
-        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $FRAGMENTLIST \
-            -n $NODES_FITHIC -c $CPU_FITHIC -m $MEMORY_FITHIC"G" -w $WALLTIME_FITHIC \
-            --command "${NGSANE_BASE}/mods/fithic.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FITHIC"
-    
+        if [ -z "$INPUT_FITHIC_SUFFIX" ]; then echo "File suffix for input files need to be specified (INPUT_FITHIC_SUFFIX)"; exit 1; fi
+
+        if [ -z "$FITHIC_POOLDATA" ]; then 
+            $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $INPUT_FITHIC_SUFFIX \
+                -n $NODES_FITHIC -c $CPU_FITHIC -m $MEMORY_FITHIC"G" -w $WALLTIME_FITHIC \
+                --command "${NGSANE_BASE}/mods/fithic.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FITHIC" 
+                        
+        else
+            $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_FITHIC -i $INPUT_FITHIC -e $INPUT_FITHIC_SUFFIX \
+                -n $NODES_FITHIC -c $CPU_FITHIC -m $MEMORY_FITHIC"G" -w $WALLTIME_FITHIC \
+                --postname "postcommand$FITHIC_POOLED_SAMPLE_NAME" \
+                --postcommand "${NGSANE_BASE}/mods/fithicAggregate.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_FITHIC" 
+        fi
+            
     ############################################################################
     # compile a report for this mod
     elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
 
         # start a new section for a mod
-        NGSANE_REPORT_HEADER "Fithic" "$TASK_FITHIC" "fithic.sh"
+        NGSANE_REPORT_HEADER "Fithic" "$TASK_FITHIC" "fithic.sh" "txt.gz"
 
         NGSANE_REPORT_TABLE "$TASK_FITHIC" \
             "-" \
             "$OUT/<DIR>/$TASK_FITHIC"  \
             ".log" \
-            "PATTERN!Min distance!!fgrep -w 'distLowThres' | tail -n 1 | cut -f 1 | cut -d' ' -f 2" \
-            "PATTERN!Max distance!!fgrep -w 'distLowThres' | tail -n 1 | cut -f 2 | cut -d' ' -f 2" \
-            "PATTERN!Possible Intra In Range!!fgrep -w 'possibleIntraInRangeCount' | tail -n 1 | cut -d' ' -f 2" \
-            "PATTERN!Intra In Range Count!!fgrep -w 'intraInRangeCount' | tail -n 1 | cut -f 1 | cut -d' ' -f 2" \
-            "PATTERN!Intra Out Of Range Count!!fgrep -w 'intraOutOfRangeCount' | tail -n 1 | cut -f 2 | cut -d' ' -f2" \
-            "PATTERN!Intra Very Proximal Count!!fgrep -w 'intraVeryProximalCount' | tail -n 1 | cut -f 3 | cut -d' ' -f2" \
-            "PATTERN!Inter Count!!fgrep -w 'interCount' | tail -n 1 | cut -f 4 | cut -d' ' -f2" \
-            "PATTERN!Significant interactions!!fgrep -w 'Significant interactions' | cut -d' ' -f3"
+            "PATTERN!Possible Cis!!fgrep -w 'Possible, Intra-chr all' | tail -n 1 | cut -d'=' -f 2" \
+            "PATTERN!Cis Count!!fgrep -w 'Observed, Intra-chr all' | tail -n 1 | cut -f 1 | cut -d'=' -f 2" \
+            "PATTERN!Possible Cis In Range!!fgrep -w 'Possible, Intra-chr in range' | tail -n 1 | cut -d'=' -f 2" \
+            "PATTERN!Cis Range Count!!fgrep -w 'Observed, Intra-chr in range' | tail -n 1 | cut -f 1 | cut -d'=' -f 2" \
+            "PATTERN!Possible Trans!!fgrep -w 'Possible, Inter-chr all' | tail -n 1 | cut -d'=' -f2" \
+            "PATTERN!Trans Count!!fgrep -w 'Observed, Inter-chr all' | tail -n 1 | cut -d'=' -f2 | awk '{print \$1}'" \
+            "PATTERN!Significant interactions!!fgrep -w 'Significant' | cut -d':' -f 2 | awk '{sum+=\$1}END{print sum}'" \
+            "PATTERN!Significant cis!!fgrep -w 'Significant cis interactions' | cut -d':' -f2" \
+            "CALCULATE!%!40!#9*100/#8" \
+            "PATTERN!Significant trans!!fgrep -w 'Significant trans interactions' | cut -d':' -f2" \
+            "CALCULATE!%!40!#11*100/#8" \
+            "FIGURE!!60!<SAMPLE>.spline_pass1.res$HIC_RESOLUTION.png!60!1" 
 
         # finish the section
         NGSANE_REPORT_FOOTER 
   
     fi
 fi	
-
-	

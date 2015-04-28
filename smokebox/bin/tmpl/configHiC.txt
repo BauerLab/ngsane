@@ -46,15 +46,14 @@ FASTQ="fastq.gz"
 READONE="_R1"
 READTWO="_R2"
 
-# file suffix of the fragment list and contact counts
-FRAGMENTLIST=".fragmentLists.gz"
-CONTACTCOUNTS=".contactCounts.gz"
-
 # reference as single chromosomes
 FASTA_CHROMDIR=$(pwd)/referenceData/
 
 # bowtie v2.0 index including basename
 FASTA=$(pwd)/referenceData/chr16_HiCcopy.fasta
+
+# Suffix of inout files to look for
+INPUT_FITHIC_SUFFIX="$ASD.bam"
 
 # genome assembly
 # e.g. hg19
@@ -68,12 +67,14 @@ HICLIB_RENZYMES="NcoI"
 # restriction enzymes
 HICUP_RENZYME1="Ncol"
 HICUP_RCUTSITE1="C^CATGG"
-HICUP_RENZYME2="none"
+HICUP_RENZYME2=
 HICUP_RCUTSITE2=
 
 #********************
 # PARAMETER (optional overwriting defaults)
 #********************
+
+HICUPMAPPER_ADDPARAM="--format Sanger"
 
 HICLIB_READLENGTH=
 HICLIB_CHROMOSOME=16
@@ -82,6 +83,21 @@ HICLIB_CHROMOSOME=16
 #HICLIB_KEEPBAM=1
 
 FITHICADDPARAM="--lowerbound 5000 --upperbound 5000000"
+HIC_RESOLUTION="1000000"
+
+# Mappability track
+MAPPABILITY=$(pwd)/referenceData/wgEncodeCrgMapabilityAlign36mer_chr16.bw
+
+# Mappability threshold to apply in fithic
+# e.g. 0.5
+FITHIC_MAPPABILITYTHRESHOLD=0.5
+
+# pattern indicating which chromosomes to use
+FITHIC_CHROMOSOMES='^16$'
+
+# indicate if contact matrix should be kept
+# e.g FITHIC_KEEPCONTACTMATRIX="1"
+FITHIC_KEEPCONTACTMATRIX="1"
 
 
 #********************
@@ -96,5 +112,5 @@ NODES_HICUP="nodes=1:ppn=2"
 WALLTIME_FITHIC=0:30:00
 MEMORY_FITHIC=2
 CPU_FITHIC=1
-NODES_FITHIC="nodes=1:ppn=1"
+NODES_FITHIC="nodes=1:ppn=2"
 

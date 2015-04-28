@@ -1,7 +1,7 @@
 NGSANE is a framework for advanced production informatics of Next Generation 
 Sequencing libraries.
 
-Version: v0.5.0.1
+Version: v0.5.1.0
 
 
 ################################################################################
@@ -9,8 +9,9 @@ Version: v0.5.0.1
 
 "NGSANE: A Lightweight Production Informatics Framework for High Throughput 
 Data Analysis"
-Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC, Bioinformatics. 2014 
-Jan 26. [Epub ahead of print]
+Buske FA, French HJ, Smith MA, Clark SJ, Bauer DC 
+Bioinformatics 2014 May 15;30(10):1471-2. doi: 10.1093/bioinformatics/btu036. 
+Epub 2014 Jan 26.
 
 ################################################################################
 # Setup:

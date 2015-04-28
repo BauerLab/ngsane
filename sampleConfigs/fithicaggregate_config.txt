@@ -1,5 +1,5 @@
 # author: Fabian Buske
-# date: January 2014
+# date: November 2014
 # compatible: NGSANE v0.5.x
 
 #####################################
@@ -34,7 +34,8 @@ QOUT=$OUT/qout
 #********************
 
 # Resolution in nts
-HIC_RESOLUTION=50000
+HIC_RESOLUTION=1000000
+TASK_FITHIC="fithic_$HIC_RESOLUTION"
 
 # Mappability threshold to apply in fithic
 # e.g. 0.5
@@ -54,6 +55,13 @@ MAPPABILITY=
 
 # pattern indicating which chromosomes to use
 FITHIC_CHROMOSOMES="chr[0-9XY]+"
+
+# Whether to pool all the data at the contact map stage rather than processing the files individual
+# e.g. FITHIC_POOLDATA="1"
+FITHIC_POOLDATA=
+
+# name for pooled data (only required when setting variable FITHIC_POOLDATA)
+FITHIC_POOLED_SAMPLE_NAME=
 
 # number of IC iterations HiCorrector ic_mep
 HICORRECTOR_MAXITER=100
@@ -81,7 +89,7 @@ FITHIC_KEEPCONTACTMATRIX=
 # e.g. "chr[0-9]*"
 CALL_TAD_CHROMOSOMES=
 
-#WALLTIME_FITHIC=10:00:00
-#MEMORY_FITHIC=20
+#WALLTIME_FITHIC=48:00:00
+#MEMORY_FITHIC=40
 #CPU_FITHIC=1
 #NODES_FITHIC="nodes=1:ppn=1"
