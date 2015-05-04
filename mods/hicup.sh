@@ -199,6 +199,9 @@ NGSANE_CHECKPOINT_INIT "filter"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.bam
+    [ -f $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam ] && rm $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz.bam
+    [ -d $OUTDIR/$SAMPLE/HiC_rejects_run ] && rm -r $OUTDIR/$SAMPLE/HiC_rejects_run
+    [ -f $OUTDIR/$SAMPLE/hicup_filter_summary_run.txt ] && rm $OUTDIR/$SAMPLE/hicup_filter_summary_run.txt
     
     RUN_COMMAND="$(which perl) $(which hicup_filter) --datestamp run --digest $DIGESTGENOME --outdir $OUTDIR/$SAMPLE/ --threads $CPU_HICUP --zip $OUTDIR/$SAMPLE/${SAMPLE}${READONE}_trunc_${SAMPLE}${READTWO}_trunc.pair.gz"
     echo $RUN_COMMAND && eval $RUN_COMMAND
