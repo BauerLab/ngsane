@@ -141,9 +141,11 @@ NGSANE_CHECKPOINT_INIT "count Interactions"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-
-
-    if [ -z "$FITHIC_START_FROM_FRAGMENTPAIRS" ]; then 
+    if [ -n "$FITHIC_START_FROM_FRAGMENTPAIRS" ]; then 
+        cp ${FASTA%.*}.chrom.sizes $OUTDIR/$SAMPLE/chromsizes
+        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py $FITHIC_START_FROM_FRAGMENTPAIRS --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $DATASETS > $OUTDIR/$SAMPLE.log"
+        
+	else
         # ensure name sorted bam required
         SORTEDDATASET=""
         for DATA in $DATASETS; do 
@@ -155,9 +157,6 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         done
         RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $SORTEDDATASET > $OUTDIR/$SAMPLE.log"
     
-    else
-        cp ${FASTA%.*}.chrom.sizes $OUTDIR/$SAMPLE/chromsizes
-        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py $FITHIC_START_FROM_FRAGMENTPAIRS --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $SORTEDDATASET > $OUTDIR/$SAMPLE.log"
     fi
 
     echo $RUN_COMMAND && eval $RUN_COMMAND

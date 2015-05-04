@@ -9,7 +9,6 @@
 import os, sys, re
 import traceback
 from optparse import OptionParser
-import pysam
 import fileinput
 import datetime
 from quicksect import IntervalTree
@@ -133,6 +132,8 @@ def main():
                     help="create a tab separated 2D matrix file one per Chromosome")
     parser.add_option("--inputIsFragmentPairs", action="store_true", dest="inputIsFragmentPairs", default=False,
                     help="input is a gzipped fragment pair file rather than bam files")
+    parser.add_option("--inputIsReadPairs", type="string", dest="inputIsReadPairs", default="",
+                    help="gzipped files with mapped read pair information, requires 4 column identifier corresponding to chrA,posA,chrB,posB,chrPrefix (separated buy comma), e.g. 2,3,6,7,chr")
      
    
     
@@ -160,6 +161,14 @@ def main():
         
     if (options.outputDir != ""): 
         options.outputDir += os.sep
+    
+    if (options.inputIsReadPairs != ""):
+    	if (len(options.inputIsReadPairs.split(",")) < 4 or len(options.inputIsReadPairs.split(",")) > 5):
+            parser.error("[ERROR] inputIsReadPairs does not have 4 column indexes :"+str(options.inputIsReadPairs))
+            sys.exit(1)
+        elif (options.inputIsFragmentPairs):
+            parser.error("[ERROR] inputIsFragmentPairs and inputIsReadPairs cannot be set at the same time")
+            sys.exit(1)
     
     if (options.verbose):
         print >> sys.stdout, "fragmentFile:          %s" % (options.fragmentFile)
@@ -475,7 +484,45 @@ def countReadsPerFragment(intersect_tree):
             if (options.verbose):
                 print >> sys.stdout, "- %s FINISHED: getting counts form fragment files " % (timeStamp())
 
+    if (options.inputIsReadPairs != ""):
+       # get column indexes
+       chr_index = map(int,  options.inputIsReadPairs.split(",")[0:4])
+       try:
+            chr_prefix=options.inputIsReadPairs.split(",")[4]
+       except:
+            chr_prefix=""
+
+       for fFile in xrange(len(args)):
+            if (options.verbose):
+                print >> sys.stdout, "- %s START   : processing read files: %s" % (timeStamp(), args[fFile])
+
+            with gzip.open(args[fFile]) as infile:
+                for line in infile:
+                    cols   = line.strip().split()
+                    chr1   = chr_prefix + cols[chr_index[0]]
+                    start1 = int(cols[chr_index[1]])
+                    chr2   = chr_prefix + cols[chr_index[2]]
+                    start2 = int(cols[chr_index[3]])
+                    
+                    fragmentID1 = mapFragment(chr1, int(start1), intersect_tree, fragmentList)
+                    fragmentID2 = mapFragment(chr2, int(start2), intersect_tree, fragmentList)
+
+                    if (fragmentID1 == None or fragmentID2 == None):
+                        if (options.vverbose):
+                            print >> sys.stdout, "-- one region does not co-occur with any fragment: %s %s" % (fragmentID1, fragmentID2)
+                        continue
+                
+                    f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
+                    if (not fragmentPairs.has_key(f_tuple)):
+                        fragmentPairs[f_tuple] = 0
+                    fragmentPairs[f_tuple] += 1
+
+            if (options.verbose):
+                print >> sys.stdout, "- %s FINISHED: getting counts form read files " % (timeStamp())
+
     else:
+        # lazy load
+        import pysam
         for bamFile in xrange(len(args)):
             if (options.verbose):
                 print >> sys.stdout, "- %s START   : processing reads from bam file: %s" % (timeStamp(), args[bamFile])

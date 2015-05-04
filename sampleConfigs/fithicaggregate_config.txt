@@ -71,6 +71,7 @@ HICORRECTOR_MAXITER=100
 #********************
 
 # Whether input is in fragment pair format rather than bam
+# e.g. "inputIsFragmentPairs" or "inputIsReadPairs 2,3,6,7,chr"
 FITHIC_START_FROM_FRAGMENTPAIRS=
 
 # additional parameters for fit-hi-c
