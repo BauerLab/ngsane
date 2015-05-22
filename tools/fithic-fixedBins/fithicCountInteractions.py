@@ -504,8 +504,8 @@ def countReadsPerFragment(intersect_tree):
                     chr2   = chr_prefix + cols[chr_index[2]]
                     start2 = int(cols[chr_index[3]])
                     
-                    fragmentID1 = mapFragment(chr1, int(start1), intersect_tree, fragmentList)
-                    fragmentID2 = mapFragment(chr2, int(start2), intersect_tree, fragmentList)
+                    fragmentID1 = mapFragment(chr1, start1, intersect_tree, fragmentList)
+                    fragmentID2 = mapFragment(chr2, start2, intersect_tree, fragmentList)
 
                     if (fragmentID1 == None or fragmentID2 == None):
                         if (options.vverbose):
