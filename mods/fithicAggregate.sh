@@ -122,8 +122,20 @@ THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 mkdir -p $THISTMP
 
 mkdir -p $OUTDIR/$SAMPLE/ 
+
 # extract chrom sizes from Bam
-samtools view -H ${DATASETS[0]} | fgrep -w '@SQ' | sed 's/:/\t/g' | awk '{OFS="\t";print $3,$5}' > $OUTDIR/$SAMPLE/chromsizes
+if [ -s ${FASTA%.*}.chrom.sizes ]; then
+    GENOME_CHROMSIZES=${FASTA%.*}.chrom.sizes
+else
+    samtools view -H ${DATASETS[0]} | fgrep -w '@SQ' | sed 's/:/\t/g' | awk '{OFS="\t";print $3,$5}' > $OUTDIR/$SAMPLE/chromsizes
+fi
+
+if [ ! -f $GENOME_CHROMSIZES ]; then
+    echo "[ERROR] GENOME_CHROMSIZES not found. Excepted at $GENOME_CHROMSIZES"
+    exit 1
+else
+    echo "[NOTE] Chromosome size: $GENOME_CHROMSIZES"
+fi
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
@@ -141,9 +153,10 @@ NGSANE_CHECKPOINT_INIT "count Interactions"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-
-
-    if [ -z "$FITHIC_START_FROM_FRAGMENTPAIRS" ]; then 
+    if [ -n "$FITHIC_START_FROM_FRAGMENTPAIRS" ]; then 
+        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py $FITHIC_START_FROM_FRAGMENTPAIRS --verbose --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $DATASETS > $OUTDIR/$SAMPLE.log"
+        
+	else
         # ensure name sorted bam required
         SORTEDDATASET=""
         for DATA in $DATASETS; do 
@@ -153,11 +166,8 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
             echo $RUNCOMMAND && eval $RUNCOMMAND
             SORTEDDATASET="$SORTEDDATASET $THISTMP/$D.bam"
         done
-        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $SORTEDDATASET > $OUTDIR/$SAMPLE.log"
+        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $SORTEDDATASET > $OUTDIR/$SAMPLE.log"
     
-    else
-        cp ${FASTA%.*}.chrom.sizes $OUTDIR/$SAMPLE/chromsizes
-        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py $FITHIC_START_FROM_FRAGMENTPAIRS --create2DMatrix $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $SORTEDDATASET > $OUTDIR/$SAMPLE.log"
     fi
 
     echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -206,14 +216,14 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         # convert .border file to beds
         for i in $OUTDIR/$SAMPLE/*.border; do
             CHROM=$(echo $i | tr '.' '\n' | tail -n2 | head -n 1)
-            awk -v c=$CHROM -v r=$HIC_RESOLUTION 'BEGIN{OFS="\t"}{if (NR>1){print c,$2*r,$3*r,c"_"$1,int($4),"."}}' $i | bedtools intersect -a - -b <( awk '{OFS="\t"; print $1,0,$2}' $OUTDIR/$SAMPLE/chromsizes)  >> $OUTDIR/$SAMPLE.tad.bed
+            awk -v c=$CHROM -v r=$HIC_RESOLUTION 'BEGIN{OFS="\t"}{if (NR>1){print c,$2*r,$3*r,c"_"$1,int($4),"."}}' $i | bedtools intersect -a - -b <( awk '{OFS="\t"; print $1,0,$2}' $GENOME_CHROMSIZES)  >> $OUTDIR/$SAMPLE.tad.bed
         done
 
         # create bigbed making sure score is between 0 and 1000
         if hash bedToBigBed; then 
             echo "[NOTE] create bigbed from tads" 
             bedtools sort -i $OUTDIR/$SAMPLE.tad.bed > $OUTDIR/$SAMPLE.tad.tmp
-            bedToBigBed -type=bed6 $OUTDIR/$SAMPLE.tad.tmp $OUTDIR/$SAMPLE/chromsizes $OUTDIR/$SAMPLE.tad.bb
+            bedToBigBed -type=bed6 $OUTDIR/$SAMPLE.tad.tmp $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.tad.bb
             rm $OUTDIR/$SAMPLE.tad.tmp
         fi
         
@@ -255,7 +265,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         [ -f $OUTDIR/$SAMPLE.bed.gz ] && rm $OUTDIR/$SAMPLE.bed.gz*
 
         zcat $OUTDIR/$SAMPLE.txt.gz | awk -v R=$(( $HIC_RESOLUTION / 2)) '{OFS="\t";print $1,$2-R+1,$2+R-2,$3":"$4-R+1"-"$4+R-2","$10,"1","."; print $3,$4-R+1,$4+R-1,$1":"$2-R+1"-"$2+R-1","$10,"2","."}' \
-            | bedtools sort | bedtools intersect -a - -b <(awk '{OFS="\t";print $1,0,$2}' $OUTDIR/$SAMPLE/chromsizes ) > $OUTDIR/$SAMPLE.bed
+            | bedtools sort | bedtools intersect -a - -b <(awk '{OFS="\t";print $1,0,$2}' $GENOME_CHROMSIZES ) > $OUTDIR/$SAMPLE.bed
         
         bgzip $OUTDIR/$SAMPLE.bed
         tabix -p bed $OUTDIR/$SAMPLE.bed.gz
@@ -274,7 +284,6 @@ if [ -z "$FITHIC_KEEPCONTACTMATRIX" ]; then
 fi
 rm -f -r $OUTDIR/$SAMPLE/*.border
 rm -f $OUTDIR/$SAMPLE/$SAMPLE.ice.txt
-rm -f $OUTDIR/$SAMPLE/chromsizes
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
