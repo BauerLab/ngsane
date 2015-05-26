@@ -110,15 +110,15 @@ fi
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 mkdir -p $THISTMP
 
-GENOME="hg19"
+mkdir -p $OUTDIR/$SAMPLE
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
 NGSANE_CHECKPOINT_INIT "recall files from tape"
 
 if [ -n "$DMGET" ]; then
-	dmget -a $(dirname $FASTA)/*
-	dmget -a $INPUTFILE
+    dmget -a $(dirname $FASTA)/*
+    dmget -a $INPUTFILE
     dmget -a $OUTDIR/*
 fi
     
@@ -129,14 +129,14 @@ NGSANE_CHECKPOINT_INIT "hotspot config"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     echo "[NOTE] create tokenizer"
-    echo "[script-tokenizer]" > $OUTDIR/$SAMPLE.token
-    echo "_TAGS_ = $INPUTFILE" >> $OUTDIR/$SAMPLE.token
-    echo "_OUTDIR_ = $OUTDIR/$SAMPLE" >> $OUTDIR/$SAMPLE.token
-    echo "_RANDIR_ = $THISTMP" >> $OUTDIR/$SAMPLE.token
-    echo "$HOTSPOTCONFIG" | sed -e "s|HOTSPOT_HOME|$HOTSPOT_HOME|g" >> $OUTDIR/$SAMPLE.token
+    echo "[script-tokenizer]" > $OUTDIR/$SAMPLE/$SAMPLE.token
+    echo "_TAGS_ = $INPUTFILE" >> $OUTDIR/$SAMPLE/$SAMPLE.token
+    echo "_OUTDIR_ = $OUTDIR/$SAMPLE" >> $OUTDIR/$SAMPLE/$SAMPLE.token
+    echo "_RANDIR_ = $THISTMP" >> $OUTDIR/$SAMPLE/$SAMPLE.token
+    echo "$HOTSPOTCONFIG" | sed -e "s|HOTSPOT_HOME|$HOTSPOT_HOME|g" >> $OUTDIR/$SAMPLE/$SAMPLE.token
 
     echo "[NOTE] create config"
-    cat <<EOF > $OUTDIR/$SAMPLE.sh
+    cat <<EOF > $OUTDIR/$SAMPLE/$SAMPLE.sh
 #!/bin/bash
 ## Do everything, including badspots and final cleanup
 scripts="$HOTSPOT_HOME/pipeline-scripts/run_badspot \
@@ -157,15 +157,15 @@ scripts="$HOTSPOT_HOME/pipeline-scripts/run_badspot \
 python $HOTSPOT_HOME/ScriptTokenizer/src/script-tokenizer.py \
     --clobber \
     --execute-scripts \
-    --output-dir=$OUTDIR \
-    $OUTDIR/$SAMPLE.token \
+    --output-dir=$OUTDIR/$SAMPLE \
+    $OUTDIR/$SAMPLE/$SAMPLE.token \
     \$scripts
 EOF
 
-    chmod 777 $OUTDIR/$SAMPLE.sh
+    chmod 777 $OUTDIR/$SAMPLE/$SAMPLE.sh
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.sh
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/$SAMPLE.sh
 fi
 
 ################################################################################
@@ -174,7 +174,7 @@ NGSANE_CHECKPOINT_INIT "run hotspot"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     cd $THISTMP
-    $OUTDIR/$SAMPLE.sh
+    $OUTDIR/$SAMPLE/$SAMPLE.sh
     cd $SOURCE
     
     # mark checkpoint
@@ -187,7 +187,7 @@ NGSANE_CHECKPOINT_INIT "generate bigbed"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
    # convert to bigbed
-	if hash bedToBigBed ; then 
+   if hash bedToBigBed ; then 
        echo "[NOTE] create bigbed from peaks" 
        bedToBigBed -type=bed6+4 $OUTDIR/$SAMPLE.narrowPeak $GENOME_CHROMSIZES $OUTDIR/$SAMPLE.bb
        rm $OUTDIR/$SAMPLE.peak.tmp
