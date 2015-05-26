@@ -31,6 +31,8 @@ def main():
                     help="print status messages to stdout")
     parser.add_option("-V", "--veryverbose", action="store_true", dest="vverbose", default=False,
                     help="print lots of status messages to stdout")
+    parser.add_option("-O", "--onlycis", action="store_true", dest="onlycis", default=False,
+                    help="only consider intra chromosomal contacts (cis)")
     parser.add_option("-r", "--resolution", type=int, dest="resolution", default=1000000,
                     help="size of a fragment in bp [default 1000000]")
     parser.add_option("-c", "--chromsizes", type="string", dest="chromSizes", default="",
