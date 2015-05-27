@@ -157,7 +157,7 @@ def createIntervalTreesFragmentFile(options):
         try:
             # check if chromosome changed from last
             if (cols[0] != chrom):
-                # do we have do finish the last chromosome?
+                # do we have to finish the last chromosome?
                 if (end > 0):
                     interval = Interval(chrom, start, end)
                     intersect_tree.insert(interval, fragmentsCount)
@@ -223,7 +223,7 @@ def createIntervalTreesFragmentFile(options):
 
     return [fragmentsMap, intersect_tree, fragmentsCount, fragmentsChrom]
 
-def getNext(iterator):
+def getNext(iterator, options):
     '''
     get the next read and populate object
     '''
@@ -241,7 +241,7 @@ def findNextReadPair(samiter,options):
     find the next read pair
     '''
 
-    readpair=[getNext(samiter), getNext(samiter)]
+    readpair=[getNext(samiter, options), getNext(samiter, options)]
 
     while( re.sub('\/[1,2]$', '', readpair[0].qname) != re.sub('\/[1,2]$', '', readpair[1].qname)):
         if (options.verbose):
@@ -370,6 +370,10 @@ def countReadsPerFragment(intersect_tree, options, args):
             with gzip.open(args[fFile]) as infile:
                 for line in infile:
                     (chr1, start1, chr2, start2, count) = line.strip().split("\t")
+                    
+                    # skip trans contacts if focusing on cis only
+                    if (options.onlycis and chr1 != chr2):
+                        continue
 
                     fragmentID1 = mapFragment(chr1, int(start1), intersect_tree, fragmentList, options)
                     fragmentID2 = mapFragment(chr2, int(start2), intersect_tree, fragmentList, options)
@@ -406,6 +410,10 @@ def countReadsPerFragment(intersect_tree, options, args):
                     start1 = int(cols[chr_index[1]])
                     chr2   = chr_prefix + cols[chr_index[2]]
                     start2 = int(cols[chr_index[3]])
+                    
+                    # skip trans contacts if focusing on cis only
+                    if (options.onlycis and chr1 != chr2):
+                        continue
 
                     fragmentID1 = mapFragment(chr1, start1, intersect_tree, fragmentList, options)
                     fragmentID2 = mapFragment(chr2, start2, intersect_tree, fragmentList, options)
@@ -441,6 +449,10 @@ def countReadsPerFragment(intersect_tree, options, args):
                 # if file contains any more reads, exit
                 if (readpair[0].qname=="dummy"):
                     break
+
+                # skip trans contacts if focusing on cis only
+                if (options.onlycis and inputfile.getrname(readpair[0].tid) != inputfile.getrname(readpair[1].tid)):
+                    continue
 
                 fragmentID1 = getFragment(samfile, readpair[0], intersect_tree, fragmentList, options)
                 fragmentID2 = getFragment(samfile, readpair[1], intersect_tree, fragmentList, options)
