@@ -126,6 +126,8 @@ def main():
                     help="output filename [default: extracted from first input file")
     parser.add_option("-t", "--tmpDir", type="string", dest="tmpDir", default="/tmp", 
                     help="directory for temp files [default: %default]")
+    parser.add_option("-s", "--sep", type="string", dest="separator", default=" ",
+                    help="delimiter to use when reading the input [default: %default]")
     parser.add_option("--create2DMatrix", action="store_true", dest="create2DMatrix", default=False,
                     help="create a tab separated 2D matrix file")
     parser.add_option("--create2DMatrixPerChr", action="store_true", dest="create2DMatrixPerChr", default=False,

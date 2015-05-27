@@ -5,6 +5,7 @@ import fileinput
 import datetime
 from quicksect import IntervalTree
 import gzip
+import pandas as pd
 
 ######################################
 # Read
@@ -419,6 +420,127 @@ def countReadsPerFragment(intersect_tree, options, args):
                         fragmentPairs[f_tuple] = 0
                     fragmentPairs[f_tuple] += 1
 
+            if (options.verbose):
+                print >> sys.stdout, "- %s FINISHED: getting counts form read files " % (timeStamp())
+
+    else:
+        # lazy load
+        import pysam
+        for bamFile in xrange(len(args)):
+            if (options.verbose):
+                print >> sys.stdout, "- %s START   : processing reads from bam file: %s" % (timeStamp(), args[bamFile])
+
+            samfile = pysam.Samfile(args[bamFile], "rb" )
+
+            samiter = samfile.fetch(until_eof=True)
+
+            readcounter = 0
+
+            while(True):
+                readpair = findNextReadPair(samiter,options)
+                # if file contains any more reads, exit
+                if (readpair[0].qname=="dummy"):
+                    break
+
+                fragmentID1 = getFragment(samfile, readpair[0], intersect_tree, fragmentList, options)
+                fragmentID2 = getFragment(samfile, readpair[1], intersect_tree, fragmentList, options)
+
+                if (fragmentID1 == None or fragmentID2 == None):
+                    if (options.vverbose):
+                        print >> sys.stdout, "-- one read does not co-occur with any fragment: %d %d" % (fragmentID1, fragmentID2)
+                    continue
+
+                f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
+                if (not fragmentPairs.has_key(f_tuple)):
+                    fragmentPairs[f_tuple] = 0
+                fragmentPairs[f_tuple] += 1
+                readcounter+=1
+
+                if (options.verbose and readcounter % 1000000 == 0 ):
+                    print >> sys.stdout, "- %s         : %d read pairs processed" % (timeStamp(), readcounter)
+            samfile.close()
+
+            if (options.verbose):
+                print >> sys.stdout, "- %s FINISHED: getting reads from bam file " % (timeStamp())
+
+    return [ fragmentList, fragmentPairs ]
+
+def populateFragmentPairs(fragmentPairs, x, count):
+    f_tuple = tuple([x.minFragment, x.maxFragment])
+    if (not fragmentPairs.has_key(f_tuple)):
+        fragmentPairs[f_tuple] = 0
+    fragmentPairs[f_tuple] += count
+
+def countReadsPerFragment2(intersect_tree, options, args):
+    '''
+        counts the reads per fragment and generates appropriate output files
+    '''
+
+    fragmentList = {}
+    fragmentPairs = {}
+
+    if (options.inputIsFragmentPairs):
+        if (options.inputIsReadPairs):
+            chr_index = map(int,  options.inputIsReadPairs.split(",")[0:4])
+        else
+            chr_index = [0,1,2,3,4]
+            
+        for fFile in xrange(len(args)):
+            if (options.verbose):
+                print >> sys.stdout, "- %s START   : processing fragment files: %s" % (timeStamp(), args[fFile])
+
+
+            df = pd.read_csv(args[fFile], sep=options.separator,engine='c', names=["chr1","start1","chr2","start2","count"], dtype={"chr1":np.object,"start1":np.int,"chr2":np.object,"start2":np.int,"count":np.int}, usecols=chr_index)
+
+
+            df['fragmentID1']=df.apply(lambda x:mapFragment(x.chr1, x.start1, intersect_tree, fragmentList, options), axis=1)
+            df['fragmentID2']=df.apply(lambda x:mapFragment(x.chr2, x.start2, intersect_tree, fragmentList, options), axis=1)
+            # clean memory            
+            df.dropna(axis=0, inplace=True)
+            df.drop(["chr1","chr2","start1","start2"], axis=1, inplace=True)
+            
+            df['minFragment']=df[["fragmentID1", "fragmentID2"]].min(axis=1)
+            df['maxFragment']=df[["fragmentID1", "fragmentID2"]].max(axis=1)
+            # clean memory
+            df.drop(["fragmentID1", "fragmentID2"], axis=1, inplace=True)
+
+            df.apply(lambda x : populateFragmentPairs(fragmentPairs , x, 1), axis=1)
+
+            if (options.verbose):
+                print >> sys.stdout, "- %s FINISHED: getting counts form fragment files " % (timeStamp())
+
+    elif (options.inputIsReadPairs != ""):
+        # get column indexes
+        if (options.inputIsReadPairs):
+            chr_index = map(int,  options.inputIsReadPairs.split(",")[0:4])
+        else
+            chr_index = [0,1,2,3]
+        
+        try:
+            chr_prefix=options.inputIsReadPairs.split(",")[4]
+        except:
+            chr_prefix=""
+        
+        for fFile in xrange(len(args)):
+            if (options.verbose):
+                print >> sys.stdout, "- %s START   : processing read files: %s" % (timeStamp(), args[fFile])
+
+            df = pd.read_csv(args[fFile], sep=options.separator,engine='c', names=["chr1","start1","chr2","start2"], dtype={"chr1":np.object,"start1":np.int,"chr2":np.object,"start2":np.int}, usecols=chr_index)
+
+
+            df['fragmentID1']=df.apply(lambda x:mapFragment(x.chr1, x.start1, intersect_tree, fragmentList, options), axis=1)
+            df['fragmentID2']=df.apply(lambda x:mapFragment(x.chr2, x.start2, intersect_tree, fragmentList, options), axis=1)
+            # clean memory            
+            df.dropna(axis=0, inplace=True)
+            df.drop(["chr1","chr2","start1","start2"], axis=1, inplace=True)
+            
+            df['minFragment']=df[["fragmentID1", "fragmentID2"]].min(axis=1)
+            df['maxFragment']=df[["fragmentID1", "fragmentID2"]].max(axis=1)
+            # clean memory
+            df.drop(["fragmentID1", "fragmentID2"], axis=1, inplace=True)
+
+            df.apply(lambda x : populateFragmentPairs(fragmentPairs , x, 1), axis=1)
+            
             if (options.verbose):
                 print >> sys.stdout, "- %s FINISHED: getting counts form read files " % (timeStamp())
 
