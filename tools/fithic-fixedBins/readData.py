@@ -6,6 +6,7 @@ import datetime
 from quicksect import IntervalTree
 import gzip
 import pandas as pd
+import numpy as np
 
 ######################################
 # Read
@@ -354,7 +355,7 @@ def mapFragment(rchrom, rstart, intersect_tree, fragmentList, options):
 
     return fragmentID
 
-def countReadsPerFragment(intersect_tree, options, args):
+def countReadsPerFragment_bak(intersect_tree, options, args):
     '''
         counts the reads per fragment and generates appropriate output files
     '''
@@ -483,7 +484,7 @@ def populateFragmentPairs(fragmentPairs, x, count):
         fragmentPairs[f_tuple] = 0
     fragmentPairs[f_tuple] += count
 
-def countReadsPerFragment2(intersect_tree, options, args):
+def countReadsPerFragment(intersect_tree, options, args):
     '''
         counts the reads per fragment and generates appropriate output files
     '''
@@ -494,12 +495,12 @@ def countReadsPerFragment2(intersect_tree, options, args):
     if (options.inputIsFragmentPairs):
         if (options.inputIsReadPairs):
             chr_index = map(int,  options.inputIsReadPairs.split(",")[0:4])
-        else
+        else:
             chr_index = [0,1,2,3,4]
             
         for fFile in xrange(len(args)):
             if (options.verbose):
-                print >> sys.stdout, "- %s START   : processing fragment files: %s" % (timeStamp(), args[fFile])
+                print >> sys.stdout, "- %s START x  : processing fragment files: %s" % (timeStamp(), args[fFile])
 
 
             df = pd.read_csv(args[fFile], sep=options.separator,engine='c', names=["chr1","start1","chr2","start2","count"], dtype={"chr1":np.object,"start1":np.int,"chr2":np.object,"start2":np.int,"count":np.int}, usecols=chr_index)
@@ -525,7 +526,7 @@ def countReadsPerFragment2(intersect_tree, options, args):
         # get column indexes
         if (options.inputIsReadPairs):
             chr_index = map(int,  options.inputIsReadPairs.split(",")[0:4])
-        else
+        else:
             chr_index = [0,1,2,3]
         
         try:
@@ -544,12 +545,12 @@ def countReadsPerFragment2(intersect_tree, options, args):
             df['fragmentID2']=df.apply(lambda x:mapFragment(x.chr2, x.start2, intersect_tree, fragmentList, options), axis=1)
             # clean memory            
             df.dropna(axis=0, inplace=True)
-            df.drop(["chr1","chr2","start1","start2"], axis=1, inplace=True)
+#            df.drop(["chr1","chr2","start1","start2"], axis=1, inplace=True)
             
             df['minFragment']=df[["fragmentID1", "fragmentID2"]].min(axis=1)
             df['maxFragment']=df[["fragmentID1", "fragmentID2"]].max(axis=1)
             # clean memory
-            df.drop(["fragmentID1", "fragmentID2"], axis=1, inplace=True)
+#            df.drop(["fragmentID1", "fragmentID2"], axis=1, inplace=True)
 
             df.apply(lambda x : populateFragmentPairs(fragmentPairs , x, 1), axis=1)
             
