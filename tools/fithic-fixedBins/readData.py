@@ -84,18 +84,18 @@ def timeStamp():
 
 def createIntervalTreesFragmentResolution(options):
     '''
-    creates one interval tree for quick lookups
+    creates lookup tables
     returns
-        fragmentsMap[fragmentId] = [tuple(chrom, fragmentMidPoint)]
-        intersect_tree - intersect Tree for interval matching
+        fragmentsMap[fragmentId] = [tuple(chrom, start, end)]
+        chromBinMap - lookup table for fixed bin sizes
     '''
     if (options.verbose):
-        print >> sys.stdout, "- %s START   : populate intervaltree with given resolution for chromosomes matching pattern %s" % (timeStamp(), options.chromPattern)
+        print >> sys.stdout, "- %s START   : populate lookup table with given resolution for chromosomes matching pattern %s" % (timeStamp(), options.chromPattern)
 
-    intersect_tree = IntervalTree()
     fragmentsCount = 0
     fragmentsMap = {}
-    fragmentsChrom = {} # lookp table for fragment ranges of a chromosome
+    fragmentsChrom = {}
+    chromBinMap = {}
 
     for line in fileinput.input([options.chromSizes]):
         chrom=line.split("\t")[0]
@@ -109,12 +109,10 @@ def createIntervalTreesFragmentResolution(options):
         fragmentsStart=fragmentsCount
         chromlen=int(line.split("\t")[1])
 
-        for i in range(0, chromlen, options.resolution):
-            start=i
-            end=min(i+ options.resolution, chromlen)
-            interval = Interval(chrom, start, end)
-            intersect_tree.insert(interval, fragmentsCount)
-            fragmentsMap[fragmentsCount] = tuple([chrom, int(0.5*(start+end))])
+        for start in range(0, chromlen, options.resolution):
+            end=min(int(start+options.resolution), chromlen)
+            chromBinMap[tuple([chrom,int(start/options.resolution)])] = fragmentsCount
+            fragmentsMap[fragmentsCount] = tuple([chrom, start, end])
             fragmentsCount += 1
             if (options.vverbose):
                 print >> sys.stdout, "-- intervaltree.add %s:%d-%d" % (chrom, start, end)
@@ -122,15 +120,15 @@ def createIntervalTreesFragmentResolution(options):
         fragmentsEnd=fragmentsCount
         fragmentsChrom[chrom] = tuple([fragmentsStart, fragmentsEnd])
     if (options.verbose):
-        print >> sys.stdout, "- %s FINISHED: intervaltree populated" % (timeStamp())
+        print >> sys.stdout, "- %s FINISHED: lookup table populated" % (timeStamp())
 
-    return [ fragmentsMap, intersect_tree, fragmentsCount, fragmentsChrom ]
+    return [ fragmentsMap, chromBinMap, fragmentsCount, fragmentsChrom ]
 
 def createIntervalTreesFragmentFile(options):
     '''
         creates one interval tree for quick lookups
         returns
-            fragmentsMap[fragmentId] = [tuple(chrom, fragmentMidPoint)]
+            fragmentsMap[fragmentId] = [tuple(chrom, start, end)]
             intersect_tree - intersect Tree for interval matching
 
     '''
@@ -162,7 +160,7 @@ def createIntervalTreesFragmentFile(options):
                 if (end > 0):
                     interval = Interval(chrom, start, end)
                     intersect_tree.insert(interval, fragmentsCount)
-                    fragmentsMap[fragmentsCount] = tuple([chrom, int(0.5*(start+end))])
+                    fragmentsMap[fragmentsCount] = tuple([chrom, start, end])
                     fragmentsCount += 1
 
                     fragmentsChrom[chrom] = tuple([fragmentsStart, fragmentsCount])
@@ -189,7 +187,7 @@ def createIntervalTreesFragmentFile(options):
                 if (options.vverbose):
                     print >> sys.stdout,  "-- intervaltree.add %s:%d-%d" % (chrom, start, end)
 
-                fragmentsMap[fragmentsCount] = tuple([chrom, int(0.5*(start+end))])
+                fragmentsMap[fragmentsCount] = tuple([chrom, start, end])
                 start = int(cols[1])
                 end = int(cols[2])
                 counter = 0
@@ -212,7 +210,7 @@ def createIntervalTreesFragmentFile(options):
     if (end > 0):
         interval = Interval(chrom, start, end)
         intersect_tree.insert(interval, fragmentsCount)
-        fragmentsMap[fragmentsCount] = tuple([chrom, int(0.5*(start+end))])
+        fragmentsMap[fragmentsCount] = tuple([chrom, start, end])
         fragmentsCount += 1
         fragmentsChrom[chrom] = tuple([fragmentsStart, fragmentsCount])
 
@@ -259,7 +257,7 @@ def find(interval, tree):
     return [ (x.start, x.end, x.linenum) for x in out ]
 
 
-def getFragment(inputfile, read, intersect_tree, fragmentList, options):
+def getFragment_old(inputfile, read, intersect_tree, fragmentList, options):
     ''' When input is bam file '''
 
     fragmentID = -1
@@ -308,40 +306,33 @@ def getFragment(inputfile, read, intersect_tree, fragmentList, options):
 
     return fragmentID
 
-def mapFragment(rchrom, rstart, intersect_tree, fragmentList, options):
+def mapFragment(rchrom, rstart, lookup_structure, fragmentList, options):
     ''' When input is fragment pair file '''
 
-    fragmentID = -1
+    fragmentID = None
     try:
         # get fragments for both reads
-        rend =  rstart+1
-
+        
         if (options.vverbose):
-            print >> sys.stdout, "- Check   : fragment %s %d %d" % (rchrom, rstart, rend )
+            print >> sys.stdout, "- Check   : fragment %s %d " % (rchrom, rstart )
 
-        interval = Interval(rchrom, rstart, rend)
+        if (options.fragmentFile):
+            interval = Interval(rchrom, rstart, rstart+1)
+            # take first bin only
+            fragmentID = find(interval, lookup_structure)[0][2]
 
-        fragments = find(interval, intersect_tree)
-        if (len(fragments) == 0 ):
-            if (options.vverbose):
-                print >> sys.stderr, '[WARN] no overlap found : %s %d (skipping)' % (rchrom, rstart)
-            return
-        elif (len(fragments)> 1):
-            if (not options.multicount):
+        else:
+            # for fixed bin sizes
+            try:
+                fragmentID = lookup_structure[tuple([rchrom, int(rstart/options.resolution)])]
+            except:
                 if (options.vverbose):
-                    print >> sys.stderr, '[WARN] adding multiple fragments > 1 : %s %d (skipping)' % (rchrom, rstart)
-                return
-            else:
-                if (options.vverbose):
-                    print >> sys.stderr, '[WARN] adding multiple fragments > 1 : %s %d (multicounting %d times)' % (rchrom, rstart, len(fragments))
-
-        for i in xrange(len(fragments)):
-            #extract fragmentID
-            fragmentID = fragments[i][2] # corresponds to linenum
-
-            if (not fragmentList.has_key(fragmentID)):
-                fragmentList[fragmentID] = 0
-
+                    print >> sys.stderr, '[WARN] not in lookup : %s %d (skipping)' % (rchrom, rstart)
+                return None
+                
+        if (not fragmentList.has_key(fragmentID)):
+            fragmentList[fragmentID] = 1
+        else:
             fragmentList[fragmentID] += 1
 
     except:
@@ -352,10 +343,16 @@ def mapFragment(rchrom, rstart, intersect_tree, fragmentList, options):
         if (options.vverbose):
             traceback.print_exc()
             sys.exit(1)
-
+            
     return fragmentID
 
-def countReadsPerFragment_bak(intersect_tree, options, args):
+def populateFragmentPairs(fragmentPairs, x, count):
+    f_tuple = tuple([x.minFragment, x.maxFragment])
+    if (not fragmentPairs.has_key(f_tuple)):
+        fragmentPairs[f_tuple] = 0
+    fragmentPairs[f_tuple] += count
+
+def countReadsPerFragment(lookup_structure, options, args):
     '''
         counts the reads per fragment and generates appropriate output files
     '''
@@ -363,6 +360,8 @@ def countReadsPerFragment_bak(intersect_tree, options, args):
     fragmentList = {}
     fragmentPairs = {}
 
+    print >> sys.stdout, "- NOPANDA"
+    
     if (options.inputIsFragmentPairs):
         for fFile in xrange(len(args)):
             if (options.verbose):
@@ -376,8 +375,8 @@ def countReadsPerFragment_bak(intersect_tree, options, args):
                     if (options.onlycis and chr1 != chr2):
                         continue
 
-                    fragmentID1 = mapFragment(chr1, int(start1), intersect_tree, fragmentList, options)
-                    fragmentID2 = mapFragment(chr2, int(start2), intersect_tree, fragmentList, options)
+                    fragmentID1 = mapFragment(chr1, int(start1), lookup_structure, fragmentList, options)
+                    fragmentID2 = mapFragment(chr2, int(start2), lookup_structure, fragmentList, options)
 
                     if (fragmentID1 == None or fragmentID2 == None):
                         if (options.vverbose):
@@ -416,8 +415,8 @@ def countReadsPerFragment_bak(intersect_tree, options, args):
                     if (options.onlycis and chr1 != chr2):
                         continue
 
-                    fragmentID1 = mapFragment(chr1, start1, intersect_tree, fragmentList, options)
-                    fragmentID2 = mapFragment(chr2, start2, intersect_tree, fragmentList, options)
+                    fragmentID1 = mapFragment(chr1, start1, lookup_structure, fragmentList, options)
+                    fragmentID2 = mapFragment(chr2, start2, lookup_structure, fragmentList, options)
 
                     if (fragmentID1 == None or fragmentID2 == None):
                         if (options.vverbose):
@@ -455,8 +454,8 @@ def countReadsPerFragment_bak(intersect_tree, options, args):
                 if (options.onlycis and inputfile.getrname(readpair[0].tid) != inputfile.getrname(readpair[1].tid)):
                     continue
 
-                fragmentID1 = getFragment(samfile, readpair[0], intersect_tree, fragmentList, options)
-                fragmentID2 = getFragment(samfile, readpair[1], intersect_tree, fragmentList, options)
+                fragmentID1 = getFragment(samfile, readpair[0], lookup_structure, fragmentList, options)
+                fragmentID2 = getFragment(samfile, readpair[1], lookup_structure, fragmentList, options)
 
                 if (fragmentID1 == None or fragmentID2 == None):
                     if (options.vverbose):
@@ -478,13 +477,7 @@ def countReadsPerFragment_bak(intersect_tree, options, args):
 
     return [ fragmentList, fragmentPairs ]
 
-def populateFragmentPairs(fragmentPairs, x, count):
-    f_tuple = tuple([x.minFragment, x.maxFragment])
-    if (not fragmentPairs.has_key(f_tuple)):
-        fragmentPairs[f_tuple] = 0
-    fragmentPairs[f_tuple] += count
-
-def countReadsPerFragment(intersect_tree, options, args):
+def countReadsPerFragment_pd(lookup_structure, options, args):
     '''
         counts the reads per fragment and generates appropriate output files
     '''
@@ -492,6 +485,8 @@ def countReadsPerFragment(intersect_tree, options, args):
     fragmentList = {}
     fragmentPairs = {}
 
+    print >> sys.stdout, "- NOPANDA"
+    
     if (options.inputIsFragmentPairs):
         if (options.inputIsReadPairs):
             chr_index = map(int,  options.inputIsReadPairs.split(",")[0:4])
@@ -506,8 +501,8 @@ def countReadsPerFragment(intersect_tree, options, args):
             df = pd.read_csv(args[fFile], sep=options.separator,engine='c', names=["chr1","start1","chr2","start2","count"], dtype={"chr1":np.object,"start1":np.int,"chr2":np.object,"start2":np.int,"count":np.int}, usecols=chr_index)
 
 
-            df['fragmentID1']=df.apply(lambda x:mapFragment(x.chr1, x.start1, intersect_tree, fragmentList, options), axis=1)
-            df['fragmentID2']=df.apply(lambda x:mapFragment(x.chr2, x.start2, intersect_tree, fragmentList, options), axis=1)
+            df['fragmentID1']=df.apply(lambda x:mapFragment(x.chr1, x.start1, lookup_structure, fragmentList, options), axis=1)
+            df['fragmentID2']=df.apply(lambda x:mapFragment(x.chr2, x.start2, lookup_structure, fragmentList, options), axis=1)
             # clean memory            
             df.dropna(axis=0, inplace=True)
             df.drop(["chr1","chr2","start1","start2"], axis=1, inplace=True)
@@ -540,9 +535,12 @@ def countReadsPerFragment(intersect_tree, options, args):
 
             df = pd.read_csv(args[fFile], sep=options.separator,engine='c', names=["chr1","start1","chr2","start2"], dtype={"chr1":np.object,"start1":np.int,"chr2":np.object,"start2":np.int}, usecols=chr_index)
 
+            if (chr_prefix != ""):
+                df['chr1'] = chr_prefix+df['chr1']
+                df['chr2'] = chr_prefix+df['chr2']
 
-            df['fragmentID1']=df.apply(lambda x:mapFragment(x.chr1, x.start1, intersect_tree, fragmentList, options), axis=1)
-            df['fragmentID2']=df.apply(lambda x:mapFragment(x.chr2, x.start2, intersect_tree, fragmentList, options), axis=1)
+            df['fragmentID1']=df.apply(lambda x:mapFragment(x.chr1, x.start1, lookup_structure, fragmentList, options), axis=1)
+            df['fragmentID2']=df.apply(lambda x:mapFragment(x.chr2, x.start2, lookup_structure, fragmentList, options), axis=1)
             # clean memory            
             df.dropna(axis=0, inplace=True)
 #            df.drop(["chr1","chr2","start1","start2"], axis=1, inplace=True)
@@ -576,8 +574,8 @@ def countReadsPerFragment(intersect_tree, options, args):
                 if (readpair[0].qname=="dummy"):
                     break
 
-                fragmentID1 = getFragment(samfile, readpair[0], intersect_tree, fragmentList, options)
-                fragmentID2 = getFragment(samfile, readpair[1], intersect_tree, fragmentList, options)
+                fragmentID1 = getFragment(samfile, readpair[0], lookup_structure, fragmentList, options)
+                fragmentID2 = getFragment(samfile, readpair[1], lookup_structure, fragmentList, options)
 
                 if (fragmentID1 == None or fragmentID2 == None):
                     if (options.vverbose):

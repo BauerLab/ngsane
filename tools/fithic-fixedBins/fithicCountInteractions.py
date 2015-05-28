@@ -66,8 +66,6 @@ def main():
     parser.add_option("--inputIsReadPairs", type="string", dest="inputIsReadPairs", default="",
                     help="gzipped files with mapped read pair information, requires 4 column identifier corresponding to chrA,posA,chrB,posB,chrPrefix (separated buy comma), e.g. 2,3,6,7,chr")
      
-   
-    
     (options, args) = parser.parse_args()
     if (len(args) < 1):
         parser.print_help()
@@ -132,6 +130,14 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
     
     fragmentIds = fragmentsMap.keys()
     fragmentIds.sort()
+    
+    chromlen={}
+    for line in fileinput.input([options.chromSizes]):
+        (chrom, chromsize) =line.split("\t")[0:2]
+        # check if chromosome needs to be filtered out or not
+        if (options.chromPattern != "" and not re.match("^"+options.chromPattern+"$", chrom)):
+            continue
+        chromlen[chrom]=int(chromsize)
 
     # lookup mean mappability ratio
     bw = ""
@@ -145,28 +151,28 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
     for fragmentId in fragmentIds:
 
         contactCounts = 0
-        chrom = fragmentsMap[fragmentId][0]
-        midpoint =  fragmentsMap[fragmentId][1]
+        (chrom, start, end) = fragmentsMap[fragmentId]
 
         if (options.vverbose):
-            print >> sys.stdout, "- process %s %d " % (chrom, midpoint)
+            print >> sys.stdout, "- process %s %d-%d " % (chrom, start, end)
 
         if (fragmentList.has_key(fragmentId)):
             contactCounts = fragmentList[fragmentId]
         
         if (bw != ""):    
             try:
-                mappable = bw.query(chrom, midpoint-options.resolution/2, midpoint+options.resolution/2, 1)[0]["mean"]
+                mappable = bw.query(chrom, start, end, 1)[0]["mean"]
             except:
                 mappable = 0
                 # problem with invalid values
                 if (options.vverbose):
-                    print >> sys.stderr, "Problem with bw file at %s %d-%d" % (chrom, midpoint-options.resolution/2, midpoint+options.resolution/2)
+                    print >> sys.stderr, "Problem with bw file at %s %d-%d" % (chrom, start, end)
                     print traceback.format_exc()
                 
         elif (contactCounts>0):
             mappable=1
 
+        midpoint = min(int(0.5*(start+end)),chromlen[chrom])
         outfile1.write("%s\t%d\t%s\t%f\n" % (chrom, midpoint, "NA", mappable))
         
     outfile1.close()
@@ -177,12 +183,12 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
         outfile2 = gzip.open(options.outputDir+os.path.basename(args[0])+".contactCounts.gz","wb")
         
     for fragmentIds, contactCounts in fragmentPairs.iteritems():
-        chrom1 = fragmentsMap[fragmentIds[0]][0]
-        midpoint1 =  fragmentsMap[fragmentIds[0]][1]
-    
-        chrom2 = fragmentsMap[fragmentIds[1]][0]
-        midpoint2 =  fragmentsMap[fragmentIds[1]][1]
-    
+        (chrom1, start1, end1) = fragmentsMap[fragmentIds[0]]
+        (chrom2, start2, end2) = fragmentsMap[fragmentIds[1]]
+        
+        midpoint1 = min(int(0.5*(start1+end1)),chromlen[chrom1])
+        midpoint2 = min(int(0.5*(start2+end2)),chromlen[chrom2])    
+        
         outfile2.write("%s\t%d\t%s\t%d\t%d\n" % (chrom1, midpoint1, chrom2, midpoint2, contactCounts))
         
     outfile2.close()
@@ -249,11 +255,11 @@ def process():
     global args
 
     if (options.fragmentFile != ""):    
-        [ fragmentsMap, intersectTree, fragmentCount, fragmentsChrom ] = createIntervalTreesFragmentFile(options)
+        [ fragmentsMap, lookup_structure, fragmentCount, fragmentsChrom ] = createIntervalTreesFragmentFile(options)
     else:
-        [ fragmentsMap, intersectTree, fragmentCount, fragmentsChrom ] = createIntervalTreesFragmentResolution(options)
+        [ fragmentsMap, lookup_structure, fragmentCount, fragmentsChrom ] = createIntervalTreesFragmentResolution(options)
         
-    [ fragmentList, fragmentPairs ] = countReadsPerFragment(intersectTree, options,args)
+    [ fragmentList, fragmentPairs ] = countReadsPerFragment(lookup_structure, options,args)
     
     output(fragmentsMap, fragmentList, fragmentPairs, fragmentCount, fragmentsChrom)
     
