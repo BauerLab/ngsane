@@ -173,24 +173,27 @@ NGSANE_CHECKPOINT_INIT "HiCorrector"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-
     if [ -n "$FITHIC_CISONLY" ]; then
         cat /dev/null > $OUTDIR/$SAMPLE/$SAMPLE.ice.txt.gz  
 
-        for c in $OUTDIR/$SAMPLE/$SAMPLE.*.matrix; do
-            CHR=$(eval "echo '${c##*/}' | sed -e 's|$SAMPLE\.\(.*\)\.matrix\$|\1|'")
-
-            if [[ "$CPU_FITHIC" -gt 1 ]]; then
+        for CHR in $(cut -f1 $GENOME_CHROMSIZES); do        
+            c=$OUTDIR/$SAMPLE/$SAMPLE.$CHR.matrix
             
-                RUN_COMMAND=$(which mpirun)" -np $CPU_FITHIC ic_mep --jobID=$SAMPLE --hasHeaderRow=0 --maxIteration=$HICORRECTOR_MAXITER --numRows="$(wc -l $c | awk '{print $1}')" --numTask=$CPU_FITHIC --memSizePerTask="$(echo "1 + $MEMORY_FITHIC * 900 / $CPU_FITHIC" | bc)" --inputFile=$c --outputFile=${c/%.matrix/.ice.txt} >> $OUTDIR/$SAMPLE/$SAMPLE.matrix_log"
+            if [ ! -f $c ]; then 
+                echo "[NOTE] Skipping $c (does not exist)"
             else
-                RUN_COMMAND="ic_mes $c $MEMORY_FITHIC "$(wc -l $c | awk '{print $1}')" $HICORRECTOR_MAXITER 0 0 ${c/%.matrix/.ice.txt} > $OUTDIR/$SAMPLE/$SAMPLE.matrix_log"     
-            fi
-            echo $RUN_COMMAND && eval $RUN_COMMAND
 
-            # combine ice files and convert to fit-hi-c expected bias format
-            paste <(zcat $OUTDIR/$SAMPLE/$SAMPLE.fragmentLists.gz | cut -f1,2 | egrep -w "^$CHR") ${c/%.matrix/.ice.txt} | awk '{$3==0?$3=1:$3=$3; print $0}' | $GZIP >> $OUTDIR/$SAMPLE/$SAMPLE.ice.txt.gz  
-
+                if [[ "$CPU_FITHIC" -gt 1 ]]; then
+                
+                    RUN_COMMAND=$(which mpirun)" -np $CPU_FITHIC ic_mep --jobID=$SAMPLE --hasHeaderRow=0 --maxIteration=$HICORRECTOR_MAXITER --numRows="$(wc -l $c | awk '{print $1}')" --numTask=$CPU_FITHIC --memSizePerTask="$(echo "1 + $MEMORY_FITHIC * 900 / $CPU_FITHIC" | bc)" --inputFile=$c --outputFile=${c/%.matrix/.ice.txt} >> $OUTDIR/$SAMPLE/$SAMPLE.matrix_log"
+                else
+                    RUN_COMMAND="ic_mes $c $MEMORY_FITHIC "$(wc -l $c | awk '{print $1}')" $HICORRECTOR_MAXITER 0 0 ${c/%.matrix/.ice.txt} > $OUTDIR/$SAMPLE/$SAMPLE.matrix_log"     
+                fi
+                echo $RUN_COMMAND && eval $RUN_COMMAND
+    
+                # combine ice files and convert to fit-hi-c expected bias format
+                paste <(zcat $OUTDIR/$SAMPLE/$SAMPLE.fragmentLists.gz | cut -f1,2 | egrep -w "^$CHR") ${c/%.matrix/.ice.txt} | awk '{$3==0?$3=1:$3=$3; print $0}' | $GZIP >> $OUTDIR/$SAMPLE/$SAMPLE.ice.txt.gz  
+            fi    
         done
 
     # otherwise create one big matrix
@@ -207,49 +210,50 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         paste <(zcat $OUTDIR/$SAMPLE/$SAMPLE.fragmentLists.gz | cut -f1,2) $OUTDIR/$SAMPLE/$SAMPLE.ice.txt | awk '{$3==0?$3=1:$3=$3; print $0}' | $GZIP > $OUTDIR/$SAMPLE/$SAMPLE.ice.txt.gz  
 
     fi
-    
-    $GZIP $OUTDIR/$SAMPLE/$SAMPLE*.matrix
-        
+
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/$SAMPLE.ice.txt.gz
 
+    # cleanup
+    rm -f $OUTDIR/$SAMPLE/$SAMPLE.ice.txt
+    rm -f $OUTDIR/$SAMPLE/$SAMPLE*.matrix
 fi
 
 ################################################################################
-NGSANE_CHECKPOINT_INIT "call topological domains with TADbit"
-
-if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-
-    if [[ -n "$CALL_TAD_CHROMOSOMES" && -n "$TADBIT" ]]; then
-
-        mkdir -p $OUTDIR/$SAMPLE/$SAMPLE
-        MATRIXFILES=$(eval ls $OUTDIR/$SAMPLE/$SAMPLE.$CALL_TAD_CHROMOSOMES.matrix.gz)
-        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/callTADs.py --outputDir=$OUTDIR/$SAMPLE --outputFilename=$SAMPLE --threads=$CPU_FITHIC --resolution=$HIC_RESOLUTION $MATRIXFILES >> $OUTDIR/$SAMPLE.log"
-        echo $RUN_COMMAND && eval $RUN_COMMAND
-       
-        cat /dev/null > $OUTDIR/$SAMPLE.tad.bed
-        # convert .border file to beds
-        for i in $OUTDIR/$SAMPLE/*.border; do
-            CHROM=$(echo $i | tr '.' '\n' | tail -n2 | head -n 1)
-            awk -v c=$CHROM -v r=$HIC_RESOLUTION 'BEGIN{OFS="\t"}{if (NR>1){print c,$2*r,$3*r,c"_"$1,int($4),"."}}' $i | bedtools intersect -a - -b <( awk '{OFS="\t"; print $1,0,$2}' $OUTDIR/$SAMPLE/chromsizes)  >> $OUTDIR/$SAMPLE.tad.bed
-        done
-
-        # create bigbed making sure score is between 0 and 1000
-        if hash bedToBigBed; then 
-            echo "[NOTE] create bigbed from tads" 
-            bedtools sort -i $OUTDIR/$SAMPLE.tad.bed > $OUTDIR/$SAMPLE.tad.tmp
-            bedToBigBed -type=bed6 $OUTDIR/$SAMPLE.tad.tmp $OUTDIR/$SAMPLE/chromsizes $OUTDIR/$SAMPLE.tad.bb
-            rm $OUTDIR/$SAMPLE.tad.tmp
-        fi
-
-        # mark checkpoint
-        NGSANE_CHECKPOINT_CHECK
-
-    else
-        echo "[NOTE] skipping topological domain calling (TADbit)"
-        NGSANE_CHECKPOINT_CHECK
-    fi
-fi
+#NGSANE_CHECKPOINT_INIT "call topological domains with TADbit"
+#
+#if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
+#
+#    if [[ -n "$CALL_TAD_CHROMOSOMES" && -n "$TADBIT" ]]; then
+#
+#        mkdir -p $OUTDIR/$SAMPLE/$SAMPLE
+#        MATRIXFILES=$(eval ls $OUTDIR/$SAMPLE/$SAMPLE.$CALL_TAD_CHROMOSOMES.matrix.gz)
+#        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/callTADs.py --outputDir=$OUTDIR/$SAMPLE --outputFilename=$SAMPLE --threads=$CPU_FITHIC --resolution=$HIC_RESOLUTION $MATRIXFILES >> $OUTDIR/$SAMPLE.log"
+#        echo $RUN_COMMAND && eval $RUN_COMMAND
+#       
+#        cat /dev/null > $OUTDIR/$SAMPLE.tad.bed
+#        # convert .border file to beds
+#        for i in $OUTDIR/$SAMPLE/*.border; do
+#            CHROM=$(echo $i | tr '.' '\n' | tail -n2 | head -n 1)
+#            awk -v c=$CHROM -v r=$HIC_RESOLUTION 'BEGIN{OFS="\t"}{if (NR>1){print c,$2*r,$3*r,c"_"$1,int($4),"."}}' $i | bedtools intersect -a - -b <( awk '{OFS="\t"; print $1,0,$2}' $OUTDIR/$SAMPLE/chromsizes)  >> $OUTDIR/$SAMPLE.tad.bed
+#        done
+#
+#        # create bigbed making sure score is between 0 and 1000
+#        if hash bedToBigBed; then 
+#            echo "[NOTE] create bigbed from tads" 
+#            bedtools sort -i $OUTDIR/$SAMPLE.tad.bed > $OUTDIR/$SAMPLE.tad.tmp
+#            bedToBigBed -type=bed6 $OUTDIR/$SAMPLE.tad.tmp $OUTDIR/$SAMPLE/chromsizes $OUTDIR/$SAMPLE.tad.bb
+#            rm $OUTDIR/$SAMPLE.tad.tmp
+#        fi
+#
+#        # mark checkpoint
+#        NGSANE_CHECKPOINT_CHECK
+#
+#    else
+#        echo "[NOTE] skipping topological domain calling (TADbit)"
+#        NGSANE_CHECKPOINT_CHECK
+#    fi
+#fi
 
 ################################################################################
 NGSANE_CHECKPOINT_INIT "fit-hi-c"
@@ -294,11 +298,8 @@ fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "cleanup"
 
-if [ -z "$FITHIC_KEEPCONTACTMATRIX" ]; then
-    rm -f $OUTDIR/$SAMPLE/$SAMPLE*.matrix.gz
-fi
-rm -f -r $OUTDIR/$SAMPLE/*.border
-rm -f $OUTDIR/$SAMPLE/$SAMPLE.ice.txt
+rm -f $OUTDIR/$SAMPLE.spline_pass1.res$HIC_RESOLUTION.significances.txt.gz
+
 rm -f $OUTDIR/$SAMPLE/chromsizes
 
 NGSANE_CHECKPOINT_CHECK
