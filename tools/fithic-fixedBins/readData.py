@@ -260,7 +260,7 @@ def find(interval, tree):
 def getFragment(inputfile, read, intersect_tree, fragmentList, options):
     ''' When input is bam file '''
 
-    fragmentID = -1
+    fragmentID = None
     try:
         # get fragments for both reads
         rchrom = inputfile.getrname(read.tid)
