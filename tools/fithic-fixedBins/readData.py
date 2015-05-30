@@ -257,7 +257,7 @@ def find(interval, tree):
     return [ (x.start, x.end, x.linenum) for x in out ]
 
 
-def getFragment_old(inputfile, read, intersect_tree, fragmentList, options):
+def getFragment(inputfile, read, intersect_tree, fragmentList, options):
     ''' When input is bam file '''
 
     fragmentID = -1
