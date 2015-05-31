@@ -7,6 +7,9 @@ from quicksect import IntervalTree
 import gzip
 import pandas as pd
 import numpy as np
+import collections
+from functools import partial
+from rosetta.parallel.parallel_easy import imap_easy
 
 ######################################
 # Read
@@ -308,7 +311,7 @@ def mapFragment(rchrom, rstart, lookup_structure, fragmentList, options):
     fragmentID = None
     try:
         # get fragments for both reads
-        
+
         if (options.vverbose):
             print >> sys.stdout, "- Check   : fragment %s %d " % (rchrom, rstart )
 
@@ -325,7 +328,7 @@ def mapFragment(rchrom, rstart, lookup_structure, fragmentList, options):
                 if (options.vverbose):
                     print >> sys.stderr, '[WARN] not in lookup : %s %d (skipping)' % (rchrom, rstart)
                 return None
-                
+
         if (fragmentID == None):
             return fragmentID
         elif (not fragmentList.has_key(fragmentID)):
@@ -341,7 +344,7 @@ def mapFragment(rchrom, rstart, lookup_structure, fragmentList, options):
         if (options.vverbose):
             traceback.print_exc()
             sys.exit(1)
-            
+
     return fragmentID
 
 def populateFragmentPairs(fragmentPairs, x, count):
@@ -350,7 +353,7 @@ def populateFragmentPairs(fragmentPairs, x, count):
         fragmentPairs[f_tuple] = 0
     fragmentPairs[f_tuple] += count
 
-def countReadsPerFragment(lookup_structure, options, args):
+def countReadsPerFragmentSerial(lookup_structure, options, args):
     '''
         counts the reads per fragment and generates appropriate output files
     '''
@@ -359,7 +362,7 @@ def countReadsPerFragment(lookup_structure, options, args):
     fragmentPairs = {}
 
     print >> sys.stdout, "- NOPANDA"
-    
+
     if (options.inputIsFragmentPairs):
         for fFile in xrange(len(args)):
             if (options.verbose):
@@ -368,7 +371,7 @@ def countReadsPerFragment(lookup_structure, options, args):
             with gzip.open(args[fFile]) as infile:
                 for line in infile:
                     (chr1, start1, chr2, start2, count) = line.strip().split("\t")
-                    
+
                     # skip trans contacts if focusing on cis only
                     if (options.onlycis and chr1 != chr2):
                         continue
@@ -408,7 +411,7 @@ def countReadsPerFragment(lookup_structure, options, args):
                     start1 = int(cols[chr_index[1]])
                     chr2   = chr_prefix + cols[chr_index[2]]
                     start2 = int(cols[chr_index[3]])
-                    
+
                     # skip trans contacts if focusing on cis only
                     if (options.onlycis and chr1 != chr2):
                         continue
@@ -484,13 +487,13 @@ def countReadsPerFragment_pd(lookup_structure, options, args):
     fragmentPairs = {}
 
     print >> sys.stdout, "- NOPANDA"
-    
+
     if (options.inputIsFragmentPairs):
         if (options.inputIsReadPairs):
             chr_index = map(int,  options.inputIsReadPairs.split(",")[0:4])
         else:
             chr_index = [0,1,2,3,4]
-            
+
         for fFile in xrange(len(args)):
             if (options.verbose):
                 print >> sys.stdout, "- %s START x  : processing fragment files: %s" % (timeStamp(), args[fFile])
@@ -501,10 +504,10 @@ def countReadsPerFragment_pd(lookup_structure, options, args):
 
             df['fragmentID1']=df.apply(lambda x:mapFragment(x.chr1, x.start1, lookup_structure, fragmentList, options), axis=1)
             df['fragmentID2']=df.apply(lambda x:mapFragment(x.chr2, x.start2, lookup_structure, fragmentList, options), axis=1)
-            # clean memory            
+            # clean memory
             df.dropna(axis=0, inplace=True)
             df.drop(["chr1","chr2","start1","start2"], axis=1, inplace=True)
-            
+
             df['minFragment']=df[["fragmentID1", "fragmentID2"]].min(axis=1)
             df['maxFragment']=df[["fragmentID1", "fragmentID2"]].max(axis=1)
             # clean memory
@@ -521,12 +524,12 @@ def countReadsPerFragment_pd(lookup_structure, options, args):
             chr_index = map(int,  options.inputIsReadPairs.split(",")[0:4])
         else:
             chr_index = [0,1,2,3]
-        
+
         try:
             chr_prefix=options.inputIsReadPairs.split(",")[4]
         except:
             chr_prefix=""
-        
+
         for fFile in xrange(len(args)):
             if (options.verbose):
                 print >> sys.stdout, "- %s START   : processing read files: %s" % (timeStamp(), args[fFile])
@@ -539,17 +542,17 @@ def countReadsPerFragment_pd(lookup_structure, options, args):
 
             df['fragmentID1']=df.apply(lambda x:mapFragment(x.chr1, x.start1, lookup_structure, fragmentList, options), axis=1)
             df['fragmentID2']=df.apply(lambda x:mapFragment(x.chr2, x.start2, lookup_structure, fragmentList, options), axis=1)
-            # clean memory            
+            # clean memory
             df.dropna(axis=0, inplace=True)
 #            df.drop(["chr1","chr2","start1","start2"], axis=1, inplace=True)
-            
+
             df['minFragment']=df[["fragmentID1", "fragmentID2"]].min(axis=1)
             df['maxFragment']=df[["fragmentID1", "fragmentID2"]].max(axis=1)
             # clean memory
 #            df.drop(["fragmentID1", "fragmentID2"], axis=1, inplace=True)
 
             df.apply(lambda x : populateFragmentPairs(fragmentPairs , x, 1), axis=1)
-            
+
             if (options.verbose):
                 print >> sys.stdout, "- %s FINISHED: getting counts form read files " % (timeStamp())
 
@@ -592,5 +595,165 @@ def countReadsPerFragment_pd(lookup_structure, options, args):
 
             if (options.verbose):
                 print >> sys.stdout, "- %s FINISHED: getting reads from bam file " % (timeStamp())
+
+    return [fragmentList, fragmentPairs ]
+
+
+def countReadsPerFragmentParallel(iFile, lookup_structure, options):
+    '''
+        counts the reads per fragment and generates appropriate output files
+    '''
+
+    fragmentList = {}
+    fragmentPairs = {}
+
+    if (options.inputIsFragmentPairs):
+        if (options.verbose):
+            print >> sys.stdout, "- %s START   : processing fragment file: %s" % (timeStamp(), iFile)
+
+        with gzip.open(iFile) as infile:
+            for line in infile:
+                (chr1, start1, chr2, start2, count) = line.strip().split("\t")
+
+                # skip trans contacts if focusing on cis only
+                if (options.onlycis and chr1 != chr2):
+                    continue
+
+                fragmentID1 = mapFragment(chr1, int(start1), lookup_structure, fragmentList, options)
+                fragmentID2 = mapFragment(chr2, int(start2), lookup_structure, fragmentList, options)
+
+                if (fragmentID1 == None or fragmentID2 == None):
+                    if (options.vverbose):
+                        print >> sys.stdout, "-- one region does not co-occur with any fragment: %s %s" % (fragmentID1, fragmentID2)
+                    continue
+
+                f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
+                if (not fragmentPairs.has_key(f_tuple)):
+                    fragmentPairs[f_tuple] = 0
+                fragmentPairs[f_tuple] += int(count)
+
+
+        if (options.verbose):
+            print >> sys.stdout, "- %s FINISHED: getting counts form fragment file " % (timeStamp())
+
+    elif (options.inputIsReadPairs != ""):
+        # get column indexes
+        chr_index = map(int,  options.inputIsReadPairs.split(",")[0:4])
+        try:
+            chr_prefix=options.inputIsReadPairs.split(",")[4]
+        except:
+            chr_prefix=""
+
+        if (options.verbose):
+            print >> sys.stdout, "- %s START   : processing read files: %s" % (timeStamp(), iFile)
+
+        with gzip.open(iFile) as infile:
+            for line in infile:
+                cols   = line.strip().split()
+                chr1   = chr_prefix + cols[chr_index[0]]
+                start1 = int(cols[chr_index[1]])
+                chr2   = chr_prefix + cols[chr_index[2]]
+                start2 = int(cols[chr_index[3]])
+
+                # skip trans contacts if focusing on cis only
+                if (options.onlycis and chr1 != chr2):
+                    continue
+
+                fragmentID1 = mapFragment(chr1, start1, lookup_structure, fragmentList, options)
+                fragmentID2 = mapFragment(chr2, start2, lookup_structure, fragmentList, options)
+
+                if (fragmentID1 == None or fragmentID2 == None):
+                    if (options.vverbose):
+                        print >> sys.stdout, "-- one region does not co-occur with any fragment: %s %s" % (fragmentID1, fragmentID2)
+                    continue
+
+                f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
+                if (not fragmentPairs.has_key(f_tuple)):
+                    fragmentPairs[f_tuple] = 0
+                fragmentPairs[f_tuple] += 1
+
+
+
+                # TODO remover
+                return ( fragmentList, fragmentPairs )
+
+        if (options.verbose):
+            print >> sys.stdout, "- %s FINISHED: getting counts form read files " % (timeStamp())
+
+    else:
+        # lazy load
+        import pysam
+        if (options.verbose):
+            print >> sys.stdout, "- %s START   : processing reads from bam file: %s" % (timeStamp(), iFile)
+
+        samfile = pysam.Samfile(iFile, "rb" )
+
+        samiter = samfile.fetch(until_eof=True)
+
+        readcounter = 0
+
+        while(True):
+            readpair = findNextReadPair(samiter,options)
+            # if file contains any more reads, exit
+            if (readpair[0].qname=="dummy"):
+                break
+
+            # skip trans contacts if focusing on cis only
+            if (options.onlycis and inputfile.getrname(readpair[0].tid) != inputfile.getrname(readpair[1].tid)):
+                continue
+
+            fragmentID1 = getFragment(samfile, readpair[0], lookup_structure, fragmentList, options)
+            fragmentID2 = getFragment(samfile, readpair[1], lookup_structure, fragmentList, options)
+
+            if (fragmentID1 == None or fragmentID2 == None):
+                if (options.vverbose):
+                    print >> sys.stdout, "-- one read does not co-occur with any fragment: %s %s" % (str(fragmentID1), str(fragmentID2))
+                continue
+
+            f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
+            if (not fragmentPairs.has_key(f_tuple)):
+                fragmentPairs[f_tuple] = 0
+            fragmentPairs[f_tuple] += 1
+            readcounter+=1
+
+            if (options.verbose and readcounter % 1000000 == 0 ):
+                print >> sys.stdout, "- %s         : %d read pairs processed" % (timeStamp(), readcounter)
+        samfile.close()
+
+        if (options.verbose):
+            print >> sys.stdout, "- %s FINISHED: getting reads from bam file " % (timeStamp())
+
+    return ( fragmentList, fragmentPairs )
+
+
+def countReadsPerFragment(lookup_structure, options, args):
+    '''
+        slurps in all input fils in parallel
+        counts the reads per fragment and generates appropriate output files
+    '''
+
+    if (options.verbose):
+        print >> sys.stdout, "- %s STARTED : reading input files : %s" % (timeStamp(), str(args))
+
+    fragmentList = collections.defaultdict(int)
+    fragmentPairs = collections.defaultdict(int)
+    func = partial(countReadsPerFragmentParallel, lookup_structure=lookup_structure, options=options)
+    results_iterator = imap_easy(func, args, n_jobs=-1, chunksize=1)
+
+    if (options.verbose):
+        print >> sys.stdout, "- %s FINISHED: reading input files " % (timeStamp())
+        print >> sys.stdout, "- %s STARTED : combining input files " % (timeStamp())
+
+    # combine dictionaries
+    for (fl, fp) in results_iterator:
+        for k, v in fl.iteritems():
+            fragmentList[k]+=v
+
+        for k, v in fp.iteritems():
+            fragmentPairs[k]+=v
+
+    if (options.verbose):
+        print >> sys.stdout, "- %s FINISHED: combining input files " % (timeStamp())
+
 
     return [ fragmentList, fragmentPairs ]
