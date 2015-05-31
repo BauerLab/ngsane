@@ -270,29 +270,25 @@ def getFragment(inputfile, read, intersect_tree, fragmentList, options):
         if (options.vverbose):
             print >> sys.stdout, "- Check   : read %s %d %d" % (rchrom, rstart, rend )
 
-        interval = Interval(rchrom, rstart, rend)
+        if (options.fragmentFile):
+            interval = Interval(rchrom, rstart, rstart+1)
+            # take first bin only
+            fragmentID = find(interval, lookup_structure)[0][2]
 
-        fragments = find(interval, intersect_tree)
-        if (len(fragments) == 0 ):
-            if (options.vverbose):
-                print >> sys.stderr, '[WARN] no overlap found : %s (skipping)' % (read)
-            return
-        elif (len(fragments)> 1):
-            if (not options.multicount):
+        else:
+            # for fixed bin sizes
+            try:
+                fragmentID = lookup_structure[tuple([rchrom, int(rstart/options.resolution)])]
+            except:
                 if (options.vverbose):
-                    print >> sys.stderr, '[WARN] adding multiple fragments > 1 : %s (skipping)' % (read)
-                return
-            else:
-                if (options.vverbose):
-                    print >> sys.stderr, '[WARN] adding multiple fragments > 1 : %s (multicounting %d times)' % (read, len(fragments))
+                    print >> sys.stderr, '[WARN] not in lookup : %s %d (skipping)' % (rchrom, rstart)
+                return None
 
-        for i in xrange(len(fragments)):
-            #extract fragmentID
-            fragmentID = fragments[i][2] # corresponds to linenum
-
-            if (not fragmentList.has_key(fragmentID)):
-                fragmentList[fragmentID] = 0
-
+        if (fragmentID == None):
+            return fragmentID
+        elif (fragmentList.has_key(fragmentID)):
+            fragmentList[fragmentID] = 0
+        else:
             fragmentList[fragmentID] += 1
 
     except:
@@ -330,7 +326,9 @@ def mapFragment(rchrom, rstart, lookup_structure, fragmentList, options):
                     print >> sys.stderr, '[WARN] not in lookup : %s %d (skipping)' % (rchrom, rstart)
                 return None
                 
-        if (not fragmentList.has_key(fragmentID)):
+        if (fragmentID == None):
+            return fragmentID
+        elif (not fragmentList.has_key(fragmentID)):
             fragmentList[fragmentID] = 1
         else:
             fragmentList[fragmentID] += 1
