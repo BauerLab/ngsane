@@ -104,8 +104,8 @@ def main():
 					  action="store_true", dest="verbose")
 	parser.add_option("-q", "--quiet",
 					  action="store_false", dest="verbose")
-    parser.add_option("-P", "--plotImages",
-                      action="store_true", dest="plotimages")
+	parser.add_option("-P", "--plotImages",
+					  action="store_true", dest="plotimages")
 	parser.set_defaults(verbose=True, useBinning=True, noOfBins=100, distLowThres=-1, distUpThres=-1, mappabilityThreshold=1,noOfPasses=2,libname="",biasfile='none', plotimages=False)
 	
 	(options, args) = parser.parse_args()
@@ -157,7 +157,7 @@ def main():
 	x,y,yerr=calculate_Probabilities(mainDic,libname+".fithic_pass1")
 
 	# now fit spline to the data using power-law residual by improving it  <residualFactor> times
-	splineXinit,splineYinit,splineResidual=fit_Spline(mainDic,x,y,yerr,options.intersfile,libname+".spline_pass1",biasDic) 
+	splineXinit,splineYinit,splineResidual=fit_Spline(mainDic,x,y,yerr,options.intersfile,libname+".spline_pass1",biasDic, options.plotimages) 
 
 	### DO THE REFINEMENT ON THE NULL AS MANY STEPS AS DESIRED ###
 	#for i in range(2,1+noOfPasses):
@@ -438,7 +438,7 @@ def generate_FragPairs(mainDic,infilename): # lowMappThres
 
 	return (mainDic,noOfFrags) # return from generate_FragPairs
 
-def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic):
+def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
 	print("\nFit a univariate spline to the probability means\n"),
 	print("------------------------------------------------------------------------------------\n"),
 	#print("baseline intra-chr probability: " + repr(baselineIntraChrProb)+ "\n"),
@@ -488,7 +488,7 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic):
 	### Now newSplineY holds the monotonic contact probabilities
 	residual =sum([i*i for i in (y - ius(x))])
 
-	if (options.plotimages):
+	if (plotimages):
 		### Now plot the results
 		plt.clf()
 		fig = plt.figure()
