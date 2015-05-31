@@ -115,7 +115,7 @@ def createIntervalTreesFragmentResolution(options):
             fragmentsMap[fragmentsCount] = tuple([chrom, start, end])
             fragmentsCount += 1
             if (options.vverbose):
-                print >> sys.stdout, "-- intervaltree.add %s:%d-%d" % (chrom, start, end)
+                print >> sys.stdout, "-- chromBinMap.add %s:%d (%d)" % (chrom, start, int(start/options.resolution) )
 
         fragmentsEnd=fragmentsCount
         fragmentsChrom[chrom] = tuple([fragmentsStart, fragmentsEnd])
@@ -257,7 +257,7 @@ def find(interval, tree):
     return [ (x.start, x.end, x.linenum) for x in out ]
 
 
-def getFragment(inputfile, read, intersect_tree, fragmentList, options):
+def getFragment(inputfile, read, lookup_structure, fragmentList, options):
     ''' When input is bam file '''
 
     fragmentID = None
@@ -281,12 +281,12 @@ def getFragment(inputfile, read, intersect_tree, fragmentList, options):
                 fragmentID = lookup_structure[tuple([rchrom, int(rstart/options.resolution)])]
             except:
                 if (options.vverbose):
-                    print >> sys.stderr, '[WARN] not in lookup : %s %d (skipping)' % (rchrom, rstart)
+                    print >> sys.stderr, '[WARN] not in lookup : %s %d %d(skipping)' % (rchrom, rstart, int(rstart/options.resolution))
                 return None
 
         if (fragmentID == None):
             return fragmentID
-        elif (fragmentList.has_key(fragmentID)):
+        elif (not fragmentList.has_key(fragmentID)):
             fragmentList[fragmentID] = 0
         else:
             fragmentList[fragmentID] += 1
@@ -457,7 +457,7 @@ def countReadsPerFragment(lookup_structure, options, args):
 
                 if (fragmentID1 == None or fragmentID2 == None):
                     if (options.vverbose):
-                        print >> sys.stdout, "-- one read does not co-occur with any fragment: %d %d" % (fragmentID1, fragmentID2)
+                        print >> sys.stdout, "-- one read does not co-occur with any fragment: %s %s" % (str(fragmentID1), str(fragmentID2))
                     continue
 
                 f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
