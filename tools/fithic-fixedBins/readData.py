@@ -670,12 +670,8 @@ def countReadsPerFragmentParallel(iFile, lookup_structure, options):
                 f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
                 if (not fragmentPairs.has_key(f_tuple)):
                     fragmentPairs[f_tuple] = 0
-                fragmentPairs[f_tuple] += 1
-
-
-
-                # TODO remover
-                return ( fragmentList, fragmentPairs )
+                else:
+                    fragmentPairs[f_tuple] += 1
 
         if (options.verbose):
             print >> sys.stdout, "- %s FINISHED: getting counts form read files " % (timeStamp())
@@ -738,7 +734,7 @@ def countReadsPerFragment(lookup_structure, options, args):
     fragmentList = collections.defaultdict(int)
     fragmentPairs = collections.defaultdict(int)
     func = partial(countReadsPerFragmentParallel, lookup_structure=lookup_structure, options=options)
-    results_iterator = imap_easy(func, args, n_jobs=-1, chunksize=1)
+    results_iterator = imap_easy(func, args, n_jobs=8, chunksize=1)
 
     if (options.verbose):
         print >> sys.stdout, "- %s FINISHED: reading input files " % (timeStamp())
