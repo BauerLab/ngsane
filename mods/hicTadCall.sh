@@ -17,7 +17,7 @@ echo ">>>>> job_id "$JOB_ID
 echo ">>>>> $(basename $0) $*"
 
 function usage {
-echo -e "usage: $(basename $0) -k NGSANE -f FASTQ -o OUTDIR [OPTIONS]"
+echo -e "usage: $(basename $0) -k NGSANE -f INPUT -o OUTDIR [OPTIONS]"
 exit
 }
 
@@ -45,7 +45,7 @@ done
 NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself loads other modules
-hash module 2>/dev/null && for MODULE in $MODULE_DOMAINCALL; do module load $MODULE; done && module list 
+hash module 2>/dev/null && for MODULE in $MODULE_HICTADCALL; do module load $MODULE; done && module list 
 
 export PATH=$PATH_FITHIC:$PATH
 echo "PATH=$PATH"
@@ -59,7 +59,7 @@ hash module 2>/dev/null && echo -e "--Python libs --\n "$(yolk -l)
 echo -e "--Matlab (MCR)--\n "$(echo "$MCRROOT")
 [ -z "$(echo $MCRROOT)" ] && echo "[ERROR] no matlab runtime environment detected" && exit 1
 echo -e "--TADbit      --\n "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active")
-if [[ "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active" | wc -l | awk '{print $1}')" == 0 ]]; then echo "[WARN] no TADbit detected"; TADBIT=""; elif [ -n "$CALL_TAD_CHROMOSOMES" ]; then TADBIT="--create2DMatrixPerChr"; fi
+if [[ "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active" | wc -l | awk '{print $1}')" == 0 ]]; then echo "[WARN] no TADbit detected"; TADBIT=""; elif [ -n "$CALL_TAD_CHROMOSOMES" ]; then TADBIT="--matrixFormat tadbit"; fi
 echo -e "--bedToBigBed --\n "$(bedToBigBed 2>&1 | tee | head -n 1 )
 [ -z "$(which bedToBigBed)" ] && echo "[WARN] bedToBigBed not detected, cannot compress tad bed file"
 echo -e "--tabix       --\n "$(tabix 2>&1 | tee | grep "Version")
@@ -70,11 +70,11 @@ NGSANE_CHECKPOINT_CHECK
 NGSANE_CHECKPOINT_INIT "parameters"
 
 # Default to bam
-[ -z "$INPUT_FITHIC_SUFFIX" ] && $INPUT_FITHIC_SUFFIX="$ASD.bam"
+[ -z "$INPUT_HICTADCALL_SUFFIX" ] && $INPUT_HICTADCALL_SUFFIX ="$.contactCounts.gz"
 
 # get basename of f
 n=${f##*/}
-SAMPLE=${n/%$INPUT_FITHIC_SUFFIX/}
+SAMPLE=${n/%$INPUT_HICTADCALL_SUFFIX/}
 
 # delete old bam files unless attempting to recover
 if [ -z "$NGSANE_RECOVERFROM" ]; then
@@ -121,7 +121,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ -n "$FITHIC_START_FROM_FRAGMENTPAIRS" ]; then 
         cp ${FASTA%.*}.chrom.sizes $OUTDIR/$SAMPLE/chromsizes
-        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py $FITHIC_START_FROM_FRAGMENTPAIRS ----resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $f > $OUTDIR/$SAMPLE.log"
+        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py $FITHIC_START_FROM_FRAGMENTPAIRS --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $f > $OUTDIR/$SAMPLE.log"
 
     else
         # extract chrom sizes from Bam
@@ -135,9 +135,12 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     fi
 
     echo $RUN_COMMAND && eval $RUN_COMMAND
+    echo $OUTDIR/$SAMPLE/done.txt
 
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/$SAMPLE.matrix
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/done.txt
+    
+    rm -f $OUTDIR/$SAMPLE/done.txt
 
 fi
 
@@ -146,15 +149,19 @@ NGSANE_CHECKPOINT_INIT "DI matrix"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    # run DI matrix script one chromosome at a time
+    for MATRIX in $OUTDIR/$SAMPLE/*.matrix; do 
+        # run DI matrix script one chromosome at a time
+        perl `which DI_from_matrix.pl` $MATRIX $HIC_RESOLUTION 20000000 $OUTDIR/$SAMPLE/chromsizes > ${i/%.matrix/.di.txt}
+    done 
     
     # combine into one big DI matrix
+    cat $OUTDIR/$SAMPLE/*.di.txt > $OUTDIR/$SAMPLE.di.txt
             
     # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/$SAMPLE.ice.txt.gz
+    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/$SAMPLE.di.txt
 
 fi
-
+exit 1
 ################################################################################
 NGSANE_CHECKPOINT_INIT "call topological domains"
 

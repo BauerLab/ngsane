@@ -9,7 +9,7 @@
 #********************
 # Tasks
 #********************
-RUNHICDOMAINCALL="1"        # call significant chromatin interactions
+RUNHICTADCALL="1"        # call significant chromatin interactions
 
 #********************
 # Paths
@@ -20,8 +20,12 @@ SOURCE=$(pwd)
 # which folder to run on (i.e. folders within fastq directory)
 declare -a DIR; DIR=( sample1 sample2 )
 
+# Resolution in nts
+HIC_RESOLUTION=1000000
+TASK_FITHIC="fithic_$HIC_RESOLUTION"
+
 # folder/task containing the data this task operates on
-INPUT_HICDOMAINCALL=$TASK_FITHIC
+INPUT_HICTADCALL=$TASK_FITHIC
 
 # where to write the output
 OUT=$SOURCE
@@ -33,27 +37,16 @@ QOUT=$OUT/qout
 # PARAMETER (mandatory)
 #********************
 
-# Resolution in nts
-HIC_RESOLUTION=1000000
-TASK_FITHIC="fithic_$HIC_RESOLUTION"
-
 # chromosome sizes
 # e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa
 # or   ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
 FASTA=
 
 # Suffix of inout files to look for
-INPUT_HICDOMAINCALL_SUFFIX=".contactCount.gz"
+INPUT_HICTADCALL_SUFFIX=".contactCounts.gz"
 
 # pattern indicating which chromosomes to use
 FITHIC_CHROMOSOMES="chr[0-9XY]+"
-
-# Whether to pool all the data at the contact map stage rather than processing the files individual
-# e.g. FITHIC_POOLDATA="1"
-FITHIC_POOLDATA=
-
-# name for pooled data (only required when setting variable FITHIC_POOLDATA)
-FITHIC_POOLED_SAMPLE_NAME=
 
 #********************
 # PARAMETER (optional overwriting defaults)
@@ -63,14 +56,6 @@ FITHIC_POOLED_SAMPLE_NAME=
 # e.g. "inputIsFragmentPairs" or "inputIsReadPairs 2,3,6,7,chr"
 FITHIC_START_FROM_FRAGMENTPAIRS=
 
-# Q-value threshold applied for filtering (default: 0.01)
-# e.g. 0.05
-FITHIC_QVALUETHRESHOLD=
-
-# Whether to focus on intra-chromosomal contacts only
-# e.g. FITHIC_CISONLY=1
-FITHIC_CISONLY=
-
 # indicate if contact matrix should be kept
 # e.g FITHIC_KEEPCONTACTMATRIX="1"
 FITHIC_KEEPCONTACTMATRIX=
@@ -79,7 +64,7 @@ FITHIC_KEEPCONTACTMATRIX=
 # e.g. "chr[0-9]*"
 CALL_TAD_CHROMOSOMES=
 
-#WALLTIME_HICDOMAINCALL=48:00:00
-#MEMORY_HICDOMAINCALL=40
-#CPU_HICDOMAINCALL=1
-#NODES_HICDOMAINCALL="nodes=1:ppn=1"
+#WALLTIME_HICTADCALL=48:00:00
+#MEMORY_HICTADCALL=40
+#CPU_HICTADCALL=1
+#NODES_HICTADCALL="nodes=1:ppn=1"

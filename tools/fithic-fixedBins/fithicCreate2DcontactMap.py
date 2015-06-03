@@ -47,10 +47,6 @@ def main():
                     help="directory for temp files [default: %default]")
     parser.add_option("-s", "--sep", type="string", dest="separator", default=" ",
                     help="delimiter to use when reading the input [default: %default]")
-    parser.add_option("--create2DMatrix", action="store_true", dest="create2DMatrix", default=False,
-                    help="create a tab separated 2D matrix file")
-    parser.add_option("--create2DMatrixPerChr", action="store_true", dest="create2DMatrixPerChr", default=True,
-                    help="create a tab separated 2D matrix file one per Chromosome [default True]")
     parser.add_option("--matrixFormat", type="string", dest="matrixFormat", default="tadbit",
                     help="either tadbit or domainfinder")
     parser.add_option("--inputIsFragmentPairs", action="store_true", dest="inputIsFragmentPairs", default=False,
@@ -103,56 +99,37 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
     # convert to coordinate format
     B = A.tocoo()
 
-    if (options.create2DMatrix):
+    for chr in fragmentsChrom.keys():
+
+        C = B.tocsc()[:,fragmentsChrom[chr][0]:fragmentsChrom[chr][1]].tocsr()[fragmentsChrom[chr][0]:fragmentsChrom[chr][1],:]
+
+        fragmentRange=fragmentsChrom[chr][1]-fragmentsChrom[chr][0]
+        header=['d']+[ "%s%d" % i for i in zip(['r']*fragmentRange,range(fragmentRange))]
 
         if ( options.outputFilename != "" ):
-            outfile3 = options.outputDir+options.outputFilename+".matrix"
+            outfile3 = options.outputDir+options.outputFilename+"."+chr+".matrix"
         else:
-            outfile3 = options.outputDir+os.path.basename(args[0])+".matrix"
+            outfile3 = options.outputDir+os.path.basename(args[0])+"."+chr+".matrix"
 
         if (options.verbose):
-            print >> sys.stdout, "- save 2Dmatrix to %s " % (outfile3)
+            print >> sys.stdout, "- save 2Dmatrix for chromosome %s to %s " % (chr, outfile3)
 
         f_handle=open(outfile3,'w')
+        if (options.matrixFormat == "domainfinder"):
+            for i in xrange(fragmentRange):
+                binStart = fragmentsMap[fragmentsChrom[chr][0]+i][1] - options.resolution/2
+                binEnd = binStart + options.resolution
 
-        C = B.tocsr()
-        for i in xrange(fragmentCount):
-            numpy.savetxt(f_handle, C[i].toarray(),fmt='%i', delimiter='\t')
+                f_handle.write(chr+"\t"+str(binStart)+"\t"+str(binEnd)+"\t")
+                numpy.savetxt(f_handle, C[i].toarray(),fmt='%i', delimiter='\t')
+        else:
+            f_handle.write('\t'.join(header)+"\n")
+
+            for i in xrange(fragmentRange):
+                f_handle.write(header[i+1]+"\t")
+                numpy.savetxt(f_handle, C[i].toarray(),fmt='%i', delimiter='\t')
 
         f_handle.close()
-
-    if (options.create2DMatrixPerChr):
-        for chr in fragmentsChrom.keys():
-
-            C = B.tocsc()[:,fragmentsChrom[chr][0]:fragmentsChrom[chr][1]].tocsr()[fragmentsChrom[chr][0]:fragmentsChrom[chr][1],:]
-
-            fragmentRange=fragmentsChrom[chr][1]-fragmentsChrom[chr][0]
-            header=['d']+[ "%s%d" % i for i in zip(['r']*fragmentRange,range(fragmentRange))]
-
-            if ( options.outputFilename != "" ):
-                outfile3 = options.outputDir+options.outputFilename+"."+chr+".matrix"
-            else:
-                outfile3 = options.outputDir+os.path.basename(args[0])+"."+chr+".matrix"
-
-            if (options.verbose):
-                print >> sys.stdout, "- save 2Dmatrix for chromosome %s to %s " % (chr, outfile3)
-
-            f_handle=open(outfile3,'w')
-            if (options.matrixFormat == "domainfinder"):
-                for i in xrange(fragmentRange):
-                    binStart = fragmentsMap[fragmentsChrom[chr][0]+i][1] - options.resolution/2
-                    binEnd = binStart + options.resolution
-
-                    f_handle.write(chr+"\t"+str(binStart)+"\t"+str(binEnd)+"\t")
-                    numpy.savetxt(f_handle, C[i].toarray(),fmt='%i', delimiter='\t')
-            else:
-                f_handle.write('\t'.join(header)+"\n")
-
-                for i in xrange(fragmentRange):
-                    f_handle.write(header[i+1]+"\t")
-                    numpy.savetxt(f_handle, C[i].toarray(),fmt='%i', delimiter='\t')
-
-            f_handle.close()
 
     if (options.verbose):
         print >> sys.stdout, "- %s FINISHED: output data" % (timeStamp())
@@ -162,9 +139,9 @@ def process():
     global options
     global args
 
-    [ fragmentsMap, intersectTree, fragmentCount, fragmentsChrom ] = createIntervalTreesFragmentResolution(options)
+    [ fragmentsMap, lookup_structure, fragmentCount, fragmentsChrom ] = createIntervalTreesFragmentResolution(options)
 
-    [ fragmentList, fragmentPairs ] = countReadsPerFragment(intersectTree,options,args)
+    [ fragmentList, fragmentPairs ] = countReadsPerFragment(lookup_structure, options, args)
 
     output(fragmentsMap, fragmentList, fragmentPairs, fragmentCount, fragmentsChrom)
 

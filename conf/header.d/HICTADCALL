@@ -1,0 +1,13 @@
+##############################################################
+# domaincall 
+# http://bioinformatics-renlab.ucsd.edu/collaborations/sid/domaincall_software.zip
+# tadbit
+# https://github.com/3DGenomes/tadbit
+TASK_HICTADCALL="HICTADCALL"
+WALLTIME_HICTADCALL=24:00:00
+MEMORY_HICTADCALL=8
+CPU_HICTADCALL=1
+NODES_HICTADCALL="nodes=1:ppn=1"
+INPUT_HICTADCALL=$TASK_FITHIC
+MODULE_HICTADCALL="${NG_PYTHON} ${NG_PERL} ${NG_JAVA} ${NG_MATLAB} ${NG_TABIX} ${NG_HICTADCALL}"
+PATH_HICTADCALL=
