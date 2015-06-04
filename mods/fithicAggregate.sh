@@ -55,6 +55,8 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--Python      --\n" $(python --version)
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 hash module 2>/dev/null && echo -e "--Python libs --\n "$(yolk -l)
+echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--HiCorrector --\n "$(ic_mep 2>&1 | tee | grep Version)
 [ -z "$(which ic_mep)" ] && echo "[ERROR] no HiCorrection detected" && exit 1
 echo -e "--fit-hi-c    --\n "$(python $NGSANE_BASE/tools/fithic-fixedBins/fit-hi-c-fixedSize-withBiases.py --version | head -n 1)
