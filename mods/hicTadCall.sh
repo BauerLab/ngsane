@@ -47,7 +47,7 @@ NGSANE_CHECKPOINT_INIT "programs"
 # save way to load modules that itself loads other modules
 hash module 2>/dev/null && for MODULE in $MODULE_HICTADCALL; do module load $MODULE; done && module list 
 
-export PATH=$PATH_FITHIC:$PATH
+export PATH=$PATH_HICTADCALL:$PATH
 echo "PATH=$PATH"
 #this is to get the full path (modules should work but for path we need the full path and this is the\
 # best common denominator)
@@ -56,6 +56,8 @@ echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 echo -e "--Python      --\n" $(python --version)
 [ -z "$(which python)" ] && echo "[ERROR] no python detected" && exit 1
 hash module 2>/dev/null && echo -e "--Python libs --\n "$(yolk -l)
+echo -e "--samtools    --\n "$(samtools 2>&1 | head -n 3 | tail -n-2)
+[ -z "$(which samtools)" ] && echo "[ERROR] no samtools detected" && exit 1
 echo -e "--Matlab (MCR)--\n "$(echo "$MCRROOT")
 [ -z "$(echo $MCRROOT)" ] && echo "[ERROR] no matlab runtime environment detected" && exit 1
 echo -e "--TADbit      --\n "$(yolk -l | fgrep -w TADbit | fgrep -v -w "non-active")
@@ -87,8 +89,8 @@ if [ -z "$HIC_RESOLUTION" ]; then
     exit 1
 fi
 
-if [[ -n "$FITHIC_CHROMOSOMES" ]]; then
-    FITHIC_CHROMOSOMES="--chrompattern '$FITHIC_CHROMOSOMES'"
+if [[ -n "$CALL_TAD_CHROMOSOMES" ]]; then
+    FITHIC_CHROMOSOMES="--chrompattern '$CALL_TAD_CHROMOSOMES'"
 fi
 
 if [ -n "$FITHIC_START_FROM_FRAGMENTPAIRS" ]; then
@@ -121,21 +123,21 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ -n "$FITHIC_START_FROM_FRAGMENTPAIRS" ]; then 
         cp ${FASTA%.*}.chrom.sizes $OUTDIR/$SAMPLE/chromsizes
-        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py $FITHIC_START_FROM_FRAGMENTPAIRS --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $f > $OUTDIR/$SAMPLE.log"
+        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py --CPU-processes $(($CPU_HICTADCALL<8?$CPU_HICTADCALL : 8))  --verbose $FITHIC_START_FROM_FRAGMENTPAIRS --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $f > $OUTDIR/$SAMPLE.log"
 
     else
         # extract chrom sizes from Bam
         samtools view -H $f | fgrep -w '@SQ' | sed 's/:/\t/g' | awk '{OFS="\t";print $3,$5}' > $OUTDIR/$SAMPLE/chromsizes
 
         # ensure name sorted bam required
-        RUN_COMMAND="samtools sort -n -O bam -@ $CPU_FITHIC -o $THISTMP/$SAMPLE.bam -T $THISTMP/$SAMPLE.tmp $f"
+        RUN_COMMAND="samtools sort -n -O bam -@ $CPU_HICTADCALL -o $THISTMP/$SAMPLE.bam -T $THISTMP/$SAMPLE.tmp $f"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
         RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $THISTMP/$SAMPLE.bam > $OUTDIR/$SAMPLE.log"
     fi
 
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    echo $OUTDIR/$SAMPLE/done.txt
+    cat /dev/null > $OUTDIR/$SAMPLE/done.txt
 
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/done.txt

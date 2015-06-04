@@ -22,7 +22,6 @@ declare -a DIR; DIR=( sample1 sample2 )
 
 # Resolution in nts
 HIC_RESOLUTION=1000000
-TASK_FITHIC="fithic_$HIC_RESOLUTION"
 
 # folder/task containing the data this task operates on
 INPUT_HICTADCALL=$TASK_FITHIC
@@ -43,10 +42,11 @@ QOUT=$OUT/qout
 FASTA=
 
 # Suffix of inout files to look for
-INPUT_HICTADCALL_SUFFIX=".contactCounts.gz"
+# e.g. ".contactCounts.gz"
+INPUT_HICTADCALL_SUFFIX=
 
 # pattern indicating which chromosomes to use
-FITHIC_CHROMOSOMES="chr[0-9XY]+"
+CALL_TAD_CHROMOSOMES="chr[0-9XY]+"
 
 #********************
 # PARAMETER (optional overwriting defaults)
@@ -54,15 +54,11 @@ FITHIC_CHROMOSOMES="chr[0-9XY]+"
 
 # Whether input is in fragment pair format rather than bam
 # e.g. "inputIsFragmentPairs" or "inputIsReadPairs 2,3,6,7,chr"
-FITHIC_START_FROM_FRAGMENTPAIRS=
+FITHIC_START_FROM_FRAGMENTPAIRS="inputIsFragmentPairs"
 
 # indicate if contact matrix should be kept
 # e.g FITHIC_KEEPCONTACTMATRIX="1"
 FITHIC_KEEPCONTACTMATRIX=
-
-# Whether to call TADs and on which chromosomes (required TADbit)
-# e.g. "chr[0-9]*"
-CALL_TAD_CHROMOSOMES=
 
 #WALLTIME_HICTADCALL=48:00:00
 #MEMORY_HICTADCALL=40
