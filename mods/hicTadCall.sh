@@ -97,6 +97,12 @@ if [ -n "$FITHIC_START_FROM_FRAGMENTPAIRS" ]; then
     FITHIC_START_FROM_FRAGMENTPAIRS="--inputIsFragmentPairs"
 fi
 
+if [ "$HIC_TAD_METHOD" == "domaincall" ]; then
+    TADMATRIXTYPE="--matrixFormat domaincall"
+else
+    TADMATRIXTYPE="--matrixFormat tadbit"
+fi
+
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR/$SAMPLE | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
 mkdir -p $THISTMP
@@ -123,7 +129,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ -n "$FITHIC_START_FROM_FRAGMENTPAIRS" ]; then 
         cp ${FASTA%.*}.chrom.sizes $OUTDIR/$SAMPLE/chromsizes
-        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py --CPU-processes $(($CPU_HICTADCALL<8?$CPU_HICTADCALL : 8))  --verbose $FITHIC_START_FROM_FRAGMENTPAIRS --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $f > $OUTDIR/$SAMPLE.log"
+        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py $TADMATRIXTYPE --CPU-processes $(($CPU_HICTADCALL<8?$CPU_HICTADCALL : 8))  --verbose $FITHIC_START_FROM_FRAGMENTPAIRS --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $f > $OUTDIR/$SAMPLE.log"
 
     else
         # extract chrom sizes from Bam
@@ -133,11 +139,11 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         RUN_COMMAND="samtools sort -n -O bam -@ $CPU_HICTADCALL -o $THISTMP/$SAMPLE.bam -T $THISTMP/$SAMPLE.tmp $f"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
-        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $THISTMP/$SAMPLE.bam > $OUTDIR/$SAMPLE.log"
+        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py $TADMATRIXTYPE --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $THISTMP/$SAMPLE.bam > $OUTDIR/$SAMPLE.log"
     fi
 
     echo $RUN_COMMAND && eval $RUN_COMMAND
-    cat /dev/null > $OUTDIR/$SAMPLE/done.txt
+    echo "finished"  > $OUTDIR/$SAMPLE/done.txt
 
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/done.txt
@@ -147,21 +153,28 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 fi
 
 ################################################################################
-NGSANE_CHECKPOINT_INIT "DI matrix"
+NGSANE_CHECKPOINT_INIT "Domaincall"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-
-    for MATRIX in $OUTDIR/$SAMPLE/*.matrix; do 
-        # run DI matrix script one chromosome at a time
-        perl `which DI_from_matrix.pl` $MATRIX $HIC_RESOLUTION 20000000 $OUTDIR/$SAMPLE/chromsizes > ${i/%.matrix/.di.txt}
-    done 
+  
+    if [ "$HIC_TAD_METHOD" == "domaincall" ]; then
+        for MATRIX in $OUTDIR/$SAMPLE/*.matrix; do 
+            # run DI matrix script one chromosome at a time
+            perl `which DI_from_matrix.pl` $MATRIX $HIC_RESOLUTION 20000000 $OUTDIR/$SAMPLE/chromsizes > ${MATRIX/%.matrix/.di.txt}
+        done 
     
-    # combine into one big DI matrix
-    cat $OUTDIR/$SAMPLE/*.di.txt > $OUTDIR/$SAMPLE.di.txt
-            
-    # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE/$SAMPLE.di.txt
-
+        # combine into one big DI matrix
+        cat $OUTDIR/$SAMPLE/*.di.txt > $OUTDIR/$SAMPLE.di.txt
+       
+	COMMAND="cat $(dirname `which DI_from_matrix.pl`)/../HMM_calls.m | sed -e 's|please enter your filename|$OUTDIR/$SAMPLE.di.txt|g' | sed -e 's|please enter your output file name|$OUTDIR/$SAMPLE.HMM.txt|g' >  $OUTDIR/$SAMPLE.HMM_calls.m"
+        echo $COMMAND
+        eval $COMMAND
+exit 1
+        matlab < $OUTDIR/$SAMPLE.HMM_calls.m > $OUTDIR/$SAMPLE.HMM.dumpfile
+ 
+        # mark checkpoint
+        NGSANE_CHECKPOINT_CHECK $OUTDIR/$SAMPLE.HMM.txt
+    fi
 fi
 exit 1
 ################################################################################

@@ -50,7 +50,7 @@ def main():
     parser.add_option("-s", "--sep", type="string", dest="separator", default=" ",
                     help="delimiter to use when reading the input [default: %default]")
     parser.add_option("--matrixFormat", type="string", dest="matrixFormat", default="tadbit",
-                    help="either tadbit or domainfinder")
+                    help="either tadbit or domaincall")
     parser.add_option("--inputIsFragmentPairs", action="store_true", dest="inputIsFragmentPairs", default=False,
                     help="input is a gzipped fragment pair file")
     parser.add_option("--inputIsReadPairs", type="string", dest="inputIsReadPairs", default="",
@@ -80,6 +80,7 @@ def main():
         print >> sys.stdout, "chromSizes:            %s" % (options.chromSizes)
         print >> sys.stdout, "outputDir:             %s" % (options.outputDir)
         print >> sys.stdout, "tmpDir:                %s" % (options.tmpDir)
+        print >> sys.stdout, "format:                %s" % (options.matrixFormat)
 
     process()
 
@@ -119,7 +120,7 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
             print >> sys.stdout, "- save 2Dmatrix for chromosome %s to %s " % (chr, outfile3)
 
         f_handle=open(outfile3,'w')
-        if (options.matrixFormat == "domainfinder"):
+        if (options.matrixFormat == "domaincall"):
             for i in xrange(fragmentRange):
                 binStart = fragmentsMap[fragmentsChrom[chr][0]+i][1] - options.resolution/2
                 binEnd = binStart + options.resolution
