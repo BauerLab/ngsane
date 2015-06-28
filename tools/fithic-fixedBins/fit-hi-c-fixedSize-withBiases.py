@@ -555,7 +555,11 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
 				distToLookUp=min(distToLookUp,max(x))
 				i=min(bisect.bisect_left(splineX, distToLookUp),len(splineX)-1)
 				prior_p=newSplineY[i]*(bias1*bias2) # biases added in the picture
-				p_val=scsp.bdtrc(interxn.hitCount-1,observedIntraInRangeSum,prior_p)
+				try:
+					p_val=scsp.bdtrc(interxn.hitCount-1,observedIntraInRangeSum,prior_p)
+				except:
+					# catching case when interxn count is too big
+                                	p_val=0
 				intraInRangeCount +=1
 			elif interxn.getType(distLowThres,distUpThres)=='intraShort':
 				prior_p=1.0
@@ -565,14 +569,22 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
 				## out of range distance
 				## use the prior of the baseline intra-chr interaction probability
 				prior_p=baselineIntraChrProb*(bias1*bias2)  # biases added in the picture
-				p_val=scsp.bdtrc(interxn.hitCount-1,observedIntraAllSum,prior_p)
+				try:
+					p_val=scsp.bdtrc(interxn.hitCount-1,observedIntraAllSum,prior_p)
+				except:
+					# catching case when interxn count is too big
+	                                p_val=0
 				intraOutOfRangeCount +=1
 			# END if
 		else: # inter
 			#prior_p=normalizedInterChrProb
 			prior_p=interChrProb*(bias1*bias2) # biases added in the picture
 			############# THIS HAS TO BE interactionCount-1 ##################
-			p_val=scsp.bdtrc(interxn.hitCount-1,observedInterAllSum,prior_p)
+			try:
+				p_val=scsp.bdtrc(interxn.hitCount-1,observedInterAllSum,prior_p)
+			except:
+				# catching case when interxn count is too big
+				p_val=0
 			interCount +=1
 		#
 		p_vals.append(p_val)

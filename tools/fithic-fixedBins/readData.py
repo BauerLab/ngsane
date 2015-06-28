@@ -1,3 +1,4 @@
+# author Fabian Buske 2015
 import os, sys, re
 import traceback
 from optparse import OptionParser
@@ -5,12 +6,14 @@ import fileinput
 import datetime
 from quicksect import IntervalTree
 import gzip
-import pandas as pd
 import numpy as np
 import collections
 from functools import partial
 from rosetta.parallel.parallel_easy import imap_easy
-
+try:
+   import cPickle as pickle
+except:
+   import pickle
 ######################################
 # Read
 ######################################
@@ -260,7 +263,7 @@ def find(interval, tree):
     return [ (x.start, x.end, x.linenum) for x in out ]
 
 
-def getFragment(inputfile, read, lookup_structure, fragmentList, options):
+def getFragment(inputfile, read, lookup_structure, options):
     ''' When input is bam file '''
 
     fragmentID = None
@@ -289,10 +292,6 @@ def getFragment(inputfile, read, lookup_structure, fragmentList, options):
 
         if (fragmentID == None):
             return fragmentID
-        elif (not fragmentList.has_key(fragmentID)):
-            fragmentList[fragmentID] = 0
-        else:
-            fragmentList[fragmentID] += 1
 
     except:
         if (options.verbose):
@@ -305,7 +304,7 @@ def getFragment(inputfile, read, lookup_structure, fragmentList, options):
 
     return fragmentID
 
-def mapFragment(rchrom, rstart, lookup_structure, fragmentList, options):
+def mapFragment(rchrom, rstart, lookup_structure, options):
     ''' When input is fragment pair file '''
 
     fragmentID = None
@@ -331,10 +330,6 @@ def mapFragment(rchrom, rstart, lookup_structure, fragmentList, options):
 
         if (fragmentID == None):
             return fragmentID
-        elif (not fragmentList.has_key(fragmentID)):
-            fragmentList[fragmentID] = 1
-        else:
-            fragmentList[fragmentID] += 1
 
     except:
         if (options.verbose):
@@ -358,10 +353,8 @@ def countReadsPerFragmentSerial(lookup_structure, options, args):
         counts the reads per fragment and generates appropriate output files
     '''
 
-    fragmentList = {}
-    fragmentPairs = {}
-
-    print >> sys.stdout, "- NOPANDA"
+    fragmentList = collections.defaultdict(int)
+    fragmentPairs = collections.defaultdict(int)
 
     if (options.inputIsFragmentPairs):
         for fFile in xrange(len(args)):
@@ -376,17 +369,18 @@ def countReadsPerFragmentSerial(lookup_structure, options, args):
                     if (options.onlycis and chr1 != chr2):
                         continue
 
-                    fragmentID1 = mapFragment(chr1, int(start1), lookup_structure, fragmentList, options)
-                    fragmentID2 = mapFragment(chr2, int(start2), lookup_structure, fragmentList, options)
+                    fragmentID1 = mapFragment(chr1, int(start1), lookup_structure, options)
+                    fragmentID2 = mapFragment(chr2, int(start2), lookup_structure, options)
 
                     if (fragmentID1 == None or fragmentID2 == None):
                         if (options.vverbose):
                             print >> sys.stdout, "-- one region does not co-occur with any fragment: %s %s" % (fragmentID1, fragmentID2)
                         continue
 
+                    fragmentList[fragmentID1] += 1
+                    fragmentList[fragmentID2] += 1
+
                     f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
-                    if (not fragmentPairs.has_key(f_tuple)):
-                        fragmentPairs[f_tuple] = 0
                     fragmentPairs[f_tuple] += int(count)
 
             if (options.verbose):
@@ -416,17 +410,17 @@ def countReadsPerFragmentSerial(lookup_structure, options, args):
                     if (options.onlycis and chr1 != chr2):
                         continue
 
-                    fragmentID1 = mapFragment(chr1, start1, lookup_structure, fragmentList, options)
-                    fragmentID2 = mapFragment(chr2, start2, lookup_structure, fragmentList, options)
+                    fragmentID1 = mapFragment(chr1, start1, lookup_structure, options)
+                    fragmentID2 = mapFragment(chr2, start2, lookup_structure, options)
 
                     if (fragmentID1 == None or fragmentID2 == None):
                         if (options.vverbose):
                             print >> sys.stdout, "-- one region does not co-occur with any fragment: %s %s" % (fragmentID1, fragmentID2)
                         continue
 
+                    fragmentList[fragmentID1] += 1
+                    fragmentList[fragmentID2] += 1
                     f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
-                    if (not fragmentPairs.has_key(f_tuple)):
-                        fragmentPairs[f_tuple] = 0
                     fragmentPairs[f_tuple] += 1
 
             if (options.verbose):
@@ -440,9 +434,7 @@ def countReadsPerFragmentSerial(lookup_structure, options, args):
                 print >> sys.stdout, "- %s START   : processing reads from bam file: %s" % (timeStamp(), args[bamFile])
 
             samfile = pysam.Samfile(args[bamFile], "rb" )
-
             samiter = samfile.fetch(until_eof=True)
-
             readcounter = 0
 
             while(True):
@@ -455,17 +447,16 @@ def countReadsPerFragmentSerial(lookup_structure, options, args):
                 if (options.onlycis and inputfile.getrname(readpair[0].tid) != inputfile.getrname(readpair[1].tid)):
                     continue
 
-                fragmentID1 = getFragment(samfile, readpair[0], lookup_structure, fragmentList, options)
-                fragmentID2 = getFragment(samfile, readpair[1], lookup_structure, fragmentList, options)
+                fragmentID1 = getFragment(samfile, readpair[0], lookup_structure, options)
+                fragmentID2 = getFragment(samfile, readpair[1], lookup_structure, options)
 
                 if (fragmentID1 == None or fragmentID2 == None):
                     if (options.vverbose):
                         print >> sys.stdout, "-- one read does not co-occur with any fragment: %s %s" % (str(fragmentID1), str(fragmentID2))
                     continue
-
+                fragmentList[fragmentID1] += 1
+                fragmentList[fragmentID2] += 1
                 f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
-                if (not fragmentPairs.has_key(f_tuple)):
-                    fragmentPairs[f_tuple] = 0
                 fragmentPairs[f_tuple] += 1
                 readcounter+=1
 
@@ -476,136 +467,15 @@ def countReadsPerFragmentSerial(lookup_structure, options, args):
             if (options.verbose):
                 print >> sys.stdout, "- %s FINISHED: getting reads from bam file " % (timeStamp())
 
-    return [ fragmentList, fragmentPairs ]
-
-def countReadsPerFragment_pd(lookup_structure, options, args):
-    '''
-        counts the reads per fragment and generates appropriate output files
-    '''
-
-    fragmentList = {}
-    fragmentPairs = {}
-
-    print >> sys.stdout, "- NOPANDA"
-
-    if (options.inputIsFragmentPairs):
-        if (options.inputIsReadPairs):
-            chr_index = map(int,  options.inputIsReadPairs.split(",")[0:4])
-        else:
-            chr_index = [0,1,2,3,4]
-
-        for fFile in xrange(len(args)):
-            if (options.verbose):
-                print >> sys.stdout, "- %s START x  : processing fragment files: %s" % (timeStamp(), args[fFile])
-
-
-            df = pd.read_csv(args[fFile], sep=options.separator,engine='c', names=["chr1","start1","chr2","start2","count"], dtype={"chr1":np.object,"start1":np.int,"chr2":np.object,"start2":np.int,"count":np.int}, usecols=chr_index)
-
-
-            df['fragmentID1']=df.apply(lambda x:mapFragment(x.chr1, x.start1, lookup_structure, fragmentList, options), axis=1)
-            df['fragmentID2']=df.apply(lambda x:mapFragment(x.chr2, x.start2, lookup_structure, fragmentList, options), axis=1)
-            # clean memory
-            df.dropna(axis=0, inplace=True)
-            df.drop(["chr1","chr2","start1","start2"], axis=1, inplace=True)
-
-            df['minFragment']=df[["fragmentID1", "fragmentID2"]].min(axis=1)
-            df['maxFragment']=df[["fragmentID1", "fragmentID2"]].max(axis=1)
-            # clean memory
-            df.drop(["fragmentID1", "fragmentID2"], axis=1, inplace=True)
-
-            df.apply(lambda x : populateFragmentPairs(fragmentPairs , x, 1), axis=1)
-
-            if (options.verbose):
-                print >> sys.stdout, "- %s FINISHED: getting counts form fragment files " % (timeStamp())
-
-    elif (options.inputIsReadPairs != ""):
-        # get column indexes
-        if (options.inputIsReadPairs):
-            chr_index = map(int,  options.inputIsReadPairs.split(",")[0:4])
-        else:
-            chr_index = [0,1,2,3]
-
-        try:
-            chr_prefix=options.inputIsReadPairs.split(",")[4]
-        except:
-            chr_prefix=""
-
-        for fFile in xrange(len(args)):
-            if (options.verbose):
-                print >> sys.stdout, "- %s START   : processing read files: %s" % (timeStamp(), args[fFile])
-
-            df = pd.read_csv(args[fFile], sep=options.separator,engine='c', names=["chr1","start1","chr2","start2"], dtype={"chr1":np.object,"start1":np.int,"chr2":np.object,"start2":np.int}, usecols=chr_index)
-
-            if (chr_prefix != ""):
-                df['chr1'] = chr_prefix+df['chr1']
-                df['chr2'] = chr_prefix+df['chr2']
-
-            df['fragmentID1']=df.apply(lambda x:mapFragment(x.chr1, x.start1, lookup_structure, fragmentList, options), axis=1)
-            df['fragmentID2']=df.apply(lambda x:mapFragment(x.chr2, x.start2, lookup_structure, fragmentList, options), axis=1)
-            # clean memory
-            df.dropna(axis=0, inplace=True)
-#            df.drop(["chr1","chr2","start1","start2"], axis=1, inplace=True)
-
-            df['minFragment']=df[["fragmentID1", "fragmentID2"]].min(axis=1)
-            df['maxFragment']=df[["fragmentID1", "fragmentID2"]].max(axis=1)
-            # clean memory
-#            df.drop(["fragmentID1", "fragmentID2"], axis=1, inplace=True)
-
-            df.apply(lambda x : populateFragmentPairs(fragmentPairs , x, 1), axis=1)
-
-            if (options.verbose):
-                print >> sys.stdout, "- %s FINISHED: getting counts form read files " % (timeStamp())
-
-    else:
-        # lazy load
-        import pysam
-        for bamFile in xrange(len(args)):
-            if (options.verbose):
-                print >> sys.stdout, "- %s START   : processing reads from bam file: %s" % (timeStamp(), args[bamFile])
-
-            samfile = pysam.Samfile(args[bamFile], "rb" )
-
-            samiter = samfile.fetch(until_eof=True)
-
-            readcounter = 0
-
-            while(True):
-                readpair = findNextReadPair(samiter,options)
-                # if file contains any more reads, exit
-                if (readpair[0].qname=="dummy"):
-                    break
-
-                fragmentID1 = getFragment(samfile, readpair[0], lookup_structure, fragmentList, options)
-                fragmentID2 = getFragment(samfile, readpair[1], lookup_structure, fragmentList, options)
-
-                if (fragmentID1 == None or fragmentID2 == None):
-                    if (options.vverbose):
-                        print >> sys.stdout, "-- one read does not co-occur with any fragment: %d %d" % (fragmentID1, fragmentID2)
-                    continue
-
-                f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
-                if (not fragmentPairs.has_key(f_tuple)):
-                    fragmentPairs[f_tuple] = 0
-                fragmentPairs[f_tuple] += 1
-                readcounter+=1
-
-                if (options.verbose and readcounter % 1000000 == 0 ):
-                    print >> sys.stdout, "- %s         : %d read pairs processed" % (timeStamp(), readcounter)
-            samfile.close()
-
-            if (options.verbose):
-                print >> sys.stdout, "- %s FINISHED: getting reads from bam file " % (timeStamp())
-
-    return [fragmentList, fragmentPairs ]
-
+    return [ fragmentList.items(), fragmentPairs.items() ]
 
 def countReadsPerFragmentParallel(iFile, lookup_structure, options):
     '''
         counts the reads per fragment and generates appropriate output files
     '''
 
-    fragmentList = {}
-    fragmentPairs = {}
+    fragmentList = collections.defaultdict(int)
+    fragmentPairs = collections.defaultdict(int)
 
     if (options.inputIsFragmentPairs):
         if (options.verbose):
@@ -619,17 +489,17 @@ def countReadsPerFragmentParallel(iFile, lookup_structure, options):
                 if (options.onlycis and chr1 != chr2):
                     continue
 
-                fragmentID1 = mapFragment(chr1, int(start1), lookup_structure, fragmentList, options)
-                fragmentID2 = mapFragment(chr2, int(start2), lookup_structure, fragmentList, options)
+                fragmentID1 = mapFragment(chr1, int(start1), lookup_structure, options)
+                fragmentID2 = mapFragment(chr2, int(start2), lookup_structure, options)
 
                 if (fragmentID1 == None or fragmentID2 == None):
                     if (options.vverbose):
                         print >> sys.stdout, "-- one region does not co-occur with any fragment: %s %s" % (fragmentID1, fragmentID2)
                     continue
 
+                fragmentList[fragmentID1] += 1
+                fragmentList[fragmentID2] += 1
                 f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
-                if (not fragmentPairs.has_key(f_tuple)):
-                    fragmentPairs[f_tuple] = 0
                 fragmentPairs[f_tuple] += int(count)
 
 
@@ -659,19 +529,18 @@ def countReadsPerFragmentParallel(iFile, lookup_structure, options):
                 if (options.onlycis and chr1 != chr2):
                     continue
 
-                fragmentID1 = mapFragment(chr1, start1, lookup_structure, fragmentList, options)
-                fragmentID2 = mapFragment(chr2, start2, lookup_structure, fragmentList, options)
+                fragmentID1 = mapFragment(chr1, start1, lookup_structure, options)
+                fragmentID2 = mapFragment(chr2, start2, lookup_structure, options)
 
                 if (fragmentID1 == None or fragmentID2 == None):
                     if (options.vverbose):
                         print >> sys.stdout, "-- one region does not co-occur with any fragment: %s %s" % (fragmentID1, fragmentID2)
                     continue
 
+                fragmentList[fragmentID1] += 1
+                fragmentList[fragmentID2] += 1
                 f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
-                if (not fragmentPairs.has_key(f_tuple)):
-                    fragmentPairs[f_tuple] = 0
-                else:
-                    fragmentPairs[f_tuple] += 1
+                fragmentPairs[f_tuple] += 1
 
         if (options.verbose):
             print >> sys.stdout, "- %s FINISHED: getting counts form read files " % (timeStamp())
@@ -683,9 +552,7 @@ def countReadsPerFragmentParallel(iFile, lookup_structure, options):
             print >> sys.stdout, "- %s START   : processing reads from bam file: %s" % (timeStamp(), iFile)
 
         samfile = pysam.Samfile(iFile, "rb" )
-
         samiter = samfile.fetch(until_eof=True)
-
         readcounter = 0
 
         while(True):
@@ -698,17 +565,17 @@ def countReadsPerFragmentParallel(iFile, lookup_structure, options):
             if (options.onlycis and inputfile.getrname(readpair[0].tid) != inputfile.getrname(readpair[1].tid)):
                 continue
 
-            fragmentID1 = getFragment(samfile, readpair[0], lookup_structure, fragmentList, options)
-            fragmentID2 = getFragment(samfile, readpair[1], lookup_structure, fragmentList, options)
+            fragmentID1 = getFragment(samfile, readpair[0], lookup_structure, options)
+            fragmentID2 = getFragment(samfile, readpair[1], lookup_structure, options)
 
             if (fragmentID1 == None or fragmentID2 == None):
                 if (options.vverbose):
                     print >> sys.stdout, "-- one read does not co-occur with any fragment: %s %s" % (str(fragmentID1), str(fragmentID2))
                 continue
 
+            fragmentList[fragmentID1] += 1
+            fragmentList[fragmentID2] += 1
             f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
-            if (not fragmentPairs.has_key(f_tuple)):
-                fragmentPairs[f_tuple] = 0
             fragmentPairs[f_tuple] += 1
             readcounter+=1
 
@@ -719,7 +586,10 @@ def countReadsPerFragmentParallel(iFile, lookup_structure, options):
         if (options.verbose):
             print >> sys.stdout, "- %s FINISHED: getting reads from bam file " % (timeStamp())
 
-    return ( fragmentList, fragmentPairs )
+    # dump file to disc as big objects cannot be transfered through the multi-processing frameworks
+    fn = iFile+".pickle"
+    pickel.dump(tuple([fragmentList, fragmentPairs ]), open(fn, 'wb'))
+    return fn
 
 
 def countReadsPerFragment(lookup_structure, options, args):
@@ -734,6 +604,7 @@ def countReadsPerFragment(lookup_structure, options, args):
     fragmentList = collections.defaultdict(int)
     fragmentPairs = collections.defaultdict(int)
     func = partial(countReadsPerFragmentParallel, lookup_structure=lookup_structure, options=options)
+
     results_iterator = imap_easy(func, args, n_jobs=8, chunksize=1)
 
     if (options.verbose):
@@ -741,12 +612,15 @@ def countReadsPerFragment(lookup_structure, options, args):
         print >> sys.stdout, "- %s STARTED : combining input files " % (timeStamp())
 
     # combine dictionaries
-    for (fl, fp) in results_iterator:
-        for k, v in fl.iteritems():
+    for fn in results_iterator:
+	(fl,fp) = pickle.load(open(fn,'rb'))
+        for k, v in fl:
             fragmentList[k]+=v
 
-        for k, v in fp.iteritems():
+        for k, v in fp:
             fragmentPairs[k]+=v
+	# delete file
+	os.remove(fn)
 
     if (options.verbose):
         print >> sys.stdout, "- %s FINISHED: combining input files " % (timeStamp())
