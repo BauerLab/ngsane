@@ -33,6 +33,8 @@ def main():
                     help="print status messages to stdout")
     parser.add_option("-V", "--veryverbose", action="store_true", dest="vverbose", default=False,
                     help="print lots of status messages to stdout")
+    parser.add_option("-P", "--CPU-processes", type="int", dest="cpus", default=-1,
+                    help="number of CPU threads to use, -1 for all available [default -1]")
     parser.add_option("-O", "--onlycis", action="store_true", dest="onlycis", default=False,
                     help="only consider intra chromosomal contacts (cis)")
     parser.add_option("-M", "--multicount", action="store_true", dest="multicount", default=True,
