@@ -588,7 +588,7 @@ def countReadsPerFragmentParallel(iFile, lookup_structure, options):
 
     # dump file to disc as big objects cannot be transfered through the multi-processing frameworks
     fn = iFile+".pickle"
-    pickel.dump(tuple([fragmentList, fragmentPairs ]), open(fn, 'wb'))
+    pickle.dump(tuple([fragmentList, fragmentPairs ]), open(fn, 'wb'))
     return fn
 
 
