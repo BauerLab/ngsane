@@ -10,6 +10,8 @@ import numpy as np
 import collections
 from functools import partial
 from rosetta.parallel.parallel_easy import imap_easy
+from scipy.sparse import bsr_matrix, coo_matrix
+
 try:
    import cPickle as pickle
 except:
@@ -20,8 +22,7 @@ except:
 
 class Read():
     def __init__(self, read):
-
-        if (read==""):
+        if (type(read) is str):
             self.seq=""
             self.qname="dummy"
             self.is_unmapped=True
@@ -87,6 +88,50 @@ class Interval():
 def timeStamp():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S').format()
 
+def createMappabilityList(fragmentsMap, bwfile, fragmentCount, options):
+    # keep record which fragment has decent mappability
+    mappable = np.zeros((fragmentCount,), dtype=np.float)
+
+    # lazy load
+    from bx.intervals.io import GenomicIntervalReader
+    from bx.bbi.bigwig_file import BigWigFile
+    bw = BigWigFile( open( bwfile ) )
+
+    for fragmentId in fragmentsMap.keys():
+
+        (chrom, start, end) = fragmentsMap[fragmentId]
+
+        if (options.vverbose):
+            print >> sys.stdout, "- process %s %d-%d " % (chrom, start, end)
+
+        try:
+            mappable[fragmentId] = bw.query(chrom, start, end, 1)[0]["mean"]
+        except:
+            mappable[fragmentId] = 0.
+            # problem with invalid values
+            if (options.vverbose):
+                print >> sys.stderr, "Problem with bw file at %s %d-%d" % (chrom, start, end)
+                print traceback.format_exc()
+
+    return mappable
+
+def createMappabilityFilterFromFragmentFile(fragmentfile, threshold, fragmentCount):
+    # keep record which fragment has decent mappability
+    mappabilityFilterList = np.ones((fragmentCount,), dtype=np.uint8)
+
+    counter = 0
+    with gzip.open(fragmentfile) as infile:
+        for line in infile:
+            # fragmentFile contains mappability in column 4 (index 3)
+            mappable = float(line.strip().split("\t")[3])
+            if (mappable < threshold):
+                mappabilityFilterList[counter]=0
+            counter += 1
+
+            if (fragmentCount < counter):
+                print >> sys.stdout, "- %s [ERROR]   : fragmentFile does not seem to be compatible to contactCounts file (%d < %d)" % (fragmentCount, counter)
+                sys.exit(1)
+    return mappabilityFilterList
 
 def createIntervalTreesFragmentResolution(options):
     '''
@@ -153,7 +198,7 @@ def createIntervalTreesFragmentFile(options):
     counter = 0
     chrom = ""
 
-    for line in fileinput.input([options.fragmentFile]):
+    for line in fileinput.input([options.genomeFragmentFile]):
         line = line.strip()
         if (len(line)==0 or line.startswith("Genome") or line.startswith("Chromosome")):
             continue
@@ -206,7 +251,7 @@ def createIntervalTreesFragmentFile(options):
 
         except:
             if (options.verbose):
-                print >> sys.stderr, 'skipping line in options.fragmentFile: %s' % (line)
+                print >> sys.stderr, 'skipping line in options.genomeFragmentFile: %s' % (line)
             if (options.vverbose):
                 traceback.print_exc()
                 sys.exit(1)
@@ -276,7 +321,7 @@ def getFragment(inputfile, read, lookup_structure, options):
         if (options.vverbose):
             print >> sys.stdout, "- Check   : read %s %d %d" % (rchrom, rstart, rend )
 
-        if (options.fragmentFile):
+        if (options.genomeFragmentFile):
             interval = Interval(rchrom, rstart, rstart+1)
             # take first bin only
             fragmentID = find(interval, lookup_structure)[0][2]
@@ -314,7 +359,7 @@ def mapFragment(rchrom, rstart, lookup_structure, options):
         if (options.vverbose):
             print >> sys.stdout, "- Check   : fragment %s %d " % (rchrom, rstart )
 
-        if (options.fragmentFile):
+        if (options.genomeFragmentFile):
             interval = Interval(rchrom, rstart, rstart+1)
             # take first bin only
             fragmentID = find(interval, lookup_structure)[0][2]
@@ -342,18 +387,13 @@ def mapFragment(rchrom, rstart, lookup_structure, options):
 
     return fragmentID
 
-def populateFragmentPairs(fragmentPairs, x, count):
-    f_tuple = tuple([x.minFragment, x.maxFragment])
-    if (not fragmentPairs.has_key(f_tuple)):
-        fragmentPairs[f_tuple] = 0
-    fragmentPairs[f_tuple] += count
-
-def countReadsPerFragmentSerial(lookup_structure, options, args):
+def countReadsPerFragmentSerial(fragmentCount, lookup_structure, options, args):
     '''
         counts the reads per fragment and generates appropriate output files
     '''
 
-    fragmentList = collections.defaultdict(int)
+#    fragmentList = collections.defaultdict(int)
+    fragmentList = np.zeros((fragmentCount,), dtype=np.uint16)
     fragmentPairs = collections.defaultdict(int)
 
     if (options.inputIsFragmentPairs):
@@ -467,15 +507,18 @@ def countReadsPerFragmentSerial(lookup_structure, options, args):
             if (options.verbose):
                 print >> sys.stdout, "- %s FINISHED: getting reads from bam file " % (timeStamp())
 
-    return [ fragmentList.items(), fragmentPairs.items() ]
+    return [ fragmentList, fragmentPairs ]
 
-def countReadsPerFragmentParallel(iFile, lookup_structure, options):
+def countReadsPerFragmentParallel(iFile, fragmentCount, lookup_structure, options):
     '''
         counts the reads per fragment and generates appropriate output files
     '''
 
-    fragmentList = collections.defaultdict(int)
-    fragmentPairs = collections.defaultdict(int)
+    fragmentList = np.zeros((fragmentCount,), dtype=np.uint16)
+    # fragmentPairs
+    fpRows = []
+    fpCols = []
+    fpValue = []
 
     if (options.inputIsFragmentPairs):
         if (options.verbose):
@@ -499,9 +542,10 @@ def countReadsPerFragmentParallel(iFile, lookup_structure, options):
 
                 fragmentList[fragmentID1] += 1
                 fragmentList[fragmentID2] += 1
-                f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
-                fragmentPairs[f_tuple] += int(count)
 
+                fpRows += [min(fragmentID1, fragmentID2)]
+                fpCols += [max(fragmentID1, fragmentID2)]
+                fpValue += [int(count)]
 
         if (options.verbose):
             print >> sys.stdout, "- %s FINISHED: getting counts form fragment file " % (timeStamp())
@@ -539,8 +583,9 @@ def countReadsPerFragmentParallel(iFile, lookup_structure, options):
 
                 fragmentList[fragmentID1] += 1
                 fragmentList[fragmentID2] += 1
-                f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
-                fragmentPairs[f_tuple] += 1
+
+                fpRows += [min(fragmentID1, fragmentID2)]
+                fpCols += [max(fragmentID1, fragmentID2)]
 
         if (options.verbose):
             print >> sys.stdout, "- %s FINISHED: getting counts form read files " % (timeStamp())
@@ -575,8 +620,10 @@ def countReadsPerFragmentParallel(iFile, lookup_structure, options):
 
             fragmentList[fragmentID1] += 1
             fragmentList[fragmentID2] += 1
-            f_tuple = tuple([min(fragmentID1, fragmentID2), max(fragmentID1, fragmentID2)])
-            fragmentPairs[f_tuple] += 1
+
+            fpRows += [min(fragmentID1, fragmentID2)]
+            fpCols += [max(fragmentID1, fragmentID2)]
+
             readcounter+=1
 
             if (options.verbose and readcounter % 1000000 == 0 ):
@@ -586,14 +633,21 @@ def countReadsPerFragmentParallel(iFile, lookup_structure, options):
         if (options.verbose):
             print >> sys.stdout, "- %s FINISHED: getting reads from bam file " % (timeStamp())
 
+    if (len(fpValue)==0):
+        fragmentPairs = coo_matrix((np.ones((len(fpRows),), dtype=np.uint16), (np.array(fpRows), np.array(fpCols))), shape=(fragmentCount, fragmentCount)).tobsr()
+    else:
+        fragmentPairs = coo_matrix((np.array(fpValue, dtype=np.uint16), (np.array(fpRows), np.array(fpCols))), shape=(fragmentCount, fragmentCount)).tobsr()
+
     # dump file to disc as big objects cannot be transfered through the multi-processing frameworks
-    fn = iFile+".pickle"
+#    fn = iFile+".pickle"
 
-    pickle.dump(tuple([fragmentList, fragmentPairs ]), open(fn, 'wb'))
-    return fn
+#    pickle.dump(tuple([fragmentList, fragmentPairs.tobsr() ]), open(fn, 'wb'))
+#    return fn
+    if (options.verbose):
+        print "    Size of matrix {0}: {1}".format(iFile, fragmentPairs.data.nbytes + fragmentPairs.indptr.nbytes + fragmentPairs.indices.nbytes)
+    return tuple([fragmentList, fragmentPairs ])
 
-
-def countReadsPerFragment(lookup_structure, options, args):
+def countReadsPerFragment(fragmentCount, lookup_structure, options, args):
     '''
         slurps in all input fils in parallel
         counts the reads per fragment and generates appropriate output files
@@ -601,30 +655,26 @@ def countReadsPerFragment(lookup_structure, options, args):
 
     if (options.verbose):
         print >> sys.stdout, "- %s STARTED : reading input files : %s" % (timeStamp(), str(args))
+        print >> sys.stdout, "    FragmentCount: %d" % (fragmentCount)
 
-    fragmentList = collections.defaultdict(int)
-    fragmentPairs = collections.defaultdict(int)
-    func = partial(countReadsPerFragmentParallel, lookup_structure=lookup_structure, options=options)
-    results_iterator = imap_easy(func, args, n_jobs=8, chunksize=1)
+    fragmentList = np.zeros((fragmentCount,), dtype=np.uint16)
+    fragmentPairs = None
+    func = partial(countReadsPerFragmentParallel, fragmentCount=fragmentCount, lookup_structure=lookup_structure, options=options)
+    results_iterator = imap_easy(func, args, n_jobs=min(8, len(args)), chunksize=1)
 
     if (options.verbose):
         print >> sys.stdout, "- %s FINISHED: reading input files " % (timeStamp())
         print >> sys.stdout, "- %s STARTED : combining input files " % (timeStamp())
 
 
-    # combine dictionaries
-    for fn in results_iterator:
-        if (options.verbose):
-            print >> sys.stdout, "- reading pickled file %s" % (fn)
+    # combine
+    for (fl,fp) in results_iterator:
+        fragmentList += fl
 
-	(fl,fp) = pickle.load(open(fn,'rb'))
-        for k, v in fl.iteritems():
-            fragmentList[k]+=v
-
-        for k, v in fp.iteritems():
-            fragmentPairs[k]+=v
-	# delete file
-	os.remove(fn)
+        if fragmentPairs is not None:
+            fragmentPairs += fp
+        else:
+            fragmentPairs = fp
 
     if (options.verbose):
         print >> sys.stdout, "- %s FINISHED: combining input files " % (timeStamp())
