@@ -102,14 +102,16 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
     # lazy loading
     from scipy.sparse import lil_matrix
 
-    # convert to coordinate format, filter with mappability and remove diagonal
-    B = fragmentPairs.tolil()[mappabilityFilterList.nonzero()[0], :][:, [mappabilityFilterList.nonzero()[0]]]
-    if (options.removeDiagonal):
-        B = B.setdiag(0).tocoo()
-    else:
-        B = B.tocoo()
-
     if (options.matrixFormat=="HiCorrector"):
+
+        # convert to coordinate format, filter with mappability and remove diagonal
+        # print fragmentPairs.tolil()[mappabilityFilterList.nonzero()[0], :][:, mappabilityFilterList.nonzero()[0]]
+        B = fragmentPairs.tolil()[mappabilityFilterList.nonzero()[0], :][:, mappabilityFilterList.nonzero()[0]]
+        if (options.removeDiagonal):
+            B = B.setdiag(0).tocoo()
+        else:
+            B = B.tocoo()
+
         # create matric for HiCorrector
         if ( options.outputFilename != "" ):
             outfile3 = options.outputDir+options.outputFilename+".matrix"
@@ -122,12 +124,13 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
         f_handle=open(outfile3,'w')
 
         C = B.tocsr()
-        for i in xrange(fragmentCount):
+        for i in xrange(len(mappabilityFilterList.nonzero()[0])):
             np.savetxt(f_handle, C[i].toarray(),fmt='%i', delimiter='\t')
 
         f_handle.close()
 
     else:
+        B = fragmentPairs.tolil()
         for chr in fragmentsChrom.keys():
 
             C = B.tocsc()[:,fragmentsChrom[chr][0]:fragmentsChrom[chr][1]].tocsr()[fragmentsChrom[chr][0]:fragmentsChrom[chr][1],:]
