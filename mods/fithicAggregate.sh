@@ -165,7 +165,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
         RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py $FITHIC_START_FROM_FRAGMENTPAIRS --CPU-processes $(($CPU_FITHIC<8?$CPU_FITHIC : 8)) --verbose $FITHIC_2DMATRIX --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR --outputFilename $SAMPLE $DATASETS > $OUTDIR/$SAMPLE.log"
 
-	else
+  	else
         # ensure name sorted bam required
         SORTEDDATASET=""
         for DATA in $DATASETS; do
@@ -191,8 +191,7 @@ NGSANE_CHECKPOINT_INIT "contact matrices"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    cd $OUTDIR/$RESOLUTION
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py --verbose --fragmentFile=$OUTDIR/$SAMPLE.fragmentLists.gz --inputIsFragmentPairs --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR --outputFilename $SAMPLE $OUTDIR/$SAMPLE.contactCounts.gz >> $OUTDIR/$SAMPLE.log"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py --verbose --fragmentFile=$OUTDIR/$SAMPLE.fragmentLists.gz --inputIsFragmentPairs --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR --outputFilename $SAMPLE $OUTDIR/$SAMPLE.contactCounts.gz >> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
