@@ -102,6 +102,14 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
     # lazy loading
     from scipy.sparse import lil_matrix
 
+    chromlen={}
+    for line in fileinput.input([options.chromSizes]):
+        (chrom, chromsize) =line.split("\t")[0:2]
+        # check if chromosome needs to be filtered out or not
+        if (options.chromPattern != "" and not re.match("^"+options.chromPattern+"$", chrom)):
+            continue
+        chromlen[chrom]=int(chromsize)
+
     if (options.matrixFormat=="HiCorrector"):
 
         # convert to coordinate format, filter with mappability and remove diagonal
@@ -115,8 +123,10 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
         # create matric for HiCorrector
         if ( options.outputFilename != "" ):
             outfile3 = options.outputDir+options.outputFilename+".matrix"
+            outfile4 = options.outputDir+options.outputFilename+".index"
         else:
             outfile3 = options.outputDir+os.path.basename(args[0])+".matrix"
+            outfile3 = options.outputDir+os.path.basename(args[0])+".index"
 
         if (options.verbose):
             print >> sys.stdout, "- save 2Dmatrix to %s " % (outfile3)
@@ -127,6 +137,14 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
         for i in xrange(len(mappabilityFilterList.nonzero()[0])):
             np.savetxt(f_handle, C[i].toarray(),fmt='%i', delimiter='\t')
 
+        f_handle.close()
+
+        f_handle=open(outfile4,'w')
+        counter = 1
+        for fragmentId in fragmentsMap.keys():
+            if (mappabilityFilterList[fragmentId]>0):
+                f_handle.write("%d\n" % ( counter ))
+            counter += 1
         f_handle.close()
 
     else:

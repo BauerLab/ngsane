@@ -150,7 +150,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ -n "$FITHIC_START_FROM_FRAGMENTPAIRS" ]; then
         cp ${FASTA%.*}.chrom.sizes $OUTDIR/$SAMPLE/chromsizes
-        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --CPU-processes 1 $FITHIC_START_FROM_FRAGMENTPAIRS $FITHIC_2DMATRIX --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR --outputFilename $SAMPLE $f > $OUTDIR/$SAMPLE.log"
+        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --CPU-processes 1 $FITHIC_START_FROM_FRAGMENTPAIRS --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR --outputFilename $SAMPLE $f > $OUTDIR/$SAMPLE.log"
 
     else
         # extract chrom sizes from Bam
@@ -160,7 +160,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         RUN_COMMAND="samtools sort -n -O bam -@ $CPU_FITHIC -o $THISTMP/$SAMPLE.bam -T $THISTMP/$SAMPLE.tmp $f"
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
-        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py $FITHIC_2DMATRIX $TADBIT --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR --outputFilename $SAMPLE $THISTMP/$SAMPLE.bam > $OUTDIR/$SAMPLE.log"
+        RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCountInteractions.py --mappability=$MAPPABILITY --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR --outputFilename $SAMPLE $THISTMP/$SAMPLE.bam > $OUTDIR/$SAMPLE.log"
     fi
 
     echo $RUN_COMMAND && eval $RUN_COMMAND
@@ -176,7 +176,7 @@ NGSANE_CHECKPOINT_INIT "contact matrices"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     cd $OUTDIR/$RESOLUTION
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py --verbose --fragmentFile=$OUTDIR/$SAMPLE.fragmentLists.gz --inputIsFragmentPairs --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR/$SAMPLE --outputFilename $SAMPLE $OUTDIR/$SAMPLE.contactCounts.gz > $OUTDIR/$SAMPLE.log"
+    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py --verbose --fragmentFile=$OUTDIR/$SAMPLE.fragmentLists.gz --inputIsFragmentPairs --resolution=$HIC_RESOLUTION --chromsizes=$OUTDIR/$SAMPLE/chromsizes $FITHIC_CHROMOSOMES --outputDir=$OUTDIR --outputFilename $SAMPLE $OUTDIR/$SAMPLE.contactCounts.gz >> $OUTDIR/$SAMPLE.log"
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
@@ -190,6 +190,7 @@ NGSANE_CHECKPOINT_INIT "HiCorrector"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
     if [ -n "$FITHIC_CISONLY" ]; then
+
         cat /dev/null > $OUTDIR/$SAMPLE.ice.txt.gz
 
         for CHR in $(cut -f1 $GENOME_CHROMSIZES); do
@@ -207,8 +208,13 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
                 fi
                 echo $RUN_COMMAND && eval $RUN_COMMAND
 
+                # add indices non-mappable bins
+                paste ${c/%.matrix/.index} ${c/%.matrix/.ice.txt} > ${c/%.matrix/.ice.index.txt}
+                zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2 | egrep -w "^$CHR" | awk '{OFS="\t";print NR,$0}' > $OUTDIR/$SAMPLE.fragmentLists.index
+                join -j 1 -o 2.2 -a 1 -e 0  $OUTDIR/$SAMPLE.fragmentLists.index ${c/%.matrix/.ice.index.txt} > ${c/%.matrix/.ice.txt}
                 # combine ice files and convert to fit-hi-c expected bias format
-                paste <(zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2 | egrep -w "^$CHR") ${c/%.matrix/.ice.txt} | awk '{$3==0?$3=1:$3=$3; print $0}' | $GZIP >> $OUTDIR/$SAMPLE.ice.txt.gz
+                paste <(zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2 | egrep -w "^$CHR") ${c/%.matrix/.ice.txt} | $GZIP >> $OUTDIR/$SAMPLE.ice.txt.gz
+                # paste <(zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2 | egrep -w "^$CHR") ${c/%.matrix/.ice.txt} | awk '{$3==0?$3=1:$3=$3; print $0}' | $GZIP >> $OUTDIR/$SAMPLE.ice.txt.gz
             fi
         done
 
@@ -222,9 +228,13 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
         fi
         echo $RUN_COMMAND && eval $RUN_COMMAND
 
+        # add indices non-mappable bins
+        paste $OUTDIR/$SAMPLE.index $OUTDIR/$SAMPLE.ice.txt > $OUTDIR/$SAMPLE.ice.index.txt
+        zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2 | awk '{OFS="\t";print NR,$0}' > $OUTDIR/$SAMPLE.fragmentLists.index
+        join -j 1 -o 2.2 -a 1 -e 0  $OUTDIR/$SAMPLE.fragmentLists.index $OUTDIR/$SAMPLE.ice.index.txt > $OUTDIR/$SAMPLE.ice.txt
         # convert to fit-hi-c expected bias format
-        paste <(zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2) $OUTDIR/$SAMPLE.ice.txt | awk '{$3==0?$3=1:$3=$3; print $0}' | $GZIP > $OUTDIR/$SAMPLE.ice.txt.gz
-
+        paste <(zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2) $OUTDIR/$SAMPLE.ice.txt | $GZIP > $OUTDIR/$SAMPLE.ice.txt.gz
+        # paste <(zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2) $OUTDIR/$SAMPLE.ice.txt | awk '{$3==0?$3=1:$3=$3; print $0}' | $GZIP > $OUTDIR/$SAMPLE.ice.txt.gz
     fi
 
     # mark checkpoint
@@ -233,6 +243,8 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     # cleanup
     rm -f $OUTDIR/$SAMPLE.ice.txt
     rm -f $OUTDIR/$SAMPLE*.matrix
+    rm -f $OUTDIR/$SAMPLE.fragmentLists.index
+    rm -f $OUTDIR/$SAMPLE*.index
 fi
 
 ################################################################################
