@@ -220,7 +220,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
                 # add indices non-mappable bins
                 paste ${c/%.matrix/.index} ${c/%.matrix/.ice.txt} > ${c/%.matrix/.ice.index.txt}
-                zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2 | egrep -w "^$CHR" | awk '{OFS="\t";print NR,$0}' > $OUTDIR/$SAMPLE.fragmentLists.index
+                zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2 | egrep -w "^$CHR" | awk '{printf("%010d\t%s\n", NR, $0)}' > $OUTDIR/$SAMPLE.fragmentLists.index
                 join -j 1 -o 2.2 -a 1 -e 0  $OUTDIR/$SAMPLE.fragmentLists.index ${c/%.matrix/.ice.index.txt} > ${c/%.matrix/.ice.txt}
                 # combine ice files and convert to fit-hi-c expected bias format
                 paste <(zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2 | egrep -w "^$CHR") ${c/%.matrix/.ice.txt} | $GZIP >> $OUTDIR/$SAMPLE.ice.txt.gz
@@ -240,7 +240,7 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
         # add indices non-mappable bins
         paste $OUTDIR/$SAMPLE.index $OUTDIR/$SAMPLE.ice.txt > $OUTDIR/$SAMPLE.ice.index.txt
-        zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2 | awk '{OFS="\t";print NR,$0}' > $OUTDIR/$SAMPLE.fragmentLists.index
+        zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2 | awk '{printf("%010d\t%s\n", NR, $0)}' > $OUTDIR/$SAMPLE.fragmentLists.index
         join -j 1 -o 2.2 -a 1 -e 0  $OUTDIR/$SAMPLE.fragmentLists.index $OUTDIR/$SAMPLE.ice.index.txt > $OUTDIR/$SAMPLE.ice.txt
         # convert to fit-hi-c expected bias format
         paste <(zcat $OUTDIR/$SAMPLE.fragmentLists.gz | cut -f1,2) $OUTDIR/$SAMPLE.ice.txt | $GZIP > $OUTDIR/$SAMPLE.ice.txt.gz

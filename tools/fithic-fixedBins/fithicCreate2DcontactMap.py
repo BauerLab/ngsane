@@ -116,7 +116,7 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
         # print fragmentPairs.tolil()[mappabilityFilterList.nonzero()[0], :][:, mappabilityFilterList.nonzero()[0]]
         B = fragmentPairs.tolil()[mappabilityFilterList.nonzero()[0], :][:, mappabilityFilterList.nonzero()[0]]
         if (options.removeDiagonal):
-            B = B.setdiag(0).tocoo()
+            B = B.setdiag(1).tocoo()
         else:
             B = B.tocoo()
 
@@ -143,7 +143,7 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
         counter = 1
         for fragmentId in fragmentsMap.keys():
             if (mappabilityFilterList[fragmentId]>0):
-                f_handle.write("%d\n" % ( counter ))
+                f_handle.write("%010d\n" % ( counter ))
             counter += 1
         f_handle.close()
 
@@ -216,7 +216,9 @@ def process():
 
     [ fragmentsMap, lookup_structure, fragmentCount, fragmentsChrom ] = createIntervalTreesFragmentResolution(options)
 
-    [ fragmentList, fragmentPairs ] = countReadsPerFragment(fragmentCount, lookup_structure, options, args)
+    triangular = False
+
+    [ fragmentList, fragmentPairs ] = countReadsPerFragment(fragmentCount, lookup_structure, options, args, triangular)
 
     if (options.fragmentFile != ""):
         mappabilityFilterList = createMappabilityFilterFromFragmentFile(options.fragmentFile, options.mappabilityThreshold, fragmentCount)

@@ -106,6 +106,8 @@ def createMappabilityList(fragmentsMap, bwfile, fragmentCount, options):
 
         try:
             mappable[fragmentId] = bw.query(chrom, start, end, 1)[0]["mean"]
+            if (np.isnan(mappable[fragmentId])):
+                mappable[fragmentId] = 0
         except:
             mappable[fragmentId] = 0.
             # problem with invalid values
@@ -124,7 +126,8 @@ def createMappabilityFilterFromFragmentFile(fragmentfile, threshold, fragmentCou
         for line in infile:
             # fragmentFile contains mappability in column 4 (index 3)
             mappable = float(line.strip().split("\t")[3])
-            if (mappable < threshold):
+
+            if (np.isnan(mappable) or mappable < threshold):
                 mappabilityFilterList[counter]=0
             counter += 1
 
@@ -509,7 +512,7 @@ def countReadsPerFragmentSerial(fragmentCount, lookup_structure, options, args):
 
     return [ fragmentList, fragmentPairs ]
 
-def countReadsPerFragmentParallel(iFile, fragmentCount, lookup_structure, options):
+def countReadsPerFragmentParallel(iFile, fragmentCount, lookup_structure, triangular, options):
     '''
         counts the reads per fragment and generates appropriate output files
     '''
@@ -543,9 +546,14 @@ def countReadsPerFragmentParallel(iFile, fragmentCount, lookup_structure, option
                 fragmentList[fragmentID1] += 1
                 fragmentList[fragmentID2] += 1
 
-                fpRows += [min(fragmentID1, fragmentID2)]
-                fpCols += [max(fragmentID1, fragmentID2)]
-                fpValue += [int(count)]
+                if (triangular):
+                    fpRows += [min(fragmentID1, fragmentID2)]
+                    fpCols += [max(fragmentID1, fragmentID2)]
+                    fpValue += [int(count)]
+                else:
+                    fpRows += [fragmentID1, fragmentID2]
+                    fpCols += [fragmentID2, fragmentID1]
+                    fpValue += [int(count), int(count)]
 
         if (options.verbose):
             print >> sys.stdout, "- %s FINISHED: getting counts form fragment file " % (timeStamp())
@@ -584,8 +592,14 @@ def countReadsPerFragmentParallel(iFile, fragmentCount, lookup_structure, option
                 fragmentList[fragmentID1] += 1
                 fragmentList[fragmentID2] += 1
 
-                fpRows += [min(fragmentID1, fragmentID2)]
-                fpCols += [max(fragmentID1, fragmentID2)]
+                if (triangular):
+                    fpRows += [min(fragmentID1, fragmentID2)]
+                    fpCols += [max(fragmentID1, fragmentID2)]
+
+                else:
+                    fpRows += [fragmentID1, fragmentID2]
+                    fpCols += [fragmentID2, fragmentID1]
+
 
         if (options.verbose):
             print >> sys.stdout, "- %s FINISHED: getting counts form read files " % (timeStamp())
@@ -621,8 +635,14 @@ def countReadsPerFragmentParallel(iFile, fragmentCount, lookup_structure, option
             fragmentList[fragmentID1] += 1
             fragmentList[fragmentID2] += 1
 
-            fpRows += [min(fragmentID1, fragmentID2)]
-            fpCols += [max(fragmentID1, fragmentID2)]
+            if (triangular):
+                fpRows += [min(fragmentID1, fragmentID2)]
+                fpCols += [max(fragmentID1, fragmentID2)]
+
+            else:
+                fpRows += [fragmentID1, fragmentID2]
+                fpCols += [fragmentID2, fragmentID1]
+
 
             readcounter+=1
 
@@ -647,7 +667,7 @@ def countReadsPerFragmentParallel(iFile, fragmentCount, lookup_structure, option
         print "    Size of matrix {0}: {1}".format(iFile, fragmentPairs.data.nbytes + fragmentPairs.indptr.nbytes + fragmentPairs.indices.nbytes)
     return tuple([fragmentList, fragmentPairs ])
 
-def countReadsPerFragment(fragmentCount, lookup_structure, options, args):
+def countReadsPerFragment(fragmentCount, lookup_structure, options, args, triangular=True):
     '''
         slurps in all input fils in parallel
         counts the reads per fragment and generates appropriate output files
@@ -659,7 +679,7 @@ def countReadsPerFragment(fragmentCount, lookup_structure, options, args):
 
     fragmentList = np.zeros((fragmentCount,), dtype=np.uint16)
     fragmentPairs = None
-    func = partial(countReadsPerFragmentParallel, fragmentCount=fragmentCount, lookup_structure=lookup_structure, options=options)
+    func = partial(countReadsPerFragmentParallel, fragmentCount=fragmentCount, lookup_structure=lookup_structure, triangular=triangular, options=options)
     results_iterator = imap_easy(func, args, n_jobs=min(8, len(args)), chunksize=1)
 
     if (options.verbose):
