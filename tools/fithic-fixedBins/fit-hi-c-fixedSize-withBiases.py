@@ -104,7 +104,10 @@ def main():
 					  action="store_true", dest="verbose")
 	parser.add_option("-q", "--quiet",
 					  action="store_false", dest="verbose")
-	parser.set_defaults(verbose=True, useBinning=True, noOfBins=100, distLowThres=-1, distUpThres=-1, mappabilityThreshold=1,noOfPasses=2,libname="",biasfile='none')
+	parser.add_option("-P", "--plotImages",
+					  action="store_true", dest="plotimages")
+	parser.set_defaults(verbose=True, useBinning=True, noOfBins=100, distLowThres=-1, distUpThres=-1, mappabilityThreshold=1,noOfPasses=2,libname="",biasfile='none', plotimages=False)
+	
 	(options, args) = parser.parse_args()
 	if len(args) != 0:
 		parser.error("incorrect number of arguments")
@@ -154,7 +157,7 @@ def main():
 	x,y,yerr=calculate_Probabilities(mainDic,libname+".fithic_pass1")
 
 	# now fit spline to the data using power-law residual by improving it  <residualFactor> times
-	splineXinit,splineYinit,splineResidual=fit_Spline(mainDic,x,y,yerr,options.intersfile,libname+".spline_pass1",biasDic) 
+	splineXinit,splineYinit,splineResidual=fit_Spline(mainDic,x,y,yerr,options.intersfile,libname+".spline_pass1",biasDic, options.plotimages) 
 
 	### DO THE REFINEMENT ON THE NULL AS MANY STEPS AS DESIRED ###
 	#for i in range(2,1+noOfPasses):
@@ -435,7 +438,7 @@ def generate_FragPairs(mainDic,infilename): # lowMappThres
 
 	return (mainDic,noOfFrags) # return from generate_FragPairs
 
-def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic):
+def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
 	print("\nFit a univariate spline to the probability means\n"),
 	print("------------------------------------------------------------------------------------\n"),
 	#print("baseline intra-chr probability: " + repr(baselineIntraChrProb)+ "\n"),
@@ -485,33 +488,34 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic):
 	### Now newSplineY holds the monotonic contact probabilities
 	residual =sum([i*i for i in (y - ius(x))])
 
-	### Now plot the results
-	plt.clf()
-	fig = plt.figure()
-	ax = fig.add_subplot(2,1,1)
-	plt.title('Univariate spline fit to the output of equal occupancy binning. \n Residual= %e' % (residual),size='small')
-	plt.plot([i/1000.0 for i in x], [i*100000 for i in y], 'ro', label="Means")
-	#plt.plot([i/1000.0 for i in xi], [i*100000 for i in yi],'g-',label="Spline fit")
-	plt.plot([i/1000.0 for i in splineX], [i*100000 for i in newSplineY],'g-',label="Spline fit")
-	#plt.plot([i/1000.0 for i in x], [normalizedInterChrProb*100000 for i in x],'k-',label="Random intra-chromosomal")
-	#plt.plot([i/1000.0 for i in x], [interChrProb*100000 for i in x],'b-',label="Inter-chromosomal")
-	plt.ylabel('Probability (1e-5)')
-	plt.xlabel('Genomic distance (kb)')
-	plt.xlim([min(x)/1000.0,max(x)/1000.0])
-	ax.legend(loc="upper right")
+	if (plotimages):
+		### Now plot the results
+		plt.clf()
+		fig = plt.figure()
+		ax = fig.add_subplot(2,1,1)
+		plt.title('Univariate spline fit to the output of equal occupancy binning. \n Residual= %e' % (residual),size='small')
+		plt.plot([i/1000.0 for i in x], [i*100000 for i in y], 'ro', label="Means")
+		#plt.plot([i/1000.0 for i in xi], [i*100000 for i in yi],'g-',label="Spline fit")
+		plt.plot([i/1000.0 for i in splineX], [i*100000 for i in newSplineY],'g-',label="Spline fit")
+		#plt.plot([i/1000.0 for i in x], [normalizedInterChrProb*100000 for i in x],'k-',label="Random intra-chromosomal")
+		#plt.plot([i/1000.0 for i in x], [interChrProb*100000 for i in x],'b-',label="Inter-chromosomal")
+		plt.ylabel('Probability (1e-5)')
+		plt.xlabel('Genomic distance (kb)')
+		plt.xlim([min(x)/1000.0,max(x)/1000.0])
+		ax.legend(loc="upper right")
 
-	ax = fig.add_subplot(2,1,2)
-	plt.loglog(splineX,newSplineY,'g-')
-	#plt.loglog(xi, yi, 'g-') 
-	plt.loglog(x, y, 'r.')  # Data
-	#plt.loglog(x, [normalizedInterChrProb for i in x],'k-')
-	#plt.loglog(x, [interChrProb for i in x],'b-')
-	plt.ylabel('Probability (log scale)')
-	plt.xlabel('Genomic distance (log scale)')
-	#plt.xlim([20000,100000])
-	plt.xlim([min(x),max(x)])
-	plt.savefig(outfilename+'.res'+str(resolution)+'.png')
-	sys.stderr.write("Plotting %s" % outfilename + ".png\n")
+		ax = fig.add_subplot(2,1,2)
+		plt.loglog(splineX,newSplineY,'g-')
+		#plt.loglog(xi, yi, 'g-') 
+		plt.loglog(x, y, 'r.')  # Data
+		#plt.loglog(x, [normalizedInterChrProb for i in x],'k-')
+		#plt.loglog(x, [interChrProb for i in x],'b-')
+		plt.ylabel('Probability (log scale)')
+		plt.xlabel('Genomic distance (log scale)')
+		#plt.xlim([20000,100000])
+		plt.xlim([min(x),max(x)])
+		plt.savefig(outfilename+'.res'+str(resolution)+'.png')
+		sys.stderr.write("Plotting %s" % outfilename + ".png\n")
 
 	# NOW write the calculated pvalues and corrected pvalues in a file
 	infile =gzip.open(infilename, 'r')
@@ -551,7 +555,11 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic):
 				distToLookUp=min(distToLookUp,max(x))
 				i=min(bisect.bisect_left(splineX, distToLookUp),len(splineX)-1)
 				prior_p=newSplineY[i]*(bias1*bias2) # biases added in the picture
-				p_val=scsp.bdtrc(interxn.hitCount-1,observedIntraInRangeSum,prior_p)
+				try:
+					p_val=scsp.bdtrc(interxn.hitCount-1,observedIntraInRangeSum,prior_p)
+				except:
+					# catching case when interxn count is too big
+                                	p_val=0
 				intraInRangeCount +=1
 			elif interxn.getType(distLowThres,distUpThres)=='intraShort':
 				prior_p=1.0
@@ -561,14 +569,22 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic):
 				## out of range distance
 				## use the prior of the baseline intra-chr interaction probability
 				prior_p=baselineIntraChrProb*(bias1*bias2)  # biases added in the picture
-				p_val=scsp.bdtrc(interxn.hitCount-1,observedIntraAllSum,prior_p)
+				try:
+					p_val=scsp.bdtrc(interxn.hitCount-1,observedIntraAllSum,prior_p)
+				except:
+					# catching case when interxn count is too big
+	                                p_val=0
 				intraOutOfRangeCount +=1
 			# END if
 		else: # inter
 			#prior_p=normalizedInterChrProb
 			prior_p=interChrProb*(bias1*bias2) # biases added in the picture
 			############# THIS HAS TO BE interactionCount-1 ##################
-			p_val=scsp.bdtrc(interxn.hitCount-1,observedInterAllSum,prior_p)
+			try:
+				p_val=scsp.bdtrc(interxn.hitCount-1,observedInterAllSum,prior_p)
+			except:
+				# catching case when interxn count is too big
+				p_val=0
 			interCount +=1
 		#
 		p_vals.append(p_val)

@@ -72,14 +72,6 @@ if [ ! -d $FASTQDIRTRIM ]; then mkdir -p $FASTQDIRTRIM; fi
 echo $f "->" $o
 if [ "$PAIRED" = "1" ]; then echo ${f/%$READONE.$FASTQ/$READTWO.$FASTQ} "->" ${o/%$READONE.$FASTQ/$READTWO.$FASTQ} ; fi
 
-#is ziped ?
-CAT="cat"
-if [[ ${f##*.} == "gz" ]]; 
-    then CAT="zcat"; 
-elif [[ ${f##*.} == "bz2" ]]; 
-    then CAT="bzcat"; 
-fi
-
 if [ ! -n "$TRIMGALORE_ADAPTER1" ] && [ ! -n "$TRIMGALORE_ADAPTER2" ];then echo "TRIMGALORE_ADAPTER1 and 2 not defined in $CONFIG, default to 'AGATCGGAAGAGC'"; fi
 CONTAM=""
 if [ -n "$TRIMGALORE_ADAPTER1" ]; then
@@ -108,35 +100,19 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
     # Paired read
     if [ "$PAIRED" = "1" ]
     then
-        trim_galore $TRIMGALOREADDPARAM $CONTAM --paired --output_dir $FASTQDIRTRIM <($CAT $f) <($CAT ${f/%$READONE.$FASTQ/$READTWO.$FASTQ})
-        mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READONE"_val_1".fq.gz} $FASTQDIRTRIM/$n
-        mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READTWO"_val_2".fq.gz} $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}
+        RUNCOMMAND="trim_galore $TRIMGALOREADDPARAM $CONTAM --paired --output_dir $FASTQDIRTRIM $f ${f/%$READONE.$FASTQ/$READTWO.$FASTQ}"
+	echo $RUNCOMMAND && eval $RUNCOMMAND
+        mv $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READONE"_val_1".fq*} $FASTQDIRTRIM/$n
+       	mv $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO"_val_2".fq*} $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}
     else
-        trim_galore $TRIMGALOREADDPARAM $CONTAM --output_dir $FASTQDIRTRIM <($CAT $f)
-        mv $FASTQDIRTRIM/${n/$READONE.$FASTQ/$READONE"_trimmed".fq.gz} $FASTQDIRTRIM/$n
+        RUNCOMMAND="trim_galore $TRIMGALOREADDPARAM $CONTAM --output_dir $FASTQDIRTRIM $f"
+	echo $RUNCOMMAND && eval $RUNCOMMAND
+        mv $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READONE"_trimmed".fq*} $FASTQDIRTRIM/$n
     fi
 
     # mark checkpoint
     NGSANE_CHECKPOINT_CHECK $FASTQDIRTRIM/$n
 
-fi
-
-################################################################################
-NGSANE_CHECKPOINT_INIT "zip"    
-
-if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
-
-    $GZIP -t $FASTQDIRTRIM/$n 2>/dev/null
-    if [[ $? -ne 0 ]]; then
-        $GZIP -f $FASTQDIRTRIM/$n
-        mv $FASTQDIRTRIM/$n.gz $FASTQDIRTRIM/$n
-        if [ "$PAIRED" = "1" ]; then
-            $GZIP -f $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}
-            mv $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}.gz $FASTQDIRTRIM/${n/%$READONE.$FASTQ/$READTWO.$FASTQ}
-        fi
-    fi
-    # mark checkpoint
-    NGSANE_CHECKPOINT_CHECK
 fi
 
 ################################################################################

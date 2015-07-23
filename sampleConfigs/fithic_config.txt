@@ -65,13 +65,13 @@ HICORRECTOR_MAXITER=100
 # Whether input is in fragment pair format rather than bam
 FITHIC_START_FROM_FRAGMENTPAIRS=
 
-# additional parameters for fit-hi-c
-# e.g. "--visual --lowerbound=50000 --upperbound=-1 --noOfBins=200 --mappabilityThres=1"
-FITHICADDPARAM=
-
 # Q-value threshold applied for filtering (default: 0.01)
 # e.g. 0.05
 FITHIC_QVALUETHRESHOLD=
+
+# Whether to focus on intra-chromosomal contacts only
+# e.g. FITHIC_CISONLY=1
+FITHIC_CISONLY=
 
 # indicate if contact matrix should be kept
 # e.g FITHIC_KEEPCONTACTMATRIX="1"
