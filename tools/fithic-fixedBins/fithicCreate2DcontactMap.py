@@ -81,6 +81,9 @@ def main():
     if (options.outputDir != ""):
         options.outputDir += os.sep
 
+    if (options.outputFilename == ""):
+        options.outputFilename=os.path.splitext(os.path.basename(args[0]))[0]
+
     if (options.verbose):
         print >> sys.stdout, "resolution:            %s" % (options.resolution)
         print >> sys.stdout, "chromSizes:            %s" % (options.chromSizes)
@@ -90,6 +93,33 @@ def main():
 
     process()
 
+def saveHiCorrectorMatrix(fragmentsMap , fragmentList, fragmentPairs, mappabilityFilterList, index_subset, matrixOutfile, indexOutfile):
+    # convert to coordinate format, filter with mappability and remove diagonal
+    # print fragmentPairs.tolil()[mappabilityFilterList.nonzero()[0], :][:, mappabilityFilterList.nonzero()[0]]
+    B = fragmentPairs.tolil()[index_subset, :][:, index_subset]
+    if (options.removeDiagonal):
+        B = B.setdiag(1).tocoo()
+    else:
+        B = B.tocoo()
+
+    if (options.verbose):
+        print >> sys.stdout, "- save 2Dmatrix to %s " % (matrixOutfile)
+
+    f_handle=open(matrixOutfile,'w')
+
+    C = B.tocsr()
+    for i in xrange(len(index_subset)):
+        np.savetxt(f_handle, C[i].toarray(),fmt='%i', delimiter='\t')
+
+    f_handle.close()
+
+    f_handle=open(indexOutfile,'w')
+    counter = 1
+    for fragmentId in fragmentsMap.keys():
+        if (mappabilityFilterList[fragmentId]>0):
+            f_handle.write("%010d\n" % ( counter ))
+        counter += 1
+    f_handle.close()
 
 def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsChrom, mappabilityFilterList):
     '''
@@ -112,40 +142,18 @@ def output(fragmentsMap , fragmentList, fragmentPairs, fragmentCount, fragmentsC
 
     if (options.matrixFormat=="HiCorrector"):
 
-        # convert to coordinate format, filter with mappability and remove diagonal
-        # print fragmentPairs.tolil()[mappabilityFilterList.nonzero()[0], :][:, mappabilityFilterList.nonzero()[0]]
-        B = fragmentPairs.tolil()[mappabilityFilterList.nonzero()[0], :][:, mappabilityFilterList.nonzero()[0]]
-        if (options.removeDiagonal):
-            B = B.setdiag(1).tocoo()
-        else:
-            B = B.tocoo()
-
         # create matric for HiCorrector
-        if ( options.outputFilename != "" ):
-            outfile3 = options.outputDir+options.outputFilename+".matrix"
-            outfile4 = options.outputDir+options.outputFilename+".index"
+        if ( options.onlycis ):
+            for chr in fragmentsChrom.keys():
+                matrixOutfile = options.outputDir+options.outputFilename+"."+chr+".matrix"
+                indexOutfile = options.outputDir+options.outputFilename+"."+chr+".index"
+                index_subset = np.intersect1d(mappabilityFilterList.nonzero()[0],range(fragmentsChrom[chr][0],fragmentsChrom[chr][1]), assume_unique=True)
+                saveHiCorrectorMatrix(fragmentsMap , fragmentList, fragmentPairs, mappabilityFilterList, index_subset, matrixOutfile, indexOutfile)
         else:
-            outfile3 = options.outputDir+os.path.basename(args[0])+".matrix"
-            outfile3 = options.outputDir+os.path.basename(args[0])+".index"
-
-        if (options.verbose):
-            print >> sys.stdout, "- save 2Dmatrix to %s " % (outfile3)
-
-        f_handle=open(outfile3,'w')
-
-        C = B.tocsr()
-        for i in xrange(len(mappabilityFilterList.nonzero()[0])):
-            np.savetxt(f_handle, C[i].toarray(),fmt='%i', delimiter='\t')
-
-        f_handle.close()
-
-        f_handle=open(outfile4,'w')
-        counter = 1
-        for fragmentId in fragmentsMap.keys():
-            if (mappabilityFilterList[fragmentId]>0):
-                f_handle.write("%010d\n" % ( counter ))
-            counter += 1
-        f_handle.close()
+            matrixOutfile = options.outputDir+options.outputFilename+".matrix"
+            indexOutfile = options.outputDir+options.outputFilename+".index"
+            index_subset = mappabilityFilterList.nonzero()[0]
+            saveHiCorrectorMatrix(fragmentsMap , fragmentList, fragmentPairs, mappabilityFilterList, index_subset, matrixOutfile, indexOutfile)
 
     else:
         B = fragmentPairs.tolil()

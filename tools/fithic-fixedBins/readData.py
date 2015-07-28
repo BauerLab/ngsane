@@ -653,6 +653,10 @@ def countReadsPerFragmentParallel(iFile, fragmentCount, lookup_structure, triang
         if (options.verbose):
             print >> sys.stdout, "- %s FINISHED: getting reads from bam file " % (timeStamp())
 
+    if (options.verbose):
+        print "    Matrix {0} dimension {1},{2},{3}".format(iFile, len(fpValue), len(fpRows), len(fpCols))
+
+
     if (len(fpValue)==0):
         fragmentPairs = coo_matrix((np.ones((len(fpRows),), dtype=np.uint16), (np.array(fpRows), np.array(fpCols))), shape=(fragmentCount, fragmentCount)).tobsr()
     else:
