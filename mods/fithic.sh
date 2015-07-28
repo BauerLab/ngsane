@@ -186,7 +186,11 @@ NGSANE_CHECKPOINT_INIT "contact matrices"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py --verbose --fragmentFile=$OUTDIR/$SAMPLE.fragmentLists.gz --inputIsFragmentPairs --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR --outputFilename $SAMPLE $OUTDIR/$SAMPLE.contactCounts.gz >> $OUTDIR/$SAMPLE.log"
+    if [ -n "$FITHIC_CISONLY" ]; then
+      RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py --verbose --fragmentFile=$OUTDIR/$SAMPLE.fragmentLists.gz --inputIsFragmentPairs --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR $OUTDIR/$SAMPLE.contactCounts.gz --outputFilename $SAMPLE --onlycis  >> $OUTDIR/$SAMPLE.log"
+    else
+      RUN_COMMAND="python ${NGSANE_BASE}/tools/fithic-fixedBins/fithicCreate2DcontactMap.py --verbose --fragmentFile=$OUTDIR/$SAMPLE.fragmentLists.gz --inputIsFragmentPairs --resolution=$HIC_RESOLUTION --chromsizes=$GENOME_CHROMSIZES $FITHIC_CHROMOSOMES --outputDir=$OUTDIR --outputFilename $SAMPLE $OUTDIR/$SAMPLE.contactCounts.gz >> $OUTDIR/$SAMPLE.log"
+    fi
     echo $RUN_COMMAND && eval $RUN_COMMAND
 
     # mark checkpoint
