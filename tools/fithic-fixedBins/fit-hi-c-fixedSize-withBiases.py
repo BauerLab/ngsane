@@ -28,6 +28,7 @@ from random import *
 import myStats
 import myUtils
 import gzip
+#from numba import jit
 
 ## R dependencies
 import rpy2.robjects as ro
@@ -107,7 +108,7 @@ def main():
 	parser.add_option("-P", "--plotImages",
 					  action="store_true", dest="plotimages")
 	parser.set_defaults(verbose=True, useBinning=True, noOfBins=100, distLowThres=-1, distUpThres=-1, mappabilityThreshold=1,noOfPasses=2,libname="",biasfile='none', plotimages=False)
-	
+
 	(options, args) = parser.parse_args()
 	if len(args) != 0:
 		parser.error("incorrect number of arguments")
@@ -128,7 +129,7 @@ def main():
 	libname=options.libname
 	noOfPasses=options.noOfPasses
 	resolution=options.resolution
-	
+
 
 	mainDic={} # given a distance this dictionary will return [Npairs,TotalContactCount]
 	# read the mandatory input files -f and -i
@@ -157,7 +158,7 @@ def main():
 	x,y,yerr=calculate_Probabilities(mainDic,libname+".fithic_pass1")
 
 	# now fit spline to the data using power-law residual by improving it  <residualFactor> times
-	splineXinit,splineYinit,splineResidual=fit_Spline(mainDic,x,y,yerr,options.intersfile,libname+".spline_pass1",biasDic, options.plotimages) 
+	splineXinit,splineYinit,splineResidual=fit_Spline(mainDic,x,y,yerr,options.intersfile,libname+".spline_pass1",biasDic, options.plotimages)
 
 	### DO THE REFINEMENT ON THE NULL AS MANY STEPS AS DESIRED ###
 	#for i in range(2,1+noOfPasses):
@@ -171,7 +172,7 @@ def main():
 def read_ICE_biases(infilename):
 	sys.stderr.write("\n\nReading ICE biases. \n")
 	biasDic={}
-	
+
 	rawBiases=[]
 	infile=gzip.open(infilename, 'r')
 	for line in infile:
@@ -189,7 +190,7 @@ def read_ICE_biases(infilename):
 	#m,v=myStats.meanAndVariance(rawBiases)
 	#sd=math.sqrt(v)
 	#sys.stderr.write(str(m)+"\t"+str(v)+"\t"+str(sd)+"\n")
-	
+
 	#normFactor=sum(rawBiases)/len(rawBiases)
 	infile=gzip.open(infilename, 'r')
 	totalC=0
@@ -250,7 +251,7 @@ def calculate_Probabilities(mainDic,outfilename):
 		if myUtils.in_range_check(i,distLowThres,distUpThres)==False:
 			continue
 		# if one distance has more than necessary counts to fill a bin
-		if mainDic[i][1]>=desiredPerBin: 
+		if mainDic[i][1]>=desiredPerBin:
 			distsToGoInAbin.append(i)
 			interactionTotalForBinTermination=0
 			binFull=1
@@ -286,7 +287,7 @@ def calculate_Probabilities(mainDic,outfilename):
 			yerr.append(float(se_p))
 			pairCounts.append(noOfPairsForBin)
 			interactionTotals.append(interactionTotalForBin)
-			
+
 			print "%d" % n+ "\t" + "%f" % avgDistance + "\t"+"%.2e" % meanProbabilityObsv + "\t"\
 				+ "%.2e" % se_p +"\t" +"%d" % noOfPairsForBin +"\t" +"%d" % interactionTotalForBin
 			# reset counts
@@ -421,9 +422,9 @@ def generate_FragPairs(mainDic,infilename): # lowMappThres
 	interChrProb=1.0
 	if possibleInterAllCount>0:
 	   interChrProb=1.0/possibleInterAllCount
-	   
+
 	baselineIntraChrProb=1.0/possibleIntraAllCount
-	
+
 	for i in range(0,maxPossibleGenomicDist+1,resolution):
 		if myUtils.in_range_check(i,distLowThres,distUpThres):
 			possibleIntraInRangeCount+=mainDic[i][0]
@@ -431,12 +432,21 @@ def generate_FragPairs(mainDic,infilename): # lowMappThres
 
 	print("Number of all fragments= "+str(noOfFrags)+"\t resolution= "+ str(resolution))
 	print("Possible, Intra-chr in range: pairs= "+str(possibleIntraInRangeCount))
-	print("Possible, Intra-chr all: pairs= "+str(possibleIntraAllCount)) 
+	print("Possible, Intra-chr all: pairs= "+str(possibleIntraAllCount))
 	print("Possible, Inter-chr all: pairs= "+str(possibleInterAllCount))
 	print("Desired genomic distance range	[%d %d]" % (distLowThres,distUpThres) + "\n"),
 	print("Range of possible genomic distances	[0	%d]" % (maxPossibleGenomicDist) + "\n"),
 
 	return (mainDic,noOfFrags) # return from generate_FragPairs
+
+#@jit
+def call_bdtrc(hitCount, observedIntraInRangeSum, prior_p):
+	try:
+		p_val=scsp.bdtrc(hitCount,observedIntraInRangeSum,prior_p)
+	except:
+		# catching case when interxn count is too big
+		p_val=call_bdtrc(hitCount/2, observedIntraInRangeSum/2, prior_p)
+	return p_val
 
 def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
 	print("\nFit a univariate spline to the probability means\n"),
@@ -444,7 +454,7 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
 	#print("baseline intra-chr probability: " + repr(baselineIntraChrProb)+ "\n"),
 
 	# maximum residual allowed for spline is set to min(y)^2
-	splineError=min(y)*min(y) 
+	splineError=min(y)*min(y)
 
 	# use fitpack2 method -fit on the real x and y from equal occupancy binning
 	ius = UnivariateSpline(x, y, s=splineError)
@@ -506,7 +516,7 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
 
 		ax = fig.add_subplot(2,1,2)
 		plt.loglog(splineX,newSplineY,'g-')
-		#plt.loglog(xi, yi, 'g-') 
+		#plt.loglog(xi, yi, 'g-')
 		plt.loglog(x, y, 'r.')  # Data
 		#plt.loglog(x, [normalizedInterChrProb for i in x],'k-')
 		#plt.loglog(x, [interChrProb for i in x],'b-')
@@ -535,7 +545,7 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
 		chr2=words[2]
 		midPoint1=int(words[1])
 		midPoint2=int(words[3])
-		
+
 		bias1=1.0; bias2=1.0;  # assumes there is no bias to begin with
 		# if the biasDic is not null sets the real bias values
 		if len(biasDic)>0:
@@ -543,7 +553,7 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
 				bias1=biasDic[chr1][midPoint1]
 			if biasDic.has_key(chr2) and biasDic[chr2].has_key(midPoint2):
 				bias2=biasDic[chr2][midPoint2]
-	
+
 		if (bias1 < 0.5 or bias1 > 2. or bias2 < 0.5 or bias2 > 2.):
 		# if bias1==-1 or bias2==-1:
 			p_val=1.0
@@ -555,11 +565,7 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
 				distToLookUp=min(distToLookUp,max(x))
 				i=min(bisect.bisect_left(splineX, distToLookUp),len(splineX)-1)
 				prior_p=newSplineY[i]*(bias1*bias2) # biases added in the picture
-				try:
-					p_val=scsp.bdtrc(interxn.hitCount-1,observedIntraInRangeSum,prior_p)
-				except:
-					# catching case when interxn count is too big
-                                	p_val=0
+				p_val = call_bdtrc(interxn.hitCount-1,observedIntraInRangeSum,prior_p)
 				intraInRangeCount +=1
 			elif interxn.getType(distLowThres,distUpThres)=='intraShort':
 				prior_p=1.0
@@ -569,22 +575,14 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
 				## out of range distance
 				## use the prior of the baseline intra-chr interaction probability
 				prior_p=baselineIntraChrProb*(bias1*bias2)  # biases added in the picture
-				try:
-					p_val=scsp.bdtrc(interxn.hitCount-1,observedIntraAllSum,prior_p)
-				except:
-					# catching case when interxn count is too big
-	                                p_val=0
+				p_val = call_bdtrc(interxn.hitCount-1,observedIntraAllSum,prior_p)
 				intraOutOfRangeCount +=1
 			# END if
 		else: # inter
 			#prior_p=normalizedInterChrProb
 			prior_p=interChrProb*(bias1*bias2) # biases added in the picture
 			############# THIS HAS TO BE interactionCount-1 ##################
-			try:
-				p_val=scsp.bdtrc(interxn.hitCount-1,observedInterAllSum,prior_p)
-			except:
-				# catching case when interxn count is too big
-				p_val=0
+			p_val = call_bdtrc(interxn.hitCount-1,observedInterAllSum,prior_p)
 			interCount +=1
 		#
 		p_vals.append(p_val)
@@ -642,4 +640,3 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
 
 if __name__ == "__main__":
 	main()
-
