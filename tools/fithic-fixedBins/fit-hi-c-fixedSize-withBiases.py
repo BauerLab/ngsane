@@ -440,12 +440,14 @@ def generate_FragPairs(mainDic,infilename): # lowMappThres
 	return (mainDic,noOfFrags) # return from generate_FragPairs
 
 #@jit
-def call_bdtrc(hitCount, observedIntraInRangeSum, prior_p):
+def call_bdtrc(hitCount, observedSum, prior_p):
 	try:
-		p_val=scsp.bdtrc(hitCount,observedIntraInRangeSum,prior_p)
+		p_val=scsp.bdtrc(int(hitCount),int(observedSum),prior_p)
+		if (np.isnan(p_val)):
+			p_val=call_bdtrc(int(hitCount/2), int(observedSum/2), prior_p)
 	except:
 		# catching case when interxn count is too big
-		p_val=call_bdtrc(hitCount/2, observedIntraInRangeSum/2, prior_p)
+		p_val=call_bdtrc(int(hitCount/2), int(observedSum/2), prior_p)
 	return p_val
 
 def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
@@ -590,6 +592,7 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
 	# END for
 	infile.close()
 
+	print("CHECK: sum of p-values %.2f" % (sum(p_vals)))
 	# Do the BH FDR correction
 	q_vals=myStats.benjamini_hochberg_correction(p_vals, possibleInterAllCount+possibleIntraAllCount)
 	#q_vals=myStats.benjamini_hochberg_correction(p_vals, possibleIntraInRangeCount)
