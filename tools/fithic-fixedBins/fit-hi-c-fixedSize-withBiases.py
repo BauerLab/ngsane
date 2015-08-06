@@ -28,7 +28,6 @@ from random import *
 import myStats
 import myUtils
 import gzip
-#from numba import jit
 
 ## R dependencies
 import rpy2.robjects as ro
@@ -439,15 +438,13 @@ def generate_FragPairs(mainDic,infilename): # lowMappThres
 
 	return (mainDic,noOfFrags) # return from generate_FragPairs
 
-#@jit
-def call_bdtrc(hitCount, observedSum, prior_p):
-	try:
-		p_val=scsp.bdtrc(int(hitCount),int(observedSum),prior_p)
-		if (np.isnan(p_val)):
-			p_val=call_bdtrc(int(hitCount/2), int(observedSum/2), prior_p)
-	except:
-		# catching case when interxn count is too big
-		p_val=call_bdtrc(int(hitCount/2), int(observedSum/2), prior_p)
+def call_bdtrc(hitCount, observedSum, prior_p, recursion=0):
+	if (recursion>= 10):
+		return 1.0
+
+	p_val=scsp.bdtrc(int(hitCount),int(observedSum),prior_p)
+	if (np.isnan(p_val)):
+		p_val=call_bdtrc(int(hitCount/2), int(observedSum/2), prior_p, recursion+1)
 	return p_val
 
 def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
