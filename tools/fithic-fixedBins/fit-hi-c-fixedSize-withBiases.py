@@ -589,7 +589,6 @@ def fit_Spline(mainDic,x,y,yerr,infilename,outfilename,biasDic,plotimages):
 	# END for
 	infile.close()
 
-	print("CHECK: sum of p-values %.2f" % (sum(p_vals)))
 	# Do the BH FDR correction
 	q_vals=myStats.benjamini_hochberg_correction(p_vals, possibleInterAllCount+possibleIntraAllCount)
 	#q_vals=myStats.benjamini_hochberg_correction(p_vals, possibleIntraInRangeCount)
