@@ -313,7 +313,7 @@ fi
 ################################################################################
 NGSANE_CHECKPOINT_INIT "cleanup"
 
-#rm -f $OUTDIR/$SAMPLE.spline_pass1.res$HIC_RESOLUTION.significances.txt.gz
+rm -f $OUTDIR/$SAMPLE.spline_pass1.res$HIC_RESOLUTION.significances.txt.gz
 
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
