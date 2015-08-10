@@ -62,9 +62,9 @@ _DENS_:
 _OMIT_REGIONS_: $HOTSPOT_HOME/data/Satellite.$UCSC_GENOMEASSEMBLY.bed
 _CHECK_ = T
 _CHKCHR_ = chrX
-_HOTSPOT_ = $HOTSPOT_HOME/bin/hotspot
+_HOTSPOT_ = hotspot
 _CLEAN_ = T
-_PKFIND_BIN_ = $HOTSPOT_HOME/bin/wavePeaks
+_PKFIND_BIN_ = wavePeaks
 _PKFIND_SMTH_LVL_ = 3
 _SEED_=101
 ## Hotspot program parameters

@@ -1,0 +1,42 @@
+#!/bin/bash -e
+
+################################################################################
+#   TAD calling with domaincall
+# IN : $SOURCE/$dir/fithic/*contactCounts.gz
+# OUT: $OUT/$dir/HICTADCALL/*.spline_pass1.q05.txt.gz
+################################################################################
+
+if [ -n "$RUNHICTADCALL" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # check if resources are properly defined
+        if [ -z "$TASK_HICTADCALL" ] || [ -z "$NODES_HICTADCALL" ] || [ -z "$CPU_HICTADCALL" ] || [ -z "$MEMORY_HICTADCALL" ] || [ -z "$WALLTIME_HICTADCALL" ]; then echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; fi
+    
+        if [ -z "$INPUT_HICTADCALL_SUFFIX" ]; then echo "File suffix for input files need to be specified (INPUT_HICTADCALL_SUFFIX)"; exit 1; fi
+
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_HICTADCALL -i $INPUT_HICTADCALL -e $INPUT_HICTADCALL_SUFFIX \
+            -n $NODES_HICTADCALL -c $CPU_HICTADCALL -m $MEMORY_HICTADCALL"G" -w $WALLTIME_HICTADCALL \
+            --command "${NGSANE_BASE}/mods/hicTadCall.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_HICTADCALL" 
+         
+            
+    ############################################################################
+    # compile a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+
+        # start a new section for a mod
+        NGSANE_REPORT_HEADER "TADs" "$TASK_HICTADCALL" "hicTadCall.sh" "txt.gz"
+
+        NGSANE_REPORT_TABLE "$TASK_HICTADCALL" \
+            "-" \
+            "$OUT/<DIR>/$TASK_HICTADCALL"  \
+            ".log" \
+            "PATTERN!Possible Cis!!fgrep -w 'Possible, Intra-chr all' | tail -n 1 | cut -d'=' -f 2" \
+
+        # finish the section
+        NGSANE_REPORT_FOOTER 
+  
+    fi
+fi	
