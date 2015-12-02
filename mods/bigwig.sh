@@ -120,7 +120,7 @@ NGSANE_CHECKPOINT_INIT "generate bigwigs"
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
    
     # run flagstat if no stats available for bam file
-    [ ! -e $f.stats ] && samtools flagstat > $f.stats
+    [ ! -e $f.stats ] && samtools flagstat $f > $f.stats
     # check "paired in sequencing" entry to detect library
     if [[ $(cat $f.stats | fgrep -w 'paired in sequencing' | cut -d' ' -f1) -gt 0 ]]; then
         PAIRED=1
