@@ -83,6 +83,8 @@ NG_GSNAP=
 NG_SAILFISH=
 NG_RSEQC=
 NG_STAR=
+NG_HICTADCALL=
+NG_MCL=
 
 ##############################################################
 # Software reference
@@ -140,8 +142,9 @@ NG_CITE_GSNAP="Thomas D. Wu and Serban Nacu, Fast and SNP-tolerant detection of 
 NG_CITE_SAILFISH="http://www.nature.com/nbt/journal/v32/n5/full/nbt.2862.html"
 NG_CITE_RSEQC="Wang L, Wang S, Li W* RSeQC: quality control of RNA-seq experiments Bioinformatics (2012) 28 (16): 2184-2185. doi: 10.1093/bioinformatics/bts356"
 NG_CITE_STAR="A. Dobin et al, Bioinformatics 2012; doi: 10.1093/bioinformatics/bts635"
+NG_CITE_HICTADCALL="Nature. 2012 Apr 11;485(7398):376-80. doi: 10.1038/nature11082.; 'Topological domains in mammalian genomes identified by analysis of chromatin interactions.'; Dixon JR1, Selvaraj S, Yue F, Kim A, Li Y, Shen Y, Hu M, Liu JS, Ren B."
+NG_CITE_MCL="Methods Mol Biol. 2012;804:281-95. doi: 10.1007/978-1-61779-361-5_15.;'Using MCL to extract clusters from networks.';van Dongen S1, Abreu-Goodger C."
 
->>>>>>> origin/master
 ##############################################################
 # PROGRAM PATHS
 ##############################################################
