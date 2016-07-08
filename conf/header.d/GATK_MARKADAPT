@@ -1,0 +1,10 @@
+##############################################################
+# Mark adapters using Picard 
+# https://www.broadinstitute.org/gatk/guide/topic?name=tutorials
+TASK_GATK_MARKADAPT="gatk_markadapt"
+WALLTIME_GATK_MARKADAPT=05:00:00
+MEMORY_GATK_MARKADAPT=16
+CPU_GATK_MARKADAPT=1
+NODES_GATK_MARKADAPT="nodes=1:ppn=1"
+INPUT_GATK_MARKADAPT=$TASK_GATK_UBAM
+MODULE_GATK_MARKADAPT="${NG_JAVA} ${NG_PICARD}"

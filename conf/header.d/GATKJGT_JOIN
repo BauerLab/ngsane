@@ -1,0 +1,10 @@
+##############################################################
+# Joining of all g.vcfs in a given directory as a first step
+# for joint genotyping as recommended by the Broad Institute 
+TASK_GATKJGT_JOIN="gatkjgt_join"
+WALLTIME_GATKJGT_JOIN=02:00:00
+MEMORY_GATKJGT_JOIN=64
+CPU_GATKJGT_JOIN=1
+NODES_GATKJGT_JOIN="nodes=1:ppn=20"
+INPUT_GATKJGT_JOIN="gvcf"
+MODULE_GATKJGT_JOIN="${NG_JAVA} ${NG_GATK}"

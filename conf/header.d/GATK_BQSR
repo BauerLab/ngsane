@@ -1,0 +1,10 @@
+##############################################################
+# Running GATK_BQSR as recommended by the Broad Institute
+# http://gatkforums.broadinstitute.org/gatk/discussion/2801/howto-recalibrate-base-quality-scores-run-bqsr 
+TASK_GATK_BQSR="gatk_bqsr"
+WALLTIME_GATK_BQSR=08:00:00
+MEMORY_GATK_BQSR=64
+CPU_GATK_BQSR=20
+NODES_GATK_BQSR="nodes=1:ppn=20"
+INPUT_GATK_BQSR=$TASK_GATK_INDREAL
+MODULE_GATK_BQSR="${NG_JAVA} ${NG_GATK} ${NG_R}"

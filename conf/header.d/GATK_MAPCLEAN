@@ -1,0 +1,10 @@
+##############################################################
+# Implements steps 3a, b and c from of Broad Institutes tutorial
+# http://gatkforums.broadinstitute.org/gatk/discussion/6483/how-to-map-and-clean-up-short-read-sequence-data-efficiently 
+TASK_GATK_MAPCLEAN="gatk_mapclean"
+WALLTIME_GATK_MAPCLEAN=08:00:00
+MEMORY_GATK_MAPCLEAN=16
+CPU_GATK_MAPCLEAN=20
+NODES_GATK_MAPCLEAN="nodes=1:ppn=20"
+INPUT_GATK_MAPCLEAN=$TASK_GATK_MARKADAPT
+MODULE_GATK_MAPCLEAN="${NG_JAVA} ${NG_PICARD} ${NG_BWA}"

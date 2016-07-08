@@ -1,0 +1,28 @@
+#!/bin/bash -e
+# autor Tim Kahlke 
+
+################################################################################
+#   Trigger command for pipelines
+################################################################################
+
+
+if [ -n "$RUN_GATK_PIP" ]; then
+        
+    JOBIDS_GATK_UBAM=$(NGSANE_PIPELINE_MOD "GATK_UBAM")
+    
+    JOBIDS_GATK_MARKADAPT=$(NGSANE_PIPELINE_MOD "GATK_MARKADAPT" "$JOBIDS_GATK_UBAM")
+    
+    JOBIDS_GATK_MAPCLEAN=$(NGSANE_PIPELINE_MOD "GATK_MAPCLEAN" "$JOBIDS_GATK_MARKADAPT")
+
+    JOBIDS_GATK_MARKDUPS=$(NGSANE_PIPELINE_MOD "GATK_MARKDUPS" "$JOBIDS_ATK_MAPCLEAN")
+    
+    JOBIDS_GATK_INDREAL=$(NGSANE_PIPELINE_MOD "GATK_INDREAL" "$JOBIDS_GATK_MARKDUPS")
+
+    JOBIDS_GATK_BQSR=$(NGSANE_PIPELINE_MOD "GATK_BQSR" "$JOBIDS_GATK_INDREAL")
+
+    JOBIDS_GATK_HAPLO=$(NGSANE_PIPELINE_MOD "GATK_HAPLO" "$JOBIDS_GATK_BQSR")
+
+fi
+
+
+

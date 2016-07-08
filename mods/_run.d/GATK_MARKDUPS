@@ -1,0 +1,38 @@
+#!/bin/bash -e
+
+################################################################################
+# IN : $SOURCE/$dir/INPUT_GATK_MARKDUPS/*.bam
+# OUT: $OUT/$dir/TASK_GATK_MARKDUPS/*.bam
+################################################################################
+
+if [ -n "$RUNGATK_MARKDUPS" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/[MOD]
+        if [ -z "$TASK_GATK_MARKDUPS" ] || [ -z "$NODES_GATK_MARKDUPS" ] || [ -z "$CPU_GATK_MARKDUPS" ] || [ -z "$MEMORY_GATK_MARKDUPS" ] || [ -z "$WALLTIME_GATK_MARKDUPS" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+        
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_GATK_MARKDUPS -i $INPUT_GATK_MARKDUPS -e bam \
+            -n $NODES_GATK_MARKDUPS -c $CPU_GATK_MARKDUPS -m $MEMORY_GATK_MARKDUPS"G" -w $WALLTIME_GATK_MARKDUPS \
+            --command "$NGSANE_BASE/mods/gatk_markdups.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_GATK_MARKDUPS"
+
+    
+
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+        echo "[NOTE] the markdups.sh mod does not provide a report"
+
+    fi
+fi
+
+
+      
+                   
+    ############################################################################
+    # Select either of the one below to provide a report for this mod

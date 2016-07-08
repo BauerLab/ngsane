@@ -1,0 +1,37 @@
+#!/bin/bash -e
+
+################################################################################
+#   Trigger command for individual [MOD]
+#
+# IN : $SOURCE/$dir/INPUT_GATK_UBAM/*.fastq
+# OUT: $OUT/$dir/TASK_GATK_UBAM/*.fastq
+################################################################################
+
+if [ -n "$RUNGATK_UBAM" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/[MOD]
+        if [ -z "$TASK_GATK_UBAM" ] || [ -z "$NODES_GATK_UBAM" ] || [ -z "$CPU_GATK_UBAM" ] || [ -z "$MEMORY_GATK_UBAM" ] || [ -z "$WALLTIME_GATK_UBAM" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+        
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_GATK_UBAM -i $INPUT_GATK_UBAM -e $READONE.$FASTQ \
+            -n $NODES_GATK_UBAM -c $CPU_GATK_UBAM -m $MEMORY_GATK_UBAM"G" -w $WALLTIME_GATK_UBAM \
+            --command "$NGSANE_BASE/mods/gatk_ubam.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_GATK_UBAM"
+
+
+      
+                   
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+        echo "[NOTE] the ubam.sh mod does not provide a report"
+
+    fi
+
+fi
+

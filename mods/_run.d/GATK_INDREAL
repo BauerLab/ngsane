@@ -1,0 +1,40 @@
+#!/bin/bash -e
+
+################################################################################
+#   Trigger command for individual [MOD]
+#
+# IN : $SOURCE/$dir/INPUT_GATK_INDREAL/*.bam
+# OUT: $OUT/$dir/TASK_GATK_INDREAL/*.ind_real.bam
+################################################################################
+
+if [ -n "$RUNGATK_INDREAL" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/[MOD]
+        if [ -z "$TASK_GATK_INDREAL" ] || [ -z "$NODES_GATK_INDREAL" ] || [ -z "$CPU_GATK_INDREAL" ] || [ -z "$MEMORY_GATK_INDREAL" ] || [ -z "$WALLTIME_GATK_INDREAL" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+        
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_GATK_INDREAL -i $INPUT_GATK_INDREAL -e bam \
+            -n $NODES_GATK_INDREAL -c $CPU_GATK_INDREAL -m $MEMORY_GATK_INDREAL"G" -w $WALLTIME_GATK_INDREAL \
+            --command "$NGSANE_BASE/mods/gatk_indreal.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_GATK_INDREAL"
+
+
+
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+        echo "[NOTE] the indreal.sh mod does not provide a report"
+
+    fi
+fi
+
+
+      
+                   
+    ############################################################################
+    # Select either of the one below to provide a report for this mod

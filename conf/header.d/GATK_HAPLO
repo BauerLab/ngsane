@@ -1,0 +1,11 @@
+##############################################################
+# Calling variants and create a gvcf file as recommended by 
+# the Broad institute in
+# http://gatkforums.broadinstitute.org/gatk/discussion/3893/calling-variants-on-cohorts-of-samples-using-the-haplotypecaller-in-gvcf-mode 
+TASK_GATK_HAPLO="gatk_haplo"
+WALLTIME_GATK_HAPLO=08:00:00
+MEMORY_GATK_HAPLO=64
+CPU_GATK_HAPLO=20
+NODES_GATK_HAPLO="nodes=1:ppn=20"
+INPUT_GATK_HAPLO=$TASK_GATK_BQSR
+MODULE_GATK_HAPLO="${NG_JAVA} ${NG_GATK} ${NG_R}"

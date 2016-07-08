@@ -1,0 +1,40 @@
+#!/bin/bash -e
+
+################################################################################
+#   Trigger command for individual [MOD]
+#
+# IN : $SOURCE/$dir/INPUT_GATK_HAPLO/*.bam
+# OUT: $OUT/$dir/TASK_GATK_HAPLO/*.gvcf
+################################################################################
+
+if [ -n "$RUNGATK_HAPLO" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/[MOD]
+        if [ -z "$TASK_GATK_HAPLO" ] || [ -z "$NODES_GATK_HAPLO" ] || [ -z "$CPU_GATK_HAPLO" ] || [ -z "$MEMORY_GATK_HAPLO" ] || [ -z "$WALLTIME_GATK_HAPLO" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+        
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_GATK_HAPLO -i $INPUT_GATK_HAPLO -e bam \
+            -n $NODES_GATK_HAPLO -c $CPU_GATK_HAPLO -m $MEMORY_GATK_HAPLO"G" -w $WALLTIME_GATK_HAPLO \
+            --command "$NGSANE_BASE/mods/gatkhaplo.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_GATK_HAPLO"
+
+   
+
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+        echo "[NOTE] the gatkhaplo.sh mod does not provide a report"
+
+    fi
+fi
+
+
+      
+                   
+    ############################################################################
+    # Select either of the one below to provide a report for this mod

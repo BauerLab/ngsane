@@ -1,0 +1,11 @@
+##############################################################
+# Mark duplicate as recommended in teh Broad institute's
+# Best practice
+# http://gatkforums.broadinstitute.org/gatk/discussion/6747 
+TASK_GATK_MARKDUPS="gatk_markdups"
+WALLTIME_GATK_MARKDUPS=02:00:00
+MEMORY_GATK_MARKDUPS=64
+CPU_GATK_MARKDUPS=1
+NODES_GATK_MARKDUPS="nodes=1:ppn=1"
+INPUT_GATK_MARKDUPS=$TASK_GATK_MARKDUPS
+MODULE_GATK_GATK_MARKDUPS="${NG_JAVA} ${NG_PICARD}"

@@ -1,0 +1,9 @@
+##############################################################
+# Picard 
+TASK_GATK_UBAM="gatk_ubam"
+WALLTIME_GATK_UBAM=02:00:00
+MEMORY_GATK_UBAM=16
+CPU_GATK_UBAM=1
+NODES_GATK_UBAM="nodes=1:ppn=1"
+INPUT_GATK_UBAM="fastq"
+MODULE_GATK_UBAM="${NG_JAVA} ${NG_PICARD}"

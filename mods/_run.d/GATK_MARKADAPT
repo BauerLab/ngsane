@@ -1,0 +1,43 @@
+#!/bin/bash -e
+
+################################################################################
+#   Trigger command for individual [MOD]
+#
+# IN : $SOURCE/$dir/INPUT_GATK_MARKADAPT/*.bam
+# OUT: $OUT/$dir/TASK_GATK_MARKADAPT/*.bam
+################################################################################
+
+if [ -n "$RUNGATK_MARKADAPT" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/[MOD]
+        if [ -z "$TASK_GATK_MARKADAPT" ] || [ -z "$NODES_GATK_MARKADAPT" ] || [ -z "$CPU_GATK_MARKADAPT" ] || [ -z "$MEMORY_GATK_MARKADAPT" ] || [ -z "$WALLTIME_GATK_MARKADAPT" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+        
+        # Choose ONE qsub call from below and fill in the variables as required and adapt as required
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_GATK_MARKADAPT -i $INPUT_GATK_MARKADAPT -e bam \
+        -n $NODES_GATK_MARKADAPT -c $CPU_GATK_MARKADAPT -m $MEMORY_GATK_MARKADAPT"G" -w $WALLTIME_GATK_MARKADAPT \
+        --command "$NGSANE_BASE/mods/gatk_markadapt.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_GATK_MARKADAPT"
+
+
+   
+
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+        echo "[NOTE] the markadapt.sh mod does not provide a report"
+
+    fi
+ 
+    
+fi
+
+
+      
+                   
+    ############################################################################
+    # Select either of the one below to provide a report for this mod

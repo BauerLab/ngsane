@@ -1,0 +1,13 @@
+##############################################################
+# Joint genotyping of cohort gvcf files with GATK
+# http://www.broadinstitute.org/gatk/
+# GATK JGTCALL
+TASK_GATKJGT_GT="joint_genotyping"
+WALLTIME_GATKJGT_GT=24:00:00
+MEMORY_GATKJGT_GT=64
+CPU_GATKJGT_GT=20
+NODES_GATKJGT_GT="nodes=1:ppn=20"
+INPUT_GATKJGT_GT=$TASK_GATKJGT_GVCF
+MODULE_GATKJGT_GT="${NG_JAVA} ${NG_R} ${NG_GATK}"
+
+

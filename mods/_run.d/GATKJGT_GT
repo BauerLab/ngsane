@@ -1,0 +1,36 @@
+#!/bin/bash -e
+
+################################################################################
+#   Trigger command for individual [MOD]
+#
+# IN : $SOURCE/$dir/TASK_GATKJGT_GVCF/*.[inputfile.suffix]
+# OUT: $OUT/$dir/TASK_GATKJGT_GT/*.[outputfile.suffix]
+################################################################################
+
+if [ -n "$RUNGATKJGT_GT" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/[MOD]
+        if [ -z "$TASK_GATKJGT_GT" ] || [ -z "$NODES_GATKJGT_GT" ] || [ -z "$CPU_GATKJGT_GT" ] || [ -z "$MEMORY_GATKJGT_GT" ] || [ -z "$WALLTIME_GATKJGT_GT" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+
+
+        $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_GATKJGT_GT -i $INPUT_GATKJGT_GT -e $GVCF \
+            -n $NODES_GATKJGT_GT -c $CPU_GATKJGT_GT -m $MEMORY_GATKJGT_GT"G" -w $WALLTIME_GATKJGT_GT \
+            --command "${NGSANE_BASE}/mods/gatkJGT_gt.sh -k $CONFIG -i <FILE> -o $OUT/<DIR>/$TASK_GATKJGT_GT"
+
+
+        
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+        echo "[NOTE] the gatkJGT_gt.sh mod does not provide a report"
+    fi
+    
+    # done
+fi
+

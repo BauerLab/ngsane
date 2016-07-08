@@ -1,0 +1,39 @@
+#!/bin/bash -e
+
+################################################################################
+#   Trigger command for individual [MOD]
+#
+# IN : $SOURCE/$dir/INPUT_GAK_BQSR/*.bam
+# OUT: $OUT/$dir/TASK_GAK_BQSR/*.
+################################################################################
+
+if [ -n "$RUNGAK_BQSR" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/[MOD]
+        if [ -z "$TASK_GAK_BQSR" ] || [ -z "$NODES_GAK_BQSR" ] || [ -z "$CPU_GAK_BQSR" ] || [ -z "$MEMORY_GAK_BQSR" ] || [ -z "$WALLTIME_GAK_BQSR" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+        
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -r -k $CONFIG -t $TASK_GAK_BQSR -i $INPUT_GAK_BQSR -e bam \
+            -n $NODES_GAK_BQSR -c $CPU_GAK_BQSR -m $MEMORY_GAK_BQSR"G" -w $WALLTIME_GAK_BQSR \
+            --command "$NGSANE_BASE/mods/gatk_bqsr.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_GAK_BQSR"
+
+
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+        echo "[NOTE] the bqsr.sh mod does not provide a report"
+
+    fi
+fi
+
+
+      
+                   
+    ############################################################################
+    # Select either of the one below to provide a report for this mod

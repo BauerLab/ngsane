@@ -1,0 +1,32 @@
+#!/bin/bash -e
+
+################################################################################
+#   Trigger command for individual GATKJGT_JOIN
+#
+# IN : $SOURCE/$dir/INPUT_GATKJGT_JOIN/*.[inputfile.suffix]
+# OUT: $OUT/$dir/TASK_GATKJGT_JOIN/*.[outputfile.suffix]
+################################################################################
+
+
+if [ -n "$RUNGATKJGT_JOIN" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        $QSUB $ARMED $NGSANE_WAITFORJOB --givenDirs "." -d -k $CONFIG -t $TASK_GATKJGT_JOIN -i $INPUT_GATKJGT_JOIN -e $GVCF \
+            -n $NODES_GATKJGT_JOIN -c $CPU_GATKJGT_JOIN -m $MEMORY_GATKJGT_JOIN"G" -w $WALLTIME_GATKJGT_JOIN \
+            --command "${NGSANE_BASE}/mods/GATKJGT_JOIN.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_GATKJGT_JOIN"
+
+
+      
+                   
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+        echo "[NOTE] the GATKJGT_JOIN.sh mod does not provide a report"
+    fi
+    
+    # done
+fi
+
