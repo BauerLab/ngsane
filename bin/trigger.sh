@@ -202,5 +202,3 @@ if [ ! -d $TMP ]; then mkdir -p $TMP; fi
 
 # source module triggers
 for RUN_MODS in ${NGSANE_BASE}/mods/_run.d/* ; do source $RUN_MODS; done
-
-

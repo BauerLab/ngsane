@@ -1,0 +1,37 @@
+#!/bin/bash -e
+
+################################################################################
+#   Trigger command for individual [MOD]
+#
+# IN : $SOURCE/$dir/INPUT_VEP/*.fastq
+# OUT: $OUT/$dir/TASK_VEP/*.fastq
+################################################################################
+
+if [ -n "$RUNVEP" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/[MOD]
+        if [ -z "$TASK_VEP" ] || [ -z "$NODES_VEP" ] || [ -z "$CPU_VEP" ] || [ -z "$MEMORY_VEP" ] || [ -z "$WALLTIME_VEP" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+        
+    
+        $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_VEP -i $INPUT_VEP -e $VCF \
+            -n $NODES_VEP -c $CPU_VEP -m $MEMORY_VEP"G" -w $WALLTIME_VEP \
+            --command "$NGSANE_BASE/mods/vep.sh -k $CONFIG -f <FILE> -o $OUT/<DIR>/$TASK_VEP"
+
+
+      
+                   
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+        echo "[NOTE] the vep.sh mod does not provide a report"
+
+    fi
+
+fi
+

@@ -32,7 +32,7 @@ NG_JAVA=
 NG_FASTQC=
 NG_SAMTOOLS=
 NG_IGVTOOLS=
-NG_GATK=
+NG_GATK="gatk/3.5.0"
 NG_BWA=
 NG_IMAGEMAGIC=
 NG_PICARD=
@@ -155,6 +155,7 @@ BINQSUB=${NGSANE_BASE}/core/jobSubmission.sh
 READONE="_read1"
 READTWO="_read2"
 FASTQ="fastq.gz"
+GVCF="gvcf"
 FASTA=            # fasta file usually from the reference genome
 
 # file infixes

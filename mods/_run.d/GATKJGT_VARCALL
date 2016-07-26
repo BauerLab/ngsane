@@ -1,0 +1,36 @@
+#!/bin/bash -e
+
+################################################################################
+#   Trigger command for individual [MOD]
+#
+# IN : $SOURCE/$dir/TASK_GATKJGT_GVCF/*.[inputfile.suffix]
+# OUT: $OUT/$dir/TASK_GATKJGT_VARCALL/*.[outputfile.suffix]
+################################################################################
+
+if [ -n "$RUNGATKJGT_VARCALL" ] || [ -n "$NGSANE_PIPELINECALL" ]; then
+    
+    ############################################################################
+    # Wether to submit a job or compile a report
+    if [ -z "$NGSANE_COMPILE_REPORT" ]; then
+
+        # HPC variables as defined in the corresponding resource script at NGSANE_BASE/conf/header.d/[MOD]
+        if [ -z "$TASK_GATKJGT_VARCALL" ] || [ -z "$NODES_GATKJGT_VARCALL" ] || [ -z "$CPU_GATKJGT_VARCALL" ] || [ -z "$MEMORY_GATKJGT_VARCALL" ] || [ -z "$WALLTIME_GATKJGT_VARCALL" ]; then 
+            echo -e "\e[91m[ERROR]\e[0m Server misconfigured"; exit 1; 
+        fi
+
+
+        $QSUB $ARMED $NGSANE_WAITFORJOB -k $CONFIG -t $TASK_GATKJGT_VARCALL -i $INPUT_GATKJGT_VARCALL -e $GVCF \
+            -n $NODES_GATKJGT_VARCALL -c $CPU_GATKJGT_VARCALL -m $MEMORY_GATKJGT_VARCALL"G" -w $WALLTIME_GATKJGT_VARCALL \
+            --command "${NGSANE_BASE}/mods/gatkJGT_varcall.sh -k $CONFIG -i <FILE> -o $OUT/<DIR>/$TASK_GATKJGT_VARCALL"
+
+
+        
+    ############################################################################
+    # Select either of the one below to provide a report for this mod
+    elif [ -n "$NGSANE_COMPILE_REPORT" ]; then
+        echo "[NOTE] the gatkJGT_gt.sh mod does not provide a report"
+    fi
+    
+    # done
+fi
+

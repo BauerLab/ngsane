@@ -70,7 +70,8 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
         # separate folder from sample pattern
         DIRNAME=${dir%%/*}
         SAMPLEPATTERN=${dir/$DIRNAME/}
-    
+   
+
         # ensure dirs are there
         if [ -z "$NODIR" ]; then
             if [ ! -d $OUT/$DIRNAME/$TASK ]; then 
@@ -91,7 +92,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                 LOGFILE=$(echo $LOGFILE | sed 's|\.\.|.|g' | sed 's|\._||g' | sed 's|\.$||g')
 
                 if [ "$KEEP" = "new" ] && [ -f $LOGFILE ]; then
-                    # check if file has been processed previousely
+                    # check if file has been processed previously
                 	COMMANDARR=(${COMMAND// / })
                 	DUMMY="echo "$(egrep "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)
@@ -114,7 +115,7 @@ if [[ ! -e $QOUT/$TASK/runnow.tmp || "$KEEP" || "$DEBUG" ]]; then
                 LOGFILE=$(echo $LOGFILE | sed 's|\.\.|.|g' | sed 's|\._||g' | sed 's|\.$||g')
 
                 if [ "$KEEP" = "new" ] && [ -f $LOGFILE ]; then
-                    # check if file has been processed previousely
+                    # check if file has been processed previously
                 	COMMANDARR=(${COMMAND// / })
                 	DUMMY="echo "$(egrep "^# *RESULTFILENAME" ${COMMANDARR[0]} | cut -d " " -f 3- | sed "s/<SAMPLE>/$name/" | sed "s/<DIR>/$DIRNAME/" | sed "s/<TASK>/$TASK/")
                     D=$(eval $DUMMY)

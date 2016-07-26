@@ -1,0 +1,11 @@
+##############################################################
+# Variant calling pipeline from ubam files to g.vcf files
+#  as recommended by the Braod Institute
+#
+TASK_GATKJGT_VARCALL="gatkjgt_varcall"
+WALLTIME_GATKJGT_VARCALL=24:00:00
+MEMORY_GATKJGT_VARCALL=128
+CPU_GATKJGT_VARCALL=20
+NODES_GATKJGT_VARCALL="nodes=1:ppn=20"
+INPUT_GATKJGT_VARCALL="bam"
+MODULE_GATKJGT_VARCALL="${NG_JAVA} ${NG_PICARD} ${NG_BWA} ${NG_GATK} ${NG_R}"

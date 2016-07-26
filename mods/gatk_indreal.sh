@@ -37,6 +37,7 @@ done
 
 
 
+
 #PROGRAMS
 . $CONFIG
 . ${NGSANE_BASE}/conf/header.sh
@@ -100,6 +101,13 @@ if [ -z "$NGSANE_RECOVERFROM" ]; then
   fi  
 fi
 
+
+REG=""
+if [ -n $REGION ]; then
+    REG="-L $REGION"
+fi
+
+
 # unique temp folder that should be used to store temporary files
 THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
 [ -d $THISTMP ] && rm -r $THISTMP
@@ -124,7 +132,7 @@ NGSANE_CHECKPOINT_INIT "create target intervals"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    java $JAVAPARAMS -jar $PATH_GATK_JAR -T RealignerTargetCreator \
+    java $JAVAPARAMS -jar $PATH_GATK_JAR -T RealignerTargetCreator $REG \
     -R $REFERENCE \
     -nt 20 \
     -known $KNOWN \
@@ -142,9 +150,8 @@ NGSANE_CHECKPOINT_INIT "realign indels"
 
 if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 
-    java $JAVAPARAMS -jar $PATH_GATK_JAR -T IndelRealigner \
+    java $JAVAPARAMS -jar $PATH_GATK_JAR -T IndelRealigner $REG \
     -R $REFERENCE \
-    -nt 20 \
     -targetIntervals $OUTDIR/$FILENAME.realignertargets.intervals \
     -known $KNOWN \
     -I $INPUTFILE \

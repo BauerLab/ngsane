@@ -1,0 +1,13 @@
+#!/bin/bash -e
+
+################################################################################
+#  Gene expression analysis pipeline with tophat + cufflinks + htseqcount
+################################################################################       
+
+if [ -n "$RUNUBAMMARKADAPT" ]; then
+
+    JOBIDS_GATK_UBAM=$(NGSANE_PIPELINE_MOD "GATK_UBAM")
+
+    JOBIDS_GATK_MARKADAPT=$(NGSANE_PIPELINE_MOD "GATK_MARKADAPT" "$JOBIDS_GATK_UBAM")
+
+fi

@@ -1,13 +1,13 @@
 #!/bin/bash -e
 
-# Script for creating uBam files
+# Script for annotating variants using vep 
 # author: Tim Kahlke
 # date: July 2016
 
 # QCVARIABLES,Resource temporarily unavailable
-# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.ubam.bam
+# RESULTFILENAME <DIR>/<TASK>/<SAMPLE>.vcf
 
-echo ">>>>> fastq to ubam conversion"
+echo ">>>>> Variant annotation using VEP"
 echo ">>>>> startdate "`date`
 echo ">>>>> hostname "`hostname`
 echo ">>>>> job_name "$JOB_NAME
@@ -25,7 +25,7 @@ if [ ! $# -gt 3 ]; then usage ; fi
 while [ "$1" != "" ]; do
     case $1 in
         -k | --toolkit )        shift; CONFIG=$1 ;;     # location of the NGSANE repository                      
-        -f | --fastq )          shift; f=$1 ;; # fastq file 
+        -f | --fastq )          shift; INPUTFILE=$1 ;; # fastq file 
         -o | --outdir )         shift; OUTDIR=$1 ;;     # output dir                                                     
         --recover-from )        shift; NGSANE_RECOVERFROM=$1 ;; # attempt to recover from log file
         -h | --help )           usage ;;
@@ -33,6 +33,14 @@ while [ "$1" != "" ]; do
     esac
     shift
 done
+
+
+#DEFAULT
+LOFTEE=1
+PARAMS="--everything"
+DBNSFP=1
+SPECIES="homo_sapiens"
+
 
 #PROGRAMS
 . $CONFIG
@@ -43,19 +51,16 @@ done
 NGSANE_CHECKPOINT_INIT "programs"
 
 # save way to load modules that itself load other modules
-hash module 2>/dev/null && for MODULE in $MODULE_GATK_UBAM; do module load $MODULE; done && module list
+hash module 2>/dev/null && for MODULE in $MODULE_VEP; do module load $MODULE; done && module list
 
 echo "[NOTE] set java parameters"
-JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_GATK_UBAM*0.75)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1"
+JAVAPARAMS="-Xmx"$(python -c "print int($MEMORY_VEP*0.75)")"g -Djava.io.tmpdir="$TMP" -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1"
 unset _JAVA_OPTIONS
 echo "JAVAPARAMS "$JAVAPARAMS
 
-PATH_PICARD_JAR=$(which picard.jar)
+PATH_VEP_PL=$(which variant_effect_predictor.pl)
 echo "PATH=$PATH"
-echo -e "--JAVA        --\n" $(java -Xmx200m -version 2>&1)
-[ -z "$(which java)" ] && echo "[ERROR] no java detected" && exit 1
-[ ! -f $PATH_PICARD_JAR ] && echo "[ERROR] no picard detected" && exit 1
-
+[ ! -f $PATH_VEP_PL ] && echo "[ERROR] No variant_effect_predictor.pl detected" && exit 1
 
 echo -e "--NGSANE      --\n" $(trigger.sh -v 2>&1)
 
@@ -66,12 +71,12 @@ NGSANE_CHECKPOINT_CHECK
 NGSANE_CHECKPOINT_INIT "parameters"
 
 # get basename of input file f
-IFILE=${f##*/}
+IFILE=${INPUTFILE##*/}
 FILENAME=${IFILE%.*}
 
 
-if [ -z $SAMPLENAME ]; then
-    echo "[ERRPR] Sample name empty"
+if [ -z $CACHE_DIR ]; then
+    echo "[ERRPR] No cache dir given"
     exit 1
 fi
 
@@ -82,36 +87,42 @@ if [ -z "$NGSANE_RECOVERFROM" ]; then
   fi  
 fi
 
-if [ -z $READGROUP ]; then
-    echo "[ERRPR] Read group empty"
+if [ -z $PLUGIN_DIR ]; then
+    echo "[ERRPR] No plugin dir given"
     exit 1;
 fi
 
-if [ -z $LIBRARY ]; then
-    echo "[ERRPR] Library name empty"
+if [ -z $FORMAT ]; then
+    echo "[ERRPR] no format of input file given"
     exit 1
 fi
 
 
-if [ -z "$PLATFORM" ]; then
-    echo "No platform information given"
+if [ -n $LOFTEE && -z $LOFTEE_ANCESTOR ]; then
+    echo "[ERRPR] No path to loftee human_ancestor.fa given"
     exit 1
 fi
 
+if [ -n $LOFTEE_ANCESTOR && ! -f "$LOFTEE_ANCESTOR.fai"]; then
+    echo "No index for $LOFTEE_ANCESTOR found. Use samtools to create an index first"
+    exit 1
+fi
+
+if [ -n $DBNSFP && -z $DBNSFP_DB ]; then
+    echo "No database file given for dbNSFP"
+    exit 1
+fi
+
+if [-n $DBNSFP_DP && ! -f "$DBNSFP_DP.tbi" ]; then
+    echo "No index file for dbNSFP found. Please use tabix to create an index first"
+    exit 1
+fi
 
 OPT_STRING=""
 
-if [ -n "$RUN_DATE" ]; then
-    OPT_STRING="$OPT_STRING RUN_DATE=$RUN_DATE"
-fi
 
-if [ -n "$PLATFORM_UNIT" ]; then
-    OPT_STRING="$OPT_STRING PLATFORM_UNIT=$PLATFORM_UNIT"
-fi
 
-if [ -n "$SEQUENCING_CENTER" ]; then
-    OPT_STRING="$OPT_STRING SEQUENCING_CENTER=$SEQUENCING_CENTER"
-fi
+
 
 echo "String of optional params = $OPT_STRING"
 
@@ -153,6 +164,6 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
 fi
 
 ################################################################################
-[ -e $OUTDIR/$FILENAME.ubam.bam ] && rm $OUTDIR/$FILENAME*.ubam.bam.dummy
+[ -e $OUTDIR/$FILENAME.ubam.bam ] && rm $OUTDIR/*.ubam.bam.dummy
 echo ">>>>> creating unmapped bam - FINISHED"
 echo ">>>>> enddate "`date`

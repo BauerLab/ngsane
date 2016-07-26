@@ -1,0 +1,85 @@
+# author: Tim Kahlke
+# date: June 2016
+# compatible: NGSANE v0.5.x
+
+#####################################
+# Resources
+#####################################
+
+#********************
+# Tasks
+#********************
+
+RUNGATKJGT="1"     # variance  calling with GATK
+
+#********************
+# Paths
+#********************
+
+SOURCE=$(pwd)
+
+# which folder to run on (i.e. directory with gvcf files)
+declare -a DIR; DIR=( sample1 sample2 )
+
+# folder/task containing the data this task operates on
+INPUT_GATKJGT="fastq"
+
+# where to write the output
+OUT=$SOURCE
+
+# where to write the log files
+QOUT=$OUT/qout
+
+#********************
+# PARAMETER (mandatory)
+#********************
+
+# reference genome
+# e.g. /share/ClusterShare/biodata/contrib/genomeIndices_garvan/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa
+# or ${NGSANE_REFERENCE}/b37/human_g1k_v37.fasta
+REFERENCE=
+
+# location of SNP database file dbsnp.vcf (double-check genome assembly)
+# e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/dbsnp_137.hg19.vcf 
+# or   $NGSANE_REFERENCE/gatk_resources_1.5/dbsnp_135.b37.vcf
+DBSNPVCF=
+
+# location of HapMap vcf file (double-check genome assembly)
+# e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/hapmap_3.3.hg19.vcf
+# or   $NGSANE_REFERENCE/gatk_resources_1.5/hapmap_3.3.b37.vcf
+HAPMAPVCF=
+
+# location of 1k Genome vcf file (double-check genome assembly)
+# e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/1000G_omni2.5.hg19.vcf
+# or   $NGSANE_REFERENCE/gatk_resources_1.5/1000G_omni2.5.b37.vcf
+ONEKSNPS=
+
+# location of 1k Genome vcf file (double-check genome assembly)
+# # e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/1000G_omni2.5.hg19.vcf
+# # or   $NGSANE_REFERENCE/gatk_resources_1.5/1000G_omni2.5.b37.vcf
+ONEKOMNI=
+
+# location of mills & 1k gold standard snps
+# # e.g. /share/ClusterShare/biodata/contrib/GATK/2.5/hg19/1000G_omni2.5.hg19.vcf
+# # or   $NGSANE_REFERENCE/gatk_resources_1.5/1000G_omni2.5.b37.vcf
+#
+MILLS=
+
+
+#********************
+# PARAMETER (optional overwriting defaults)
+#********************
+
+# Sometimes needs to be <=4 for the model to run prop3rly
+MAXGAUS=
+
+# comment out to use Inbreeding coefficient annotation in model training.
+# Should not be used for closely related individuals or cohorts with
+# less than 10 samples.
+#INBRED="-an InbreedingCoeff"
+
+#WALLTIME_GATKJGT=24:00:00
+#MEMORY_GATKJGT=8
+#CPU_GATKJGT=20
+#NODES_GATKJGT="nodes=1:ppn=20"
+#MODULE_GATK=
