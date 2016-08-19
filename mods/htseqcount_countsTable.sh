@@ -70,6 +70,11 @@ IFS=" "
 
 echo "[NOTE] Datasets: $DATASETS"
 
+if [[ -n "$HTSEQCOUNT_USECUFFMERGEGTF" ]] && [[ -n "$MERGED_GTF_NAME" ]] && [[ -f $OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf ]] ; then
+    GTF=$OUT/expression/$TASK_CUFFLINKS/$MERGED_GTF_NAME.gtf
+    echo "[NOTE] Using GTF from cuffmerge"
+fi
+
 annoF=${GTF##*/}
 anno_version=${annoF%.*}
 
@@ -116,7 +121,6 @@ if [[ $(NGSANE_CHECKPOINT_TASK) == "start" ]]; then
                 for THISFILE in "${array[@]}"; do
                     [ -f $THISFILE ] && echo $THISFILE "Found" >> ${THISTMP}/files.txt || echo "Not found" >> ${THISTMP}/files.txt           
                 done
-       
                 if grep -q "Not found" ${THISTMP}/files.txt;then    
                     echo "[NOTE] ${GTF}.${MODE}.${ATTR} - at least one sample does not have gtf, skipping."            
                 else

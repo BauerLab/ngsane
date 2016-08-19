@@ -82,7 +82,7 @@ HICLIB_CHROMOSOME=16
 # uncomment to keep intermediate bam files from iterative mapping
 #HICLIB_KEEPBAM=1
 
-FITHICADDPARAM="--lowerbound 5000 --upperbound 5000000"
+FITHICADDPARAM="--lowerbound 5000 --upperbound 5000000 --plotImages"
 HIC_RESOLUTION="1000000"
 
 # Mappability track
@@ -99,6 +99,7 @@ FITHIC_CHROMOSOMES='^16$'
 # e.g FITHIC_KEEPCONTACTMATRIX="1"
 FITHIC_KEEPCONTACTMATRIX="1"
 
+FITHIC_CISONLY="1"
 
 #********************
 # Resources

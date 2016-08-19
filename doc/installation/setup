@@ -242,6 +242,10 @@ pip install --upgrade joblib
 pip install --upgrade biopython
 pip install --upgrade scipy
 pip install --upgrade ngslib
+pip install --upgrade rosetta
+pip install --upgrade MySQL-python
+pip install --upgrade pymongo
+pip install --upgrade nltk
 
 yolk -l
 
