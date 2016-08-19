@@ -136,6 +136,11 @@ fi
 ## /reCalAln/name$ASD.bam -> /reCalAln/name$ASD.real
 #f3=${f2/%bam/real.bam}
 
+# unique temp folder that should be used to store temporary files
+THISTMP=$TMP"/"$(whoami)"/"$(echo $OUTDIR | md5sum | cut -d' ' -f1)
+mkdir -p $THISTMP
+
+
 NGSANE_CHECKPOINT_CHECK
 ################################################################################
 NGSANE_CHECKPOINT_INIT "recall files from tape"
