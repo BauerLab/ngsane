@@ -22,7 +22,7 @@ SOURCE=$(pwd)
 declare -a DIR; DIR=( sample1 sample2 )
 
 # folder/task containing the data this task operates on
-INPUT_GATKVAR=$TASK_RECAL
+INPUT_GATKVAR=$TASK_RECALALN
 
 # where to write the output
 OUT=$SOURCE
